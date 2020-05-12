@@ -72,7 +72,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     {
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
 
-        when( mockResultSet.getLong( "programid" ) ).thenReturn( 100L );
+        when( mockResultSet.getLong( "id" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
         when( mockResultSet.getString( "name" ) ).thenReturn( "My Program" );
@@ -90,7 +90,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "ps_name" ) ).thenReturn( "name5", "name6" );
         when( mockResultSet.getInt( "sort_order" ) ).thenReturn( 1, 2 );
         when( mockResultSet.getString( "ps_public_access" ) ).thenReturn( "rw------" );
-        when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, FeatureType.POINT.value() );
+        when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
         when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
 
         when( mockResultSet.getObject( "uid" ) ).thenReturn( "abcded" );

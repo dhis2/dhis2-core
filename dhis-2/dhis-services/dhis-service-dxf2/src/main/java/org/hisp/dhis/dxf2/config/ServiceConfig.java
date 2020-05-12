@@ -108,8 +108,7 @@ public class ServiceConfig
     private ConfigurationPropertyFactoryBean maxAttempts;
 
     @Bean
-    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
         return new NamedParameterJdbcTemplate( jdbcTemplate );
     }

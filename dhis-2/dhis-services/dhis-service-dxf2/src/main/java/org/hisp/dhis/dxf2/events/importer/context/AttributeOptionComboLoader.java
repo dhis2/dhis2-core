@@ -100,37 +100,6 @@ public class AttributeOptionComboLoader
             "array_length(regexp_split_to_array(cat_ids, ','),1) = array_length(ARRAY[${option_ids}],1) AND " +
             "regexp_split_to_array(cat_ids, ',') @> ARRAY[${option_ids}]";
 
-
-    // *** CACHE INITIALIZATION *** //
-
-    // @formatter:off
-    private final Cache<String, CategoryOptionCombo> cocCache = new Cache2kBuilder<String, CategoryOptionCombo>() {}
-        .name( "categoryOptionComboEventImportCache" + RandomStringUtils.randomAlphabetic(5) )
-        .expireAfterWrite( 30, TimeUnit.MINUTES )
-        .permitNullValues( true )
-        .loader( new CacheLoader<String, CategoryOptionCombo>()
-        {
-            @Override
-            public CategoryOptionCombo load( String key )
-            {
-                return loadCategoryOptionCombo( IdScheme.from( key.split( KEY_SEPARATOR )[0] ), key.split( KEY_SEPARATOR )[1] );
-            }
-        } ).build() ;
-
-        private final Cache<String, CategoryOption> catOptCache = new Cache2kBuilder<String, CategoryOption>() {}
-            .name( "categoryOptionEventImportCache-" + RandomStringUtils.randomAlphabetic(5) )
-            .expireAfterWrite( 30, TimeUnit.MINUTES )
-            .permitNullValues( true )
-            .loader( new CacheLoader<String, CategoryOption>()
-            {
-                @Override
-                public CategoryOption load( String key )
-                {
-                    return loadCategoryOption( IdScheme.from( key.split( KEY_SEPARATOR )[0] ), key.split( KEY_SEPARATOR )[1] );
-                }
-            } ).build();
-    // @formatter:on
-
     public AttributeOptionComboLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
@@ -148,7 +117,8 @@ public class AttributeOptionComboLoader
      */
     public CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
     {
-        return this.cocCache.get( idScheme.name() + KEY_SEPARATOR + id );
+        return loadCategoryOptionCombo( idScheme, id );
+        //return this.cocCache.get( idScheme.name() + KEY_SEPARATOR + id );
     }
 
     /**
@@ -174,8 +144,7 @@ public class AttributeOptionComboLoader
      */
     public CategoryOptionCombo getDefault()
     {
-        final String cacheKey = IdScheme.NAME.name() + KEY_SEPARATOR + "default";
-        return  cocCache.get( cacheKey );
+        return  loadCategoryOptionCombo( IdScheme.NAME, "default" );
     }
 
     /**
@@ -187,7 +156,7 @@ public class AttributeOptionComboLoader
      */
     private CategoryOption getCategoryOption( IdScheme idScheme, String id )
     {
-        return catOptCache.get( idScheme.name() + KEY_SEPARATOR + id );
+        return loadCategoryOption( idScheme, id);
     }
 
     private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,

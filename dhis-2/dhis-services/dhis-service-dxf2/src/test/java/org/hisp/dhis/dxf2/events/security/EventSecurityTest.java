@@ -129,6 +129,8 @@ public class EventSecurityTest
 
         programInstanceService.addProgramInstance( programInstance );
         manager.update( programA );
+
+        manager.flush();
     }
 
     @Test

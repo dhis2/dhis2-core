@@ -203,6 +203,9 @@ public class TrackedEntityInstanceServiceTest
         programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
+
+        manager.flush();
+
     }
 
     @Test

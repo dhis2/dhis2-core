@@ -38,10 +38,12 @@ import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -95,7 +97,7 @@ public class EventManager
 
     public ImportSummary addEvent( final Event event, final WorkContext workContext )
     {
-        final List<Event> singleEvent = asList( event );
+        final List<Event> singleEvent = ImmutableList.of(event);
 
         final ImportSummaries importSummaries = addEvents( singleEvent, workContext );
 

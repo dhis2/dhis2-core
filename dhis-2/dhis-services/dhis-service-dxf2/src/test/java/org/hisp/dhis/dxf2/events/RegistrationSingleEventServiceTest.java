@@ -158,6 +158,8 @@ public class RegistrationSingleEventServiceTest
         manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
+
+        manager.flush();
     }
 
     @Test

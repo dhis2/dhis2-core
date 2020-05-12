@@ -79,6 +79,7 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -96,6 +97,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
+import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
+import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -135,9 +138,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
-public class JdbcEventStore
-    implements
-    EventStore
+public class JdbcEventStore implements EventStore
 {
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
@@ -169,8 +170,7 @@ public class JdbcEventStore
 
     private final ObjectMapper jsonMapper;
 
-    public JdbcEventStore( StatementBuilder statementBuilder,
-        JdbcTemplate jdbcTemplate,
+    public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
         IdentifiableObjectManager identifiableObjectManager )
     {
@@ -384,9 +384,9 @@ public class JdbcEventStore
         {
             return new ArrayList<>( saveAllComments( saveAllEvents( events ) ) );
         }
-        catch ( SQLException e )
+        catch ( Exception e )
         {
-            log.error("An error occurred saving a batch", e);
+            log.error( "An error occurred saving a batch", e );
             return new ArrayList<>();
         }
     }
@@ -394,26 +394,9 @@ public class JdbcEventStore
     /**
      * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
      *
-     * PLEASE READ:
-     *
-     * When using JDBC `executeBatch()` statement, the data are auto-committed and
-     * flushed, regardless of the transaction settings. This behaviour can be
-     * changed by running the batch within a JDBC transaction:
-     *
-     * <pre>
-     * {@code
-     * connection.setAutoCommit(false);
-     *
-     * try {
-     *  // exec batch update
-     *  connection.commit();
-     * } catch (..) {
-     *  connection.rollback();
-     * }
-     * }
-     * </pre>
-     *
-     *
+     * Note that this method is using JdbcTemplate to execute the batch operation,
+     * therefore it's able to participate in any Spring-initiated transaction
+     * 
      * @param batch the list of {@see ProgramStageInstance}
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
@@ -421,72 +404,69 @@ public class JdbcEventStore
      * @throws SQLException when an error occurs
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
-        throws SQLException
     {
-        DataSource dataSource = jdbcTemplate.getDataSource();
+        JdbcUtils.batchUpdateWithKeyHolder( jdbcTemplate, INSERT_EVENT_SQL,
+            new BatchPreparedStatementSetterWithKeyHolder<ProgramStageInstance>( batch )
+            {
+                @Override
+                protected void setValues( PreparedStatement ps, ProgramStageInstance event )
+                    throws SQLException
+                {
+                    try
+                    {
+                        bindEventParams( ps, event );
+                    }
+                    catch ( JsonProcessingException e )
+                    {
+                        log.info( "PSI with UID: {} failed to persist. PSI will be ignored", event.getUid() );
+                    }
+                }
 
-        try (Connection connection = dataSource.getConnection();
-            PreparedStatement insertEventPS = connection.prepareStatement( INSERT_EVENT_SQL,
-                RETURN_GENERATED_KEYS ))
+                @Override
+                protected void setPrimaryKey( Map<String, Object> primaryKey, ProgramStageInstance event )
+                {
+                    event.setId( (Long) primaryKey.get( "programstageinstanceid" ) );
+                }
+
+            } );
+
+        /*
+         * Extract the primary keys from the created objects
+         */
+        List<Long> eventIds = batch.stream().map( BaseIdentifiableObject::getId ).collect( Collectors.toList() );
+
+        /*
+         * Assign the generated event PKs to the batch.
+         *
+         * If the generate event PKs size doesn't match the batch size, one or more PSI
+         * were not persisted. Run an additional query to fetch the persisted PSI and
+         * return only the PSI from the batch which are persisted.
+         *
+         */
+        if ( eventIds.size() != batch.size() )
         {
-            for ( ProgramStageInstance psi : batch )
-            {
-                try
-                {
-                    bindEventParams( insertEventPS, psi );
-                }
-                catch ( Exception e )
-                {
-                    log.info( "PSI with UID: {} failed to persist. PSI will be ignored", psi.getUid() );
-                }
-                insertEventPS.addBatch();
-            }
-            try
-            {
-                insertEventPS.executeBatch();
-            }
-            catch ( Exception e )
-            {
-                log.error("An error occurred inserting one or more program stage instances during import", e);
-            }
-
-            /*
-             * Extract the primary keys from the created objects
-             */
-            List<Integer> eventIds = new ArrayList<>( collectPrimaryKeys( insertEventPS ) );
-
-            /*
-             * Assign the generated event PKs to the batch.
-             *
-             * If the generate event PKs size doesn't match the batch size, one or more PSI
-             * were not persisted. Run an additional query to fetch the persisted PSI and
-             * return only the PSI from the batch which are persisted.
-             *
-             */
-            if ( eventIds.size() != batch.size() )
-            {
-                /* a Map where [key] -> PSI UID , [value] -> PSI ID */
-                Map<String, Long> persisted = jdbcTemplate.queryForList(
+            /* a Map where [key] -> PSI UID , [value] -> PSI ID */
+            Map<String, Long> persisted = jdbcTemplate
+                .queryForList(
                     "SELECT uid, programstageinstanceid from programstageinstance where programstageinstanceid in ( "
                         + Joiner.on( ";" ).join( eventIds ) + ")" )
-                    .stream().collect( Collectors.toMap( s -> (String) s.get( "uid" ),
-                        s -> (Long) s.get( "programstageinstanceid" ) ) );
+                .stream().collect(
+                    Collectors.toMap( s -> (String) s.get( "uid" ), s -> (Long) s.get( "programstageinstanceid" ) ) );
 
-                return batch.stream()
-                    // @formatter:off
-                    .filter(psi -> persisted.containsKey(psi.getUid()))
-                    .peek(psi -> psi.setId(persisted.get(psi.getUid())))
-                    .collect(Collectors.toList());
-                    // @formatter:on
-            }
-            else
+            // @formatter:off
+            return batch.stream()
+                .filter( psi -> persisted.containsKey( psi.getUid() ) )
+                .peek( psi -> psi.setId( persisted.get( psi.getUid() ) ) )
+                .collect( Collectors.toList() );
+            // @formatter:on
+        }
+        else
+        {
+            for ( int i = 0; i < eventIds.size(); i++ )
             {
-                for ( int i = 0; i < eventIds.size(); i++ )
-                {
-                    batch.get( i ).setId( eventIds.get( i ) );
-                }
-                return batch;
+                batch.get( i ).setId( eventIds.get( i ) );
             }
+            return batch;
         }
     }
 
@@ -500,7 +480,7 @@ public class JdbcEventStore
         try (Connection connection = dataSource.getConnection();
             PreparedStatement insertEventNotePS = connection.prepareStatement( INSERT_EVENT_NOTE_SQL,
                 RETURN_GENERATED_KEYS );
-             PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
+            PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
         {
 
             for ( ProgramStageInstance psi : batch )
@@ -556,28 +536,14 @@ public class JdbcEventStore
         ps.setTimestamp( 5, toTimestamp( comment.getLastUpdated() ) );
     }
 
-    private List<Integer> collectPrimaryKeys( PreparedStatement ps )
-        throws SQLException
-    {
-        List<Integer> pks = new ArrayList<>();
-        ResultSet primaryKeys = ps.getGeneratedKeys();
-
-        while ( primaryKeys.next() )
-        {
-            pks.add( primaryKeys.getInt( 1 ) );
-        }
-
-        return pks;
-    }
-
     private void bindEventParams( PreparedStatement ps, ProgramStageInstance event )
         throws SQLException,
         JsonProcessingException
     {
         ps.setLong( 1, event.getProgramInstance().getId() );
         ps.setLong( 2, event.getProgramStage().getId() );
-        ps.setTimestamp( 3, new Timestamp( event.getDueDate().getTime() ) );
-        ps.setTimestamp( 4, new Timestamp( event.getExecutionDate().getTime() ) );
+        ps.setTimestamp( 3, toTimestamp( event.getDueDate() ) );
+        ps.setTimestamp( 4, toTimestamp( event.getExecutionDate() ) );
         ps.setLong( 5, event.getOrganisationUnit().getId() );
         ps.setString( 6, event.getStatus().toString() );
         ps.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
@@ -605,12 +571,16 @@ public class JdbcEventStore
         ps.setObject( 19, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
     }
 
-    public void updateEvent( final ProgramStageInstance programStageInstance ) throws JsonProcessingException {
-        
+    public void updateEvent( final ProgramStageInstance programStageInstance )
+        throws JsonProcessingException
+    {
+
         if ( programStageInstance != null )
         {
-            try {
-                final PGobject dataValues =  eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper );
+            try
+            {
+                final PGobject dataValues = eventDataValuesToJson( programStageInstance.getEventDataValues(),
+                    this.jsonMapper );
                 jdbcTemplate.execute( SQL_UPDATE, (PreparedStatementCallback<Boolean>) pStmt -> {
                     pStmt.setLong( 1, programStageInstance.getProgramInstance().getId() );
                     pStmt.setLong( 2, programStageInstance.getProgramStage().getId() );
@@ -644,9 +614,11 @@ public class JdbcEventStore
 
                     return pStmt.execute();
                 } );
-            } catch (DataAccessException | JsonProcessingException | SQLException e)  {
+            }
+            catch ( DataAccessException | JsonProcessingException | SQLException e )
+            {
                 // FIXME: Maikel
-                //throw e;
+                // throw e;
             }
         }
     }

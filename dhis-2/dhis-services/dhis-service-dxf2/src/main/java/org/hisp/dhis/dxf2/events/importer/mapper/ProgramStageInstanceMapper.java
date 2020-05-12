@@ -94,6 +94,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         }
 
         psi.setDueDate( dueDate );
+        // Note that execution date can be null
         psi.setExecutionDate( executionDate );
 
         psi.setStoredBy( event.getStoredBy() );

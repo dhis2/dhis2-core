@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -74,10 +76,12 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                 .filter( e -> e.getEnrollment() != null )
                 .map( Event::getEnrollment ).collect( Collectors.toSet() );
 
-        // Create a bi-directional map tei uid -> org unit id
-        Map<String, String> programInstanceToEvent = events.stream()
-                .filter( e -> e.getEnrollment() != null )
-                .collect( Collectors.toMap( Event::getEnrollment, Event::getUid  ) );
+        // Create a bi-directional map enrollment uid -> event uid
+        Multimap<String, String> programInstanceToEvent = HashMultimap.create();
+        for ( Event event : events )
+        {
+            programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
+        }
         // @formatter:on
 
         if ( !programInstanceUids.isEmpty() )
@@ -106,8 +110,10 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                     trackedEntityInstance.setOrganisationUnit( organisationUnit );
                     pi.setEntityInstance( trackedEntityInstance );
 
-                    results.put( programInstanceToEvent.get( pi.getUid() ), pi );
-
+                    for ( String event : programInstanceToEvent.get( pi.getUid() ) )
+                    {
+                        results.put( event, pi );
+                    }
                 }
                 return results;
             } );

@@ -42,13 +42,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -86,8 +84,8 @@ import org.json.simple.JSONObject;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.springframework.test.context.transaction.TestTransaction;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -152,8 +150,6 @@ public class EventImportTest
     protected void setUpTest()
         throws Exception
     {
-        TestTransaction.end();
-        TestTransaction.start();
         userService = _userService;
 
         organisationUnitA = createOrganisationUnit( 'A' );
@@ -178,21 +174,12 @@ public class EventImportTest
         categoryOption2.setAutoFields();
         manager.save( Lists.newArrayList( categoryOption1, categoryOption2 ) );
 
-
         Category cat1 = new Category( "cat1", DataDimensionType.DISAGGREGATION );
         cat1.setCategoryOptions( Lists.newArrayList(categoryOption1, categoryOption2));
         manager.save( Lists.newArrayList( cat1  ) );
 
-        CategoryCombo categoryCombo = new CategoryCombo( "catCombo1", DataDimensionType.DISAGGREGATION );
+        CategoryCombo categoryCombo = manager.getByName( CategoryCombo.class, "default" );
         categoryCombo.setCategories( Lists.newArrayList( cat1 ) );
-        manager.save( categoryCombo );
-
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        categoryOptionCombo.setName( "default" );
-        categoryOptionCombo.setCategoryCombo( categoryCombo );
-        categoryOptionCombo.setCategoryOptions( Sets.newHashSet(categoryOption1, categoryOption2 ));
-        categoryOptionCombo.setUid( CodeGenerator.generateUid() );
-        manager.save( categoryOptionCombo );
 
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
@@ -280,8 +267,6 @@ public class EventImportTest
 
         // Flush all data to disk
         manager.flush();
-        TestTransaction.flagForCommit();
-        TestTransaction.end();
     }
 
     @Test

@@ -1,3 +1,5 @@
+package org.hisp.dhis.jdbc;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,30 +28,52 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.support.KeyHolder;
+
 /**
- * @author Luciano Fiandesio
+ * A {@see BatchPreparedStatementSetter} with support for a {@see KeyHolder}
+ * This class allows to execute a JDBC batch update operation using a
+ * {@see JdbcTemplate} and retrieve the generated primary keys
  */
-public class ProgramCheck implements Checker
+public abstract class BatchPreparedStatementSetterWithKeyHolder<T> implements BatchPreparedStatementSetter
 {
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    private final List<T> beans;
+
+    public BatchPreparedStatementSetterWithKeyHolder( List<T> beans )
     {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Event.program does not point to a valid program: " + event.getProgram(), event );
+        this.beans = beans;
     }
 
     @Override
-    public boolean isFinal()
+    public void setValues( PreparedStatement ps, int i )
+        throws SQLException
     {
-        return true;
+        setValues( ps, beans.get( i ) );
     }
+
+    @Override
+    public final int getBatchSize()
+    {
+        return beans.size();
+    }
+
+    public void setPrimaryKey( KeyHolder keyHolder )
+    {
+        List<Map<String, Object>> keys = keyHolder.getKeyList();
+        for ( int i = 0, len = keys.size(); i < len; i++ )
+        {
+            setPrimaryKey( keys.get( i ), beans.get( i ) );
+        }
+    }
+
+    protected abstract void setValues( PreparedStatement ps, T bean )
+        throws SQLException;
+
+    protected abstract void setPrimaryKey( Map<String, Object> primaryKey, T bean );
 }

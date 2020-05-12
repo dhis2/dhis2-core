@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -81,13 +82,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
         .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic(5) )
-        .expireAfterWrite( 30, TimeUnit.MINUTES ) // expire/refresh after 30 minutes
+        .expireAfterWrite( 5, TimeUnit.MINUTES )
         .build();
-
+    
     // Caches the User Groups and the Users belonging to each group
     private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
         .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic(5) )
-        .expireAfterWrite( 60, TimeUnit.MINUTES )
+        .expireAfterWrite( 10, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
         {
@@ -107,8 +108,31 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     @Override
     public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
+        boolean requiresReload = false;
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
-        if ( programMap == null )
+        /*
+         * Check if the list of incoming Events contains one or more Program uid which is
+         * not in cache. Reload the entire program cache if a Program UID is not found
+         */
+        if ( programMap != null )
+        {
+            Set<String> programs = eventList.stream().map( Event::getProgram ).collect( Collectors.toSet() );
+
+            final Set<String> programsInCache = programMap.keySet();
+
+            for ( String program : programs )
+            {
+                if ( !programsInCache.contains( program ) )
+                {
+                    // invalidate cache and rebuild
+                    programsCache.removeAll();
+                    requiresReload = true;
+                    break;
+                }
+            }
+        }
+
+        if ( requiresReload || programMap == null )
         {
             programMap = loadPrograms( importOptions.getIdSchemes() );
 
