@@ -52,10 +52,6 @@ public class Option
     
     private Integer sortOrder;
 
-    private String description;
-
-    private String formName;
-
     private ObjectStyle style;
 
     // -------------------------------------------------------------------------
@@ -130,29 +126,5 @@ public class Option
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
     }
 }

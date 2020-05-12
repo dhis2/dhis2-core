@@ -56,8 +56,6 @@ public class ProgramSection
     extends BaseNameableObject
     implements MetadataObject
 {
-    private String description;
-
     private Program program;
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<TrackedEntityAttribute>();
@@ -65,8 +63,6 @@ public class ProgramSection
     private Integer sortOrder;
 
     private ObjectStyle style;
-
-    private String formName;
 
     /**
      * The renderType defines how the ProgramStageSection should be rendered on the client
@@ -96,18 +92,6 @@ public class ProgramSection
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -158,18 +142,6 @@ public class ProgramSection
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
     }
 
     @JsonProperty
