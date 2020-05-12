@@ -43,9 +43,14 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_AUTHORIZATION_URI;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_ENDSESSION_URI;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_JWK_URI;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_ID;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_SECRET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_REDIR_BASE_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_TOKEN_URI;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_USER_INFO_URI;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -65,9 +70,14 @@ public class DhisClientRegistrationRepository
         String id = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_ID );
         String secret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_SECRET );
         String redirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_REDIR_BASE_URL );
+        String authorizationUri = dhisConfigurationProvider.getProperty( OIDC_AUTHORIZATION_URI );
+        String tokenUri = dhisConfigurationProvider.getProperty( OIDC_TOKEN_URI );
+        String userInfoUri = dhisConfigurationProvider.getProperty( OIDC_USER_INFO_URI );
+        String jwkSetUri = dhisConfigurationProvider.getProperty( OIDC_JWK_URI );
+        String endSessionUri = dhisConfigurationProvider.getProperty( OIDC_ENDSESSION_URI );
 
         HashMap<String, Object> metaDataMap = new HashMap<>();
-        metaDataMap.put( "end_session_endpoint", "https://oidc-ver2.difi.no/idporten-oidc-provider/endsession" );
+        metaDataMap.put( "end_session_endpoint", endSessionUri );
 
         ClientRegistration idporten = ClientRegistration.withRegistrationId( "idporten" )
             .clientId( id )
@@ -76,12 +86,12 @@ public class DhisClientRegistrationRepository
             .authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE )
             .redirectUriTemplate( redirBaseUri + "/login/oauth2/code/{registrationId}" )
             .scope( "openid", "profile" )
-            .authorizationUri( "https://oidc-ver2.difi.no/idporten-oidc-provider/authorize" )
-            .tokenUri( "https://oidc-ver2.difi.no/idporten-oidc-provider/token" )
-            .userInfoUri( "https://oidc-ver2.difi.no/idporten-oidc-provider/userinfo" )
+            .authorizationUri( authorizationUri )
+            .tokenUri( tokenUri )
+            .userInfoUri( userInfoUri )
             .userNameAttributeName( IdTokenClaimNames.SUB )
             .userInfoAuthenticationMethod( AuthenticationMethod.HEADER )
-            .jwkSetUri( "https://oidc-ver2.difi.no/idporten-oidc-provider/jwk" )
+            .jwkSetUri( jwkSetUri )
             .providerConfigurationMetadata( metaDataMap )
             .clientName( "idporten" )
             .build();
