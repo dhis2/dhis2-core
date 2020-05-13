@@ -122,9 +122,10 @@ public abstract class AbstractTrackerDtoValidationHook
             }
         }
 
-        if ( dtoTypeClass == null || dtoTypeClass.equals( Event.class ) )
+        if ( dtoTypeClass == null || dtoTypeClass.equals( TrackedEntity.class ) )
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateEvent( r, o ), bundle.getEvents() );
+            validateTrackerDTOs( reporter, ( o, r ) -> validateTrackedEntity( r, o ),
+                bundle.getTrackedEntities() );
         }
 
         if ( dtoTypeClass == null || dtoTypeClass.equals( Enrollment.class ) )
@@ -132,10 +133,9 @@ public abstract class AbstractTrackerDtoValidationHook
             validateTrackerDTOs( reporter, ( o, r ) -> validateEnrollment( r, o ), bundle.getEnrollments() );
         }
 
-        if ( dtoTypeClass == null || dtoTypeClass.equals( TrackedEntity.class ) )
+        if ( dtoTypeClass == null || dtoTypeClass.equals( Event.class ) )
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateTrackedEntity( r, o ),
-                bundle.getTrackedEntities() );
+            validateTrackerDTOs( reporter, ( o, r ) -> validateEvent( r, o ), bundle.getEvents() );
         }
 
         return reporter.getReportList();

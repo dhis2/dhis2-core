@@ -29,13 +29,8 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
@@ -43,9 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,9 +69,7 @@ public class DefaultTrackerValidationService
             return validationReport;
         }
 
-        TrackerImportValidationContext context = new TrackerImportValidationContext(bundle);
-
-
+        TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
 
         try
         {

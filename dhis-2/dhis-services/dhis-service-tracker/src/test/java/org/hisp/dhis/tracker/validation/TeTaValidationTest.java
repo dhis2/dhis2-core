@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
+import org.hisp.dhis.H2DhisConfigurationProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -37,6 +38,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -77,6 +80,8 @@ import static org.junit.Assert.assertTrue;
 public class TeTaValidationTest
     extends AbstractImportValidationTest
 {
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -345,7 +350,7 @@ public class TeTaValidationTest
     }
 
     @Test
-    public void testTeaNoValueType()
+    public void testTeaMaxTextValueLength()
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
@@ -378,7 +383,7 @@ public class TeTaValidationTest
     }
 
     @Test
-    public void testEncryption()
+    public void testEncryptedAttrFail()
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
@@ -403,10 +408,13 @@ public class TeTaValidationTest
 
         assertEquals( 1, trackerBundles.size() );
 
+        H2DhisConfigurationProvider dhisConfigurationProvider = (H2DhisConfigurationProvider) this.dhisConfigurationProvider;
+        dhisConfigurationProvider.setEncryptionStatus( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
+
         TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
         assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1068 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
     }
 }

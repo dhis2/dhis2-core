@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_VALUE_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
@@ -139,12 +138,11 @@ public class TrackedEntityAttributeValidationHook
 //            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( tea.getUid() );
 //            if ( trackedEntityAttributeValue == null )
 //            {
-                TrackedEntityAttributeValue  trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-                trackedEntityAttributeValue.setEntityInstance( tei );
-                trackedEntityAttributeValue.setValue( attribute.getValue() );
-                trackedEntityAttributeValue.setAttribute( tea );
+            TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+            trackedEntityAttributeValue.setEntityInstance( tei );
+            trackedEntityAttributeValue.setValue( attribute.getValue() );
+            trackedEntityAttributeValue.setAttribute( tea );
 //            }
-
 
             validateAttributeValue( reporter, trackedEntityAttributeValue );
             validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
@@ -179,8 +177,9 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( MAX_ATTR_VALUE_LENGTH ) );
         }
 
-        if ( teav.getAttribute().isConfidentialBool() &&
-            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+        boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
+        boolean isConfidential = teav.getAttribute().isConfidentialBool();
+        if ( isConfidential && !encryptionStatusOk )
         {
             reporter.addError( newReport( TrackerErrorCode.E1112 )
                 .addArg( teav ) );
