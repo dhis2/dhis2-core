@@ -49,6 +49,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -94,8 +96,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                 programInstanceUids );
         }
         // Collect all the Program Stage Instances by event uid
-        final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events,
-            events.stream().map(Event::getUid).collect(Collectors.toSet()) );
+        final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
         
         // if the Event does not have the "enrollment" property set OR enrollment is pointing to an invalid UID
         // use the Program Instance connected to the Event. This only makes sense if the Program Stage Instance
@@ -122,10 +123,14 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         return programs.stream().filter( p -> p.getId() == id ).findFirst().orElse( null );
     }
 
-    private Map<String, ProgramInstance> getProgramInstanceByEvent( ImportOptions importOptions, List<Event> events,
-        Set<String> uids )
+    private Map<String, ProgramInstance> getProgramInstanceByEvent( ImportOptions importOptions, List<Event> events )
     {
-
+        final Set<String> eventUids = events.stream().map( Event::getUid ).collect( Collectors.toSet() );
+        if ( isEmpty( eventUids ) )
+        {
+            return new HashMap<>();
+        }
+        
         final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, ou.uid as tei_ou_uid "
             + "from programinstance pi "
             + "join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
@@ -134,7 +139,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             + "where psi.uid in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", uids );
+        parameters.addValue( "ids", eventUids );
 
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
             Map<String, ProgramInstance> results = new HashMap<>();

@@ -42,6 +42,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -62,6 +64,11 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
         }
 
         Set<String> psiUid = events.stream().map( Event::getUid ).collect( Collectors.toSet() );
+
+        if ( isEmpty( psiUid)  )
+        {
+            return new HashMap<>();
+        }
 
         final String sql = "select psi.programinstanceid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted "
             + "from programstageinstance psi where psi.uid in (:ids)";

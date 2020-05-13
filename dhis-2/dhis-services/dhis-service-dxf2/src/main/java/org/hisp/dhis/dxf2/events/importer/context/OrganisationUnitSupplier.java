@@ -43,6 +43,8 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -67,7 +69,12 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         final Set<String> orgUnitUids = events.stream()
                 .filter( e -> e.getOrgUnit() != null ).map( Event::getOrgUnit )
                 .collect( Collectors.toSet() );
-
+        
+        if ( isEmpty( orgUnitUids)  )
+        {
+            return new HashMap<>();    
+        }
+        
         // Create a map: org unit uid -> List [event uid]
         Multimap<String, String> orgUnitToEvent = HashMultimap.create();
         for ( Event event : events )
