@@ -190,6 +190,9 @@ public class EventSecurityTest
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        // make sure data is flushed, so event service can access it
+        manager.flush();
+
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -240,6 +243,9 @@ public class EventSecurityTest
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
         injectSecurityContext( user );
+
+        // make sure data is flushed, so event service can access it
+        manager.flush();
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
