@@ -48,6 +48,7 @@ import static org.junit.Assert.assertNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
@@ -74,6 +75,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -188,6 +190,8 @@ public class ExpressionServiceTest
 
     private Map<DimensionalItemObject, Double> valueMap;
 
+    private MapMap<Period, DimensionalItemObject, Double> samples;
+
     private Map<String, Constant> constantMap;
 
     private static final Map<String, Integer> ORG_UNIT_COUNT_MAP =
@@ -195,6 +199,11 @@ public class ExpressionServiceTest
         .put( "orgUnitGrpA", 1000000 )
         .put( "orgUnitGrpB", 2000000 )
         .build();
+
+    private static final Period samplePeriod1 = PeriodType.getPeriodFromIsoString( "20200101" );
+    private static final Period samplePeriod2 = PeriodType.getPeriodFromIsoString( "20200102" );
+
+    private static final List<Period> TEST_SAMPLE_PERIODS = Lists.newArrayList( samplePeriod1, samplePeriod2 );
 
     private final static int DAYS = 30;
 
@@ -494,6 +503,17 @@ public class ExpressionServiceTest
             .put ( indicatorA, 88.0)
 
             .build();
+
+        samples = new MapMap<>();
+
+        samples.putEntries( samplePeriod1, new ImmutableMap.Builder<DimensionalItemObject, Double>()
+            .put( dataElementC, 2.0 )
+            .build() );
+
+        samples.putEntries( samplePeriod2, new ImmutableMap.Builder<DimensionalItemObject, Double>()
+            .put( dataElementB, 1.0 )
+            .put( dataElementC, 3.0 )
+            .build() );
     }
 
     // -------------------------------------------------------------------------
@@ -507,14 +527,15 @@ public class ExpressionServiceTest
      * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
+     * @param parseType type of expression to parse
      * @param missingValueStrategy strategy to use if item value is missing
      * @return result from testing the expression
      */
-    private String eval( String expr, MissingValueStrategy missingValueStrategy )
+    private String eval( String expr, ParseType parseType, MissingValueStrategy missingValueStrategy )
     {
         try
         {
-            expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION );
+            expressionService.getExpressionDescription( expr, parseType );
         }
         catch ( ParserException ex )
         {
@@ -522,12 +543,43 @@ public class ExpressionServiceTest
         }
 
         Set<DimensionalItemObject> items = expressionService
-            .getExpressionDimensionalItemObjects( expr, INDICATOR_EXPRESSION );
+            .getExpressionDimensionalItemObjects( expr, parseType );
 
-        Object value = expressionService.getExpressionValue( expr, INDICATOR_EXPRESSION,
-            valueMap, constantMap, ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy );
+        Object value = expressionService.getExpressionValue( expr, parseType,
+            valueMap, constantMap, ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy,
+            TEST_SAMPLE_PERIODS, samples );
 
         return result( value, items );
+    }
+
+    /**
+     * Evaluates a test expression, against getExpressionDimensionalItemObjects
+     * and getExpressionValue. Returns a string containing first the returned
+     * value from getExpressionValue, and then the items returned from
+     * getExpressionDimensionalItemObjects, if any, separated by spaces.
+     *
+     * @param expr expression to evaluate
+     * @param missingValueStrategy strategy to use if item value is missing
+     * @return result from testing the expression
+     */
+    private String eval( String expr, MissingValueStrategy missingValueStrategy )
+    {
+        return eval( expr, INDICATOR_EXPRESSION, missingValueStrategy );
+    }
+
+    /**
+     * Evaluates a test predictor expression, against getExpressionDimensionalItemObjects
+     * and getExpressionValue. Returns a string containing first the returned
+     * value from getExpressionValue, and then the items returned from
+     * getExpressionDimensionalItemObjects, if any, separated by spaces.
+     *
+     * @param expr expression to evaluate
+     * @param missingValueStrategy strategy to use if item value is missing
+     * @return result from testing the expression
+     */
+    private String evalPredictor( String expr, MissingValueStrategy missingValueStrategy )
+    {
+        return eval( expr, PREDICTOR_EXPRESSION, missingValueStrategy );
     }
 
     /**
@@ -1047,6 +1099,22 @@ public class ExpressionServiceTest
         assertEquals( "16 DeA DeB DeC", eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", NEVER_SKIP ) );
         assertEquals( "0 DeC DeD DeE", eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", NEVER_SKIP ) );
         assertEquals( "0 DeE", eval( "#{dataElemenE}", NEVER_SKIP ) );
+    }
+
+    @Test
+    public void testExpressionPredictorMissingValueStrategy()
+    {
+        assertEquals( "null DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeA DeB", evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "4 DeB DeC", evalPredictor( "sum(#{dataElemenB} + #{dataElemenC})", SKIP_IF_ANY_VALUE_MISSING ) );
+
+        assertEquals( "null DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "1 DeA DeB", evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "6 DeB DeC", evalPredictor( "sum(#{dataElemenB} + #{dataElemenC})", SKIP_IF_ALL_VALUES_MISSING ) );
+
+        assertEquals( "0 DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", NEVER_SKIP ) );
+        assertEquals( "1 DeA DeB", evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", NEVER_SKIP ) );
+        assertEquals( "6 DeB DeC", evalPredictor( "sum(#{dataElemenB} + #{dataElemenC})", NEVER_SKIP ) );
     }
 
     @Test
