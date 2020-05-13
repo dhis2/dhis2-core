@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -88,31 +90,7 @@ public abstract class VectorFunction
 
         ExprContext lastExpr = ctx.expr().get( ctx.expr().size() - 1 );
 
-        Map<String, Double> savedItemValueMap = visitor.getItemValueMap();
-
-        List<Double> values = new ArrayList<>();
-
-        for ( Period p : visitor.getSamplePeriods() )
-        {
-            if ( visitor.getPeriodItemValueMap() != null &&
-                visitor.getPeriodItemValueMap().get( p ) != null )
-            {
-                visitor.setItemValueMap( visitor.getPeriodItemValueMap().get( p ) );
-            }
-            else // No samples found in this period:
-            {
-                visitor.setItemValueMap( new HashMap<>() );
-            }
-
-            Double value = castDouble( visitor.visitAllowingNulls( lastExpr ) );
-
-            if ( value != null )
-            {
-                values.add( value );
-            }
-        }
-
-        visitor.setItemValueMap( savedItemValueMap );
+        List<Double> values = getSampleValues( lastExpr, visitor );
 
         return vectorHandleNulls( aggregate( values, args ), visitor );
     }
@@ -140,4 +118,77 @@ public abstract class VectorFunction
      * @return the aggregated value.
      */
     public abstract Object aggregate( List<Double> values, List<Double> args );
+
+    /**
+     * Gets a list of sample values to aggregate.
+     *
+     * @param ctx the sample expression context
+     * @param visitor the tree visitor
+     * @return the list of sample values
+     *
+     * The missingValueStrategy is handled as follows: for each sample expression
+     * inside the aggregation function, if there are any sample values missing
+     * and the strategy is SKIP_IF_ANY_VALUE_MISSING, then that sample is skipped.
+     * Also if all the values are missing and the strategy is
+     * SKIP_IF_ALL_VALUES_MISSING, then that sample is skipped.
+     *
+     * Finally, if there were any items in the sample expression, the count of
+     * items in the main expression is incremented. And if there was at least
+     * one sample value, the count of item values in the main expression is
+     * incremented. This means that if the vector is empty, it counts as a
+     * missing value in the main expression.
+     */
+    private List<Double> getSampleValues( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        int savedItemsFound = visitor.getItemsFound();
+        int savedItemValuesFound = visitor.getItemValuesFound();
+        Map<String, Double> savedItemValueMap = visitor.getItemValueMap();
+
+        List<Double> values = new ArrayList<>();
+
+        for ( Period p : visitor.getSamplePeriods() )
+        {
+            visitor.setItemsFound( 0 );
+            visitor.setItemValuesFound( 0 );
+
+            if ( visitor.getPeriodItemValueMap() != null &&
+                visitor.getPeriodItemValueMap().get( p ) != null )
+            {
+                visitor.setItemValueMap( visitor.getPeriodItemValueMap().get( p ) );
+            }
+            else // No samples found in this period:
+            {
+                visitor.setItemValueMap( new HashMap<>() );
+            }
+
+            Double value = castDouble( visitor.visit( ctx ) );
+
+            if ( ( visitor.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING && visitor.getItemValuesFound() < visitor.getItemsFound() )
+                || ( visitor.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && visitor.getItemsFound() != 0 && visitor.getItemValuesFound() == 0 ) )
+            {
+                value = null;
+            }
+
+            if ( value != null )
+            {
+                values.add( value );
+            }
+        }
+
+        if ( visitor.getItemsFound() > 0 )
+        {
+            savedItemsFound++;
+
+            if ( !values.isEmpty() )
+            {
+                savedItemValuesFound++;
+            }
+        }
+
+        visitor.setItemsFound( savedItemsFound );
+        visitor.setItemValuesFound( savedItemValuesFound );
+        visitor.setItemValueMap( savedItemValueMap );
+
+        return values;
+    }
 }
