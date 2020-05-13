@@ -2205,6 +2205,9 @@ public abstract class AbstractEventService
                 // Init the DataElement Hibernate proxy, before stuffing it in cache
                 // so that the security-related collection are initialized
                 HibernateUtils.initializeProxy( dm );
+                // forces the security collection to be loaded before putting it in cache
+                dm.getUserGroupAccesses();
+                dm.getUserAccesses();
                 DATA_ELEM_CACHE.put( id, dm );
                 result = dm;
             }
