@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.CollectionUtils;
@@ -278,21 +279,30 @@ public class EventManager
     private List<Event> resolveImportableEvents( final List<Event> events, final ImportSummaries importSummaries,
         final WorkContext workContext )
     {
-        if (CollectionUtils.isNotEmpty(events)) {
-            final Map<String, ProgramStageInstance> programStageInstanceMap = workContext.getProgramStageInstanceMap();
+        List<Event> importableEvents = new ArrayList<>();
+        if ( CollectionUtils.isNotEmpty( events ) )
+        {
+            final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
 
-            for (final String foundEventUid : programStageInstanceMap.keySet()) {
-                final ImportSummary is = new ImportSummary(ERROR,
-                    "Event " + foundEventUid + " already exists or was deleted earlier").setReference(foundEventUid)
-                    .incrementIgnored();
+            for ( Event eventToImport : events )
+            {
+                if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
+                {
+                    final ImportSummary is = new ImportSummary( ERROR,
+                        "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
+                            .setReference( eventToImport.getUid() ).incrementIgnored();
 
-                importSummaries.addImportSummary(is);
+                    importSummaries.addImportSummary( is );
+                }
+                else
+                {
+                    importableEvents.add( eventToImport );
+                }
             }
 
-            return events.stream().filter(e -> !programStageInstanceMap.containsKey(e.getEvent())).collect(toList());
         }
 
-        return emptyList();
+        return importableEvents;
     }
 
     private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents )

@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
@@ -102,6 +104,9 @@ public class TrackedEntityInstanceServiceTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -380,14 +385,19 @@ public class TrackedEntityInstanceServiceTest
         event1.setStatus( EventStatus.ACTIVE );
         event1.setTrackedEntityInstance( maleA.getUid() );
 
-        enrollment1.setEvents( Arrays.asList( event1 ) );
+        enrollment1.setEvents( singletonList( event1 ) );
 
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
 
+        // This is required because the Event creation takes place using JDBC, therefore Hibernate does not
+        // "see" the new event in the context of this session
+        sessionFactory.getCurrentSession().clear();
+
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
 
@@ -444,6 +454,8 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
+
+        sessionFactory.getCurrentSession().clear();
 
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
