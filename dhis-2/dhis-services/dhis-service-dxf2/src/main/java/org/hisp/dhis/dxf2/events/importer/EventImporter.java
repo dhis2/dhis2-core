@@ -84,19 +84,21 @@ public class EventImporter
 
         final ImportSummaries importSummaries = new ImportSummaries();
 
+        if ( events.size() == 0 )
+        {
+            return importSummaries;
+        }
+        
         notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
         final Clock clock = new Clock( log ).startClock();
 
-        // TODO This should be probably moved to a PRE-PROCESSOR
-        final List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
-
         long now = nanoTime();
 
-        final WorkContext context = workContextLoader.load( importOptions, eventsWithUid );
+        final WorkContext context = workContextLoader.load( importOptions, events );
 
         log.debug( "::: validation context load took : " + (nanoTime() - now) );
 
-        final List<List<Event>> partitions = partition( eventsWithUid, BATCH_SIZE );
+        final List<List<Event>> partitions = partition( events, BATCH_SIZE );
 
         for ( final List<Event> batch : partitions )
         {

@@ -206,48 +206,57 @@ public class ServiceConfig
      */
 
     private final static List<Class<? extends Checker>> CREATE_EVENTS_CHECKS = newArrayList(
-        // @formatter:off
-            EventDateCheck.class,
-            OrgUnitCheck.class,
-            ProgramCheck.class,
-            ProgramStageCheck.class,
-            TrackedEntityInstanceCheck.class,
-            ProgramInstanceCheck.class,
-            ProgramInstanceRepeatableStageCheck.class,
-            ProgramOrgUnitCheck.class,
-            EventGeometryCheck.class,
-            EventCreationAclCheck.class,
-            EventBaseCheck.class,
-            AttributeOptionComboCheck.class,
-            AttributeOptionComboDateCheck.class,
-            AttributeOptionComboAclCheck.class,
-            DataValueCheck.class,
-            DataValueAclCheck.class
-        );
-        // @formatter:on
+    // @formatter:off
+        EventDateCheck.class,
+        OrgUnitCheck.class,
+        ProgramCheck.class,
+        ProgramStageCheck.class,
+        TrackedEntityInstanceCheck.class,
+        ProgramInstanceCheck.class,
+        ProgramInstanceRepeatableStageCheck.class,
+        ProgramOrgUnitCheck.class,
+        EventGeometryCheck.class,
+        EventCreationAclCheck.class,
+        EventBaseCheck.class,
+        AttributeOptionComboCheck.class,
+        AttributeOptionComboDateCheck.class,
+        AttributeOptionComboAclCheck.class,
+        DataValueCheck.class,
+        DataValueAclCheck.class
+    );
+    // @formatter:on
 
     @Bean( "eventValidatorMap" )
     public Map<ImportStrategy, List<Class<? extends Checker>>> eventValidatorMap()
     {
-        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_CHECKS, ImportStrategy.CREATE_AND_UPDATE,
-            CREATE_EVENTS_CHECKS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
+        // @formatter:off
+        return ImmutableMap.of(
+            ImportStrategy.CREATE, CREATE_EVENTS_CHECKS,
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_CHECKS,
+            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
+        // @formatter:on
     }
 
     private final static List<Class<? extends Processor>> CREATE_EVENTS_PREPROCESS = newArrayList(
     // @formatter:off
-            ImportOptionsPreProcessor.class,
-            EventStoredByPreProcessor.class,
-            ProgramInstancePreProcessor.class,
-            ProgramStagePreProcessor.class,
-            EventGeometryPreProcessor.class
-        );
-        // @formatter:on
+        ImportOptionsPreProcessor.class,
+        EventStoredByPreProcessor.class,
+        ProgramInstancePreProcessor.class,
+        ProgramStagePreProcessor.class,
+        EventGeometryPreProcessor.class
+    );
+    // @formatter:on
 
     @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap()
     {
-        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS, ImportStrategy.CREATE_AND_UPDATE,
-            CREATE_EVENTS_PREPROCESS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
+        // @formatter:off
+        return ImmutableMap.of(
+            ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS,
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_PREPROCESS,
+            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS
+        );
+        // @formatter:on
     }
 
     /*
@@ -259,10 +268,10 @@ public class ServiceConfig
         // @formatter:off
         return ImmutableMap.of( UPDATE, newArrayList(
             EventSimpleCheck.class,
+            EventBaseCheck.class,
             ProgramStageInstanceBasicCheck.class,
             ProgramStageInstanceAclCheck.class,
             ProgramCheck.class,
-            EventSimpleCheck.class,
             EventBaseCheck.class,
             ProgramStageInstanceAuthCheck.class,
             AttributeOptionComboCheck.class,
@@ -271,7 +280,6 @@ public class ServiceConfig
         ) );
         // @formatter:on
     }
-
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()

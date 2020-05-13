@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
@@ -41,8 +40,10 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
@@ -56,8 +57,6 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableList;
 
 @Component
 public class EventManager
@@ -333,24 +332,29 @@ public class EventManager
     private List<Event> resolveImportableEvents( final List<Event> events, final ImportSummaries importSummaries,
         final WorkContext workContext )
     {
-        if ( isNotEmpty( events ) )
+        List<Event> importableEvents = new ArrayList<>();
+        if ( CollectionUtils.isNotEmpty( events ) )
         {
-            final Map<String, ProgramStageInstance> programStageInstanceMap = workContext.getProgramStageInstanceMap();
+            final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
 
-            for ( final String foundEventUid : programStageInstanceMap.keySet() )
+            for ( Event eventToImport : events )
             {
-                final ImportSummary is = new ImportSummary( ERROR,
-                    "Event " + foundEventUid + " already exists or was deleted earlier" ).setReference( foundEventUid )
-                        .incrementIgnored();
+                if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
+                {
+                    final ImportSummary is = new ImportSummary( ERROR,
+                        "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
+                            .setReference( eventToImport.getUid() ).incrementIgnored();
 
-                importSummaries.addImportSummary( is );
+                    importSummaries.addImportSummary( is );
+                }
+                else
+                {
+                    importableEvents.add( eventToImport );
+                }
             }
-
-            return events.stream().filter( e -> !programStageInstanceMap.containsKey( e.getEvent() ) )
-                .collect( toList() );
         }
 
-        return emptyList();
+        return importableEvents;
     }
 
     private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents,
@@ -379,5 +383,4 @@ public class EventManager
 
         return failedEvents;
     }
-
 }

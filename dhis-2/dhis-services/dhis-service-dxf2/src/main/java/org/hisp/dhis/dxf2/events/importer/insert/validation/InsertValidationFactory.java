@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,17 @@ public class InsertValidationFactory implements EventChecking
     @Override
     public List<ImportSummary> check( WorkContext ctx, List<Event> events )
     {
-        return new ValidationRunner( ctx, events )
-            .run( validatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
+        final List<Class<? extends Checker>> validators = validatorMap
+            .get( ctx.getImportOptions().getImportStrategy() );
+        if ( validators != null )
+        {
+            return new ValidationRunner( ctx, events ).run( validators );
+        }
+        else
+        {
+            log.error(
+                "No preprocessors found for import strategy: " + ctx.getImportOptions().getImportStrategy().name() );
+            return new ArrayList<>();
+        }
     }
 }

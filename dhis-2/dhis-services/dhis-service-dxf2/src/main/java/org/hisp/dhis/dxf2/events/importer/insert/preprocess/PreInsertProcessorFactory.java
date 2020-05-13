@@ -55,7 +55,15 @@ public class PreInsertProcessorFactory implements EventProcessing
     @Override
     public void process( final WorkContext workContext, final List<Event> events )
     {
-        new ProcessorRunner( workContext, events )
-            .run( eventPreProcessorsMap.get( workContext.getImportOptions().getImportStrategy() ) );
+        final List<Class<? extends Processor>> preProcessors = eventPreProcessorsMap
+            .get( workContext.getImportOptions().getImportStrategy() );
+        if ( preProcessors != null )
+        {
+            new ProcessorRunner( workContext, events ).run( preProcessors );
+        }
+        else
+        {
+            log.error("No preprocessors found for import strategy: " + workContext.getImportOptions().getImportStrategy().name() );
+        }
     }
 }
