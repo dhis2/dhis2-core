@@ -36,26 +36,28 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteValidationFactory;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.InsertValidationFactory;
 import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableList;
 
 @Component
 public class EventManager
@@ -63,6 +65,8 @@ public class EventManager
     private final EventChecking insertValidationFactory;
 
     private final EventChecking updateValidationFactory;
+
+    private final EventChecking deleteValidationFactory;
 
     private final EventProcessing preInsertProcessorFactory;
 
@@ -75,6 +79,7 @@ public class EventManager
     public EventManager(
         @Qualifier("eventsInsertValidationFactory") final InsertValidationFactory insertValidationFactory,
         @Qualifier("eventsUpdateValidationFactory") final UpdateValidationFactory updateValidationFactory,
+        @Qualifier("eventsDeleteValidationFactory") final DeleteValidationFactory deleteValidationFactory,
         @Qualifier( "eventsPreInsertProcessorFactory" ) final EventProcessing preInsertProcessorFactory,
         @Qualifier( "eventsPreUpdateProcessorFactory" ) final EventProcessing preUpdateProcessorFactory,
         @Qualifier("eventsPostUpdateProcessorFactory") final EventProcessing postUpdateProcessorFactory,
@@ -82,6 +87,7 @@ public class EventManager
     {
         checkNotNull( insertValidationFactory );
         checkNotNull( updateValidationFactory );
+        checkNotNull( deleteValidationFactory );
         checkNotNull( preInsertProcessorFactory );
         checkNotNull( preUpdateProcessorFactory );
         checkNotNull( postUpdateProcessorFactory );
@@ -89,6 +95,7 @@ public class EventManager
 
         this.insertValidationFactory = insertValidationFactory;
         this.updateValidationFactory = updateValidationFactory;
+        this.deleteValidationFactory = deleteValidationFactory;
         this.preInsertProcessorFactory = preInsertProcessorFactory;
         this.preUpdateProcessorFactory = preUpdateProcessorFactory;
         this.postUpdateProcessorFactory = postUpdateProcessorFactory;
@@ -208,7 +215,7 @@ public class EventManager
 
         // @formatter:off
         importSummaries.addImportSummaries(
-            // Run validation against the remaining "insertable" events //
+            // Run validation against the remaining "updatable" events //
             updateValidationFactory.check( workContext, validEvents )
         );
         // @formatter:on
@@ -231,7 +238,7 @@ public class EventManager
             }
             catch ( Exception e )
             {
-                handleFailedUpdate( workContext, importSummaries, validEvents );
+                handleFailure( workContext, importSummaries, validEvents, "Invalid or conflicting data", UPDATE );
             }
         }
         else
@@ -239,12 +246,12 @@ public class EventManager
             try
             {
                 // collect the events that passed validation and can be persisted
-                eventPersistenceService.update( workContext,
-                    validEvents.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+                eventPersistenceService.update( workContext, validEvents.stream()
+                    .filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
             }
             catch ( Exception e )
             {
-                handleFailedUpdate( workContext, importSummaries, validEvents );
+                handleFailure( workContext, importSummaries, validEvents, "Invalid or conflicting data", UPDATE );
             }
         }
 
@@ -258,13 +265,61 @@ public class EventManager
         return importSummaries;
     }
 
-    private void handleFailedUpdate( final WorkContext workContext, final ImportSummaries importSummaries,
-        final List<Event> validEvents )
+    public ImportSummaries deleteEvents( final List<Event> events, final WorkContext workContext )
     {
-        final List<Event> failedEvents = retryEach( workContext, validEvents );
+        final ImportSummaries importSummaries = new ImportSummaries();
+
+        // @formatter:off
+        importSummaries.addImportSummaries(
+            // Run validation against the remaining "insertable" events //
+            deleteValidationFactory.check( workContext, events )
+        );
+        // @formatter:on
+
+        // collect the UIDs of events that did not pass validation
+        final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream().filter( i -> i.isStatus( ERROR ) )
+            .map( ImportSummary::getReference ).collect( toList() );
+
+        if ( eventValidationFailedUids.size() == events.size() )
+        {
+            return importSummaries;
+        }
+
+        if ( eventValidationFailedUids.isEmpty() )
+        {
+            try
+            {
+                eventPersistenceService.delete( workContext, events );
+            }
+            catch ( Exception e )
+            {
+                handleFailure( workContext, importSummaries, events, "Could not delete event", DELETE );
+            }
+        }
+        else
+        {
+            try
+            {
+                // collect the events that passed validation and can be deleted
+                eventPersistenceService.delete( workContext,
+                    events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+            }
+            catch ( Exception e )
+            {
+                handleFailure( workContext, importSummaries, events, "Could not delete event", DELETE );
+            }
+        }
+
+        return importSummaries;
+    }
+
+    private void handleFailure(final WorkContext workContext, final ImportSummaries importSummaries,
+                               final List<Event> validEvents, final String errorMessage, final ImportStrategy importStrategy )
+    {
+        final List<Event> failedEvents = retryEach( workContext, validEvents, importStrategy );
 
         failedEvents.forEach( failedEvent -> importSummaries.getImportSummaries()
-            .add( error( "Invalid or conflicting data", failedEvent.getEvent() ) ) );
+            .add( error( errorMessage, failedEvent.getEvent() ) ) );
     }
 
     /**
@@ -278,24 +333,28 @@ public class EventManager
     private List<Event> resolveImportableEvents( final List<Event> events, final ImportSummaries importSummaries,
         final WorkContext workContext )
     {
-        if (CollectionUtils.isNotEmpty(events)) {
+        if ( isNotEmpty( events ) )
+        {
             final Map<String, ProgramStageInstance> programStageInstanceMap = workContext.getProgramStageInstanceMap();
 
-            for (final String foundEventUid : programStageInstanceMap.keySet()) {
-                final ImportSummary is = new ImportSummary(ERROR,
-                    "Event " + foundEventUid + " already exists or was deleted earlier").setReference(foundEventUid)
-                    .incrementIgnored();
+            for ( final String foundEventUid : programStageInstanceMap.keySet() )
+            {
+                final ImportSummary is = new ImportSummary( ERROR,
+                    "Event " + foundEventUid + " already exists or was deleted earlier" ).setReference( foundEventUid )
+                        .incrementIgnored();
 
-                importSummaries.addImportSummary(is);
+                importSummaries.addImportSummary( is );
             }
 
-            return events.stream().filter(e -> !programStageInstanceMap.containsKey(e.getEvent())).collect(toList());
+            return events.stream().filter( e -> !programStageInstanceMap.containsKey( e.getEvent() ) )
+                .collect( toList() );
         }
 
         return emptyList();
     }
 
-    private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents )
+    private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents,
+        final ImportStrategy importStrategy )
     {
         final List<Event> failedEvents = new ArrayList<>( 0 );
 
@@ -303,7 +362,14 @@ public class EventManager
         {
             try
             {
-                eventPersistenceService.update( workContext, event );
+                if ( UPDATE == importStrategy )
+                {
+                    eventPersistenceService.update( workContext, event );
+                }
+                else
+                {
+                    eventPersistenceService.delete( workContext, event );
+                }
             }
             catch ( Exception e )
             {
@@ -313,4 +379,5 @@ public class EventManager
 
         return failedEvents;
     }
+
 }

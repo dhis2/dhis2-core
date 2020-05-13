@@ -708,7 +708,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
-
     private Event createEvent( String program, String programStage, String orgUnit, String person )
     {
         Event event = new Event();
@@ -721,4 +720,3 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         return event;
     }
 }
-

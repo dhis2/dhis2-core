@@ -59,10 +59,12 @@ public class ProgramInstancePreProcessor implements Processor
         ProgramInstanceStore programInstanceStore = ctx.getServiceDelegator().getProgramInstanceStore();
 
         Program program = ctx.getProgramsMap().get( event.getProgram() );
+
         if ( program == null )
         {
             return; // Program is a mandatory value, it will be caught by the validation
         }
+
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
@@ -116,7 +118,6 @@ public class ProgramInstancePreProcessor implements Processor
         final String sql = "select pi.programinstanceid, pi.programid, pi.uid "
                 + "from programinstance pi "
                 + "where pi.programid = ? and pi.status = ?";
-
 
         return jdbcTemplate.query( sql, new Object[] { program.getId(), status.name() }, ( ResultSet rs ) -> {
             List<ProgramInstance> results = new ArrayList<>();

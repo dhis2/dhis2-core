@@ -26,35 +26,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.stereotype.Component;
 
-public class EventBasicCheck
-    implements
-    Checker
+@Component( "eventsDeleteValidationFactory" )
+public class DeleteValidationFactory implements EventChecking
 {
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
-    {
-        if ( event == null || isEmpty( event.getEvent() ) )
-        {
-            return error( "No event or event ID was supplied" ).incrementIgnored();
-        }
+    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap;
 
-        return success();
+    public DeleteValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap )
+    {
+        checkNotNull( eventDeleteValidatorMap );
+        this.eventDeleteValidatorMap = eventDeleteValidatorMap;
     }
 
     @Override
-    public boolean isFinal()
+    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
     {
-        return true;
+        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
+
+        if ( importStrategy.isDelete() )
+        {
+            return new ValidationRunner( ctx, events ).run( eventDeleteValidatorMap.get( DELETE ) );
+        }
+
+        return emptyList();
     }
 }

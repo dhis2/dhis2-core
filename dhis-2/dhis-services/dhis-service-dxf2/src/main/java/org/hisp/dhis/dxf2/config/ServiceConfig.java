@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.config;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.HashMap;
@@ -61,7 +62,7 @@ import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostPro
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.*;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.validation.EventBasicCheck;
+import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
@@ -252,39 +253,56 @@ public class ServiceConfig
     /*
      * Default validation chains for Tracker Import (update) events process.
      */
-    private final static List<Class<? extends Checker>> UPDATE_EVENTS_CHECKS = newArrayList(
-        // @formatter:off
-            EventBasicCheck.class,
-            ProgramStageInstanceBasicCheck.class,
-            ProgramStageInstanceAclCheck.class,
-            ProgramCheck.class,
-            EventBaseCheck.class,
-            ProgramStageInstanceAuthCheck.class,
-            AttributeOptionComboCheck.class,
-            EventGeometryCheck.class
-        );
-        // @formatter:on
-
-    // TODO: Ask what's the difference between the values in the Enum
-    // ImportStrategy?
     @Bean
     public Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap()
     {
-        return ImmutableMap.of( UPDATE, UPDATE_EVENTS_CHECKS );
+        // @formatter:off
+        return ImmutableMap.of( UPDATE, newArrayList(
+            EventSimpleCheck.class,
+            ProgramStageInstanceBasicCheck.class,
+            ProgramStageInstanceAclCheck.class,
+            ProgramCheck.class,
+            EventSimpleCheck.class,
+            EventBaseCheck.class,
+            ProgramStageInstanceAuthCheck.class,
+            AttributeOptionComboCheck.class,
+            AttributeOptionComboDateCheck.class,
+            EventGeometryCheck.class
+        ) );
+        // @formatter:on
     }
 
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
     {
-        return ImmutableMap.of( UPDATE,
-            newArrayList( ProgramInstanceUpdatePreProcessor.class, ProgramInstanceGeometryPreProcessor.class ) );
+        // @formatter:off
+        return ImmutableMap.of( UPDATE, newArrayList(
+            ProgramInstanceUpdatePreProcessor.class,
+            ProgramInstanceGeometryPreProcessor.class
+        ) );
+        // @formatter:on
     }
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap()
     {
-        return ImmutableMap.of( UPDATE,
-            newArrayList( PublishEventPostProcessor.class, ProgramNotificationPostProcessor.class ) );
+        // @formatter:off
+        return ImmutableMap.of( UPDATE, newArrayList(
+            PublishEventPostProcessor.class,
+            ProgramNotificationPostProcessor.class
+        ) );
+        // @formatter:on
     }
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap()
+    {
+        // @formatter:off
+        return ImmutableMap.of( DELETE, newArrayList(
+            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class
+        ) );
+        // @formatter:on
+    }
+
 }

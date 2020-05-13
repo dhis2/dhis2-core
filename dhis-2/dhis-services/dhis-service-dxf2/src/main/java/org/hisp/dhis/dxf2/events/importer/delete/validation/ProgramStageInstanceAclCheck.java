@@ -26,44 +26,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 
-@Component( "eventsUpdateValidationFactory" )
-public class UpdateValidationFactory implements EventChecking
+public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap;
-
-    public UpdateValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap )
-    {
-        checkNotNull( eventUpdateValidatorMap );
-        this.eventUpdateValidatorMap = eventUpdateValidatorMap;
-    }
-
     @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
+    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
+        ProgramStageInstance programStageInstance )
     {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
+        if ( programStageInstance != null )
         {
-            return new ValidationRunner( ctx, events ).run( eventUpdateValidatorMap.get( UPDATE ) );
+            return trackerAccessManager.canDelete( user, programStageInstance, true );
         }
 
         return emptyList();
+    }
+
+    @Override
+    public boolean isFinal()
+    {
+        return true;
     }
 }

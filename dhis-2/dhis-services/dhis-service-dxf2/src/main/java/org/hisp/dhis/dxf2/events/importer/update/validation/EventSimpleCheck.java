@@ -26,24 +26,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer.update.validation;
 
-import java.util.List;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
-/**
- * @author Luciano Fiandesio
- */
-public class EventUpdateAclCheck
-    extends BaseEventAclCheck
+public class EventSimpleCheck
+    implements
+    Checker
 {
     @Override
-    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-                                  ProgramStageInstance programStageInstance )
+    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
-        return trackerAccessManager.canUpdate( user, programStageInstance, false );
+        if ( event == null || isEmpty( event.getEvent() ) )
+        {
+            return error( "No event or event ID was supplied" ).incrementIgnored();
+        }
+
+        return success();
+    }
+
+    @Override
+    public boolean isFinal()
+    {
+        return true;
     }
 }

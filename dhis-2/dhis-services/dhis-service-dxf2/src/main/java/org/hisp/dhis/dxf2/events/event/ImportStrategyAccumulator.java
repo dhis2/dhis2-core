@@ -47,7 +47,7 @@ public class ImportStrategyAccumulator
 
     private List<Event> update = new ArrayList<>();
 
-    private List<String> delete = new ArrayList<>();
+    private List<Event> delete = new ArrayList<>();
 
     public ImportStrategyAccumulator partitionEvents( List<Event> events, ImportStrategy importStrategy,
                                                       Map<String, ProgramStageInstance> existingEvents )
@@ -70,7 +70,7 @@ public class ImportStrategyAccumulator
         }
         else if ( importStrategy.isDelete() )
         {
-            delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
+            delete.addAll( events );
         }
         else if ( importStrategy.isSync() )
         {
@@ -78,7 +78,7 @@ public class ImportStrategyAccumulator
             {
                 if ( event.isDeleted() )
                 {
-                    delete.add( event.getEvent() );
+                    delete.add( event );
                 }
                 else
                 {

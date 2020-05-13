@@ -103,13 +103,9 @@ public class EventImporter
             final ImportStrategyAccumulator accumulator = new ImportStrategyAccumulator().partitionEvents( batch,
                 importOptions.getImportStrategy(), context.getProgramStageInstanceMap() );
 
-            importSummaries
-                .addImportSummaries( eventManager.addEvents( accumulator.getCreate(), context ) );
-            importSummaries.addImportSummaries(
-                eventManager.updateEvents( accumulator.getUpdate(), context ) );
-            // FIXME: -- old code -- : -- please refactor --
-            // importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(),
-            // true ) );
+            importSummaries.addImportSummaries( eventManager.addEvents( accumulator.getCreate(), context ) );
+            importSummaries.addImportSummaries( eventManager.updateEvents( accumulator.getUpdate(), context ) );
+            importSummaries.addImportSummaries( eventManager.deleteEvents( accumulator.getDelete(), context ) );
         }
 
         if ( jobConfiguration != null )

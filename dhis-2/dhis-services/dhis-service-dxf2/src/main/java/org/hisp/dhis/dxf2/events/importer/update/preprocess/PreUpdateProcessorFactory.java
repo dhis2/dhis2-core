@@ -56,7 +56,7 @@ public class PreUpdateProcessorFactory implements EventProcessing
     {
         final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
 
-        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
+        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() || importStrategy.isSync() )
         {
             new ProcessorRunner( workContext, events ).run( eventUpdatePreProcessorMap.get( UPDATE ) );
         }

@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.System.nanoTime;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
@@ -57,8 +55,6 @@ import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -110,14 +106,6 @@ public class DefaultEventPersistenceService
             : new ArrayList<>();
     }
 
-    // TODO do we need this?
-    private void rollbackOnException( ImportSummaries importSummaries )
-    {
-        this.jdbcEventStore
-            .delete( importSummaries.getImportSummaries().stream().filter( i -> !i.getConflicts().isEmpty() )
-                .map( ImportSummary::getReference ).collect( Collectors.toList() ) );
-    }
-
     /**
      * Updates the list of given events using a single transaction.
      *
@@ -130,11 +118,8 @@ public class DefaultEventPersistenceService
 
         if ( isNotEmpty( events ) )
         {
-            // TODO: Check if this mapper really suits the Update flow as well
             final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
                 new ProgramStageInstanceMapper( context ), events );
-
-            long now = nanoTime();
 
             for ( final ProgramStageInstance programStageInstance : eventProgramStageInstanceMap.values() )
             {
@@ -148,9 +133,6 @@ public class DefaultEventPersistenceService
                     persistUpdateData( programStageInstance, event.getNotes(), trackedEntityInstances, importOptions );
                 }
             }
-
-            System.out.println( "UPDATE: Processing Data Value for " + eventProgramStageInstanceMap.size()
-                + " PSI took : " + SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
         }
     }
 
@@ -172,12 +154,39 @@ public class DefaultEventPersistenceService
             final Collection<TrackedEntityInstance> trackedEntityInstances = context.getTrackedEntityInstanceMap()
                 .values();
 
-            final long now = nanoTime();
-
             persistUpdateData( programStageInstance, event.getNotes(), trackedEntityInstances, importOptions );
+        }
+    }
 
-            System.out.println( "UPDATE: Processing Data Value for " + programStageInstance + " PSI took : "
-                + SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
+    /**
+     * Deletes the list of events using a single transaction.
+     *
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
+     */
+    @Override
+    @Transactional
+    public void delete( final WorkContext context, final List<Event> events )
+    {
+        if ( isNotEmpty( events ) )
+        {
+            jdbcEventStore.delete( events );
+        }
+    }
+
+    /**
+     * Deletes the event using a single transaction.
+     *
+     * @param context a {@see WorkContext}
+     * @param event the event to delete {@see Event}
+     */
+    @Override
+    @Transactional
+    public void delete( final WorkContext context, final Event event )
+    {
+        if ( event != null )
+        {
+            jdbcEventStore.delete( singletonList( event ) );
         }
     }
 
@@ -187,8 +196,6 @@ public class DefaultEventPersistenceService
     {
         jdbcEventStore.updateEvent( programStageInstance );
 
-        // TODO: Find how to bring this into the update transaction.
-        // TODO: Maikel, what exactly needs to be updated here? Commented out for now
         for ( final TrackedEntityInstance tei : trackedEntityInstances )
         {
             updateTrackedEntityInstance( tei, importOptions.getUser() );
@@ -201,9 +208,6 @@ public class DefaultEventPersistenceService
     {
         final TrackedEntityInstance loadedTei = manager.get( TrackedEntityInstance.class, tei.getUid() );
 
-        // TODO: Discuss with Luciano: Should we add an ACL checking for
-        // TrackedEntityInstance as part of validation? and do a strait JDBC update
-        // here?
         loadedTei.setCreatedAtClient( tei.getCreatedAtClient() );
         loadedTei.setLastUpdatedAtClient( tei.getLastUpdatedAtClient() );
         loadedTei.setInactive( tei.isInactive() );

@@ -117,10 +117,10 @@ public interface EventStore
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     /**
-     * Delete events matching the List of UIDs. This operation also remove comments
+     * Delete list of given events to be removed. This operation also remove comments
      * connected to the Event.
      *
-     * @param uid a List of Events UID
+     * @param events List to be removed
      */
-    void delete( List<String> uid );
+    void delete( List<Event> events );
 }

@@ -76,6 +76,10 @@ public class AttributeOptionComboDateCheck implements Checker
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
+                // TODO: Could we replace the exception by ImportSummary error?
+//                return error( "Event date " + getMediumDateString( date ) + " is after end date "
+//                    + getMediumDateString( option.getEndDate() ) + " for attributeOption '" + option.getName() + "'" )
+//                        .incrementIgnored();
                 throw new IllegalQueryException( "Event date " + getMediumDateString( eventDate )
                     + " is before start date " + getMediumDateString( option.getStartDate() ) + " for attributeOption '"
                     + option.getName() + "'" );
@@ -83,6 +87,10 @@ public class AttributeOptionComboDateCheck implements Checker
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
+                // TODO: Could we replace the exception by ImportSummary error?
+//                return error( "Event date " + getMediumDateString( date ) + " is after end date "
+//                    + getMediumDateString( option.getEndDate() ) + " for attributeOption '" + option.getName() + "'" )
+//                        .incrementIgnored();
                 throw new IllegalQueryException( "Event date " + getMediumDateString( eventDate )
                     + " is after end date " + getMediumDateString( option.getEndDate() ) + " for attributeOption '"
                     + option.getName() + "'" );

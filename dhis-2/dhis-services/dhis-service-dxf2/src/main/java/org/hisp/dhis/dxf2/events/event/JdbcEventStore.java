@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -581,6 +582,7 @@ public class JdbcEventStore implements EventStore
             {
                 final PGobject dataValues = eventDataValuesToJson( programStageInstance.getEventDataValues(),
                     this.jsonMapper );
+
                 jdbcTemplate.execute( SQL_UPDATE, (PreparedStatementCallback<Boolean>) pStmt -> {
                     pStmt.setLong( 1, programStageInstance.getProgramInstance().getId() );
                     pStmt.setLong( 2, programStageInstance.getProgramStage().getId() );
@@ -1704,11 +1706,12 @@ public class JdbcEventStore implements EventStore
         }
     }
 
-    public void delete( List<String> psiUid )
+    public void delete( final List<Event> events )
     {
-        if ( isNotEmpty( psiUid ) )
+        if ( isNotEmpty( events ) )
         {
-            final String uids = "'" + Joiner.on( "," ).join( psiUid ) + "'";
+            final List<String> psiUids = events.stream().map( e -> e.getEvent() ).collect( toList() );
+            final String uids = "'" + Joiner.on( "," ).join( psiUids ) + "'";
 
             jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "
                 + "(select programstageinstanceid from programstageinstance where uid in (" + uids + ") )" );
