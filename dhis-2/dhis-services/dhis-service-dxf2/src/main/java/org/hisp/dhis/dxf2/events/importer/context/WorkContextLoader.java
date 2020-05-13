@@ -98,10 +98,10 @@ public class WorkContextLoader
         // @formatter:off
             .importOptions( localImportOptions )
             .programsMap( programSupplier.get( localImportOptions, events ) )
+            .programStageInstanceMap( programStageInstanceSupplier.get( localImportOptions, events ) )
             .organisationUnitMap( organisationUnitSupplier.get( localImportOptions, events ) )
             .trackedEntityInstanceMap( trackedEntityInstanceSupplier.get( localImportOptions, events ) )
             .programInstanceMap( programInstanceSupplier.get( localImportOptions, events ) )
-            .programStageInstanceMap( programStageInstanceSupplier.get( localImportOptions, events ) )
             .categoryOptionComboMap( categoryOptionComboSupplier.get( localImportOptions, events ) )
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )

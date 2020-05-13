@@ -61,9 +61,10 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
             return new HashMap<>();
         }
 
-        Set<String> psiUid = events.stream().map( Event::getEvent ).collect( Collectors.toSet() );
+        Set<String> psiUid = events.stream().map( Event::getUid ).collect( Collectors.toSet() );
 
-        final String sql = "select psi.programinstanceid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted from programstageinstance psi where psi.uid in (:ids)";
+        final String sql = "select psi.programinstanceid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted "
+            + "from programstageinstance psi where psi.uid in (:ids)";
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", psiUid );
 
