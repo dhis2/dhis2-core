@@ -38,9 +38,9 @@ import static org.apache.commons.logging.LogFactory.getLog;
 
 public interface EventProcessing
 {
-    Log log = getLog( EventProcessing.class );
-
     void process( final WorkContext workContext, final List<Event> events );
+
+    Log log = getLog( EventProcessing.class );
 
     class ProcessorRunner
     {

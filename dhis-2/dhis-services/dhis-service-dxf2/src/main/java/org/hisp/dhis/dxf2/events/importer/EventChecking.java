@@ -42,9 +42,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 public interface EventChecking
 {
-    Log log = getLog( EventChecking.class );
-
     List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
+
+    Log log = getLog( EventChecking.class );
 
     class ValidationRunner
     {
@@ -84,6 +84,7 @@ public interface EventChecking
                         {
                             importSummaries.add( importSummary );
                         }
+
                         if ( validationCheck.isFinal() && importSummary.isStatus( ERROR ) )
                         {
                             return importSummaries;
