@@ -126,7 +126,13 @@ public class UserGroupAccess
 
         return userGroup;
     }
-    
+
+    /**
+     * Check if the given {@see User} is contained in the {@see UserGroup}
+     * 
+     * @param user a {@see User}
+     * @return true, if the {@see User} is part of this UserGroup's members list
+     */
     public boolean userGroupContainsUser( User user )
     {
 
