@@ -289,13 +289,14 @@ dhis2.de.shouldFetchDataSets = function( ids ) {
 dhis2.de.getMultiOrgUnitSetting = function()
 {
   return $.ajax({
-    url: '../api/systemSettings/multiOrganisationUnitForms',
+    url: '../api/systemSettings?key=multiOrganisationUnitForms',
     dataType: 'json',
     async: false,
     type: 'GET',
     success: function( data ) {
-      dhis2.de.multiOrganisationUnitEnabled = data;
-      selection.setIncludeChildren(data);
+      var isMultiOrgUnit = data && data.multiOrganisationUnitForms ? data.multiOrganisationUnitForms : false;
+      dhis2.de.multiOrganisationUnitEnabled = isMultiOrgUnit;
+      selection.setIncludeChildren(isMultiOrgUnit);
     }
   });
 };
