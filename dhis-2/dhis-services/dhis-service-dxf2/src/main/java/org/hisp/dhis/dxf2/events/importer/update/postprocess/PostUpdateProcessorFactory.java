@@ -35,6 +35,7 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.EventProcessing;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -56,7 +57,7 @@ public class PostUpdateProcessorFactory implements EventProcessing
     {
         final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
 
-        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
+        if ( ImportStrategyUtils.isUpdate( importStrategy ) )
         {
             new ProcessorRunner( workContext, events ).run( eventUpdatePostProcessorMap.get( UPDATE ) );
         }

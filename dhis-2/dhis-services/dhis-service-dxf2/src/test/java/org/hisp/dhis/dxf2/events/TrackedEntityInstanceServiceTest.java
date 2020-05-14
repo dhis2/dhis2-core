@@ -486,6 +486,7 @@ public class TrackedEntityInstanceServiceTest
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, importOptions, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
+
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
     }
 

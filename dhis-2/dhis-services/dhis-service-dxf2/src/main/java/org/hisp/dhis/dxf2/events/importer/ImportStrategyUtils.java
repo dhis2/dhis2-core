@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,45 +28,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.delete.validation;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isDelete;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
 
-@Component( "eventsDeleteValidationFactory" )
-public class DeleteValidationFactory implements EventChecking
+public class ImportStrategyUtils
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap;
-
-    public DeleteValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap )
+    public static boolean isUpdate( ImportStrategy importStrategy )
     {
-        checkNotNull( eventDeleteValidatorMap );
-        this.eventDeleteValidatorMap = eventDeleteValidatorMap;
+        return importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() || importStrategy.isSync();
     }
 
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
+    public static boolean isInsert( ImportStrategy importStrategy )
     {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
+        return importStrategy.isCreateAndUpdate() || importStrategy.isCreate() || importStrategy.isSync();
+    }
 
-        if ( isDelete( importStrategy ) )
-        {
-            return new ValidationRunner( ctx, events ).run( eventDeleteValidatorMap.get( DELETE ) );
-        }
-
-        return emptyList();
+    public static boolean isDelete( ImportStrategy importStrategy )
+    {
+        return importStrategy.isDelete() || importStrategy.isSync();
     }
 }

@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.EventProcessing;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -47,23 +48,19 @@ public class PreInsertProcessorFactory implements EventProcessing
     private final Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap;
 
     public PreInsertProcessorFactory(
-        final Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap )
+        final Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorsMap )
     {
-        this.eventPreProcessorsMap = eventPreProcessorsMap;
+        this.eventPreProcessorsMap = eventInsertPreProcessorsMap;
     }
 
     @Override
     public void process( final WorkContext workContext, final List<Event> events )
     {
-        final List<Class<? extends Processor>> preProcessors = eventPreProcessorsMap
-            .get( workContext.getImportOptions().getImportStrategy() );
-        if ( preProcessors != null )
+        ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
+
+        if ( ImportStrategyUtils.isInsert( importStrategy ) )
         {
-            new ProcessorRunner( workContext, events ).run( preProcessors );
-        }
-        else
-        {
-            log.error("No preprocessors found for import strategy: " + workContext.getImportOptions().getImportStrategy().name() );
+            new ProcessorRunner( workContext, events ).run( eventPreProcessorsMap.get( ImportStrategy.CREATE ) );
         }
     }
 }

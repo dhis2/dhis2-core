@@ -29,7 +29,9 @@ package org.hisp.dhis.dxf2.config;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+import static org.hisp.dhis.importexport.ImportStrategy.NEW;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.HashMap;
@@ -134,9 +136,14 @@ public class ServiceConfig
     }
 
     /*
-     *
-     * Default validation chains for each Metadata Import Strategy
-     *
+     * // @formatter:off
+        __  ___ ______ ______ ___     ____   ___   ______ ___
+       /  |/  // ____//_  __//   |   / __ \ /   | /_  __//   |
+      / /|_/ // __/    / /  / /| |  / / / // /| |  / /  / /| |
+     / /  / // /___   / /  / ___ | / /_/ // ___ | / /  / ___ |
+    /_/  /_//_____/  /_/  /_/  |_|/_____//_/  |_|/_/  /_/  |_|
+                                                              
+     * // @formatter:on
      */
 
     private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
@@ -193,75 +200,53 @@ public class ServiceConfig
         // @formatter:off
         return ImmutableMap.of(
             ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
-            ImportStrategy.CREATE, CREATE_CHECKS,
+            CREATE, CREATE_CHECKS,
             ImportStrategy.UPDATE, UPDATE_CHECKS,
             ImportStrategy.DELETE, DELETE_CHECKS );
         // @formatter:on
     }
 
     /*
-     *
-     * Default validation chains for each Tracker Import Strategy
-     *
+     * // @formatter:off
+      ______ ____   ___    ______ __ __  ______ ____
+     /_  __// __ \ /   |  / ____// //_/ / ____// __ \
+      / /  / /_/ // /| | / /    / ,<   / __/  / /_/ /
+     / /  / _, _// ___ |/ /___ / /| | / /___ / _, _/
+    /_/  /_/ |_|/_/  |_|\____//_/ |_|/_____//_/ |_|
+
+     * // @formatter:on
      */
 
-    private final static List<Class<? extends Checker>> CREATE_EVENTS_CHECKS = newArrayList(
-    // @formatter:off
-        EventDateCheck.class,
-        OrgUnitCheck.class,
-        ProgramCheck.class,
-        ProgramStageCheck.class,
-        TrackedEntityInstanceCheck.class,
-        ProgramInstanceCheck.class,
-        ProgramInstanceRepeatableStageCheck.class,
-        ProgramOrgUnitCheck.class,
-        EventGeometryCheck.class,
-        EventCreationAclCheck.class,
-        EventBaseCheck.class,
-        AttributeOptionComboCheck.class,
-        AttributeOptionComboDateCheck.class,
-        AttributeOptionComboAclCheck.class,
-        DataValueCheck.class,
-        DataValueAclCheck.class
-    );
-    // @formatter:on
+    /*
+     * TRACKER EVENT IMPORT VALIDATION
+     */
 
-    @Bean( "eventValidatorMap" )
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventValidatorMap()
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap()
     {
         // @formatter:off
-        return ImmutableMap.of(
-            ImportStrategy.CREATE, CREATE_EVENTS_CHECKS,
-            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_CHECKS,
-            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
-        // @formatter:on
-    }
-
-    private final static List<Class<? extends Processor>> CREATE_EVENTS_PREPROCESS = newArrayList(
-    // @formatter:off
-        ImportOptionsPreProcessor.class,
-        EventStoredByPreProcessor.class,
-        ProgramInstancePreProcessor.class,
-        ProgramStagePreProcessor.class,
-        EventGeometryPreProcessor.class
-    );
-    // @formatter:on
-
-    @Bean( "eventPreProcessorsMap" )
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap()
-    {
-        // @formatter:off
-        return ImmutableMap.of(
-            ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS,
-            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_PREPROCESS,
-            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS
+        return ImmutableMap.of( CREATE, newArrayList(
+            EventDateCheck.class,
+            OrgUnitCheck.class,
+            ProgramCheck.class,
+            ProgramStageCheck.class,
+            TrackedEntityInstanceCheck.class,
+            ProgramInstanceCheck.class,
+            ProgramInstanceRepeatableStageCheck.class,
+            ProgramOrgUnitCheck.class,
+            EventGeometryCheck.class,
+            EventCreationAclCheck.class,
+            EventBaseCheck.class,
+            AttributeOptionComboCheck.class,
+            AttributeOptionComboDateCheck.class,
+            AttributeOptionComboAclCheck.class,
+            DataValueCheck.class,
+            DataValueAclCheck.class
+        )
         );
         // @formatter:on
     }
 
-    /*
-     * Default validation chains for Tracker Import (update) events process.
-     */
     @Bean
     public Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap()
     {
@@ -277,6 +262,34 @@ public class ServiceConfig
             AttributeOptionComboCheck.class,
             AttributeOptionComboDateCheck.class,
             EventGeometryCheck.class
+        ) );
+        // @formatter:on
+    }
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap()
+    {
+        // @formatter:off
+        return ImmutableMap.of( DELETE, newArrayList(
+            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class
+        ) );
+        // @formatter:on
+    }
+
+    /*
+     * TRACKER EVENT PRE/POST PROCESSING
+     */
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorsMap()
+    {
+        // @formatter:off
+        return ImmutableMap.of( CREATE, newArrayList(
+            ImportOptionsPreProcessor.class,
+            EventStoredByPreProcessor.class,
+            ProgramInstancePreProcessor.class,
+            ProgramStagePreProcessor.class,
+            EventGeometryPreProcessor.class
         ) );
         // @formatter:on
     }
@@ -299,16 +312,6 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, newArrayList(
             PublishEventPostProcessor.class,
             ProgramNotificationPostProcessor.class
-        ) );
-        // @formatter:on
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap()
-    {
-        // @formatter:off
-        return ImmutableMap.of( DELETE, newArrayList(
-            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class
         ) );
         // @formatter:on
     }

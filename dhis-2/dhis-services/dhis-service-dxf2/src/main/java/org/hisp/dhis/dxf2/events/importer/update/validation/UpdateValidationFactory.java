@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isInsert;
+import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isUpdate;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.List;
@@ -41,6 +43,7 @@ import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component( "eventsUpdateValidationFactory" )
@@ -59,7 +62,7 @@ public class UpdateValidationFactory implements EventChecking
     {
         final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
 
-        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
+        if ( isUpdate( importStrategy ) )
         {
             return new ValidationRunner( ctx, events ).run( eventUpdateValidatorMap.get( UPDATE ) );
         }
