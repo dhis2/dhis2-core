@@ -74,10 +74,10 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
     @Mock
     private Session session;
-    
+
     @Mock
     private Query query;
-    
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -88,7 +88,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
         when( sessionFactory.getCurrentSession() ).thenReturn( session );
         subject = new SchemaToDataFetcher( sessionFactory );
     }
-    
+
     @Test
     public void verifyInput()
     {
@@ -110,12 +110,12 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         mockSession( "SELECT code,id from " + schema.getKlass().getSimpleName() );
 
-        List<Object[]> l = new ArrayList();
+        List<Object[]> l = new ArrayList<>();
 
         l.add( new Object[] { "abc", 123456 } );
         l.add( new Object[] { "bce", 123888 } );
         l.add( new Object[] { "def", 123999 } );
-        
+
         when( query.getResultList() ).thenReturn( l );
 
         List<DataElement> result = (List<DataElement>) subject.fetch( schema );

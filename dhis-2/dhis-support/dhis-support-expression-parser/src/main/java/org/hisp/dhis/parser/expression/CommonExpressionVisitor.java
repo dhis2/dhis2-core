@@ -39,6 +39,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -58,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -164,6 +166,11 @@ public class CommonExpressionVisitor
      * Count of dimension item values found.
      */
     private int itemValuesFound = 0;
+
+    /**
+     * Strategy for handling missing values.
+     */
+    private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
 
     /**
      * Current program indicator.
@@ -533,9 +540,24 @@ public class CommonExpressionVisitor
         return itemsFound;
     }
 
+    public void setItemsFound( int itemsFound )
+    {
+        this.itemsFound = itemsFound;
+    }
+
     public int getItemValuesFound()
     {
         return itemValuesFound;
+    }
+
+    public void setItemValuesFound( int itemValuesFound )
+    {
+        this.itemValuesFound = itemValuesFound;
+    }
+
+    public MissingValueStrategy getMissingValueStrategy()
+    {
+        return missingValueStrategy;
     }
 
     // -------------------------------------------------------------------------
@@ -632,11 +654,17 @@ public class CommonExpressionVisitor
             return this;
         }
 
+        public Builder withMissingValueStrategy( MissingValueStrategy missingValueStrategy )
+        {
+            this.visitor.missingValueStrategy = missingValueStrategy;
+            return this;
+        }
+
         public CommonExpressionVisitor buildForExpressions()
         {
             Validate.notNull( this.visitor.dimensionService, "Missing required property 'dimensionService'" );
-            Validate.notNull( this.visitor.organisationUnitGroupService,
-                "Missing required property 'organisationUnitGroupService'" );
+            Validate.notNull( this.visitor.organisationUnitGroupService,"Missing required property 'organisationUnitGroupService'" );
+            Validate.notNull( this.visitor.missingValueStrategy,"Missing required property 'missingValueStrategy'" );
 
             return validateCommonProperties();
         }

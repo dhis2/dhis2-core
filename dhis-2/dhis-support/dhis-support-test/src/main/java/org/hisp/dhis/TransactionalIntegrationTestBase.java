@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @Category( IntegrationTest.class )
-@ActiveProfiles(profiles = {"test-postgres"})
+@ActiveProfiles( profiles = {"test-postgres"} )
 @Transactional
 public abstract class TransactionalIntegrationTestBase
     extends DhisConvenienceTest
