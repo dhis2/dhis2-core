@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,10 +67,10 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -365,7 +365,60 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testUpdateUserGroupWithoutCreatedUserProperty() throws IOException
+    public void testMetadataImportWithDeletedDataElements()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_sections_and_data_elements.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
+
+        assertNotNull( dataset.getSections() );
+        assertNotNull( dataset.getDataElements() );
+        assertTrue( dataset.getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+
+        assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
+
+        assertTrue( dataset.getSections().stream().filter( s -> s.getUid().equals( "JwcV2ZifEQf" ) ).findFirst().get()
+            .getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_data_element_removed.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+        params.setMetadataSyncImport( false );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        assertFalse( dataset.getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+
+        assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
+
+        assertFalse( dataset.getSections().stream().filter( s -> s.getUid().equals( "JwcV2ZifEQf" ) ).findFirst().get()
+            .getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+    }
+
+    @Test
+    public void testUpdateUserGroupWithoutCreatedUserProperty()
+        throws IOException
     {
         User userA = createUser( "A", "ALL" );
         userService.addUser( userA );
