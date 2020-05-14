@@ -1117,6 +1117,11 @@
         <artifactId>postgresql</artifactId>
         <version>42.2.5</version>
       </dependency>
+      <dependency>
+        <groupId>net.postgis</groupId>
+        <artifactId>postgis-jdbc</artifactId>
+        <version>2.5.0</version>
+      </dependency>
 
       <!-- Flyway -->
       <dependency>

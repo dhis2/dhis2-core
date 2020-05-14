@@ -63,11 +63,11 @@ public interface EventStore
         "code, " +                      // 15
         "createdatclient, " +           // 16
         "lastupdatedatclient, " +       // 17
-        //"geometry, " +
-        "assigneduserid, " +            // 18
-        "eventdatavalues) " +           // 19
+        "geometry, " +                  // 18
+        "assigneduserid, " +            // 19
+        "eventdatavalues) " +           // 20
         // @formatter:on
-        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" + "trackedentitycommentid, " + // 0
         "uid, " + // 1
@@ -97,10 +97,10 @@ public interface EventStore
             "code = ?, " +                      // 13
             "createdatclient = ?, " +           // 14
             "lastupdatedatclient = ?, " +       // 15
-            //"geometry = ?, " +                //
-            "assigneduserid = ?, " +            // 16
-            "eventdatavalues = ? " +            // 17
-            "where uid = ?;";                   // 18
+             "geometry = ?, " +                 // 16
+            "assigneduserid = ?, " +            // 17
+            "eventdatavalues = ? " +            // 18
+            "where uid = ?;";                   // 19
         // @formatter:on
 
     List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );

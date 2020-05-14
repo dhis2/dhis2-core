@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.List;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UidGenerator;
@@ -63,12 +64,23 @@ public class WorkContextLoader
 
     private final static UidGenerator uidGen = new UidGenerator();
 
-    public WorkContextLoader( ProgramSupplier programSupplier, OrganisationUnitSupplier organisationUnitSupplier,
-        TrackedEntityInstanceSupplier trackedEntityInstanceSupplier, ProgramInstanceSupplier programInstanceSupplier,
+    private final SessionFactory sessionFactory;
+
+    public WorkContextLoader(
+    // @formatter:off
+        ProgramSupplier programSupplier, 
+        OrganisationUnitSupplier organisationUnitSupplier,
+        TrackedEntityInstanceSupplier trackedEntityInstanceSupplier, 
+        ProgramInstanceSupplier programInstanceSupplier,
         ProgramStageInstanceSupplier programStageInstanceSupplier,
-        CategoryOptionComboSupplier categoryOptionComboSupplier, DataElementSupplier dataElementSupplier,
-        NoteSupplier noteSupplier, AssignedUserSupplier assignedUserSupplier,
-        ServiceDelegatorSupplier serviceDelegatorSupplier )
+        CategoryOptionComboSupplier categoryOptionComboSupplier, 
+        DataElementSupplier dataElementSupplier,
+        NoteSupplier noteSupplier, 
+        AssignedUserSupplier assignedUserSupplier,
+        ServiceDelegatorSupplier serviceDelegatorSupplier, 
+        SessionFactory sessionFactory
+    // @formatter:on
+    )
     {
         this.programSupplier = programSupplier;
         this.organisationUnitSupplier = organisationUnitSupplier;
@@ -80,10 +92,13 @@ public class WorkContextLoader
         this.noteSupplier = noteSupplier;
         this.assignedUserSupplier = assignedUserSupplier;
         this.serviceDelegatorSupplier = serviceDelegatorSupplier;
+        this.sessionFactory = sessionFactory;
     }
 
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
+        sessionFactory.getCurrentSession().flush();
+
         ImportOptions localImportOptions = importOptions;
         // API allows a null Import Options
         if ( localImportOptions == null )

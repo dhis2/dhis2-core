@@ -114,6 +114,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.postgis.PGgeometry;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -402,7 +403,6 @@ public class JdbcEventStore implements EventStore
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
      *
-     * @throws SQLException when an error occurs
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
     {
@@ -558,18 +558,17 @@ public class JdbcEventStore implements EventStore
         ps.setString( 15, event.getCode() );
         ps.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
         ps.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
-        // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
-        // figure out how to handle that
+        ps.setObject( 18, toGeometry( event.getGeometry() )  );
         if ( event.getAssignedUser() != null )
         {
-            ps.setLong( 18, event.getAssignedUser().getId() );
+            ps.setLong( 19, event.getAssignedUser().getId() );
         }
         else
         {
-            ps.setObject( 18, null );
+            ps.setObject( 19, null );
         }
 
-        ps.setObject( 19, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
+        ps.setObject( 20, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
     }
 
     public void updateEvent( final ProgramStageInstance programStageInstance )
@@ -599,20 +598,19 @@ public class JdbcEventStore implements EventStore
                     pStmt.setString( 13, programStageInstance.getCode() );
                     pStmt.setTimestamp( 14, toTimestamp( programStageInstance.getCreatedAtClient() ) );
                     pStmt.setTimestamp( 15, toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
-                    // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
-                    // figure out how to handle that
+                    pStmt.setObject( 16, toGeometry( programStageInstance.getGeometry()  )  );
 
                     if ( programStageInstance.getAssignedUser() != null )
                     {
-                        pStmt.setLong( 16, programStageInstance.getAssignedUser().getId() );
+                        pStmt.setLong( 17, programStageInstance.getAssignedUser().getId() );
                     }
                     else
                     {
-                        pStmt.setObject( 16, null );
+                        pStmt.setObject( 17, null );
                     }
 
-                    pStmt.setObject( 17, dataValues );
-                    pStmt.setString( 18, programStageInstance.getUid() );
+                    pStmt.setObject( 18, dataValues );
+                    pStmt.setString( 19, programStageInstance.getUid() );
 
                     return pStmt.execute();
                 } );
@@ -627,14 +625,13 @@ public class JdbcEventStore implements EventStore
 
     private Timestamp toTimestamp( Date date )
     {
-        if ( date == null )
-        {
-            return null;
-        }
-        else
-        {
-            return new Timestamp( date.getTime() );
-        }
+        return date != null ? new Timestamp( date.getTime() ) : null;
+    }
+
+    private PGgeometry toGeometry( Geometry geometry )
+        throws SQLException
+    {
+        return geometry != null ? new PGgeometry( geometry.toText() ) : null;
     }
 
     private void validateIdentifiersPresence( SqlRowSet rowSet, IdSchemes idSchemes,
@@ -1603,12 +1600,10 @@ public class JdbcEventStore implements EventStore
 
     private String getAttributeValueQuery()
     {
-        String sql = "select pav.trackedentityinstanceid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
+        return "select pav.trackedentityinstanceid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
             + "pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name, ta.valuetype as ta_valuetype "
             + "from trackedentityattributevalue pav "
             + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
-
-        return sql;
     }
 
     private boolean isSuper( User user )
@@ -1710,7 +1705,7 @@ public class JdbcEventStore implements EventStore
     {
         if ( isNotEmpty( events ) )
         {
-            final List<String> psiUids = events.stream().map( e -> e.getEvent() ).collect( toList() );
+            final List<String> psiUids = events.stream().map( Event::getEvent ).collect( toList() );
             final String uids = "'" + Joiner.on( "," ).join( psiUids ) + "'";
 
             jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "

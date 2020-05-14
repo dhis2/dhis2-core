@@ -82,13 +82,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
         .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic(5) )
-        .expireAfterWrite( 5, TimeUnit.MINUTES )
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
     
     // Caches the User Groups and the Users belonging to each group
     private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
         .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic(5) )
-        .expireAfterWrite( 10, TimeUnit.MINUTES )
+        .expireAfterWrite( 5, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
         {

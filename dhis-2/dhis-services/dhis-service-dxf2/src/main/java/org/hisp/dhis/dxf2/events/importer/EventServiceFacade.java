@@ -63,7 +63,7 @@ public class EventServiceFacade
     private final ObjectMapper xmlMapper;
 
     public EventServiceFacade( final EventImporter eventImporter, final CurrentUserService currentUserService,
-                       final ObjectMapper jsonMapper, @Qualifier( "xmlMapper" )
+        final ObjectMapper jsonMapper, @Qualifier( "xmlMapper" )
         final ObjectMapper xmlMapper )
     {
         checkNotNull( eventImporter );

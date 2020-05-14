@@ -71,13 +71,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-public class DefaultEventPersistenceService
+public class  DefaultEventPersistenceService
     implements
     EventPersistenceService
 {
     private final EventStore jdbcEventStore;
 
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
     private final TrackedEntityCommentService trackedEntityCommentService;
 
