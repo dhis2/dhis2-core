@@ -65,10 +65,4 @@ public class ProgramStageCheck implements Checker
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

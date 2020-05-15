@@ -46,10 +46,4 @@ public class ProgramCheck
         return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
             "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

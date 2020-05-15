@@ -47,7 +47,6 @@ public class AttributeOptionComboAclCheck
     implements
     Checker
 {
-
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
@@ -65,11 +64,5 @@ public class AttributeOptionComboAclCheck
             importSummary.incrementIgnored();
         }
         return importSummary;
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
     }
 }

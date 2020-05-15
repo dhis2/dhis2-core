@@ -51,10 +51,4 @@ public class EventSimpleCheck
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

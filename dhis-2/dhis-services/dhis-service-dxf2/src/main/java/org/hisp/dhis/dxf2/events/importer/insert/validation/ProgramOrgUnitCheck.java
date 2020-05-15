@@ -48,6 +48,7 @@ public class ProgramOrgUnitCheck implements Checker
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+
         if ( programInstance != null )
         {
             Optional<OrganisationUnit> orgUnit = programInstance.getProgram().getOrganisationUnits().stream()
@@ -62,13 +63,7 @@ public class ProgramOrgUnitCheck implements Checker
                         .setReference( event.getEvent() ).incrementIgnored();
             }
         }
+
         return success();
-
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
     }
 }

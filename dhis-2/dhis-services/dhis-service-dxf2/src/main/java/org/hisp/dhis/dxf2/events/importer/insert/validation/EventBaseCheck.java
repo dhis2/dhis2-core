@@ -54,7 +54,6 @@ public class EventBaseCheck
     implements
     Checker
 {
-
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
@@ -71,12 +70,6 @@ public class EventBaseCheck
         }
 
         return importSummary;
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
     }
 
     private List<String> validate( ImmutableEvent event, WorkContext ctx )
@@ -108,7 +101,7 @@ public class EventBaseCheck
 
         if ( programInstance == null )
         {
-            errors.add( "Program instance not found for event: " + event.getEvent() );
+            errors.add( "Np program instance found for event: " + event.getEvent() );
             
             return errors;
         }

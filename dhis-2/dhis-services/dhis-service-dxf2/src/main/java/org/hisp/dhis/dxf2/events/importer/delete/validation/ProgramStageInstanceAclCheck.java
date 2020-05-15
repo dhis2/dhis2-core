@@ -50,10 +50,4 @@ public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
 
         return emptyList();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

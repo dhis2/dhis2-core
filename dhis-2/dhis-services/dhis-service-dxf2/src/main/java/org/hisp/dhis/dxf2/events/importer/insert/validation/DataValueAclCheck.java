@@ -71,10 +71,4 @@ public class DataValueAclCheck implements Checker
 
         return importSummary;
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

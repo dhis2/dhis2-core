@@ -66,10 +66,4 @@ public class EventDateCheck
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

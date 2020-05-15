@@ -85,10 +85,4 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
 
         return jdbcTemplate.queryForObject( sql, Boolean.class, programStageUid );
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

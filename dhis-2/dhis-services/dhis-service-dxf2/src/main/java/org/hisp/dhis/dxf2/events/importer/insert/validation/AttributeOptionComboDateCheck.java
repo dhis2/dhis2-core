@@ -99,10 +99,4 @@ public class AttributeOptionComboDateCheck implements Checker
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

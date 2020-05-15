@@ -66,10 +66,4 @@ public class ProgramStageInstanceBasicCheck
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

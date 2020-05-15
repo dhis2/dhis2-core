@@ -85,11 +85,4 @@ public abstract class BaseEventAclCheck implements Checker
 
     public abstract List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
         ProgramStageInstance programStageInstance );
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
-
 }

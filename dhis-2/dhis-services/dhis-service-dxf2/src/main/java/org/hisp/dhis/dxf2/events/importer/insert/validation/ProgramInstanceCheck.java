@@ -55,6 +55,7 @@ public class ProgramInstanceCheck implements Checker
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
         List<ProgramInstance> programInstances;
+
         if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage
         {
             if ( program.isRegistration() )
@@ -91,11 +92,5 @@ public class ProgramInstanceCheck implements Checker
         }
 
         return success();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
     }
 }
