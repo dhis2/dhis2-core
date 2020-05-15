@@ -34,7 +34,6 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -97,11 +96,6 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
-
-    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
-    {
-        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
-    }
 
     @Override
     public void decideAccess( DataQueryParams params )
