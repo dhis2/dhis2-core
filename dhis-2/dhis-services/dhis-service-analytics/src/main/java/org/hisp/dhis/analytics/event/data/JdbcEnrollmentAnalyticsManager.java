@@ -83,13 +83,13 @@ public class JdbcEnrollmentAnalyticsManager
         implements EnrollmentAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
-    
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                          ProgramIndicatorService programIndicatorService,
-                                          DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorService programIndicatorService,
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
@@ -350,7 +350,7 @@ public class JdbcEnrollmentAnalyticsManager
             Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program:" + item.getItemName() );
             String eventTableName = "analytics_event_" + item.getProgram().getUid();
             return "(select " +  colName  + " from " + eventTableName +
-            " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " + 
+            " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
             "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
             "order by executiondate " + "desc limit 1 )";
         }
@@ -360,6 +360,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
     }
 
+    @Override
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.ENROLLMENT;
