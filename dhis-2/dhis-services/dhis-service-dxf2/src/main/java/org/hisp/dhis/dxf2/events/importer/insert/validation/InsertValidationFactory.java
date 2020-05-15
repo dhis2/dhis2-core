@@ -50,12 +50,12 @@ import org.springframework.stereotype.Component;
 @Component( "eventsInsertValidationFactory" )
 public class InsertValidationFactory implements EventChecking
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> validatorMap;
+    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap;
 
     public InsertValidationFactory( Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap )
     {
         checkNotNull( eventInsertValidatorMap );
-        this.validatorMap = eventInsertValidatorMap;
+        this.eventInsertValidatorMap = eventInsertValidatorMap;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class InsertValidationFactory implements EventChecking
 
         if ( isInsert( importStrategy ) )
         {
-            return new ValidationRunner( ctx, events ).run( validatorMap.get( ImportStrategy.CREATE ) );
+            return new ValidationRunner( ctx, events ).run( eventInsertValidatorMap.get( ImportStrategy.CREATE ) );
         }
 
         return emptyList();
