@@ -636,6 +636,7 @@ public class User
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 1 )
     public Set<OrganisationUnit> getOrganisationUnits()
     {
         return organisationUnits;
