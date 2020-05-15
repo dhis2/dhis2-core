@@ -34,32 +34,11 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
+import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -199,16 +178,7 @@ public class JdbcEventStore implements EventStore
     {
         User user = currentUserService.getCurrentUser();
 
-        boolean isSuperUser = isSuper( user );
-
-        if ( !isSuperUser )
-        {
-            params.setAccessiblePrograms(
-                manager.getDataReadAll( Program.class ).stream().map( Program::getUid ).collect( Collectors.toSet() ) );
-
-            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
-                .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
-        }
+        setAccessiblePrograms( user, params );
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
@@ -223,7 +193,7 @@ public class JdbcEventStore implements EventStore
         while ( rowSet.next() )
         {
             if ( rowSet.getString( "psi_uid" ) == null
-                || (params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet )) )
+                || (params.getCategoryOptionCombo() == null && !isSuper( user ) && !userHasAccess( rowSet )) )
             {
                 continue;
             }
@@ -483,7 +453,6 @@ public class JdbcEventStore implements EventStore
                 RETURN_GENERATED_KEYS );
             PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
         {
-
             for ( ProgramStageInstance psi : batch )
             {
                 List<TrackedEntityComment> comments = psi.getComments();
@@ -700,16 +669,7 @@ public class JdbcEventStore implements EventStore
     {
         User user = currentUserService.getCurrentUser();
 
-        boolean isSuperUser = isSuper( user );
-
-        if ( !isSuperUser )
-        {
-            params.setAccessiblePrograms(
-                manager.getDataReadAll( Program.class ).stream().map( Program::getUid ).collect( Collectors.toSet() ) );
-
-            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
-                .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
-        }
+        setAccessiblePrograms( user, params );
 
         List<EventRow> eventRows = new ArrayList<>();
 
@@ -729,7 +689,7 @@ public class JdbcEventStore implements EventStore
         while ( rowSet.next() )
         {
             if ( rowSet.getString( "psi_uid" ) == null
-                || (params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet )) )
+                || (params.getCategoryOptionCombo() == null && !isSuper( user ) && !userHasAccess( rowSet )) )
             {
                 continue;
             }
@@ -868,17 +828,7 @@ public class JdbcEventStore implements EventStore
     public int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
         User user = currentUserService.getCurrentUser();
-
-        boolean isSuperUser = isSuper( user );
-
-        if ( !isSuperUser )
-        {
-            params.setAccessiblePrograms(
-                manager.getDataReadAll( Program.class ).stream().map( Program::getUid ).collect( Collectors.toSet() ) );
-
-            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
-                .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
-        }
+        setAccessiblePrograms( user, params );
 
         String sql;
 
@@ -1722,6 +1672,18 @@ public class JdbcEventStore implements EventStore
 
             jdbcTemplate.execute( "DELETE FROM programstageinstance where uid in ( " + uids + ")" );
 
+        }
+    }
+
+    private void setAccessiblePrograms( User user, EventSearchParams params )
+    {
+        if ( !isSuper( user ) )
+        {
+            params.setAccessiblePrograms(
+                    manager.getDataReadAll( Program.class ).stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
+                    .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
     }
 }
