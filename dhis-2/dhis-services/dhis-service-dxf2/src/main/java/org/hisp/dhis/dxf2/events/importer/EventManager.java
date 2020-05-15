@@ -125,7 +125,7 @@ public class EventManager
         List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
 
         // pre-process events
-        preInsertProcessorFactory.process( workContext, events );
+        preInsertProcessorFactory.process( workContext, validEvents );
 
         // @formatter:off
         importSummaries.addImportSummaries(
