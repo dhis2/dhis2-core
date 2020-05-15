@@ -28,15 +28,15 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -69,16 +69,16 @@ public interface EventStore
         // @formatter:on
         "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
-    String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" + "trackedentitycommentid, " + // 0
-        "uid, " + // 1
-        "commenttext, " + // 2
-        "created, " + // 3
-        "creator," + // 4
-        "lastUpdated" + // 5
-        ") " + "values ( nextval('trackedentitycomment_sequence'), ?, ?, ?, ?, ?)";
+    String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (trackedentitycommentid, " + // 0
+        "uid, " +           // 1
+        "commenttext, " +   // 2
+        "created, " +       // 3
+        "creator," +        // 4
+        "lastUpdated" +     // 5
+        ") " + "values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
 
-    String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (" + "programstageinstanceid, "
-        + "sort_order, " + "trackedentitycommentid) " + "values (?, ?, ?)";
+    String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (programstageinstanceid, "
+        + "sort_order, trackedentitycommentid) values (?, ?, ?)";
 
     String SQL_UPDATE = "update programstageinstance set " +
         // @formatter:off

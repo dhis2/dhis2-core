@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -41,9 +40,7 @@ import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -55,8 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -99,6 +94,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -441,59 +438,92 @@ public class JdbcEventStore implements EventStore
         }
     }
 
+    /**
+     * Save all the comments ({@see TrackedEntityComment} for the list of {@see ProgramStageInstance}
+
+     * @param batch a List of {@see ProgramStageInstance}
+     * @return a List of {@see ProgramStageInstance} for which the comments were saved with success 
+     */
     private List<ProgramStageInstance> saveAllComments( List<ProgramStageInstance> batch )
-        throws SQLException
     {
         List<String> failedUids = new ArrayList<>();
 
-        DataSource dataSource = jdbcTemplate.getDataSource();
-
-        try (Connection connection = dataSource.getConnection();
-            PreparedStatement insertEventNotePS = connection.prepareStatement( INSERT_EVENT_NOTE_SQL,
-                RETURN_GENERATED_KEYS );
-            PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
+        for ( ProgramStageInstance psi : batch )
         {
-            for ( ProgramStageInstance psi : batch )
+            List<TrackedEntityComment> comments = psi.getComments();
+            
+            for ( TrackedEntityComment comment : comments )
             {
-                List<TrackedEntityComment> comments = psi.getComments();
-                if ( comments.size() != 0 )
+                Long commentId = saveComment( comment );
+                if ( commentId != null && commentId != 0 )
                 {
-                    try
+                    if ( !saveCommentToEvent( psi.getId(), commentId ) )
                     {
-                        for ( TrackedEntityComment comment : comments )
-                        {
-                            // SAVE THE COMMENTS
-                            bindEventNoteParams( insertEventNotePS, comment );
-                            insertEventNotePS.execute();
-
-                            final ResultSet generatedKeys = insertEventNotePS.getGeneratedKeys();
-
-                            // SAVE THE LINK BETWEEN COMMENT AND PSI
-                            if ( generatedKeys != null && generatedKeys.next() )
-                            {
-                                insertEventNoteLinkPS.setLong( 1, psi.getId() );
-                                insertEventNoteLinkPS.setInt( 2, 0 );
-                                insertEventNoteLinkPS.setLong( 3, generatedKeys.getInt( 1 ) );
-
-                                insertEventNoteLinkPS.execute();
-                            }
-                            else
-                            {
-                                failedUids.add( psi.getUid() );
-                            }
-                        }
-                    }
-                    catch ( SQLException sqlException )
-                    {
-                        log.error( "An error occurred persisting a comment for PSI with uid: " + psi.getUid() );
                         failedUids.add( psi.getUid() );
                     }
+                }
+                else
+                {
+                    failedUids.add( psi.getUid() );
                 }
             }
         }
 
         return isEmpty( failedUids ) ? batch
             : batch.stream().filter( psi -> !failedUids.contains( psi.getUid() ) ).collect( Collectors.toList() );
+    }
+
+    private Long saveComment( TrackedEntityComment comment )
+    {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        try
+        {
+            jdbcTemplate.update( connection -> {
+                PreparedStatement ps = connection.prepareStatement( INSERT_EVENT_NOTE_SQL, new String[]{"trackedentitycommentid"} );
+
+                ps.setString( 1, comment.getUid() );
+                ps.setString( 2, comment.getCommentText() );
+                ps.setTimestamp( 3, toTimestamp( comment.getCreated() ) );
+                ps.setString( 4, comment.getCreator() );
+                ps.setTimestamp( 5, toTimestamp( comment.getLastUpdated() ) );
+
+                return ps;
+            }, keyHolder );
+        }
+        catch ( DataAccessException e )
+        {
+            log.error("An error occurred saving a TrackedEntityComment", e);
+            return null;
+        }
+
+        return (long) keyHolder.getKey();
+    }
+
+    private boolean saveCommentToEvent( Long programStageInstanceId, Long commentId )
+    {
+        int rowsAffected = 0;
+        try
+        {
+            rowsAffected = jdbcTemplate.update( connection -> {
+                PreparedStatement ps = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK );
+
+                ps.setLong( 1, programStageInstanceId );
+                ps.setInt( 2, 0 );
+                ps.setLong( 3, commentId );
+
+                return ps;
+            } );
+        }
+        catch ( DataAccessException e )
+        {
+            log.error(
+                "An error occurred saving a link between a TrackedEntityComment and a ProgramStageInstance with primary key: "
+                    + programStageInstanceId,
+                e );
+        }
+
+        return rowsAffected == 1;
     }
 
     private void bindEventNoteParams( PreparedStatement ps, TrackedEntityComment comment )
