@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.HashMap;
@@ -66,7 +67,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
     {
         if ( events == null )
         {
-            return new HashMap<>();
+            return emptyMap();
         }
 
         // TODO this should be optimized to execute less SQL queries
@@ -81,7 +82,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             // Can't proceed with null Program, this will fail during the validation stage
             if ( program == null )
             {
-                return null;
+                return emptyMap();
             }
 
             final CategoryCombo programCatCombo = program.getCategoryCombo();

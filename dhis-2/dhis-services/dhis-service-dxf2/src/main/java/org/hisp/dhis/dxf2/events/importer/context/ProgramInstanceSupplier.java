@@ -75,6 +75,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
         // @formatter:off
         // Collect all the program instance UIDs to pass as SQL query argument
+        // TODO: Maikel, ask Luciano about it. Should we use also "program" ?
         Set<String> programInstanceUids = events.stream()
                 .filter( e -> e.getEnrollment() != null )
                 .map( Event::getEnrollment ).collect( Collectors.toSet() );

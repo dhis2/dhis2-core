@@ -28,18 +28,23 @@ package org.hisp.dhis.dxf2.events.importer.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.IdScheme.CODE;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.event.EventStatus.fromInt;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -62,12 +67,12 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         ImportOptions importOptions = workContext.getImportOptions();
         ProgramStageInstance psi = new ProgramStageInstance();
 
-        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
+        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( CODE ) )
         {
             // TODO: Is this really correct?
             psi.setCode( event.getUid() );
         }
-        else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( IdScheme.UID ) )
+        else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( UID ) )
         {
             psi.setUid( event.getUid() );
         } // TODO what about other schemes, like id?
@@ -83,14 +88,14 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
 
         if ( event.getEventDate() != null )
         {
-            executionDate = DateUtils.parseDate( event.getEventDate() );
+            executionDate = parseDate( event.getEventDate() );
         }
 
         Date dueDate = new Date();
 
         if ( event.getDueDate() != null )
         {
-            dueDate = DateUtils.parseDate( event.getDueDate() );
+            dueDate = parseDate( event.getDueDate() );
         }
 
         psi.setDueDate( dueDate );
@@ -105,14 +110,14 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
             Date completedDate = new Date();
             if ( event.getCompletedDate() != null )
             {
-                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+                completedDate = parseDate( event.getCompletedDate() );
             }
             psi.setCompletedDate( completedDate );
         }
 
         // STATUS
 
-        psi.setStatus( EventStatus.fromInt( event.getStatus().getValue() ) );
+        psi.setStatus( fromInt( event.getStatus().getValue() ) );
 
         // ATTRIBUTE OPTION COMBO
 
@@ -124,10 +129,10 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
 
         // CREATED AT CLIENT + UPDATED AT CLIENT
 
-        psi.setCreatedAtClient( DateUtils.parseDate( event.getCreatedAtClient() ) );
-        psi.setLastUpdatedAtClient( DateUtils.parseDate( event.getLastUpdatedAtClient() ) );
+        psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
+        psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
 
-        if ( psi.getProgramStage().isEnableUserAssignment() )
+        if ( psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment() )
         {
             psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
         }
@@ -136,17 +141,23 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         psi.setComments( convertNotes( event, this.workContext ) );
 
         // DATA VALUES
-
-        psi.setEventDataValues(
-            event.getDataValues().stream().map( dataValueMapper::map ).collect( Collectors.toSet() ) );
+        if ( isNotEmpty( event.getDataValues() ) )
+        {
+            psi.setEventDataValues(
+                event.getDataValues().stream().map( dataValueMapper::map ).collect( toSet() ) );
+        }
 
         return psi;
-
     }
 
     private List<TrackedEntityComment> convertNotes( Event event, WorkContext ctx )
     {
-        return event.getNotes().stream().filter( note -> ctx.getNotesMap().containsKey( note.getNote() ) )
-            .map( noteMapper::map ).collect( Collectors.toList() );
+        if ( isNotEmpty( event.getNotes() ) )
+        {
+            return event.getNotes().stream().filter( note -> ctx.getNotesMap().containsKey( note.getNote() ) )
+                .map( noteMapper::map ).collect( toList() );
+        }
+
+        return emptyList();
     }
 }

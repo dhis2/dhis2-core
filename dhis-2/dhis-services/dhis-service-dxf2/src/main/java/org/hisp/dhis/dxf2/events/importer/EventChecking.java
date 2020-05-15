@@ -85,11 +85,7 @@ public interface EventChecking
                         if ( importSummary.isStatus( ERROR ) )
                         {
                             importSummaries.add( importSummary );
-                        }
-
-                        if ( validationCheck.isFinal() && importSummary.isStatus( ERROR ) )
-                        {
-                            return importSummaries;
+                            break;
                         }
                     }
                     catch ( InstantiationException | IllegalAccessException e )
