@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -37,8 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -49,7 +49,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio
@@ -132,8 +133,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             return new HashMap<>();
         }
         
-        final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, ou.uid as tei_ou_uid "
-            + "from programinstance pi "
+        final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, "
+            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
             + "join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid "
             + "join programstageinstance psi on pi.programinstanceid = psi.programinstanceid "
@@ -157,7 +158,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         Multimap<String, String> programInstanceToEvent, Set<String> uids )
     {
 
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid, t.uid as tei_uid, ou.uid as tei_ou_uid "
+        final String sql = "select pi.programinstanceid, pi.programid, pi.uid, t.uid as tei_uid, "
+            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path "
             + "from programinstance pi join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid where pi.uid in (:ids)";
 
@@ -184,7 +186,6 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     private ProgramInstance mapFromResultset( ResultSet rs, ImportOptions importOptions, List<Event> events )
         throws SQLException
     {
-
         ProgramInstance pi = new ProgramInstance();
         pi.setId( rs.getLong( "programinstanceid" ) );
         pi.setUid( rs.getString( "uid" ) );
@@ -194,6 +195,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         trackedEntityInstance.setUid( rs.getString( "tei_uid" ) );
         OrganisationUnit organisationUnit = new OrganisationUnit();
         organisationUnit.setUid( rs.getString( "tei_ou_uid" ) );
+        organisationUnit.setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
         trackedEntityInstance.setOrganisationUnit( organisationUnit );
         pi.setEntityInstance( trackedEntityInstance );
 

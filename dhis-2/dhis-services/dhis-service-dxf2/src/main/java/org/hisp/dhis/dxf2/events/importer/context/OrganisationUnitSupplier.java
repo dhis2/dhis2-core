@@ -103,7 +103,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 String path = rs.getString( "path" );
                 ou.setPath( path );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
-                ou.setParent( getParentHierarchy( ou, path ) );
+                ou.setParent( SupplierUtils.getParentHierarchy( ou, path ) );
                 try
                 {
                     for ( String event : orgUnitToEvent.get( IdSchemeUtils.dynamicSchemeProperty( idScheme, ou ) ) )
@@ -118,33 +118,5 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             }
             return results;
         } );
-    }
-
-    private OrganisationUnit getParentHierarchy( OrganisationUnit ou, String path )
-    {
-        if ( path.startsWith( "/" ) )
-        {
-            path = path.substring( 1 );
-        }
-        List<String> list = Arrays.asList( path.split( "/" ) );
-        if ( list.size() == 1 && list.get( 0 ).equals( ou.getUid() ) )
-        {
-            return null;
-        }
-        Collections.reverse( list );
-
-        List<OrganisationUnit> ous = list.stream().filter( uid -> !uid.equals( ou.getUid() ) ).map( ouUid -> {
-            OrganisationUnit o = new OrganisationUnit();
-            o.setUid( ouUid );
-            return o;
-        } ).collect( Collectors.toList() );
-        OrganisationUnit parent = ous.get( 0 );
-        for ( OrganisationUnit organisationUnit : ous )
-        {
-            parent.setParent( organisationUnit );
-            parent = organisationUnit;
-        }
-
-        return ous.get( 0 );
     }
 }
