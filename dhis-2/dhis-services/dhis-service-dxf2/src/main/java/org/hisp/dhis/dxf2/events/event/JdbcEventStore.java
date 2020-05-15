@@ -45,6 +45,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -450,21 +451,35 @@ public class JdbcEventStore implements EventStore
 
         for ( ProgramStageInstance psi : batch )
         {
+            int sortOrder = 1;
+            if ( psi.getId() > 0 )
+            {
+                // if the PSI is already in the db, fetch the latest sort order for the
+                // notes, to avoid conflicts
+                sortOrder = jdbcTemplate.queryForObject(
+                    "select coalesce(max(sort_order) + 1, 1) from programstageinstancecomments where programstageinstanceid = "
+                        + psi.getId(),
+                    Integer.class );
+            }
             List<TrackedEntityComment> comments = psi.getComments();
             
             for ( TrackedEntityComment comment : comments )
             {
-                Long commentId = saveComment( comment );
-                if ( commentId != null && commentId != 0 )
+                if ( !StringUtils.isEmpty( comment.getCommentText() ) )
                 {
-                    if ( !saveCommentToEvent( psi.getId(), commentId ) )
+                    Long commentId = saveComment( comment );
+                    if ( commentId != null && commentId != 0 )
+                    {
+                        if ( !saveCommentToEvent( psi.getId(), commentId, sortOrder ) )
+                        {
+                            failedUids.add( psi.getUid() );
+                        }
+                        sortOrder++;
+                    }
+                    else
                     {
                         failedUids.add( psi.getUid() );
                     }
-                }
-                else
-                {
-                    failedUids.add( psi.getUid() );
                 }
             }
         }
@@ -500,7 +515,7 @@ public class JdbcEventStore implements EventStore
         return (long) keyHolder.getKey();
     }
 
-    private boolean saveCommentToEvent( Long programStageInstanceId, Long commentId )
+    private boolean saveCommentToEvent(Long programStageInstanceId, Long commentId, int sortOrder)
     {
         int rowsAffected = 0;
         try
@@ -509,7 +524,7 @@ public class JdbcEventStore implements EventStore
                 PreparedStatement ps = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK );
 
                 ps.setLong( 1, programStageInstanceId );
-                ps.setInt( 2, 0 );
+                ps.setInt( 2, sortOrder );
                 ps.setLong( 3, commentId );
 
                 return ps;
@@ -526,54 +541,44 @@ public class JdbcEventStore implements EventStore
         return rowsAffected == 1;
     }
 
-    private void bindEventNoteParams( PreparedStatement ps, TrackedEntityComment comment )
-        throws SQLException
-    {
-        ps.setString( 1, comment.getUid() );
-        ps.setString( 2, comment.getCommentText() );
-        ps.setTimestamp( 3, toTimestamp( comment.getCreated() ) );
-        ps.setString( 4, comment.getCreator() );
-        ps.setTimestamp( 5, toTimestamp( comment.getLastUpdated() ) );
-    }
-
     private void bindEventParams( PreparedStatement ps, ProgramStageInstance event )
         throws SQLException,
         JsonProcessingException
     {
-        ps.setLong( 1, event.getProgramInstance().getId() );
-        ps.setLong( 2, event.getProgramStage().getId() );
-        ps.setTimestamp( 3, toTimestamp( event.getDueDate() ) );
-        ps.setTimestamp( 4, toTimestamp( event.getExecutionDate() ) );
-        ps.setLong( 5, event.getOrganisationUnit().getId() );
-        ps.setString( 6, event.getStatus().toString() );
-        ps.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
-        ps.setString( 8, event.getUid() );
-        ps.setTimestamp( 9, toTimestamp( new Date() ) );
-        ps.setTimestamp( 10, toTimestamp( new Date() ) );
-        ps.setLong( 11, event.getAttributeOptionCombo().getId() );
-        ps.setString( 12, event.getStoredBy() );
-        ps.setString( 13, event.getCompletedBy() );
-        ps.setBoolean( 14, false );
-        ps.setString( 15, event.getCode() );
-        ps.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
-        ps.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
-        ps.setObject( 18, toGeometry( event.getGeometry() )  );
+        // @formatter:off
+        ps.setLong(         1, event.getProgramInstance().getId() );
+        ps.setLong(         2, event.getProgramStage().getId() );
+        ps.setTimestamp(    3, toTimestamp( event.getDueDate() ) );
+        ps.setTimestamp(    4, toTimestamp( event.getExecutionDate() ) );
+        ps.setLong(         5, event.getOrganisationUnit().getId() );
+        ps.setString(       6, event.getStatus().toString() );
+        ps.setTimestamp(    7, toTimestamp( event.getCompletedDate() ) );
+        ps.setString(       8, event.getUid() );
+        ps.setTimestamp(    9, toTimestamp( new Date() ) );
+        ps.setTimestamp(    10, toTimestamp( new Date() ) );
+        ps.setLong(         11, event.getAttributeOptionCombo().getId() );
+        ps.setString(       12, event.getStoredBy() );
+        ps.setString(       13, event.getCompletedBy() );
+        ps.setBoolean(      14, false );
+        ps.setString(       15, event.getCode() );
+        ps.setTimestamp(    16, toTimestamp( event.getCreatedAtClient() ) );
+        ps.setTimestamp(    17, toTimestamp( event.getLastUpdatedAtClient() ) );
+        ps.setObject(       18, toGeometry( event.getGeometry() )  );
         if ( event.getAssignedUser() != null )
         {
-            ps.setLong( 19, event.getAssignedUser().getId() );
+            ps.setLong(     19, event.getAssignedUser().getId() );
         }
         else
         {
-            ps.setObject( 19, null );
+            ps.setObject(   19, null );
         }
-
-        ps.setObject( 20, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
+        ps.setObject(       20, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
+        // @formatter:on
     }
 
     public void updateEvent( final ProgramStageInstance programStageInstance )
         throws JsonProcessingException
     {
-
         if ( programStageInstance != null )
         {
             try
@@ -613,10 +618,14 @@ public class JdbcEventStore implements EventStore
 
                     return pStmt.execute();
                 } );
+
+                // save notes for this psi
+                saveAllComments( Collections.singletonList( programStageInstance ) );
             }
             catch ( DataAccessException | JsonProcessingException | SQLException e )
             {
                 // FIXME: Maikel
+                e.printStackTrace();
                 // throw e;
             }
         }

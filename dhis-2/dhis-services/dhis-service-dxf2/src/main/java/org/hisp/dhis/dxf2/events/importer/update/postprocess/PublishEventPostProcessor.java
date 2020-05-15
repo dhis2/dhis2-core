@@ -51,6 +51,7 @@ public class PublishEventPostProcessor
 
             if ( dataElement != null )
             {
+                // TODO preload the value
                 isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
                     .isLinkedToProgramRuleVariable( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
 

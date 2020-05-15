@@ -83,11 +83,12 @@ public class UidGenerator
             final String uid = CodeGenerator.generateUid();
             event.setUid( uid );
             event.setEvent( uid );
-            List<Note> notes = event.getNotes();
-            for ( Note note : notes )
-            {
-                note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
-            }
+        }
+
+        List<Note> notes = event.getNotes();
+        for ( Note note : notes )
+        {
+            note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
         }
     }
 }

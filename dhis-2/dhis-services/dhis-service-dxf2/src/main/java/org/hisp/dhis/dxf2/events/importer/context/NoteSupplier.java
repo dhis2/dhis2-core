@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,10 +68,11 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>>
         //
         // @formatter:off
         Set<String> notesUid = events.stream()
-                .map( Event::getNotes )
-                .flatMap( Collection::stream )
-                .map( Note::getNote )
-                .collect( Collectors.toSet() );
+            .map( Event::getNotes )
+            .flatMap( Collection::stream )
+            .map( Note::getNote )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toSet() );
         // @formatter:on
 
         if ( isNotEmpty( notesUid ) )

@@ -200,8 +200,6 @@ public class  DefaultEventPersistenceService
         {
             updateTrackedEntityInstance( tei, importOptions.getUser() );
         }
-
-        saveTrackedEntityComment( programStageInstance, notes, importOptions );
     }
 
     private void updateTrackedEntityInstance( final TrackedEntityInstance tei, final User user )
@@ -237,29 +235,5 @@ public class  DefaultEventPersistenceService
         }
 
         return map;
-    }
-
-    private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final List<Note> notes,
-        final ImportOptions importOptions )
-    {
-        for ( final Note note : notes )
-        {
-            final String noteUid = isValidUid( note.getNote() ) ? note.getNote() : generateUid();
-
-            if ( !trackedEntityCommentService.trackedEntityCommentExists( noteUid ) && !isEmpty( note.getValue() ) )
-            {
-                final TrackedEntityComment comment = new TrackedEntityComment();
-                comment.setUid( noteUid );
-                comment.setCommentText( note.getValue() );
-                comment.setCreator( getValidUsername( note.getStoredBy(), importOptions ) );
-
-                final Date created = parseDate( note.getStoredDate() );
-                comment.setCreated( created );
-
-                trackedEntityCommentService.addTrackedEntityComment( comment );
-
-                programStageInstance.getComments().add( comment );
-            }
-        }
     }
 }

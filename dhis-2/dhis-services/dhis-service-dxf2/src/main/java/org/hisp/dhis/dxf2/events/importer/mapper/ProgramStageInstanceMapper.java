@@ -65,7 +65,14 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
     public ProgramStageInstance map( Event event )
     {
         ImportOptions importOptions = workContext.getImportOptions();
+        
         ProgramStageInstance psi = new ProgramStageInstance();
+        
+        ProgramStageInstance programStageInstance = this.workContext.getProgramStageInstanceMap().get( event.getUid() );
+        if ( programStageInstance != null )
+        {
+            psi.setId( programStageInstance.getId() );
+        }
 
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( CODE ) )
         {
