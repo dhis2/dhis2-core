@@ -36,7 +36,9 @@ public enum TranslationProperty
     NAME ( "name" ),
     SHORT_NAME ( "shortName" ),
     DESCRIPTION ("description" ),
-    FORM_NAME ( "formName" );
+    FORM_NAME ( "formName" ),
+    NUMERATOR_DESCRIPTION ( "numeratorDescription" ),
+    DENOMINATOR_DESCRIPTION ( "denominatorDescription" );
 
     private String name;
 
