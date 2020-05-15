@@ -148,7 +148,6 @@ public class EventManager
         if ( invalidEvents.isEmpty() )
         {
             persisted = eventPersistenceService.save( workContext, validEvents );
-
         }
         else
         {
@@ -312,7 +311,7 @@ public class EventManager
         return importSummaries;
     }
 
-    private void handleFailure(final WorkContext workContext, final ImportSummaries importSummaries,
+    private void handleFailure( final WorkContext workContext, final ImportSummaries importSummaries,
                                final List<Event> validEvents, final String errorMessage, final ImportStrategy importStrategy )
     {
         final List<Event> failedEvents = retryEach( workContext, validEvents, importStrategy );
