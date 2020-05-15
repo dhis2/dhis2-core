@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -66,7 +65,7 @@ public interface EventChecking
          * Only returns the ImportSummary for Events that *did* not pass validation
          * 
          * @param validators List of classes implementing the {@see Checker} interface
-         * @return returns the ImportSummary for Eventss that did not pass validation
+         * @return returns the ImportSummary for Events that did not pass validation
          */
         public List<ImportSummary> run( final List<Class<? extends Checker>> validators )
         {
