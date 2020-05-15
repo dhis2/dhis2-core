@@ -42,8 +42,6 @@ public interface Checker
 {
     ImportSummary check( ImmutableEvent event, WorkContext workContext );
 
-    boolean isFinal();
-
     default ImportSummary checkNull( Object object, String description, ImmutableEvent event )
     {
         if ( object == null )

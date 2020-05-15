@@ -61,10 +61,4 @@ public class AttributeOptionComboCheck implements Checker
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

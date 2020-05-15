@@ -60,10 +60,4 @@ public class ProgramStageInstanceAuthCheck
 
         return success();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

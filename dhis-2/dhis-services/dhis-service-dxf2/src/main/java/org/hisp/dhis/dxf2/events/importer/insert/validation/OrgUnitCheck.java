@@ -37,17 +37,10 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
  */
 public class OrgUnitCheck implements Checker
 {
-
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         return checkNull( ctx.getOrganisationUnitMap().get( event.getUid() ),
             "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit(), event );
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
     }
 }

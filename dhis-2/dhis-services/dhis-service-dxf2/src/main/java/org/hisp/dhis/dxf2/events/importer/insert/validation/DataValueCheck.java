@@ -97,10 +97,4 @@ public class DataValueCheck implements Checker
             .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() )
             .getValidationStrategy();
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

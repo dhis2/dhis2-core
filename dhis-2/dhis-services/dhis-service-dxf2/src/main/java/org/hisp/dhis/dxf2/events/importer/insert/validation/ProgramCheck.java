@@ -46,10 +46,4 @@ public class ProgramCheck implements Checker
         return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
             "Event.program does not point to a valid program: " + event.getProgram(), event );
     }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }
