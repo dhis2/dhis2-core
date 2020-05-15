@@ -203,18 +203,13 @@ public class EventManager
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
-        // filter out events which are already in the database
-        // TODO: Is it needed for Update? Removing for now: resolveImportableEvents(
-        // events, importSummaries, ctx );
-        final List<Event> validEvents = events;
-
         // pre-process events
         preUpdateProcessorFactory.process( workContext, events );
 
         // @formatter:off
         importSummaries.addImportSummaries(
             // Run validation against the remaining "updatable" events //
-            updateValidationFactory.check( workContext, validEvents )
+            updateValidationFactory.check( workContext, events)
         );
         // @formatter:on
 
@@ -223,7 +218,7 @@ public class EventManager
             .map( ImportSummary::getReference ).collect( toList() );
 
 
-        if ( eventValidationFailedUids.size() == validEvents.size() )
+        if ( eventValidationFailedUids.size() == events.size() )
         {
             return importSummaries;
         }
@@ -232,11 +227,11 @@ public class EventManager
         {
             try
             {
-                eventPersistenceService.update( workContext, validEvents );
+                eventPersistenceService.update( workContext, events);
             }
             catch ( Exception e )
             {
-                handleFailure( workContext, importSummaries, validEvents, "Invalid or conflicting data", UPDATE );
+                handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
             }
         }
         else
@@ -244,12 +239,12 @@ public class EventManager
             try
             {
                 // collect the events that passed validation and can be persisted
-                eventPersistenceService.update( workContext, validEvents.stream()
+                eventPersistenceService.update( workContext, events.stream()
                     .filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
             }
             catch ( Exception e )
             {
-                handleFailure( workContext, importSummaries, validEvents, "Invalid or conflicting data", UPDATE );
+                handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
             }
         }
 
@@ -257,7 +252,7 @@ public class EventManager
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
         // Post processing only the events that passed validation and ware persisted correctly.
-        postUpdateProcessorFactory.process( workContext, validEvents.stream()
+        postUpdateProcessorFactory.process( workContext, events.stream()
             .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
 
         return importSummaries;
