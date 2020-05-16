@@ -68,6 +68,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
@@ -467,5 +468,74 @@ public class TeTaValidationTest
         printReport( report );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
+    }
+
+    @Test
+    public void testTeaInvalidFormat()
+        throws IOException
+    {
+        String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
+        setupMetaData( metaDataFile );
+
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_format_value.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
+
+        User user = userService.getUser( ADMIN_USER_UID );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        build.setUser( user );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        assertEquals( 1, report.getErrorReports().size() );
+        printReport( report );
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
+    }
+
+    @Test
+    public void testTeaInvalidImage()
+        throws IOException
+    {
+        String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
+        setupMetaData( metaDataFile );
+
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_image_value.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
+
+        User user = userService.getUser( ADMIN_USER_UID );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        build.setUser( user );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        assertEquals( 1, trackerBundles.size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        assertEquals( 2, report.getErrorReports().size() );
+        printReport( report );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1007 ) ) ) );
     }
 }

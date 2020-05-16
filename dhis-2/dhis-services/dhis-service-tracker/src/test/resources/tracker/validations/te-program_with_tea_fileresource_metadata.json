@@ -28,6 +28,33 @@
   "trackedEntityAttributes": [
     {
       "lastUpdated": "2020-02-10T10:08:27.188",
+      "id": "ccccc5ttttt",
+      "created": "2020-02-10T09:12:11.348",
+      "name": "Attribute_Image",
+      "shortName": "Attribute_Image",
+      "publicAccess": "rw------",
+      "aggregationType": "COUNT",
+      "skipSynchronization": false,
+      "generated": false,
+      "valueType": "IMAGE",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [ ],
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "userAccesses": [ ],
+      "legendSets": [ ]
+    },
+    {
+      "lastUpdated": "2020-02-10T10:08:27.188",
       "id": "tTttt5ttttt",
       "created": "2020-02-10T09:12:11.348",
       "name": "Attribute_Generated",
