@@ -40,10 +40,12 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 @Data
 @Builder
-public  class ValidateAndCommit
+public class ValidateAndCommit
 {
     private TrackerValidationService trackerValidationService;
+
     private TrackerBundleService trackerBundleService;
+
     private TrackerBundle trackerBundle;
 
     private TrackerValidationReport validationReport;
@@ -55,6 +57,8 @@ public  class ValidateAndCommit
 
     private final TrackerBundleParams trackerBundleParams;
 
+    private Exception commitException;
+
     public ValidateAndCommit invoke()
     {
         trackerBundleParams.setImportStrategy( trackerImportStrategy );
@@ -63,9 +67,15 @@ public  class ValidateAndCommit
 
         validationReport = trackerValidationService.validate( trackerBundle );
 
-        commitReport = trackerBundleService.commit( trackerBundle );
+        try
+        {
+            commitReport = trackerBundleService.commit( trackerBundle );
+        }
+        catch ( Exception e )
+        {
+            commitException = e;
+        }
 
         return this;
     }
-
 }

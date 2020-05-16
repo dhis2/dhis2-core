@@ -317,12 +317,10 @@ public class TrackerPreheat
         for ( T object : objects )
         {
             boolean isDefault = isDefault( object );
-            if ( isDefault )
-            {
-                log.error( "whats error?" );
-                String whats = "the problem?";
-            }
-            //if ( isDefault ) continue;
+//            if ( isDefault )
+//                continue;
+            //TODO: Investigate why we need to disable this, see Category combo tests, fails if ignore put idDefault
+
             put( identifier, object );
         }
 

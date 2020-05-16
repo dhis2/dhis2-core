@@ -188,9 +188,7 @@ public abstract class AbstractTrackerDtoValidationHook
         Objects.requireNonNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
-        {
             return;
-        }
 
         String error = teAttrService.validateAttributeUniquenessWithinScope(
             trackedEntityAttribute,

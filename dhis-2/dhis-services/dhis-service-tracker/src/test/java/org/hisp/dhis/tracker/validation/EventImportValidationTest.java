@@ -89,7 +89,7 @@ public class EventImportValidationTest
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
 
-    protected void initMeta1()
+    protected void setUpTest()
         throws IOException
     {
         renderService = _renderService;
@@ -146,33 +146,11 @@ public class EventImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    protected void initMeta2()
-        throws IOException
-    {
-
-        renderService = _renderService;
-        userService = _userService;
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        objectBundleParams.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        objectBundleParams.setImportStrategy( ImportStrategy.CREATE );
-        objectBundleParams.setObjects( metadata );
-
-        ObjectBundle objectBundle = objectBundleService.create( objectBundleParams );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( objectBundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
-
-        objectBundleService.commit( objectBundle );
-    }
 
     @Test
     public void testEventValidationOkAll()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
@@ -191,34 +169,11 @@ public class EventImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    @Test
-    public void testEventMeta()
-        throws IOException
-    {
-        initMeta2();
-
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/event_events.json" );
-
-        User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 8, trackerBundle.getEvents().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printReport( report );
-
-        assertEquals( 0, report.getErrorReports().size() );
-
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
-    }
 
     @Test
     public void testEventMissingOrgUnit()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-orgunit-missing.json" );
@@ -242,7 +197,6 @@ public class EventImportValidationTest
     public void testEventMissingProgramAndProgramStage()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-program-pstage-missing.json" );
@@ -269,7 +223,6 @@ public class EventImportValidationTest
     public void testEventMissingProgramStageProgramIsRegistration()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-missing-isreg.json" );
@@ -296,7 +249,6 @@ public class EventImportValidationTest
     public void testProgramStageProgramDifferentPrograms()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-program-different.json" );
@@ -320,7 +272,6 @@ public class EventImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
@@ -343,7 +294,6 @@ public class EventImportValidationTest
     public void testEventCreateAlreadyExists()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
@@ -379,7 +329,6 @@ public class EventImportValidationTest
     public void testUpdateNotExists()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
@@ -406,7 +355,6 @@ public class EventImportValidationTest
     public void testMissingDate()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-missing-date.json" );
@@ -430,7 +378,6 @@ public class EventImportValidationTest
     public void testMissingTei()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-missing-tei.json" );
@@ -454,7 +401,6 @@ public class EventImportValidationTest
     public void testMissingCompletedDate()
         throws IOException
     {
-        initMeta1();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-completed-date.json" );
@@ -479,7 +425,7 @@ public class EventImportValidationTest
 //    public void testEventAlreadyDeleted()
 //        throws IOException
 //    {
-//        initMeta1();
+//
 //
 //        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
 //
@@ -505,14 +451,12 @@ public class EventImportValidationTest
 //        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 //    }
 
-
-
     // TODO: See comments on error codes, seems to not be in use....
 //    @Test
 //    public void testPeriodTypes()
 //        throws IOException
 //    {
-//        initMeta1();
+//
 //
 //        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events_error-periodtype.json" );
 //
@@ -537,7 +481,7 @@ public class EventImportValidationTest
 //    public void testProgramStageDeleted()
 //        throws IOException
 //    {
-//        initMeta1();
+//
 //
 //        TrackerBundleParams trackerBundleParams = renderService
 //            .fromJson(
@@ -582,7 +526,7 @@ public class EventImportValidationTest
 //    public void testIsRegButNoTei()
 //        throws IOException
 //    {
-//        initMeta1();
+//
 //
 //        TrackerBundleParams trackerBundleParams = renderService
 //            .fromJson(

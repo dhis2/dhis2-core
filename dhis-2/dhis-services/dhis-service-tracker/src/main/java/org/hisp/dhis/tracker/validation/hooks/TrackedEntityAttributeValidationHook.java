@@ -149,11 +149,7 @@ public class TrackedEntityAttributeValidationHook
             validateAttrValueType( reporter, attribute, tea );
 
             // TODO: This is one "THE" potential performance killer...
-            validateAttributeUniqueness( reporter,
-                attribute.getValue(),
-                tea,
-                tei,
-                orgUnit );
+            validateAttributeUniqueness( reporter, attribute.getValue(), tea, tei, orgUnit );
 
             validateFileNotAlreadyAssigned( reporter, attribute, valueMap );
         }

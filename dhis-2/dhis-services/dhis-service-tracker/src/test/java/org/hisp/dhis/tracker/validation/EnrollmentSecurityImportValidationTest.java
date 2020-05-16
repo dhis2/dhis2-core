@@ -57,6 +57,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
@@ -266,18 +267,16 @@ public class EnrollmentSecurityImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( USER_2 );
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -298,17 +297,14 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_orgunit-mismatch.json" );
 
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -331,18 +327,18 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_no-access-tei.json" );
 
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 2, report.getErrorReports().size() );
+
+
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1102 ) ) ) );
@@ -368,17 +364,15 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_no-access-program.json" );
 
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -401,17 +395,15 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_no-access-program.json" );
 
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 0, report.getErrorReports().size() );
     }
 
@@ -433,17 +425,14 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_program-teitype-missmatch.json" );
 
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),

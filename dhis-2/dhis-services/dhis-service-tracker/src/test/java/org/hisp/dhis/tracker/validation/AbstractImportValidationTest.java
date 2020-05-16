@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -71,13 +72,12 @@ public abstract class AbstractImportValidationTest
 
     public static final String USER_4 = "---USER4---";
 
-    protected TrackerBundleParams createBundleFromJson( String s )
+    protected TrackerBundleParams createBundleFromJson( String jsonFile )
         throws IOException
     {
-        TrackerBundleParams params = renderService
-            .fromJson(
-                new ClassPathResource( s ).getInputStream(),
-                TrackerBundleParams.class );
+        InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();
+
+        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
         params.setUser( user );
@@ -91,6 +91,18 @@ public abstract class AbstractImportValidationTest
         {
             log.error( errorReport.toString() );
         }
+    }
+
+    protected ValidateAndCommit doValidateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
+        throws IOException
+    {
+        return ValidateAndCommit.builder()
+            .trackerBundleService( trackerBundleService )
+            .trackerValidationService( trackerValidationService )
+            .trackerBundleParams( createBundleFromJson(jsonFileName) )
+            .trackerImportStrategy( strategy )
+            .build()
+            .invoke();
     }
 
     protected ValidateAndCommit doValidateAndCommit( TrackerBundleParams params, TrackerImportStrategy strategy )

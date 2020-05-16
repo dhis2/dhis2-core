@@ -140,32 +140,29 @@ public class EnrollmentImportValidationTest
     public void testEnrollmentValidationOkAll()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
     }
 
-    @Test( expected = javax.persistence.PersistenceException.class )
+    @Test
     public void testDatesMissing()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-dates-missing.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -173,24 +170,19 @@ public class EnrollmentImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );
-
-        // Should cause DB constraint error
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
     }
 
     @Test
     public void testDatesInFuture()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-dates-future.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -204,37 +196,33 @@ public class EnrollmentImportValidationTest
     public void testDisplayIncidentDateTrueButDateValueNotPresentOrInvalid()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-displayIncident.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 2, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );
     }
 
     @Test
     public void testMissingProgram()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-program-missing.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -245,15 +233,13 @@ public class EnrollmentImportValidationTest
     public void testMissingOrgUnit()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-orgunit-missing.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -264,18 +250,16 @@ public class EnrollmentImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( USER_2 );
-        trackerBundleParams.setUser( user );
+        params.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -286,10 +270,10 @@ public class EnrollmentImportValidationTest
     public void testEnrollmentCreateAlreadyExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -314,14 +298,12 @@ public class EnrollmentImportValidationTest
     public void testUpdateNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.UPDATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -333,14 +315,12 @@ public class EnrollmentImportValidationTest
     public void testDeleteNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.DELETE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -352,13 +332,12 @@ public class EnrollmentImportValidationTest
     public void testNonRegProgram()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-nonreg-program.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -370,13 +349,12 @@ public class EnrollmentImportValidationTest
     public void testNonExistTe()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-nonexist-te.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -388,13 +366,12 @@ public class EnrollmentImportValidationTest
     public void testTrackedEntityTypeMismatch()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_error-program-tet-mismatch-te.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 

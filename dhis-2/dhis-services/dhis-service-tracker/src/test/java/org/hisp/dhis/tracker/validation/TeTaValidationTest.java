@@ -301,7 +301,6 @@ public class TeTaValidationTest
 
         assertEquals( 1, attributeValues.size() );
     }
-//    te-program_with_tea_fileresource_data.json
 
     @Test
     public void testGeneratedValuePatternDoNotMatch()
@@ -416,5 +415,57 @@ public class TeTaValidationTest
         printReport( report );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
+    }
+
+    @Test
+    public void testUniqueFail()
+        throws IOException
+    {
+        String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
+        setupMetaData( metaDataFile );
+
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
+
+        User user = userService.getUser( ADMIN_USER_UID );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        build.setUser( user );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
+
+        build = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        user = userService.getUser( ADMIN_USER_UID );
+
+        build.setUser( user );
+
+        trackerBundles = trackerBundleService.create( build );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        assertEquals( 1, report.getErrorReports().size() );
+        printReport( report );
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 }
