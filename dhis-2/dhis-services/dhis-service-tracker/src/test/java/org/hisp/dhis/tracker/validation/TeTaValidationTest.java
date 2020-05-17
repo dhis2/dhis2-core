@@ -538,4 +538,37 @@ public class TeTaValidationTest
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1007 ) ) ) );
     }
+
+    @Test
+    public void testTeaIsNull()
+        throws IOException
+    {
+        String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
+        setupMetaData( metaDataFile );
+
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_value_isnull.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
+
+        User user = userService.getUser( ADMIN_USER_UID );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        build.setUser( user );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        assertEquals( 1, trackerBundles.size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        assertEquals( 1, report.getErrorReports().size() );
+        printReport( report );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
+    }
 }

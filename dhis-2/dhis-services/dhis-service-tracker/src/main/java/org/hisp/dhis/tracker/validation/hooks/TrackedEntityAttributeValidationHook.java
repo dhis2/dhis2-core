@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -129,8 +128,14 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-            if ( StringUtils.isEmpty( attribute.getValue() ) )
+//            if ( StringUtils.isEmpty( attribute.getValue() ) )
+            if ( attribute.getValue() == null )
             {
+                //continue; ??? Just continue on empty and null?
+                // TODO: Is this really correct? This check was not here originally
+                //  Enrollment attr check fails on null so why not here too?
+                reporter.addError( newReport( TrackerErrorCode.E1076 )
+                    .addArg( attribute ) );
                 continue;
             }
 
@@ -158,6 +163,7 @@ public class TrackedEntityAttributeValidationHook
     public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttributeValue teav )
     {
         Objects.requireNonNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        Objects.requireNonNull( teav.getValue(), TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // TODO: Should this be tested here, cant provoke? Is this not validation in metadata? Probably not according to Stian.
 //        if ( teav.getAttribute().getValueType() == null )
