@@ -383,7 +383,8 @@ public class EnrollmentImportValidationTest
     public void testOnlyProgramAttributesAllowedOnEnrollments()
         throws IOException
     {
-        TrackerBundleParams params = createBundleFromJson( "tracker/validations/enrollments_error_non_program_attr.json" );
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_error_non_program_attr.json" );
 
         ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
@@ -415,4 +416,50 @@ public class EnrollmentImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
     }
 
+    @Test
+    public void testDeleteCascadeProgramInstances()
+        throws IOException
+    {
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( "tracker/validations/enrollments_te_attr-data.json",
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+
+        importProgramStageInstances();
+
+        TrackerBundleParams params = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_attr-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user2 = userService.getUser( USER_4 );
+        params.setUser( user2 );
+
+        params.setImportStrategy( TrackerImportStrategy.DELETE );
+        TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+        assertEquals( 3, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1103 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1091 ) ) ) );
+    }
+
+    protected void importProgramStageInstances()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+    }
 }

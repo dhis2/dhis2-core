@@ -876,7 +876,6 @@
         "F_REPLICATE_USER",
         "F_SEND_EMAIL",
         "F_INSERT_CUSTOM_JS_CSS",
-        "F_ENROLLMENT_CASCADE_DELETE",
         "F_METADATA_IMPORT",
         "F_EXPORT_EVENTS",
         "F_VIEW_EVENT_ANALYTICS",

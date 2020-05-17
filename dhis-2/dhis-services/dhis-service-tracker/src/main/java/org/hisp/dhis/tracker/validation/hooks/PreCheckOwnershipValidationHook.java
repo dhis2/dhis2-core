@@ -52,8 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
@@ -87,23 +85,19 @@ public class PreCheckOwnershipValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
         TrackerBundle bundle = context.getBundle();
+        User user = bundle.getUser();
 
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( strategy.isDelete() )
         {
             TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-
-            // This is checked in existence check, but lets be very double sure this is true for now.
             Objects.requireNonNull( tei, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-            Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
-                .filter( pi -> !pi.isDeleted() )
-                .collect( Collectors.toSet() );
-
-            if ( !programInstances.isEmpty()
-                && !bundle.getUser().isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
+                && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1100 )
                     .addArg( bundle.getUser() )
@@ -111,6 +105,7 @@ public class PreCheckOwnershipValidationHook
             }
         }
 
+        // Check acting user is allowed to change/write existing tei type
         if ( strategy.isUpdateOrDelete() )
         {
             TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
@@ -139,35 +134,32 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
 
         if ( strategy.isDelete() )
         {
-            ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
+            ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
+            Objects.requireNonNull( pi, PROGRAM_INSTANCE_CANT_BE_NULL );
 
-            Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances()
-                .stream()
-                .filter( psi -> !psi.isDeleted() )
-                .collect( Collectors.toSet() );
-
-            if ( !notDeletedProgramStageInstances.isEmpty()
-                && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            boolean b1 = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
+            boolean b2 = !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+            if ( b1
+                && b2 )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1103 )
                     .addArg( user )
-                    .addArg( programInstance ) );
+                    .addArg( pi ) );
             }
         }
 
+        // Check acting user is allowed to change/write existing pi and program
         if ( strategy.isUpdateOrDelete() )
         {
             ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
             trackerImportAccessManager
-                .checkWriteEnrollmentAccess( reporter, user, programInstance.getProgram(),
-                    programInstance );
+                .checkWriteEnrollmentAccess( reporter, user, programInstance.getProgram(), programInstance );
         }
 
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, user, program,
@@ -190,10 +182,10 @@ public class PreCheckOwnershipValidationHook
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
+        // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            validateUpdateAndDeleteEvent( reporter, event,
-                context.getProgramStageInstance( event.getEvent() ) );
+            validateUpdateAndDeleteEvent( reporter, event, context.getProgramStageInstance( event.getEvent() ) );
         }
 
         CategoryOptionCombo categoryOptionCombo = context
@@ -226,8 +218,8 @@ public class PreCheckOwnershipValidationHook
         trackerImportAccessManager.checkEventWriteAccess( reporter, actingUser, newProgramStageInstance );
     }
 
-    protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter,
-        Event event, ProgramStageInstance programStageInstance )
+    protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
+        ProgramStageInstance programStageInstance )
     {
         User user = reporter.getValidationContext().getBundle().getUser();
 
