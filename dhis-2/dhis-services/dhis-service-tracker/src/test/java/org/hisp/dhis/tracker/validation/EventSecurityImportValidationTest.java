@@ -59,6 +59,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
@@ -316,5 +317,89 @@ public class EventSecurityImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
+    }
+
+//    @Test
+//    public void testNo_F_UNCOMPLETE_EVENT_auth()
+//        throws IOException
+//    {
+//        setupMetaData();
+//
+//
+//        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+//            "tracker/validations/events_error-no-uncomplete.json" );
+//
+//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        assertEquals( 1, trackerBundle.getEvents().size() );
+//
+//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+//        printReport( report );
+//
+//        assertEquals( 2, report.getErrorReports().size() );
+//
+
+    ///////////////////////////////////// THIS MAKES  E1037 here
+////        assertThat( report.getErrorReports(),
+////            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
+////
+////        assertThat( report.getErrorReports(),
+////            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
+//
+//        trackerBundleParams = createBundleFromJson(
+//            "tracker/validations/events_error-no-uncomplete.json" );
+//
+//        User user = userService.getUser( USER_3 );
+//        trackerBundleParams.setUser( user );
+//        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+//
+//        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        assertEquals( 1, trackerBundle.getEvents().size() );
+//
+//        report = trackerValidationService.validate( trackerBundle );
+//        printReport( report );
+//
+//        assertThat( report.getErrorReports(),
+//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
+//    }
+
+
+    @Test
+    public void testNo_F_UNCOMPLETE_EVENT_auth()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-no-uncomplete.json" );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        TrackerBundleReport commit = trackerBundleService.commit( trackerBundle );
+
+//        assertThat( report.getErrorReports(),
+//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
+//
+//        assertThat( report.getErrorReports(),
+//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
+
+        trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-no-uncomplete.json" );
+
+        User user = userService.getUser( USER_3 );
+        trackerBundleParams.setUser( user );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1032 ) ) ) );
     }
 }

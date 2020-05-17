@@ -890,7 +890,6 @@
         "F_EDIT_EXPIRED",
         "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
         "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_UNCOMPLETE_EVENT",
         "F_TRACKED_ENTITY_INSTANCE_ADD"
       ],
       "id": "---user----",

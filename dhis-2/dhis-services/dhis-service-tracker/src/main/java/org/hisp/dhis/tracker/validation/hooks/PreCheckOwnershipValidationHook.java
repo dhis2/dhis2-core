@@ -221,21 +221,19 @@ public class PreCheckOwnershipValidationHook
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
         ProgramStageInstance programStageInstance )
     {
+        TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
 
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, user, programStageInstance );
 
-        // TODO: Should it be possible to delete a completed event, but not update? with current check above it is...
-        if ( reporter.getValidationContext().getStrategy( event ).isUpdate()
+        if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
             && event.getStatus() != programStageInstance.getStatus()
-            && (!user.isSuper()
-            && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
+            && (!user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1083 )
                 .addArg( user ) );
