@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UidGenerator;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luciano Fiandesio
@@ -95,6 +96,7 @@ public class WorkContextLoader
         this.sessionFactory = sessionFactory;
     }
 
+    @Transactional(readOnly = true)
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
         sessionFactory.getCurrentSession().flush();

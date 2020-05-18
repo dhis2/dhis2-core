@@ -257,7 +257,7 @@ public class ServiceConfig
             ProgramStageInstanceBasicCheck.class,
             ProgramStageInstanceAclCheck.class,
             ProgramCheck.class,
-            EventBaseCheck.class,
+            ProgramInstanceCheck.class,
             ProgramStageInstanceAuthCheck.class,
             AttributeOptionComboCheck.class,
             AttributeOptionComboDateCheck.class,

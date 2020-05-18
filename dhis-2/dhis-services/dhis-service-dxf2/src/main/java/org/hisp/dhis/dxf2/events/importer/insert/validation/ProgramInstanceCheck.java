@@ -76,7 +76,6 @@ public class ProgramInstanceCheck implements Checker
                             + " has multiple active enrollments in program: " + program.getUid() )
                                 .setReference( event.getEvent() ).incrementIgnored();
                 }
-
             }
             else
             {

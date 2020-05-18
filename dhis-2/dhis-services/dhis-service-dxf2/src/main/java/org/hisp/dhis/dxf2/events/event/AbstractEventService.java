@@ -170,7 +170,6 @@ public abstract class AbstractEventService implements EventService
     // CREATE
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
     public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions,
         JobConfiguration jobConfiguration )

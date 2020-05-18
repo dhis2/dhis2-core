@@ -77,7 +77,6 @@ public class EventServiceFacade
         this.xmlMapper = xmlMapper;
     }
 
-    @Transactional
     public ImportSummaries addEventsXml( final InputStream inputStream, final JobConfiguration jobConfiguration,
         final ImportOptions importOptions )
         throws IOException
@@ -88,7 +87,6 @@ public class EventServiceFacade
         return eventImporter.importAll( events, updateImportOptions( importOptions ), jobConfiguration );
     }
 
-    @Transactional
     public ImportSummaries addEventsJson( final InputStream inputStream, final JobConfiguration jobConfiguration,
         final ImportOptions importOptions )
         throws IOException
