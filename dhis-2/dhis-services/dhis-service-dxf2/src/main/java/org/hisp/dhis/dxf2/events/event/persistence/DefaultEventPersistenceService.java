@@ -32,35 +32,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.dxf2.events.event.EventUtils.getValidUsername;
-import static org.hisp.dhis.util.DateUtils.parseDate;
-import static org.springframework.util.StringUtils.isEmpty;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventStore;
-import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -79,31 +69,25 @@ public class  DefaultEventPersistenceService
 
     private final IdentifiableObjectManager manager;
 
-    private final TrackedEntityCommentService trackedEntityCommentService;
-
-    public DefaultEventPersistenceService( EventStore jdbcEventStore, IdentifiableObjectManager manager,
-        TrackedEntityCommentService trackedEntityCommentService )
+    public DefaultEventPersistenceService( EventStore jdbcEventStore, IdentifiableObjectManager manager )
     {
         checkNotNull( jdbcEventStore );
         checkNotNull( manager );
-        checkNotNull( trackedEntityCommentService );
 
         this.jdbcEventStore = jdbcEventStore;
         this.manager = manager;
-        this.trackedEntityCommentService = trackedEntityCommentService;
     }
 
     @Override
     @Transactional
-    public List<ProgramStageInstance> save( WorkContext context, List<Event> events )
+    public void save( WorkContext context, List<Event> events )
     {
         /*
          * Save Events, Notes and Data Values
          */
         ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
-        return isNotEmpty( events )
-            ? jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) )
-            : new ArrayList<>();
+
+        jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
     }
 
     /**
@@ -130,7 +114,7 @@ public class  DefaultEventPersistenceService
 
                 if ( event != null )
                 {
-                    persistUpdateData( programStageInstance, event.getNotes(), trackedEntityInstances, importOptions );
+                    persistUpdateData( programStageInstance, trackedEntityInstances, importOptions );
                 }
             }
         }
@@ -139,9 +123,6 @@ public class  DefaultEventPersistenceService
     /**
      * Updates the given event using a single transaction.
      *
-     * @param context
-     * @param event
-     * @return
      */
     @Override
     @Transactional
@@ -154,7 +135,7 @@ public class  DefaultEventPersistenceService
             final Collection<TrackedEntityInstance> trackedEntityInstances = context.getTrackedEntityInstanceMap()
                 .values();
 
-            persistUpdateData( programStageInstance, event.getNotes(), trackedEntityInstances, importOptions );
+            persistUpdateData( programStageInstance, trackedEntityInstances, importOptions );
         }
     }
 
@@ -190,7 +171,7 @@ public class  DefaultEventPersistenceService
         }
     }
 
-    private void persistUpdateData( final ProgramStageInstance programStageInstance, final List<Note> notes,
+    private void persistUpdateData( final ProgramStageInstance programStageInstance,
         final Collection<TrackedEntityInstance> trackedEntityInstances, final ImportOptions importOptions )
         throws JsonProcessingException
     {

@@ -60,7 +60,7 @@ public class ProgramStageCheck implements Checker
         if ( program.isRegistration() && programStage == null )
         {
             return error( "Event.programStage does not point to a valid programStage: " + event.getProgramStage(),
-                event.getEvent() ).incrementIgnored();
+                event.getEvent() );
         }
 
         return success();

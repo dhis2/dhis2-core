@@ -191,20 +191,25 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         pi.setUid( rs.getString( "uid" ) );
         pi.setProgram(
             getProgramById( rs.getLong( "programid" ), programSupplier.get( importOptions, events ).values() ) );
+
         String teiUid = rs.getString( "tei_uid" );
 
         if ( teiUid != null )
         {
-            OrganisationUnit organisationUnit = new OrganisationUnit();
-            organisationUnit.setUid( rs.getString( "tei_ou_uid" ) );
-            organisationUnit.setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
-
             TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-            trackedEntityInstance.setUid( rs.getString( "tei_uid" ) );
-            trackedEntityInstance.setOrganisationUnit( organisationUnit );
+            String teiOuUid = rs.getString( "tei_ou_uid" );
+            if ( teiOuUid != null )
+            {
+                OrganisationUnit organisationUnit = new OrganisationUnit();
+                organisationUnit.setUid( teiOuUid );
+                organisationUnit
+                    .setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
+                trackedEntityInstance.setOrganisationUnit( organisationUnit );
+            }
+            trackedEntityInstance.setUid( teiUid );
+
             pi.setEntityInstance( trackedEntityInstance );
         }
-
 
         return pi;
     }

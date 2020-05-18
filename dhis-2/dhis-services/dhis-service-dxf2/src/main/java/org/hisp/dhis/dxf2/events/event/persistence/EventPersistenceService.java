@@ -40,7 +40,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
  */
 public interface EventPersistenceService
 {
-    List<ProgramStageInstance> save( WorkContext context, List<Event> events );
+    void save( WorkContext context, List<Event> events );
 
     void update( WorkContext context, Event event ) throws JsonProcessingException;
 

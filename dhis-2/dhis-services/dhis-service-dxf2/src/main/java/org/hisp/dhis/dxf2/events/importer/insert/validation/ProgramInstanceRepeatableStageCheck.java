@@ -52,20 +52,22 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
+
         /*
          * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
          * should report this anomaly.
          */
-        if ( program.isRegistration() && programInstance != null )
+        // @formatter:off
+        if ( programInstance != null && 
+             program.isRegistration() && 
+             !programStage.getRepeatable() && 
+             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getUid() ) )
         {
-            if ( !programStage.getRepeatable()
-                && hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getUid() ) )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
-                        .incrementIgnored();
-            }
+            return new ImportSummary( ImportStatus.ERROR,
+                "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
+                    .incrementIgnored();
         }
+        // @formatter:on
 
         return success();
     }

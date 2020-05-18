@@ -460,6 +460,7 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
 
+        manager.flush();
         sessionFactory.getCurrentSession().clear();
 
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );

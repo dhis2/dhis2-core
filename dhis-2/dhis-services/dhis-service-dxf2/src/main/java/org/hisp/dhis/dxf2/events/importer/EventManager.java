@@ -29,22 +29,19 @@
 package org.hisp.dhis.dxf2.events.importer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+import static org.hisp.dhis.importexport.ImportStrategy.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -54,9 +51,10 @@ import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateValidationFact
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableList;
 
 @Component
 public class EventManager
@@ -103,9 +101,7 @@ public class EventManager
 
     public ImportSummary addEvent( final Event event, final WorkContext workContext )
     {
-        final List<Event> singleEvent = ImmutableList.of(event);
-
-        final ImportSummaries importSummaries = addEvents( singleEvent, workContext );
+        final ImportSummaries importSummaries = addEvents( ImmutableList.of(event), workContext );
 
         if ( isNotEmpty( importSummaries.getImportSummaries() ) )
         {
@@ -123,6 +119,11 @@ public class EventManager
 
         // filter out events which are already in the database
         List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
+
+        if ( validEvents.isEmpty() )
+        {
+            return importSummaries;
+        }
 
         // pre-process events
         preInsertProcessorFactory.process( workContext, validEvents );
@@ -143,22 +144,23 @@ public class EventManager
             return importSummaries;
         }
 
-        final List<ProgramStageInstance> persisted;
+        // fetch persistable events //
+        List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
+                : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
+        if ( isNotEmpty( eventsToInsert ) )
+        {
+            try
+            {
+                // save the entire batch in one transaction
+                eventPersistenceService.save( workContext, eventsToInsert );
+            }
+            catch ( Exception e )
+            {
+                handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", CREATE );
 
-        if ( invalidEvents.isEmpty() )
-        {
-            persisted = eventPersistenceService.save( workContext, validEvents );
+                return importSummaries;
+            }
         }
-        else
-        {
-            // collect the events that passed validation and can be persisted
-            // @formatter:off
-            persisted = eventPersistenceService.save( workContext, validEvents.stream()
-                .filter( e -> !invalidEvents.contains( e.getEvent() ) )
-                .collect( toList() ) );
-            // @formatter:on
-        }
-        List<String> persistedUid = persisted.stream().map( BaseIdentifiableObject::getUid ).collect( toList() );
 
         for ( Event event : events )
         {
@@ -166,17 +168,16 @@ public class EventManager
             {
                 ImportSummary is = new ImportSummary();
                 is.setReference( event.getUid() );
-                if ( persistedUid.contains( event.getUid() ) )
-                {
-                    is.setStatus( SUCCESS );
-                    is.incrementImported();
-                }
-                else
-                {
-                    is.setStatus( ERROR );
-                    is.incrementIgnored();
-                }
+
+                is.setStatus( SUCCESS );
+                is.incrementImported();
                 importSummaries.addImportSummary( is );
+            }
+            else
+            {
+                ImportSummary is = importSummaries.getByReference( event.getUid() ).get();
+                is.setStatus( ERROR );
+                is.incrementIgnored();
             }
         }
         
@@ -185,7 +186,7 @@ public class EventManager
 
     public ImportSummary updateEvent( final Event event, final WorkContext workContext )
     {
-        final List<Event> singleEvent = asList( event );
+        final List<Event> singleEvent = Collections.singletonList( event );
 
         final ImportSummaries importSummaries = updateEvents( singleEvent, workContext );
 
@@ -223,31 +224,18 @@ public class EventManager
             return importSummaries;
         }
 
-        if ( eventValidationFailedUids.isEmpty() )
+        try
         {
-            try
-            {
-                eventPersistenceService.update( workContext, events);
-            }
-            catch ( Exception e )
-            {
-                handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
-            }
+            eventPersistenceService.update( workContext,
+                eventValidationFailedUids.isEmpty() ? events
+                    : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
+                        .collect( toList() ) );
         }
-        else
+        catch ( Exception e )
         {
-            try
-            {
-                // collect the events that passed validation and can be persisted
-                eventPersistenceService.update( workContext, events.stream()
-                    .filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
-            }
-            catch ( Exception e )
-            {
-                handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
-            }
+            handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
         }
-
+        
         final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
@@ -364,10 +352,15 @@ public class EventManager
                 {
                     eventPersistenceService.update( workContext, event );
                 }
+                else if ( CREATE == importStrategy )
+                {
+                    eventPersistenceService.save( workContext, Collections.singletonList( event ) );
+                }
                 else
                 {
                     eventPersistenceService.delete( workContext, event );
                 }
+
             }
             catch ( Exception e )
             {

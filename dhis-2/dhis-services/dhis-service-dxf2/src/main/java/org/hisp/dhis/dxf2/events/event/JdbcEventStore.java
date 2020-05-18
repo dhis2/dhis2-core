@@ -357,7 +357,7 @@ public class JdbcEventStore implements EventStore
         catch ( Exception e )
         {
             log.error( "An error occurred saving a batch", e );
-            return new ArrayList<>();
+            throw e;
         }
     }
 

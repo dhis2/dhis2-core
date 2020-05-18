@@ -46,7 +46,7 @@ public class EventSimpleCheck
     {
         if ( event == null || isEmpty( event.getEvent() ) )
         {
-            return error( "No event or event ID was supplied" ).incrementIgnored();
+            return error( "No event or event ID was supplied" );
         }
 
         return success();

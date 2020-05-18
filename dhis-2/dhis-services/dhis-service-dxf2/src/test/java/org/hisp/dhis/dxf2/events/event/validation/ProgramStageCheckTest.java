@@ -51,9 +51,6 @@ public class ProgramStageCheckTest extends BaseValidationTest
 {
     private ProgramStageCheck rule;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
-
     @Before
     public void setUp()
     {

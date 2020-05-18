@@ -79,6 +79,7 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "tei_uid" ) ).thenReturn( "efghil" );
         when( mockResultSet.getString( "tei_ou_uid" ) ).thenReturn( "ouabcde" );
+        when( mockResultSet.getString( "tei_ou_path" ) ).thenReturn( "/ouabcde" );
         when( mockResultSet.getLong( "programid" ) ).thenReturn( 999L );
 
         // create event to import

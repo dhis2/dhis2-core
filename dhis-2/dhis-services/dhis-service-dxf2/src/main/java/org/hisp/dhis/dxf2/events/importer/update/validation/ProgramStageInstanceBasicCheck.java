@@ -53,7 +53,7 @@ public class ProgramStageInstanceBasicCheck
                 event.getEvent() );
             error.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
 
-            return error.incrementIgnored();
+            return error;
         }
 
         if ( programStageInstance != null
@@ -61,7 +61,7 @@ public class ProgramStageInstanceBasicCheck
         {
             return error(
                 "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() ).incrementIgnored();
+                    .setReference( event.getEvent() );
         }
 
         return success();
