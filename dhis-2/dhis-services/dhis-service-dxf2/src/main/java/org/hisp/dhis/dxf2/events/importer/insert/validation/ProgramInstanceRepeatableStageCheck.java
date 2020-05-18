@@ -31,10 +31,11 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,12 +51,12 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-
+        Program program = ctx.getProgramsMap().get( event.getProgram() );
         /*
          * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
          * should report this anomaly.
          */
-        if ( programInstance != null )
+        if ( program.isRegistration() && programInstance != null )
         {
             if ( !programStage.getRepeatable()
                 && hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getUid() ) )
