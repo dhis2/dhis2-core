@@ -34,7 +34,9 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.importexport.ImportStrategy.*;
+import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -162,25 +164,8 @@ public class EventManager
             }
         }
 
-        for ( Event event : events )
-        {
-            if ( !importSummaries.getByReference( event.getUid() ).isPresent() )
-            {
-                ImportSummary is = new ImportSummary();
-                is.setReference( event.getUid() );
+        incrementSummaryTotals( events, importSummaries, CREATE);
 
-                is.setStatus( SUCCESS );
-                is.incrementImported();
-                importSummaries.addImportSummary( is );
-            }
-            else
-            {
-                ImportSummary is = importSummaries.getByReference( event.getUid() ).get();
-                is.setStatus( ERROR );
-                is.incrementIgnored();
-            }
-        }
-        
         return importSummaries;
     }
 
@@ -243,6 +228,8 @@ public class EventManager
         postUpdateProcessorFactory.process( workContext, events.stream()
             .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
 
+        incrementSummaryTotals( events, importSummaries, UPDATE);
+
         return importSummaries;
     }
 
@@ -291,7 +278,46 @@ public class EventManager
             }
         }
 
+        incrementSummaryTotals( events, importSummaries, DELETE);
+
         return importSummaries;
+    }
+
+    private void incrementSummaryTotals( final List<Event> events, final ImportSummaries importSummaries,
+        final ImportStrategy importStrategy )
+    {
+        for ( final Event event : events )
+        {
+            if ( !importSummaries.getByReference( event.getUid() ).isPresent() )
+            {
+                final ImportSummary is = new ImportSummary();
+                is.setReference( event.getUid() );
+                is.setStatus( SUCCESS );
+
+                switch ( importStrategy )
+                {
+                case CREATE:
+                    is.incrementImported();
+                    break;
+
+                case UPDATE:
+                    is.incrementUpdated();
+                    break;
+
+                case DELETE:
+                    is.incrementDeleted();
+                    break;
+                }
+
+                importSummaries.addImportSummary( is );
+            }
+            else
+            {
+                final ImportSummary is = importSummaries.getByReference( event.getUid() ).get();
+                is.setStatus( ERROR );
+                is.incrementIgnored();
+            }
+        }
     }
 
     private void handleFailure( final WorkContext workContext, final ImportSummaries importSummaries,
