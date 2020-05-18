@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.hisp.dhis.tracker.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerType;
 
 import java.util.ArrayList;

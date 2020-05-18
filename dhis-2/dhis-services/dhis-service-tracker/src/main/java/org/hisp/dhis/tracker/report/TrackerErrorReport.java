@@ -29,20 +29,35 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerErrorMessage;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.util.ObjectUtils;
+
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+@Builder
 public class TrackerErrorReport
 {
+    private final TrackerErrorMessage message;
+
     @JsonProperty
     private final Class<?> mainKlass;
-
-    private final TrackerErrorMessage message;
 
     @JsonProperty
     private String mainId;
@@ -51,21 +66,30 @@ public class TrackerErrorReport
     private Class<?> errorKlass;
 
     @JsonProperty
-    private String errorProperty;
+    private final String[] errorProperties;
 
     @JsonProperty
     private Object value;
 
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
-    {
-        this.mainKlass = mainKlass;
-        this.message = new TrackerErrorMessage( errorCode, args );
-    }
+    private final int lineNumber;
 
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message )
+    private TrackerErrorCode errorCode;
+
+    private Object mainObject;
+
+    protected int listIndex;
+
+
+    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
+        Class<?> errorKlass, String[] errorProperties, Object value )
     {
         this.mainKlass = mainKlass;
         this.message = message;
+        this.lineNumber = line;
+        this.mainId = mainId;
+        this.errorKlass = errorKlass;
+        this.errorProperties = errorProperties;
+        this.value = value;
     }
 
     @JsonProperty
@@ -78,5 +102,86 @@ public class TrackerErrorReport
     public String getMessage()
     {
         return message.getMessage();
+    }
+
+    public static class TrackerErrorReportBuilder
+    {
+        private final List<Object> arguments = new ArrayList<>();
+
+        public TrackerErrorReportBuilder addArg( Object arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReport build( TrackerBundle bundle )
+        {
+            TrackerIdScheme scheme = bundle.getIdentifier();
+            TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
+
+            TrackerErrorMessage trackerErrorMessage = new TrackerErrorMessage( this.errorCode );
+
+            for ( Object argument : this.arguments )
+            {
+                String s = parseArgs( identifier, argument );
+                trackerErrorMessage.addArgument( s );
+            }
+
+            if ( this.mainObject != null )
+            {
+                this.mainId = parseArgs( identifier, this.mainObject );
+            }
+
+            return new TrackerErrorReport( this.mainKlass, trackerErrorMessage, this.listIndex, this.mainId,
+                this.mainKlass, this.errorProperties, this.value );
+        }
+
+        public static String parseArgs( TrackerIdentifier identifier, Object argument )
+        {
+            if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
+            {
+                return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
+            }
+            else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return identifier.getIdAndName( (IdentifiableObject) argument );
+            }
+            else if ( Date.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return (DateFormat.getInstance().format( argument ));
+            }
+            else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Enrollment enrollment = (Enrollment) argument;
+                return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
+            }
+            else if ( Event.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Event event = (Event) argument;
+                return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
+            }
+            else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
+            {
+                TrackedEntity entity = (TrackedEntity) argument;
+                return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
+            }
+
+            return "";
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerErrorReport{" +
+            "message=" + message.getMessage() +
+            ", errorCode=" + message.getErrorCode() +
+            ", mainId='" + mainId + '\'' +
+            ", mainClass=" + mainKlass +
+            ", errorClass=" + errorKlass +
+            ", errorProperties=" + Arrays.toString( errorProperties ) +
+            ", value=" + value +
+            ", objectIndex=" + lineNumber +
+            '}';
     }
 }

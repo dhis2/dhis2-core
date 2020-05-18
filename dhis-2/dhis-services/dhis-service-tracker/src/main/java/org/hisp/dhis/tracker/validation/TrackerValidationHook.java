@@ -37,9 +37,16 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerValidationHook extends Ordered
+public interface TrackerValidationHook
+    extends Ordered
 {
-    List<TrackerErrorReport> validate( TrackerBundle bundle );
+
+    default boolean isEnabled()
+    {
+        return true;
+    }
+
+    List<TrackerErrorReport> validate( TrackerImportValidationContext bundle );
 
     @Override
     default int getOrder()

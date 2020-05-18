@@ -85,6 +85,12 @@ public class TrackerBundleParams
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipTextPatternValidation;
+
+    /**
      * Sets import strategy (create, update, etc).
      */
     @JsonProperty
@@ -166,6 +172,7 @@ public class TrackerBundleParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .skipTextPatternValidation( skipTextPatternValidation )
             .flushMode( flushMode )
             .validationMode( validationMode )
             .reportMode( reportMode )

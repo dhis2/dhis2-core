@@ -221,11 +221,12 @@ public class DefaultTrackerBundleService
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, trackedEntityInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
-            if ( bundle.getImportStrategy().isCreate() )
-            {
-                trackedEntityInstance.setCreated( now );
-                trackedEntityInstance.setCreatedAtClient( now );
-            }
+            //TODO: why? this is already done in preheater
+//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
+//            {
+//                trackedEntityInstance.setCreated( now );
+//                trackedEntityInstance.setCreatedAtClient( now );
+//            }
 
             trackedEntityInstance.setLastUpdated( now );
             trackedEntityInstance.setLastUpdatedAtClient( now );
@@ -266,11 +267,12 @@ public class DefaultTrackerBundleService
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
-            if ( bundle.getImportStrategy().isCreate() )
-            {
-                programInstance.setCreated( now );
-                programInstance.setCreatedAtClient( now );
-            }
+            //TODO: why? this is already done in preheater
+//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
+//            {
+//                programInstance.setCreated( now );
+//                programInstance.setCreatedAtClient( now );
+//            }
 
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
@@ -323,11 +325,12 @@ public class DefaultTrackerBundleService
 
             Date now = new Date();
 
-            if ( bundle.getImportStrategy().isCreate() )
-            {
-                programStageInstance.setCreated( now );
-                programStageInstance.setCreatedAtClient( now );
-            }
+            //TODO: why? this is already done in preheater
+//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
+//            {
+//                programStageInstance.setCreated( now );
+//                programStageInstance.setCreatedAtClient( now );
+//            }
 
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );
@@ -380,10 +383,11 @@ public class DefaultTrackerBundleService
 
             Date now = new Date();
 
-            if ( bundle.getImportStrategy().isCreate() )
-            {
-                toRelationship.setCreated( now );
-            }
+            //TODO: why? this is already done in preheater
+//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
+//            {
+//                toRelationship.setCreated( now );
+//            }
 
             toRelationship.setLastUpdated( now );
             toRelationship.setLastUpdatedBy( bundle.getUser() );
@@ -434,6 +438,7 @@ public class DefaultTrackerBundleService
             }
 
             TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, at.getAttribute() );
+            // TODO: What to do here? Should attribute == NULL this be allowed?
             TrackedEntityAttributeValue attributeValue = null;
 
             if ( attributeValueMap.containsKey( at.getAttribute() ) )
@@ -460,8 +465,11 @@ public class DefaultTrackerBundleService
                 attributeValues.add( attributeValue );
             }
 
+            // TODO: What to do here? Should this be allowed?
+            TrackedEntityAttribute attribute1 = attributeValue.getAttribute();
+
             if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
-                attributeValue.getAttribute().getValueType().isFile() )
+                attribute1 != null && attribute1.getValueType().isFile() )
             {
                 assignedFileResources.add( at.getValue() );
             }
@@ -471,7 +479,15 @@ public class DefaultTrackerBundleService
         {
             // since TEAV is the owning side here, we don't bother updating the TE.teav collection
             // as it will be reloaded on session clear
-            if ( attributeValuesForDeletion.contains( attributeValue.getAttribute().getUid() ) )
+            TrackedEntityAttribute attribute = attributeValue.getAttribute();
+
+            // TODO: What to do here? Should this be allowed?
+            if ( attribute == null )
+            {
+                continue;
+            }
+
+            if ( attributeValuesForDeletion.contains( attribute.getUid() ) )
             {
                 session.remove( attributeValue );
             }

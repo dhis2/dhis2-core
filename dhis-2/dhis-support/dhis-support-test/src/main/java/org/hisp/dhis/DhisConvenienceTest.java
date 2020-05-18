@@ -32,8 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.vividsolutions.jts.geom.Geometry;
-
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -194,6 +192,9 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_COC_UID = "cuabcdefgh";
     protected static final String BASE_USER_UID = "userabcdef";
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
+    protected static final String BASE_PG_UID = "pgabcdefgh";
+    protected static final String BASE_PR_UID = "prabcdefgh";
+    protected static final String BASE_TEI_UID = "teibcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
@@ -1383,6 +1384,7 @@ public abstract class DhisConvenienceTest
         Program program = new Program();
         program.setAutoFields();
 
+        program.setUid( BASE_PR_UID + uniqueCharacter);
         program.setName( "Program" + uniqueCharacter );
         program.setCode( "ProgramCode" + uniqueCharacter );
         program.setShortName( "ProgramShort" + uniqueCharacter );
@@ -1501,6 +1503,7 @@ public abstract class DhisConvenienceTest
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
 
+        programStage.setUid( BASE_PG_UID + uniqueCharacter );
         programStage.setName( "ProgramStage" + uniqueCharacter );
         programStage.setDescription( "description" + uniqueCharacter );
         programStage.setMinDaysFromStart( minDays );
@@ -1679,6 +1682,17 @@ public abstract class DhisConvenienceTest
         TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
+
+        return entityInstance;
+    }
+
+    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar,
+        OrganisationUnit organisationUnit )
+    {
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        entityInstance.setAutoFields();
+        entityInstance.setOrganisationUnit( organisationUnit );
+        entityInstance.setUid( BASE_TEI_UID + uniqueChar );
 
         return entityInstance;
     }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.validation.service;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,22 +28,37 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum TrackerErrorCode
+public interface TrackerImportAccessManager
 {
-    NONE( "No error message given." );
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
+        OrganisationUnit orgUnit );
 
-    private String message;
+    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
+        OrganisationUnit orgUnit );
 
-    TrackerErrorCode( String message )
-    {
-        this.message = message;
-    }
+    void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,
+        TrackedEntityType trackedEntityType );
 
-    public String getMessage()
-    {
-        return message;
-    }
+    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, User user, ProgramInstance programInstance );
+
+    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, User user, Program program,
+        ProgramInstance programInstance );
+
+    void checkEventWriteAccess( ValidationErrorReporter reporter, User user,
+        ProgramStageInstance programStageInstance );
+
+    void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user,
+        CategoryOptionCombo categoryOptionCombo );
 }

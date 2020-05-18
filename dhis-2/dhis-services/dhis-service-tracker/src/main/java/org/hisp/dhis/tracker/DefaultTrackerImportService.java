@@ -170,8 +170,12 @@ public class DefaultTrackerImportService
             ValidationMode.FULL ) );
         params.setImportMode( getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
         params.setIdentifiers( getTrackerIdentifiers( parameters ) );
+
+        // TODO: Why is default CREATE_AND_UPDATE here and CREATE on TrackerImportStrategy?
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, "importStrategy",
             TrackerImportStrategy.CREATE_AND_UPDATE ) );
+
+
         params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.validation.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,30 +28,47 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.MessageFormat;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TrackerErrorMessage
+@Component
+public class TrackedEntityGeoValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
-    private final TrackerErrorCode errorCode;
-
-    private final Object[] args;
-
-    public TrackerErrorMessage( TrackerErrorCode errorCode, Object... args )
+    @Override
+    public int getOrder()
     {
-        this.errorCode = errorCode;
-        this.args = args;
+        return 54;
     }
 
-    public TrackerErrorCode getErrorCode()
+    public TrackedEntityGeoValidationHook()
     {
-        return errorCode;
+        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE );
     }
 
-    public String getMessage()
+    @Override
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        return MessageFormat.format( errorCode.getMessage(), args );
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
+        TrackerBundle bundle = validationContext.getBundle();
+
+//        TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, trackedEntity );
+        // TODO: Check if this is still valid since tei.getFeatureType(); is removed...
+//        FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
+//            trackedEntityType.getFeatureType() :
+//            tei.getFeatureType();
+//
+//        if ( tei.getGeometry() != null )
+//        {
+//            validateGeo( reporter, tei.getGeometry(), featureType );
+//        }
     }
 }

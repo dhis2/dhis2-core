@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import javassist.util.proxy.ProxyFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -43,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
@@ -60,6 +62,7 @@ import java.util.StringJoiner;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class TrackerPreheat
 {
     /**
@@ -126,6 +129,11 @@ public class TrackerPreheat
      * for object merging.
      */
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
+
+    /**
+     * Identifier map
+     */
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     public TrackerPreheat()
     {
@@ -263,6 +271,8 @@ public class TrackerPreheat
         return this;
     }
 
+
+
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> TrackerPreheat replace( TrackerIdentifier identifier, T object )
     {
@@ -306,7 +316,11 @@ public class TrackerPreheat
     {
         for ( T object : objects )
         {
-            if ( isDefault( object ) ) continue;
+            boolean isDefault = isDefault( object );
+//            if ( isDefault )
+//                continue;
+            //TODO: Investigate why we need to disable this, see Category combo tests, fails if ignore put idDefault
+
             put( identifier, object );
         }
 
@@ -588,6 +602,16 @@ public class TrackerPreheat
         IdentifiableObject defaultObject = getDefaults().get( klass );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    public TrackerIdentifierParams getIdentifiers()
+    {
+        return identifiers;
+    }
+
+    public void setIdentifiers( TrackerIdentifierParams identifiers )
+    {
+        this.identifiers = identifiers;
     }
 
     @Override

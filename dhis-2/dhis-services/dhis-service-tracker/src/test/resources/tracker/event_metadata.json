@@ -240,6 +240,10 @@
   {
     "lastUpdated": "2019-01-28T11:01:30.775", "code": "default", "created": "2019-01-28T11:01:30.771", "name": "default", "id": "HllvX50cXC0", "ignoreApproval": false, "categoryCombo": { "id": "bjDvmb4bfuf" }, "translations": [ ], "attributeValues": [ ],
     "categoryOptions": [ { "id": "xYerKDKCefk" } ]
+  },
+  {
+    "lastUpdated": "2019-01-28T11:01:30.775", "code": "COCA", "created": "2019-01-28T11:01:30.771", "name": "COCAname", "id": "XXXvX50cXC0", "ignoreApproval": false, "categoryCombo": { "id": "bjDvmb4bfuf" }, "translations": [ ], "attributeValues": [ ],
+    "categoryOptions": [ { "id": "xYerKDKCefk" } ]
   }
 ], "categories": [
   {
@@ -249,6 +253,10 @@
 ], "categoryOptions": [
   {
     "code": "default", "created": "2019-01-28T11:01:30.702", "lastUpdated": "2019-01-28T11:01:30.780", "name": "default", "id": "xYerKDKCefk", "publicAccess": "rwrw----", "userGroupAccesses": [ ], "attributeValues": [ ], "translations": [ ],
+    "userAccesses": [ ], "organisationUnits": [ ]
+  },
+  {
+    "code": "COA", "created": "2019-01-28T11:01:30.702", "lastUpdated": "2019-01-28T11:01:30.780", "name": "COAname", "id": "XXXrKDKCefk", "publicAccess": "rwrw----", "userGroupAccesses": [ ], "attributeValues": [ ], "translations": [ ],
     "userAccesses": [ ], "organisationUnits": [ ]
   }
 ], "userRoles": [
