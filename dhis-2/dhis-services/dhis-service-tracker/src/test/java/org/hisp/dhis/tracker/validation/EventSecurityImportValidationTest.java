@@ -400,6 +400,6 @@ public class EventSecurityImportValidationTest
         printReport( report );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1032 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
     }
 }
