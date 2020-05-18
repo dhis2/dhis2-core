@@ -84,9 +84,7 @@ public class LoginActions
 
     public ApiResponse getLoggedInUserInfo()
     {
-        ApiResponse response = new RestApiActions( "/me" ).get();
-
-        return response;
+        return new RestApiActions( "/me" ).get();
     }
 
     public String getLoggedInUserId()

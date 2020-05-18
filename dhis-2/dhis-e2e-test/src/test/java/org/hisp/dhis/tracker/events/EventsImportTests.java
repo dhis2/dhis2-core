@@ -28,7 +28,19 @@ package org.hisp.dhis.tracker.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import io.restassured.http.ContentType;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Every.everyItem;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.TestRunStorage;
@@ -46,16 +58,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.Every.everyItem;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import io.restassured.http.ContentType;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -114,10 +117,17 @@ public class EventsImportTests
 
         createdEvents.addAll( importSummaries
             .stream()
-            .map( p -> {
-                return p.getReference();
-            } )
+            .map( ImportSummary::getReference )
             .collect( toList() ) );
+
+        for (ImportSummary is : importSummaries) {
+
+            String status = is.getStatus();
+            if (status.equals("ERROR")) {
+
+                System.out.println(is.getDescription());
+            }
+        }
 
         assertThat( importSummaries, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "SUCCESS" ) ) ) );
     }
@@ -127,13 +137,12 @@ public class EventsImportTests
     {
         ApiResponse response = post( "events.json", false );
 
-        createdEvents = response.getImportSummaries()
-            .stream()
-            .map( p -> {
-                return p.getReference();
-            } )
+        createdEvents = response.getImportSummaries().stream()
+            .map( ImportSummary::getReference )
+            .filter( Objects::nonNull )
             .collect( toList() );
 
+        assertThat("Expected 4 events created", createdEvents, hasSize( 4 ) );
         eventActions.softDelete( createdEvents );
 
         response = post( "events.json", true );

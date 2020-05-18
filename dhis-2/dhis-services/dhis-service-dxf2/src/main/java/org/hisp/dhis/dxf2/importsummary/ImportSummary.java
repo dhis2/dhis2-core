@@ -113,12 +113,12 @@ public class ImportSummary extends AbstractWebMessageResponse
 
     public static ImportSummary error( final String description )
     {
-        return new ImportSummary( ERROR, description );
+        return new ImportSummary( ERROR, description ).incrementIgnored();
     }
 
     public static ImportSummary error( final String description, final String reference )
     {
-        return new ImportSummary( ERROR, description ).setReference( reference );
+        return new ImportSummary( ERROR, description ).setReference( reference ).incrementIgnored();
     }
 
     // -------------------------------------------------------------------------

@@ -506,13 +506,13 @@ public class EventImportTest
         dataValue.put( "dataElement", dataElement.getUid() );
         dataValue.put( "value", value );
 
-        JSONObject geometry = new JSONObject();
-        geometry.put( "type", "Point" );
-        JSONArray coordinates = new JSONArray();
-        coordinates.add( "1.33343" );
-        coordinates.add( "-21.9954" );
-        geometry.put( "coordinates", coordinates );
-        eventJsonPayload.put( "geometry", geometry );
+//        JSONObject geometry = new JSONObject();
+//        geometry.put( "type", "Point" );
+//        JSONArray coordinates = new JSONArray();
+//        coordinates.add( "1.33343" );
+//        coordinates.add( "-21.9954" );
+//        geometry.put( "coordinates", coordinates );
+//        eventJsonPayload.put( "geometry", geometry );
 
         JSONArray dataValues = new JSONArray();
         dataValues.add( dataValue );

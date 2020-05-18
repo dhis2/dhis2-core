@@ -51,7 +51,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
 {
-
     private ProgramInstanceRepeatableStageCheck rule;
 
     @Mock
@@ -67,18 +66,24 @@ public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
     public void failOnNonRepeatableStageAndExistingEvents()
     {
         // Data preparation
-        event.setProgramStage( CodeGenerator.generateUid() );
-
         Program program = createProgram( 'P' );
+
+        event.setProgramStage( CodeGenerator.generateUid() );
+        event.setProgram( program.getUid() );
         ProgramStage programStage = createProgramStage( 'A', program );
         programStage.setRepeatable( false );
 
         when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
 
+        Map<String, Program> programMap = new HashMap<>();
+        programMap.put( program.getUid(), program);
+        when( workContext.getProgramsMap() ).thenReturn( programMap );
+
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         ProgramInstance programInstance = new ProgramInstance();
         programInstanceMap.put( event.getUid(), programInstance );
 
+        when( workContext.getProgramsMap() ).thenReturn( programMap );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
         when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
