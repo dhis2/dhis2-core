@@ -135,8 +135,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         
         final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
-            + "join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
-            + "join organisationunit ou on t.organisationunitid = ou.organisationunitid "
+            + "left outer join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
+            + "left join organisationunit ou on t.organisationunitid = ou.organisationunitid "
             + "join programstageinstance psi on pi.programinstanceid = psi.programinstanceid "
             + "where psi.uid in (:ids)";
 
@@ -191,13 +191,20 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         pi.setUid( rs.getString( "uid" ) );
         pi.setProgram(
             getProgramById( rs.getLong( "programid" ), programSupplier.get( importOptions, events ).values() ) );
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( rs.getString( "tei_uid" ) );
-        OrganisationUnit organisationUnit = new OrganisationUnit();
-        organisationUnit.setUid( rs.getString( "tei_ou_uid" ) );
-        organisationUnit.setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
-        trackedEntityInstance.setOrganisationUnit( organisationUnit );
-        pi.setEntityInstance( trackedEntityInstance );
+        String teiUid = rs.getString( "tei_uid" );
+
+        if ( teiUid != null )
+        {
+            OrganisationUnit organisationUnit = new OrganisationUnit();
+            organisationUnit.setUid( rs.getString( "tei_ou_uid" ) );
+            organisationUnit.setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
+
+            TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+            trackedEntityInstance.setUid( rs.getString( "tei_uid" ) );
+            trackedEntityInstance.setOrganisationUnit( organisationUnit );
+            pi.setEntityInstance( trackedEntityInstance );
+        }
+
 
         return pi;
     }

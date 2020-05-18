@@ -1021,7 +1021,7 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = new ImportSummaries(); // eventService.addEvents( events.getEvents(), importOptions, null ); // FIXME luciano
+            ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
             importSummaries.setImportOptions( importOptions );
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
