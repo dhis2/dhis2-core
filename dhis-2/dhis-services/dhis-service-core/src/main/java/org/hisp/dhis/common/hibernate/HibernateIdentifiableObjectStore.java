@@ -274,17 +274,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( object != null )
         {
             object.setAutoFields();
 
-            BaseIdentifiableObject identifiableObject = object;
-            identifiableObject.setAutoFields();
-            identifiableObject.setLastUpdatedBy( user );
+            object.setAutoFields();
+            object.setLastUpdatedBy( user );
 
-            if ( identifiableObject.getUser() == null )
+            if ( object.getUser() == null )
             {
-                identifiableObject.setUser( user );
+                object.setUser( user );
             }
         }
 

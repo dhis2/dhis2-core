@@ -42,9 +42,7 @@ public interface EventPersistenceService
 {
     void save( WorkContext context, List<Event> events );
 
-    void update( WorkContext context, Event event ) throws JsonProcessingException;
-
-    void update( WorkContext context, List<Event> events ) throws JsonProcessingException;
+    void update( WorkContext context, List<Event> events );
 
     void delete( WorkContext context, Event event );
 

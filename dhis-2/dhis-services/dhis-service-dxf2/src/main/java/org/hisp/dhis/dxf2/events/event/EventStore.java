@@ -36,8 +36,6 @@ import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -80,7 +78,7 @@ public interface EventStore
     String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (programstageinstanceid, "
         + "sort_order, trackedentitycommentid) values (?, ?, ?)";
 
-    String SQL_UPDATE = "update programstageinstance set " +
+    String UPDATE_EVENT_SQL = "update programstageinstance set " +
         // @formatter:off
             "programinstanceid = ?, " +         // 1
             "programstageid = ?, " +            // 2
@@ -103,9 +101,16 @@ public interface EventStore
             "where uid = ?;";                   // 19
         // @formatter:on
 
-    List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
+    /**
+     * Inserts a List of {@see ProgramStageInstance}, including notes and Data
+     * Values.
+     *
+     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * 
+     */
+    void saveEvents( List<ProgramStageInstance> programStageInstances );
 
-    void updateEvent( ProgramStageInstance programStageInstance ) throws JsonProcessingException;
+    void updateEvents( List<ProgramStageInstance> programStageInstances );
 
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
@@ -118,7 +123,7 @@ public interface EventStore
 
     /**
      * Delete list of given events to be removed. This operation also remove comments
-     * connected to the Event.
+     * connected to each Event.
      *
      * @param events List to be removed
      */

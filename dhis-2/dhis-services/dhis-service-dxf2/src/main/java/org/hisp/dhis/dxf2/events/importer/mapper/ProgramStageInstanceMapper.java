@@ -82,7 +82,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( UID ) )
         {
             psi.setUid( event.getUid() );
-        } // TODO what about other schemes, like id?
+        }
 
         // FKs
         psi.setProgramInstance( this.workContext.getProgramInstanceMap().get( event.getUid() ) );

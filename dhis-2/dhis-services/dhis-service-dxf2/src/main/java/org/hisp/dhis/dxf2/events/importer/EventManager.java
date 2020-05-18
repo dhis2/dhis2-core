@@ -376,7 +376,7 @@ public class EventManager
             {
                 if ( UPDATE == importStrategy )
                 {
-                    eventPersistenceService.update( workContext, event );
+                    eventPersistenceService.update( workContext, Collections.singletonList( event ) );
                 }
                 else if ( CREATE == importStrategy )
                 {
