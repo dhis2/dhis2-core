@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -17,7 +15,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
 
 /*
@@ -56,10 +53,6 @@ public class TrackedEntityAttribute
     extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
-    private String description;
-
-    private String formName;
-
     private ValueType valueType;
 
     private Boolean inherit = false;
@@ -236,21 +229,6 @@ public class TrackedEntityAttribute
     public void setInherit( Boolean inherit )
     {
         this.inherit = inherit;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    @Override
-    public void setDescription( String description )
-    {
-        this.description = description;
     }
 
     @Override
