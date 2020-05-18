@@ -101,7 +101,7 @@ public class EventBaseCheck
 
         if ( programInstance == null )
         {
-            errors.add( "Np program instance found for event: " + event.getEvent() );
+            errors.add( "No program instance found for event: " + event.getEvent() );
             
             return errors;
         }
