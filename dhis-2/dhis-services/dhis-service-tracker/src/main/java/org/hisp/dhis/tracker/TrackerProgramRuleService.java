@@ -28,11 +28,13 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 
 /**
  * Calculates rule effects calling rule engine on enrollments or events.
@@ -42,20 +44,23 @@ import java.util.Map;
 public interface TrackerProgramRuleService
 {
     /**
-     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and return a map of provided enrollments and
-     * their associated rule effects which are returned by rule engine.
+     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and
+     * return a map of provided enrollments and their associated rule effects which
+     * are returned by rule engine.
      *
-     * @param trackerBundle
+     * @param enrollments
+     * @param bundle
      * @return Map containing enrollment uid and its associated rule effects.
      */
-    Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );
+    Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( List<Enrollment> enrollments, TrackerBundle bundle );
 
     /**
-     * It feeds in events given in {@link TrackerBundle} into rule engine and return a map of events and
-     * their associated rule effects.
+     * It feeds in events given in {@link TrackerBundle} into rule engine and return
+     * a map of events and their associated rule effects.
      *
-     * @param trackerBundle
+     * @param events
+     * @param bundle
      * @return Map containing event uid and its associated rule effects.
      */
-    Map<String, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle );
+    Map<String, List<RuleEffect>> calculateEventRuleEffects( List<Event> events, TrackerBundle bundle );
 }
