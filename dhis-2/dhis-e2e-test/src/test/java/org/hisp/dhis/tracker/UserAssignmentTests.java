@@ -72,7 +72,7 @@ public class UserAssignmentTests
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest
@@ -150,8 +150,8 @@ public class UserAssignmentTests
         JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
             .extractJsonObject( "events[0]" );
 
-        assertNotNull( body, "Response should have a body" );
-        assertNotNull( body.get( "event" ), "Response should contain an event" );
+        assertNotNull( body, "no events matching the query." );
+
         String eventId = body.get( "event" ).getAsString();
 
         // act
@@ -177,7 +177,10 @@ public class UserAssignmentTests
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get();
 
-        ApiResponse eventResponse = eventActions.post( file );
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.add( "skipCache=true" );
+
+        ApiResponse eventResponse = eventActions.post( file, queryParamsBuilder );
 
         eventResponse.validate().statusCode( 200 );
 
