@@ -28,9 +28,6 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
@@ -38,6 +35,10 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.user.User;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.MoreObjects;
 
 /**
  * The idScheme is a general setting which will apply to all objects. The idSchemes
@@ -102,6 +103,11 @@ public class ImportOptions
 
     private boolean skipLastUpdated;
 
+    /**
+     * if true, caches for import are not used. Should only be used for testing
+     */
+    private boolean skipCache = false;
+
     //--------------------------------------------------------------------------
     // Constructors
     //--------------------------------------------------------------------------
@@ -143,6 +149,7 @@ public class ImportOptions
         options.ignoreEmptyCollection = this.ignoreEmptyCollection;
         options.firstRowIsHeader = this.firstRowIsHeader;
         options.skipLastUpdated = this.skipLastUpdated;
+        options.skipCache = this.skipCache;
 
         return options;
     }
@@ -387,6 +394,13 @@ public class ImportOptions
         return skipLastUpdated;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipCache()
+    {
+        return skipCache;
+    }
+
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -600,6 +614,11 @@ public class ImportOptions
         return this;
     }
 
+    public void setSkipCache( boolean skipCache )
+    {
+        this.skipCache = skipCache;
+    }
+
     @Override
     public String toString()
     {
@@ -625,6 +644,7 @@ public class ImportOptions
             .add( "force", force )
             .add( "firstRowIsHeader", firstRowIsHeader )
             .add( "skipLastUpdated", skipLastUpdated )
+            .add( "skipCache", skipCache )
             .toString();
     }
 }

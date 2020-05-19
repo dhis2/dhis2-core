@@ -76,7 +76,8 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
 
         if ( !userUids.isEmpty() )
         {
-            final String sql = "select u.userid, u.uid, u.code from users u where u.uid in (:ids)";
+            final String sql = "select userinfoid, uid, code from userinfo " +
+                    "where uid in (:ids)";
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue( "ids", userUids );
@@ -87,7 +88,7 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
                 while ( rs.next() )
                 {
                     User user = new User();
-                    user.setId( rs.getLong( "organisationunitid" ) );
+                    user.setId( rs.getLong( "userinfoid" ) );
                     user.setUid( rs.getString( "uid" ) );
                     user.setCode( rs.getString( "code" ) );
 

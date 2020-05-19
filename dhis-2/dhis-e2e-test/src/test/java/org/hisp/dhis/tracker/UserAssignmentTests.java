@@ -45,8 +45,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -119,14 +118,14 @@ public class UserAssignmentTests
         String programId = "BJ42SUrAvHo";
         String loggedInUser = loginActions.getLoggedInUserId();
 
-        enableUserAssignmentOnProgramStage( programStageId, Boolean.valueOf( userAssignmentEnabled ) );
+        enableUserAssignmentOnProgramStage( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
 
         ApiResponse eventResponse = createEvents( programId, programStageId, loggedInUser );
 
         eventResponse.getImportSummaries().forEach( importSummary -> {
             ApiResponse response = eventActions.get( importSummary.getReference() );
 
-            if ( !Boolean.valueOf( userAssignmentEnabled ) )
+            if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
             {
                 assertNull( response.getBody().get( "assignedUser" ) );
                 return;
@@ -150,6 +149,9 @@ public class UserAssignmentTests
 
         JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
             .extractJsonObject( "events[0]" );
+
+        assertNotNull( body, "Response should have a body" );
+        assertNotNull( body.get( "event" ), "Response should contain an event" );
         String eventId = body.get( "event" ).getAsString();
 
         // act

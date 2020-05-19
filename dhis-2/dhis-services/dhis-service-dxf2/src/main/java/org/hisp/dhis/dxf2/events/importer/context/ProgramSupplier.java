@@ -30,7 +30,11 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -67,10 +71,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String PROGRAM_CACHE_KEY = "000P";
 
     // @formatter:off
-    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid " +
+    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid " +
         "from ${table_name} eua " +
         "join useraccess ua on eua.useraccessid = ua.useraccessid " +
-        "join users u on ua.userid = ua.userid " +
+        "join userinfo ui on ui.userinfoid = ua.useraccessid " +
         "order by eua.${column_name}";
 
     private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
@@ -109,6 +113,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
         boolean requiresReload = false;
+        if ( importOptions.isSkipCache() )
+        {
+            programsCache.removeAll();
+            userGroupCache.removeAll();
+        }
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
         /*
          * Check if the list of incoming Events contains one or more Program uid which is
@@ -297,7 +306,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         final String sql = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, p.type, "
             + "tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  "
             + "c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, c.code as catcombo_code, "
-            + "ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable "
+            + "ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable, ps.enableuserassignment "
             + "from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "     LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
             + "     LEFT JOIN programstage ps on p.programid = ps.programid "
@@ -372,6 +381,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             rs.getString( "ps_feature_type" ) != null ? FeatureType.valueOf( rs.getString( "ps_feature_type" ) )
                 : FeatureType.NONE );
         programStage.setRepeatable( rs.getBoolean( "ps_repeatable" ) );
+        programStage.setEnableUserAssignment( rs.getBoolean( "enableuserassignment" ) );
         return programStage;
     }
 
@@ -418,8 +428,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Set<User> loadUserGroups( Long userGroupId )
     {
-        final String sql = "select ug.uid, ug.usergroupid, u.uid user_uid, u.userid user_id from usergroupmembers ugm "
-            + "join usergroup ug on ugm.usergroupid = ug.usergroupid join users u on ugm.userid = u.userid where ug.usergroupid = "
+        final String sql = "select ug.uid, ug.usergroupid, ui.uid user_uid, ui.userinfoid user_id from usergroupmembers ugm "
+            + "join usergroup ug on ugm.usergroupid = ug.usergroupid join userinfo ui on ugm.userid = ui.userinfoid where ug.usergroupid = "
             + userGroupId;
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
@@ -427,7 +437,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             Set<User> users = new HashSet<>();
             while ( rs.next() )
             {
-
                 User user = new User();
                 user.setUid( rs.getString( "user_uid" ) );
                 user.setId( rs.getLong( "user_id" ) );
