@@ -75,7 +75,7 @@ public class EventUtils
      * 
      * @param dataValues a Set of {@see EventDataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
-     * @return a String containing the serialized Set
+     * @return a PGobject containing the serialized Set
      * @throws JsonProcessingException if the JSON serialization fails
      */
     public static PGobject eventDataValuesToJson( Set<EventDataValue> dataValues, ObjectMapper mapper )
@@ -85,6 +85,24 @@ public class EventUtils
         jsonbObj.setType( "json" );
         jsonbObj.setValue( mapper.writeValueAsString(
             dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) ) );
+        return jsonbObj;
+    }
+
+    /**
+     * Converts a {@see DataValue} into a JSON string using the provided
+     * Jackson {@see ObjectMapper}.
+     *
+     * @param dataValue a {@see DataValue}
+     * @param mapper a configured Jackson {@see ObjectMapper}
+     * @return a PGobject containing the serialized object
+     * @throws JsonProcessingException if the JSON serialization fails
+     */
+    public static PGobject eventDataValuesToJson( DataValue dataValue, ObjectMapper mapper )
+        throws JsonProcessingException, SQLException
+    {
+        PGobject jsonbObj = new PGobject();
+        jsonbObj.setType( "json" );
+        jsonbObj.setValue( mapper.writeValueAsString( dataValue ) );
         return jsonbObj;
     }
 }

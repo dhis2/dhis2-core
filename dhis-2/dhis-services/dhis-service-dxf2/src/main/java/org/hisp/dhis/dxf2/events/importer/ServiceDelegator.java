@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.dxf2.events.importer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -51,6 +52,8 @@ public class ServiceDelegator
     private final ApplicationEventPublisher applicationEventPublisher;
 
     private final CurrentUserService currentUserService;
+
+    private final ObjectMapper jsonMapper;
 
     private final JdbcTemplate jdbcTemplate;
 }

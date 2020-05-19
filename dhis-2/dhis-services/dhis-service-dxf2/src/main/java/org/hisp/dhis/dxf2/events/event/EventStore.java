@@ -95,7 +95,7 @@ public interface EventStore
             "code = ?, " +                      // 13
             "createdatclient = ?, " +           // 14
             "lastupdatedatclient = ?, " +       // 15
-             "geometry = ?, " +                 // 16
+            "geometry = ?, " +                  // 16
             "assigneduserid = ?, " +            // 17
             "eventdatavalues = ? " +            // 18
             "where uid = ?;";                   // 19
