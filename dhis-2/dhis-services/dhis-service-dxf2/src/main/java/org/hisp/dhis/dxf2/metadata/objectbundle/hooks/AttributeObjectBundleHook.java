@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,34 +28,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import lombok.Builder;
-import lombok.Getter;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-@Getter
-@Builder
-public class ServiceDelegator
+@Component
+public class AttributeObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    private final ProgramInstanceStore programInstanceStore;
+    private final AttributeService attributeService;
 
-    private final TrackerAccessManager trackerAccessManager;
+    public AttributeObjectBundleHook( AttributeService attributeService )
+    {
+        checkNotNull( attributeService );
+        this.attributeService = attributeService;
+    }
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !Attribute.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
 
-    private final ProgramRuleVariableService programRuleVariableService;
-
-    private final ApplicationEventPublisher applicationEventPublisher;
-
-    private final CurrentUserService currentUserService;
-
-    private final ObjectMapper jsonMapper;
-
-    private final JdbcTemplate jdbcTemplate;
+        attributeService.invalidateCachedAttribute( persistedObject.getUid() );
+    }
 }

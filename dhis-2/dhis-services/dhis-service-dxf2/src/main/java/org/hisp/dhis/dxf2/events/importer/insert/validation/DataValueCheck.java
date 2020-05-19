@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
+
+import java.sql.SQLException;
 import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,6 +46,8 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public class DataValueCheck implements Checker
 {
     @Override
@@ -50,6 +56,7 @@ public class DataValueCheck implements Checker
         final Set<DataValue> dataValues = event.getDataValues();
         final ImportSummary importSummary = new ImportSummary();
         final User user = ctx.getImportOptions().getUser();
+
         for ( DataValue dataValue : dataValues )
         {
             DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
@@ -69,6 +76,20 @@ public class DataValueCheck implements Checker
                     importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), status ) );
                 }
             }
+
+            // Try to parse into JSON so we can catch parsing errors before the persisting phase.
+            if ( isNotEmpty( dataValues ) )
+            {
+                try
+                {
+                    eventDataValuesToJson( dataValue, ctx.getServiceDelegator().getJsonMapper() );
+                }
+                catch ( JsonProcessingException | SQLException e )
+                {
+                    importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), "Invalid data value found." ) );
+                }
+            }
+
             if ( doValidationOfMandatoryAttributes( user ) )
             {
                 final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );

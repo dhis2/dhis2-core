@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.function.Supplier;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
@@ -56,11 +57,14 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 
     private final CurrentUserService currentUserService;
 
+    private final ObjectMapper jsonMapper;
+
     private final JdbcTemplate jdbcTemplate;
 
     public ServiceDelegatorSupplier( ProgramInstanceStore programInstanceStore,
         TrackerAccessManager trackerAccessManager, ApplicationEventPublisher applicationEventPublisher,
         ProgramRuleVariableService programRuleVariableService, CurrentUserService currentUserService,
+        ObjectMapper jsonMapper,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate)
     {
         this.programInstanceStore = programInstanceStore;
@@ -68,6 +72,7 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
         this.applicationEventPublisher = applicationEventPublisher;
         this.programRuleVariableService = programRuleVariableService;
         this.currentUserService = currentUserService;
+        this.jsonMapper =jsonMapper;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -81,6 +86,7 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
                 .applicationEventPublisher( this.applicationEventPublisher )
                 .programRuleVariableService( this.programRuleVariableService )
                 .currentUserService( this.currentUserService )
+                .jsonMapper(jsonMapper)
                 .jdbcTemplate( this.jdbcTemplate )
                 .build();
         // @formatter:on
