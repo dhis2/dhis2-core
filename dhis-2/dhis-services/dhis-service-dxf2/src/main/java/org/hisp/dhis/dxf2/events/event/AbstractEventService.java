@@ -28,13 +28,24 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -77,7 +88,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -131,24 +141,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -306,6 +303,8 @@ public abstract class AbstractEventService
 
     private CachingMap<String, ProgramStage> programStageCache = new CachingMap<>();
 
+    private CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
+
     private CachingMap<String, CategoryOption> categoryOptionCache = new CachingMap<>();
 
     private CachingMap<String, CategoryOptionCombo> categoryOptionComboCache = new CachingMap<>();
@@ -325,13 +324,6 @@ public abstract class AbstractEventService
     private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
     private CachingMap<String, User> userCache = new CachingMap<>();
-
-    private static Cache<DataElement> DATA_ELEM_CACHE = new SimpleCacheBuilder<DataElement>()
-        .forRegion( "dataElementCache" )
-        .expireAfterAccess( 60, TimeUnit.MINUTES )
-        .withInitialCapacity( 1000 )
-        .withMaximumSize( 50000 )
-        .build();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -1454,7 +1446,7 @@ public abstract class AbstractEventService
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
 
-        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, dataElementCache );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1466,7 +1458,7 @@ public abstract class AbstractEventService
 
         for ( DataValue dv : event.getDataValues() )
         {
-            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
 
             if ( dataElement != null )
             {
@@ -1519,7 +1511,7 @@ public abstract class AbstractEventService
             List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
                 dataElementIdentificators );
 
-            dataElements.forEach( de -> DATA_ELEM_CACHE.put( de.getUid(), de ) );
+            dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
         }
         else
         {
@@ -1708,10 +1700,8 @@ public abstract class AbstractEventService
 
                     for ( ProgramStage programStage : program.getProgramStages() )
                     {
-                        for ( DataElement dataElement : programStage.getDataElements() )
-                        {
-                            DATA_ELEM_CACHE.put( dataElement.getUid(), dataElement );
-                        }
+                        dataElementCache.putAll( programStage.getDataElements().stream()
+                            .collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
                     }
                 }
             }
@@ -2000,12 +1990,12 @@ public abstract class AbstractEventService
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
         else
         {
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
     }
@@ -2164,7 +2154,7 @@ public abstract class AbstractEventService
         {
             for ( DataElement dataElement : programStage.getDataElements() )
             {
-                DATA_ELEM_CACHE.put( dataElement.getUid(), dataElement );
+                dataElementCache.put( dataElement.getUid(), dataElement );
             }
         }
     }
@@ -2195,28 +2185,7 @@ public abstract class AbstractEventService
 
     private DataElement getDataElement( IdScheme idScheme, String id )
     {
-        DataElement result = null;
-        final Optional<DataElement> dataElement = DATA_ELEM_CACHE.get( id );
-        if ( !dataElement.isPresent() )
-        {
-            DataElement dm = manager.getObject( DataElement.class, idScheme, id );
-            if ( dm != null )
-            {
-                // Init the DataElement Hibernate proxy, before stuffing it in cache
-                // so that the security-related collection are initialized
-                HibernateUtils.initializeProxy( dm );
-                // forces the security collection to be loaded before putting it in cache
-                dm.getUserGroupAccesses();
-                dm.getUserAccesses();
-                DATA_ELEM_CACHE.put( id, dm );
-                result = dm;
-            }
-        }
-        else
-        {
-            result = dataElement.get();
-        }
-        return result;
+        return dataElementCache.get( id, () -> manager.getObject( DataElement.class, idScheme, id ) );
     }
 
     private CategoryOption getCategoryOption( IdScheme idScheme, String id )
@@ -2443,7 +2412,7 @@ public abstract class AbstractEventService
         programInstanceCache.clear();
         activeProgramInstanceCache.clear();
         trackedEntityInstanceCache.clear();
-        DATA_ELEM_CACHE.invalidateAll();
+        dataElementCache.clear();
         categoryOptionCache.clear();
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
