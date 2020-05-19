@@ -36,13 +36,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -164,7 +164,7 @@ public class ProgramStageInstanceServiceTest
     private EventDataValue eventDataValueC;
     private EventDataValue eventDataValueD;
 
-    private Cache<DataElement> dataElementMap = new TestCache<>();
+    private Map<String, DataElement> dataElementMap = new HashMap<>();
 
     private List<DataElement> dataElements;
 
@@ -323,7 +323,7 @@ public class ProgramStageInstanceServiceTest
         dataElementMap.put( dataElementC.getUid(), dataElementC );
         dataElementMap.put( dataElementD.getUid(), dataElementD );
 
-        dataElements = new ArrayList<>( dataElementMap.getAll() );
+        dataElements = new ArrayList<>( dataElementMap.values() );
     }
 
     @Test
