@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.parse;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,33 @@ package org.hisp.dhis.sms.parse;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum ParserType
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component
+public class AttributeObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    KEY_VALUE_PARSER,
-    J2ME_PARSER,
-    ALERT_PARSER,
-    UNREGISTERED_PARSER,
-    TRACKED_ENTITY_REGISTRATION_PARSER,
-    PROGRAM_STAGE_DATAENTRY_PARSER,
-    EVENT_REGISTRATION_PARSER;
+    private final AttributeService attributeService;
+
+    public AttributeObjectBundleHook( AttributeService attributeService )
+    {
+        checkNotNull( attributeService );
+        this.attributeService = attributeService;
+    }
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !Attribute.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
+        attributeService.invalidateCachedAttribute( persistedObject.getUid() );
+    }
 }

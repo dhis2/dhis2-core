@@ -112,6 +112,12 @@ public class DefaultAttributeService
     }
 
     @Override
+    public void invalidateCachedAttribute( String attributeUid )
+    {
+        attributeCache.invalidate( attributeUid );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Attribute getAttribute( long id )
     {
