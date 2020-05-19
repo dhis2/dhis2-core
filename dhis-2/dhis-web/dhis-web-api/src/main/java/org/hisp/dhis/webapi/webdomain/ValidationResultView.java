@@ -50,6 +50,10 @@ public class ValidationResultView
 
     private String periodDisplayName;
 
+    private String attributeOptionComboId;
+
+    private String attributeOptionComboDisplayName;
+
     private String importance;
 
     private Double leftSideValue;
@@ -144,6 +148,28 @@ public class ValidationResultView
     public void setPeriodDisplayName( String periodDisplayName )
     {
         this.periodDisplayName = periodDisplayName;
+    }
+
+    @JsonProperty
+    public String getAttributeOptionComboId()
+    {
+        return attributeOptionComboId;
+    }
+
+    public void setAttributeOptionComboId( String attributeOptionComboId )
+    {
+        this.attributeOptionComboId = attributeOptionComboId;
+    }
+
+    @JsonProperty
+    public String getAttributeOptionComboDisplayName()
+    {
+        return attributeOptionComboDisplayName;
+    }
+
+    public void setAttributeOptionComboDisplayName( String attributeOptionComboDisplayName )
+    {
+        this.attributeOptionComboDisplayName = attributeOptionComboDisplayName;
     }
 
     @JsonProperty
