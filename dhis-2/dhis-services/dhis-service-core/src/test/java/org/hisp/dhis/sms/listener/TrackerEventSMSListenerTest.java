@@ -49,6 +49,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSCompressionException;
 import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
+import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSMSSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -140,6 +141,10 @@ public class TrackerEventSMSListenerTest
 
     private IncomingSms incomingSmsTrackerEvent;
 
+    private IncomingSms incomingSmsTrackerEventWithNulls;
+
+    private IncomingSms incomingSmsTrackerEventNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -195,6 +200,43 @@ public class TrackerEventSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testTrackerEventRepeat()
+    {
+        subject.receive( incomingSmsTrackerEvent );
+        subject.receive( incomingSmsTrackerEvent );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
+    public void testTrackerEventWithNulls()
+    {
+        subject.receive( incomingSmsTrackerEventWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testTrackerEventNoValues()
+    {
+        subject.receive( incomingSmsTrackerEventNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOVALUES_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -222,6 +264,8 @@ public class TrackerEventSMSListenerTest
         programStageInstance.setAutoFields();
 
         incomingSmsTrackerEvent = createSMSFromSubmission( createTrackerEventSubmission() );
+        incomingSmsTrackerEventWithNulls = createSMSFromSubmission( createTrackerEventSubmissionWithNulls() );
+        incomingSmsTrackerEventNoValues = createSMSFromSubmission( createTrackerEventSubmissionNoValues() );
     }
 
     private TrackerEventSMSSubmission createTrackerEventSubmission()
@@ -235,7 +279,9 @@ public class TrackerEventSMSListenerTest
         subm.setEnrollment( programInstance.getUid() );
         subm.setEvent( programStageInstance.getUid() );
         subm.setEventStatus( SMSEventStatus.COMPLETED );
-        subm.setTimestamp( new Date() );
+        subm.setEventDate( new Date() );
+        subm.setDueDate( new Date() );
+        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
         ArrayList<SMSDataValue> values = new ArrayList<>();
         values.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
         subm.setValues( values );
@@ -244,4 +290,21 @@ public class TrackerEventSMSListenerTest
         return subm;
     }
 
+    private TrackerEventSMSSubmission createTrackerEventSubmissionWithNulls()
+    {
+        TrackerEventSMSSubmission subm = createTrackerEventSubmission();
+        subm.setEventDate( null );
+        subm.setDueDate( null );
+        subm.setCoordinates( null );
+
+        return subm;
+    }
+
+    private TrackerEventSMSSubmission createTrackerEventSubmissionNoValues()
+    {
+        TrackerEventSMSSubmission subm = createTrackerEventSubmission();
+        subm.setValues( null );
+
+        return subm;
+    }
 }
