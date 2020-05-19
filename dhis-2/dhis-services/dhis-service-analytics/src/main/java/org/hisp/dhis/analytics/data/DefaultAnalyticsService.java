@@ -1344,7 +1344,7 @@ public class DefaultAnalyticsService
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists
-                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
+                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1369,13 +1369,20 @@ public class DefaultAnalyticsService
         return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
     }
 
-    private Collection<Indicator> preprocessIndicators( List<Indicator> indicators )
+    /**
+     * Resolves the numerator and denominator expressions of the given indicators.
+     *
+     * @param indicators the list of indicators.
+     * @return the given list of indicators.
+     */
+    private List<Indicator> resolveIndicatorExpressions( List<Indicator> indicators )
     {
         for ( Indicator indicator : indicators )
         {
             indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
             indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
         }
+
         return indicators;
     }
 

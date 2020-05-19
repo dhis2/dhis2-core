@@ -302,12 +302,12 @@ public class DefaultDataQueryService
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, buildCategoryOptionComboList( items, inputIdScheme ) );
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, getCategoryOptionComboList( items, inputIdScheme ) );
         }
 
         else if ( ATTRIBUTEOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, buildCategoryOptionComboList( items, inputIdScheme ) );
+            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, getCategoryOptionComboList( items, inputIdScheme ) );
         }
 
         else if ( PERIOD_DIM_ID.equals( dimension ) )
@@ -575,16 +575,32 @@ public class DefaultDataQueryService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private List<DimensionalItemObject> buildCategoryOptionComboList( List<String> items, IdScheme inputIdScheme )
+    /**
+     * Returns a list of category option combinations based on the given item identifiers.
+     *
+     * @param items the item identifiers.
+     * @param inputIdScheme the {@link IdScheme}.
+     * @return a list of {@link DimensionalItemObject}.
+     */
+    private List<DimensionalItemObject> getCategoryOptionComboList( List<String> items, IdScheme inputIdScheme )
     {
-        return items.stream().map( item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item ) )
+        return items.stream()
+            .map( item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item ) )
             .filter( Objects::nonNull )
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Returns only objects for which the user has data or metadata read access.
+     *
+     * @param user the  user.
+     * @param object the {@link DimensionalObject}.
+     * @return a list of {@link DimensionalItemObject}.
+     */
     private List<DimensionalItemObject> getCanReadItems( User user, DimensionalObject object )
     {
-        return object.getItems().stream().filter( o -> aclService.canDataOrMetadataRead( user, o ) )
+        return object.getItems().stream()
+            .filter( o -> aclService.canDataOrMetadataRead( user, o ) )
             .collect( Collectors.toList() );
     }
 }

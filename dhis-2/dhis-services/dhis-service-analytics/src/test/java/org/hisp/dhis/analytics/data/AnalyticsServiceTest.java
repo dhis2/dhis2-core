@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.data;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -76,10 +75,8 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
-import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
