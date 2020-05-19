@@ -29,11 +29,21 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -429,6 +439,10 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
     {
+        // Making program stage repeatable
+        programStageA1.setRepeatable( true );
+        programStageA2.setRepeatable( true );
+
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
