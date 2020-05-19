@@ -34,6 +34,9 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UidGenerator;
+import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,7 +99,7 @@ public class WorkContextLoader
         this.sessionFactory = sessionFactory;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
         sessionFactory.getCurrentSession().flush();
@@ -107,6 +110,8 @@ public class WorkContextLoader
         {
             localImportOptions = ImportOptions.getDefaultImportOptions();
         }
+
+        initializeUser( localImportOptions );
 
         // Make sure all events have the 'uid' field populated
         events = uidGen.assignUidToEvents( events );
@@ -126,5 +131,30 @@ public class WorkContextLoader
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
         // @formatter:on
+    }
+
+    /**
+     * Make sure that the {@see User} object's properties are properly initialized, to avoid running into
+     * Hibernate-related issues during validation
+     *
+     * @param importOptions the {@see ImportOptions} object
+     */
+    private void initializeUser( ImportOptions importOptions )
+    {
+        if ( importOptions.getUser() == null )
+        {
+            User currentUser = this.serviceDelegatorSupplier.get().getCurrentUserService().getCurrentUser();
+            UserCredentials userCredentials = currentUser.getUserCredentials();
+            HibernateUtils.initializeProxy( userCredentials );
+            userCredentials.isSuper();
+            importOptions.setUser( currentUser );
+        }
+        else
+        {
+            User user = importOptions.getUser();
+            UserCredentials userCredentials = user.getUserCredentials();
+            HibernateUtils.initializeProxy( userCredentials );
+            userCredentials.isSuper();
+        }
     }
 }

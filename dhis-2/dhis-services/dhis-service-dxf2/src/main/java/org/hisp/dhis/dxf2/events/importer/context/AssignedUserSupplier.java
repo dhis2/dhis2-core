@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -65,9 +67,11 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
                 .collect( Collectors.toSet() );
 
         // Create a map user -> event
-        Map<String, String> userToEvent = events.stream()
-                .filter( e -> e.getAssignedUser() != null )
-                .collect( Collectors.toMap( Event::getAssignedUser, Event::getUid  ) );
+        Multimap<String, String> userToEvent = HashMultimap.create();
+        for ( Event event : events )
+        {
+            userToEvent.put( event.getAssignedUser(), event.getUid() );
+        }
         // @formatter:on
 
         if ( !userUids.isEmpty() )
@@ -87,7 +91,10 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
                     user.setUid( rs.getString( "uid" ) );
                     user.setCode( rs.getString( "code" ) );
 
-                    results.put( userToEvent.get( user.getUid() ), user );
+                    for ( String event : userToEvent.get( user.getUid() ) )
+                    {
+                        results.put( event, user );
+                    }
                 }
                 return results;
             } );

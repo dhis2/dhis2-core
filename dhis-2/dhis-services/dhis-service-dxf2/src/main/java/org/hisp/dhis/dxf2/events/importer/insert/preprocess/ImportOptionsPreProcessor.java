@@ -47,9 +47,5 @@ public class ImportOptionsPreProcessor
             throw new UnrecoverableImportException(
                 "The event process import cannot continue without ImportOptions set" );
         }
-        if ( importOptions.getUser() == null )
-        {
-            importOptions.setUser( ctx.getServiceDelegator().getCurrentUserService().getCurrentUser() );
-        }
     }
 }
