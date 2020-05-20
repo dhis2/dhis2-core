@@ -63,6 +63,15 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ImmutableMap;
 
 /**
+ * This supplier builds and caches a Map of all the Programs in the system.
+ * For each Program, the following additional data is retrieved:
+ *
+ * - Program Stages
+ *
+ * - Category Combo
+ *
+ * - Tracked Entity Type
+ *
  * @author Luciano Fiandesio
  */
 @Component( "workContextProgramsSupplier" )
