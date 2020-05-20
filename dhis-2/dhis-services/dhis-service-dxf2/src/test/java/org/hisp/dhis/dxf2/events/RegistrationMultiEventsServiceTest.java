@@ -189,6 +189,7 @@ public class RegistrationMultiEventsServiceTest
         manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
+        organisationUnitA = manager.get( OrganisationUnit.class, organisationUnitA.getUid() );
     }
 
     @Test

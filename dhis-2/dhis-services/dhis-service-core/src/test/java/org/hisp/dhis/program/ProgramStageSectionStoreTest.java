@@ -76,9 +76,9 @@ public class ProgramStageSectionStoreTest
     private ProgramStageSection sectionA;
 
     private ProgramStageSection sectionB;
-    
+
     private List<DataElement> dataElements;
-    
+
     @Override
     public void setUpTest()
     {
@@ -106,7 +106,7 @@ public class ProgramStageSectionStoreTest
         dataElements = Lists.newArrayList();
         dataElements.add( dataElementA );
         dataElements.add( dataElementB );
-        
+
         stageB = new ProgramStage( "B", program );
         programStageService.saveProgramStage( stageB );
 
@@ -116,23 +116,17 @@ public class ProgramStageSectionStoreTest
         program.setProgramStages( programStages );
         programService.updateProgram( program );
 
-        sectionA = createProgramStageSection( 'A', 1 );
-        sectionA.setDataElements( dataElements );
-
         sectionB = createProgramStageSection( 'B', 2 );
-
-        Set<ProgramStageSection> sections = new HashSet<>();
-        sections.add( sectionA );
-        sections.add( sectionB );
-        stageA.setProgramStageSections( sections );
     }
 
     @Test
     public void testAddGet()
     {
         ProgramStageSection sectionA = createProgramStageSection( 'A', 1 );
+        sectionA.setProgramStage( stageA );
         sectionA.setDataElements( dataElements );
-        
+        stageA.getProgramStageSections().add( sectionA );
+
         programStageSectionStore.save( sectionA );
         long idA = sectionA.getId();
 
