@@ -1,11 +1,9 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventGeometryCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;

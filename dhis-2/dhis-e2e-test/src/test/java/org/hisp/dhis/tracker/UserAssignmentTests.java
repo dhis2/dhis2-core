@@ -184,7 +184,7 @@ public class UserAssignmentTests
 
         eventResponse.validate().statusCode( 200 );
 
-        return eventResponse;
+        return null;
     }
 
     private ApiResponse enableUserAssignmentOnProgramStage( String programStageId, boolean enabled )

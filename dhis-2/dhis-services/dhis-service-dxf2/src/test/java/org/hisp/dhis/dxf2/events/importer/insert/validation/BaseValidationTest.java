@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -85,7 +85,8 @@ public class BaseValidationTest
     protected void assertNoError( ImportSummary summary )
     {
         assertThat( summary, is( notNullValue() ) );
-        assertThat( summary.getImportCount().getIgnored(), is( 0 ) );
+        assertThat( "Expecting 0 events ignored, but got " + summary.getImportCount().getIgnored(),
+            summary.getImportCount().getIgnored(), is( 0 ) );
         assertThat( summary.getStatus(), is( ImportStatus.SUCCESS ) );
     }
 

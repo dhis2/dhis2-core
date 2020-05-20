@@ -56,7 +56,9 @@ public class ProgramOrgUnitCheck implements Checker
             final IdScheme orgUnitIdScheme = ctx.getImportOptions().getIdSchemes().getOrgUnitIdScheme();
 
             OrganisationUnit orgUnit = null;
+
             final Set<OrganisationUnit> organisationUnits = programInstance.getProgram().getOrganisationUnits();
+
             for ( OrganisationUnit ou : organisationUnits )
             {
                 if ( orgUnitIdScheme.equals( IdScheme.UID ) )
