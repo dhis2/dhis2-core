@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.importer;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;

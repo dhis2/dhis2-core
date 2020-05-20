@@ -28,12 +28,14 @@
 
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import java.util.Optional;
+import java.util.Set;
 
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,16 +53,42 @@ public class ProgramOrgUnitCheck implements Checker
 
         if ( programInstance != null )
         {
-            Optional<OrganisationUnit> orgUnit = programInstance.getProgram().getOrganisationUnits().stream()
-                .filter( ou -> ou.getUid().equals( event.getOrgUnit() ) ) // FIXME: this will not work with an IdScheme
-                                                                          // different from uid
-                .findFirst();
+            final IdScheme orgUnitIdScheme = ctx.getImportOptions().getIdSchemes().getOrgUnitIdScheme();
 
-            if ( !orgUnit.isPresent() )
+            OrganisationUnit orgUnit = null;
+            final Set<OrganisationUnit> organisationUnits = programInstance.getProgram().getOrganisationUnits();
+            for ( OrganisationUnit ou : organisationUnits )
             {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
-                        .setReference( event.getEvent() ).incrementIgnored();
+                if ( orgUnitIdScheme.equals( IdScheme.UID ) )
+                {
+                    if ( ou.getUid().equals( event.getOrgUnit() ) )
+                    {
+                        orgUnit = ou;
+                        break;
+                    }
+                }
+                else if ( orgUnitIdScheme.equals( IdScheme.CODE ) )
+                {
+                    if ( ou.getCode().equals( event.getOrgUnit() ) )
+                    {
+                        orgUnit = ou;
+                        break;
+                    }
+                }
+                else if ( orgUnitIdScheme.equals( IdScheme.ID ) )
+                {
+                    if ( String.valueOf( ou.getId() ).equals( event.getOrgUnit() ) )
+                    {
+                        orgUnit = ou;
+                        break;
+                    }
+                }
+            }
+
+            if ( orgUnit == null )
+            {
+                return error( "Program is not assigned to this organisation unit: " + event.getOrgUnit(),
+                    event.getEvent() );
             }
         }
 

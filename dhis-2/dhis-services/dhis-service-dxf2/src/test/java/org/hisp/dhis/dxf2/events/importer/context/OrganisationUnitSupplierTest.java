@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -135,5 +136,38 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertThat( organisationUnit.getPath(), is( "/abcded" ) );
         assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
 
+    }
+
+    @Test
+    public void verifyCodeSchemaForOu() throws SQLException {
+
+        // mock resultset data
+        when( mockResultSet.getLong( "organisationunitid" ) ).thenReturn( 100L );
+        when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
+        when( mockResultSet.getString( "code" ) ).thenReturn( "CODE1" );
+        when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
+        when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
+
+        // create event to import
+        Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        event.setOrgUnit( "CODE1" );
+
+        // mock resultset extraction
+        mockResultSetExtractor( mockResultSet );
+
+        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+        importOptions.setOrgUnitIdScheme(IdScheme.CODE.name());
+        Map<String, OrganisationUnit> map = subject.get( importOptions,
+                Collections.singletonList( event ) );
+
+
+        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        assertThat( organisationUnit, is( notNullValue() ) );
+        assertThat( organisationUnit.getId(), is( 100L ) );
+        assertThat( organisationUnit.getUid(), is( "abcded" ) );
+        assertThat( organisationUnit.getCode(), is( "CODE1" ) );
+        assertThat( organisationUnit.getPath(), is( "/abcded" ) );
+        assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
     }
 }
