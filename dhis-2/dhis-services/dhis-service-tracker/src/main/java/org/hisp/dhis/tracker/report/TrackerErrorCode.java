@@ -103,7 +103,7 @@ public enum TrackerErrorCode
     E1032( "Event: `{0}`, do not exist." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
     E1086( "Event: `{0}`, has a program: `{1}`, that is a registration but its ProgramStage is not valid or missing." ),
-    E1088( "Event: `{0}`, program: `{1}`, and ProgramStage: `{2}` could not be found." ),
+    E1088( "Event: `{0}`, program: `{1}`, and ProgramStage: `{2}`, could not be found." ),
     E1089( "Event: `{0}`, ProgramStage Program and Event Program don't match." ),
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
 

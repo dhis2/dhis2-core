@@ -144,7 +144,9 @@ public class PreCheckMetaValidationHook
         if ( program == null && programStage == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1088 )
-                .addArg( event ) );
+                .addArg( event )
+                .addArg( event.getProgram() )
+                .addArg( event.getProgramStage() ) );
         }
 
         if ( program == null && programStage != null )

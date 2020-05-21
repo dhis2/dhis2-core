@@ -42,14 +42,18 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -74,6 +78,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +139,9 @@ public class EventSecurityImportValidationTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
@@ -290,6 +299,24 @@ public class EventSecurityImportValidationTest
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
+
+        int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
+        Date dateMar20 = getDate( testYear, 3, 20 );
+        Date dateApr10 = getDate( testYear, 4, 10 );
+
+        ProgramInstance programInstance = programInstanceService
+            .enrollTrackedEntityInstance( maleA, programA, dateMar20, dateApr10, organisationUnitA );
+        programInstanceService.addProgramInstance( programInstance );
+
+        manager.update( programA );
+
+        User user = userService.getUser( USER_5 );
+
+        OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit( "QfUVllTs6cS" );
+        user.addOrganisationUnit( qfUVllTs6cS );
+        user.addOrganisationUnit( organisationUnitA );
+
+        manager.update( user );
     }
 
     @Test
@@ -319,86 +346,47 @@ public class EventSecurityImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 
-//    @Test
-//    public void testNo_F_UNCOMPLETE_EVENT_auth()
-//        throws IOException
-//    {
-//        setupMetaData();
-//
-//
-//        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-//            "tracker/validations/events_error-no-uncomplete.json" );
-//
-//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-//        assertEquals( 1, trackerBundle.getEvents().size() );
-//
-//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-//        printReport( report );
-//
-//        assertEquals( 2, report.getErrorReports().size() );
-//
-
-    ///////////////////////////////////// THIS MAKES  E1037 here
-////        assertThat( report.getErrorReports(),
-////            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-////
-////        assertThat( report.getErrorReports(),
-////            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-//
-//        trackerBundleParams = createBundleFromJson(
-//            "tracker/validations/events_error-no-uncomplete.json" );
-//
-//        User user = userService.getUser( USER_3 );
-//        trackerBundleParams.setUser( user );
-//        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-//
-//        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-//        assertEquals( 1, trackerBundle.getEvents().size() );
-//
-//        report = trackerValidationService.validate( trackerBundle );
-//        printReport( report );
-//
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-//    }
-
-
     @Test
-    public void testNo_F_UNCOMPLETE_EVENT_auth()
+    public void testNoUncompleteEventAuth()
         throws IOException
     {
+        setupMetaData();
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit(
+            "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+
+        printReport( report );
+
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+
+        // Change just inserted Event to status COMPLETED...
+        ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
+        zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
+        manager.update( zwwuwNp6gVd );
+
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-uncomplete.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEvents().size() );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.update( programA );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printReport( report );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.update( programStageA );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        User user = userService.getUser( USER_5 );
 
-        TrackerBundleReport commit = trackerBundleService.commit( trackerBundle );
-
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-//
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-
-        trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-no-uncomplete.json" );
-
-        User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
-
         report = trackerValidationService.validate( trackerBundle );
+
         printReport( report );
 
+        assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
     }
