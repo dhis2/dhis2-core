@@ -45,9 +45,9 @@ public class D2HasValue
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return getProgramArgType( ctx ).getDescription( ctx, visitor );
+        getProgramArgType( ctx ).getDescription( ctx, visitor );
 
-        //return DEFAULT_BOOLEAN_VALUE;
+        return DEFAULT_BOOLEAN_VALUE;
     }
 
     @Override
