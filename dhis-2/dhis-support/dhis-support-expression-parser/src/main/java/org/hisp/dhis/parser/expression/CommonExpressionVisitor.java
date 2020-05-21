@@ -202,6 +202,11 @@ public class CommonExpressionVisitor
      */
     public static final String DEFAULT_DATE_VALUE = "2017-07-08";
 
+    /**
+     * Default value for data type boolean.
+     */
+    public static final boolean DEFAULT_BOOLEAN_VALUE = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
