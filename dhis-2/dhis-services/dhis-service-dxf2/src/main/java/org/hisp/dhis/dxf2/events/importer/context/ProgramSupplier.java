@@ -343,16 +343,20 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
-        final String sql = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, p.type, "
-            + "tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  "
-            + "c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, c.code as catcombo_code, "
-            + "ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable, ps.enableuserassignment "
-            + "from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
-            + "     LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
-            + "     LEFT JOIN programstage ps on p.programid = ps.programid "
-            + "     LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
-            + "     LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
-            + "group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
+        final String sql = "select p.programid as id, " + "p.uid, " + "p.code, " + "p.name, " + "p.publicaccess, "
+            + "p.type, " + "tet.trackedentitytypeid, " + "tet.publicaccess  as tet_public_access, "
+            + "tet.uid           as tet_uid, " + "c.categorycomboid as catcombo_id, "
+            + "c.uid             as catcombo_uid, " + "c.name            as catcombo_name, "
+            + "c.code            as catcombo_code, " + "ps.programstageid as ps_id, " + "ps.uid            as ps_uid, "
+            + "ps.code           as ps_code, " + "ps.name           as ps_name, "
+            + "ps.featuretype    as ps_feature_type, " + "ps.sort_order, " + "ps.publicaccess   as ps_public_access, "
+            + "ps.repeatable     as ps_repeatable, " + "ps.enableuserassignment " + "from program p "
+            + "LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
+            + "LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
+            + "LEFT JOIN programstage ps on p.programid = ps.programid "
+            + "LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
+            + "LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
+            + "group by p.programid, tet.trackedentitytypeid, c.categorycomboid, " + "ps.programstageid, ps.sort_order "
             + "order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
