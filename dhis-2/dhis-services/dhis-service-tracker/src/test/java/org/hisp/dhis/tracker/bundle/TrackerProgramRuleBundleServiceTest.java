@@ -28,7 +28,13 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -52,18 +58,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerProgramRuleBundleServiceTest
-    extends DhisSpringTest
+public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -87,13 +87,14 @@ public class TrackerProgramRuleBundleServiceTest
     private ProgramRuleActionService programRuleActionService;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -106,8 +107,8 @@ public class TrackerProgramRuleBundleServiceTest
 
         objectBundleService.commit( bundle );
 
-        ProgramRule programRule = createProgramRule( 'A', bundle.getPreheat().get( PreheatIdentifier.UID,
-            Program.class, "BFcipDERJne" ) );
+        ProgramRule programRule = createProgramRule( 'A',
+            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" ) );
         programRuleService.addProgramRule( programRule );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
@@ -120,16 +121,18 @@ public class TrackerProgramRuleBundleServiceTest
     }
 
     @Test
-    public void testRunRuleEngineForEventOnBundleCreate() throws IOException
+    public void testRunRuleEngineForEventOnBundleCreate()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .events( trackerBundle.getEvents() )
-            .build() );
+            .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() ).build() );
 
         assertEquals( 1, trackerBundles.size() );
         assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );

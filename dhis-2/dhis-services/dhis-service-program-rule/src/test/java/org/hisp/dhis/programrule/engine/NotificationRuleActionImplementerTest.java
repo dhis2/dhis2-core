@@ -133,17 +133,15 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
-        doAnswer( invocationOnMock ->
-        {
+        doAnswer( invocationOnMock -> {
             eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
-        }).when( publisher ).publishEvent( any() );
+        } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -169,11 +167,10 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return eventType;
         } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -195,17 +192,15 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
-
         doAnswer( invocationOnMock -> {
             eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
         } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -277,19 +272,11 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
 
-        setMandatoryFieldFalse = new RuleActionSetMandatoryField()
-        {
-            @Nonnull
-            @Override
-            public String field()
-            {
-                return MANDATORY_FIELD;
-            }
-        };
+        setMandatoryFieldFalse = RuleActionSetMandatoryField.create( MANDATORY_FIELD );
 
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
-        Program programA = createProgram('A', new HashSet<>(), organisationUnitA );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programRuleA = createProgramRule( 'R', programA );
