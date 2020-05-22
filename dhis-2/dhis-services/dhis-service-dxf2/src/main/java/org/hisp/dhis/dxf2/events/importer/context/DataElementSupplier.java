@@ -53,7 +53,6 @@ import org.springframework.stereotype.Component;
 @Component( "workContextDataElementsSupplier" )
 public class DataElementSupplier extends AbstractSupplier<Map<String, DataElement>>
 {
-
     private final IdentifiableObjectManager manager;
 
     public DataElementSupplier( NamedParameterJdbcTemplate jdbcTemplate, IdentifiableObjectManager manager )

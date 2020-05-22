@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.importer.Checker;
@@ -41,6 +42,8 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -56,6 +59,7 @@ public class DataValueCheck implements Checker
         final Set<DataValue> dataValues = event.getDataValues();
         final ImportSummary importSummary = new ImportSummary();
         final User user = ctx.getImportOptions().getUser();
+        final IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
 
         for ( DataValue dataValue : dataValues )
         {
@@ -77,7 +81,11 @@ public class DataValueCheck implements Checker
                 }
             }
 
-            // Try to parse into JSON so we can catch parsing errors before the persisting phase.
+            // Try to parse into JSON so we can catch parsing errors before the persisting
+            // phase.
+            // TODO: luciano I'm afraid that converting to JSON twice (here and in the
+            // actual jdbcStore) has a negative
+            // impact on performance
             if ( isNotEmpty( dataValues ) )
             {
                 try
@@ -86,24 +94,31 @@ public class DataValueCheck implements Checker
                 }
                 catch ( JsonProcessingException | SQLException e )
                 {
-                    importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), "Invalid data value found." ) );
+                    importSummary.getConflicts()
+                        .add( new ImportConflict( dataElement.getUid(), "Invalid data value found." ) );
                 }
             }
 
-            if ( doValidationOfMandatoryAttributes( user ) )
+            if ( doValidationOfMandatoryAttributes( user ) && isValidationRequired( event, ctx ) )
             {
-                final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
+                ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, event.getProgramStage() );
 
-                if ( validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
-                        || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED) )
-                {
+                Set<ProgramStageDataElement> programStageDataElements = programStage.getProgramStageDataElements();
 
-                }
             }
 
         }
 
         return importSummary;
+    }
+
+    private boolean isValidationRequired( ImmutableEvent event, WorkContext ctx )
+    {
+        final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
+
+        return validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
+            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED);
+
     }
 
     private boolean doValidationOfMandatoryAttributes( User user )

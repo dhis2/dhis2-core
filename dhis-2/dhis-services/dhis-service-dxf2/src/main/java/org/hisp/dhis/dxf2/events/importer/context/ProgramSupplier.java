@@ -45,12 +45,14 @@ import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -184,6 +186,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         if ( requiresReload || programMap == null )
         {
             programMap = loadPrograms( importOptions.getIdSchemes() );
+            Map<Long, Set<DataElement>> dataElementMandatoryMap = loadProgramStageDataElementMandatoryMap();
 
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
@@ -215,6 +218,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                         programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
                     programStage.setUserGroupAccesses(
                         programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+
+                    Set<DataElement> dataElements = dataElementMandatoryMap.get( programStage.getId() );
+                    programStage.setProgramStageDataElements( dataElements.stream()
+                        .map( de -> new ProgramStageDataElement( programStage, de ) ).collect( Collectors.toSet() ) );
                 }
             }
 
@@ -341,22 +348,59 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
+    private Map<Long, Set<DataElement>> loadProgramStageDataElementMandatoryMap()
+    {
+        final String sql = "select psde.programstageid, de.dataelementid, de.uid as de_uid, de.code as de_code "
+            + "from programstagedataelement psde "
+            + "         join dataelement de on psde.dataelementid = de.dataelementid " + "where psde.compulsory = true "
+            + "order by psde.programstageid";
+
+        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+
+            Map<Long, Set<DataElement>> results = new HashMap<>();
+            long programStageId = 0;
+            while ( rs.next() )
+            {
+                if ( programStageId != rs.getLong( "programstageid" ) )
+                {
+                    Set<DataElement> dataElements = new HashSet<>();
+                    DataElement dataElement = new DataElement();
+                    dataElement.setId( rs.getLong( "dataelementid" ) );
+                    dataElement.setUid( rs.getString( "de_uid" ) );
+                    dataElement.setCode( rs.getString( "de_code" ) );
+                    dataElements.add( dataElement );
+                    results.put( rs.getLong( "programstageid" ), dataElements );
+                }
+                else
+                {
+                    DataElement dataElement = new DataElement();
+                    dataElement.setId( rs.getLong( "dataelementid" ) );
+                    dataElement.setUid( rs.getString( "de_uid" ) );
+                    dataElement.setCode( rs.getString( "de_code" ) );
+
+                    results.get( rs.getLong( "programstageid" ) ).add( dataElement );
+                }
+            }
+            return results;
+        } );
+    }
+
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
-        final String sql = "select p.programid as id, " + "p.uid, " + "p.code, " + "p.name, " + "p.publicaccess, "
-            + "p.type, " + "tet.trackedentitytypeid, " + "tet.publicaccess  as tet_public_access, "
-            + "tet.uid           as tet_uid, " + "c.categorycomboid as catcombo_id, "
-            + "c.uid             as catcombo_uid, " + "c.name            as catcombo_name, "
-            + "c.code            as catcombo_code, " + "ps.programstageid as ps_id, " + "ps.uid            as ps_uid, "
-            + "ps.code           as ps_code, " + "ps.name           as ps_name, "
-            + "ps.featuretype    as ps_feature_type, " + "ps.sort_order, " + "ps.publicaccess   as ps_public_access, "
-            + "ps.repeatable     as ps_repeatable, " + "ps.enableuserassignment " + "from program p "
+        final String sql = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, "
+            + "p.type, tet.trackedentitytypeid, tet.publicaccess  as tet_public_access, "
+            + "tet.uid           as tet_uid, c.categorycomboid as catcombo_id, "
+            + "c.uid             as catcombo_uid, c.name            as catcombo_name, "
+            + "c.code            as catcombo_code, ps.programstageid as ps_id, ps.uid as ps_uid, "
+            + "ps.code           as ps_code, ps.name           as ps_name, "
+            + "ps.featuretype    as ps_feature_type, ps.sort_order, ps.publicaccess   as ps_public_access, "
+            + "ps.repeatable     as ps_repeatable, ps.enableuserassignment from program p "
             + "LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
             + "LEFT JOIN programstage ps on p.programid = ps.programid "
             + "LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
             + "LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
-            + "group by p.programid, tet.trackedentitytypeid, c.categorycomboid, " + "ps.programstageid, ps.sort_order "
+            + "group by p.programid, tet.trackedentitytypeid, c.categorycomboid, ps.programstageid, ps.sort_order "
             + "order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {

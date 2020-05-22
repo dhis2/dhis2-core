@@ -42,5 +42,4 @@ public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
     {
         this.jdbcTemplate = jdbcTemplate;
     }
-
 }
