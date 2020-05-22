@@ -66,11 +66,37 @@ import com.google.common.collect.ImmutableMap;
  * This supplier builds and caches a Map of all the Programs in the system.
  * For each Program, the following additional data is retrieved:
  *
- * - Program Stages
  *
- * - Category Combo
  *
- * - Tracked Entity Type
+ * @formatter:off
+ *
+         Program
+         +
+         |
+         +---+ Program Stage (List)
+         |           |
+         |           +---+ User Access (ACL)
+         |           |
+         |           +---+ User Group Access (ACL)
+         |
+         |
+         +---+ Category Combo
+         |
+         |
+         +---+ Tracked Entity Instance
+         |           |
+         |           +---+ User Access (ACL)
+         |           |
+         |           +---+ User Group Access (ACL)
+         |
+         |
+         |
+         +---+ Organizational Unit (List)
+         |
+         +---+ User Access (ACL)
+         |
+         +---+ User Group Access (ACL)
+ * @formatter:on
  *
  * @author Luciano Fiandesio
  */
@@ -97,7 +123,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic(5) )
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
-    
+
     // Caches the User Groups and the Users belonging to each group
     private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
         .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic(5) )
@@ -122,16 +148,21 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
         boolean requiresReload = false;
+        //
+        // do not use cache is `skipCache` is true
+        //
         if ( importOptions.isSkipCache() )
         {
             programsCache.removeAll();
             userGroupCache.removeAll();
         }
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
-        /*
-         * Check if the list of incoming Events contains one or more Program uid which is
-         * not in cache. Reload the entire program cache if a Program UID is not found
-         */
+
+        //
+        // Check if the list of incoming Events contains one or more Program uid which
+        // is
+        // not in cache. Reload the entire program cache if a Program UID is not found
+        //
         if ( programMap != null )
         {
             Set<String> programs = eventList.stream().map( Event::getProgram ).collect( Collectors.toSet() );
