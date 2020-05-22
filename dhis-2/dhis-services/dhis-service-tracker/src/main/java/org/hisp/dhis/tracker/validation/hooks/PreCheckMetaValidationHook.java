@@ -191,6 +191,7 @@ public class PreCheckMetaValidationHook
         {
             ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
             Program existingProgram = psi.getProgramStage().getProgram();
+
             if ( !existingProgram.equals( program ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1110 )
