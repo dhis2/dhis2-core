@@ -124,6 +124,10 @@ public class ProgramIndicatorServiceTest
 
     private DataElement deFNumber;
 
+    private DataElement deGBoolean;
+
+    private DataElement deHDate;
+
     private TrackedEntityAttribute atA;
 
     private TrackedEntityAttribute atB;
@@ -204,12 +208,24 @@ public class ProgramIndicatorServiceTest
         deFNumber.setDomainType( DataElementDomain.TRACKER );
         deFNumber.setUid( "DataElmentF" );
 
+        deGBoolean = createDataElement( 'G' );
+        deGBoolean.setValueType( ValueType.BOOLEAN );
+        deGBoolean.setDomainType( DataElementDomain.TRACKER );
+        deGBoolean.setUid( "DataElmentG" );
+
+        deHDate = createDataElement( 'H' );
+        deHDate.setValueType( ValueType.DATE );
+        deHDate.setDomainType( DataElementDomain.TRACKER );
+        deHDate.setUid( "DataElmentH" );
+
         dataElementService.addDataElement(deAInteger);
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deEText );
         dataElementService.addDataElement( deFNumber );
+        dataElementService.addDataElement( deGBoolean );
+        dataElementService.addDataElement( deHDate );
 
         ProgramStageDataElement stageDataElementA = new ProgramStageDataElement( psA, deAInteger, false, 1 );
         ProgramStageDataElement stageDataElementB = new ProgramStageDataElement( psA, deB, false, 2 );
@@ -219,6 +235,8 @@ public class ProgramIndicatorServiceTest
         ProgramStageDataElement stageDataElementF = new ProgramStageDataElement( psA, deD, false, 4 );
         ProgramStageDataElement stageDataElementG = new ProgramStageDataElement( psA, deEText, false, 5 );
         ProgramStageDataElement stageDataElementH = new ProgramStageDataElement( psA, deFNumber, false, 6 );
+        ProgramStageDataElement stageDataElementI = new ProgramStageDataElement( psA, deGBoolean, false, 6 );
+        ProgramStageDataElement stageDataElementJ = new ProgramStageDataElement( psA, deHDate, false, 6 );
 
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
         programStageDataElementService.addProgramStageDataElement( stageDataElementB );
@@ -228,6 +246,8 @@ public class ProgramIndicatorServiceTest
         programStageDataElementService.addProgramStageDataElement( stageDataElementF );
         programStageDataElementService.addProgramStageDataElement( stageDataElementG );
         programStageDataElementService.addProgramStageDataElement( stageDataElementH );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementI );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementJ );
 
         // ---------------------------------------------------------------------
         // TrackedEntityInstance & Enrollment
@@ -494,11 +514,13 @@ public class ProgramIndicatorServiceTest
     }
 
     @Test
-    public void testFilterExpressionValidityWithD2Functions()
+    public void testFilterExpressionValidityWithD2FunctionsAndDifferentValueTypes()
     {
         assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deAInteger.getUid() + "})" ) );
         assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deEText.getUid() + "})" ) );
         assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deFNumber.getUid() + "})" ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deGBoolean.getUid() + "})" ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deHDate.getUid() + "})" ) );
     }
 
 
