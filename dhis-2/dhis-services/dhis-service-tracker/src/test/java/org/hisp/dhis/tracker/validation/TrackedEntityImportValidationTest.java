@@ -377,6 +377,7 @@ public class TrackedEntityImportValidationTest
     public void testTeAttrNonExistentAttr()
         throws IOException
     {
+        // TODO: See changes to DefaultTrackerBundleService, two TODOS, we need to add NP checks there in order to complete this test.
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/te-data_error_attr-non-existing.json" );
 

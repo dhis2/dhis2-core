@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.validation;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -40,6 +41,7 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 @Data
 @Builder
+@Slf4j
 public class ValidateAndCommit
 {
     private TrackerValidationService trackerValidationService;
@@ -73,6 +75,7 @@ public class ValidateAndCommit
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             commitException = e;
         }
 

@@ -159,12 +159,12 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-        trackerBundle.setEventRuleEffects( eventRuleEffects );
+//        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+//            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+//        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+//            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+//        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+//        trackerBundle.setEventRuleEffects( eventRuleEffects );
 
         return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
     }
@@ -472,21 +472,19 @@ public class DefaultTrackerBundleService
                 attributeValues.add( attributeValue );
             }
 
-            // TODO: What to do here? Should this be allowed?
-//            TrackedEntityAttribute attribute1 = attributeValue.getAttribute();
-//
-//            if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
-//                attribute1 != null && attribute1.getValueType().isFile() )
-//            {
-//                assignedFileResources.add( at.getValue() );
-//            }
-
-
-            if ( !attributeValuesForDeletion.contains( at.getAttribute() )
-                && attributeValue.getAttribute().getValueType().isFile() )
+            // TODO: What to do here? Should this be allowed? i.e ,  attributeValue.getAttribute() != null  this makes a NP
+            if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
+                attributeValue.getAttribute() != null && attributeValue.getAttribute().getValueType().isFile() )
             {
                 assignedFileResources.add( at.getValue() );
             }
+
+
+//            if ( !attributeValuesForDeletion.contains( at.getAttribute() )
+//                && attributeValue.getAttribute().getValueType().isFile() )
+//            {
+//                assignedFileResources.add( at.getValue() );
+//            }
         }
 
         for ( TrackedEntityAttributeValue attributeValue : attributeValues )
@@ -497,10 +495,10 @@ public class DefaultTrackerBundleService
             TrackedEntityAttribute attribute = attributeValue.getAttribute();
 
 //            // TODO: What to do here? Should this be allowed?
-//            if ( attribute == null )
-//            {
-//                continue;
-//            }
+            if ( attribute == null )
+            {
+                continue;
+            }
 
             if ( attributeValuesForDeletion.contains( attribute.getUid() ) )
             {
