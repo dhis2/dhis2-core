@@ -23,15 +23,6 @@
           "valueType": "INTEGER",
           "attribute": "fmBIpOStKkF",
           "value": "123"
-        },
-        {
-          "lastUpdated": "2020-02-10T10:56:07.591",
-          "storedBy": "admin",
-          "displayName": "Attribute_Address",
-          "created": "2020-02-10T10:56:07.588",
-          "valueType": "TEXT",
-          "attribute": "sTJvSLN7Kcb",
-          "value": "ADDRESS STREET 1"
         }
       ]
     }

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -171,10 +172,23 @@ public abstract class AbstractTrackerDtoValidationHook
         Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
         Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
-        String error = teAttrService.validateValueType( teAttr, attr.getValue() );
+        String error = null;
+
+        // TODO: We need to do try/catch here since validateValueType() since it can cast IllegalArgumentException e.g. on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
+        try
+        {
+            error = teAttrService.validateValueType( teAttr, attr.getValue() );
+        }
+        catch ( Exception e )
+        {
+            error = e.getMessage();
+        }
+
         if ( error != null )
         {
+            ValueType valueType = teAttr.getValueType();
             errorReporter.addError( newReport( TrackerErrorCode.E1007 )
+                .addArg( valueType.toString() )
                 .addArg( error ) );
         }
     }

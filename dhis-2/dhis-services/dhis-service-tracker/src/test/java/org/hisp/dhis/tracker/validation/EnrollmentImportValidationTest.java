@@ -73,7 +73,7 @@ import static org.junit.Assert.assertTrue;
  */
 @Slf4j
 public class EnrollmentImportValidationTest
-    extends AbstractImportValidationTest
+        extends AbstractImportValidationTest
 
 {
     @Autowired
