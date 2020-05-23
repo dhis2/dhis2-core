@@ -897,6 +897,7 @@ public class EventController
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         if ( !importOptions.isAsync() )
         {
@@ -942,6 +943,7 @@ public class EventController
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         if ( !importOptions.isAsync() )
         {
@@ -1005,6 +1007,8 @@ public class EventController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         Events events = csvEventService.readEvents( inputStream, skipFirst );
+
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         if ( !importOptions.isAsync() )
         {

@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -205,6 +206,7 @@ public class EnrollmentController
             ImportSummaries importSummaries = enrollmentService.addEnrollmentsJson( inputStream, importOptions );
             importSummaries.setImportOptions( importOptions );
             response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+            UserContext.setUser( currentUserService.getCurrentUser() );
 
             importSummaries.getImportSummaries().stream()
                 .filter(
@@ -242,6 +244,7 @@ public class EnrollmentController
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         if ( !importOptions.isAsync() )
         {
@@ -307,6 +310,7 @@ public class EnrollmentController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }

@@ -33,15 +33,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -678,6 +670,7 @@ public class TrackedEntityInstanceController
         importOptions.setStrategy( strategy );
         importOptions.setSkipLastUpdated( true );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         if ( !importOptions.isAsync() )
         {
@@ -721,6 +714,7 @@ public class TrackedEntityInstanceController
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        UserContext.setUser( currentUserService.getCurrentUser() );
 
         if ( !importOptions.isAsync() )
         {
