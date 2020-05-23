@@ -73,7 +73,7 @@ import static org.junit.Assert.assertTrue;
  */
 @Slf4j
 public class EnrollmentImportValidationTest
-        extends AbstractImportValidationTest
+    extends AbstractImportValidationTest
 
 {
     @Autowired
@@ -462,4 +462,69 @@ public class EnrollmentImportValidationTest
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
     }
+
+    // TODO: Empty json geo obj OR (missing field in obj) causes strange json mapping exception, should we capture this?
+    // com.fasterxml.jackson.databind.JsonMappingException: (was java.lang.NullPointerException) (through reference chain:
+    // org.hisp.dhis.tracker.bundle.TrackerBundleParams["enrollments"]->java.util.ArrayList[0]->org.hisp.dhis.tracker.domain.Enrollment["geometry"])
+//    @Test
+//    public void testBadGeoOnEnrollment()
+//        throws IOException
+//    {
+//        TrackerBundleParams params = createBundleFromJson(
+//            "tracker/validations/enrollments_bad-geo.json" );
+//
+//        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//
+//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+//        printReport( validationReport );
+//
+//        assertEquals( 0, validationReport.getErrorReports().size() );
+//
+////        assertThat( validationReport.getErrorReports(),
+////            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
+//    }
+
+    /* FAILS
+    * ERROR 00:26:29,461 Value too long for column "GEOMETRY BINARY(255)": "X'aced000573720021636f6d2e7669766964736f6c7574696f6e732e6a74732e67656f6d2e506f696e7444077bad161cbb2a0200014c000b636f6f7264696e61... (1168)"; SQL statement:
+insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpdatedAtClient, incidentDate, enrollmentdate, enddate, followup, completedBy, geometry, deleted, storedby, status, trackedentityinstanceid, programid, organisationunitid, programinstanceid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) [22001-196] (SqlExceptionHelper.java [main])
+     */
+    @Test
+    public void testBadGeoOnEnrollmentMissingFeatureType()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_bad-geo-missing-featuretype.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1074 ) ) ) );
+    }
+
+    @Test
+    public void testBadGeoOnEnrollmentMissingTypeOnGeo()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_bad-geo-missing-geotype.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
+    }
+
 }

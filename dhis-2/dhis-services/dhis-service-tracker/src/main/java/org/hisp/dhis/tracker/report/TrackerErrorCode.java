@@ -71,7 +71,6 @@ public enum TrackerErrorCode
     E1017( "Attribute: `{0}`, does not exist." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
     E1076( "Attribute: `{0}`, value is null." ),
-    E1078( "Attribute: `{0}`, is missing type, is null or type is empty." ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
     E1085( "Attribute: `{0}`, value does not match value type: `{1}`." ),
     E1083( "User: `{0}`, is not authorized to modify completed events." ),

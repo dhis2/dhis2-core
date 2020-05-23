@@ -289,6 +289,7 @@
       "displayIncidentDate": true,
       "accessLevel": "OPEN",
       "userGroupAccesses": [ ],
+      "featureType": "POLYGON",
       "id": "E8o1E9tAppy",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
