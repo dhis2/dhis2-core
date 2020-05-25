@@ -497,7 +497,7 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
             "tracker/validations/enrollments_bad-geo-missing-featuretype.json" );
 
         ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
@@ -527,4 +527,35 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
     }
 
+    @Test
+    public void testEnrollmentInAnotherProgramExists()
+        throws IOException
+    {
+        // TODO: Morten: How do we do this check on an import set, this only checks when the DB already contains it
+
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_double-tei-enrollment_part1.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit(
+            "tracker/validations/enrollments_double-tei-enrollment_part1.json", TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 0, validationReport.getErrorReports().size() );
+
+        createAndUpdate = doValidateAndCommit(
+            "tracker/validations/enrollments_double-tei-enrollment_part2.json", TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+        validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 2, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
+
+        assertThat( validationReport.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+    }
 }

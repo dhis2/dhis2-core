@@ -123,24 +123,21 @@ public class EnrollmentInExistingValidationHook
         TrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        // TODO: SQLOPT Sort out only the programs the importing user has access too...
-        //   create a dedicated sql query....?
-        // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
-        // should import still be possible?
+        // TODO:  create a dedicated sql query....?
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, actingUser, program, tei )
             .stream()
-            .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
-                || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )
+            .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
             .collect( Collectors.toSet() );
 
         if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
         {
-            Set<Enrollment> activeEnrollments = activeAndCompleted.stream()
-                .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus() )
+            Set<Enrollment> activeOnly = activeAndCompleted.stream()
+                .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() )
                 .collect( Collectors.toSet() );
 
-            if ( !activeEnrollments.isEmpty() )
+            if ( !activeOnly.isEmpty() )
             {
+                // TODO: How do we do this check on an import set, this only checks when the DB already contains it
                 //Error: TrackedEntityInstance already has an active enrollment in another program...
                 reporter.addError( newReport( TrackerErrorCode.E1015 )
                     .addArg( tei )
@@ -149,7 +146,7 @@ public class EnrollmentInExistingValidationHook
         }
 
         // Enrollment(¶4.b.ii) - The error of enrolling more than once is possible only if the imported enrollment
-        // has a state other than CANCELLED...
+        // has a state other than CANCELLED... i.e. ACTIVE OR COMPLETED!
         if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !activeAndCompleted.isEmpty() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1016 )
