@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.importer.insert.validation.BaseEventAclCheck;
+import org.hisp.dhis.dxf2.events.importer.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;

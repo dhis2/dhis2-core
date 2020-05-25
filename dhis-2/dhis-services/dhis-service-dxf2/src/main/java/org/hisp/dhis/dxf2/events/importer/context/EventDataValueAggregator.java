@@ -1,0 +1,127 @@
+package org.hisp.dhis.dxf2.events.importer.context;
+
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceDataValueMapper;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramStageInstance;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class EventDataValueAggregator
+{
+    public Map<String, Set<EventDataValue>> aggregateDataValues( List<Event> events,
+        Map<String, ProgramStageInstance> programStageInstanceMap )
+    {
+        checkNotNull( programStageInstanceMap );
+        checkNotNull( events );
+
+        Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
+        for ( Event event : events )
+        {
+            if ( isNew( event.getUid(), programStageInstanceMap ) )
+            {
+                eventDataValueMap.put( event.getUid(), getDataValues( event.getDataValues() ) );
+            }
+            else
+            {
+                eventDataValueMap.put( event.getUid(), getDataValues(
+                    programStageInstanceMap.get( event.getUid() ), event.getDataValues() ) );
+            }
+        }
+        return eventDataValueMap;
+    }
+
+    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues )
+    {
+        Set<EventDataValue> result = new HashSet<>();
+
+        for ( DataValue dataValue : dataValues )
+        {
+            EventDataValue eventDataValue = exist( dataValue, psi.getEventDataValues() );
+
+            if ( eventDataValue == null )
+            {
+                result.add( new ProgramStageInstanceDataValueMapper( null ).map( dataValue ) );
+            }
+            else
+            {
+                if ( StringUtils.isNotEmpty( dataValue.getValue() ) )
+                {
+                    EventDataValue converted = new ProgramStageInstanceDataValueMapper( null ).map( dataValue );
+                    converted.setCreated( eventDataValue.getCreated() );
+                    converted.setLastUpdated( new Date());
+                    result.add( converted );
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private EventDataValue exist( DataValue dataValue, Set<EventDataValue> eventDataValues )
+    {
+        for ( EventDataValue eventDataValue : eventDataValues )
+        {
+            final String dataElement = eventDataValue.getDataElement();
+            if ( StringUtils.isNotEmpty( dataValue.getDataElement() )
+                && dataValue.getDataElement().equals( dataElement ) )
+            {
+                return eventDataValue;
+            }
+        }
+        return null;
+    }
+
+    private Set<EventDataValue> getDataValues( Set<DataValue> dataValues )
+    {
+        return dataValues.stream().map( dv -> new ProgramStageInstanceDataValueMapper( null ).map( dv ) )
+            .collect( Collectors.toSet() );
+    }
+
+    private boolean isNew( String eventUid, Map<String, ProgramStageInstance> programStageInstanceMap )
+    {
+        return !programStageInstanceMap.containsKey( eventUid );
+    }
+
+}

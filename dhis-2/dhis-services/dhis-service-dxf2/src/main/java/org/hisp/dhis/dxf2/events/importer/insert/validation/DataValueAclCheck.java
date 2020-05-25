@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  */
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElement;
@@ -37,6 +38,7 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
@@ -49,15 +51,17 @@ public class DataValueAclCheck implements Checker
         final TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
 
+        Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
+
         final User user = ctx.getImportOptions().getUser();
         final ImportSummary importSummary = new ImportSummary();
 
         // Note that here we are passing a ProgramStageInstance, which during a INSERT
         // operation
         // is going to be null, so the ACL method will not be able to check that
-        final Set<DataValue> dataValues = event.getDataValues();
+        final Set<EventDataValue> dataValues = eventDataValueMap.get(event.getUid());
 
-        for ( DataValue dataValue : dataValues )
+        for ( EventDataValue dataValue : dataValues )
         {
             DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
             List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );

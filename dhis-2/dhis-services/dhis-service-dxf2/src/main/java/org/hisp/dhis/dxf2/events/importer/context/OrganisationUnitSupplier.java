@@ -44,6 +44,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
 /**
  * @author Luciano Fiandesio
@@ -106,7 +107,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 ou.setParent( SupplierUtils.getParentHierarchy( ou, path ) );
                 try
                 {
-                    for ( String event : orgUnitToEvent.get( IdSchemeUtils.dynamicSchemeProperty( idScheme, ou ) ) )
+                    for ( String event : orgUnitToEvent.get( getIdentifierBasedOnIdScheme( ou, idScheme ) ) )
                     {
                         results.put( event, ou );
                     }

@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -82,9 +83,9 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
             // Slower, but shouldn't happen so often
             dataElementsMap = allDataElements.stream()
                 .map( deId -> manager.getObject( DataElement.class, dataElementIdScheme, deId ) )
-                .filter( Objects::nonNull ).collect( Collectors.toMap( DataElement::getUid, d -> d ) );
+                .filter( Objects::nonNull ).collect( Collectors.toMap( dataElement -> IdentifiableObjectUtils
+                    .getIdentifierBasedOnIdScheme( dataElement, dataElementIdScheme ), d -> d ) );
         }
-
         return dataElementsMap;
     }
 }

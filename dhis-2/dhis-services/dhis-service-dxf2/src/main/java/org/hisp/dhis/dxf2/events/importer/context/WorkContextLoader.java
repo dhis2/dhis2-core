@@ -29,12 +29,14 @@ package org.hisp.dhis.dxf2.events.importer.context;
  */
 
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UidGenerator;
 import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
@@ -116,11 +118,14 @@ public class WorkContextLoader
         // Make sure all events have the 'uid' field populated
         events = uidGen.assignUidToEvents( events );
 
+        final Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier
+            .get( localImportOptions, events );
+
         return WorkContext.builder()
         // @formatter:off
             .importOptions( localImportOptions )
             .programsMap( programSupplier.get( localImportOptions, events ) )
-            .programStageInstanceMap( programStageInstanceSupplier.get( localImportOptions, events ) )
+            .programStageInstanceMap( programStageInstanceMap )
             .organisationUnitMap( organisationUnitSupplier.get( localImportOptions, events ) )
             .trackedEntityInstanceMap( trackedEntityInstanceSupplier.get( localImportOptions, events ) )
             .programInstanceMap( programInstanceSupplier.get( localImportOptions, events ) )
@@ -128,14 +133,15 @@ public class WorkContextLoader
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )
             .assignedUserMap( assignedUserSupplier.get( localImportOptions, events ) )
+            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap ))
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
         // @formatter:on
     }
 
     /**
-     * Make sure that the {@see User} object's properties are properly initialized, to avoid running into
-     * Hibernate-related issues during validation
+     * Make sure that the {@see User} object's properties are properly initialized,
+     * to avoid running into Hibernate-related issues during validation
      *
      * @param importOptions the {@see ImportOptions} object
      */

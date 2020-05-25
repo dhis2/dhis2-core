@@ -68,6 +68,7 @@ import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
+import org.hisp.dhis.dxf2.events.importer.validation.DataValueCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -261,7 +262,8 @@ public class ServiceConfig
             ProgramStageInstanceAuthCheck.class,
             AttributeOptionComboCheck.class,
             AttributeOptionComboDateCheck.class,
-            EventGeometryCheck.class
+            EventGeometryCheck.class,
+            DataValueCheck.class
         ) );
         // @formatter:on
     }

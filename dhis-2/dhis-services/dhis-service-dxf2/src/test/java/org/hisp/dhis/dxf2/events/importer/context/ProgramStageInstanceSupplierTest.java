@@ -45,7 +45,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
+
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
  * @author Luciano Fiandesio
@@ -54,13 +55,11 @@ public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<Progr
 {
     private ProgramStageInstanceSupplier subject;
 
-    @Mock
-    private ProgramSupplier programSupplier;
-
     @Before
     public void setUp()
     {
-        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate );
+        JsonMapper mapper = new JsonMapper();
+        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper);
     }
 
     @Test

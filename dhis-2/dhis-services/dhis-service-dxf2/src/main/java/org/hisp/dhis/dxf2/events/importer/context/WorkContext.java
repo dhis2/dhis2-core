@@ -36,10 +36,12 @@ import lombok.Getter;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -47,6 +49,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
 /**
  * This class acts as a cache for data required during the Event import process.
@@ -120,6 +124,8 @@ public class WorkContext
      */
     private final Map<String, DataElement> dataElementMap;
 
+    private final Map<String, Set<EventDataValue>> eventDataValueMap;
+
     private final Map<String, User> assignedUserMap;
 
     private final Map<String, Note> notesMap;
@@ -143,9 +149,9 @@ public class WorkContext
             Set<ProgramStage> programStages = program.getProgramStages();
             for ( ProgramStage programStage : programStages )
             {
-                final String id = IdSchemeUtils.dynamicSchemeProperty( idScheme, programStage );
+                final String id = getIdentifierBasedOnIdScheme( programStage, idScheme );
 
-                if ( id.equals( programStageId ) )
+                if ( id != null && id.equals( programStageId ) )
                 {
                     programStage.setProgram( program );
                     return programStage;

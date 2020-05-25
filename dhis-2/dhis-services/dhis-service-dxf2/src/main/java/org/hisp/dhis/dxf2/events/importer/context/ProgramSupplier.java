@@ -220,8 +220,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                         programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
 
                     Set<DataElement> dataElements = dataElementMandatoryMap.get( programStage.getId() );
-                    programStage.setProgramStageDataElements( dataElements.stream()
-                        .map( de -> new ProgramStageDataElement( programStage, de ) ).collect( Collectors.toSet() ) );
+                    if ( dataElements != null )
+                    {
+                        programStage.setProgramStageDataElements( dataElements.stream()
+                            .map( de -> new ProgramStageDataElement( programStage, de ) )
+                            .collect( Collectors.toSet() ) );
+                    }
                 }
             }
 

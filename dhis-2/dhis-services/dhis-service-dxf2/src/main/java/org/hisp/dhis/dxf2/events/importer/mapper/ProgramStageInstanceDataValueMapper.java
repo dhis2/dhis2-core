@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.events.importer.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.util.DateUtils.parseDate;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -48,8 +51,13 @@ public class ProgramStageInstanceDataValueMapper extends AbstractMapper<DataValu
         EventDataValue eventDataValue = new EventDataValue();
         eventDataValue.setDataElement( dataValue.getDataElement() );
         eventDataValue.setValue( dataValue.getValue() );
-        eventDataValue.setStoredBy( eventDataValue.getStoredBy() );
+        eventDataValue.setStoredBy( eventDataValue.getStoredBy() ); // TODO handle user
         eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+
+        if ( StringUtils.isNotEmpty( dataValue.getCreated() ) )
+        {
+            eventDataValue.setCreated( parseDate( dataValue.getCreated() ) );
+        }
 
         return eventDataValue;
     }

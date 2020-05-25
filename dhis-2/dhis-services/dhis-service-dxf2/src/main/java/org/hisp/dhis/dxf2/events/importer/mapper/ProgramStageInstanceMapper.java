@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer.mapper;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdScheme.CODE;
 import static org.hisp.dhis.common.IdScheme.UID;
@@ -53,13 +52,10 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
 {
     private final ProgramStageInstanceNoteMapper noteMapper;
 
-    private final ProgramStageInstanceDataValueMapper dataValueMapper;
-
     public ProgramStageInstanceMapper( WorkContext ctx )
     {
         super( ctx );
         noteMapper = new ProgramStageInstanceNoteMapper( ctx );
-        dataValueMapper = new ProgramStageInstanceDataValueMapper( ctx );
     }
 
     public ProgramStageInstance map( Event event )
@@ -147,13 +143,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         // COMMENTS
         psi.setComments( convertNotes( event, this.workContext ) );
 
-        // DATA VALUES
-        if ( isNotEmpty( event.getDataValues() ) )
-        {
-            psi.setEventDataValues(
-                event.getDataValues().stream().map( dataValueMapper::map ).collect( toSet() ) );
-        }
-
+        psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ));
         return psi;
     }
 

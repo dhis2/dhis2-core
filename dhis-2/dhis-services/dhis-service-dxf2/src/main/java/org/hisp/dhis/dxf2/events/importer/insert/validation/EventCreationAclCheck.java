@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import java.util.List;
 
+import org.hisp.dhis.dxf2.events.importer.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
@@ -39,7 +40,7 @@ import org.hisp.dhis.user.User;
  */
 public class EventCreationAclCheck
     extends
-    BaseEventAclCheck
+        BaseEventAclCheck
 {
     @Override
     public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,

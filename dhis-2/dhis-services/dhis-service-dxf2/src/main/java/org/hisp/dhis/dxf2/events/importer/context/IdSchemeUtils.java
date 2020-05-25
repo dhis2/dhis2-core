@@ -28,15 +28,11 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
 
 public class IdSchemeUtils
 {
@@ -87,18 +83,5 @@ public class IdSchemeUtils
             id = null;
         }
         return id;
-    }
-
-    public static String dynamicSchemeProperty( IdScheme idScheme, Object obj )
-    {
-        try
-        {
-            return (String) new PropertyDescriptor( getColumnNameByScheme( idScheme ), obj.getClass() ).getReadMethod()
-                .invoke( obj );
-        }
-        catch ( IllegalAccessException | InvocationTargetException | IntrospectionException e )
-        {
-            throw new UnrecoverableImportException( e );
-        }
     }
 }
