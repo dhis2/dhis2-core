@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -122,6 +123,7 @@ public class UserAssignmentTests
 
         ApiResponse eventResponse = createEvents( programId, programStageId, loggedInUser );
 
+        assertNotNull( eventResponse.getImportSummaries(), "No import summaries returned when creating event." );
         eventResponse.getImportSummaries().forEach( importSummary -> {
             ApiResponse response = eventActions.get( importSummary.getReference() );
 
@@ -184,7 +186,7 @@ public class UserAssignmentTests
 
         eventResponse.validate().statusCode( 200 );
 
-        return null;
+        return eventResponse;
     }
 
     private ApiResponse enableUserAssignmentOnProgramStage( String programStageId, boolean enabled )
