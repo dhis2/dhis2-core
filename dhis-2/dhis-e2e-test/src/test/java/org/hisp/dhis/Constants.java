@@ -1,5 +1,3 @@
-package org.hisp.dhis.helpers.extensions;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,42 +26,26 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.RestAssuredConfig;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.config.TestConfiguration;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+package org.hisp.dhis;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+public class Constants
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
-    {
-        RestAssured.baseURI = TestConfiguration.get().baseUrl();
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
-    }
+    public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
 
-    private RequestSpecification defaultRequestSpecification()
-    {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+    public static String SUPER_USER_ID = "PQD6wXJ2r5j";
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.addFilter( new AuthFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+    public static String USER_GROUP_ID = "OPVIvvXzNTw";
 
-        return requestSpecification.build();
-    }
+    public static String USER_ROLE_ID = "yrB6vc5Ip7r";
+
+    public static String[] ORG_UNIT_IDS = {
+        "DiszpKrYNg8",
+        "g8upMTyEZGZ",
+        "O6uvpzGd5pu",
+        "YuQRtpLP10I"
+    };
+
 }

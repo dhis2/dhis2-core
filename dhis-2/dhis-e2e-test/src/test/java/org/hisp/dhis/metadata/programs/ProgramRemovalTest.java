@@ -84,6 +84,7 @@ public class ProgramRemovalTest
 
         JsonObject relationshipType = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/relationshipTypes.json" ) )
+            .replacePropertyValuesWithIds( "id" )
             .get( JsonObject.class ).getAsJsonArray( "relationshipTypes" ).get( 0 )
             .getAsJsonObject();
 

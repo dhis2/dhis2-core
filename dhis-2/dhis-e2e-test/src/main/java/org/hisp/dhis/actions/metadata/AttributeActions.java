@@ -1,5 +1,3 @@
-package org.hisp.dhis.helpers.extensions;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,42 +26,32 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.RestAssuredConfig;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.config.TestConfiguration;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+package org.hisp.dhis.actions.metadata;
+
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+public class AttributeActions extends RestApiActions
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
+    public AttributeActions(  )
     {
-        RestAssured.baseURI = TestConfiguration.get().baseUrl();
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        super( "/attributes" );
     }
 
-    private RequestSpecification defaultRequestSpecification()
-    {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+    public String createUniqueAttribute(String metadataObject, String valueType) {
+        JsonObject object = new JsonObject();
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.addFilter( new AuthFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+        object.addProperty( "name", String.format( "TA %s attribute %s", metadataObject, DataGenerator.randomString() ) );
+        object.addProperty( "unique", "true" );
+        object.addProperty( metadataObject + "Attribute", "true" );
+        object.addProperty( "valueType", valueType);
 
-        return requestSpecification.build();
+
+        return this.create( object );
     }
 }

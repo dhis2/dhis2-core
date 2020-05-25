@@ -28,6 +28,7 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -102,14 +103,14 @@ public class MetadataSetupExtension
     {
         logger.info( "Setting up super user" );
         UserActions userActions = new UserActions();
-        String userRoleId = "yrB6vc5Ip7r";
-        String userGroupId = "OPVIvvXzNTw";
+        String userRoleId = Constants.USER_ROLE_ID;
+        String userGroupId = Constants.USER_GROUP_ID;
 
         String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
             .extractString( "users.id[0]" );
 
         userActions.addUserToUserGroup( userId, userGroupId );
-        userActions.addURoleToUser( userId, userRoleId );
+        userActions.addRoleToUser( userId, userRoleId );
 
         TestRunStorage.removeEntity( "/users", userId );
     }
