@@ -29,17 +29,21 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.vividsolutions.jts.geom.Geometry;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -50,6 +54,7 @@ import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -70,6 +75,9 @@ public abstract class AbstractTrackerDtoValidationHook
 
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
+
+    @Autowired
+    private TrackedEntityCommentService commentService;
 
     private final TrackerImportStrategy strategy;
 
@@ -236,6 +244,54 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
+    protected void validateNotes( ValidationErrorReporter reporter, TrackerImportStrategy strategy, List<Note> notes )
+    {
+        for ( Note note : notes )
+        {
+            boolean validUid = CodeGenerator.isValidUid( note.getNote() );
+            if ( !validUid )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1118 )
+                    .addArg( note.toString() ) );
+            }
+
+            if ( strategy.isCreate() )
+            {
+                //TODO: This looks like a potential performance killer, existence check on every note...
+                boolean alreadyExists = commentService.trackedEntityCommentExists( note.getNote() );
+                if ( alreadyExists )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1120 )
+                        .addArg( note.toString() ) );
+                }
+            }
+
+            boolean emptyValue = StringUtils.isEmpty( note.getValue() );
+            if ( emptyValue )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1119 )
+                    .addArg( note.toString() ) );
+            }
+
+            Date stored = null;
+            Exception error = null;
+            try
+            {
+                stored = DateUtils.parseDate( note.getStoredAt() );
+            }
+            catch ( Exception e )
+            {
+                error = e;
+            }
+            if ( stored == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1121 )
+                    .addArg( note.toString() )
+                    .addArg( error != null ? error.getMessage() : "" )
+                );
+            }
+        }
+    }
 //    protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
 //    {
 //        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );

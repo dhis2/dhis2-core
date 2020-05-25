@@ -127,7 +127,7 @@ public class EnrollmentImportValidationTest
             "tracker/validations/enrollments_te_te-data.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 3, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -558,4 +558,85 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
         assertThat( validationReport.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
     }
+
+    @Test
+    public void testBadEnrollmentNoteNoValue()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_bad-note-no-value.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
+    }
+
+    @Test
+    public void testBadEnrollmentNoteBadUUID()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_bad-note-bad-uuid.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1118 ) ) ) );
+    }
+
+    @Test
+    public void testBadEnrollmentNoteBadDate()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_bad-stored-date.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1121 ) ) ) );
+    }
+
+    // TODO: Note persistence not impl yet...
+//    @Test
+//    public void testBadEnrollmentNoteUUIDExist()
+//        throws IOException
+//    {
+//
+//        ValidateAndCommit createAndUpdate = doValidateAndCommit(
+//            "tracker/validations/enrollments_bad-note-uuid-exists-part1.json", TrackerImportStrategy.CREATE );
+//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//        assertEquals( createAndUpdate.getCommitReport().getStatus(), TrackerStatus.OK );
+//
+//        createAndUpdate = doValidateAndCommit(
+//            "tracker/validations/enrollments_bad-note-uuid-exists-part2.json", TrackerImportStrategy.CREATE );
+////        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//
+//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+//        printReport( validationReport );
+//
+//        assertEquals( 1, validationReport.getErrorReports().size() );
+//
+//        assertThat( validationReport.getErrorReports(),
+//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1120 ) ) ) );
+//    }
 }

@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -41,7 +41,7 @@ import java.util.List;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
+public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
 
     @Override
@@ -50,18 +50,18 @@ public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHo
         return 106;
     }
 
-    public EnrollmentNoteValidationHook()
+    public EventNoteValidationHook()
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
 
-        List<Note> notes = enrollment.getNotes();
+        List<Note> notes = event.getNotes();
 
         validateNotes( reporter, strategy, notes );
     }

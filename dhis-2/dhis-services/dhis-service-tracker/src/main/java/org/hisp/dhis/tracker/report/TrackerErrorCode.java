@@ -113,7 +113,7 @@ public enum TrackerErrorCode
     E1100( "User: `{0}`, is lacking 'F_TEI_CASCADE_DELETE' authority to delete TrackedEntityInstance: `{1}`." ),
     E1102( "User: `{0}`, does not have access to the tracked entity: `{1}`, Program: `{2}`, combination." ),
     E1103( "User: `{0}`, is lacking 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`." ),
-    E1104( "User: `{0}`, has no data read access to program:`{1}`, TrackedEntityType: `{2}`." ),
+    E1104( "User: `{0}`, has no data read access to program: `{1}`, TrackedEntityType: `{2}`." ),
     E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
@@ -123,6 +123,11 @@ public enum TrackerErrorCode
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1115( "Could not find CategoryOptionCombo: `{0}`." ),
     E1116( "Could not find CategoryOption: `{0}`." ),
+
+    E1118( "Note does not have a valid uuid: `{0}`." ),
+    E1119( "Note does not have a value: `{0}`." ),
+    E1120( "Note already exist with same uuid: `{0}`." ),
+    E1121( "Note stored at date is invalid: `{0}`; Error: `{1}`." ),
 
     E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
 
