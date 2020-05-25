@@ -57,7 +57,7 @@ public class ProgramStageCheck implements Checker
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, programStageId );
 
-        if ( program.isRegistration() && programStage == null )
+        if ( programStage == null )
         {
             return error( "Event.programStage does not point to a valid programStage: " + event.getProgramStage(),
                 event.getEvent() );

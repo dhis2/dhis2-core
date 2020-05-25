@@ -231,6 +231,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
+
+        for (String s : programMap.keySet()) {
+            System.out.println("program: " + s);
+            Program p = programMap.get( s );
+            Set<ProgramStage> programStages = p.getProgramStages();
+            for (ProgramStage programStage : programStages) {
+                System.out.println("\t Program stage:"  + programStage.getUid());
+            }
+        }
+
         return programMap;
     }
 
@@ -424,8 +434,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setPublicAccess( rs.getString( "publicaccess" ) );
-
-                    programStages.add( toProgramStage( rs ) );
+                    // Do not add program stages without primary key (this should not really happen,
+                    // but the database does allow Program Stage without a Program Id
+                    if ( rs.getLong( "ps_id" ) != 0 )
+                    {
+                        programStages.add( toProgramStage( rs ) );
+                    }
 
                     CategoryCombo categoryCombo = new CategoryCombo();
                     categoryCombo.setId( rs.getLong( "catcombo_id" ) );
