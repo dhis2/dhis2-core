@@ -28,15 +28,13 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
+
 import java.util.Map;
 import java.util.Set;
 
-import lombok.Builder;
-import lombok.Getter;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -50,7 +48,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  * This class acts as a cache for data required during the Event import process.
@@ -64,14 +63,8 @@ public class WorkContext
     private final ImportOptions importOptions;
 
     /**
-     * Holds a Map of all Programs in the system. Each Program in the Map also
-     * contains:
-     *
-     * - all connected Program Stages
-     *
-     * - all connected Org Units
-     *
-     * - the connected CategoryCombo
+     * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for a
+     * detailed explanation of the data kept in this map
      *
      * Map: key -> Program ID (based on IdScheme) value -> Program
      */
@@ -124,6 +117,16 @@ public class WorkContext
      */
     private final Map<String, DataElement> dataElementMap;
 
+    /**
+     * Holds a Map of the EventDataValue for each event. Each entry value in the
+     * Map, has a Set of EventDataValue, which have been already "prepared" for
+     * update (insert/update). This means that the "incoming" Data Values have been
+     * merged with the already existing Data Values (in case of an update). This is
+     * the "reference" Map for Data Values during the Event import process, meaning
+     * that the import components should only reference this Map when dealing with
+     * Event Data Values (validation, etc)
+     *
+     */
     private final Map<String, Set<EventDataValue>> eventDataValueMap;
 
     private final Map<String, User> assignedUserMap;
