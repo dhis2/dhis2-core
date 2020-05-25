@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,16 +26,25 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.programrule.engine;
+
 import java.util.List;
 
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-/**
- * Created by zubair@dhis2.org on 23.10.17.
- */
-public interface ProgramRuleEngineService
+@Component
+public class NewImplementableRuleService implements ImplementableRuleService
 {
-    List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
+    @Autowired
+    private ProgramRuleService programRuleService;
 
-    List<RuleEffect> evaluateEventAndRunEffects( long event );
+    @Override
+    public List<ProgramRule> getImplementableRules( Program program )
+    {
+        return programRuleService.getAllProgramRule();
+    }
 }
