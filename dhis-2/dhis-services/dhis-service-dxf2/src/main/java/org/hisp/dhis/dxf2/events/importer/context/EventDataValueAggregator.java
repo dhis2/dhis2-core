@@ -39,9 +39,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceDataValueMapper;
+import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 
@@ -51,7 +52,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 public class EventDataValueAggregator
 {
     public Map<String, Set<EventDataValue>> aggregateDataValues( List<Event> events,
-        Map<String, ProgramStageInstance> programStageInstanceMap )
+        Map<String, ProgramStageInstance> programStageInstanceMap, ImportOptions importOptions )
     {
         checkNotNull( programStageInstanceMap );
         checkNotNull( events );
@@ -61,42 +62,49 @@ public class EventDataValueAggregator
         {
             if ( isNew( event.getUid(), programStageInstanceMap ) )
             {
-                eventDataValueMap.put( event.getUid(), getDataValues( event.getDataValues() ) );
+                eventDataValueMap.put( event.getUid(), getDataValues( event.getDataValues(), importOptions ) );
             }
             else
             {
                 eventDataValueMap.put( event.getUid(), getDataValues(
-                    programStageInstanceMap.get( event.getUid() ), event.getDataValues() ) );
+                    programStageInstanceMap.get( event.getUid() ), event.getDataValues(), importOptions ) );
             }
         }
         return eventDataValueMap;
     }
 
-    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues )
+    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues, ImportOptions importOptions )
     {
         Set<EventDataValue> result = new HashSet<>();
 
         for ( DataValue dataValue : dataValues )
         {
             EventDataValue eventDataValue = exist( dataValue, psi.getEventDataValues() );
-
-            if ( eventDataValue == null )
+            if ( StringUtils.isNotEmpty( dataValue.getValue() ) )
             {
-                result.add( new ProgramStageInstanceDataValueMapper( null ).map( dataValue ) );
-            }
-            else
-            {
-                if ( StringUtils.isNotEmpty( dataValue.getValue() ) )
-                {
-                    EventDataValue converted = new ProgramStageInstanceDataValueMapper( null ).map( dataValue );
-                    converted.setCreated( eventDataValue.getCreated() );
-                    converted.setLastUpdated( new Date());
-                    result.add( converted );
-                }
+                result.add( toEventDataValue( dataValue, eventDataValue, importOptions ) );
             }
         }
 
         return result;
+    }
+
+    private EventDataValue toEventDataValue( DataValue dataValue, EventDataValue existing, ImportOptions importOptions )
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement( dataValue.getDataElement() );
+        eventDataValue.setValue( dataValue.getValue() );
+        // storedBy is always set by the Preprocessor
+        eventDataValue.setStoredBy( dataValue.getStoredBy() );
+
+        eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+
+        if ( existing != null )
+        {
+            eventDataValue.setCreated( existing.getCreated() );
+        }
+        eventDataValue.setLastUpdated( new Date() );
+        return eventDataValue;
     }
 
     private EventDataValue exist( DataValue dataValue, Set<EventDataValue> eventDataValues )
@@ -113,9 +121,9 @@ public class EventDataValueAggregator
         return null;
     }
 
-    private Set<EventDataValue> getDataValues( Set<DataValue> dataValues )
+    private Set<EventDataValue> getDataValues( Set<DataValue> dataValues, ImportOptions importOptions )
     {
-        return dataValues.stream().map( dv -> new ProgramStageInstanceDataValueMapper( null ).map( dv ) )
+        return dataValues.stream().map( dv -> toEventDataValue( dv, null, importOptions ) )
             .collect( Collectors.toSet() );
     }
 

@@ -301,6 +301,8 @@ public class ServiceConfig
     {
         // @formatter:off
         return ImmutableMap.of( UPDATE, newArrayList(
+            ImportOptionsPreProcessor.class,
+            EventStoredByPreProcessor.class,
             ProgramInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class
         ) );
