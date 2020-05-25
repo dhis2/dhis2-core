@@ -277,7 +277,7 @@ public class EnrollmentSecurityImportValidationTest
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );

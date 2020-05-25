@@ -216,7 +216,7 @@ public class EventSecurityImportValidationTest
         trackerBundleParams.setUser( user );
 
         trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        assertEquals( 2, trackerBundle.getEnrollments().size() );
 
         report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );

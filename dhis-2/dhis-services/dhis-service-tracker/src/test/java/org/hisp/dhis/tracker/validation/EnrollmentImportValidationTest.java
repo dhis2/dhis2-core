@@ -260,7 +260,7 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
@@ -274,7 +274,7 @@ public class EnrollmentImportValidationTest
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        assertEquals( 2, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -284,7 +284,7 @@ public class EnrollmentImportValidationTest
         report = trackerValidationService.validate( trackerBundle );
         printReport( report );
 
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1080 ) ) ) );
 
@@ -305,7 +305,7 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
@@ -322,7 +322,7 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );

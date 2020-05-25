@@ -14,6 +14,42 @@
       "programStageSections": [ ],
       "notificationTemplates": [ ],
       "userGroupAccesses": [ ],
+      "id": "Pmqxq907VNz",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "program": {
+        "id": "YYY1E9tAppy"
+      },
+      "name": "Stage1",
+      "hideDueDate": false,
+      "remindCompleted": false,
+      "lastUpdated": "2019-03-29T12:41:33.031",
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "publicAccess": "rw------",
+      "minDaysFromStart": 0,
+      "attributeValues": [ ],
+      "preGenerateUID": false,
+      "userAccesses": [ ],
+      "repeatable": false
+    },
+    {
+      "translations": [ ],
+      "enableUserAssignment": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "sortOrder": 1,
+      "openAfterEnrollment": false,
+      "created": "2019-03-29T12:41:32.971",
+      "allowGenerateNextVisit": false,
+      "blockEntryForm": false,
+      "programStageSections": [ ],
+      "notificationTemplates": [ ],
+      "userGroupAccesses": [ ],
       "id": "Qmqxq907VNz",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
@@ -464,7 +500,7 @@
 
       "selectEnrollmentDatesInFuture": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "XjDvmb4bfuf"
       },
       "notificationTemplates": [ ],
       "displayIncidentDate": true,
@@ -498,7 +534,12 @@
       "programType": "WITH_REGISTRATION",
       "selectIncidentDatesInFuture": false,
       "publicAccess": "rw------",
-      "displayFrontPageList": false
+      "displayFrontPageList": false,
+      "programStages": [
+        {
+          "id": "Pmqxq907VNz"
+        }
+      ]
     }
   ],
   "users": [
@@ -1457,6 +1498,24 @@
       "dataDimensionType": "DISAGGREGATION",
       "userAccesses": [ ],
       "id": "bjDvmb4bfuf",
+      "userGroupAccesses": [ ],
+      "publicAccess": "rw------"
+    },
+    {
+      "code": "nondef",
+      "created": "2019-03-25T13:40:24.771",
+      "lastUpdated": "2019-03-25T13:40:24.781",
+      "skipTotal": false,
+      "name": "nondef",
+      "translations": [ ],
+      "categoriesdefault": [
+        {
+          "id": "GLevLNI9wkl"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION",
+      "userAccesses": [ ],
+      "id": "XjDvmb4bfuf",
       "userGroupAccesses": [ ],
       "publicAccess": "rw------"
     }
