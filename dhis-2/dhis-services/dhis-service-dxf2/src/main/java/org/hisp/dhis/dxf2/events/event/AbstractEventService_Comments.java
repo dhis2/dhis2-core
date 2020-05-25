@@ -91,7 +91,6 @@ import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -188,7 +187,7 @@ public abstract class AbstractEventService_Comments
 
     protected CurrentUserService currentUserService;
 
-    protected EventDataValueService eventDataValueService;
+    //protected EventDataValueService eventDataValueService;
 
     protected TrackedEntityInstanceService entityInstanceService;
 
