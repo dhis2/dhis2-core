@@ -93,7 +93,7 @@ public class UserAssignmentFilterTests
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
-        userActions.addURoleToUser( userId, "yrB6vc5Ip7r" );
+        userActions.addRoleToUser( userId, "yrB6vc5Ip7r" );
 
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }

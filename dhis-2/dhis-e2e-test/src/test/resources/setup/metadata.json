@@ -260,7 +260,16 @@
       "translations": [],
       "organisationUnits": [
         {
+          "id": "g8upMTyEZGZ"
+        },
+        {
           "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
         }
       ],
       "userGroupAccesses": [
@@ -309,7 +318,16 @@
       },
       "organisationUnits": [
         {
+          "id": "g8upMTyEZGZ"
+        },
+        {
           "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
         }
       ],
       "programTrackedEntityAttributes": [
@@ -3228,6 +3246,46 @@
       "shortName": "Sierra Leone",
       "openingDate": "1994-01-01T00:00:00.000",
       "attributeValues": []
+    }
+  ],
+  "organisationUnitGroups": [
+    {
+      "id": "tMbbjys8mS6",
+      "name": "TA org unit group",
+      "displayName": "TA org unit group",
+      "publicAccess": "rw------",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "ImspTQPwCqd"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        }
+      ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ]
     }
   ],
   "organisationUnitLevels": [

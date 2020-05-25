@@ -74,7 +74,7 @@ public class UserActions
         return id;
     }
 
-    public void addURoleToUser( String userId, String userRoleId )
+    public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
         if ( response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId ) )
