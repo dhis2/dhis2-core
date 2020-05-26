@@ -38,6 +38,8 @@ import java.util.Map;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -60,9 +62,12 @@ public abstract class AbstractSupplierTest<T>
     @Mock
     protected ResultSet mockResultSet;
 
+    @Captor
+    protected ArgumentCaptor<String> sql;
+
     public void mockResultSetExtractor( ResultSet resultSetMock )
     {
-        when( jdbcTemplate.query( anyString(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
+        when( jdbcTemplate.query( sql.capture(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
             .thenAnswer( (Answer<Map<String, T>>) invocationOnMock -> {
                 // Fetch the method arguments
                 Object[] args = invocationOnMock.getArguments();

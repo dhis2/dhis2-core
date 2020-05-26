@@ -139,8 +139,9 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     }
 
     @Test
-    public void verifyCodeSchemaForOu() throws SQLException {
-
+    public void verifyCodeSchemaForOu()
+        throws SQLException
+    {
         // mock resultset data
         when( mockResultSet.getLong( "organisationunitid" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
@@ -157,10 +158,9 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         mockResultSetExtractor( mockResultSet );
 
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-        importOptions.setOrgUnitIdScheme(IdScheme.CODE.name());
+        importOptions.setOrgUnitIdScheme( IdScheme.CODE.name() );
         Map<String, OrganisationUnit> map = subject.get( importOptions,
-                Collections.singletonList( event ) );
-
+            Collections.singletonList( event ) );
 
         OrganisationUnit organisationUnit = map.get( event.getUid() );
         assertThat( organisationUnit, is( notNullValue() ) );
@@ -169,5 +169,48 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertThat( organisationUnit.getCode(), is( "CODE1" ) );
         assertThat( organisationUnit.getPath(), is( "/abcded" ) );
         assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
+    }
+
+    @Test
+    public void verifyAttributeSchemaForOu()
+        throws SQLException
+    {
+        // mock resultset data
+        when( mockResultSet.getLong( "organisationunitid" ) ).thenReturn( 100L );
+        when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
+        when( mockResultSet.getString( "code" ) ).thenReturn( "CODE1" );
+        when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
+        when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
+        when( mockResultSet.getString( "attributevalue" ) ).thenReturn( "someattributevalue" );
+
+        // create event to import
+        Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        event.setOrgUnit( "someattributevalue" );
+
+        // mock resultset extraction
+        mockResultSetExtractor( mockResultSet );
+        final String attributeId = CodeGenerator.generateUid();
+        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+        importOptions.setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + attributeId );
+
+        Map<String, OrganisationUnit> map = subject.get( importOptions,
+            Collections.singletonList( event ) );
+
+        final String executedSql = sql.getValue();
+
+        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        assertThat( organisationUnit, is( notNullValue() ) );
+        assertThat( organisationUnit.getId(), is( 100L ) );
+        assertThat( organisationUnit.getUid(), is( "abcded" ) );
+        assertThat( organisationUnit.getCode(), is( "CODE1" ) );
+        assertThat( organisationUnit.getPath(), is( "/abcded" ) );
+        assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
+
+        assertThat( executedSql,
+            is( "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ,attributevalues->'"
+                + attributeId +
+                "'->>'value' as attributevalue from organisationunit ou where ou.attributevalues#>>'{" + attributeId
+                + ",value}' in (:ids)" ) );
     }
 }

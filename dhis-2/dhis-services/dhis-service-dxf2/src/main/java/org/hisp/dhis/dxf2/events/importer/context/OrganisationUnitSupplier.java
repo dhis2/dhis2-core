@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,9 +45,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
 /**
  * @author Luciano Fiandesio
@@ -70,12 +70,12 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         final Set<String> orgUnitUids = events.stream()
                 .filter( e -> e.getOrgUnit() != null ).map( Event::getOrgUnit )
                 .collect( Collectors.toSet() );
-        
+
         if ( isEmpty( orgUnitUids)  )
         {
-            return new HashMap<>();    
+            return new HashMap<>();
         }
-        
+
         // Create a map: org unit uid -> List [event uid]
         Multimap<String, String> orgUnitToEvent = HashMultimap.create();
         for ( Event event : events )
@@ -83,10 +83,21 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             orgUnitToEvent.put( event.getOrgUnit(), event.getUid() );
         }
         // @formatter:on
+        String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ";
 
-        final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel "
-            + "from organisationunit ou where ou."
-            + IdSchemeUtils.getColumnNameByScheme( idScheme, "organisationunitid" ) + " in (:ids)";
+        if ( idScheme.isAttribute() )
+        {
+            final String attribute = idScheme.getAttribute();
+
+            sql += ",attributevalues->'" + attribute
+                + "'->>'value' as attributevalue from organisationunit ou where ou.attributevalues#>>'{" + attribute
+                + ",value}' in (:ids)";
+        }
+        else
+        {
+            sql += "from organisationunit ou where ou."
+                + IdSchemeUtils.getColumnNameByScheme( idScheme, "organisationunitid" ) + " in (:ids)";
+        }
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", orgUnitUids );
@@ -105,9 +116,11 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 ou.setPath( path );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
                 ou.setParent( SupplierUtils.getParentHierarchy( ou, path ) );
+
                 try
                 {
-                    for ( String event : orgUnitToEvent.get( getIdentifierBasedOnIdScheme( ou, idScheme ) ) )
+                    for ( String event : orgUnitToEvent.get( idScheme.isAttribute() ? rs.getString( "attributevalue" )
+                        : getIdentifierBasedOnIdScheme( ou, idScheme ) ) )
                     {
                         results.put( event, ou );
                     }
