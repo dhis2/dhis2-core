@@ -151,7 +151,6 @@ public class EventImportValidationTest
     public void testEventValidationOkAll()
         throws IOException
     {
-
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
@@ -174,7 +173,6 @@ public class EventImportValidationTest
     public void testEventMissingOrgUnit()
         throws IOException
     {
-
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-orgunit-missing.json" );
 
@@ -439,6 +437,32 @@ public class EventImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1055 ) ) ) );
+    }
+
+
+
+    @Test
+    public void testWrongDatesInCatCombo()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events_combo-date-wrong.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1056 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1057 ) ) ) );
     }
 
     //TODO: Delete not working yet

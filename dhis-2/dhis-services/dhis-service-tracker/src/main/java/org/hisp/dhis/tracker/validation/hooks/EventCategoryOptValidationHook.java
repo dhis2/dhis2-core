@@ -95,7 +95,7 @@ public class EventCategoryOptValidationHook
             return;
         }
 
-        // NOTE: How to best get current date into iso format?
+        // TODO: How to best get current date into iso format?
         Date eventDate = DateUtils.parseDate( ObjectUtils
             .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), DateUtils.getIso8601( new Date() ) ) );
 

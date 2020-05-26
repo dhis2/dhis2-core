@@ -264,10 +264,40 @@
       "userGroupAccesses": [ ],
       "publicAccess": "rwrw----",
       "lastUpdated": "2019-03-25T13:40:24.783",
+      "startDate": "2019-01-01T00:00:00.000",
       "organisationUnits": [ ],
       "code": "default",
       "created": "2019-03-25T13:40:24.722",
       "name": "default",
+      "translations": [ ]
+    },
+    {
+      "userAccesses": [ ],
+      "attributeValues": [ ],
+      "id": "LYerKDKCefk",
+      "userGroupAccesses": [ ],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "startDate": "2019-12-01T00:00:00.000",
+      "endDate": "2019-01-01T00:00:00.000",
+      "organisationUnits": [ ],
+      "code": "catopt1",
+      "created": "2019-03-25T13:40:24.722",
+      "name": "catopt1",
+      "translations": [ ]
+    },
+    {
+      "userAccesses": [ ],
+      "attributeValues": [ ],
+      "id": "MYerKDKCefk",
+      "userGroupAccesses": [ ],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "startDate": "2019-01-01T00:00:00.000",
+      "organisationUnits": [ ],
+      "code": "catopt2",
+      "created": "2019-03-25T13:40:24.722",
+      "name": "catopt2",
       "translations": [ ]
     }
   ],
@@ -1467,6 +1497,7 @@
       "id": "HllvX50cXC0",
       "translations": [ ],
       "name": "default",
+      "startDate": "2019-01-01T00:00:00.000",
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
@@ -1479,6 +1510,25 @@
         "id": "bjDvmb4bfuf"
       },
       "code": "default",
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
+      "id": "OOlvX50cXC0",
+      "translations": [ ],
+      "name": "dateerror",
+      "startDate": "2019-12-01T00:00:00.000",
+      "categoryOptions": [
+        {
+          "id": "LYerKDKCefk"
+        }
+      ],
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [ ],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "code": "dateerror",
       "created": "2019-03-25T13:40:24.775"
     }
   ],
