@@ -232,15 +232,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
 
-        for (String s : programMap.keySet()) {
-            System.out.println("program: " + s);
-            Program p = programMap.get( s );
-            Set<ProgramStage> programStages = p.getProgramStages();
-            for (ProgramStage programStage : programStages) {
-                System.out.println("\t Program stage:"  + programStage.getUid());
-            }
-        }
-
         return programMap;
     }
 
