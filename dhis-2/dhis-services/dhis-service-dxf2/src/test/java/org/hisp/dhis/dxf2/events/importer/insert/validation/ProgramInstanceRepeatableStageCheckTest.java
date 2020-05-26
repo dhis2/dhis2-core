@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -74,7 +75,7 @@ public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
 
         Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program);
+        programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();

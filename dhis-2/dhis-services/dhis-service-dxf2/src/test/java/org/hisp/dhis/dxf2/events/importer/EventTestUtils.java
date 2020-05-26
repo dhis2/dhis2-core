@@ -1,17 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramType;
-import org.junit.Before;
-import org.junit.Test;
+package org.hisp.dhis.dxf2.events.importer;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -41,33 +28,19 @@ import org.junit.Test;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramStageCheckTest extends BaseValidationTest
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+
+public class EventTestUtils
 {
-    private ProgramStageCheck rule;
-
-    @Before
-    public void setUp()
+    public static DataValue createDataValue( String dataElement, String value )
     {
-        rule = new ProgramStageCheck();
+        return new DataValue( dataElement, value );
     }
 
-    @Test
-    public void failOnNullProgramStage()
+    public static EventDataValue createEventDataValue( String dataElement, String value )
     {
-        Program program = new Program();
-        program.setUid( CodeGenerator.generateUid() );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program );
-
-        event.setProgram( program.getUid() );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-            "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
+        return new EventDataValue( dataElement, value );
     }
+
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -33,19 +33,29 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Luciano Fiandesio
@@ -66,11 +76,24 @@ public class BaseValidationTest
 
     protected Event event;
 
+    protected Map<String, DataElement> dataElementMap = new HashMap<>();
+
+    protected Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
+
+    protected ObjectMapper objectMapper = new ObjectMapper();
+
     @Before
     public void superSetUp()
     {
         event = createBaseEvent();
         when( workContext.getImportOptions() ).thenReturn( ImportOptions.getDefaultImportOptions() );
+        when( workContext.getDataElementMap() ).thenReturn( dataElementMap );
+        when( workContext.getEventDataValueMap() ).thenReturn( eventDataValueMap );
+        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
+
+        // Service delegator
+        when( serviceDelegator.getJsonMapper() ).thenReturn( objectMapper );
+
     }
 
     private Event createBaseEvent()
@@ -84,18 +107,30 @@ public class BaseValidationTest
 
     protected void assertNoError( ImportSummary summary )
     {
+        assertThat( summary.getStatus(), is( ImportStatus.SUCCESS ) );
         assertThat( summary, is( notNullValue() ) );
         assertThat( "Expecting 0 events ignored, but got " + summary.getImportCount().getIgnored(),
             summary.getImportCount().getIgnored(), is( 0 ) );
-        assertThat( summary.getStatus(), is( ImportStatus.SUCCESS ) );
     }
 
     protected void assertHasError( ImportSummary summary, Event event, String description )
     {
+        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( summary, is( notNullValue() ) );
         assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
         assertThat( summary.getReference(), is( event.getUid() ) );
-        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( summary.getDescription(), is( description ) );
     }
+
+    protected DataElement addToDataElementMap( DataElement de )
+    {
+        this.dataElementMap.put( de.getUid(), de );
+        return de;
+    }
+
+    protected void addToDataValueMap( String eventUid, EventDataValue... eventDataValue )
+    {
+        this.eventDataValueMap.put( eventUid, new HashSet<>( Arrays.asList( eventDataValue ) ) );
+    }
+
 }

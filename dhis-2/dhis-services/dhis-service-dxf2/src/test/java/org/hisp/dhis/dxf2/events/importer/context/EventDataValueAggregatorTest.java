@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
  */
 
 import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createDataValue;
+import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createEventDataValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
@@ -37,7 +39,6 @@ import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -59,7 +60,9 @@ public class EventDataValueAggregatorTest
     {
         this.subject = new EventDataValueAggregator();
     }
+
     private final ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+
     @Test
     public void allNew()
     {
@@ -197,21 +200,11 @@ public class EventDataValueAggregatorTest
         // TODO assert on single elements
     }
 
-    public DataValue createDataValue( String dataElement, String value )
-    {
-        return new DataValue( dataElement, value );
-    }
-
     public ProgramStageInstance createPsi( String uid, EventDataValue... eventDataValues )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setUid( uid );
         programStageInstance.setEventDataValues( Sets.newHashSet( eventDataValues ) );
         return programStageInstance;
-    }
-
-    public EventDataValue createEventDataValue( String dataElement, String value )
-    {
-        return new EventDataValue( dataElement, value );
     }
 }

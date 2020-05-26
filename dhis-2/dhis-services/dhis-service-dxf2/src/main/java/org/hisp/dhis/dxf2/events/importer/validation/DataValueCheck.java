@@ -73,11 +73,15 @@ public class DataValueCheck implements Checker
             if ( !checkHasValidDataElement( importSummary, ctx, dataValue )
                 || !checkSerializeToJson( importSummary, ctx, dataValue ) )
             {
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.setReference( event.getUid() );
+                importSummary.incrementIgnored();
+
                 return importSummary;
             }
         }
 
-        if ( importSummary.getConflicts().isEmpty() )
+        if ( importSummary.getConflicts().isEmpty() && !dataValues.isEmpty() )
         {
             if ( doValidationOfMandatoryAttributes( user ) && isValidationRequired( event, ctx ) )
             {
@@ -102,7 +106,10 @@ public class DataValueCheck implements Checker
         final Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
 
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, event.getProgramStage() );
+
         final Set<ProgramStageDataElement> mandatoryDataElements = programStage.getProgramStageDataElements();
+
+        // Data Element IDs associated to the current event
         Set<String> dataValues = eventDataValueMap.get( event.getUid() ).stream().map( EventDataValue::getDataElement )
             .collect( Collectors.toSet() );
 
@@ -116,35 +123,6 @@ public class DataValueCheck implements Checker
                     .add( new ImportConflict( resolvedDataElementId, "value_required_but_not_provided" ) );
             }
         }
-
-        // for ( EventDataValue dataValue : dataValues )
-        // {
-        //
-        //
-        // if ( !isDataElementMandatory( dataElementIdScheme,
-        // programStage.getProgramStageDataElements(),
-        // dataValue.getDataElement() ) )
-        // {
-        // importSummary.getConflicts()
-        // .add( new ImportConflict( dataValue.getDataElement(),
-        // "value_required_but_not_provided" ) );
-        // }
-        // }
-    }
-
-    private boolean isDataElementMandatory( IdScheme scheme, Set<ProgramStageDataElement> programStageDataElements,
-        String dataElementId )
-    {
-        for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
-        {
-            String resolvedDataElementId = getIdentifierBasedOnIdScheme( programStageDataElement.getDataElement(),
-                scheme );
-            if ( resolvedDataElementId == null || !resolvedDataElementId.equals( dataElementId ) )
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -188,6 +166,7 @@ public class DataValueCheck implements Checker
                 importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), status ) );
             }
         }
+
         return importSummary.getConflicts().isEmpty();
     }
 
