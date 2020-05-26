@@ -51,6 +51,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 /**
@@ -63,11 +64,12 @@ public class AbstractRootNodeMessageConverterTest
     @Mock
     private NodeService nodeService;
 
-    private AbstractRootNodeMessageConverter converter;
+    AbstractRootNodeMessageConverter converter ;
 
-    private AbstractRootNodeMessageConverter converterGzip;
+    AbstractRootNodeMessageConverter converterGzip ;
 
-    private AbstractRootNodeMessageConverter converterZip;
+    AbstractRootNodeMessageConverter converterZip ;
+
 
     private RootNode rootNode = new RootNode( "Test" + System.currentTimeMillis() );
 
@@ -79,12 +81,12 @@ public class AbstractRootNodeMessageConverterTest
     @Before
     public void before()
     {
-        converter = Mockito.mock( AbstractRootNodeMessageConverter.class, withSettings()
-            .useConstructor( nodeService, "other/xzx", "xzx", Compression.NONE ).defaultAnswer( CALLS_REAL_METHODS ) );
-        converterGzip = Mockito.mock( AbstractRootNodeMessageConverter.class, withSettings()
-            .useConstructor( nodeService, "other/xzx", "xzx", Compression.GZIP ).defaultAnswer( CALLS_REAL_METHODS ) );
-        converterZip = Mockito.mock( AbstractRootNodeMessageConverter.class, withSettings()
-            .useConstructor( nodeService, "other/xzx", "xzx", Compression.ZIP ).defaultAnswer( CALLS_REAL_METHODS ) );
+        converter = new AbstractRootNodeMessageConverter( nodeService,
+            "other/xzx", "xzx", Compression.NONE ) {};
+
+        converterGzip = new AbstractRootNodeMessageConverter( nodeService, "other/xzx", "xzx", Compression.GZIP ){};
+
+        converterZip = new AbstractRootNodeMessageConverter( nodeService, "other/xzx", "xzx", Compression.ZIP ){};
     }
 
     @Test
@@ -133,7 +135,7 @@ public class AbstractRootNodeMessageConverterTest
     public void writeInternalWithoutAttachmentUncompressed() throws IOException
     {
         Mockito.doAnswer( invocation -> {
-            ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
+            ((OutputStream) invocation.getArguments()[2] ).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
         converter.writeInternal( rootNode, httpOutputMessage );
@@ -145,7 +147,7 @@ public class AbstractRootNodeMessageConverterTest
     public void writeInternalWithAttachmentUncompressed() throws IOException
     {
         Mockito.doAnswer( invocation -> {
-            ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
+            ((OutputStream) invocation.getArguments()[2] ).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
@@ -160,7 +162,7 @@ public class AbstractRootNodeMessageConverterTest
     public void writeInternalWithAttachmentGzip() throws IOException
     {
         Mockito.doAnswer( invocation -> {
-            ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
+            ((OutputStream) invocation.getArguments()[2] ).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
@@ -176,7 +178,7 @@ public class AbstractRootNodeMessageConverterTest
     public void writeInternalWithoutAttachmentGzip() throws IOException
     {
         Mockito.doAnswer( invocation -> {
-            ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
+            ((OutputStream) invocation.getArguments()[2] ).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
         converterGzip.writeInternal( rootNode, httpOutputMessage );
@@ -191,7 +193,7 @@ public class AbstractRootNodeMessageConverterTest
     public void writeInternalWithoutAttachmentZip() throws IOException
     {
         Mockito.doAnswer( invocation -> {
-            ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
+            ((OutputStream) invocation.getArguments()[2] ).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
         converterZip.writeInternal( rootNode, httpOutputMessage );
@@ -207,7 +209,7 @@ public class AbstractRootNodeMessageConverterTest
     public void writeInternalWithAttachmentZip() throws IOException
     {
         Mockito.doAnswer( invocation -> {
-            ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
+            ((OutputStream) invocation.getArguments()[2] ).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
@@ -219,4 +221,5 @@ public class AbstractRootNodeMessageConverterTest
         Assert.assertNotNull( zipInputStream.getNextEntry() );
         Assert.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
     }
+
 }
