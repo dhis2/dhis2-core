@@ -105,7 +105,7 @@ public class EventsImportIdSchemeTests extends ApiTest
     {
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
 
-        assertNotNull(orgUnitCode, "Org unit code was not present.");
+        assertNotNull(ouPropertyValue, String.format(  "Org unit progperty %s was not present.", ouProperty));
 
         JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
