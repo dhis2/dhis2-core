@@ -60,7 +60,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.api.util.DateUtils.getSecondsUntilTomorrow;
+import static org.hisp.dhis.system.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
  * @author Lars Helge Overland
