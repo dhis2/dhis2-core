@@ -96,6 +96,11 @@ public class DefaultProgramStageService
     }
 
     @Override
+    public List<ProgramStage> getAllProgramStages() {
+        return programStageStore.getAll();
+    }
+
+    @Override
     @Transactional
     public void updateProgramStage( ProgramStage programStage )
     {

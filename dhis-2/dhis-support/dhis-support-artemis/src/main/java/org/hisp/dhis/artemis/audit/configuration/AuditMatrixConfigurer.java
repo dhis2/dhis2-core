@@ -97,7 +97,7 @@ public class AuditMatrixConfigurer
         {
             Optional<ConfigurationKey> confKey = ConfigurationKey.getByKey( PROPERTY_PREFIX + value.name().toLowerCase() );
 
-            if ( confKey.isPresent() && !StringUtils.isEmpty( config.getProperty( confKey.get() ) ) )
+            if ( confKey.isPresent() )
             {
                 String[] configuredTypes = config.getProperty( confKey.get() ).split( AUDIT_TYPE_STRING_SEPAR );
 

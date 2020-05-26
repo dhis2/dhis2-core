@@ -2,12 +2,14 @@ package org.hisp.dhis.tracker.acl;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections.ListUtils;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -15,9 +17,13 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.ThrowingSupplier;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import sun.rmi.runtime.Log;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,99 +57,178 @@ public class TrackedEntityInstanceAclReadTests
 
     private static final String _DELETED = "deleted";
 
+    private static final String _ATTRIBUTES = "attributes";
+
+    private static final String _ATTRIBUTE = "attribute";
+
     private JsonObject object;
 
-    private RestApiActions metadataActions;
+    private MetadataActions metadataActions;
 
     private UserActions userActions;
 
     private TEIActions teiActions;
 
-    private static Map<String, String> userPasswordMap = new HashMap<>();
+    private static final List<User> users = new ArrayList<>();
 
-    private static Map<String, List<String>> userOrganisationUnitAllowedMap = new HashMap<>();
+    private class User
+    {
+        private String username;
 
-    private static Map<String, List<String>> userOrganisationUnitNotAllowedMap = new HashMap<>();
+        private String uid;
 
-    private static Map<String, List<String>> userTrackedEntityTypeAllowedMap = new HashMap<>();
+        private String password;
 
-    private static Map<String, List<String>> userTrackedEntityTypeNotAllowedMap = new HashMap<>();
+        private Map<String, List<String>> access;
 
-    private static Map<String, List<String>> userProgramAllowedMap = new HashMap<>();
+        public User( String username, String uid, String password )
+        {
+            this.username = username;
+            this.uid = uid;
+            this.password = password;
+        }
 
-    private static Map<String, List<String>> userProgramNotAllowedMap = new HashMap<>();
+        public String getUsername()
+        {
+            return username;
+        }
 
-    private static Map<String, List<String>> userProgramStageAllowedMap = new HashMap<>();
+        public void setUsername( String username )
+        {
+            this.username = username;
+        }
 
-    private static Map<String, List<String>> userProgramStageNotAllowedMap = new HashMap<>();
+        public String getUid()
+        {
+            return uid;
+        }
 
-    private static Map<String, List<String>> userRelationshipTypeAllowedMap = new HashMap<>();
+        public void setUid( String uid )
+        {
+            this.uid = uid;
+        }
 
-    private static Map<String, List<String>> userRelationshipTypeNotAllowedMap = new HashMap<>();
+        public String getPassword()
+        {
+            return password;
+        }
 
-    private static Map<String, List<String>> userTrackedEntityAttributeAllowedMap = new HashMap<>();
+        public void setPassword( String password )
+        {
+            this.password = password;
+        }
 
-    private static Map<String, List<String>> userTrackedEntityAttributeNotAllowedMap = new HashMap<>();
+        public Map<String, List<String>> getAccess()
+        {
+            return access;
+        }
 
-    private static Map<String, List<String>> userTrackedEntityDateElementAllowedMap = new HashMap<>();
-
-    private static Map<String, List<String>> userTrackedEntityDataElementNotAllowedMap = new HashMap<>();
+        public void setAccess( Map<String, List<String>> access )
+        {
+            this.access = access;
+        }
+    }
 
     @BeforeAll
     public void before()
         throws Exception
     {
         teiActions = new TEIActions();
-        metadataActions = new RestApiActions( "/metadata" );
+        metadataActions = new MetadataActions();
         userActions = new UserActions();
 
         // Setup as SuperUser
         new LoginActions().loginAsDefaultUser();
 
         // Set up metadata (Import twice to connect all references)
-        JsonObject metadata = new FileReaderUtils().read( new File( "src/test/resources/tracker/acl/metadata.json" ) )
-            .get( JsonObject.class );
-
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "async=false" );
-        metadataActions.post( metadata, queryParamsBuilder );
-        metadataActions.post( metadata, queryParamsBuilder );
+        metadataActions.importMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
+        metadataActions.importMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
 
         // Import test data
         JsonObject trackerData = new FileReaderUtils().read( new File( "src/test/resources/tracker/acl/data.json" ) )
             .get( JsonObject.class );
         teiActions.post( trackerData );
 
-        // Set up user A
-        String user = "User A";
-        userPasswordMap.put( user, "UserA123!" );
-        userOrganisationUnitAllowedMap.put( user, Lists.newArrayList( "siyOVWFPeS5", "tAXoecmVen9", "MyResqR17xm" ) );
-        userOrganisationUnitNotAllowedMap.put( user, Lists.newArrayList( "fKg9cOzw3qJ", "OUQ3Ny4FaF5" ) );
-        userTrackedEntityTypeAllowedMap.put( user, Lists.newArrayList( "YDzXLdCvV4h", "RttzawN27Pi" ) );
-        userTrackedEntityTypeNotAllowedMap.put( user, Lists.newArrayList( "QPi1HImFAmE" ) );
-        userProgramAllowedMap
-            .put( user, Lists.newArrayList( "akJ8bT2029n", "RttzawN27Pi", "Get7eJdT3ge", "BZJg3CVLSWo" ) );
-        userProgramNotAllowedMap.put( user, Lists.newArrayList( "EJhjfdU9zI8", "BiBTvMh3kku" ) );
-        userProgramStageAllowedMap.put( user, Lists.newArrayList( "dFzGNUmbnvL", "BaTDILVlipb", "caZoL1LKwG0" ) );
-        userProgramStageNotAllowedMap.put( user, Lists.newArrayList() );
-        userRelationshipTypeAllowedMap.put( user, Lists.newArrayList() );
-        userRelationshipTypeNotAllowedMap.put( user, Lists.newArrayList() );
-        userTrackedEntityAttributeAllowedMap.put( user, Lists.newArrayList() );
-        userTrackedEntityAttributeNotAllowedMap.put( user, Lists.newArrayList() );
-        userTrackedEntityDateElementAllowedMap.put( user, Lists.newArrayList() );
-        userTrackedEntityDataElementNotAllowedMap.put( user, Lists.newArrayList() );
+        // Set up all users for testing
+        User admin = new User( "admin", "", "district" );
+        users.add( new User( "User A", "O2PajOxjJSa", "UserA!123" ) );
+        users.add( new User( "User B", "aDy67f9ijOe", "UserB!123" ) );
+        users.add( new User( "User C", "CKrrGm5Be8O", "UserC!123" ) );
+        users.add( new User( "User D", "Lpa5INiC3Qf", "UserD!123" ) );
+        users.add( new User( "User ALL", "GTqb3WOZMop", "UserALL!123" ) );
 
-        userActions.updateUserPassword( "O2PajOxjJSa", userPasswordMap.get( user ) );
+        // Update passwords, so we can log in as them
+        users.forEach( this::setupUser );
 
-        // Set up user B
+        // Update their access maps
+        setupAccessMap( admin );
+        users.forEach( this::setupAccessMap );
+
+        System.out.println( users );
     }
 
-    @Test
-    public void test()
+    public void setupUser( User user )
     {
-        String user = "User A";
+        userActions.updateUserPassword( user.getUid(), user.getPassword() );
+    }
 
-        new LoginActions().loginAsUser( user, userPasswordMap.get( user ) );
+    public void setupAccessMap( User user )
+    {
+        Map<String, List<String>> userAccess = new HashMap<>();
+        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
+
+        // Configure params to only return metadata we care about
+        String params = (new QueryParamsBuilder())
+            .add( "trackedEntityTypes=true" )
+            .add( "dataElements=true" )
+            .add( "relationshipTypes=true" )
+            .add( "programs=true" )
+            .add( "trackedEntityAttributes=true" )
+            .add( "programStages=true" )
+            .add( "fields=id,userAccesses" )
+            .build();
+
+        ApiResponse response = metadataActions.get( params );
+
+        // Build map
+        response.getBody().entrySet().forEach( ( entry ) -> {
+
+            // Skip the System property.
+            if ( !entry.getKey().equals( "system" ) )
+            {
+                userAccess.put( entry.getKey(), new ArrayList<>() );
+
+                entry.getValue().getAsJsonArray().forEach( obj -> {
+                    JsonObject object = obj.getAsJsonObject();
+                    JsonArray userAccesses = object.getAsJsonArray( "userAccesses" ).getAsJsonArray();
+
+                    boolean hasUserAccess = false;
+                    for ( JsonElement access : userAccesses )
+                    {
+                        hasUserAccess = hasUserAccess ||
+                            access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() );
+                    }
+
+                    if ( hasUserAccess )
+                    {
+                        userAccess.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
+                    }
+                } );
+
+            }
+        } );
+    }
+
+    @ParameterizedTest
+    @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
+    public void test( String userUid )
+    {
+        User user = users.stream()
+            .filter( _user -> _user.getUid().equals( userUid ) )
+            .findFirst()
+            .orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
+
+        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "ouMode=ACCESSIBLE", "fields=*" );
@@ -169,7 +254,7 @@ public class TrackedEntityInstanceAclReadTests
      * @param user the user(username) we are testing as
      * @param tei  the trackedEntityInstance we are testing
      */
-    private void assertTrackedEntityInstance( String user, JsonObject tei )
+    private void assertTrackedEntityInstance( User user, JsonObject tei )
     {
         String trackedEntityType = tei.get( _TET ).getAsString();
         List<String> ous = Lists.newArrayList( tei.getAsJsonObject().get( _OU ).getAsString() );
@@ -177,12 +262,15 @@ public class TrackedEntityInstanceAclReadTests
             .forEach(
                 ( programOwner ) -> ous.add( programOwner.getAsJsonObject().get( _OWNEROU ).getAsString() ) );
 
-        assertStringIsInWhitelistOrNotInBlacklist( userTrackedEntityTypeAllowedMap.get( user ),
-            userTrackedEntityTypeNotAllowedMap.get( user ), trackedEntityType );
-        assertWithinOuScope( userOrganisationUnitAllowedMap.get( user ), ous );
+        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "trackedEntityTypes" ),
+            new ArrayList<>(), trackedEntityType );
+        assertWithinOuScope( new ArrayList<>(), ous );
         assertNotDeleted( tei );
 
         assertTrue( tei.has( _ENROLLMENTS ) );
+
+        tei.getAsJsonArray( _ATTRIBUTES )
+            .forEach( attributeJson -> assertAttribute( user, attributeJson.getAsJsonObject() ) );
 
         tei.getAsJsonArray( _ENROLLMENTS )
             .forEach( enrollmentJson -> assertEnrollment( user, enrollmentJson.getAsJsonObject(), tei ) );
@@ -195,15 +283,15 @@ public class TrackedEntityInstanceAclReadTests
      * @param enrollment the enrollment we are testing
      * @param tei        the tei wrapped around the enrollment
      */
-    private void assertEnrollment( String user, JsonObject enrollment, JsonObject tei )
+    private void assertEnrollment( User user, JsonObject enrollment, JsonObject tei )
     {
         String program = enrollment.get( _PROGRAM ).getAsString();
         String orgUnit = enrollment.get( _OU ).getAsString();
 
-        assertStringIsInWhitelistOrNotInBlacklist( userProgramAllowedMap.get( user ),
-            userProgramNotAllowedMap.get( user ), program );
+        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "programs" ),
+            new ArrayList<>(), program );
         assertSameValueForProperty( tei, enrollment, _TEI );
-        assertWithinOuScope( userOrganisationUnitAllowedMap.get( user ), Lists.newArrayList( orgUnit ) );
+        assertWithinOuScope( new ArrayList<>(), Lists.newArrayList( orgUnit ) );
         assertNotDeleted( enrollment );
 
         assertTrue( enrollment.has( _EVENTS ) );
@@ -219,17 +307,25 @@ public class TrackedEntityInstanceAclReadTests
      * @param event      the event we are testing
      * @param enrollment the enrollment wrapped around the event
      */
-    private void assertEvent( String user, JsonObject event, JsonObject enrollment )
+    private void assertEvent( User user, JsonObject event, JsonObject enrollment )
     {
         String programStage = event.get( _PROGRAMSTAGE ).getAsString();
         String orgUnit = event.get( _OU ).getAsString();
 
-        assertStringIsInWhitelistOrNotInBlacklist( userProgramStageAllowedMap.get( user ),
-            userProgramStageNotAllowedMap.get( user ), programStage );
-        assertWithinOuScope( userOrganisationUnitAllowedMap.get( user ), Lists.newArrayList( orgUnit ) );
+        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "programStages" ),
+            new ArrayList<>(), programStage );
+        assertWithinOuScope( new ArrayList<>(), Lists.newArrayList( orgUnit ) );
         assertSameValueForProperty( enrollment, event, _ENROLLMENT );
         assertSameValueForProperty( enrollment, event, _TEI );
         assertNotDeleted( event );
+    }
+
+    private void assertAttribute( User user, JsonObject attribute )
+    {
+        String attributeUid = attribute.get( _ATTRIBUTE ).getAsString();
+
+        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "trackedEntityAttributes" ),
+            new ArrayList<>(), attributeUid );
     }
 
     /**

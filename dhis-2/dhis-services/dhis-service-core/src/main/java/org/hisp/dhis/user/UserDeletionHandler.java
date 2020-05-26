@@ -28,10 +28,13 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,11 +47,15 @@ public class UserDeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    public UserDeletionHandler( IdentifiableObjectManager idObjectManager )
+    private final SessionFactory sessionFactory;
+
+    public UserDeletionHandler( IdentifiableObjectManager idObjectManager, SessionFactory sessionFactory )
     {
         checkNotNull( idObjectManager );
+        checkNotNull( sessionFactory );
 
         this.idObjectManager = idObjectManager;
+        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -74,11 +81,16 @@ public class UserDeletionHandler
     @Override
     public void deleteOrganisationUnit( OrganisationUnit unit )
     {
-        for ( User user : unit.getUsers() )
-        {
-            user.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( user );
-        }
+        sessionFactory.getCurrentSession()
+            .createNativeQuery( "DELETE FROM userteisearchorgunits WHERE organisationunitid = " + unit.getId() )
+            .executeUpdate();
+        sessionFactory.getCurrentSession()
+            .createNativeQuery( "DELETE FROM userdatavieworgunits WHERE organisationunitid = " + unit.getId() )
+            .executeUpdate();
+        sessionFactory.getCurrentSession()
+            .createNativeQuery( "DELETE FROM usermembership WHERE organisationunitid = " + unit.getId() )
+            .executeUpdate();
+        sessionFactory.getCache().evict( OrganisationUnit.class, unit );
     }
 
     @Override
@@ -89,6 +101,14 @@ public class UserDeletionHandler
             user.getGroups().remove( group );
             idObjectManager.updateNoAcl( user );
         }
+    }
+
+    @Override
+    public void deleteUser( User user )
+    {
+        sessionFactory.getCurrentSession()
+            .createNativeQuery( "DELETE FROM useraccess WHERE userid = " + user.getId() ).executeUpdate();
+        sessionFactory.getCache().evict( User.class, user );
     }
 
     @Override

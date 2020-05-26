@@ -39,6 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -145,11 +146,14 @@ public class ProgramDeletionHandler
 
         for ( Program program : programs )
         {
-            for ( ProgramTrackedEntityAttribute programAttribute : program.getProgramAttributes() )
+            List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = new ArrayList<>( program.getProgramAttributes() );
+
+            for ( ProgramTrackedEntityAttribute programAttribute : programTrackedEntityAttributes )
             {
                 if ( programAttribute.getAttribute().equals( trackedEntityAttribute ) )
                 {
                     program.getProgramAttributes().remove( programAttribute );
+                    idObjectManager.delete( programAttribute );
                     idObjectManager.updateNoAcl( program );
                 }
             }

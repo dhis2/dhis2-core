@@ -34,8 +34,10 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -88,7 +90,8 @@ public class ProgramStageDeletionHandler
     @Override
     public void deleteDataEntryForm( DataEntryForm dataEntryForm )
     {
-        List<ProgramStage> associatedProgramStages = programStageService.getProgramStagesByDataEntryForm( dataEntryForm );
+        List<ProgramStage> associatedProgramStages = programStageService
+            .getProgramStagesByDataEntryForm( dataEntryForm );
 
         for ( ProgramStage programStage : associatedProgramStages )
         {
@@ -98,10 +101,23 @@ public class ProgramStageDeletionHandler
     }
 
     @Override
-    public String allowDeleteDataElement( DataElement dataElement )
+    public void deleteDataElement( DataElement dataElement )
     {
-        String sql = "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=" + dataElement.getId();
+        List<ProgramStage> programStages = programStageService.getAllProgramStages();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        for ( ProgramStage programStage : programStages )
+        {
+            Set<ProgramStageDataElement> programStageDataElements = new HashSet( programStage.getProgramStageDataElements() );
+
+            for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
+            {
+                if ( programStageDataElement.getDataElement().equals( dataElement ) )
+                {
+                    programStage.getProgramStageDataElements().remove( programStageDataElement );
+                }
+            }
+
+            programStageService.updateProgramStage( programStage );
+        }
     }
 }

@@ -28,6 +28,7 @@
       "lastUpdated": "2020-04-17T14:27:42.906",
       "name": "Organisation Unit A",
       "id": "siyOVWFPeS5",
+      "id": "siyOVWFPeS5",
       "shortName": "OUA",
       "path": "/DkSfnHsbHUh/siyOVWFPeS5",
       "openingDate": "2020-01-01T00:00:00.000",
@@ -1580,70 +1581,6 @@
         }
       ],
       "dataViewOrganisationUnits": [],
-      "attributeValues": []
-    },
-    {
-      "code": "admin",
-      "lastUpdated": "2020-04-17T14:47:42.890",
-      "id": "M5zQapPyTZI",
-      "created": "2020-04-17T14:25:28.900",
-      "surname": "admin",
-      "firstName": "admin",
-      "userCredentials": {
-        "lastUpdated": "2020-04-17T14:47:42.876",
-        "id": "KvMx6c1eoYo",
-        "created": "2020-04-17T14:47:42.876",
-        "name": "admin admin",
-        "lastLogin": "2020-04-24T11:52:41.068",
-        "displayName": "admin admin",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-04-17T14:47:42.876",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip3r"
-          }
-        ],
-        "userAccesses": []
-      },
-      "teiSearchOrganisationUnits": [
-        {
-          "id": "DkSfnHsbHUh"
-        }
-      ],
-      "organisationUnits": [
-        {
-          "id": "DkSfnHsbHUh"
-        }
-      ],
-      "dataViewOrganisationUnits": [
-        {
-          "id": "DkSfnHsbHUh"
-        }
-      ],
       "attributeValues": []
     }
   ],
