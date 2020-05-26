@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,6 +43,7 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -82,6 +84,12 @@ public class DataValueCheck implements Checker
                 validateMandatoryAttributes( importSummary, ctx, event );
             }
         }
+        if ( !importSummary.getConflicts().isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setReference( event.getUid() );
+            importSummary.incrementIgnored();
+        }
 
         return importSummary;
     }
@@ -94,20 +102,38 @@ public class DataValueCheck implements Checker
         final Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
 
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, event.getProgramStage() );
-        Set<EventDataValue> dataValues = eventDataValueMap.get( event.getUid() );
-        for ( EventDataValue dataValue : dataValues )
+        final Set<ProgramStageDataElement> mandatoryDataElements = programStage.getProgramStageDataElements();
+        Set<String> dataValues = eventDataValueMap.get( event.getUid() ).stream().map( EventDataValue::getDataElement )
+            .collect( Collectors.toSet() );
+
+        for ( ProgramStageDataElement mandatoryDataElement : mandatoryDataElements )
         {
-            if ( !isDataElementMandatory( dataElementIdScheme, programStage.getProgramStageDataElements(),
-                dataValue.getDataElement() ) )
+            String resolvedDataElementId = getIdentifierBasedOnIdScheme( mandatoryDataElement.getDataElement(),
+                dataElementIdScheme );
+            if ( !dataValues.contains( resolvedDataElementId ) )
             {
                 importSummary.getConflicts()
-                    .add( new ImportConflict( dataValue.getDataElement(), "value_required_but_not_provided" ) );
+                    .add( new ImportConflict( resolvedDataElementId, "value_required_but_not_provided" ) );
             }
         }
+
+        // for ( EventDataValue dataValue : dataValues )
+        // {
+        //
+        //
+        // if ( !isDataElementMandatory( dataElementIdScheme,
+        // programStage.getProgramStageDataElements(),
+        // dataValue.getDataElement() ) )
+        // {
+        // importSummary.getConflicts()
+        // .add( new ImportConflict( dataValue.getDataElement(),
+        // "value_required_but_not_provided" ) );
+        // }
+        // }
     }
 
-    private boolean isDataElementMandatory(IdScheme scheme, Set<ProgramStageDataElement> programStageDataElements,
-                                             String dataElementId )
+    private boolean isDataElementMandatory( IdScheme scheme, Set<ProgramStageDataElement> programStageDataElements,
+        String dataElementId )
     {
         for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
         {

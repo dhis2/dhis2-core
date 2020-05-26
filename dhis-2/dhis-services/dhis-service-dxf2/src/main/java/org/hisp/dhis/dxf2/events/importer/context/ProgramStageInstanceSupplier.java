@@ -31,17 +31,17 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -50,10 +50,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -64,16 +60,11 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
 {
     private final ObjectMapper jsonMapper;
 
-    private final MapType mapType;
-
     public ProgramStageInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper )
     {
         super( jdbcTemplate );
         this.jsonMapper = jsonMapper;
-
-        TypeFactory typeFactory = jsonMapper.getTypeFactory();
-        mapType = typeFactory.constructMapType( HashMap.class, String.class, EventDataValue.class );
     }
 
     @Override
@@ -109,7 +100,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
 
                 try
                 {
-                    psi.setEventDataValues( jsonToEventDataValues( rs.getString(
+                    psi.setEventDataValues( EventUtils.jsonToEventDataValues( jsonMapper, rs.getObject(
                         "eventdatavalues" ) ) );
                 }
                 catch ( JsonProcessingException e )
@@ -123,32 +114,5 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
             }
             return results;
         } );
-    }
-
-    /**
-     * Converts the Event Data Value json payload into a Set of EventDataValue
-     * 
-     * Note that the EventDataValue payload is stored as a map: {dataelementid:{
-     * ...}, {dataelementid:{ ...} }
-     * 
-     * Therefore, the conversion is a bit convoluted, since the payload has to be
-     * converted into a Map and then into a Set
-     */
-    private Set<EventDataValue> jsonToEventDataValues( String eventsDataValues )
-        throws JsonProcessingException
-    {
-        Set<EventDataValue> dataValues = new HashSet<>();
-        if ( !StringUtils.isEmpty( eventsDataValues ) )
-        {
-            Map<String, EventDataValue> parsed = jsonMapper.readValue( eventsDataValues, mapType );
-            for ( String dataElementId : parsed.keySet() )
-            {
-                EventDataValue edv = parsed.get( dataElementId );
-                edv.setDataElement( dataElementId );
-                dataValues.add( edv );
-            }
-        }
-
-        return dataValues;
     }
 }

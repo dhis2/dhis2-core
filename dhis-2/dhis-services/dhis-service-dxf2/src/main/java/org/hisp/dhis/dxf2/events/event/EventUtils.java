@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,6 +45,8 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
  * @author Luciano Fiandesio
@@ -72,14 +77,15 @@ public class EventUtils
      * Jackson {@see ObjectMapper} This method, before serializing to JSON, if first
      * transforms the Set into a Map, where the Map key is the EventDataValue
      * DataElement UID and the Map value is the actual {@see EventDataValue}.
-     * 
+     *
      * @param dataValues a Set of {@see EventDataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
      * @return a PGobject containing the serialized Set
      * @throws JsonProcessingException if the JSON serialization fails
      */
     public static PGobject eventDataValuesToJson( Set<EventDataValue> dataValues, ObjectMapper mapper )
-        throws JsonProcessingException, SQLException
+        throws JsonProcessingException,
+        SQLException
     {
         PGobject jsonbObj = new PGobject();
         jsonbObj.setType( "json" );
@@ -89,8 +95,8 @@ public class EventUtils
     }
 
     /**
-     * Converts a {@see DataValue} into a JSON string using the provided
-     * Jackson {@see ObjectMapper}.
+     * Converts a {@see DataValue} into a JSON string using the provided Jackson
+     * {@see ObjectMapper}.
      *
      * @param dataValue a {@see DataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
@@ -98,11 +104,52 @@ public class EventUtils
      * @throws JsonProcessingException if the JSON serialization fails
      */
     public static PGobject eventDataValuesToJson( DataValue dataValue, ObjectMapper mapper )
-        throws JsonProcessingException, SQLException
+        throws JsonProcessingException,
+        SQLException
     {
         PGobject jsonbObj = new PGobject();
         jsonbObj.setType( "json" );
         jsonbObj.setValue( mapper.writeValueAsString( dataValue ) );
         return jsonbObj;
+    }
+
+    /**
+     * Converts the Event Data Value json payload into a Set of EventDataValue
+     *
+     * Note that the EventDataValue payload is stored as a map: {dataelementid:{
+     * ...}, {dataelementid:{ ...} }
+     *
+     * Therefore, the conversion is a bit convoluted, since the payload has to be
+     * converted into a Map and then into a Set
+     */
+    public static Set<EventDataValue> jsonToEventDataValues( ObjectMapper jsonMapper, Object eventsDataValues )
+        throws JsonProcessingException
+    {
+        final TypeFactory typeFactory = jsonMapper.getTypeFactory();
+        MapType mapType = typeFactory.constructMapType( HashMap.class, String.class, EventDataValue.class );
+
+        String content = null;
+        if ( eventsDataValues instanceof String )
+        {
+            content = (String) eventsDataValues;
+        }
+        else if ( eventsDataValues instanceof PGobject )
+        {
+            content = ((PGobject) eventsDataValues).getValue();
+        }
+
+        Set<EventDataValue> dataValues = new HashSet<>();
+        if ( !org.apache.commons.lang3.StringUtils.isEmpty( content ) )
+        {
+            Map<String, EventDataValue> parsed = jsonMapper.readValue( content, mapType );
+            for ( String dataElementId : parsed.keySet() )
+            {
+                EventDataValue edv = parsed.get( dataElementId );
+                edv.setDataElement( dataElementId );
+                dataValues.add( edv );
+            }
+        }
+
+        return dataValues;
     }
 }

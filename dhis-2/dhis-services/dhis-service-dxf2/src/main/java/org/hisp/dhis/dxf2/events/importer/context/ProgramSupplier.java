@@ -54,6 +54,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -399,7 +400,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             + "c.code            as catcombo_code, ps.programstageid as ps_id, ps.uid as ps_uid, "
             + "ps.code           as ps_code, ps.name           as ps_name, "
             + "ps.featuretype    as ps_feature_type, ps.sort_order, ps.publicaccess   as ps_public_access, "
-            + "ps.repeatable     as ps_repeatable, ps.enableuserassignment from program p "
+            + "ps.repeatable     as ps_repeatable, ps.enableuserassignment, ps.validationstrategy from program p "
             + "LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
             + "LEFT JOIN programstage ps on p.programid = ps.programid "
@@ -479,6 +480,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 : FeatureType.NONE );
         programStage.setRepeatable( rs.getBoolean( "ps_repeatable" ) );
         programStage.setEnableUserAssignment( rs.getBoolean( "enableuserassignment" ) );
+        programStage.setValidationStrategy( ValidationStrategy.valueOf( rs.getString( "validationstrategy" ) ) );
         return programStage;
     }
 

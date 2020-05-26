@@ -42,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 
@@ -73,7 +72,8 @@ public class EventDataValueAggregator
         return eventDataValueMap;
     }
 
-    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues, ImportOptions importOptions )
+    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues,
+        ImportOptions importOptions )
     {
         Set<EventDataValue> result = new HashSet<>();
 
@@ -123,7 +123,10 @@ public class EventDataValueAggregator
 
     private Set<EventDataValue> getDataValues( Set<DataValue> dataValues, ImportOptions importOptions )
     {
-        return dataValues.stream().map( dv -> toEventDataValue( dv, null, importOptions ) )
+        return dataValues.stream()
+            // do not include data values with no value
+            .filter( dv -> StringUtils.isNotEmpty( dv.getValue() ) )
+            .map( dv -> toEventDataValue( dv, null, importOptions ) )
             .collect( Collectors.toSet() );
     }
 
