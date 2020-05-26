@@ -52,6 +52,8 @@ import com.google.common.collect.Multimap;
 @Component( "workContextOrgUnitsSupplier" )
 public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, OrganisationUnit>>
 {
+    private final static String ATTRIBUTESCHEME_COL = "attributevalue";
+
     public OrganisationUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
@@ -60,18 +62,28 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
     @Override
     public Map<String, OrganisationUnit> get( ImportOptions importOptions, List<Event> events )
     {
+        //
+        // Get the IdScheme for Org Units. Org Units should support also the Attribute
+        // Scheme, based on JSONB
+        //
         IdScheme idScheme = importOptions.getIdSchemes().getOrgUnitIdScheme();
+
         if ( events == null )
         {
             return new HashMap<>();
         }
-        // @formatter:off
-        // Collect all the org unit uids to pass as SQL query argument
-        final Set<String> orgUnitUids = events.stream()
-                .filter( e -> e.getOrgUnit() != null ).map( Event::getOrgUnit )
-                .collect( Collectors.toSet() );
 
-        if ( isEmpty( orgUnitUids)  )
+        //
+        // Collect all the org unit IDs (based on the IdScheme) to pass as SQL query
+        // argument
+        //
+        // @formatter:off
+        final Set<String> orgUnitUids = events.stream()
+            .filter( e -> e.getOrgUnit() != null ).map( Event::getOrgUnit )
+            .collect( Collectors.toSet() );
+        // @formatter:on
+
+        if ( isEmpty( orgUnitUids ) )
         {
             return new HashMap<>();
         }
@@ -82,15 +94,27 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         {
             orgUnitToEvent.put( event.getOrgUnit(), event.getUid() );
         }
-        // @formatter:on
+
         String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ";
 
         if ( idScheme.isAttribute() )
         {
+            //
+            // Attribute IdScheme handling: use Postgres JSONB custom clauses to query the
+            // "attributvalues" column
+            //
+            // The column is expected to contain a JSON structure like so:
+            //
+            // {"ie9wfkGw8GX": {"value": "Some value", "attribute": {"id": "ie9wfkGw8GX"}}}
+            //
+            // The 'ie9wfkGw8GX' uid is the attribute identifier
+            //
+
             final String attribute = idScheme.getAttribute();
 
             sql += ",attributevalues->'" + attribute
-                + "'->>'value' as attributevalue from organisationunit ou where ou.attributevalues#>>'{" + attribute
+                + "'->>'value' as " + ATTRIBUTESCHEME_COL + " from organisationunit ou where ou.attributevalues#>>'{"
+                + attribute
                 + ",value}' in (:ids)";
         }
         else
@@ -119,8 +143,9 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
 
                 try
                 {
-                    for ( String event : orgUnitToEvent.get( idScheme.isAttribute() ? rs.getString( "attributevalue" )
-                        : getIdentifierBasedOnIdScheme( ou, idScheme ) ) )
+                    for ( String event : orgUnitToEvent
+                        .get( idScheme.isAttribute() ? rs.getString( ATTRIBUTESCHEME_COL )
+                            : getIdentifierBasedOnIdScheme( ou, idScheme ) ) )
                     {
                         results.put( event, ou );
                     }
