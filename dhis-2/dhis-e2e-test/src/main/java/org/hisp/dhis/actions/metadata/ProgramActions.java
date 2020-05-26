@@ -31,9 +31,12 @@ package org.hisp.dhis.actions.metadata;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
+
+import java.util.Optional;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -69,19 +72,7 @@ public class ProgramActions
 
     public ApiResponse createProgram( String programType, String... orgUnitIds )
     {
-        JsonObject object = getDummy( programType );
-        JsonArray orgUnits = new JsonArray();
-
-        for ( String ouid : orgUnitIds
-        )
-        {
-            JsonObject orgUnit = new JsonObject();
-            orgUnit.addProperty( "id", ouid );
-
-            orgUnits.add( orgUnit );
-        }
-
-        object.add( "organisationUnits", orgUnits );
+        JsonObject object = getDummy( programType, orgUnitIds );
 
         return post( object );
     }
@@ -113,6 +104,26 @@ public class ProgramActions
         return response.extractUid();
     }
 
+    public ApiResponse addOrganisationUnits( String programId, String... orgUnitIds) {
+        JsonObject object = this.get( programId ).getBody();
+
+        JsonArray orgUnits = Optional.ofNullable(object.getAsJsonArray( "organisationUnits" )).orElse(new JsonArray(  ));
+
+        for ( String ouid : orgUnitIds
+        )
+        {
+            JsonObject orgUnit = new JsonObject();
+            orgUnit.addProperty( "id", ouid );
+
+            orgUnits.add( orgUnit );
+        }
+
+        object.add( "organisationUnits", orgUnits );
+
+        return this.update( programId, object );
+
+    }
+
     public JsonObject getDummy()
     {
         String random = DataGenerator.randomString();
@@ -126,11 +137,28 @@ public class ProgramActions
 
     public JsonObject getDummy( String programType )
     {
-
         JsonObject program = getDummy();
         program.addProperty( "programType", programType );
 
         return program;
+    }
+
+    JsonObject getDummy(String programType, String... orgUnitIds) {
+        JsonObject object = getDummy( programType );
+        JsonArray orgUnits = new JsonArray();
+
+        for ( String ouid : orgUnitIds
+        )
+        {
+            JsonObject orgUnit = new JsonObject();
+            orgUnit.addProperty( "id", ouid );
+
+            orgUnits.add( orgUnit );
+        }
+
+        object.add( "organisationUnits", orgUnits );
+
+        return object;
     }
 
 }

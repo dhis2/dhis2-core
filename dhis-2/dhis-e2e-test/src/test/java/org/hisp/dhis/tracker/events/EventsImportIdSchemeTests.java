@@ -29,6 +29,7 @@
 package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
+import com.sun.tools.jxc.ap.Const;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -63,19 +64,17 @@ public class EventsImportIdSchemeTests extends ApiTest
 
     private EventActions eventActions;
 
-    private static String orgUnitName = "TA EventsImportIdSchemeTests ou name";
+    private static String orgUnitName = "TA EventsImportIdSchemeTests ou name" + DataGenerator.randomString();
 
-    private static String orgUnitCode = "TA EventsImportIdSchemeTests ou code";
+    private static String orgUnitCode = "TA EventsImportIdSchemeTests ou code" + DataGenerator.randomString();
 
     private String attributeValue = "TA EventsImportIdSchemeTests attribute" + DataGenerator.randomString();
 
     private String orgUnitId;
 
-    private String attributeId;
+    private static String attributeId;
 
-    private String programId;
-
-    private String programStageId;
+    private String programId = Constants.EVENT_PROGRAM_ID;
 
 
     @BeforeAll
@@ -94,7 +93,8 @@ public class EventsImportIdSchemeTests extends ApiTest
         return Stream.of(
             Arguments.arguments( "CODE", "code" ),
             Arguments.arguments( "NAME", "name" ),
-            Arguments.arguments( "UID", "id" )
+            Arguments.arguments( "UID", "id" ),
+            Arguments.arguments( "ATTRIBUTE:" + attributeId, "attributeValues.value[0]" )
         );
     }
 
@@ -109,8 +109,6 @@ public class EventsImportIdSchemeTests extends ApiTest
 
         JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
             .get( JsonObject.class );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
@@ -143,21 +141,11 @@ public class EventsImportIdSchemeTests extends ApiTest
         orgUnit.setCode( orgUnitCode );
         orgUnit.setName( orgUnitName );
 
-
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
+        programActions.addOrganisationUnits( programId, orgUnitId ).validate().statusCode( 200 );
+
         orgUnitActions.addAttributeValue( orgUnitId, attributeId, attributeValue );
-
-        programId = programActions.createEventProgram( orgUnitId ).extractUid();
-        assertNotNull( programId, "Failed to setup program" );
-
-        programStageId = programActions.createProgramStage( DataGenerator.randomString() );
-        assertNotNull( programStageId, "Failed to setup program stage" );
-
-        ApiResponse progrmStageResponse = programActions.addProgramStage( programId, programStageId );
-
-        progrmStageResponse.validate().statusCode( 200 );
-
     }
 }
