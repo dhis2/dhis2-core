@@ -64,11 +64,11 @@ public class EventsImportIdSchemeTests extends ApiTest
 
     private EventActions eventActions;
 
-    private static String orgUnitName = "TA EventsImportIdSchemeTests ou name" + DataGenerator.randomString();
+    private static String orgUnitName = "TA EventsImportIdSchemeTests ou name";
 
-    private static String orgUnitCode = "TA EventsImportIdSchemeTests ou code" + DataGenerator.randomString();
+    private static String orgUnitCode = "TA EventsImportIdSchemeTests ou code";
 
-    private String attributeValue = "TA EventsImportIdSchemeTests attribute" + DataGenerator.randomString();
+    private String attributeValue = "TA EventsImportIdSchemeTests attribute";
 
     private String orgUnitId;
 
