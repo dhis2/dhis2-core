@@ -260,7 +260,7 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dbB );
 
         DashboardSearchResult result = dashboardService.search( "A" );
-        assertEquals( 2, result.getVisualizationCount() );
+        assertEquals( 1, result.getVisualizationCount() );
         assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "B" );
