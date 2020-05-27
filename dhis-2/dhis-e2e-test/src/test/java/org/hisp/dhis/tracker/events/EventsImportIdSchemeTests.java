@@ -28,8 +28,8 @@
 
 package org.hisp.dhis.tracker.events;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.sun.tools.jxc.ap.Const;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -51,6 +51,7 @@ import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -64,17 +65,17 @@ public class EventsImportIdSchemeTests extends ApiTest
 
     private EventActions eventActions;
 
-    private static String orgUnitName = "TA EventsImportIdSchemeTests ou name";
+    private AttributeActions attributeActions;
 
-    private static String orgUnitCode = "TA EventsImportIdSchemeTests ou code";
-
-    private String attributeValue = "TA EventsImportIdSchemeTests attribute";
+    private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
+    private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
+    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute" ;
+    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
 
     private String orgUnitId;
+    private static String ouAttributeId;
+    private static String programAttributeId;
 
-    private static String attributeId;
-
-    private String programId = Constants.EVENT_PROGRAM_ID;
 
 
     @BeforeAll
@@ -82,30 +83,32 @@ public class EventsImportIdSchemeTests extends ApiTest
         orgUnitActions = new OrgUnitActions();
         eventActions = new EventActions();
         programActions = new ProgramActions();
+        attributeActions = new AttributeActions();
 
         new LoginActions().loginAsSuperUser();
 
         setupData();
     }
 
-    private static Stream<Arguments> provideOrgUnitIdSchemeArguments()
+    private static Stream<Arguments> provideIdSchemeArguments()
     {
         return Stream.of(
             Arguments.arguments( "CODE", "code" ),
             Arguments.arguments( "NAME", "name" ),
             Arguments.arguments( "UID", "id" ),
-            Arguments.arguments( "ATTRIBUTE:" + attributeId, "attributeValues.value[0]" )
+            Arguments.arguments( "ATTRIBUTE:" + ouAttributeId, "attributeValues.value[0]" )
         );
     }
 
+
     @ParameterizedTest
-    @MethodSource( "provideOrgUnitIdSchemeArguments" )
+    @MethodSource( "provideIdSchemeArguments" )
     public void eventsShouldBeImportedWithOrgUnitScheme(String ouScheme, String ouProperty)
         throws Exception
     {
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
 
-        assertNotNull(ouPropertyValue, String.format(  "Org unit progperty %s was not present.", ouProperty));
+        assertNotNull(ouPropertyValue, String.format(  "Org unit property %s was not present.", ouProperty));
 
         JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
@@ -133,21 +136,80 @@ public class EventsImportIdSchemeTests extends ApiTest
             .body( "orgUnit", equalTo( orgUnitId ) );
     }
 
+    @ParameterizedTest
+    @MethodSource( "provideIdSchemeArguments" )
+    public void eventsShouldBeImportedWithProgramScheme(String scheme, String property)
+        throws Exception
+    {
+        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property);
+
+        assertNotNull(programPropertyValue, String.format(  "Program property %s was not present.", property));
+
+        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
+            .replacePropertyValuesWithIds( "event" )
+            .replacePropertyValuesWith( "program", programPropertyValue)
+            .get( JsonObject.class );
+
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
+            .add( "skipCache=true" )
+            .add( "programIdScheme=" + scheme);
+
+        ApiResponse response = eventActions.post( object, queryParamsBuilder );
+
+        response.validate().statusCode( 200 )
+            .rootPath( "response" )
+            .body( "status",  equalTo("SUCCESS") )
+            .body( "ignored", equalTo( 0 ) )
+            .body( "importSummaries.reference", everyItem( notNullValue() ) );
+
+        String eventId = response.extractString( "response.importSummaries.reference[0]" );
+        assertNotNull( eventId );
+
+        eventActions.get( eventId ).validate()
+            .statusCode( 200 )
+            .body( "program", equalTo( PROGRAM_ID ) );
+    }
+
+
+
     private void setupData() {
 
-        attributeId = new AttributeActions().createUniqueAttribute( "organisationUnit", "TEXT" );
+        ouAttributeId = attributeActions.createUniqueAttribute( "organisationUnit", "TEXT" );
+        programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
 
-        assertNotNull( attributeId, "Failed to setup attribute" );
+        assertNotNull( ouAttributeId, "Failed to setup attribute" );
         OrgUnit orgUnit = orgUnitActions.generateDummy();
 
-        orgUnit.setCode( orgUnitCode );
-        orgUnit.setName( orgUnitName );
+        orgUnit.setCode( OU_CODE );
+        orgUnit.setName( OU_NAME );
 
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
-        programActions.addOrganisationUnits( programId, orgUnitId ).validate().statusCode( 200 );
+        programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
-        orgUnitActions.addAttributeValue( orgUnitId, attributeId, attributeValue );
+        orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ouAttributeId,
+            ATTRIBUTE_VALUE ) )
+            .validate().statusCode( 200 );
+
+        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), programAttributeId,
+            ATTRIBUTE_VALUE ) )
+            .validate().statusCode( 200 );
+    }
+
+    public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue) {
+        JsonObject attributeObj = new JsonObject();
+        attributeObj.addProperty( "id", attributeId );
+
+        JsonObject attributeValueObj = new JsonObject();
+        attributeValueObj.addProperty( "value", attributeValue );
+        attributeValueObj.add("attribute", attributeObj );
+
+        JsonArray attributeValues = new JsonArray(  );
+        attributeValues.add( attributeValueObj );
+
+        json.add( "attributeValues", attributeValues );
+
+        return json;
     }
 }
