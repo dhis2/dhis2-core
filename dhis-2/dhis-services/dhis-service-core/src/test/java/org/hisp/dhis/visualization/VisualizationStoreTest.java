@@ -88,7 +88,7 @@ public class VisualizationStoreTest
         assertEquals( Integer.valueOf( 16 ), vA.getFontStyle().getVisualizationTitle().getFontSize() );
         assertNotNull( vA.getFontStyle().getHorizontalAxisTitle() );
         assertEquals( "Arial", vA.getFontStyle().getHorizontalAxisTitle().getFont() );
-        assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getBold() );
+        assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getItalic() );
 
         assertNotNull( vB );
         assertNull( vB.getFontStyle() );
