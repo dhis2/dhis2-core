@@ -305,6 +305,14 @@
           "italic": false,
           "underline": false,
           "textColor": "#3a3a3a"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a"
         }
       }
     },

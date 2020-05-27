@@ -32,6 +32,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+
+import org.hisp.dhis.schema.annotation.PropertyRange;
+
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 /**
@@ -41,8 +45,9 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
  */
 @JacksonXmlRootElement( localName = "fontStyle", namespace = DXF_2_0 )
 public class FontStyle
+    implements Serializable
 {
-    private String font;
+    private Font font;
 
     private Integer fontSize;
 
@@ -60,18 +65,19 @@ public class FontStyle
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public String getFont()
+    public Font getFont()
     {
         return font;
     }
 
-    public void setFont( String font )
+    public void setFont( Font font )
     {
         this.font = font;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = 1, max = 96 )
     public Integer getFontSize()
     {
         return fontSize;

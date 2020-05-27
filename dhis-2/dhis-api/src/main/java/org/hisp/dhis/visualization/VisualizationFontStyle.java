@@ -30,6 +30,8 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import java.io.Serializable;
+
 import org.hisp.dhis.common.FontStyle;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,6 +46,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "visualizationFontStyle", namespace = DXF_2_0 )
 public class VisualizationFontStyle
+    implements Serializable
 {
     private FontStyle visualizationTitle;
 
