@@ -109,6 +109,7 @@ public class EventsImportIdSchemeTests extends ApiTest
 
         JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
+            .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
@@ -121,6 +122,7 @@ public class EventsImportIdSchemeTests extends ApiTest
             .rootPath( "response" )
             .body( "status",  equalTo("SUCCESS") )
             .body( "ignored", equalTo( 0 ) )
+            .body( "imported", greaterThan(1) )
             .body( "importSummaries.reference", everyItem( notNullValue() ) );
 
         String eventId = response.extractString( "response.importSummaries.reference[0]" );
