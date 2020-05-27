@@ -35,7 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Class represents various text styling properties.
+ * Class representing various text styling properties.
  *
  * @author Lars Helge Overland
  */
