@@ -538,11 +538,11 @@ public class TrackedEntityImportValidationTest
 
         params.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
-        assertEquals( 3, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         report = trackerValidationService.validate( trackerBundle );
         printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );

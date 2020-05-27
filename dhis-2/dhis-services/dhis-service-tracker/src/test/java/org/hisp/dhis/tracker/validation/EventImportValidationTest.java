@@ -119,7 +119,7 @@ public class EventImportValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 3, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -137,7 +137,7 @@ public class EventImportValidationTest
         trackerBundleParams.setUser( user );
 
         trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 2, trackerBundle.getEnrollments().size() );
+        assertEquals( 4, trackerBundle.getEnrollments().size() );
 
         report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -145,7 +145,6 @@ public class EventImportValidationTest
         bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
-
 
     @Test
     public void testEventValidationOkAll()
@@ -167,7 +166,6 @@ public class EventImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
-
 
     @Test
     public void testEventMissingOrgUnit()
@@ -439,13 +437,12 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1055 ) ) ) );
     }
 
-
-
     @Test
     public void testWrongDatesInCatCombo()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events_combo-date-wrong.json" );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_combo-date-wrong.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
@@ -463,6 +460,50 @@ public class EventImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1057 ) ) ) );
+    }
+
+    @Test
+    public void testTeiNotEnrolled()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_tei-not-enrolled.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1037 ) ) ) );
+    }
+
+    @Test
+    public void testTeiMultipleActiveEnrollments()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_tei-multiple-enrollments.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1038 ) ) ) );
     }
 
     //TODO: Delete not working yet

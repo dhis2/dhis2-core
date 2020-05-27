@@ -254,7 +254,7 @@ public class EnrollmentSecurityImportValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 3, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -277,7 +277,7 @@ public class EnrollmentSecurityImportValidationTest
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 4, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
