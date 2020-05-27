@@ -29,6 +29,7 @@
 package org.hisp.dhis.visualization;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.Font;
 import org.hisp.dhis.common.FontStyle;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ public class VisualizationStoreTest
     public void testSaveGet()
     {
         FontStyle visualizationTitle = new FontStyle();
-        visualizationTitle.setFont( "Verdana" );
+        visualizationTitle.setFont( Font.VERDANA );
         visualizationTitle.setFontSize( 16 );
         visualizationTitle.setBold( true );
         visualizationTitle.setItalic( false );
@@ -59,7 +60,7 @@ public class VisualizationStoreTest
         visualizationTitle.setTextColor( "#3a3a3a" );
 
         FontStyle horizontalAxisTitle = new FontStyle();
-        horizontalAxisTitle.setFont( "Arial" );
+        horizontalAxisTitle.setFont( Font.ARIAL );
         horizontalAxisTitle.setFontSize( 14 );
         horizontalAxisTitle.setBold( false );
         horizontalAxisTitle.setItalic( true );
