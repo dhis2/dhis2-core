@@ -135,6 +135,10 @@ public class ObjectBundleServiceFavoritesTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( 4, dataElements.size() );
         assertEquals( 3, visualizations.size() );
+
+        assertNotNull( visualizations.get( 0 ).getFontSize() );
+        assertNotNull( visualizations.get( 1 ).getFontSize() );
+        assertNotNull( visualizations.get( 2 ).getFontSize() );
     }
 
     @Test
