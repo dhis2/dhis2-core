@@ -296,7 +296,17 @@
       "hideLegend": false,
       "itemOrganisationUnitGroups": [ ],
       "lastUpdated": "2016-03-17T01:56:51.847+0000",
-      "userOrganisationUnitGrandChildren": false
+      "userOrganisationUnitGrandChildren": false,
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a"
+        }
+      }
     },
     {
       "organisationUnits": [
