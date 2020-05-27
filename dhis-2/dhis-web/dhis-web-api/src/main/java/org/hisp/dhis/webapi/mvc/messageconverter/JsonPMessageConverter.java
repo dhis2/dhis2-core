@@ -30,25 +30,24 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JsonPMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class JsonPMessageConverter extends AbstractRootNodeMessageConverter
 {
     public static final String DEFAULT_CALLBACK_PARAMETER = "callback";
 
@@ -58,33 +57,13 @@ public class JsonPMessageConverter extends AbstractHttpMessageConverter<RootNode
         .add( new MediaType( "text", "javascript" ) )
         .build();
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
     private ContextService contextService;
 
-    public JsonPMessageConverter()
+    public JsonPMessageConverter( @Autowired @Nonnull NodeService nodeService, @Autowired @Nonnull ContextService contextService )
     {
+        super( nodeService, "application/json", "jsonp", Compression.NONE );
+        this.contextService = contextService;
         setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-    }
-
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        return RootNode.class.equals( clazz );
-    }
-
-    @Override
-    protected boolean canRead( MediaType mediaType )
-    {
-        return false;
-    }
-
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
-    {
-        return null;
     }
 
     @Override
@@ -105,6 +84,6 @@ public class JsonPMessageConverter extends AbstractHttpMessageConverter<RootNode
 
         rootNode.getConfig().getProperties().put( Jackson2JsonNodeSerializer.JSONP_CALLBACK, callbackParam );
 
-        nodeService.serialize( rootNode, "application/json", outputMessage.getBody() );
+        super.writeInternal( rootNode, outputMessage );
     }
 }
