@@ -88,8 +88,8 @@ public class DashboardServiceTest
     @Override
     public void setUpTest()
     {
-        visualizationA = createVisualization( "A" );
-        visualizationB = createVisualization( "B" );
+        visualizationA = createVisualization( 'A' );
+        visualizationB = createVisualization( 'B' );
 
         visualizationService.save( visualizationA );
         visualizationService.save( visualizationB );
@@ -278,7 +278,7 @@ public class DashboardServiceTest
         objectManager.save( prA );
 
         IntStream.range(1, 30).forEach( i -> {
-            Visualization visualization = createVisualization( "A" );
+            Visualization visualization = createVisualization( 'A' );
             visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
 

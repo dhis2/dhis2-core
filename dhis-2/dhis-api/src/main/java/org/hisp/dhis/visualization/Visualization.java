@@ -935,6 +935,18 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    public VisualizationFontStyle getFontStyle()
+    {
+        return fontStyle;
+    }
+
+    public void setFontStyle( VisualizationFontStyle fontStyle )
+    {
+        this.fontStyle = fontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isShowData()
     {
         return showData;
