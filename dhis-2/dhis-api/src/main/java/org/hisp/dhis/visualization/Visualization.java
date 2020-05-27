@@ -338,11 +338,6 @@ public class Visualization
      */
     private transient String gridTitle;
 
-    /**
-     * The name of the reporting month based on the report param.
-     */
-    private transient String reportingPeriodName;
-
     /*
      * Collections mostly used for analytics tabulated data, like pivots or reports.
      */
@@ -1072,12 +1067,6 @@ public class Visualization
 
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
-
-        // Handle report parameters
-        if ( hasRelativePeriods() )
-        {
-            this.reportingPeriodName = relatives.getReportingPeriodName( date, format );
-        }
 
         if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
         {

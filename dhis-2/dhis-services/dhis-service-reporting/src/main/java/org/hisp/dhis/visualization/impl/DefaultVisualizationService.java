@@ -91,7 +91,6 @@ public class DefaultVisualizationService
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
     {
         return visualizationStore;
