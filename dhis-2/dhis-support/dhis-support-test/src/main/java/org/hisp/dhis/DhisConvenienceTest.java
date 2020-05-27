@@ -966,6 +966,21 @@ public abstract class DhisConvenienceTest
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
+        return createDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo, value, false );
+    }
+
+    /**
+     * @param dataElement          The data element.
+     * @param period               The period.
+     * @param source               The source.
+     * @param value                The value.
+     * @param categoryOptionCombo  The category option combo.
+     * @param attributeOptionCombo The attribute option combo.
+     * @param deleted              Whether the data valeu is deleted.
+     */
+    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value, boolean deleted )
+    {
         DataValue dataValue = new DataValue();
 
         dataValue.setDataElement( dataElement );
@@ -978,6 +993,7 @@ public abstract class DhisConvenienceTest
         dataValue.setStoredBy( "StoredBy" );
         dataValue.setCreated( new Date() );
         dataValue.setLastUpdated( new Date() );
+        dataValue.setDeleted( deleted );
 
         return dataValue;
     }
