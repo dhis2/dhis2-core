@@ -204,6 +204,8 @@ public class Visualization
 
     private ColorSet colorSet;
 
+    private VisualizationFontStyle fontStyle;
+
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
