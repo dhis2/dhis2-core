@@ -85,10 +85,10 @@ public class VisualizationStoreTest
         assertNotNull( vA );
         assertNotNull( vA.getFontStyle() );
         assertNotNull( vA.getFontStyle().getVisualizationTitle() );
-        assertEquals( "Verdana", vA.getFontStyle().getVisualizationTitle().getFont() );
+        assertEquals( Font.VERDANA, vA.getFontStyle().getVisualizationTitle().getFont() );
         assertEquals( Integer.valueOf( 16 ), vA.getFontStyle().getVisualizationTitle().getFontSize() );
         assertNotNull( vA.getFontStyle().getHorizontalAxisTitle() );
-        assertEquals( "Arial", vA.getFontStyle().getHorizontalAxisTitle().getFont() );
+        assertEquals( Font.ARIAL, vA.getFontStyle().getHorizontalAxisTitle().getFont() );
         assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getItalic() );
 
         assertNotNull( vB );
