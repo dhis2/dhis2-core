@@ -17,7 +17,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.translation.TranslationProperty;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -419,6 +418,7 @@ public class TrackedEntityAttribute
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -426,6 +426,7 @@ public class TrackedEntityAttribute
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

@@ -193,9 +193,6 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    /*
-     * # Legend related attributes.
-     */
     private LegendDisplayStyle legendDisplayStyle;
 
     private LegendSet legendSet;
@@ -208,9 +205,6 @@ public class Visualization
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    /*
-     * # Settings more likely to be applied to graphics or charts.
-     */
     private Double targetLineValue;
 
     private Double baseLineValue;
@@ -337,11 +331,6 @@ public class Visualization
      * The title for a possible tabulated data.
      */
     private transient String gridTitle;
-
-    /**
-     * The name of the reporting month based on the report param.
-     */
-    private transient String reportingPeriodName;
 
     /*
      * Collections mostly used for analytics tabulated data, like pivots or reports.
@@ -1072,12 +1061,6 @@ public class Visualization
 
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
-
-        // Handle report parameters
-        if ( hasRelativePeriods() )
-        {
-            this.reportingPeriodName = relatives.getReportingPeriodName( date, format );
-        }
 
         if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
         {
