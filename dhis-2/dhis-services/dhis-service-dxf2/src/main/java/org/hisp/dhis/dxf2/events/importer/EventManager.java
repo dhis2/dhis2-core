@@ -76,12 +76,18 @@ public class EventManager
     private final EventPersistenceService eventPersistenceService;
 
     public EventManager(
-        @Qualifier("eventsInsertValidationFactory") final InsertValidationFactory insertValidationFactory,
-        @Qualifier("eventsUpdateValidationFactory") final UpdateValidationFactory updateValidationFactory,
-        @Qualifier("eventsDeleteValidationFactory") final DeleteValidationFactory deleteValidationFactory,
-        @Qualifier( "eventsPreInsertProcessorFactory" ) final EventProcessing preInsertProcessorFactory,
-        @Qualifier( "eventsPreUpdateProcessorFactory" ) final EventProcessing preUpdateProcessorFactory,
-        @Qualifier("eventsPostUpdateProcessorFactory") final EventProcessing postUpdateProcessorFactory,
+        @Qualifier( "eventsInsertValidationFactory" )
+        final InsertValidationFactory insertValidationFactory,
+        @Qualifier( "eventsUpdateValidationFactory" )
+        final UpdateValidationFactory updateValidationFactory,
+        @Qualifier( "eventsDeleteValidationFactory" )
+        final DeleteValidationFactory deleteValidationFactory,
+        @Qualifier( "eventsPreInsertProcessorFactory" )
+        final EventProcessing preInsertProcessorFactory,
+        @Qualifier( "eventsPreUpdateProcessorFactory" )
+        final EventProcessing preUpdateProcessorFactory,
+        @Qualifier( "eventsPostUpdateProcessorFactory" )
+        final EventProcessing postUpdateProcessorFactory,
         final EventPersistenceService eventPersistenceService )
     {
         checkNotNull( insertValidationFactory );
@@ -103,7 +109,7 @@ public class EventManager
 
     public ImportSummary addEvent( final Event event, final WorkContext workContext )
     {
-        final ImportSummaries importSummaries = addEvents( ImmutableList.of(event), workContext );
+        final ImportSummaries importSummaries = addEvents( ImmutableList.of( event ), workContext );
 
         if ( isNotEmpty( importSummaries.getImportSummaries() ) )
         {
@@ -148,7 +154,7 @@ public class EventManager
 
         // fetch persistable events //
         List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
-                : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
+            : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
         if ( isNotEmpty( eventsToInsert ) )
         {
             try
@@ -164,7 +170,7 @@ public class EventManager
             }
         }
 
-        incrementSummaryTotals( events, importSummaries, CREATE);
+        incrementSummaryTotals( events, importSummaries, CREATE );
 
         return importSummaries;
     }
@@ -200,9 +206,9 @@ public class EventManager
         // @formatter:on
 
         // collect the UIDs of events that did not pass validation
-        final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream().filter( i -> i.isStatus( ERROR ) )
+        final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
+            .filter( i -> i.isStatus( ERROR ) )
             .map( ImportSummary::getReference ).collect( toList() );
-
 
         if ( eventValidationFailedUids.size() == events.size() )
         {
@@ -220,15 +226,16 @@ public class EventManager
         {
             handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
         }
-        
+
         final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
-        // Post processing only the events that passed validation and ware persisted correctly.
+        // Post processing only the events that passed validation and ware persisted
+        // correctly.
         postUpdateProcessorFactory.process( workContext, events.stream()
             .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
 
-        incrementSummaryTotals( events, importSummaries, UPDATE);
+        incrementSummaryTotals( events, importSummaries, UPDATE );
 
         return importSummaries;
     }
@@ -245,7 +252,8 @@ public class EventManager
         // @formatter:on
 
         // collect the UIDs of events that did not pass validation
-        final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream().filter( i -> i.isStatus( ERROR ) )
+        final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
+            .filter( i -> i.isStatus( ERROR ) )
             .map( ImportSummary::getReference ).collect( toList() );
 
         if ( eventValidationFailedUids.size() == events.size() )
@@ -253,32 +261,19 @@ public class EventManager
             return importSummaries;
         }
 
-        if ( eventValidationFailedUids.isEmpty() )
+        try
         {
-            try
-            {
-                eventPersistenceService.delete( workContext, events );
-            }
-            catch ( Exception e )
-            {
-                handleFailure( workContext, importSummaries, events, "Could not delete event", DELETE );
-            }
+            eventPersistenceService.delete( workContext,
+                eventValidationFailedUids.isEmpty() ? events
+                    : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
+                        .collect( toList() ) );
         }
-        else
+        catch ( Exception e )
         {
-            try
-            {
-                // collect the events that passed validation and can be deleted
-                eventPersistenceService.delete( workContext,
-                    events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
-            }
-            catch ( Exception e )
-            {
-                handleFailure( workContext, importSummaries, events, "Could not delete event", DELETE );
-            }
+            handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
         }
 
-        incrementSummaryTotals( events, importSummaries, DELETE);
+        incrementSummaryTotals( events, importSummaries, DELETE );
 
         return importSummaries;
     }
@@ -306,6 +301,7 @@ public class EventManager
 
                 case DELETE:
                     is.incrementDeleted();
+                    is.setDescription( "Deletion of event " + event.getUid() + " was successful" );
                     break;
                 }
 
@@ -321,7 +317,7 @@ public class EventManager
     }
 
     private void handleFailure( final WorkContext workContext, final ImportSummaries importSummaries,
-                               final List<Event> validEvents, final String errorMessage, final ImportStrategy importStrategy )
+        final List<Event> validEvents, final String errorMessage, final ImportStrategy importStrategy )
     {
         final List<Event> failedEvents = retryEach( workContext, validEvents, importStrategy );
 
