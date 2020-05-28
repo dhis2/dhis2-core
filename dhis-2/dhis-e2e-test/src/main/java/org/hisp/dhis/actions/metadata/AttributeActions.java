@@ -46,7 +46,7 @@ public class AttributeActions extends RestApiActions
     public String createUniqueAttribute(String valueType, String... metadataObjects) {
         JsonObject object = new JsonObject();
 
-        object.addProperty( "name", String.format( "TA %s attribute %s", metadataObjects, DataGenerator.randomString() ) );
+        object.addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) );
         object.addProperty( "unique", "false" );
         for ( String metadataObject : metadataObjects
                )
