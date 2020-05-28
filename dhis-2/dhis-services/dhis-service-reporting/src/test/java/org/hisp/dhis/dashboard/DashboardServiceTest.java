@@ -306,10 +306,8 @@ public class DashboardServiceTest
 
     private Visualization createVisualization( String name )
     {
-        Visualization visualization = new Visualization();
-        visualization.setAutoFields();
+        Visualization visualization = createVisualization( 'X' );
         visualization.setName( name );
-        visualization.setType( VisualizationType.PIVOT_TABLE );
         return visualization;
     }
 
