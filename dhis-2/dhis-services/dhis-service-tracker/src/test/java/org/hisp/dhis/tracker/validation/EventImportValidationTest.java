@@ -416,6 +416,31 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testWrongScheduledDateString()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-no-wrong-date.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1051 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1052 ) ) ) );
+    }
+
+    @Test
     public void testNonDefaultCategoryCombo()
         throws IOException
     {
@@ -549,7 +574,7 @@ public class EventImportValidationTest
 //
 //        ValidateAndCommit deleteAgain = doValidateAndCommit( params,
 //            TrackerImportStrategy.DELETE );
-//        assertEquals( 1, deleteAgain.getValidationReport().getErrorReports().size() );
+//           assertEquals( 1, deleteAgain.getValidationReport().getErrorReports().size() );
 //
 //        assertThat( deleteAgain.getValidationReport().getErrorReports(),
 //            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1030 ) ) ) );

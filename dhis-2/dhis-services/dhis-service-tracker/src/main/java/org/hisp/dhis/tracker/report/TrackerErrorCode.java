@@ -61,6 +61,7 @@ public enum TrackerErrorCode
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
     E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
+    // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted." ),
     E1051( "Invalid event due date: `{0}`." ),
     E1052( "Invalid event date: `{0}`." ),

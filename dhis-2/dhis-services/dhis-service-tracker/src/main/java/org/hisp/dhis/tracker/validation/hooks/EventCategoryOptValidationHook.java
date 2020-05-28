@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -53,6 +54,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
+@Slf4j
 public class EventCategoryOptValidationHook
     extends AbstractTrackerDtoValidationHook
 {
@@ -96,8 +98,17 @@ public class EventCategoryOptValidationHook
         }
 
         // TODO: How to best get current date into iso format?
-        Date eventDate = DateUtils.parseDate( ObjectUtils
-            .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), DateUtils.getIso8601( new Date() ) ) );
+        Date eventDate = null;
+        try
+        {
+            eventDate = DateUtils.parseDate( ObjectUtils
+                .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), DateUtils.getIso8601( new Date() ) ) );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            log.debug("Failed to parse dates, an error should already be reported.");
+            return;
+        }
 
         I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
