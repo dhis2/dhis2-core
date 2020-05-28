@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.user.User;
@@ -151,5 +153,34 @@ public class EventUtils
         }
 
         return dataValues;
+    }
+
+    public static Set<AttributeValue> getAttributeValues( ObjectMapper jsonMapper, Object attributeValues )
+        throws JsonProcessingException
+    {
+
+        Set<AttributeValue> attributeValueSet = new HashSet<>();
+
+        String content = null;
+        if ( attributeValues instanceof String )
+        {
+            content = (String) attributeValues;
+        }
+        else if ( attributeValues instanceof PGobject )
+        {
+            content = ((PGobject) attributeValues).getValue();
+        }
+
+        Map<String, Map<String, String>> m = jsonMapper.readValue( content, Map.class );
+        for ( String key : m.keySet() )
+        {
+            Attribute attribute = new Attribute();
+            attribute.setUid( key );
+            String value = m.get( key ).get( "value" );
+            AttributeValue attributeValue = new AttributeValue( value, attribute );
+            attributeValueSet.add( attributeValue );
+        }
+        return attributeValueSet;
+
     }
 }

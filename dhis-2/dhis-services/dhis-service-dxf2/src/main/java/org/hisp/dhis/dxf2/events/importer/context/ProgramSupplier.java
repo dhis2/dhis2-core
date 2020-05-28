@@ -38,20 +38,21 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -109,6 +110,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component( "workContextProgramsSupplier" )
 public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 {
@@ -421,7 +423,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         if ( idScheme.isAttribute() )
         {
-            String z = idScheme.getAttribute();
             sqlSelect += ",p.attributevalues->'" + idScheme.getAttribute()
                 + "'->>'value' as " + ATTRIBUTESCHEME_COL;
         }
@@ -477,7 +478,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     }
 
                     program.setProgramStages( programStages );
-                    String s = rs.getString( ATTRIBUTESCHEME_COL );
                     results.put( getProgramKey( idScheme, rs ), program );
 
                     programId = program.getId();
@@ -540,23 +540,14 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         if ( StringUtils.isNotEmpty( attributeValueJson ) && !attributeValueJson.equals( "{}" ) )
         {
-
             try
             {
-                Map<String, Map<String, String>> m = jsonMapper.readValue( attributeValueJson, Map.class );
-                for ( String key : m.keySet() )
-                {
-                    Attribute attribute = new Attribute();
-                    attribute.setUid( key );
-                    String value = m.get( key ).get( "value" );
-                    AttributeValue attributeValue = new AttributeValue( value, attribute );
-                    ou.getAttributeValues().add( attributeValue );
-
-                }
+                ou.setAttributeValues( EventUtils.getAttributeValues( jsonMapper, rs.getObject( "attributevalues" ) ) );
             }
             catch ( JsonProcessingException e )
             {
-                e.printStackTrace();
+                log.error( "An error occurred when processing an Organisation Unit's [id=" + ou.getId()
+                    + "] attribute values", e );
             }
         }
 

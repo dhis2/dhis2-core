@@ -74,16 +74,16 @@ public class WorkContextLoader
 
     public WorkContextLoader(
     // @formatter:off
-        ProgramSupplier programSupplier, 
+        ProgramSupplier programSupplier,
         OrganisationUnitSupplier organisationUnitSupplier,
-        TrackedEntityInstanceSupplier trackedEntityInstanceSupplier, 
+        TrackedEntityInstanceSupplier trackedEntityInstanceSupplier,
         ProgramInstanceSupplier programInstanceSupplier,
         ProgramStageInstanceSupplier programStageInstanceSupplier,
-        CategoryOptionComboSupplier categoryOptionComboSupplier, 
+        CategoryOptionComboSupplier categoryOptionComboSupplier,
         DataElementSupplier dataElementSupplier,
-        NoteSupplier noteSupplier, 
+        NoteSupplier noteSupplier,
         AssignedUserSupplier assignedUserSupplier,
-        ServiceDelegatorSupplier serviceDelegatorSupplier, 
+        ServiceDelegatorSupplier serviceDelegatorSupplier,
         SessionFactory sessionFactory
     // @formatter:on
     )
@@ -149,15 +149,22 @@ public class WorkContextLoader
     {
         if ( importOptions.getUser() == null )
         {
-            User currentUser = this.serviceDelegatorSupplier.get().getCurrentUserService().getCurrentUser();
-            UserCredentials userCredentials = currentUser.getUserCredentials();
-            HibernateUtils.initializeProxy( userCredentials );
-            userCredentials.isSuper();
-            importOptions.setUser( currentUser );
+            final User currentUser = this.serviceDelegatorSupplier.get().getCurrentUserService().getCurrentUser();
+
+            //
+            // This should never really happen!
+            //
+            if ( currentUser != null )
+            {
+                UserCredentials userCredentials = currentUser.getUserCredentials();
+                HibernateUtils.initializeProxy( userCredentials );
+                userCredentials.isSuper();
+                importOptions.setUser( currentUser );
+            }
         }
         else
         {
-            User user = importOptions.getUser();
+            final User user = importOptions.getUser();
             UserCredentials userCredentials = user.getUserCredentials();
             HibernateUtils.initializeProxy( userCredentials );
             userCredentials.isSuper();

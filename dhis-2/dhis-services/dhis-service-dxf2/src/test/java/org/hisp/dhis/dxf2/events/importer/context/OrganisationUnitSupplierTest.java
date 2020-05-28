@@ -181,7 +181,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         when( mockResultSet.getString( "code" ) ).thenReturn( "CODE1" );
         when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
         when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
-        when( mockResultSet.getString( "attributevalue" ) ).thenReturn( "someattributevalue" );
+        when( mockResultSet.getString( "attributevalues" ) ).thenReturn( "someattributevalue" );
 
         // create event to import
         Event event = new Event();
@@ -210,7 +210,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertThat( executedSql,
             is( "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ,attributevalues->'"
                 + attributeId +
-                "'->>'value' as attributevalue from organisationunit ou where ou.attributevalues#>>'{" + attributeId
+                "'->>'value' as attributevalues from organisationunit ou where ou.attributevalues#>>'{" + attributeId
                 + ",value}' in (:ids)" ) );
     }
 }

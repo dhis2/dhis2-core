@@ -1,6 +1,5 @@
 package org.hisp.dhis.dxf2.events.event.preprocess;
 
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -97,9 +96,6 @@ public class ImportOptionsPreProcessorTest
         when( serviceDelegator.getCurrentUserService() ).thenReturn( this.currentUserService );
         when( currentUserService.getCurrentUser() ).thenReturn( new User() );
         subject.process( new Event(), wc );
-
-        verify( currentUserService ).getCurrentUser();
-
     }
 
 }
