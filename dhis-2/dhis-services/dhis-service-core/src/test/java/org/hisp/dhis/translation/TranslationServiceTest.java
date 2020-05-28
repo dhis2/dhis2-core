@@ -39,7 +39,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -73,9 +72,8 @@ public class TranslationServiceTest
 
     private Locale locale;
 
-
     @Override
-    public void setUpTest() 
+    public void setUpTest()
     {
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
