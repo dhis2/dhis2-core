@@ -506,16 +506,37 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1038 ) ) ) );
     }
 
+    //TODO: Can't get this to work, the preheater? inserts a program instance.
+//    @Test
+//    public void testTeiMultipleActiveEnrollmentsInNonRegProgram()
+//        throws IOException
+//    {
+//        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+//            "tracker/validations/events_tei-multiple-enrollments-in-non-reg-program.json" );
+//
+//        User user = userService.getUser( ADMIN_USER_UID );
+//        trackerBundleParams.setUser( user );
+//
+//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        assertEquals( 1, trackerBundle.getEvents().size() );
+//
+//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+//        printReport( report );
+//
+//        assertEquals( 1, report.getErrorReports().size() );
+//
+//        assertThat( report.getErrorReports(),
+//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1040 ) ) ) );
+//    }
+
     //TODO: Delete not working yet
 //    @Test
 //    public void testEventAlreadyDeleted()
 //        throws IOException
 //    {
-//
-//
 //        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
 //
-//        User user = userService.getUser( ADMIN_USER );
+//        User user = userService.getUser( ADMIN_USER_UID );
 //        params.setUser( user );
 //
 //        ValidateAndCommit createAndUpdate = doValidateAndCommit( params,

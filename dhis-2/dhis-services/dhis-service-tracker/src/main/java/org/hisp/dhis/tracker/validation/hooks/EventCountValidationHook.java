@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -41,6 +42,8 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -112,6 +115,7 @@ public class EventCountValidationHook
 
             if ( count > 1 )
             {
+                //TODO: Can't get this to work, the preheater? inserts a program instance.
                 reporter.addError( newReport( TrackerErrorCode.E1040 )
                     .addArg( program ) );
             }

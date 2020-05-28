@@ -248,6 +248,43 @@
       "autoGenerateEvent": true,
       "publicAccess": "rw------",
       "validationStrategy": "ON_COMPLETE"
+    },
+    {
+      "programStageSections": [ ],
+      "blockEntryForm": false,
+      "allowGenerateNextVisit": false,
+      "created": "2019-03-29T12:41:32.972",
+      "sortOrder": 3,
+      "openAfterEnrollment": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [ ],
+      "enableUserAssignment": false,
+      "program": {
+        "id": "VVV1E9tAppy"
+      },
+      "generatedByEnrollmentDate": false,
+      "displayGenerateEventBox": true,
+      "id": "OOHlXaMvgX2",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [ ],
+      "notificationTemplates": [ ],
+      "remindCompleted": false,
+      "lastUpdated": "2019-03-29T12:41:33.036",
+      "hideDueDate": false,
+      "name": "Stage3",
+      "repeatable": false,
+      "userAccesses": [ ],
+      "minDaysFromStart": 0,
+      "attributeValues": [ ],
+      "preGenerateUID": false,
+
+      "autoGenerateEvent": true,
+      "publicAccess": "rw------",
+      "validationStrategy": "ON_COMPLETE"
     }
   ],
   "system": {
@@ -568,6 +605,65 @@
       "programStages": [
         {
           "id": "Pmqxq907VNz"
+        }
+      ]
+    },
+    {
+      "featureType": "NONE",
+      "ignoreOverdueEvents": false,
+      "programSections": [ ],
+      "created": "2019-03-29T12:41:33.001",
+      "shortName": "Tracker Program X",
+      "incidentDateLabel": "IncidentDate",
+      "translations": [ ],
+      "style": {
+        "color": "#d32f2f"
+      },
+      "expiryDays": 0,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+
+      "selectEnrollmentDatesInFuture": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "notificationTemplates": [ ],
+      "displayIncidentDate": true,
+      "accessLevel": "OPEN",
+      "userGroupAccesses": [ ],
+      "id": "VVV1E9tAppy",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "completeEventsExpiryDays": 0,
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "onlyEnrollOnce": false,
+      "lastUpdated": "2019-03-29T12:41:33.039",
+      "trackedEntityType": {
+        "id": "bPJ0FMtcnEh"
+      },
+      "name": "Tracker Program X",
+      "enrollmentDateLabel": "EnrollmentDate",
+      "maxTeiCountToReturn": 0,
+      "attributeValues": [ ],
+
+      "userAccesses": [ ],
+      "useFirstStageDuringRegistration": false,
+      "minAttributesRequiredToSearch": 1,
+      "skipOffline": false,
+      "version": 0,
+      "programType": "WITHOUT_REGISTRATION",
+      "selectIncidentDatesInFuture": false,
+      "publicAccess": "rw------",
+      "displayFrontPageList": false,
+      "programStages": [
+        {
+          "id": "OOHlXaMvgX2"
         }
       ]
     }

@@ -146,7 +146,6 @@ public class EventDateValidationHook
             return;
         }
 
-        // I.E update....
         if ( programStageInstance != null )
         {
             if ( programStageInstance.getExecutionDate() == null )

@@ -86,14 +86,14 @@ public class PreCheckExistenceValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1002 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
-        else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1063 )
-                .addArg( trackedEntity.getTrackedEntity() ) );
-        }
         else if ( existingTe != null && existingTe.isDeleted() && importStrategy.isDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1114 )
+                .addArg( trackedEntity.getTrackedEntity() ) );
+        }
+        else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1063 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
         else
@@ -127,14 +127,14 @@ public class PreCheckExistenceValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1080 )
                 .addArg( event.getEnrollment() ) );
         }
-        else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1081 )
-                .addArg( event.getEnrollment() ) );
-        }
         else if ( existingPi != null && existingPi.isDeleted() && importStrategy.isDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1113 )
+                .addArg( event.getEnrollment() ) );
+        }
+        else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1081 )
                 .addArg( event.getEnrollment() ) );
         }
         else
@@ -168,14 +168,14 @@ public class PreCheckExistenceValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1030 )
                 .addArg( event.getEvent() ) );
         }
-        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1032 )
-                .addArg( event.getEvent() ) );
-        }
         else if ( existingPsi != null && existingPsi.isDeleted() && importStrategy.isDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1082 )
+                .addArg( event.getEvent() ) );
+        }
+        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1032 )
                 .addArg( event.getEvent() ) );
         }
         else
