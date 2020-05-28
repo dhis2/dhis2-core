@@ -124,8 +124,12 @@ public class FontStyle
         this.underline = underline;
     }
 
+    /**
+     * Text color in hexadecimal notation, specified with {@code #RRGGBB}.
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = 7, max = 7 )
     public String getTextColor()
     {
         return textColor;
