@@ -60,9 +60,6 @@ public class IndicatorServiceTest
     private IndicatorService indicatorService;
 
     @Autowired
-    private IdentifiableObjectManager manager;
-
-    @Autowired
     private UserService injectUserService;
 
     @Autowired

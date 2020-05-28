@@ -72,7 +72,6 @@ public class TranslationServiceTest
 
     private Locale locale;
 
-
     @Override
     public void setUpTest()
     {
