@@ -47,6 +47,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import javax.xml.crypto.Data;
 import java.io.File;
 import java.util.stream.Stream;
 
@@ -69,12 +70,11 @@ public class EventsImportIdSchemeTests extends ApiTest
 
     private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
     private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
-    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute" ;
+    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString() ;
     private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
 
     private String orgUnitId;
-    private static String ouAttributeId;
-    private static String programAttributeId;
+    private static String ATTRIBUTE_ID;
 
 
 
@@ -96,7 +96,7 @@ public class EventsImportIdSchemeTests extends ApiTest
             Arguments.arguments( "CODE", "code" ),
             Arguments.arguments( "NAME", "name" ),
             Arguments.arguments( "UID", "id" ),
-            Arguments.arguments( "ATTRIBUTE:" + ouAttributeId, "attributeValues.value[0]" )
+            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" )
         );
     }
 
@@ -174,10 +174,10 @@ public class EventsImportIdSchemeTests extends ApiTest
 
     private void setupData() {
 
-        ouAttributeId = attributeActions.createUniqueAttribute( "organisationUnit", "TEXT" );
-        programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
+        ATTRIBUTE_ID = attributeActions.createUniqueAttribute(  "TEXT", "organisationUnit", "program" );
+        //programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
 
-        assertNotNull( ouAttributeId, "Failed to setup attribute" );
+        assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
         OrgUnit orgUnit = orgUnitActions.generateDummy();
 
         orgUnit.setCode( OU_CODE );
@@ -188,11 +188,11 @@ public class EventsImportIdSchemeTests extends ApiTest
 
         programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
-        orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ouAttributeId,
+        orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
 
-        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), programAttributeId,
+        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }

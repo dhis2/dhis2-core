@@ -43,14 +43,19 @@ public class AttributeActions extends RestApiActions
         super( "/attributes" );
     }
 
-    public String createUniqueAttribute(String metadataObject, String valueType) {
+    public String createUniqueAttribute(String valueType, String... metadataObjects) {
         JsonObject object = new JsonObject();
 
-        object.addProperty( "name", String.format( "TA %s attribute %s", metadataObject, DataGenerator.randomString() ) );
-        object.addProperty( "unique", "true" );
-        object.addProperty( metadataObject + "Attribute", "true" );
-        object.addProperty( "valueType", valueType);
+        object.addProperty( "name", String.format( "TA %s attribute %s", metadataObjects, DataGenerator.randomString() ) );
+        object.addProperty( "unique", "false" );
+        for ( String metadataObject : metadataObjects
+               )
+        {
+            object.addProperty( metadataObject + "Attribute", "true" );
 
+        }
+
+        object.addProperty( "valueType", valueType);
 
         return this.create( object );
     }
