@@ -39,17 +39,22 @@ import java.util.Map;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mock;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith( Parameterized.class )
 public class ProgramSupplierTest extends AbstractSupplierTest<Program>
 {
     private ProgramSupplier subject;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @Parameterized.Parameters
     public static Collection<String> data()
@@ -63,7 +68,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Before
     public void setUp()
     {
-        this.subject = new ProgramSupplier( jdbcTemplate );
+        this.subject = new ProgramSupplier( jdbcTemplate, objectMapper );
     }
 
     @Override
@@ -92,6 +97,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "ps_public_access" ) ).thenReturn( "rw------" );
         when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
         when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
+        when( mockResultSet.getString( "validationstrategy" ) ).thenReturn( "ON_COMPLETE" );
 
         when( mockResultSet.getObject( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getObject( "id" ) ).thenReturn( 100L );

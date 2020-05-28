@@ -33,10 +33,10 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import java.util.Set;
 
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
@@ -83,6 +83,27 @@ public class ProgramOrgUnitCheck implements Checker
                     {
                         orgUnit = ou;
                         break;
+                    }
+                }
+                else if ( orgUnitIdScheme.equals( IdScheme.NAME ) )
+                {
+                    if ( String.valueOf( ou.getName() ).equals( event.getOrgUnit() ) )
+                    {
+                        orgUnit = ou;
+                        break;
+                    }
+                }
+                else if ( orgUnitIdScheme.isAttribute() )
+                {
+                    final Set<AttributeValue> attributeValues = ou.getAttributeValues();
+                    for ( AttributeValue attributeValue : attributeValues )
+                    {
+                        if ( orgUnitIdScheme.getAttribute().equals( attributeValue.getAttribute().getUid() ) &&
+                            attributeValue.getValue().equals( event.getOrgUnit() ) )
+                        {
+                            orgUnit = ou;
+                            break;
+                        }
                     }
                 }
             }

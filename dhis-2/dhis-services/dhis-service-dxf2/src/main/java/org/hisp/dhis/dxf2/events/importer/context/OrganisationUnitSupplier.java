@@ -52,7 +52,7 @@ import com.google.common.collect.Multimap;
 @Component( "workContextOrgUnitsSupplier" )
 public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, OrganisationUnit>>
 {
-    private final static String ATTRIBUTESCHEME_COL = "attributevalue";
+    private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     public OrganisationUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {

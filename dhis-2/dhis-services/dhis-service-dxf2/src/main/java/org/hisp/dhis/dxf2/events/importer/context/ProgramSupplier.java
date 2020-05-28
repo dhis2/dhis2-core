@@ -39,11 +39,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -63,6 +67,8 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -108,6 +114,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 {
     private final static String PROGRAM_CACHE_KEY = "000P";
 
+    private final ObjectMapper jsonMapper;
+
+    private final static String ATTRIBUTESCHEME_COL = "attributevalues";
+
     // @formatter:off
     private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid " +
         "from ${table_name} eua " +
@@ -142,9 +152,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     // @formatter:on
 
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper )
     {
         super( jdbcTemplate );
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -238,9 +249,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<OrganisationUnit>> loadOrgUnits()
     {
-        final String sql = "select p.programid, ou.organisationunitid, ou.uid, ou.code, ou.name "
+        final String sql = "select p.programid, ou.organisationunitid, ou.uid, ou.code, ou.name, ou.attributevalues "
             + "from program_organisationunits p "
-            + "join organisationunit ou on p.organisationunitid = ou.organisationunitid " + "order by programid";
+            + "join organisationunit ou on p.organisationunitid = ou.organisationunitid order by programid";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<Long, Set<OrganisationUnit>> results = new HashMap<>();
@@ -393,14 +404,29 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
-        final String sql = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, "
+        //
+        // Get the IdScheme for Programs. Programs should support also the Attribute
+        // Scheme, based on JSONB
+        //
+        IdScheme idScheme = idSchemes.getProgramIdScheme();
+
+        String sqlSelect = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, "
             + "p.type, tet.trackedentitytypeid, tet.publicaccess  as tet_public_access, "
             + "tet.uid           as tet_uid, c.categorycomboid as catcombo_id, "
             + "c.uid             as catcombo_uid, c.name            as catcombo_name, "
             + "c.code            as catcombo_code, ps.programstageid as ps_id, ps.uid as ps_uid, "
             + "ps.code           as ps_code, ps.name           as ps_name, "
             + "ps.featuretype    as ps_feature_type, ps.sort_order, ps.publicaccess   as ps_public_access, "
-            + "ps.repeatable     as ps_repeatable, ps.enableuserassignment, ps.validationstrategy from program p "
+            + "ps.repeatable     as ps_repeatable, ps.enableuserassignment, ps.validationstrategy";
+
+        if ( idScheme.isAttribute() )
+        {
+            String z = idScheme.getAttribute();
+            sqlSelect += ",p.attributevalues->'" + idScheme.getAttribute()
+                + "'->>'value' as " + ATTRIBUTESCHEME_COL;
+        }
+
+        final String sql = sqlSelect + " from program p "
             + "LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
             + "LEFT JOIN programstage ps on p.programid = ps.programid "
@@ -451,18 +477,31 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     }
 
                     program.setProgramStages( programStages );
-                    results.put( IdSchemeUtils.getKey( idSchemes.getProgramIdScheme(), rs ), program );
+                    String s = rs.getString( ATTRIBUTESCHEME_COL );
+                    results.put( getProgramKey( idScheme, rs ), program );
 
                     programId = program.getId();
                 }
                 else
                 {
-                    results.get( IdSchemeUtils.getKey( idSchemes.getProgramIdScheme(), rs ) ).getProgramStages()
+                    results.get( getProgramKey( idScheme, rs ) ).getProgramStages()
                         .add( toProgramStage( rs ) );
                 }
             }
             return results;
         } );
+    }
+
+    /**
+     * Resolve the key to place in the Program Map, based on the Scheme specified in
+     * the request If the scheme is of type Attribute, use the attribute value from
+     * the JSONB column
+     */
+    private String getProgramKey( IdScheme programIdScheme, ResultSet rs )
+        throws SQLException
+    {
+        return programIdScheme.isAttribute() ? rs.getString( ATTRIBUTESCHEME_COL )
+            : IdSchemeUtils.getKey( programIdScheme, rs );
     }
 
     private ProgramStage toProgramStage( ResultSet rs )
@@ -480,7 +519,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 : FeatureType.NONE );
         programStage.setRepeatable( rs.getBoolean( "ps_repeatable" ) );
         programStage.setEnableUserAssignment( rs.getBoolean( "enableuserassignment" ) );
-        programStage.setValidationStrategy( ValidationStrategy.valueOf( rs.getString( "validationstrategy" ) ) );
+        String validationStrategy = rs.getString( "validationstrategy" );
+        if ( StringUtils.isNotEmpty( validationStrategy ) )
+        {
+            programStage.setValidationStrategy( ValidationStrategy.valueOf( validationStrategy ) );
+        }
         return programStage;
     }
 
@@ -492,6 +535,31 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         ou.setId( rs.getLong( "organisationunitid" ) );
         ou.setName( rs.getString( "name" ) );
         ou.setCode( rs.getString( "code" ) );
+
+        final String attributeValueJson = rs.getString( "attributevalues" );
+
+        if ( StringUtils.isNotEmpty( attributeValueJson ) && !attributeValueJson.equals( "{}" ) )
+        {
+
+            try
+            {
+                Map<String, Map<String, String>> m = jsonMapper.readValue( attributeValueJson, Map.class );
+                for ( String key : m.keySet() )
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.setUid( key );
+                    String value = m.get( key ).get( "value" );
+                    AttributeValue attributeValue = new AttributeValue( value, attribute );
+                    ou.getAttributeValues().add( attributeValue );
+
+                }
+            }
+            catch ( JsonProcessingException e )
+            {
+                e.printStackTrace();
+            }
+        }
+
         return ou;
     }
 
