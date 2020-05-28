@@ -331,7 +331,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
             + "from programstageusergroupaccesses psuga "
             + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
-            + "join usergroup ug on u.usergroupid = ug.usergroupid " + "order by programstageid";
+            + "join usergroup ug on u.usergroupid = ug.usergroupid order by programstageid";
 
         return fetchUserGroupAccess( sql, "programstageid" );
     }
