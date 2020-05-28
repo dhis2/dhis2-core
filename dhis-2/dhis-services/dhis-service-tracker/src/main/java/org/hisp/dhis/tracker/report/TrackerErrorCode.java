@@ -39,47 +39,28 @@ public enum TrackerErrorCode
     E1016( "TrackedEntityInstance: `{0}`, already has an active enrollment in Program: `{1}`, and this " +
         "program only allows enrolling one time." ),
     E1038( "TrackedEntityInstance: `{0}`, has multiple active enrollments in Program `{1}`." ),
-    E1039( "ProgramStage is not repeatable and an event already exists." ),
-    // TODO See TODO on error usage
-    E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
-    E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     E1037( "TrackedEntityInstance: `{0}`, is not enrolled in Program `{1}`." ),
-    E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
+    E1002( "TrackedEntityInstance: `{0}`, already exists." ),
     E1064( "Error validating attribute, not unique; Error `{0}`" ),
     E1074( "FeatureType is missing." ),
     E1031( "Event OccurredAt date is missing." ),
     E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),
     E1042( "Event: `{0}`, needs to have completed date." ),
-
-    // TODO See TODO on error usage
-    E1043( "Event: `{0}`, completeness date has expired. Not possible to make changes to this event." ),
-    // TODO See TODO on error usage
-    E1044( "Event: `{0}`, needs to have event date." ),
-    // TODO See TODO on error usage
-    E1046( "Event: `{0}`, needs to have at least one (event or schedule) date." ),
-    // TODO See TODO on error usage
-    E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
     E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
-    // TODO: Delete not working yet
-    E1082( "Event: `{0}`, is already deleted." ),
     E1051( "Invalid event due date: `{0}`." ),
     E1052( "Invalid event date: `{0}`." ),
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
     E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
     E1018( "Missing mandatory attribute: `{0}`." ),
-    E1017( "Attribute: `{0}`, does not exist." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
     E1076( "Attribute: `{0}`, value is null." ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
     E1085( "Attribute: `{0}`, value does not match value type: `{1}`." ),
     E1083( "User: `{0}`, is not authorized to modify completed events." ),
-    E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
-    E1101( "User: `{0}`, has no read access to OrganisationUnit: `{1}`." ),
     E1009( "File resource: `{0}`, has already been assigned to a different object." ),
     E1084( "File resource: `{0}`, reference could not be found." ),
-    E1002( "TrackedEntityInstance: `{0}`, already exists or was deleted earlier." ),
     E1015( "TrackedEntityInstance: `{0}`, already has an active Enrollment in Program `{1}`." ),
     E1022( "TrackedEntityInstance: `{0}`, must have same TrackedEntityType as Program `{1}`." ),
     E1063( "TrackedEntityInstance: `{0}`, does not exist." ),
@@ -106,7 +87,6 @@ public enum TrackerErrorCode
     E1088( "Event: `{0}`, program: `{1}`, and ProgramStage: `{2}`, could not be found." ),
     E1089( "Event: `{0}`, ProgramStage Program and Event Program don't match." ),
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
-
     E1001( "User: `{0}`, has no data write access to TrackedEntityType: `{1}`." ),
     E1091( "User: `{0}`, has no data write access to Program: `{1}`." ),
     E1095( "User: `{0}`, has no data write access to ProgramStage: `{1}`." ),
@@ -115,22 +95,41 @@ public enum TrackerErrorCode
     E1102( "User: `{0}`, does not have access to the tracked entity: `{1}`, Program: `{2}`, combination." ),
     E1103( "User: `{0}`, is lacking 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`." ),
     E1104( "User: `{0}`, has no data read access to program: `{1}`, TrackedEntityType: `{2}`." ),
-    E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
-    E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
-    E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
-    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
     E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
-    E1113( "Enrollment: `{0}`, is already deleted." ),
-    E1114( "TrackedEntity: `{0}`, is already deleted." ),
-    E1115( "Could not find CategoryOptionCombo: `{0}`." ),
-    E1116( "Could not find CategoryOption: `{0}`." ),
-
     E1118( "Note does not have a valid uuid: `{0}`." ),
     E1119( "Note does not have a value: `{0}`." ),
-    E1120( "Note already exist with same uuid: `{0}`." ),
     E1121( "Note stored at date is invalid: `{0}`; Error: `{1}`." ),
-
+    E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
+    E1115( "Could not find CategoryOptionCombo: `{0}`." ),
+    E1116( "Could not find CategoryOption: `{0}`." ),
     E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
+
+    E1101( "User: `{0}`, has no read access to OrganisationUnit: `{1}`." ),
+    E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
+    E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
+    E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
+    E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
+    E1017( "Attribute: `{0}`, does not exist." ),
+    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
+    E1039( "ProgramStage is not repeatable and an event already exists." ),
+    E1040( "Multiple active enrollments exists for Program: `{0}`." ),
+    E1120( "Note already exist with same uuid: `{0}`." ),
+
+    // TODO: Delete not working yet
+    E1082( "Event: `{0}`, is already deleted." ),
+    E1113( "Enrollment: `{0}`, is already deleted." ),
+    E1114( "TrackedEntity: `{0}`, is already deleted." ),
+
+    // TODO See TODO on error usage
+    E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
+    // TODO See TODO on error usage
+    E1043( "Event: `{0}`, completeness date has expired. Not possible to make changes to this event." ),
+    // TODO See TODO on error usage
+    E1044( "Event: `{0}`, needs to have event date." ),
+    // TODO See TODO on error usage
+    E1046( "Event: `{0}`, needs to have at least one (event or schedule) date." ),
+    // TODO See TODO on error usage
+    E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
 
     E9999( "N/A" );
 

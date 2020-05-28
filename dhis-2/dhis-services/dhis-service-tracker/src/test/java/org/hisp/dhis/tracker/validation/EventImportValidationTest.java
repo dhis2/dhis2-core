@@ -463,6 +463,72 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testNoCategoryOptionCombo()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_cant-find-cat-opt-combo.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1115 ) ) ) );
+    }
+
+    @Test
+    public void testNoCategoryOption()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_cant-find-cat-option.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1116 ) ) ) );
+    }
+
+    @Test
+    public void testNoCategoryOptionComboSet()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_cant-find-cat-option-combo-set.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1117 ) ) ) );
+    }
+
+    @Test
     public void testWrongDatesInCatCombo()
         throws IOException
     {
