@@ -259,6 +259,10 @@
           "dimensionItem": "JXWenbITNIR",
           "visualizationType": "LINE",
           "axis": 1
+        },
+        {
+          "dimensionItem": "Kvv6LltZuOd",
+          "visualizationType": "LINE"
         }
       ],
       "organisationUnitLevels": [ ],
@@ -352,6 +356,17 @@
               "id": "c8yQa2ZIqhL"
             }
           }
+        }
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
         }
       ],
       "completedOnly": false,
@@ -457,6 +472,17 @@
       ],
       "filterDimensions": [
         "ou"
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
+        }
       ],
       "showData": true,
       "organisationUnits": [
