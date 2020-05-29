@@ -65,13 +65,6 @@ public class Series
      */
     private VisualizationType type;
 
-    /**
-     * Default constructor.
-     */
-    public Series()
-    {
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDimensionItem()
