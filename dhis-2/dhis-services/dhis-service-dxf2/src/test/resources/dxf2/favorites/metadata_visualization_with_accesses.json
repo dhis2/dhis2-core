@@ -254,6 +254,13 @@
       "filterDimensions": [
         "ou"
       ],
+      "series": [
+        {
+          "dimensionItem": "JXWenbITNIR",
+          "visualizationType": "LINE",
+          "axis": 1
+        }
+      ],
       "organisationUnitLevels": [ ],
       "id": "gyYXi0rXAIc",
       "user": {
@@ -306,7 +313,6 @@
       "regression": false,
       "type": "COLUMN",
       "aggregationType": "SUM",
-      "series": "dx",
       "created": "2016-03-17T01:56:51.847+0000",
       "periods": [ ],
       "hideLegend": false,
@@ -407,7 +413,6 @@
       "hideLegend": false,
       "userOrganisationUnitGrandChildren": false,
       "lastUpdated": "2016-03-17T01:57:13.118+0000",
-      "series": "dx",
       "periods": [ ],
       "created": "2016-03-17T01:57:13.118+0000"
     },
@@ -426,7 +431,6 @@
       "itemOrganisationUnitGroups": [ ],
       "created": "2016-03-17T01:57:32.354+0000",
       "periods": [ ],
-      "series": "dx",
       "dataDimensionItems": [
         {
           "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
