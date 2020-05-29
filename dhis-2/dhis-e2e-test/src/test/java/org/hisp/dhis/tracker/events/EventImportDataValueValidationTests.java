@@ -100,6 +100,7 @@ public class EventImportDataValueValidationTests extends ApiTest
 
     private void setupData() {
         ApiResponse response  = new ProgramActions().createEventProgram( OU_ID );
+
         programId = response.extractUid();
         assertNotNull(programId, "Failed to create a program");
 
@@ -107,13 +108,10 @@ public class EventImportDataValueValidationTests extends ApiTest
         assertNotNull(programStageId, "Failed to create a programStage");
 
         String dataElementId = new RestApiActions("/dataElements").get(  "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" ).extractString( "dataElements.id[0]" );
-
         assertNotNull( dataElementId, "Failed to find data elements" );
-
-        programActions.addDataElement( programStageId, dataElementId, true  ).validate().statusCode( 200 );
-
         mandatoryDataElementId = dataElementId;
 
+        programActions.addDataElement( programStageId, dataElementId, true  ).validate().statusCode( 200 );
     }
 
     private void addDataValue(JsonObject body, String dataElementId, String value) {
