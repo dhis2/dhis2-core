@@ -60,7 +60,7 @@ public class Series
     private Integer axis;
 
     /**
-     * Visualization type for the series which will override the type
+     * Visualization type for the series. Will override the type
      * specified by {@link Visualization#getType()}.
      */
     private VisualizationType type;
