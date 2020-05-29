@@ -30,11 +30,18 @@ package org.hisp.dhis.visualization;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 /**
  * Class representing a series item in a chart.
  *
  * @author Lars Helge Overland
  */
+@JacksonXmlRootElement( localName = "seriesItem", namespace = DXF_2_0 )
 public class Series
     implements Serializable
 {
@@ -44,6 +51,8 @@ public class Series
 
     private VisualizationType type;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDimensionItem()
     {
         return dimensionItem;
@@ -54,6 +63,8 @@ public class Series
         this.dimensionItem = dimensionItem;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getAxis()
     {
         return axis;
@@ -64,6 +75,8 @@ public class Series
         this.axis = axis;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public VisualizationType getType()
     {
         return type;
