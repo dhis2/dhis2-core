@@ -65,6 +65,9 @@ public class Series
      */
     private VisualizationType type;
 
+    /**
+     * Default constructor.
+     */
     public Series()
     {
     }
