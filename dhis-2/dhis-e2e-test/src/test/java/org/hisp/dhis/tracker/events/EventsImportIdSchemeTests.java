@@ -147,6 +147,7 @@ public class EventsImportIdSchemeTests extends ApiTest
 
         JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
+            .replacePropertyValuesWith( "orgUnit", orgUnitId )
             .replacePropertyValuesWith( "program", programPropertyValue)
             .get( JsonObject.class );
 

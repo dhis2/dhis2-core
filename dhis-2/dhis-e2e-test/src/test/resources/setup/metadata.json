@@ -3353,33 +3353,6 @@
   "dataElements": [
     {
       "lastUpdated": "2019-02-28T12:52:29.860",
-      "id": "BuZ5LGNfGEB",
-      "created": "2019-02-28T12:49:47.868",
-      "name": "TA ABAge in years",
-      "shortName": "TA BAAge in years",
-      "aggregationType": "AVERAGE",
-      "domainType": "TRACKER",
-      "publicAccess": "rw------",
-      "valueType": "NUMBER",
-      "zeroIsSignificant": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": [],
-      "aggregationLevels": []
-    },
-    {
-      "lastUpdated": "2019-02-28T12:52:29.860",
       "id": "BuZ5LGNfGEU",
       "created": "2019-02-28T12:49:47.868",
       "name": "TA Age in years",

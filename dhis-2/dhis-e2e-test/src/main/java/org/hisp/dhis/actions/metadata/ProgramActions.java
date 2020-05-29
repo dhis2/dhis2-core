@@ -31,9 +31,9 @@ package org.hisp.dhis.actions.metadata;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
 import java.util.Optional;
@@ -67,7 +67,20 @@ public class ProgramActions
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
     {
-        return createProgram( "WITHOUT_REGISTRATION", orgUnitsIds );
+        String programStageId = createProgramStage( "DEFAULT STAGE" );
+
+        JsonObject body = getDummy( "WITHOUT_REGISTRATION", orgUnitsIds );
+
+        JsonArray programStages = new JsonArray();
+
+        JsonObject programStage = new JsonObject();
+        programStage.addProperty( "id", programStageId );
+
+        programStages.add( programStage );
+
+        body.add( "programStages", programStages );
+
+        return post( body );
     }
 
     public ApiResponse createProgram( String programType, String... orgUnitIds )
@@ -104,10 +117,11 @@ public class ProgramActions
         return response.extractUid();
     }
 
-    public ApiResponse addOrganisationUnits( String programId, String... orgUnitIds) {
+    public ApiResponse addOrganisationUnits( String programId, String... orgUnitIds )
+    {
         JsonObject object = this.get( programId ).getBody();
 
-        JsonArray orgUnits = Optional.ofNullable(object.getAsJsonArray( "organisationUnits" )).orElse(new JsonArray(  ));
+        JsonArray orgUnits = Optional.ofNullable( object.getAsJsonArray( "organisationUnits" ) ).orElse( new JsonArray() );
 
         for ( String ouid : orgUnitIds
         )
@@ -121,7 +135,26 @@ public class ProgramActions
         object.add( "organisationUnits", orgUnits );
 
         return this.update( programId, object );
+    }
 
+    public ApiResponse addDataElement( String programStageId, String dataElementId, boolean isMandatory )
+    {
+        JsonObject object = programStageActions.get( programStageId, new QueryParamsBuilder().add( "fields=*" ) ).getBody();
+
+        JsonArray programStageDataElements = object.getAsJsonArray( "programStageDataElements" );
+
+        JsonObject programStageDataElement = new JsonObject();
+        programStageDataElement.addProperty( "compulsory", String.valueOf( isMandatory ) );
+
+        JsonObject dataElement = new JsonObject();
+        dataElement.addProperty( "id", dataElementId );
+
+        programStageDataElement.add( "dataElement", dataElement );
+        programStageDataElements.add( programStageDataElement );
+
+        object.add( "programStageDataElements", programStageDataElements );
+
+        return programStageActions.update( programStageId, object );
     }
 
     public JsonObject getDummy()
@@ -143,7 +176,8 @@ public class ProgramActions
         return program;
     }
 
-    JsonObject getDummy(String programType, String... orgUnitIds) {
+    JsonObject getDummy( String programType, String... orgUnitIds )
+    {
         JsonObject object = getDummy( programType );
         JsonArray orgUnits = new JsonArray();
 
