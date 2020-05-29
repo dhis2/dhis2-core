@@ -31,25 +31,33 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * This class is tight to the controller layer and is responsible to encapsulate
@@ -64,6 +72,19 @@ class DataItemServiceFacade
     private final QueryService queryService;
 
     private final SchemaService schemaService;
+
+    // @formatter:off
+    private static final Map<String, Class<? extends BaseDimensionalItemObject>> DATA_TYPE_MAP = ImmutableMap
+        .<String, Class<? extends BaseDimensionalItemObject>> builder()
+            .put( "INDICATOR", Indicator.class )
+            .put( "DATA_ELEMENT", DataElement.class )
+            .put( "DATA_ELEMENT_OPERAND", DataElementOperand.class )
+            .put( "DATA_SET", DataSet.class )
+            .put( "PROGRAM_INDICATOR", ProgramIndicator.class )
+            .put( "PROGRAM_DATA_ELEMENT", ProgramDataElementDimensionItem.class )
+            .put( "PROGRAM_ATTRIBUTE", ProgramTrackedEntityAttributeDimensionItem.class )
+            .build();
+    // @formatter:on
 
     DataItemServiceFacade( final QueryService queryService, final SchemaService schemaService )
     {
@@ -80,13 +101,46 @@ class DataItemServiceFacade
     {
         final List<BaseDimensionalItemObject> convertedItems = new ArrayList<>( 0 );
 
-        // TODO: Check if it can be executed in parallel
-        for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
+        if ( isNotEmpty( targetEntities ) )
         {
-            convertedItems.addAll( queryObjectsForEntity( entity, orderParams, filters, options ) );
+            for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
+            {
+                convertedItems.addAll( queryObjectsForEntity( entity, orderParams, filters, options ) );
+            }
         }
 
         return convertedItems;
+    }
+
+    /**
+     * This method returns a list of BaseDimensionalItemObject's based on the
+     * provided filters. It will also remove, from the filters, the objects found.
+     *
+     * @param filters
+     * @return the data items classes to be queried
+     */
+    List<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
+    {
+        final List<Class<? extends BaseDimensionalItemObject>> targetedEntities = new ArrayList<>( 0 );
+
+        if ( isNotEmpty( filters ) )
+        {
+            final Iterator<String> iterator = filters.iterator();
+
+            while ( iterator.hasNext() )
+            {
+                final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromFilter( iterator.next() );
+                final boolean entityWasFound = entity != null;
+
+                if ( entityWasFound )
+                {
+                    targetedEntities.add( entity );
+                    iterator.remove();
+                }
+            }
+        }
+
+        return targetedEntities;
     }
 
     private List<BaseDimensionalItemObject> queryObjectsForEntity(
@@ -95,17 +149,10 @@ class DataItemServiceFacade
     {
         final Query query = buildQueryForEntity( entity, orderParams, filters, options );
 
-        final List<? extends BaseDimensionalItemObject> dimensionalItems = (List<? extends BaseDimensionalItemObject>) queryService
+        final List<BaseDimensionalItemObject> dimensionalItems = (List<BaseDimensionalItemObject>) queryService
             .query( query );
 
-        final List<BaseDimensionalItemObject> convertedItems = new ArrayList<>( 0 );
-
-        if ( isNotEmpty( dimensionalItems ) )
-        {
-            convertedItems.addAll( convertToBaseDataObject( dimensionalItems ) );
-        }
-
-        return convertedItems;
+        return dimensionalItems;
     }
 
     /**
@@ -134,37 +181,6 @@ class DataItemServiceFacade
     }
 
     /**
-     * This method returns a list of BaseDimensionalItemObject's based on the
-     * provided filters. It will also remove, from the filters, the objects found.
-     * 
-     * @param filters
-     * @return the data items classes to be queried
-     */
-    List<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
-    {
-        final List<Class<? extends BaseDimensionalItemObject>> targetedEntities = new ArrayList<>( 0 );
-
-        if ( isNotEmpty( filters ) )
-        {
-            final Iterator<String> iterator = filters.iterator();
-
-            while ( iterator.hasNext() )
-            {
-                final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromFilter( iterator.next() );
-                final boolean entityWasFound = entity != null;
-
-                if ( entityWasFound )
-                {
-                    targetedEntities.add( entity );
-                    iterator.remove();
-                }
-            }
-        }
-
-        return targetedEntities;
-    }
-
-    /**
      * This method will return the respective BaseDimensionalItemObject class from
      * the filter provided.
      * 
@@ -188,26 +204,17 @@ class DataItemServiceFacade
 
             if ( hasDimensionType )
             {
-                entity = (Class<? extends BaseDimensionalItemObject>) DATA_DIMENSION_TYPE_CLASS_MAP
-                    .get( QueryUtils.getEnumValue( DataDimensionItemType.class, array[DIMENSION_TYPE] ) );
+                // TODO: Add support all other missing Entities
+                entity = DATA_TYPE_MAP.get( array[DIMENSION_TYPE] );
+
+                if ( entity == null )
+                {
+                    throw new QueryParserException( "Unable to parse `" + array[DIMENSION_TYPE]
+                        + "`, available values are: " + Arrays.toString( DATA_TYPE_MAP.keySet().toArray() ) );
+                }
             }
         }
+
         return entity;
-    }
-
-    private List<BaseDimensionalItemObject> convertToBaseDataObject(
-        final List<? extends BaseDimensionalItemObject> mainItems )
-    {
-        final List<BaseDimensionalItemObject> convertedItems = new ArrayList<>( 0 );
-
-        for ( final BaseDimensionalItemObject baseDataItemObject : mainItems )
-        {
-            final BaseDimensionalItemObject baseItem = new BaseDimensionalItemObject();
-            copyProperties( baseDataItemObject, baseItem );
-
-            convertedItems.add( baseItem );
-        }
-
-        return convertedItems;
     }
 }
