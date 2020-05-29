@@ -169,6 +169,12 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items in the
+     * first dimension of the "columns" list by dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -200,12 +206,6 @@ public class Visualization
     private LegendDisplayStrategy legendDisplayStrategy;
 
     private ColorSet colorSet;
-
-    /**
-     * List of {@link Series}. Refers to the dimension items on "columns" by
-     * dimension item identifier.
-     */
-    private List<Series> series = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
@@ -821,6 +821,19 @@ public class Visualization
     public void setRegressionType( RegressionType regressionType )
     {
         this.regressionType = regressionType;
+    }
+
+    @JsonProperty( "series" )
+    @JacksonXmlElementWrapper( localName = "series", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DXF_2_0 )
+    public List<Series> getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( List<Series> series )
+    {
+        this.series = series;
     }
 
     @JsonProperty

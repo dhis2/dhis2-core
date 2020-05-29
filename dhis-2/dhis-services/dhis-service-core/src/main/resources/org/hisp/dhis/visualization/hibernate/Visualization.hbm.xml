@@ -117,6 +117,8 @@
         <param name="type">12</param>
       </type>
     </property>
+    
+    <property name="series" type="jbSeries"/>
 
     <list name="dataDimensionItems" table="visualization_datadimensionitems" cascade="all, delete-orphan">
       <cache usage="read-write"/>
