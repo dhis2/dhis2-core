@@ -41,52 +41,63 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventImportDataValueValidationTests extends ApiTest
+public class EventImportDataValueValidationTests
+    extends ApiTest
 {
     private ProgramActions programActions;
+
     private EventActions eventActions;
 
+    private RestApiActions dataElementActions;
+
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+
     private String programId;
+
     private String programStageId;
+
     private String mandatoryDataElementId;
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         programActions = new ProgramActions();
         eventActions = new EventActions();
+        dataElementActions = new RestApiActions( "/dataElements" );
 
         setupData();
     }
 
     @Test
-    public void shouldNotImportEventsWithoutCompulsoryDataElements() {
-        JsonObject events = new EventActions().createEventBody(OU_ID, programId, programStageId);
+    public void shouldNotImportEventsWithoutCompulsoryDataElements()
+    {
+        JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
         ApiResponse response = eventActions.post( events );
 
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") )
+            .body( "status", equalTo( "OK" ) )
             .body( "response.ignored", equalTo( 1 ) );
     }
 
     @Test
     public void shouldImportEventsWithCompulsoryDataElements()
     {
-        JsonObject events = new EventActions().createEventBody(OU_ID, programId, programStageId);
+        JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
         addDataValue( events, mandatoryDataElementId, "TEXT VALUE" );
 
         ApiResponse response = eventActions.post( events );
 
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") )
+            .body( "status", equalTo( "OK" ) )
             .body( "response.imported", equalTo( 1 ) );
 
         String eventID = response.extractString( "response.importSummaries.reference[0]" );
@@ -95,27 +106,33 @@ public class EventImportDataValueValidationTests extends ApiTest
         eventActions.get( eventID )
             .validate()
             .statusCode( 200 )
-            .body( "dataValues", not(Matchers.emptyArray()) ) ;
+            .body( "dataValues", not( Matchers.emptyArray() ) );
     }
 
-    private void setupData() {
-        ApiResponse response  = new ProgramActions().createEventProgram( OU_ID );
+    private void setupData()
+    {
+        ApiResponse response = programActions.createEventProgram( OU_ID );
 
         programId = response.extractUid();
-        assertNotNull(programId, "Failed to create a program");
+        assertNotNull( programId, "Failed to create a program" );
 
-        programStageId = programActions.get( programId, new QueryParamsBuilder().add( "fields=*" ) ).extractString( "programStages.id[0]" );
-        assertNotNull(programStageId, "Failed to create a programStage");
+        programStageId = programActions.get( programId, new QueryParamsBuilder().add( "fields=*" ) )
+            .extractString( "programStages.id[0]" );
+        assertNotNull( programStageId, "Failed to create a programStage" );
 
-        String dataElementId = new RestApiActions("/dataElements").get(  "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" ).extractString( "dataElements.id[0]" );
+        String dataElementId = dataElementActions
+            .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
+            .extractString( "dataElements.id[0]" );
+
         assertNotNull( dataElementId, "Failed to find data elements" );
         mandatoryDataElementId = dataElementId;
 
-        programActions.addDataElement( programStageId, dataElementId, true  ).validate().statusCode( 200 );
+        programActions.addDataElement( programStageId, dataElementId, true ).validate().statusCode( 200 );
     }
 
-    private void addDataValue(JsonObject body, String dataElementId, String value) {
-        JsonArray dataValues = new JsonArray(  );
+    private void addDataValue( JsonObject body, String dataElementId, String value )
+    {
+        JsonArray dataValues = new JsonArray();
 
         JsonObject dataValue = new JsonObject();
 
