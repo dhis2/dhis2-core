@@ -42,6 +42,8 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -53,20 +55,24 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is responsible for handling the pagination links. This component
- * is coupled to the controller class, where it's being used.
+ * This class is responsible for handling the result and pagination nodes. This
+ * component is coupled to the controller class, where it's being used.
  * 
- * It also keeps an internal cache which's used to speed up the pagination process.
+ * It also keeps an internal cache which's used to speed up the pagination
+ * process.
  *
- * IMPORTANT: This caching should be removed once we have a new centralized caching
- * solution in place. At that stage, the new solution should be favoured.
+ * IMPORTANT: This caching should be removed once we have a new centralized
+ * caching solution in place. At that stage, the new solution should be
+ * favoured.
  */
 @Component
-class PagingNodeHandler
+class ResponseHandler
 {
     private final QueryService queryService;
 
     private final LinkService linkService;
+
+    private final FieldFilterService fieldFilterService;
 
     // @formatter:off
     private Cache<String,Integer> pageCountingCache = new Cache2kBuilder<String, Integer>() {}
@@ -74,13 +80,23 @@ class PagingNodeHandler
             .build();
     // @formatter:on
 
-    PagingNodeHandler( final QueryService queryService, final LinkService linkService )
+    ResponseHandler(final QueryService queryService, final LinkService linkService,
+                    final FieldFilterService fieldFilterService )
     {
         checkNotNull( queryService );
         checkNotNull( linkService );
+        checkNotNull( fieldFilterService );
 
         this.queryService = queryService;
         this.linkService = linkService;
+        this.fieldFilterService = fieldFilterService;
+    }
+
+    void addResultsToNode( final RootNode rootNode, final List<BaseDimensionalItemObject> dimensionalItemsFound,
+        final List<String> fields )
+    {
+        rootNode.addChild( fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
+            new FieldFilterParams( dimensionalItemsFound, fields ) ) );
     }
 
     /**
@@ -89,13 +105,13 @@ class PagingNodeHandler
      * WebOptions will calculate the pagination output.
      * 
      * @param rootNode the node where the the pagination will be attached to
-     * @param entities the list of classes which requires pagination
+     * @param targetEntities the list of classes which requires pagination
      * @param currentUser the current logged user
      * @param options holds the pagination definitions
      * @param filters the query filters used in the count query
      */
-    void addPagingLinkToNode( final RootNode rootNode,
-        final List<Class<? extends BaseDimensionalItemObject>> entities, final User currentUser,
+    void addPaginationToNode( final RootNode rootNode,
+        final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final User currentUser,
         final WebOptions options, final List<String> filters )
     {
         final WebMetadata metadata = new WebMetadata();
@@ -103,12 +119,12 @@ class PagingNodeHandler
 
         if ( options.hasPaging() && pager == null )
         {
-            if ( isNotEmpty( entities ) )
+            if ( isNotEmpty( targetEntities ) )
             {
                 long count = 0;
 
                 // Counting and summing up the results for each entity.
-                for ( final Class<? extends BaseDimensionalItemObject> entity : entities )
+                for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
                 {
                     count += pageCountingCache.computeIfAbsent(
                         createPageCountingCacheKey( currentUser, entity, filters, options ),

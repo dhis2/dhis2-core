@@ -29,22 +29,48 @@ package org.hisp.dhis.webapi.controller.dataitem;
  */
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 
 public class DataItemQueryControllerTest
 {
+    @Mock
+    private DataItemServiceFacade dataItemServiceFacade;
+
+    @Mock
+    private ContextService contextService;
+
+    @Mock
+    private ResponseHandler responseHandler;
+
+    @Mock
+    private AclService aclService;
+
     private DataItemQueryController dataItemQueryController;
 
     @Rule
@@ -53,28 +79,28 @@ public class DataItemQueryControllerTest
     @Before
     public void setUp()
     {
-        // dataItemController = new DataItemController( queryExtractor, dataItemQuery );
+        dataItemQueryController = new DataItemQueryController( dataItemServiceFacade, contextService, responseHandler,
+            aclService );
     }
 
     @Test
-    @Ignore
     public void testGetJsonWithSuccess()
     {
         // Given
-        final Set<String> anyFilters = new HashSet<>( asList( "filterA", "filterA" ) );
-        final Schema aSchema = new Schema( Indicator.class, "indicator", "indicators" );
-        final Query aQuery = Query.from( aSchema );
+        final Map<String, String> anyUrlParameters = new HashMap<>();
+        final OrderParams anyOrderParams = new OrderParams();
+        final User anyUser = new User();
+        final List<Class<? extends BaseDimensionalItemObject>> targetEntities = asList( Indicator.class );
 
         // When
-        // when( queryExtractor.extract( any(), any(), any() ) )
-        // .thenReturn( aQuery );
+        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
 
-        // final ResponseEntity<List<BaseDimensionalItemObject>> actualResponse =
-        // dataItemQueryController
-        // .getJson( anyFilters );
+        final RootNode actualResponse = dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
 
         // Then
-        // verify( queryExtractor, times( 1 ) ).extract( any(), any(), any() );
-        // assertThat( actualResponse.getStatusCode(), is( FOUND ) );
+        assertThat( actualResponse, is( not( nullValue() ) ) );
+        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
+        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
     }
 }

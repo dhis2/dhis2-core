@@ -42,8 +42,6 @@ import java.util.Map;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
@@ -74,28 +72,23 @@ class DataItemQueryController
 
     private final DataItemServiceFacade dataItemServiceFacade;
 
-    private final FieldFilterService fieldFilterService;
-
     private final ContextService contextService;
 
-    private final PagingNodeHandler pagingNodeHandler;
+    private final ResponseHandler responseHandler;
 
     private final AclService aclService;
 
-    public DataItemQueryController( final DataItemServiceFacade dataItemServiceFacade,
-        final FieldFilterService fieldFilterService, final ContextService contextService,
-        final PagingNodeHandler pagingNodeHandler, final AclService aclService )
+    public DataItemQueryController(final DataItemServiceFacade dataItemServiceFacade,
+                                   final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
     {
         checkNotNull( dataItemServiceFacade );
-        checkNotNull( fieldFilterService );
         checkNotNull( contextService );
-        checkNotNull( pagingNodeHandler );
+        checkNotNull(responseHandler);
         checkNotNull( aclService );
 
         this.dataItemServiceFacade = dataItemServiceFacade;
-        this.fieldFilterService = fieldFilterService;
         this.contextService = contextService;
-        this.pagingNodeHandler = pagingNodeHandler;
+        this.responseHandler = responseHandler;
         this.aclService = aclService;
     }
 
@@ -161,14 +154,10 @@ class DataItemQueryController
         final List<BaseDimensionalItemObject> dimensionalItemsFound = dataItemServiceFacade.retrieveDataItemEntities(
             targetEntities, filters, options, orderParams );
 
-        // Building the response.
+        // Creating the response node.
         final RootNode rootNode = createMetadata();
-
-        // Adding paging object.
-        pagingNodeHandler.addPagingLinkToNode( rootNode, targetEntities, currentUser, options, filters );
-
-        rootNode.addChild( fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
-            new FieldFilterParams( dimensionalItemsFound, fields ) ) );
+        responseHandler.addResultsToNode( rootNode, dimensionalItemsFound, fields );
+        responseHandler.addPaginationToNode( rootNode, targetEntities, currentUser, options, filters );
 
         return rootNode;
     }
