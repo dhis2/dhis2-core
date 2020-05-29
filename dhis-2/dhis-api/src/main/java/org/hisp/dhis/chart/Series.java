@@ -49,10 +49,6 @@ public class Series
 
     private Integer axis;
 
-    public Series()
-    {
-    }
-
     @JsonIgnore
     public long getId()
     {
