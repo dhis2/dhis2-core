@@ -30,10 +30,9 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
-import static org.hisp.dhis.common.PagerUtils.pageCollection;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
-import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -42,16 +41,17 @@ import java.util.Map;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,9 +68,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ApiVersion( { DEFAULT, DhisApiVersion.ALL } )
 @RestController
-public class DataItemQueryController
+class DataItemQueryController
 {
-    private final String RESOURCE_PATH = "/dataItems";
+    static final String API_RESOURCE_PATH = "/dataItems";
 
     private final DataItemServiceFacade dataItemServiceFacade;
 
@@ -78,16 +78,25 @@ public class DataItemQueryController
 
     private final ContextService contextService;
 
-    public DataItemQueryController(final DataItemServiceFacade dataItemServiceFacade,
-                                   final FieldFilterService fieldFilterService, final ContextService contextService )
+    private final PagingNodeHandler pagingNodeHandler;
+
+    private final AclService aclService;
+
+    public DataItemQueryController( final DataItemServiceFacade dataItemServiceFacade,
+        final FieldFilterService fieldFilterService, final ContextService contextService,
+        final PagingNodeHandler pagingNodeHandler, final AclService aclService )
     {
         checkNotNull( dataItemServiceFacade );
         checkNotNull( fieldFilterService );
         checkNotNull( contextService );
+        checkNotNull( pagingNodeHandler );
+        checkNotNull( aclService );
 
         this.dataItemServiceFacade = dataItemServiceFacade;
         this.fieldFilterService = fieldFilterService;
         this.contextService = contextService;
+        this.pagingNodeHandler = pagingNodeHandler;
+        this.aclService = aclService;
     }
 
     /**
@@ -95,16 +104,15 @@ public class DataItemQueryController
      *
      * @return the list of items found in JSON format
      */
-    @GetMapping( value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
+    @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public RootNode getJson( @RequestParam
-    final Map<String, String> urlParameters, final OrderParams orderParams )
+    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
         throws QueryParserException
     {
         log.debug( "Looking for data items (JSON response)" );
 
         // TODO: Should we cache it?
-        // FIXME: Fix pagination
-        return getDimensionalItems( urlParameters, orderParams );
+        return getDimensionalItems( currentUser, urlParameters, orderParams );
     }
 
     /**
@@ -112,18 +120,18 @@ public class DataItemQueryController
      *
      * @return the list of items found in XML format
      */
-    @GetMapping( value = RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
+    @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
     public RootNode getXml( @RequestParam
-    final Map<String, String> urlParameters, final OrderParams orderParams )
+    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
 
         // TODO: Should we cache it?
-        // FIXME: Fix pagination
-        return getDimensionalItems( urlParameters, orderParams );
+        return getDimensionalItems( currentUser, urlParameters, orderParams );
     }
 
-    private RootNode getDimensionalItems( final Map<String, String> urlParameters, final OrderParams orderParams )
+    private RootNode getDimensionalItems( final User currentUser, final Map<String, String> urlParameters,
+        final OrderParams orderParams )
     {
         // Defining the input params.
         final List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
@@ -135,14 +143,22 @@ public class DataItemQueryController
             fields.addAll( Preset.ALL.getFields() );
         }
 
+        // Extracting the target entities to be queried.
+        final List<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade
+            .extractTargetEntities( filters );
+
+        // Checking if the user can read all the target entities.
+        checkAuthorization( currentUser, targetEntities );
+
         // Retrieving the data items based on the input params.
-        List<BaseDimensionalItemObject> dimensionalItemsFound = dataItemServiceFacade.retrieveDataItems( filters,
-            options, orderParams );
+        final List<BaseDimensionalItemObject> dimensionalItemsFound = dataItemServiceFacade.retrieveDataItems(
+            targetEntities, filters, options, orderParams );
 
         // Building the response.
         final RootNode rootNode = createMetadata();
 
-        dimensionalItemsFound = appendPagerObjectToNode( rootNode, options, dimensionalItemsFound );
+        // Adding paging object.
+        pagingNodeHandler.addPagingLinkToNode( rootNode, targetEntities, currentUser, options, filters );
 
         rootNode.addChild( fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
             new FieldFilterParams( dimensionalItemsFound, fields ) ) );
@@ -150,23 +166,19 @@ public class DataItemQueryController
         return rootNode;
     }
 
-    private List<BaseDimensionalItemObject> appendPagerObjectToNode( final RootNode rootNode,
-        final WebOptions options, List<BaseDimensionalItemObject> dimensionalItems )
+    private void checkAuthorization( final User currentUser,
+        final List<Class<? extends BaseDimensionalItemObject>> entities )
     {
-        final WebMetadata metadata = new WebMetadata();
-        Pager pager = metadata.getPager();
-
-        if ( options.hasPaging() && pager == null )
+        if ( isNotEmpty( entities ) )
         {
-            pager = new Pager( options.getPage(), dimensionalItems.size(), options.getPageSize() );
-            dimensionalItems = pageCollection( dimensionalItems, pager );
+            for ( final Class<? extends BaseDimensionalItemObject> entity : entities )
+            {
+                if ( !aclService.canRead( currentUser, entity ) )
+                {
+                    throw new ReadAccessDeniedException(
+                        "You don't have the proper permissions to read objects of type " + entity.getSimpleName() );
+                }
+            }
         }
-
-        if ( pager != null )
-        {
-            rootNode.addChild( createPager( pager ) );
-        }
-
-        return dimensionalItems;
     }
 }

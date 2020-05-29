@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
-import static org.hisp.dhis.common.DataDimensionItemType.valueOf;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
@@ -75,11 +74,10 @@ class DataItemServiceFacade
         this.schemaService = schemaService;
     }
 
-    List<BaseDimensionalItemObject> retrieveDataItems( final List<String> filters, final WebOptions options,
-        final OrderParams orderParams )
+    List<BaseDimensionalItemObject> retrieveDataItems(
+        final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
+        final WebOptions options, final OrderParams orderParams )
     {
-        final List<Class<? extends BaseDimensionalItemObject>> targetEntities = extractTargetEntities( filters );
-
         final List<BaseDimensionalItemObject> convertedItems = new ArrayList<>( 0 );
 
         // TODO: Check if it can be executed in parallel
@@ -142,7 +140,7 @@ class DataItemServiceFacade
      * @param filters
      * @return the data items classes to be queried
      */
-    private List<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
+    List<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
     {
         final List<Class<? extends BaseDimensionalItemObject>> targetedEntities = new ArrayList<>( 0 );
 
@@ -175,8 +173,8 @@ class DataItemServiceFacade
      *        value represented by
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
-     * @throws org.hisp.dhis.query.QueryParserException if the filter points to a non
-     *         supported class/entity.
+     * @throws org.hisp.dhis.query.QueryParserException if the filter points to a
+     *         non supported class/entity.
      */
     private Class<? extends BaseDimensionalItemObject> extractEntityFromFilter( final String filter )
     {

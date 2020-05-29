@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -96,8 +97,18 @@ public class DefaultLinkService implements LinkService
             return;
         }
 
-        final String endpoint = contextService.getApiPath() +
-            schema.getRelativeApiEndpoint() + getContentTypeSuffix();
+        generatePagerLinks( pager, schema.getRelativeApiEndpoint() );
+    }
+
+    @Override
+    public void generatePagerLinks( Pager pager, String relativeApiEndpoint )
+    {
+        if ( pager == null || trimToNull( relativeApiEndpoint ) == null )
+        {
+            return;
+        }
+
+        final String endpoint = contextService.getApiPath() + relativeApiEndpoint + getContentTypeSuffix();
         final String parameters = getParametersString();
 
         if ( pager.getPage() < pager.getPageCount() )
