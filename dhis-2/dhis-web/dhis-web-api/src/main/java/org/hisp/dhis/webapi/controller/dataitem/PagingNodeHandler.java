@@ -56,8 +56,9 @@ import org.springframework.stereotype.Component;
  * This class is responsible for handling the pagination links. This component
  * is coupled to the controller class, where it's being used.
  * 
- * It also keeps and internal caching used to speed up the pagination process.
- * This caching should be removed once we have a new centralized caching
+ * It also keeps an internal cache which's used to speed up the pagination process.
+ *
+ * IMPORTANT: This caching should be removed once we have a new centralized caching
  * solution in place. At that stage, the new solution should be favoured.
  */
 @Component

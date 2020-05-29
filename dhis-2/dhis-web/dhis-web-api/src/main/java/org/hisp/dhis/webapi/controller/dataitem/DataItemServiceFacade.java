@@ -73,8 +73,11 @@ class DataItemServiceFacade
 
     private final SchemaService schemaService;
 
+    /**
+     * This Map holds the allowed data types to be queried.
+     */
     // @formatter:off
-    private static final Map<String, Class<? extends BaseDimensionalItemObject>> DATA_TYPE_MAP = ImmutableMap
+    private static final Map<String, Class<? extends BaseDimensionalItemObject>> DATA_TYPE_ENTITY_MAP = ImmutableMap
         .<String, Class<? extends BaseDimensionalItemObject>> builder()
             .put( "INDICATOR", Indicator.class )
             .put( "DATA_ELEMENT", DataElement.class )
@@ -95,21 +98,33 @@ class DataItemServiceFacade
         this.schemaService = schemaService;
     }
 
-    List<BaseDimensionalItemObject> retrieveDataItems(
+    /**
+     * This method will iterate through the list of target entities, and query each
+     * one of them using the filters and params provided. The result list will bring
+     * together the results of all target entities queried.
+     * 
+     * @param targetEntities the list of entities to be retrieved
+     * @param orderParams request ordering params
+     * @param filters request filters
+     * @param options request options
+     * @return the consolidated collection of entities found.
+     */
+    List<BaseDimensionalItemObject> retrieveDataItemEntities(
         final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
-        final List<BaseDimensionalItemObject> convertedItems = new ArrayList<>( 0 );
+        final List<BaseDimensionalItemObject> dataItemEntities = new ArrayList<>( 0 );
 
         if ( isNotEmpty( targetEntities ) )
         {
             for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
             {
-                convertedItems.addAll( queryObjectsForEntity( entity, orderParams, filters, options ) );
+                final Query query = buildQueryForEntity( entity, orderParams, filters, options );
+                dataItemEntities.addAll( executeQuery( query ) );
             }
         }
 
-        return convertedItems;
+        return dataItemEntities;
     }
 
     /**
@@ -143,12 +158,14 @@ class DataItemServiceFacade
         return targetedEntities;
     }
 
-    private List<BaseDimensionalItemObject> queryObjectsForEntity(
-        final Class<? extends BaseDimensionalItemObject> entity, final OrderParams orderParams,
-        final List<String> filters, final WebOptions options )
+    /**
+     * Execute the given query.
+     *
+     * @param query the query to be executed
+     * @return the list of entities found
+     */
+    private List<BaseDimensionalItemObject> executeQuery( final Query query )
     {
-        final Query query = buildQueryForEntity( entity, orderParams, filters, options );
-
         final List<BaseDimensionalItemObject> dimensionalItems = (List<BaseDimensionalItemObject>) queryService
             .query( query );
 
@@ -161,7 +178,7 @@ class DataItemServiceFacade
      * @param entity the BaseDimensionalItemObject class to be queried.
      * @param orderParams request ordering params
      * @param filters request filters
-     * @param options request option
+     * @param options request options
      * @return the built query
      * @throws org.hisp.dhis.query.QueryParserException if errors occur during the
      *         query creation
@@ -205,12 +222,12 @@ class DataItemServiceFacade
             if ( hasDimensionType )
             {
                 // TODO: Add support all other missing Entities
-                entity = DATA_TYPE_MAP.get( array[DIMENSION_TYPE] );
+                entity = DATA_TYPE_ENTITY_MAP.get( array[DIMENSION_TYPE] );
 
                 if ( entity == null )
                 {
                     throw new QueryParserException( "Unable to parse `" + array[DIMENSION_TYPE]
-                        + "`, available values are: " + Arrays.toString( DATA_TYPE_MAP.keySet().toArray() ) );
+                        + "`, available values are: " + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
                 }
             }
         }

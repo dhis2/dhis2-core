@@ -111,7 +111,6 @@ class DataItemQueryController
     {
         log.debug( "Looking for data items (JSON response)" );
 
-        // TODO: Should we cache it?
         return getDimensionalItems( currentUser, urlParameters, orderParams );
     }
 
@@ -126,10 +125,18 @@ class DataItemQueryController
     {
         log.debug( "Looking for data items (XML response)" );
 
-        // TODO: Should we cache it?
         return getDimensionalItems( currentUser, urlParameters, orderParams );
     }
 
+    /**
+     * Based on the informed arguments, this method will read the URL and based on
+     * the give params will retrieve the respective data items.
+     * 
+     * @param currentUser the logged user
+     * @param urlParameters the request url params
+     * @param orderParams the request order params
+     * @return the complete root node
+     */
     private RootNode getDimensionalItems( final User currentUser, final Map<String, String> urlParameters,
         final OrderParams orderParams )
     {
@@ -151,7 +158,7 @@ class DataItemQueryController
         checkAuthorization( currentUser, targetEntities );
 
         // Retrieving the data items based on the input params.
-        final List<BaseDimensionalItemObject> dimensionalItemsFound = dataItemServiceFacade.retrieveDataItems(
+        final List<BaseDimensionalItemObject> dimensionalItemsFound = dataItemServiceFacade.retrieveDataItemEntities(
             targetEntities, filters, options, orderParams );
 
         // Building the response.
