@@ -201,6 +201,12 @@ public class Visualization
 
     private ColorSet colorSet;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items on "columns" by
+     * dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
