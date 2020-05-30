@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,7 +62,6 @@ public class ProgramIndicatorController
 
     @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -91,7 +89,6 @@ public class ProgramIndicatorController
 
     @RequestMapping( value = "/filter/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void validateFilter( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
     {
         I18n i18n = i18nManager.getI18n();
 
