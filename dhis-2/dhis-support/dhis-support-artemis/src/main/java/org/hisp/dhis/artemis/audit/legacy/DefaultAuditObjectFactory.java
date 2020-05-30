@@ -40,8 +40,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;

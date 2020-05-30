@@ -193,9 +193,6 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    /*
-     * # Legend related attributes.
-     */
     private LegendDisplayStyle legendDisplayStyle;
 
     private LegendSet legendSet;
@@ -208,9 +205,6 @@ public class Visualization
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    /*
-     * # Settings more likely to be applied to graphics or charts.
-     */
     private Double targetLineValue;
 
     private Double baseLineValue;

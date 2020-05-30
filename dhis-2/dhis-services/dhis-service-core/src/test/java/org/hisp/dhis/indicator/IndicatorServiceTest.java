@@ -41,7 +41,6 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
@@ -59,9 +58,6 @@ public class IndicatorServiceTest
 {
     @Autowired
     private IndicatorService indicatorService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService injectUserService;

@@ -258,6 +258,7 @@ public abstract class AbstractTrackerDtoValidationHook
             if ( strategy.isCreate() )
             {
                 //TODO: This looks like a potential performance killer, existence check on every note...
+                //TODO: Note persistence not impl. yet.
                 boolean alreadyExists = commentService.trackedEntityCommentExists( note.getNote() );
                 if ( alreadyExists )
                 {

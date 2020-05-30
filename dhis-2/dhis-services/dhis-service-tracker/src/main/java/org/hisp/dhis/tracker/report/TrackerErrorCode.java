@@ -107,19 +107,24 @@ public enum TrackerErrorCode
     E1101( "User: `{0}`, has no read access to OrganisationUnit: `{1}`." ),
     E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
     E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
-    E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
-    E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
     E1017( "Attribute: `{0}`, does not exist." ),
-    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
     E1039( "ProgramStage is not repeatable and an event already exists." ),
-    E1040( "Multiple active enrollments exists for Program: `{0}`." ),
-    E1120( "Note already exist with same uuid: `{0}`." ),
 
     // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted." ),
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
+    // TODO: Note persistence not impl. yet
+    E1120( "Note already exist with same uuid: `{0}`." ),
 
+    //TODO: See TODO on error usage
+    E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
+    //TODO: See TODO on error usage
+    E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
+    //TODO: See TODO on error usage
+    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
+    //TODO: See TODO on error usage
+    E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     // TODO See TODO on error usage
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
     // TODO See TODO on error usage
