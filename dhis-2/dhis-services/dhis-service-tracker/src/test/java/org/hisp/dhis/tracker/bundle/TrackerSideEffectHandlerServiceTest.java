@@ -28,15 +28,9 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -44,13 +38,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
@@ -58,12 +45,16 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertTrue;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
+public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -81,20 +72,16 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
     private TrackerBundleService trackerBundleService;
 
     @Autowired
-    private ProgramRuleService programRuleService;
-
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
+    private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest()
-        throws IOException
+    protected void setUpTest() throws IOException
     {
         renderService = _renderService;
         userService = _userService;
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+                new ClassPathResource( "tracker/event_metadata_with_program_rules.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -106,35 +93,11 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
-
-        ProgramRule programRule = createProgramRule( 'A',
-            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" ) );
-        programRuleService.addProgramRule( programRule );
-
-        ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleActionService.addProgramRuleAction( programRuleAction );
-
-        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
-        programRuleService.updateProgramRule( programRule );
-
     }
 
     @Test
-    public void testRunRuleEngineForEventOnBundleCreate()
-        throws IOException
+    public void testRuleEngineSideEffectHandlerService()
     {
-        TrackerBundle trackerBundle = renderService
-            .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
 
-        assertEquals( 8, trackerBundle.getEvents().size() );
-
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() ).build() );
-
-        assertEquals( 1, trackerBundles.size() );
-        assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
     }
 }
