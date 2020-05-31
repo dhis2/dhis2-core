@@ -40,6 +40,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -96,8 +99,26 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testRuleEngineSideEffectHandlerService()
+    public void testRuleEngineSideEffectHandlerService() throws IOException
     {
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_data_with_program_rule_side_effects.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
+        assertEquals( 3, trackerBundle.getEvents().size() );
+        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .events( trackerBundle.getEvents() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .trackedEntities( trackerBundle.getTrackedEntities()).build() );
+
+        assertEquals( 1, trackerBundles.size() );
+        assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
+
+        TrackerBundleReport report = trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        assertEquals( report.getStatus(), TrackerStatus.OK );
     }
 }
