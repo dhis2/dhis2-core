@@ -30,6 +30,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * @author Stian Sandvold
+ */
 public class TrackedEntityInstanceAclReadTests
     extends ApiTest
 {
@@ -61,8 +64,6 @@ public class TrackedEntityInstanceAclReadTests
 
     private static final String _ATTRIBUTE = "attribute";
 
-    private JsonObject object;
-
     private MetadataActions metadataActions;
 
     private UserActions userActions;
@@ -79,7 +80,17 @@ public class TrackedEntityInstanceAclReadTests
 
         private String password;
 
-        private Map<String, List<String>> access;
+        private Map<String, List<String>> dataRead;
+
+        private Map<String, List<String>> noDataRead;
+
+        private List<String> groups = new ArrayList<>();
+
+        private List<String> searchScope = new ArrayList<>();
+
+        private List<String> captureScope = new ArrayList<>();
+
+        private boolean allAuthority;
 
         public User( String username, String uid, String password )
         {
@@ -118,14 +129,74 @@ public class TrackedEntityInstanceAclReadTests
             this.password = password;
         }
 
-        public Map<String, List<String>> getAccess()
+        public Map<String, List<String>> getDataRead()
         {
-            return access;
+            return dataRead;
         }
 
-        public void setAccess( Map<String, List<String>> access )
+        public void setDataRead( Map<String, List<String>> dataRead )
         {
-            this.access = access;
+            this.dataRead = dataRead;
+        }
+
+        public Map<String, List<String>> getNoDataRead()
+        {
+            return noDataRead;
+        }
+
+        public void setNoDataRead( Map<String, List<String>> noDataRead )
+        {
+            this.noDataRead = noDataRead;
+        }
+
+        public List<String> getGroups()
+        {
+            return groups;
+        }
+
+        public void setGroups( List<String> groups )
+        {
+            this.groups = groups;
+        }
+
+        public List<String> getCaptureScope()
+        {
+            return captureScope;
+        }
+
+        public void setCaptureScope( List<String> captureScope )
+        {
+            this.captureScope = captureScope;
+        }
+
+        public List<String> getSearchScope()
+        {
+            return searchScope;
+        }
+
+        public void setSearchScope( List<String> searchScope )
+        {
+            this.searchScope = searchScope;
+        }
+
+        public List<String> getScopes()
+        {
+            return ListUtils.union( searchScope, captureScope );
+        }
+
+        public void setAllAuthority( boolean allAuthority )
+        {
+            this.allAuthority = allAuthority;
+        }
+
+        public boolean getAllAuthority()
+        {
+            return allAuthority;
+        }
+
+        public boolean hasAllAuthority()
+        {
+            return allAuthority;
         }
     }
 
@@ -158,24 +229,66 @@ public class TrackedEntityInstanceAclReadTests
         users.add( new User( "User ALL", "GTqb3WOZMop", "UserALL!123" ) );
 
         // Update passwords, so we can log in as them
+        // Set AllAuth if user has it and ou scopes.
+        // Map metadata and data sharing
         users.forEach( this::setupUser );
-
-        // Update their access maps
-        setupAccessMap( admin );
-        users.forEach( this::setupAccessMap );
-
-        System.out.println( users );
     }
 
-    public void setupUser( User user )
+    /**
+     * Takes a User object and retrieves information about the users from the api.
+     * Updates the password of the user to allow access.
+     *
+     * @param user to setup
+     */
+    private void setupUser( User user )
     {
         userActions.updateUserPassword( user.getUid(), user.getPassword() );
+
+        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
+
+        // Get User information from /me
+        JsonObject me = new RestApiActions( "/me" ).get().getBody();
+
+        // Add userGroups
+        for ( JsonElement groupUid : me.getAsJsonArray( "userGroups" ) )
+        {
+            user.getGroups().add( groupUid.getAsJsonObject().get( "id" ).getAsString() );
+        }
+
+        // Add search-scope ous
+        for ( JsonElement ouUid : me.getAsJsonArray( "teiSearchOrganisationUnits" ) )
+        {
+            user.getSearchScope().add( ouUid.getAsJsonObject().get( "id" ).getAsString() );
+        }
+
+        // Add capture-scope ous
+        for ( JsonElement ouUid : me.getAsJsonArray( "organisationUnits" ) )
+        {
+            user.getCaptureScope().add( ouUid.getAsJsonObject().get( "id" ).getAsString() );
+        }
+
+        // Add hasAllAuthority if user has ALL authority
+        for ( JsonElement authority : me.getAsJsonArray( "authorities" ) )
+        {
+            if ( authority.getAsString().equals( "ALL" ) )
+            {
+                user.setAllAuthority( true );
+            }
+        }
+
+        // Setup map to decide what data can and cannot be read.
+        setupAccessMap( user );
     }
 
-    public void setupAccessMap( User user )
+    /**
+     * Finds metadata a user has access to and determines what data can be read or not based on sharing.
+     *
+     * @param user the user to setup
+     */
+    private void setupAccessMap( User user )
     {
-        Map<String, List<String>> userAccess = new HashMap<>();
-        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
+        Map<String, List<String>> dataRead = new HashMap<>();
+        Map<String, List<String>> noDataRead = new HashMap<>();
 
         // Configure params to only return metadata we care about
         String params = (new QueryParamsBuilder())
@@ -185,7 +298,7 @@ public class TrackedEntityInstanceAclReadTests
             .add( "programs=true" )
             .add( "trackedEntityAttributes=true" )
             .add( "programStages=true" )
-            .add( "fields=id,userAccesses" )
+            .add( "fields=id,userAccesses,publicAccess,userGroupAccesses" )
             .build();
 
         ApiResponse response = metadataActions.get( params );
@@ -196,32 +309,66 @@ public class TrackedEntityInstanceAclReadTests
             // Skip the System property.
             if ( !entry.getKey().equals( "system" ) )
             {
-                userAccess.put( entry.getKey(), new ArrayList<>() );
+                dataRead.put( entry.getKey(), new ArrayList<>() );
+                noDataRead.putIfAbsent( entry.getKey(), new ArrayList<>() );
 
                 entry.getValue().getAsJsonArray().forEach( obj -> {
                     JsonObject object = obj.getAsJsonObject();
-                    JsonArray userAccesses = object.getAsJsonArray( "userAccesses" ).getAsJsonArray();
 
-                    boolean hasUserAccess = false;
-                    for ( JsonElement access : userAccesses )
+                    boolean hasDataRead = false;
+
+                    if ( object.get( "publicAccess" ).getAsString().matches( "..r.*" ) )
                     {
-                        hasUserAccess = hasUserAccess ||
-                            access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() );
+                        hasDataRead = true;
+                    }
+                    else
+                    {
+                        JsonArray userAccesses = object.getAsJsonArray( "userAccesses" ).getAsJsonArray();
+                        JsonArray userGroupAccess = object.getAsJsonArray( "userGroupAccesses" ).getAsJsonArray();
+
+                        for ( JsonElement access : userAccesses )
+                        {
+                            if ( access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() ) &&
+                                access.getAsJsonObject().get( "access" ).getAsString().matches( "..r.*" ) )
+                            {
+                                hasDataRead = true;
+                            }
+                        }
+
+                        if ( !hasDataRead )
+                        {
+                            for ( JsonElement access : userGroupAccess )
+                            {
+                                if ( user.getGroups()
+                                    .contains( access.getAsJsonObject().get( "userGroupUid" ).getAsString() ) &&
+                                    access.getAsJsonObject().get( "access" ).getAsString().matches( "..r.*" ) )
+                                {
+                                    hasDataRead = true;
+                                }
+                            }
+                        }
                     }
 
-                    if ( hasUserAccess )
+                    if ( hasDataRead )
                     {
-                        userAccess.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
+                        dataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
                     }
+                    else
+                    {
+                        noDataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
+                    }
+
                 } );
-
             }
         } );
+
+        user.setDataRead( dataRead );
+        user.setNoDataRead( noDataRead );
     }
 
     @ParameterizedTest
     @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
-    public void test( String userUid )
+    public void testUserDataAndOrgUnitScopeReadAccess( String userUid )
     {
         User user = users.stream()
             .filter( _user -> _user.getUid().equals( userUid ) )
@@ -262,9 +409,12 @@ public class TrackedEntityInstanceAclReadTests
             .forEach(
                 ( programOwner ) -> ous.add( programOwner.getAsJsonObject().get( _OWNEROU ).getAsString() ) );
 
-        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "trackedEntityTypes" ),
-            new ArrayList<>(), trackedEntityType );
-        assertWithinOuScope( new ArrayList<>(), ous );
+        if ( !user.hasAllAuthority() )
+        {
+            assertStringIsInWhitelistOrNotInBlacklist( user.getDataRead().get( "trackedEntityTypes" ),
+                user.getNoDataRead().get( "trackedEntityTypes" ), trackedEntityType );
+        }
+        assertWithinOuScope( user.getScopes(), ous );
         assertNotDeleted( tei );
 
         assertTrue( tei.has( _ENROLLMENTS ) );
@@ -288,10 +438,13 @@ public class TrackedEntityInstanceAclReadTests
         String program = enrollment.get( _PROGRAM ).getAsString();
         String orgUnit = enrollment.get( _OU ).getAsString();
 
-        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "programs" ),
-            new ArrayList<>(), program );
+        if ( !user.hasAllAuthority() )
+        {
+            assertStringIsInWhitelistOrNotInBlacklist( user.getDataRead().get( "programs" ),
+                user.getNoDataRead().get( "programs" ), program );
+        }
         assertSameValueForProperty( tei, enrollment, _TEI );
-        assertWithinOuScope( new ArrayList<>(), Lists.newArrayList( orgUnit ) );
+        assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
         assertNotDeleted( enrollment );
 
         assertTrue( enrollment.has( _EVENTS ) );
@@ -312,9 +465,12 @@ public class TrackedEntityInstanceAclReadTests
         String programStage = event.get( _PROGRAMSTAGE ).getAsString();
         String orgUnit = event.get( _OU ).getAsString();
 
-        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "programStages" ),
-            new ArrayList<>(), programStage );
-        assertWithinOuScope( new ArrayList<>(), Lists.newArrayList( orgUnit ) );
+        if ( !user.hasAllAuthority() )
+        {
+            assertStringIsInWhitelistOrNotInBlacklist( user.getDataRead().get( "programStages" ),
+                user.getNoDataRead().get( "programStages" ), programStage );
+        }
+        assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
         assertSameValueForProperty( enrollment, event, _ENROLLMENT );
         assertSameValueForProperty( enrollment, event, _TEI );
         assertNotDeleted( event );
@@ -324,8 +480,14 @@ public class TrackedEntityInstanceAclReadTests
     {
         String attributeUid = attribute.get( _ATTRIBUTE ).getAsString();
 
-        assertStringIsInWhitelistOrNotInBlacklist( user.getAccess().get( "trackedEntityAttributes" ),
-            new ArrayList<>(), attributeUid );
+        // NoDataRead includes all attributes with metadata read, so we use NoDataRead to check access,
+        // instead of DataRead, since there is no DataRead for attributes.
+
+        if ( !user.hasAllAuthority() )
+        {
+            assertStringIsInWhitelistOrNotInBlacklist( user.getNoDataRead().get( "trackedEntityAttributes" ),
+                Lists.newArrayList(), attributeUid );
+        }
     }
 
     /**

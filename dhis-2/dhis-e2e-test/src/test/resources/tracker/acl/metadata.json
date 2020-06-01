@@ -28,7 +28,6 @@
       "lastUpdated": "2020-04-17T14:27:42.906",
       "name": "Organisation Unit A",
       "id": "siyOVWFPeS5",
-      "id": "siyOVWFPeS5",
       "shortName": "OUA",
       "path": "/DkSfnHsbHUh/siyOVWFPeS5",
       "openingDate": "2020-01-01T00:00:00.000",
@@ -1453,9 +1452,66 @@
         ],
         "userAccesses": []
       },
-      "teiSearchOrganisationUnits": [],
-      "organisationUnits": [],
-      "dataViewOrganisationUnits": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "tAXoecmVen9"
+        },
+        {
+          "id": "MyResqR17xm"
+        },
+        {
+          "id": "siyOVWFPeS5"
+        },
+        {
+          "id": "fKg9cOzw3qJ"
+        },
+        {
+          "id": "OUQ3Ny4FaF5"
+        },
+        {
+          "id": "DkSfnHsbHUh"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "tAXoecmVen9"
+        },
+        {
+          "id": "MyResqR17xm"
+        },
+        {
+          "id": "siyOVWFPeS5"
+        },
+        {
+          "id": "fKg9cOzw3qJ"
+        },
+        {
+          "id": "OUQ3Ny4FaF5"
+        },
+        {
+          "id": "DkSfnHsbHUh"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "tAXoecmVen9"
+        },
+        {
+          "id": "MyResqR17xm"
+        },
+        {
+          "id": "siyOVWFPeS5"
+        },
+        {
+          "id": "fKg9cOzw3qJ"
+        },
+        {
+          "id": "OUQ3Ny4FaF5"
+        },
+        {
+          "id": "DkSfnHsbHUh"
+        }
+      ],
       "attributeValues": []
     },
     {
