@@ -52,7 +52,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
-    extends HibernateIdentifiableObjectStore<T> implements AnalyticalObjectStore<T>
+    extends HibernateIdentifiableObjectStore<T>
+    implements AnalyticalObjectStore<T>
 {
     public HibernateAnalyticalObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
         Class<T> clazz, CurrentUserService currentUserService, AclService aclService,
@@ -61,47 +62,57 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
         super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable );
     }
 
-    //TODO program indicator, tracked entity attribute
+    // TODO program indicator, tracked entity attribute
 
     @Override
     public List<T> getAnalyticalObjects( Indicator indicator )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.indicator = :indicator";
         return getQuery( hql ).setParameter( "indicator", indicator ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjects( DataElement dataElement )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d" +
+            " where d.dataElement = :dataElement" +
+            " or d.dataElementOperand.dataElement = :dataElement" +
+            " or d.programDataElement.dataElement = :dataElement";
+
         return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataElementDimensions d where d.dataElement = :dataElement";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataElementDimensions d where d.dataElement = :dataElement";
         return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.attributeDimensions d where d.attribute = :attribute";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.attributeDimensions d where d.attribute = :attribute";
         return getQuery( hql ).setParameter( "attribute", attribute ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjects( DataSet dataSet )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.reportingRate.dataSet = :dataSet";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.reportingRate.dataSet = :dataSet";
         return getQuery( hql ).setParameter( "dataSet", dataSet ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjects( ProgramIndicator programIndicator )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator";
         return getQuery( hql ).setParameter( "programIndicator", programIndicator ).list();
     }
 
@@ -136,7 +147,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( Indicator indicator )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.indicator = :indicator" );
         query.setParameter( "indicator", indicator );
         return query.uniqueResult();
     }
@@ -144,7 +156,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( DataElement dataElement )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.dataElement = :dataElement" );
         query.setParameter( "dataElement", dataElement );
         return query.uniqueResult();
     }
@@ -152,7 +165,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( DataSet dataSet )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataSet = :dataSet" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.dataSet = :dataSet" );
         query.setParameter( "dataSet", dataSet );
         return query.uniqueResult();
     }
@@ -160,7 +174,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( ProgramIndicator programIndicator )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator" );
         query.setParameter( "dataSet", programIndicator );
         return query.uniqueResult();
     }
@@ -168,7 +183,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( Period period )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where :period in elements(c.periods)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from " + clazz.getName() + " c where :period in elements(c.periods)" );
         query.setParameter( "period", period );
         return query.uniqueResult();
     }
@@ -176,7 +192,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( OrganisationUnit organisationUnit )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName()
+            + " c where :organisationUnit in elements(c.organisationUnits)" );
         query.setParameter( "organisationUnit", organisationUnit );
         return query.uniqueResult();
     }
@@ -184,7 +201,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public long countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName()
+            + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)" );
         query.setParameter( "categoryOptionGroup", categoryOptionGroup );
         return query.uniqueResult();
     }

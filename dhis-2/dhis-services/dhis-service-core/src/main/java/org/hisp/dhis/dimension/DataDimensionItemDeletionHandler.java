@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -73,18 +72,5 @@ public class DataDimensionItemDeletionHandler
             + optionCombo.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public String allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "select 1" +
-            " from datadimensionitem " +
-            " where dataelementid =" + dataElement.getId() +
-            " OR dataelementoperand_dataelementid =" + dataElement.getId() +
-            " OR programdataelement_dataelementid =" + dataElement.getId() +
-            " limit 1";
-
-        return jdbcTemplate.queryForList( sql ).size() == 0 ? null : ERROR;
     }
 }
