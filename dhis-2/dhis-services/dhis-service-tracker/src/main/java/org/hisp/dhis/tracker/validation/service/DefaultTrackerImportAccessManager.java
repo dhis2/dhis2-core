@@ -84,7 +84,7 @@ public class DefaultTrackerImportAccessManager
         this.organisationUnitService = organisationUnitService;
     }
 
-    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, 
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
         OrganisationUnit orgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
@@ -95,13 +95,14 @@ public class DefaultTrackerImportAccessManager
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
+            //TODO: This state I can't reach, can't enroll in programs without registration...
             reporter.addError( newReport( TrackerErrorCode.E1093 )
                 .addArg( user )
                 .addArg( orgUnit ) );
         }
     }
 
-    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, 
+    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
         OrganisationUnit orgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
@@ -149,13 +150,8 @@ public class DefaultTrackerImportAccessManager
         }
         else
         {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null && !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1101 )
-                    .addArg( user )
-                    .addArg( ou ) );
-            }
+            //TODO: This state I can't reach, can't enroll in programs without registration...
+            checkOrgUnitInSearchScope( reporter, programInstance.getOrganisationUnit() );
         }
     }
 

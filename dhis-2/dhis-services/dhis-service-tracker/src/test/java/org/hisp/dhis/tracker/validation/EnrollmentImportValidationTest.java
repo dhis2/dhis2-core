@@ -533,9 +533,6 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
     {
         // TODO: Morten: How do we do this check on an import set, this only checks when the DB already contains it
 
-        TrackerBundleParams params = createBundleFromJson(
-            "tracker/validations/enrollments_double-tei-enrollment_part1.json" );
-
         ValidateAndCommit createAndUpdate = doValidateAndCommit(
             "tracker/validations/enrollments_double-tei-enrollment_part1.json", TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
@@ -558,6 +555,32 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
         assertThat( validationReport.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
     }
+
+    // TODO: E1093 can't reproduce
+//    @Test
+//    public void testEnrollmentNoAccessToCheck()
+//        throws IOException
+//    {
+//        ValidateAndCommit createAndUpdate = doValidateAndCommit(
+//            "tracker/validations/enrollments_no-access-check_part1.json", TrackerImportStrategy.CREATE );
+//        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+//        printReport( validationReport );
+//
+//        assertEquals( 0, validationReport.getErrorReports().size() );
+//
+//        createAndUpdate = doValidateAndCommit(
+//            "tracker/validations/enrollments_no-access-check_part2.json", TrackerImportStrategy.CREATE );
+//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//
+//        validationReport = createAndUpdate.getValidationReport();
+//        printReport( validationReport );
+//
+//        assertEquals( 1, validationReport.getErrorReports().size() );
+//
+//        assertThat( validationReport.getErrorReports(),
+//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1093 ) ) ) );
+//    }
 
     @Test
     public void testBadEnrollmentNoteNoValue()

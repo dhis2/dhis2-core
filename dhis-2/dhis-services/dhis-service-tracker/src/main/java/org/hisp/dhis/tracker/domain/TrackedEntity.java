@@ -47,6 +47,8 @@ import java.util.List;
 @AllArgsConstructor
 public class TrackedEntity implements TrackerDto
 {
+    private String uid;
+
     @JsonProperty
     private String trackedEntity;
 

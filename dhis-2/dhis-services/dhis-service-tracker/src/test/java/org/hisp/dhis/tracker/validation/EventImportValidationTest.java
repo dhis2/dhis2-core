@@ -168,6 +168,37 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testCantWriteAccessCatCombo()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-cat-write-access.json" );
+
+        User user = userService.getUser( USER_6 );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 4, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1099 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
+    }
+
+    @Test
     public void testEventMissingOrgUnit()
         throws IOException
     {
@@ -391,6 +422,39 @@ public class EventImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1036 ) ) ) );
+    }
+
+    @Test
+    public void testNonRepeatableProgramStage()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_non-repeatable-programstage_part1.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUser( user );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( trackerBundleParams, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 0, validationReport.getErrorReports().size() );
+
+        trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_non-repeatable-programstage_part2.json" );
+
+        createAndUpdate = doValidateAndCommit( trackerBundleParams, TrackerImportStrategy.CREATE );
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+
+        validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
     }
 
     @Test

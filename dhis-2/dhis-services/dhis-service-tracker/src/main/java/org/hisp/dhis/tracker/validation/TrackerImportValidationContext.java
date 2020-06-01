@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
+import com.google.common.base.Preconditions;
 import lombok.Data;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -37,7 +38,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -112,7 +112,13 @@ public class TrackerImportValidationContext
 
     public void cacheEventCategoryOptionCombo( String key, String cocUid )
     {
-        if ( !StringUtils.isEmpty( key ) && !eventCocCacheMap.containsKey( key ) )
+        Preconditions.checkArgument( !StringUtils.isEmpty( key ),
+            "Event Category Option Combo cache key 'event uid', can't be null or empty" );
+
+        Preconditions.checkArgument( !StringUtils.isEmpty( cocUid ),
+            "Event Category Option Combo cache key 'category uid', can't be null or empty" );
+
+        if ( !eventCocCacheMap.containsKey( key ) )
         {
             eventCocCacheMap.put( key, cocUid );
         }

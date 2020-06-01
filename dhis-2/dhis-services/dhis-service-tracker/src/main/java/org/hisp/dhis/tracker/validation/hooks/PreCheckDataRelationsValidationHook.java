@@ -144,7 +144,7 @@ public class PreCheckDataRelationsValidationHook
                     && !programStage.getRepeatable()
                     && programInstance.hasProgramStageInstance( programStage ) )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1039 ) );
+                    reporter.addError( newReport( TrackerErrorCode.E1039 ).addArg( programStage ) );
                 }
             }
         }
@@ -202,7 +202,7 @@ public class PreCheckDataRelationsValidationHook
         else
         {
             reporter.getValidationContext()
-                .cacheEventCategoryOptionCombo( event.getEvent(), categoryOptionCombo.getUid() );
+                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo.getUid() );
         }
     }
 

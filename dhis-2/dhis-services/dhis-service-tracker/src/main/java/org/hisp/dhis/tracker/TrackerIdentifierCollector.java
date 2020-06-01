@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -120,8 +119,7 @@ public class TrackerIdentifierCollector
             addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, event.getEnrollment() );
             addIdentifier( map, Event.class, TrackerIdScheme.UID, event.getEvent() );
             addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), event.getProgram() );
-            addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
-                event.getProgramStage() );
+            addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(), event.getProgramStage() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
 
             Stream.of( Objects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
@@ -131,10 +129,9 @@ public class TrackerIdentifierCollector
             addIdentifier( map, CategoryOptionCombo.class, params.getCategoryOptionComboIdScheme().getIdScheme(),
                 event.getAttributeOptionCombo() );
 
-            event.getDataValues().forEach( dv -> {
-                addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(),
-                    dv.getDataElement() );
-            } );
+            event.getDataValues()
+                .forEach( dv -> addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(),
+                    dv.getDataElement() ) );
         } );
     }
 

@@ -166,7 +166,7 @@ public class EnrollmentAttributeValidationHook
             boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
                 .getUser()
 
-             .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
+                .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
 
             boolean hasMissingAttribute = attributeIsMandatory
                 && !userIsAuthorizedToIgnoreRequiredValueValidation

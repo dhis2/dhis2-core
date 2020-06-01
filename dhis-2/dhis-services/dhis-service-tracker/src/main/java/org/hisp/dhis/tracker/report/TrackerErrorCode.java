@@ -103,12 +103,10 @@ public enum TrackerErrorCode
     E1115( "Could not find CategoryOptionCombo: `{0}`." ),
     E1116( "Could not find CategoryOption: `{0}`." ),
     E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
-
-    E1101( "User: `{0}`, has no read access to OrganisationUnit: `{1}`." ),
-    E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
     E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
-    E1017( "Attribute: `{0}`, does not exist." ),
-    E1039( "ProgramStage is not repeatable and an event already exists." ),
+    E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
+
+    E1048( "Object: `{0}`, uid: `{1}`, has an invalid uuid format." ),
 
     // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted." ),
@@ -117,6 +115,10 @@ public enum TrackerErrorCode
     // TODO: Note persistence not impl. yet
     E1120( "Note already exist with same uuid: `{0}`." ),
 
+    //TODO: See TODO on error usage
+    E1017( "Attribute: `{0}`, does not exist." ),
+    //TODO: See TODO on error usage
+    E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
     //TODO: See TODO on error usage
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     //TODO: See TODO on error usage
@@ -135,6 +137,8 @@ public enum TrackerErrorCode
     E1046( "Event: `{0}`, needs to have at least one (event or schedule) date." ),
     // TODO See TODO on error usage
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
+
+
 
     E9999( "N/A" );
 

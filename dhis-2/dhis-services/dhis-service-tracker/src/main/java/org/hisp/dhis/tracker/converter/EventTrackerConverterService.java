@@ -212,6 +212,7 @@ public class EventTrackerConverterService
                     getProgramInstance( preheat, TrackerIdScheme.UID, e.getEnrollment(), programStage.getProgram() ) );
             }
 
+            //TODO: Should not this qualify for validation error?
             if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
             {
                 programStageInstance.setUid( CodeGenerator.generateUid() );

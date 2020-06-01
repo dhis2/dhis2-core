@@ -48,6 +48,8 @@ import java.util.List;
 @AllArgsConstructor
 public class Enrollment implements TrackerDto
 {
+    private String uid;
+
     @JsonProperty
     private String enrollment;
 

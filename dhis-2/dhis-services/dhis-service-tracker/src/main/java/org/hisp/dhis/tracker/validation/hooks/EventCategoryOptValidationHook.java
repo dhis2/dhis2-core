@@ -85,7 +85,7 @@ public class EventCategoryOptValidationHook
 
         CategoryOptionCombo categoryOptionCombo = context
             .getCategoryOptionCombo(
-                reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+                reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getUid() ) );
 
         Objects.requireNonNull( categoryOptionCombo, Constants.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
