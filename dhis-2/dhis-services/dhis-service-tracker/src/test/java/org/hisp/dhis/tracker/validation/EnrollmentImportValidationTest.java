@@ -153,6 +153,23 @@ public class EnrollmentImportValidationTest
     }
 
     @Test
+    public void tesValidationInvalidUid()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_invalid-uid.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1048 ) ) ) );
+    }
+
+    @Test
     public void testDatesMissing()
         throws IOException
     {
