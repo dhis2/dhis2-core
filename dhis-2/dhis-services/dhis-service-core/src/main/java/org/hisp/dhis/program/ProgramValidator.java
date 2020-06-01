@@ -174,6 +174,7 @@ public class ProgramValidator
             case V_EVENT_DATE:
             case V_EXECUTION_DATE:
             case V_INCIDENT_DATE:
+            case V_COMPLETED_DATE:
                 return DEFAULT_DATE_VALUE;
 
             case V_ENROLLMENT_COUNT:
@@ -227,7 +228,7 @@ public class ProgramValidator
                 return 1d;
 
             case D2_HAS_VALUE:
-                visit( ctx.item( 0 ) );
+                visit( ctx.expr( 0 ) );
                 return true;
 
             case D2_OIZP:
