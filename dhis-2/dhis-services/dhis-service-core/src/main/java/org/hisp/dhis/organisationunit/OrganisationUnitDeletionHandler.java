@@ -30,8 +30,6 @@ package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -71,8 +69,7 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        List<OrganisationUnit> ous = new ArrayList<>( dataSet.getSources() );
-        for ( OrganisationUnit unit : ous )
+        for ( OrganisationUnit unit : dataSet.getSources() )
         {
             unit.getDataSets().remove( dataSet );
             idObjectManager.updateNoAcl( unit );
@@ -82,8 +79,7 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteUser( User user )
     {
-        List<OrganisationUnit> ous = new ArrayList<>( user.getOrganisationUnits() );
-        for ( OrganisationUnit unit : ous )
+        for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
             unit.removeUser( user );
             idObjectManager.updateNoAcl( unit );
@@ -93,8 +89,7 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteProgram( Program program )
     {
-        List<OrganisationUnit> ous = new ArrayList<>( program.getOrganisationUnits() );
-        for ( OrganisationUnit unit : ous )
+        for ( OrganisationUnit unit : program.getOrganisationUnits() )
         {
             unit.removeProgram( program );
             idObjectManager.updateNoAcl( unit );
@@ -104,8 +99,7 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        List<OrganisationUnit> ous = new ArrayList<>( group.getMembers() );
-        for ( OrganisationUnit unit : ous )
+        for ( OrganisationUnit unit : group.getMembers() )
         {
             unit.removeOrganisationUnitGroup( group );
             idObjectManager.updateNoAcl( unit );

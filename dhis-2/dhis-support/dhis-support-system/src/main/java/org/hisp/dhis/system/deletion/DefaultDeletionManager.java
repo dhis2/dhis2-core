@@ -168,7 +168,6 @@ public class DefaultDeletionManager
         catch ( Exception ex )
         {
             log.error( "Failed to invoke method " + deleteMethodName + " on DeletionHandler '" + currentHandler + "'", ex );
-            log.error( "Underlying error: ", ex.getCause() );
             return;
         }
 

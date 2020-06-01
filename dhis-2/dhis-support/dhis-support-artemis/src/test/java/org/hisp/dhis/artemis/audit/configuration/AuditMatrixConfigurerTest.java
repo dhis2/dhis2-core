@@ -101,6 +101,20 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
+    public void allDisabled()
+    {
+        when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "DISABLED" );
+        when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "DISABLED" );
+        when( config.getProperty( ConfigurationKey.AUDIT_AGGREGATE_MATRIX ) ).thenReturn( "DISABLED" );
+
+        matrix = this.subject.configure();
+
+        assertMatrixAllDisabled( METADATA );
+        assertMatrixAllDisabled( TRACKER );
+        assertMatrixAllDisabled( AGGREGATE  );
+    }
+
+    @Test
     public void verifyInvalidConfigurationIsIgnored()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READX;UPDATE" );
@@ -160,6 +174,15 @@ public class AuditMatrixConfigurerTest
         {
             assertThat( "Expecting false for audit type: " + auditType.name(),
                 matrix.get( auditScope ).get( auditType ), is( false ) );
+        }
+    }
+
+    private void assertMatrixAllDisabled( AuditScope auditScope )
+    {
+        for ( AuditType auditType : AuditType.values() )
+        {
+            assertThat( "Expecting false for audit type: " + auditType.name(),
+                    matrix.get( auditScope ).get( auditType ), is( false ) );
         }
     }
 }

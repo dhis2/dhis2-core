@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -45,7 +44,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -283,11 +281,6 @@ public class User
         return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
     }
 
-    public Set<OrganisationUnit> getAccessibleOrganisationUnitsFromSearchAndCaptureScope()
-    {
-        return Sets.union( teiSearchOrganisationUnits, organisationUnits );
-    }
-
 
     public String getOrganisationUnitsName()
     {
@@ -419,11 +412,6 @@ public class User
         }
 
         return false;
-    }
-
-    public static String getSafeUsername( String username )
-    {
-        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
     }
 
     public boolean hasEmail()
@@ -771,7 +759,12 @@ public class User
 
     public static String username( User user )
     {
-        return user != null ? user.getUsername() : "system-process";
+        return username( user, "system-process" );
+    }
+
+    public static String username( User user, String defaultValue )
+    {
+        return user != null ? user.getUsername() : defaultValue;
     }
 
     @Override

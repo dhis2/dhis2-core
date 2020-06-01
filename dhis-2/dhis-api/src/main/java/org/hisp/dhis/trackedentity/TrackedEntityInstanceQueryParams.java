@@ -29,7 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -150,6 +150,11 @@ public class TrackedEntityInstanceQueryParams
      * Tracked entity of the instances in the response.
      */
     private TrackedEntityType trackedEntityType;
+
+    /**
+     * Tracked entity types to fetch.
+     */
+    private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
     /**
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
@@ -332,7 +337,7 @@ public class TrackedEntityInstanceQueryParams
     {
         if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            setOrganisationUnits( user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() );
+            setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
             setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.CAPTURE ) )
@@ -1141,6 +1146,14 @@ public class TrackedEntityInstanceQueryParams
         this.assignedUsers = assignedUsers;
         return this;
     }
-    
-    
+
+    public List<TrackedEntityType> getTrackedEntityTypes()
+    {
+        return trackedEntityTypes;
+    }
+
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
+    {
+        this.trackedEntityTypes = trackedEntityTypes;
+    }
 }
