@@ -127,11 +127,6 @@
 		scope="prototype">
 		<property name="smsCommandService" ref="org.hisp.dhis.sms.command.SMSCommandService" />
 	</bean>
-
-	<bean id="org.hisp.dhis.mobile.action.J2meClientUpdateAction"
-		class="org.hisp.dhis.mobile.action.J2meClientUpdateAction" 
-		scope="prototype"/>
-
 	
 	<bean id="org.hisp.dhis.mobile.action.incoming.ProcessingSendQuickSMSAction"
         class="org.hisp.dhis.mobile.action.incoming.ProcessingSendQuickSMSAction" 

@@ -45,8 +45,7 @@ import com.google.common.base.Strings;
 
 @Component
 public class DefaultProgramIndicatorSubqueryBuilder
-    implements
-    ProgramIndicatorSubqueryBuilder
+    implements ProgramIndicatorSubqueryBuilder
 {
     private final static String ANALYTICS_TABLE_NAME = "analytics";
 

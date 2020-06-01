@@ -58,7 +58,7 @@ public interface ProgramInstanceService
      * Adds an {@link ProgramInstance}
      *
      * @param programInstance The to ProgramInstance add.
-     * @param user the current user.
+     * @param user            the current user.
      * @return A generated unique id of the added {@link ProgramInstance}.
      */
     long addProgramInstance( ProgramInstance programInstance, User user );
@@ -83,6 +83,8 @@ public interface ProgramInstanceService
      * @param programInstance the ProgramInstance to update.
      */
     void updateProgramInstance( ProgramInstance programInstance );
+
+    void updateProgramInstance( ProgramInstance programInstance, User user );
 
     /**
      * Returns a {@link ProgramInstance}.

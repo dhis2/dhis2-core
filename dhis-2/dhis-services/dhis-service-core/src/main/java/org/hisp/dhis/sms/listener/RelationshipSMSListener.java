@@ -110,7 +110,7 @@ public class RelationshipSMSListener
         UID toid = subm.getTo();
         UID typeid = subm.getRelationshipType();
 
-        RelationshipType relType = relationshipTypeService.getRelationshipType( typeid.uid );
+        RelationshipType relType = relationshipTypeService.getRelationshipType( typeid.getUID() );
 
         if ( relType == null )
         {
@@ -122,10 +122,11 @@ public class RelationshipSMSListener
 
         Relationship rel = new Relationship();
 
-        // If we aren't given a UID for the relationship, it will be auto-generated
+        // If we aren't given a UID for the relationship, it will be
+        // auto-generated
         if ( subm.getRelationship() != null )
         {
-            rel.setUid( subm.getRelationship().uid );
+            rel.setUid( subm.getRelationship().getUID() );
         }
 
         rel.setRelationshipType( relType );
@@ -151,7 +152,7 @@ public class RelationshipSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.uid );
+            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUID() );
             if ( tei == null )
             {
                 throw new SMSProcessingException( SMSResponse.INVALID_TEI.set( objId ) );
@@ -160,7 +161,7 @@ public class RelationshipSMSListener
             break;
 
         case PROGRAM_INSTANCE:
-            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.uid );
+            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUID() );
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SMSResponse.INVALID_ENROLL.set( objId ) );
@@ -169,7 +170,7 @@ public class RelationshipSMSListener
             break;
 
         case PROGRAM_STAGE_INSTANCE:
-            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.uid );
+            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUID() );
             if ( stageInst == null )
             {
                 throw new SMSProcessingException( SMSResponse.INVALID_EVENT.set( objId ) );

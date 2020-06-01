@@ -28,39 +28,33 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Verify.verify;
-import static java.util.Arrays.asList;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PRETTY_NAMES;
-import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.HideEmptyItemStrategy;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendDisplayStyle;
@@ -70,17 +64,32 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Verify.verify;
+import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
     extends BaseAnalyticalObject
-        implements MetadataObject
+    implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
@@ -184,9 +193,6 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    /*
-     * # Legend related attributes.
-     */
     private LegendDisplayStyle legendDisplayStyle;
 
     private LegendSet legendSet;
@@ -199,9 +205,6 @@ public class Visualization
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    /*
-     * # Settings more likely to be applied to graphics or charts.
-     */
     private Double targetLineValue;
 
     private Double baseLineValue;
@@ -329,11 +332,6 @@ public class Visualization
      */
     private transient String gridTitle;
 
-    /**
-     * The name of the reporting month based on the report param.
-     */
-    private transient String reportingPeriodName;
-
     /*
      * Collections mostly used for analytics tabulated data, like pivots or reports.
      */
@@ -400,8 +398,8 @@ public class Visualization
     }
 
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;
@@ -519,7 +517,7 @@ public class Visualization
         return cumulativeValues;
     }
 
-    public void setCumulativeValues(boolean cumulativeValues)
+    public void setCumulativeValues( boolean cumulativeValues )
     {
         this.cumulativeValues = cumulativeValues;
     }
@@ -628,7 +626,7 @@ public class Visualization
         return optionalAxes;
     }
 
-    public void setOptionalAxes(List<Axis> optionalAxes)
+    public void setOptionalAxes( List<Axis> optionalAxes )
     {
         this.optionalAxes = optionalAxes;
     }
@@ -1064,12 +1062,6 @@ public class Visualization
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
 
-        // Handle report parameters
-        if ( hasRelativePeriods() )
-        {
-            this.reportingPeriodName = relatives.getReportingPeriodName( date, format );
-        }
-
         if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
         {
             organisationUnit.setCurrentParent( true );
@@ -1370,9 +1362,9 @@ public class Visualization
      * Generates a grid for this visualization based on the given aggregate value
      * map.
      *
-     * @param grid the grid, should be empty and not null.
-     * @param valueMap the mapping of identifiers to aggregate values.
-     * @param displayProperty the display property to use for meta data.
+     * @param grid               the grid, should be empty and not null.
+     * @param valueMap           the mapping of identifiers to aggregate values.
+     * @param displayProperty    the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */

@@ -28,6 +28,10 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -35,12 +39,9 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.models.*;
 
-import java.util.List;
-import java.util.Set;
-
 /**
- * RuleEngine has its own domain model. This service is responsible for converting DHIS domain objects to
- * RuleEngine domain objects and vice versa.
+ * RuleEngine has its own domain model. This service is responsible for
+ * converting DHIS domain objects to RuleEngine domain objects and vice versa.
  *
  * Created by zubair@dhis2.org on 19.10.17.
  */
@@ -52,7 +53,7 @@ public interface ProgramRuleEntityMapperService
     List<Rule> toMappedProgramRules();
 
     /**
-     *@param program The program which provides ProgramRule.
+     * @param program The program which provides ProgramRule.
      * @return A list of mapped Rules for a specific program.
      */
     List<Rule> toMappedProgramRules( Program program );
@@ -77,7 +78,7 @@ public interface ProgramRuleEntityMapperService
     List<RuleVariable> toMappedProgramRuleVariables();
 
     /**
-     *@param programRuleVariables The list of ProgramRuleVariable to be mapped.
+     * @param programRuleVariables The list of ProgramRuleVariable to be mapped.
      * @return A list of mapped RuleVariables for list of programs.
      */
     List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
@@ -88,13 +89,8 @@ public interface ProgramRuleEntityMapperService
      *
      * @return A list of mapped events for the list of DHIS events.
      */
-    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate );
-
-    /**
-     * @param programStageInstances list of events
-     * @return A list of mapped events for the list of DHIS events.
-     */
-    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances );
+    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
+        Optional<ProgramStageInstance> psiToEvaluate );
 
     /**
      * @param psiToEvaluate event to converted.

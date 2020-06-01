@@ -682,6 +682,13 @@ public class DataAnalysisController
                 validationResultView.setPeriodDisplayName( format.formatPeriod( period ) );
             }
 
+            CategoryOptionCombo attributeOptionCombo = validationResult.getAttributeOptionCombo();
+            if ( attributeOptionCombo != null )
+            {
+                validationResultView.setAttributeOptionComboId( attributeOptionCombo.getUid() );
+                validationResultView.setAttributeOptionComboDisplayName( attributeOptionCombo.getDisplayName() );
+            }
+
             validationResultView.setLeftSideValue( validationResult.getLeftsideValue() );
             validationResultView.setRightSideValue( validationResult.getRightsideValue() );
 

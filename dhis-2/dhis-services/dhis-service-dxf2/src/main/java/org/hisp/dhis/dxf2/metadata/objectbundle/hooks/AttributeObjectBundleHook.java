@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,21 +28,33 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AbstractAuditPayload implements AuditPayload
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component
+public class AttributeObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    private final String type;
+    private final AttributeService attributeService;
 
-    public AbstractAuditPayload( String type )
+    public AttributeObjectBundleHook( AttributeService attributeService )
     {
-        this.type = type;
+        checkNotNull( attributeService );
+        this.attributeService = attributeService;
     }
-
     @Override
-    public String getType()
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        return type;
+        if ( !Attribute.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
+        attributeService.invalidateCachedAttribute( persistedObject.getUid() );
     }
 }

@@ -75,7 +75,7 @@ public class DeleteEventSMSListener
         DeleteSMSSubmission subm = (DeleteSMSSubmission) submission;
 
         UID eventid = subm.getEvent();
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.uid );
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUID() );
         if ( psi == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_EVENT.set( eventid ) );

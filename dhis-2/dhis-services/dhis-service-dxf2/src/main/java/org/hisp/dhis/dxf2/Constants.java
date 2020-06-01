@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.dxf2;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,30 +28,7 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-public class TrackedEntityAuditPayload implements AuditPayload
+public final class Constants
 {
-    @JsonProperty
-    private final TrackedEntityInstance trackedEntityInstance;
-
-    @JsonProperty
-    private final String comment;
-
-    @JsonProperty
-    private final String accessedBy;
-
-    @Override
-    public String getType()
-    {
-        return "trackedEntity";
-    }
+    public static final String UNKNOWN = "[Unknown]";
 }
