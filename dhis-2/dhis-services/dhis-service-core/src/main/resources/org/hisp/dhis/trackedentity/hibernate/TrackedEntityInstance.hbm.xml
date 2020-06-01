@@ -18,6 +18,8 @@
 
     <property name="lastUpdatedAtClient" type="timestamp" />
 
+    <property name="storedBy" column="storedby" />
+
     <property name="inactive" column="inactive" />
 
     <property name="deleted" column="deleted" />
