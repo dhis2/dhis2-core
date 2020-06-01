@@ -101,7 +101,7 @@ public class OrganisationUnitDeletionHandler
     {
         for ( OrganisationUnit unit : group.getMembers() )
         {
-            unit.removeOrganisationUnitGroup( group );
+            unit.getGroups().remove( group );
             idObjectManager.updateNoAcl( unit );
         }
     }
