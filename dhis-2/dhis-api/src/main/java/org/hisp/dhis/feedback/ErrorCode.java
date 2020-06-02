@@ -142,6 +142,10 @@ public enum ErrorCode
     E7117( "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET" ),
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
+    E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
+    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`"),
+    E7122( "Data approval level does not exist: `{0}`" ),
+    E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -160,7 +164,8 @@ public enum ErrorCode
     E7213( "Bbox is invalid, must be on format: 'min-lng,min-lat,max-lng,max-lat': `{0}`" ),
     E7214( "Cluster field must be specified when bbox or cluster size are specified" ),
     E7215( "Query item cannot specify both legend set and option set: `{0}`" ),
-    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" );
+    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
+    E7217( "User is not allowed to view event analytics data: `{0}`" );
 
     private String message;
 

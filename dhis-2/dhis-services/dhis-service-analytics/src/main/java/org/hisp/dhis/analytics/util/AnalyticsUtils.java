@@ -78,6 +78,8 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
@@ -863,18 +865,13 @@ public class AnalyticsUtils
     }
 
     /**
-     * Throws a {@link IllegalQueryException} with the given message if the
-     * given condition is true.
+     * Throws an {@link IllegalQueryException} using the given {@link ErrorCode}.
      *
-     * @param condition the condition.
-     * @param message the message.
-     * @throws {@link IllegalQueryException}.
+     * @param errorCode the error code.
+     * @param args the arguments to provide to the error message.
      */
-    public static void throwIllegalQueryExWhenTrue( boolean condition, String message )
+    public static void throwIllegalQueryEx( ErrorCode errorCode, Object... args )
     {
-        if ( condition )
-        {
-            throw new IllegalQueryException( message );
-        }
+        throw new IllegalQueryException( new ErrorMessage( errorCode, args ) );
     }
 }
