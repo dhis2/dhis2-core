@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -166,21 +167,51 @@ public class DashboardServiceTest
     @Test
     public void testDelete()
     {
-        long dAId = dashboardService.saveDashboard( dA );
-        long dBId = dashboardService.saveDashboard( dB );
+        // ## Ensuring the preparation for deletion
+        // When saved
+        final long dAId = dashboardService.saveDashboard( dA );
+        final long dBId = dashboardService.saveDashboard( dB );
 
-        assertNotNull( dashboardService.getDashboard( dAId ) );
-        assertNotNull( dashboardService.getDashboard( dBId ) );
+        // Then confirm that they were saved
+        assertThatDashboardAndItemsArePersisted( dAId );
+        assertThatDashboardAndItemsArePersisted( dBId );
 
+        // ## Testing deletion
+        // Given
+        final List<DashboardItem> itemsOfDashA = dashboardService.getDashboard( dAId ).getItems();
+        final List<DashboardItem> itemsOfDashB = dashboardService.getDashboard( dBId ).getItems();
+
+        // When deleted
         dashboardService.deleteDashboard( dA );
-
-        assertNull( dashboardService.getDashboard( dAId ) );
-        assertNotNull( dashboardService.getDashboard( dBId ) );
-
         dashboardService.deleteDashboard( dB );
 
-        assertNull( dashboardService.getDashboard( dAId ) );
-        assertNull( dashboardService.getDashboard( dBId ) );
+        // Then confirm that they were deleted
+        assertDashboardAndItemsAreDeleted( dAId, itemsOfDashA );
+        assertDashboardAndItemsAreDeleted( dBId, itemsOfDashB );
+    }
+
+    private void assertThatDashboardAndItemsArePersisted( final long dashboardId )
+    {
+        final Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+        assertNotNull( dashboard );
+
+        final List<DashboardItem> itemsA = dashboard.getItems();
+
+        for ( final DashboardItem dAItem : itemsA )
+        {
+            assertNotNull( "DashboardItem should exist", dashboardService.getDashboardItem( dAItem.getUid() ) );
+        }
+    }
+
+    private void assertDashboardAndItemsAreDeleted( final long dashboardId, final List<DashboardItem> dashboardItems )
+    {
+        assertNull( dashboardService.getDashboard( dashboardId ) );
+
+        // Assert that there are not items related to the given Dashboard
+        for ( final DashboardItem item : dashboardItems )
+        {
+            assertNull( "DashboardItem should not exist", dashboardService.getDashboardItem( item.getUid() ) );
+        }
     }
 
     @Test
