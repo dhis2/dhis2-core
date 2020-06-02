@@ -176,6 +176,11 @@ public class DefaultQueryPlanner
 
     /**
      * Splits the given list of queries in sub queries on the given dimension.
+     *
+     * @param queryGroups {@link {@link DataQueryGroups}.
+     * @param dimension the dimension identifier.
+     * @param optimalQueries the number of optimal queries.
+     * @return a {@link DataQueryGroups}.
      */
     private DataQueryGroups splitByDimension( DataQueryGroups queryGroups, String dimension, int optimalQueries )
     {
@@ -224,6 +229,9 @@ public class DefaultQueryPlanner
      * name on each query. If periods appear as filters, replaces the period filter
      * with one filter for each period type. Sets the dimension names and filter
      * names respectively.
+     *
+     * @param the {@link DataQueryParams}.
+     * @return a list of {@link DataQueryParams}.
      */
     @Override
     public List<DataQueryParams> groupByPeriodType( DataQueryParams params )
@@ -369,7 +377,7 @@ public class DefaultQueryPlanner
     /**
      * Groups queries by their data type.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDataType( DataQueryParams params )
@@ -423,7 +431,7 @@ public class DefaultQueryPlanner
      * query will be returned unchanged. If there are no data elements or data
      * element group sets specified the aggregation type will fall back to sum.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByAggregationType( DataQueryParams params )
@@ -494,11 +502,12 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Check if the filter of this DataQueryParams contains Data Elements having the same Aggregation Type
+     * Check if the filter of this {@link DataQueryParams} contains Data Elements having the same Aggregation Type
      * and the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams
      * aggregationType overrides all the Data Elements' aggregation types.
      *
      * @param params DataQueryParams object.
+     * @return true if filter has data elements of same aggregation type and value.
      */
     private boolean filterHasDataElementsOfSameAggregationTypeAndValueType( DataQueryParams params )
     {
@@ -527,7 +536,7 @@ public class DefaultQueryPlanner
      * since the number of days in the aggregation period is part of the expression
      * for aggregating the value.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDaysInPeriod( DataQueryParams params )
@@ -569,7 +578,7 @@ public class DefaultQueryPlanner
      * data elements. Sets the data period type on each query. This only applies
      * if the aggregation type of the query involves disaggregation.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDataPeriodType( DataQueryParams params )
@@ -614,7 +623,7 @@ public class DefaultQueryPlanner
      * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be
      * aggregated individually.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByPeriod( DataQueryParams params )

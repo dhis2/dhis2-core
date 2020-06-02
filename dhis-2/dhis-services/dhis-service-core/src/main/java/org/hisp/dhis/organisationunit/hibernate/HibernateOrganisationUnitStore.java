@@ -28,11 +28,7 @@ package org.hisp.dhis.organisationunit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.sql.Timestamp;
-import java.util.*;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -57,7 +53,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Kristian Nordal
@@ -109,14 +114,14 @@ public class HibernateOrganisationUnitStore
     {
         final String hql =
             "select count(*) from OrganisationUnit o " +
-            "where o.path like :path " +
-            "and :object in elements(o." + collectionName + ")";
+                "where o.path like :path " +
+                "and :object in elements(o." + collectionName + ")";
 
         Query<Long> query = getTypedQuery( hql );
-            query.setParameter( "path", parent.getPath() + "%" )
+        query.setParameter( "path", parent.getPath() + "%" )
             .setParameter( "object", member );
 
-            return query.getSingleResult();
+        return query.getSingleResult();
     }
 
     @Override
@@ -168,7 +173,7 @@ public class HibernateOrganisationUnitStore
             hql += hlp.whereAnd() + " o.hierarchyLevel <= :maxLevels ";
         }
 
-        hql += "order by o." +  params.getOrderBy().getName();
+        hql += "order by o." + params.getOrderBy().getName();
 
         Query<OrganisationUnit> query = getQuery( hql );
 
@@ -256,7 +261,7 @@ public class HibernateOrganisationUnitStore
             Set<String> dataSetIds = SqlUtils.getArrayAsSet( rs, "ds_uid" );
 
             map.put( organisationUnitId, dataSetIds );
-        });
+        } );
 
         return map;
     }
@@ -271,8 +276,8 @@ public class HibernateOrganisationUnitStore
         if ( box != null && box.length == 4 )
         {
             return getSession().createQuery(
-                    "from OrganisationUnit ou " + "where within(ou.geometry, " + doMakeEnvelopeSql( box ) + ") = true",
-                    OrganisationUnit.class ).getResultList();
+                "from OrganisationUnit ou " + "where within(ou.geometry, " + doMakeEnvelopeSql( box ) + ") = true",
+                OrganisationUnit.class ).getResultList();
         }
         return new ArrayList<>();
     }
@@ -324,8 +329,8 @@ public class HibernateOrganisationUnitStore
     {
         String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
-        Query<Integer> query =  getTypedQuery( hql );
-        Integer maxLength =  query.getSingleResult();
+        Query<Integer> query = getTypedQuery( hql );
+        Integer maxLength = query.getSingleResult();
 
         return maxLength != null ? maxLength : 0;
     }
@@ -341,7 +346,7 @@ public class HibernateOrganisationUnitStore
 
             if ( (counter % 400) == 0 )
             {
-                dbmsManager.clearSession();
+                dbmsManager.flushSession();
             }
 
             counter++;

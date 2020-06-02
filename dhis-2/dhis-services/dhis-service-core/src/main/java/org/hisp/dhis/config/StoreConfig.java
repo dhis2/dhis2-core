@@ -58,6 +58,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -206,6 +207,13 @@ public class StoreConfig
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
+    }
+
+    @Bean( "org.hisp.dhis.visualization.generic.VisualizationStore" )
+    public HibernateAnalyticalObjectStore<Visualization> visuzliationStore()
+    {
+        return new HibernateAnalyticalObjectStore<>( sessionFactory,
+            jdbcTemplate, publisher, Visualization.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.dashboard.DashboardStore" )

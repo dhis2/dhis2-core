@@ -40,14 +40,12 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -333,14 +331,6 @@ public class DefaultAppManager
         throws IOException
     {
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
-    }
-
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        appCache.invalidateAll();
-        log.info( "App cache cleared" );
     }
 
     // -------------------------------------------------------------------------

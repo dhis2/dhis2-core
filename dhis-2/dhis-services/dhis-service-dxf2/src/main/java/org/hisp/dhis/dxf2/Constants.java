@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.dxf2;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,21 +28,7 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AbstractAuditPayload implements AuditPayload
+public final class Constants
 {
-    private final String type;
-
-    public AbstractAuditPayload( String type )
-    {
-        this.type = type;
-    }
-
-    @Override
-    public String getType()
-    {
-        return type;
-    }
+    public static final String UNKNOWN = "[Unknown]";
 }

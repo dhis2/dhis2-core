@@ -101,7 +101,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator
             .orElseThrow( () -> new IllegalQueryException(
                 "Item identifier does not reference any data element, attribute or indicator part of the program: " + dimension ) ) ) );
     }
-    
+
     private LegendSet getLegendSet( String dimension )
     {
         String[] legendSplit = dimension.split( ITEM_SEP );
@@ -113,7 +113,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator
     private String getElement( String dimension, int pos )
     {
         String dim = StringUtils.substringBefore(dimension, ITEM_SEP);
-        
+
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 
         return dimSplit.length == 1 ? dimSplit[0] : dimSplit[pos];
@@ -149,8 +149,8 @@ public class DefaultQueryItemLocator implements QueryItemLocator
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
-                throw new IllegalQueryException( "For enrollment analytics queries,"
-                    + "program stage is mandatory for data element dimensions: " + dimension );
+                throw new IllegalQueryException(
+                    "Program stage is mandatory for data element dimensions in enrollment analytics queries: " + dimension );
             }
         }
         return Optional.ofNullable( qi );

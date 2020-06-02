@@ -1,5 +1,3 @@
-package org.hisp.dhis.audit.payloads;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,30 +26,38 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+package org.hisp.dhis.common.hibernate;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-@Data
-@Builder
-public class TrackedEntityAuditPayload implements AuditPayload
+public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
+    extends HibernateIdentifiableObjectStore<T>
 {
-    @JsonProperty
-    private final TrackedEntityInstance trackedEntityInstance;
-
-    @JsonProperty
-    private final String comment;
-
-    @JsonProperty
-    private final String accessedBy;
+    public SoftDeleteHibernateObjectStore( SessionFactory sessionFactory,
+        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService,
+        AclService aclService, boolean cacheable )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService,
+            cacheable );
+    }
 
     @Override
-    public String getType()
+    public void delete( SoftDeletableObject object )
     {
-        return "trackedEntity";
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        object.setDeleted( true );
+        getSession().update( object );
     }
 }

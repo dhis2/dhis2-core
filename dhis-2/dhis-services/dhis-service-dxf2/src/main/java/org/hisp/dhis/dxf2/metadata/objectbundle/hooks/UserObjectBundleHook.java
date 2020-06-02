@@ -172,7 +172,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
                 fileResourceService.updateFileResource( fileResource );
             }
         }
-
     }
 
     @Override
@@ -255,11 +254,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     /**
-     * If currentUser doesn't have read access to a UserRole
-     * and it is included in the payload
-     * then that UserRole should not be removed from updating User
-     * @param user updating User
-     * @param bundle ObjectBundle
+     * If currentUser doesn't have read access to a UserRole  and it is included in the
+     * payload, then that UserRole should not be removed from updating User.
+     *
+     * @param user the updating User.
+     * @param bundle the ObjectBundle.
      */
     private void handleNoAccessRoles( User user, ObjectBundle bundle )
     {

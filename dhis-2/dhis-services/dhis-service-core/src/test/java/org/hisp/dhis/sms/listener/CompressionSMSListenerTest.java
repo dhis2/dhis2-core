@@ -28,9 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Base64;
-import java.util.Date;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.smscompression.SMSCompressionException;
@@ -39,11 +36,18 @@ import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.user.User;
 
-public class CompressionSMSListenerTest
+import java.util.Base64;
+import java.util.Date;
+
+public abstract class CompressionSMSListenerTest
     extends
     DhisConvenienceTest
 {
     protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
+
+    protected static final String NOVALUES_MESSAGE = "1:2::The submission did not include any data values";
+
+    protected static final String NOATTRIBS_MESSAGE = "1:3::The submission did not include any attribute values";
 
     protected static final String ORIGINATOR = "47400000";
 

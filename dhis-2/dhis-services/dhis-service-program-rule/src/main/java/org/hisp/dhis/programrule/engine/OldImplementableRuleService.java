@@ -1,5 +1,3 @@
-package org.hisp.dhis.audit.payloads;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,20 +26,37 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+package org.hisp.dhis.programrule.engine;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = MetadataAuditPayload.class, name = "metadata" ),
-    @JsonSubTypes.Type( value = TrackedEntityAuditPayload.class, name = "trackedEntity" ),
-} )
-public interface AuditPayload
+import java.util.List;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class OldImplementableRuleService implements ImplementableRuleService
 {
-    @JsonProperty
-    String getType();
+    @Autowired
+    private ProgramRuleService programRuleService;
+
+    @Override
+    public List<ProgramRule> getImplementableRules( Program program )
+    {
+        List<ProgramRule> permittedRules;
+
+        permittedRules = programRuleService.getImplementableProgramRules( program,
+            ProgramRuleActionType.getNotificationLinkedTypes() );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
+        return programRuleService.getImplementableProgramRules( program,
+            ProgramRuleActionType.getImplementedActions() );
+    }
 }

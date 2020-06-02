@@ -61,7 +61,7 @@ public class CategoryOptionGroupSetDeletionHandler
 
     @Override
     public void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {        
+    {
         for ( CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets() )
         {
             groupSet.getMembers().remove( categoryOptionGroup );

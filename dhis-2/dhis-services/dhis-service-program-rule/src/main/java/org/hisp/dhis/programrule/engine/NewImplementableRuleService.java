@@ -1,5 +1,3 @@
-package org.hisp.dhis.audit.payloads;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,24 +26,25 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.common.IdentifiableObject;
+package org.hisp.dhis.programrule.engine;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-public class MetadataAuditPayload implements AuditPayload
+import java.util.List;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class NewImplementableRuleService implements ImplementableRuleService
 {
-    @JsonProperty
-    private final IdentifiableObject identifiableObject;
+    @Autowired
+    private ProgramRuleService programRuleService;
 
     @Override
-    public String getType()
+    public List<ProgramRule> getImplementableRules( Program program )
     {
-        return "metadata";
+        return programRuleService.getAllProgramRule();
     }
 }

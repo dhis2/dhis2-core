@@ -48,9 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -199,7 +197,6 @@ public class TrackerBundleParamsConverterTest
         trackedEntity.setGeometry( null );
         trackedEntity.setTrackedEntity( uid );
         trackedEntity.setEnrollments( enrollments );
-        trackedEntity.setCoordinates( null );
         return trackedEntity;
     }
 
@@ -216,7 +213,6 @@ public class TrackerBundleParamsConverterTest
         enrollment.setEnrollment( uid );
         enrollment.setTrackedEntity( parent );
         enrollment.setEvents( events );
-        enrollment.setCoordinate( null );
         return enrollment;
     }
 
@@ -229,7 +225,6 @@ public class TrackerBundleParamsConverterTest
             event.setGeometry( null );
             event.setEvent( uid + i );
             event.setEnrollment( parent );
-            event.setCoordinate( null );
             events.add( event );
         }
 

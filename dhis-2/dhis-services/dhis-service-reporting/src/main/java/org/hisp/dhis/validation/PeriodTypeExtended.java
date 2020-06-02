@@ -44,14 +44,14 @@ import org.hisp.dhis.period.PeriodType;
 /**
  * Holds information for each period type that is needed during
  * a validation run (either interactive or a scheduled run).
- * 
+ *
  * By computing these values once at the start of a validation run, we avoid
  * the overhead of having to compute them during the processing of every
  * organisation unit. For some of these properties this is also important
  * because they should be copied from Hibernate lazy collections before the
  * multithreaded part of the run starts, otherwise the threads may not be
  * able to access these values.
- * 
+ *
  * @author Jim Grace
  */
 public class PeriodTypeExtended
@@ -59,8 +59,6 @@ public class PeriodTypeExtended
     private PeriodType periodType;
 
     private Set<Period> periods = new HashSet<>();
-
-    private Map<Long, Period> periodIdMap = new HashMap<>();
 
     private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
@@ -89,6 +87,7 @@ public class PeriodTypeExtended
         this.periodType = periodType;
     }
 
+    @Override
     public String toString()
     {
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
@@ -110,8 +109,6 @@ public class PeriodTypeExtended
     public void addPeriod( Period p )
     {
         periods.add( p );
-
-        periodIdMap.put( p.getId(), p );
     }
 
     public void addIndicator( DimensionalItemObject indicator )
@@ -154,7 +151,7 @@ public class PeriodTypeExtended
 
     // -------------------------------------------------------------------------
     // Get methods
-    // -------------------------------------------------------------------------  
+    // -------------------------------------------------------------------------
 
     public PeriodType getPeriodType()
     {
