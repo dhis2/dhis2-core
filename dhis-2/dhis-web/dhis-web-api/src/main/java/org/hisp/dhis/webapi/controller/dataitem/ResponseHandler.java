@@ -33,6 +33,7 @@ import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 
@@ -44,7 +45,6 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.RootNode;
@@ -176,7 +176,7 @@ class ResponseHandler
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 20000 )
+            .withMaximumSize( isTestRun( environment.getActiveProfiles() ) ? 0 : 20000 )
             .build();
         // formatter:on
     }
