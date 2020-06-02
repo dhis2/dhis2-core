@@ -304,7 +304,7 @@ public class DefaultEventDataQueryService
         {
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
-                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
+                throw new IllegalQueryException( "Data element must be of value type coordinate in order to be used as coordinate field: " + coordinateField );
             }
 
             return dataElement.getUid();

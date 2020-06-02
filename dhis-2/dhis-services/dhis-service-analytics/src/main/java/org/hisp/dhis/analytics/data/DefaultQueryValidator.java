@@ -224,7 +224,7 @@ public class DefaultQueryValidator
     @Override
     public void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        String violation = null;
+        ErrorMessage violation = null;
 
         if ( columns != null )
         {
@@ -232,7 +232,7 @@ public class DefaultQueryValidator
             {
                 if ( !params.hasDimension( column ) )
                 {
-                    violation = "Column must be present as dimension in query: " + column;
+                    violation = new ErrorMessage( ErrorCode.E7126, column );
                 }
             }
         }
@@ -243,7 +243,7 @@ public class DefaultQueryValidator
             {
                 if ( !params.hasDimension( row ) )
                 {
-                    violation = "Row must be present as dimension in query: " + row;
+                    violation = new ErrorMessage( ErrorCode.E7127, row );
                 }
             }
         }

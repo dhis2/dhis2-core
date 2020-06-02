@@ -146,6 +146,11 @@ public enum ErrorCode
     E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`"),
     E7122( "Data approval level does not exist: `{0}`" ),
     E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
+    E7124( "Dimension is present in query without any valid dimension options: `{0}`" ),
+    E7125( "Dimension identifier does not reference any dimension: `{0}`" ),
+    E7126( "Column must be present as dimension in query: `{0}`" ),
+    E7127( "Row must be present as dimension in query: `{0}`" ),
+    E7128( "Query result set exceeded max limit: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -165,7 +170,8 @@ public enum ErrorCode
     E7214( "Cluster field must be specified when bbox or cluster size are specified" ),
     E7215( "Query item cannot specify both legend set and option set: `{0}`" ),
     E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
-    E7217( "User is not allowed to view event analytics data: `{0}`" );
+    E7217( "User is not allowed to view event analytics data: `{0}`" ),
+    E7218( "Spatial database support is not enabled" );
 
     private String message;
 
