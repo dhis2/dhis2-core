@@ -39,6 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
+import static org.springframework.http.HttpStatus.FOUND;
 
 import java.util.HashMap;
 import java.util.List;
@@ -51,11 +52,13 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
+import org.springframework.http.ResponseEntity;
 
 public class DataItemQueryControllerTest
 {
@@ -91,15 +94,20 @@ public class DataItemQueryControllerTest
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
         final List<Class<? extends BaseDimensionalItemObject>> targetEntities = asList( Indicator.class );
+        final List<BaseDimensionalItemObject> itemsFound = asList( new Indicator() );
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( dataItemServiceFacade.retrieveDataItemEntities(
+            anyList(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
 
-        final RootNode actualResponse = dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
+        final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
+            anyOrderParams, anyUser );
 
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
+        assertThat( actualResponse.getStatusCode(), is( FOUND ) );
         verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
         verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
     }

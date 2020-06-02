@@ -38,10 +38,13 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.A
 
 import java.util.List;
 
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
+import javax.annotation.PostConstruct;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.RootNode;
@@ -52,6 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -74,22 +78,26 @@ class ResponseHandler
 
     private final FieldFilterService fieldFilterService;
 
-    // @formatter:off
-    private Cache<String,Integer> pageCountingCache = new Cache2kBuilder<String, Integer>() {}
-            .expireAfterWrite( 1, MINUTES )
-            .build();
-    // @formatter:on
+    private final Environment environment;
 
-    ResponseHandler(final QueryService queryService, final LinkService linkService,
-                    final FieldFilterService fieldFilterService )
+    private final CacheProvider cacheProvider;
+
+    private Cache<Integer> PAGE_COUNTING_CACHE;
+
+    ResponseHandler( final QueryService queryService, final LinkService linkService,
+        final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
     {
         checkNotNull( queryService );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
+        checkNotNull( environment );
+        checkNotNull( cacheProvider );
 
         this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
+        this.environment = environment;
+        this.cacheProvider = cacheProvider;
     }
 
     void addResultsToNode( final RootNode rootNode, final List<BaseDimensionalItemObject> dimensionalItemsFound,
@@ -126,9 +134,9 @@ class ResponseHandler
                 // Counting and summing up the results for each entity.
                 for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
                 {
-                    count += pageCountingCache.computeIfAbsent(
+                    count += PAGE_COUNTING_CACHE.get(
                         createPageCountingCacheKey( currentUser, entity, filters, options ),
-                        () -> countEntityRowsTotal( entity, options, filters ) );
+                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( 0 );
                 }
 
                 pager = new Pager( options.getPage(), count, options.getPageSize() );
@@ -157,5 +165,19 @@ class ResponseHandler
     {
         return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();
+    }
+
+    @PostConstruct
+    private void init()
+    {
+        // formatter:off
+        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "dataItemsPagination" )
+            .expireAfterWrite( 5, MINUTES )
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 20000 )
+            .build();
+        // formatter:on
     }
 }

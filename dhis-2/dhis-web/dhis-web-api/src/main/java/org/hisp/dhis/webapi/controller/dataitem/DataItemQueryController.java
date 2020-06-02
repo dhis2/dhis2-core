@@ -33,6 +33,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
+import static org.springframework.http.HttpStatus.FOUND;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -51,6 +53,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -78,12 +81,12 @@ class DataItemQueryController
 
     private final AclService aclService;
 
-    public DataItemQueryController(final DataItemServiceFacade dataItemServiceFacade,
-                                   final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
+    public DataItemQueryController( final DataItemServiceFacade dataItemServiceFacade,
+        final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
     {
         checkNotNull( dataItemServiceFacade );
         checkNotNull( contextService );
-        checkNotNull(responseHandler);
+        checkNotNull( responseHandler );
         checkNotNull( aclService );
 
         this.dataItemServiceFacade = dataItemServiceFacade;
@@ -98,7 +101,7 @@ class DataItemQueryController
      * @return the list of items found in JSON format
      */
     @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
-    public RootNode getJson( @RequestParam
+    public ResponseEntity<RootNode> getJson( @RequestParam
     final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
         throws QueryParserException
     {
@@ -113,7 +116,7 @@ class DataItemQueryController
      * @return the list of items found in XML format
      */
     @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
-    public RootNode getXml( @RequestParam
+    public ResponseEntity<RootNode> getXml( @RequestParam
     final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
@@ -130,7 +133,8 @@ class DataItemQueryController
      * @param orderParams the request order params
      * @return the complete root node
      */
-    private RootNode getDimensionalItems( final User currentUser, final Map<String, String> urlParameters,
+    private ResponseEntity<RootNode> getDimensionalItems( final User currentUser,
+        final Map<String, String> urlParameters,
         final OrderParams orderParams )
     {
         // Defining the input params.
@@ -151,15 +155,20 @@ class DataItemQueryController
         checkAuthorization( currentUser, targetEntities );
 
         // Retrieving the data items based on the input params.
-        final List<BaseDimensionalItemObject> dimensionalItemsFound = dataItemServiceFacade.retrieveDataItemEntities(
+        final List<BaseDimensionalItemObject> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
             targetEntities, filters, options, orderParams );
 
         // Creating the response node.
         final RootNode rootNode = createMetadata();
-        responseHandler.addResultsToNode( rootNode, dimensionalItemsFound, fields );
+        responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
         responseHandler.addPaginationToNode( rootNode, targetEntities, currentUser, options, filters );
 
-        return rootNode;
+        if ( isNotEmpty( dimensionalItems ) )
+        {
+            return new ResponseEntity<>( rootNode, FOUND );
+        }
+
+        return new ResponseEntity<>( rootNode, NOT_FOUND );
     }
 
     private void checkAuthorization( final User currentUser,
