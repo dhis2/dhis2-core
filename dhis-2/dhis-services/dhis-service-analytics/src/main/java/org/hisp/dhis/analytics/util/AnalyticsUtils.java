@@ -629,7 +629,7 @@ public class AnalyticsUtils
 
         Calendar calendar = PeriodType.getCalendar();
 
-        Boolean includeMetadataDetails = params.isIncludeMetadataDetails();
+        boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
         for ( DimensionalObject dimension : dimensions )
         {

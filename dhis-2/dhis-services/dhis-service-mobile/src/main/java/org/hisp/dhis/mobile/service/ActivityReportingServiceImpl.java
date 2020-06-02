@@ -81,13 +81,13 @@ public class ActivityReportingServiceImpl
     private final VisualizationService visualizationService;
 
     public ActivityReportingServiceImpl( CurrentUserService currentUserService, MessageService messageService,
-        UserService userService, InterpretationService interpretationService, VisualizationService visualizationService)
+        UserService userService, InterpretationService interpretationService, VisualizationService visualizationService )
     {
         checkNotNull( currentUserService );
         checkNotNull( messageService );
         checkNotNull( userService );
         checkNotNull( interpretationService );
-        checkNotNull(visualizationService);
+        checkNotNull( visualizationService );
 
         this.currentUserService = currentUserService;
         this.messageService = messageService;
