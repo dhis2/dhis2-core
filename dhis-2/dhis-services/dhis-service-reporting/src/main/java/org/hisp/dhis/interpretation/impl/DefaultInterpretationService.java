@@ -149,22 +149,19 @@ public class DefaultInterpretationService
 
         Set<User> users = new HashSet<>();
 
-        if ( interpretation != null )
+        if ( user != null )
         {
-            if ( user != null )
-            {
-                interpretation.setUser( user );
-            }
-
-            if ( interpretation.getPeriod() != null )
-            {
-                interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
-            }
-
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-            interpretation.setMentionsFromUsers( users );
-            updateSharingForMentions( interpretation, users );
+            interpretation.setUser( user );
         }
+
+        if ( interpretation.getPeriod() != null )
+        {
+            interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
+        }
+
+        users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        interpretation.setMentionsFromUsers( users );
+        updateSharingForMentions( interpretation, users );
 
         interpretationStore.save( interpretation );
         notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_CREATE );

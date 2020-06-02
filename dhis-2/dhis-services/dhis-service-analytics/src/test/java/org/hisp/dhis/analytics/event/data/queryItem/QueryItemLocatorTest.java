@@ -158,7 +158,7 @@ public class QueryItemLocatorTest
     public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
         exception.expect( IllegalQueryException.class );
-        exception.expectMessage("For enrollment analytics queries,program stage is mandatory for data element dimensions: " + dimension);
+        exception.expectMessage( "Program stage is mandatory for data element dimensions in enrollment analytics queries: " + dimension );
 
         DataElement dataElementA = createDataElement( 'A' );
 

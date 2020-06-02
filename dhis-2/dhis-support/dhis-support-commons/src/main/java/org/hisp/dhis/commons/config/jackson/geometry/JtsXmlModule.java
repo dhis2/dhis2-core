@@ -46,6 +46,7 @@ public class JtsXmlModule
         this( new GeometryFactory() );
     }
 
+    @SuppressWarnings({"rawtypes","unchecked"})
     public JtsXmlModule( GeometryFactory geometryFactory )
     {
         super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
@@ -54,6 +55,7 @@ public class JtsXmlModule
         this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
     }
 
+    @Override
     public void setupModule( SetupContext context )
     {
         super.setupModule( context );
