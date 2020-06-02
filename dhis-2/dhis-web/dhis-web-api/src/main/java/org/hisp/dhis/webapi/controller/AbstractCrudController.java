@@ -237,8 +237,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
         
-        preProcessRequestParameters( metadata, options, filters, orders );
-
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
         Pager pager = metadata.getPager();
@@ -1082,13 +1080,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
     
     /**
-     * Override to pre-process and modify request parameters before querying
-     */
-    protected void preProcessRequestParameters( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
-    {
-    }
-
-    /**
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
      */
@@ -1168,7 +1159,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws QueryParserException
     {
         List<T> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
+            "true".equalsIgnoreCase( options.getOptions().get( "includeCaptureOnlyScope" ) ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
