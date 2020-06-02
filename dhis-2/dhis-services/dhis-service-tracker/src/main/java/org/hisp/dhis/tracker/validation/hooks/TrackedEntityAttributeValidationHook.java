@@ -165,13 +165,6 @@ public class TrackedEntityAttributeValidationHook
         Objects.requireNonNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
         Objects.requireNonNull( teav.getValue(), TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
-        // TODO: Should this be tested here, cant provoke? Is this not validation in metadata? Probably not according to Stian.
-//        if ( teav.getAttribute().getValueType() == null )
-//        {
-//            reporter.addError( newReport( TrackerErrorCode.E1078 )
-//                .addArg( teav.getAttribute().getValueType() ) );
-//        }
-
         if ( teav.getValue().length() > MAX_ATTR_VALUE_LENGTH )
         {
             reporter.addError( newReport( TrackerErrorCode.E1077 )

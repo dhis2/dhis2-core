@@ -186,7 +186,6 @@ public class PreCheckMetaValidationHook
                 .addArg( programStage ) );
         }
 
-        //TODO: Change program is not allowed?
         if ( strategy.isUpdate() )
         {
             ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
