@@ -29,9 +29,9 @@
 package org.hisp.dhis.analytics;
 
 /**
- * The cache mode to be used when caching Analytics queries.
+ * The possible caching TTL (expiration time) mode.
  */
-public enum AnalyticsCacheMode
+public enum AnalyticsCacheTtlMode
 {
     FIXED, PROGRESSIVE
 }

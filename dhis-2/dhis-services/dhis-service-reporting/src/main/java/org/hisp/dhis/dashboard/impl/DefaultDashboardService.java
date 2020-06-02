@@ -362,11 +362,6 @@ public class DefaultDashboardService
     public void deleteDashboard( Dashboard dashboard )
     {
         dashboardStore.delete( dashboard );
-
-        for ( DashboardItem dashboardItem : dashboard.getItems() )
-        {
-            dashboardItemStore.delete( dashboardItem );
-        }
     }
 
     @Override
