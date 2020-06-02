@@ -105,7 +105,6 @@ public enum TrackerErrorCode
     E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
     E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
     E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
-
     E1048( "Object: `{0}`, uid: `{1}`, has an invalid uuid format." ),
 
     // TODO: Delete not working yet
@@ -137,8 +136,6 @@ public enum TrackerErrorCode
     E1046( "Event: `{0}`, needs to have at least one (event or schedule) date." ),
     // TODO See TODO on error usage
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
-
-
 
     E9999( "N/A" );
 

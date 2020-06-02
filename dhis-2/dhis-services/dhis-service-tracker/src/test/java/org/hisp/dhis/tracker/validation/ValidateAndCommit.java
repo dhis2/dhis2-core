@@ -54,12 +54,14 @@ public class ValidateAndCommit
 
     private TrackerBundleReport commitReport;
 
-    @Builder.Default
-    private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
-
     private final TrackerBundleParams trackerBundleParams;
 
     private Exception commitException;
+
+    private boolean forceCommit = false;
+
+    @Builder.Default
+    private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
     public ValidateAndCommit invoke()
     {
@@ -69,14 +71,17 @@ public class ValidateAndCommit
 
         validationReport = trackerValidationService.validate( trackerBundle );
 
-        try
+        if ( validationReport.getErrorReports().isEmpty() || forceCommit )
         {
-            commitReport = trackerBundleService.commit( trackerBundle );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-            commitException = e;
+            try
+            {
+                commitReport = trackerBundleService.commit( trackerBundle );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+                commitException = e;
+            }
         }
 
         return this;

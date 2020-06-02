@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
@@ -222,13 +223,6 @@ public class DefaultTrackerBundleService
                 trackedEntityInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
-            //TODO: why? this is already done in preheater
-//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
-//            {
-//                trackedEntityInstance.setCreated( now );
-//                trackedEntityInstance.setCreatedAtClient( now );
-//            }
-
             trackedEntityInstance.setLastUpdated( now );
             trackedEntityInstance.setLastUpdatedAtClient( now );
             trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
@@ -271,13 +265,6 @@ public class DefaultTrackerBundleService
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT,
                 programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
-
-            //TODO: why? this is already done in preheater
-//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
-//            {
-//                programInstance.setCreated( now );
-//                programInstance.setCreatedAtClient( now );
-//            }
 
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
@@ -331,13 +318,6 @@ public class DefaultTrackerBundleService
 
             Date now = new Date();
 
-            //TODO: why? this is already done in preheater
-//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
-//            {
-//                programStageInstance.setCreated( now );
-//                programStageInstance.setCreatedAtClient( now );
-//            }
-
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setLastUpdatedBy( bundle.getUser() );
@@ -389,12 +369,6 @@ public class DefaultTrackerBundleService
 
             Date now = new Date();
 
-            //TODO: why? this is already done in preheater
-//            if ( bundle.getImportStrategy().isCreateOrCreateAndUpdate() )
-//            {
-//                toRelationship.setCreated( now );
-//            }
-
             toRelationship.setLastUpdated( now );
             toRelationship.setLastUpdatedBy( bundle.getUser() );
 
@@ -436,6 +410,7 @@ public class DefaultTrackerBundleService
             // TEAV.getValue has a lot of trickery behind it since its being used for
             // encryption, so we can't rely on that to
             // get empty/null values, instead we build a simple list here to compare with.
+            // TODO: Not sure how this will work, need to discuss, we have validations for empty value...
             if ( StringUtils.isEmpty( at.getValue() ) )
             {
                 attributeValuesForDeletion.add( at.getAttribute() );
@@ -472,19 +447,14 @@ public class DefaultTrackerBundleService
                 attributeValues.add( attributeValue );
             }
 
+
+            Objects.requireNonNull( attributeValue.getAttribute(), "Attribute should never be NULL here if validation is enforced before commit." );
+
             // TODO: What to do here? Should this be allowed? i.e ,  attributeValue.getAttribute() != null  this makes a NP
-            if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
-                attributeValue.getAttribute() != null && attributeValue.getAttribute().getValueType().isFile() )
+            if ( !attributeValuesForDeletion.contains( at.getAttribute() )  && attributeValue.getAttribute().getValueType().isFile() )
             {
                 assignedFileResources.add( at.getValue() );
             }
-
-
-//            if ( !attributeValuesForDeletion.contains( at.getAttribute() )
-//                && attributeValue.getAttribute().getValueType().isFile() )
-//            {
-//                assignedFileResources.add( at.getValue() );
-//            }
         }
 
         for ( TrackedEntityAttributeValue attributeValue : attributeValues )
@@ -494,11 +464,7 @@ public class DefaultTrackerBundleService
             // as it will be reloaded on session clear
             TrackedEntityAttribute attribute = attributeValue.getAttribute();
 
-//            // TODO: What to do here? Should this be allowed?
-            if ( attribute == null )
-            {
-                continue;
-            }
+            Objects.requireNonNull( attribute, "Attribute should never be NULL here if validation is enforced before commit." );
 
             if ( attributeValuesForDeletion.contains( attribute.getUid() ) )
             {

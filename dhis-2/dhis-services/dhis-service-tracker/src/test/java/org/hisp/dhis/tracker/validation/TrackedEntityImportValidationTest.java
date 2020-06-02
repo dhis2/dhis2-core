@@ -179,7 +179,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
@@ -200,7 +199,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
@@ -221,7 +219,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1001 ) ) ) );
@@ -256,7 +253,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1005 ) ) ) );
@@ -275,7 +271,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
@@ -294,12 +289,10 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
-        assertEquals( TrackerErrorCode.E1011,
-            report.getErrorReports().get( 0 ).getErrorCode() );
 
-        printReport( report );
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
     }
 
 //    @Test
@@ -393,7 +386,6 @@ public class TrackedEntityImportValidationTest
     public void testTeAttrNonExistentAttr()
         throws IOException
     {
-        // TODO: See changes to DefaultTrackerBundleService, two TODOS, we need to add NP checks there in order to complete this test.
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/te-data_error_attr-non-existing.json" );
 
@@ -401,7 +393,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 2, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
@@ -510,7 +501,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1063 ) ) ) );
@@ -526,7 +516,6 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1063 ) ) ) );
