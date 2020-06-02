@@ -171,7 +171,10 @@ public enum ErrorCode
     E7215( "Query item cannot specify both legend set and option set: `{0}`" ),
     E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
     E7217( "User is not allowed to view event analytics data: `{0}`" ),
-    E7218( "Spatial database support is not enabled" );
+    E7218( "Spatial database support is not enabled" ),
+    E7129( "Data element must be of value type coordinate in order to be used as coordinate field: `{0}`" ),
+    E7130( "Attribute must be of value type coordinate to in order to be used as coordinate field: `{0}`" ),
+    E7131( "Cluster field is invalid: `{0}`" );
 
     private String message;
 

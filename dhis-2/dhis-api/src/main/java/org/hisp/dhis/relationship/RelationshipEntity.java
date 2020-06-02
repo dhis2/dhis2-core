@@ -35,7 +35,9 @@ import static java.util.stream.Collectors.toMap;
 
 public enum RelationshipEntity
 {
-    TRACKED_ENTITY_INSTANCE( "tracked_entity" ), PROGRAM_INSTANCE( "enrollment" ), PROGRAM_STAGE_INSTANCE( "event" );
+    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
+    PROGRAM_INSTANCE( "enrollment" ),
+    PROGRAM_STAGE_INSTANCE( "event" );
 
     private String name;
 

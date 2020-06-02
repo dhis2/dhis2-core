@@ -85,7 +85,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
         default:
-            throw new IllegalQueryException( "Non valid Relationship Entity type: " + relationshipEntity.getName() );
+            throw new IllegalQueryException( "Relationship entity type not supported: " + relationshipEntity.name() );
         }
     }
 
@@ -100,7 +100,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return (programIndicatorType.equals( AnalyticsType.EVENT ) ? getEvent( alias ) : getEnrollment( alias ));
         }
-        throw new IllegalQueryException( "Non valid Relationship Entity type: " + relationshipEntity.getName() );
+        throw new IllegalQueryException( "Relationship entity type not supported: " + relationshipEntity.name() );
     }
 
     private static String getTei( String alias )
@@ -136,7 +136,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return sql + "pi.uid = ax.pi ";
         default:
-            throw new IllegalQueryException( "Non valid Relationship Entity type: " + toRelationshipEntity.getName() );
+            throw new IllegalQueryException( "Relationship entity type not supported: " + toRelationshipEntity.name() );
         }
     }
 }
