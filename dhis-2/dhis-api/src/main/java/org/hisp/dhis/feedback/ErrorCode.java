@@ -151,6 +151,8 @@ public enum ErrorCode
     E7126( "Column must be present as dimension in query: `{0}`" ),
     E7127( "Row must be present as dimension in query: `{0}`" ),
     E7128( "Query result set exceeded max limit: `{0}`" ),
+    E7129( "Program is specified but does not exist: `{0}`" ),
+    E7130( "Program stage is specified but does not exist: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -172,9 +174,22 @@ public enum ErrorCode
     E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
     E7217( "User is not allowed to view event analytics data: `{0}`" ),
     E7218( "Spatial database support is not enabled" ),
-    E7129( "Data element must be of value type coordinate in order to be used as coordinate field: `{0}`" ),
-    E7130( "Attribute must be of value type coordinate to in order to be used as coordinate field: `{0}`" ),
-    E7131( "Cluster field is invalid: `{0}`" );
+    E7219( "Data element must be of value type coordinate in order to be used as coordinate field: `{0}`" ),
+    E7220( "Attribute must be of value type coordinate to in order to be used as coordinate field: `{0}`" ),
+    E7221( "Coordinate field is invalid: `{0}`" ),
+    E7222( "Query item or filter is invalid: `{0}`" ),
+    E7223( "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`" ),
+    E7224( "Query item identifier does not reference any data element, attribute or indicator part of the program: `{0}`" ),
+    E7225( "Program stage is mandatory for data element dimensions in enrollment analytics queries: `{0}`" ),
+    E7226( "Dimension is not a valid query item: `{0}`" ),
+    E7227( "Relationship entity type not supported: `{0}`" ),
+
+    /* Org unit analytics */
+    E7300( "At least one organisation unit must be specified" ),
+    E7301( "At least one organisation unit group set must be specified" ),
+
+    /* Debug analytics */
+    E7400( "Debug query must contain at least one data element, one period and one organisation unit" );
 
     private String message;
 

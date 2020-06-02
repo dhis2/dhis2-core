@@ -130,7 +130,7 @@ public class AnalyticsUtils
 
         if ( dataElements.isEmpty() || periods.isEmpty() || orgUnits.isEmpty() )
         {
-            throw new IllegalQueryException( "Query must contain at least one data element, one period and one organisation unit" );
+            throw new IllegalQueryException( ErrorCode.E7400 );
         }
 
         String sql =

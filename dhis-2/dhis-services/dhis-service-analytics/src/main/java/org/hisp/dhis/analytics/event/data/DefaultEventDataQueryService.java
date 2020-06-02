@@ -150,14 +150,14 @@ public class DefaultEventDataQueryService
 
         if ( pr == null )
         {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + request.getProgram() );
+            throwIllegalQueryEx( ErrorCode.E7129, request.getProgram() );
         }
 
         ProgramStage ps = programStageService.getProgramStage( request.getStage() );
 
         if ( StringUtils.isNotEmpty( request.getStage() ) && ps == null )
         {
-            throw new IllegalQueryException( "Program stage is specified but does not exist: " + request.getStage() );
+            throwIllegalQueryEx( ErrorCode.E7130, request.getStage() );
         }
 
         if ( request.getDimension() != null )
@@ -346,7 +346,7 @@ public class DefaultEventDataQueryService
             return attribute.getUid();
         }
 
-        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7131, coordinateField ) );
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
     }
 
     // -------------------------------------------------------------------------
@@ -369,7 +369,7 @@ public class DefaultEventDataQueryService
 
         if ( split.length % 2 != 1 )
         {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + dimensionString );
+            throwIllegalQueryEx( ErrorCode.E7222, dimensionString );
         }
 
         QueryItem queryItem = queryItemLocator.getQueryItemFromDimension( split[0], program, type );
@@ -427,7 +427,6 @@ public class DefaultEventDataQueryService
             return at;
         }
 
-        throw new IllegalQueryException( "Value identifier does not reference any " +
-            "data element or attribute which are numeric type and part of the program: " + value );
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
     }
 }
