@@ -31,7 +31,19 @@ package org.hisp.dhis.translation;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramSection;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -54,26 +66,29 @@ public class TranslationServiceTest
     private UserService injectUserService;
 
     @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+    private IdentifiableObjectManager manager;
 
     private User user;
+
+    private Locale locale;
+
 
     @Override
     public void setUpTest() 
     {
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
+
+        locale = Locale.FRENCH;
+        UserContext.setUser( user );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
     }
 
     @Test
     public void testOK()
     {
-        Locale locale = Locale.FRENCH;
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
-
         DataElement dataElementA = createDataElement( 'A' );
-        identifiableObjectManager.save( dataElementA );
+        manager.save( dataElementA );
 
         String translatedValue = "translated";
 
@@ -81,8 +96,118 @@ public class TranslationServiceTest
 
         listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedValue ) );
 
-        identifiableObjectManager.updateTranslations( dataElementA, listObjectTranslation );
+        manager.updateTranslations( dataElementA, listObjectTranslation );
 
         assertEquals( translatedValue, dataElementA.getDisplayName() );
+    }
+
+    @Test
+    public void testFormNameTranslationForOption()
+    {
+        OptionSet optionSet = createOptionSet( 'A' );
+        optionSet.setValueType( ValueType.TEXT );
+        manager.save( optionSet );
+        Option option = createOption( 'A' );
+        option.setOptionSet( optionSet );
+        manager.save( option );
+        Set<Translation> listObjectTranslation = new HashSet<>( option.getTranslations() );
+
+        String translatedValue = "Option FormName Translated";
+
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+
+        manager.updateTranslations( option, listObjectTranslation );
+
+        assertEquals( translatedValue, option.getDisplayFormName() );
+    }
+
+    @Test
+    public void testFormNameTranslationForRelationShip()
+    {
+        RelationshipType relationshipType = createRelationshipType( 'A' );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
+        manager.save( relationshipType );
+        manager.save( organisationUnit );
+        manager.save( attribute );
+
+        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'A', organisationUnit, attribute );
+        manager.save( trackedEntityInstance );
+
+        Relationship relationship = new Relationship();
+        RelationshipItem from = new RelationshipItem();
+        from.setTrackedEntityInstance( trackedEntityInstance );
+        RelationshipItem to = new RelationshipItem();
+        to.setTrackedEntityInstance( trackedEntityInstance );
+        relationship.setFrom( from );
+        relationship.setTo( to );
+        relationship.setRelationshipType( relationshipType );
+
+        manager.save( relationship );
+
+        String translatedValue = "RelationShip FormName Translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( relationship.getTranslations() );
+
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+
+        manager.updateTranslations( relationship, listObjectTranslation );
+
+        assertEquals( translatedValue, relationship.getDisplayFormName() );
+    }
+
+    @Test
+    public void testFormNameTranslationForProgramStageSection()
+    {
+        ProgramStageSection programStageSection = createProgramStageSection( 'A' , 0 );
+        manager.save( programStageSection );
+
+        String translatedValue = "ProgramStageSection FormName Translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( programStageSection.getTranslations() );
+
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+
+        manager.updateTranslations( programStageSection, listObjectTranslation );
+
+        assertEquals( translatedValue, programStageSection.getDisplayFormName() );
+    }
+
+    @Test
+    public void testFormNameTranslationForProgramStage()
+    {
+        ProgramStage programStage = createProgramStage( 'A', 0 );
+        manager.save( programStage );
+
+        String translatedValue = "ProgramStage FormName Translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( programStage.getTranslations() );
+
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+
+        manager.updateTranslations( programStage, listObjectTranslation );
+
+        assertEquals( translatedValue, programStage.getDisplayFormName() );
+    }
+
+    @Test
+    public void testFormNameTranslationForProgramSection()
+    {
+        ProgramSection programSection = new ProgramSection();
+        programSection.setName( "Section A" );
+        programSection.setAutoFields();
+        programSection.setSortOrder( 0 );
+
+        manager.save( programSection );
+
+        String translatedValue = "ProgramSection FormName Translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( programSection.getTranslations() );
+
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+
+        manager.updateTranslations( programSection, listObjectTranslation );
+
+        assertEquals( translatedValue, programSection.getDisplayFormName() );
     }
 }

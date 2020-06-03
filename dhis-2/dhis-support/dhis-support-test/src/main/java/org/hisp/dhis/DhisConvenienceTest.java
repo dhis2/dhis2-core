@@ -114,6 +114,8 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -2303,5 +2305,17 @@ public abstract class DhisConvenienceTest
         userAccess.setAccess( access );
 
         object.getUserAccesses().add( userAccess );
+    }
+
+    public static RelationshipType createRelationshipType( char uniqueCharacter )
+    {
+        RelationshipType relationshipType = new RelationshipType();
+
+        relationshipType.setAutoFields();
+        relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
+        relationshipType.setFromConstraint( new RelationshipConstraint() );
+        relationshipType.setToConstraint( new RelationshipConstraint() );
+
+        return relationshipType;
     }
 }
