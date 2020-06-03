@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.data;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,9 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.analytics.data;
+
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.junit.Assert.assertEquals;
@@ -38,8 +39,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -815,8 +814,7 @@ public class DataQueryServiceTest
     @Test
     public void testGetFromUrlInvalidOrganisationUnits()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( ErrorCode.E7124 ) ) );
+        assertIllegalQueryEx( exception, ErrorCode.E7124 );
 
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );

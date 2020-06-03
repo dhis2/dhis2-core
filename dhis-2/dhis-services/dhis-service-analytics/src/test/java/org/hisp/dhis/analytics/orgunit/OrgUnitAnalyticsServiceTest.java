@@ -28,10 +28,9 @@
 
 package org.hisp.dhis.analytics.orgunit;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
+
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,8 +54,7 @@ public class OrgUnitAnalyticsServiceTest
     @Test
     public void testValidateNoOrgUnits()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( ErrorCode.E7300 ) ) );
+        assertIllegalQueryEx( exception, ErrorCode.E7300 );
 
         OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
             .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
