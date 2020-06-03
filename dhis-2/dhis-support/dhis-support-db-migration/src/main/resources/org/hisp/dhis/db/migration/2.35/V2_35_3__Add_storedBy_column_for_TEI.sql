@@ -1,4 +1,2 @@
 
--- Add "storedBy" column
-
-alter table trackedentityinstance add column "storedBy" varchar ;
+alter table trackedentityinstance add column if not exists "storedby" varchar(255);
