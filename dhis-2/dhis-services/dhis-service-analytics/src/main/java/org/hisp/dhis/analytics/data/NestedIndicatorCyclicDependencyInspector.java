@@ -76,10 +76,9 @@ public class NestedIndicatorCyclicDependencyInspector
     private final static String ERROR_STRING = "An Indicator with identifier '%s' has a cyclic reference to another Indicator in the Nominator or Denominator expression";
 
     /**
-     * Initiate the inspection, by invoking the recursive 'inspect' function
+     * Initiate the inspection, by invoking the recursive 'inspect' function.
      *
-     * @param dimensionalItemObjects a List of root {@see DimensionalItemObject} as
-     *        Indicators
+     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as Indicators.
      */
     public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {
@@ -95,11 +94,11 @@ public class NestedIndicatorCyclicDependencyInspector
 
     /**
      * Recursively add all the given Indicator's nested Indicators (if any) to the
-     * tree
+     * tree.
      *
-     * @param indicator The Indicator to add to the main Indicators tree
-     * @param tree the complete Indicator tree
-     * @param parent the uid of the parent node to which the Indicator is added
+     * @param indicator The Indicator to add to the main Indicators tree.
+     * @param tree the complete Indicator tree.
+     * @param parent the UID of the parent node to which the Indicator is added.
      */
     private void addDescendants( Indicator indicator, TreeNode<String> tree, String parent )
     {
@@ -118,14 +117,12 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Add the List of Indicators as Nodes to the given Tree
+     * Add the List of Indicators as Nodes to the given Tree. Fails if any of the
+     * indicator UIDs is already present in the tree as direct ancestors.
      *
-     * Fails if any of the Indicators UID is already present in the tree as **direct
-     * ancestor**.
-     *
-     * @param indicators list of Indicators to add to the tree
-     * @param tree the full tree built so far
-     * @param parent the UID of the parent node to which to attach the Indicators
+     * @param indicators list of Indicators to add to the tree.
+     * @param tree the full tree built so far.
+     * @param parent the UID of the parent node to which to attach the indicators.
      */
     public void add( List<Indicator> indicators, TreeNode<String> tree, String parent )
     {

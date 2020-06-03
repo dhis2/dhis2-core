@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.function.Supplier;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class AbstractDeviceRenderTypeMapDeserializer<T extends RenderingObject>
     extends JsonDeserializer<DeviceRenderTypeMap<T>>
 {

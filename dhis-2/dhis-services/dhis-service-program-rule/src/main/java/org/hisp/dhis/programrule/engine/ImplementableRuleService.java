@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,48 +26,14 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.annotation.Nonnull;
+package org.hisp.dhis.programrule.engine;
 
-import org.apache.commons.jexl2.JexlException;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.commons.util.ExpressionUtils;
-import org.hisp.dhis.rules.RuleExpressionEvaluator;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
 
-/**
- * Created by zubair@dhis2.org on 11.10.17.
- */
-@Slf4j
-@Component( "org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" )
-public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
+public interface ImplementableRuleService
 {
-    /**
-     * Return string value of boolean output. False will be returned in case
-     * of wrongly created expression
-     *
-     * @param expression to be evaluated.
-     * @return string value of boolean true/false.
-     */
-
-    @Nonnull
-    @Override
-    public String evaluate( @Nonnull String expression )
-    {
-        String result;
-
-        try
-        {
-            result = ExpressionUtils.evaluate( expression ).toString();
-        }
-        catch ( JexlException je )
-        {
-            result = "false";
-
-            log.debug( DebugUtils.getStackTrace( je.getCause() ) );
-        }
-
-       return result;
-    }
+    List<ProgramRule> getImplementableRules( Program program );
 }

@@ -142,6 +142,8 @@ public class AggregateDataSetSMSListenerTest
 
     private IncomingSms incomingSmsAggregate;
 
+    private IncomingSms incomingSmsAggregateNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -192,6 +194,31 @@ public class AggregateDataSetSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testAggregateDatasetListenerRepeat()
+    {
+        subject.receive( incomingSmsAggregate );
+        subject.receive( incomingSmsAggregate );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
+    public void testAggregateDatasetListenerNoValues()
+    {
+        subject.receive( incomingSmsAggregateNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOVALUES_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -205,6 +232,10 @@ public class AggregateDataSetSMSListenerTest
         dataElement = createDataElement( 'D' );
 
         incomingSmsAggregate = createSMSFromSubmission( createAggregateDatasetSubmission() );
+
+        AggregateDatasetSMSSubmission subm = createAggregateDatasetSubmission();
+        subm.setValues( null );
+        incomingSmsAggregateNoValues = createSMSFromSubmission( subm );
     }
 
     private AggregateDatasetSMSSubmission createAggregateDatasetSubmission()

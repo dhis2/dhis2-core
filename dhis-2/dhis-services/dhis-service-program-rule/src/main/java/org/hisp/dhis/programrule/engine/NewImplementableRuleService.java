@@ -1,5 +1,3 @@
-package org.hisp.dhis.audit.payloads;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,21 +26,25 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AbstractAuditPayload implements AuditPayload
-{
-    private final String type;
+package org.hisp.dhis.programrule.engine;
 
-    public AbstractAuditPayload( String type )
-    {
-        this.type = type;
-    }
+import java.util.List;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class NewImplementableRuleService implements ImplementableRuleService
+{
+    @Autowired
+    private ProgramRuleService programRuleService;
 
     @Override
-    public String getType()
+    public List<ProgramRule> getImplementableRules( Program program )
     {
-        return type;
+        return programRuleService.getAllProgramRule();
     }
 }
