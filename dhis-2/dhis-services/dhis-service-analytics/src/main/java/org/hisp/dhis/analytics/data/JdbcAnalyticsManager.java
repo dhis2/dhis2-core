@@ -30,29 +30,58 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.COUNT;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AggregationType.STDDEV;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsManager;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.QueryTimeoutException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -636,9 +665,11 @@ public class JdbcAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( maxLimit > 0 && ++counter > maxLimit )
+            boolean exceedsMaxLimit = maxLimit > 0 && ++counter > maxLimit;
+
+            if ( exceedsMaxLimit )
             {
-                throw new IllegalQueryException( "Query result set exceeds max limit: " + maxLimit );
+                throwIllegalQueryEx( ErrorCode.E7128, maxLimit );
             }
 
             StringBuilder key = new StringBuilder();

@@ -30,19 +30,37 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryGroups;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
@@ -366,7 +384,7 @@ public class DefaultQueryPlanner
         }
         else
         {
-            throw new IllegalQueryException( "Query does not contain any period dimension items" );
+            throwIllegalQueryEx( ErrorCode.E7104 );
         }
 
         logQuerySplit( queries, "period start and end date" );
