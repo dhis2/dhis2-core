@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -81,13 +82,14 @@ public class DataValueCheck implements Checker
             }
         }
 
-        if ( importSummary.getConflicts().isEmpty() && !dataValues.isEmpty() )
+        if ( importSummary.getConflicts().isEmpty() )
         {
             if ( doValidationOfMandatoryAttributes( user ) && isValidationRequired( event, ctx ) )
             {
                 validateMandatoryAttributes( importSummary, ctx, event );
             }
         }
+
         if ( !importSummary.getConflicts().isEmpty() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -101,6 +103,9 @@ public class DataValueCheck implements Checker
     public void validateMandatoryAttributes( ImportSummary importSummary, WorkContext ctx,
         ImmutableEvent event )
     {
+        if ( StringUtils.isEmpty( event.getProgramStage() ) )
+            return;
+
         final IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         final IdScheme dataElementIdScheme = ctx.getImportOptions().getIdSchemes().getDataElementIdScheme();
         final Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
@@ -174,7 +179,7 @@ public class DataValueCheck implements Checker
     {
         final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
 
-        return validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
+        return validationStrategy == null || validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
             || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED);
 
     }
@@ -187,8 +192,13 @@ public class DataValueCheck implements Checker
 
     private ValidationStrategy getValidationStrategy( WorkContext ctx, ImmutableEvent event )
     {
-        return ctx
-            .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() )
-            .getValidationStrategy();
+        if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
+        {
+            return ctx
+                .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(),
+                    event.getProgramStage() )
+                .getValidationStrategy();
+        }
+        return null;
     }
 }
