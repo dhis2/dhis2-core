@@ -28,25 +28,9 @@ package org.hisp.dhis.dto;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.annotations.Expose;
-
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class OrgUnit
+public class UserGroup
 {
     private String id;
-
-    private String name;
-
-    private String shortName;
-
-    private String openingDate;
-
-    @Expose( serialize = false, deserialize = false )
-    private String parent;
-
-    private Integer level;
 
     public String getId()
     {
@@ -56,55 +40,5 @@ public class OrgUnit
     public void setId( String id )
     {
         this.id = id;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    public String getShortName()
-    {
-        return shortName;
-    }
-
-    public void setShortName( String shortName )
-    {
-        this.shortName = shortName;
-    }
-
-    public String getOpeningDate()
-    {
-        return openingDate;
-    }
-
-    public void setOpeningDate( String openingDate )
-    {
-        this.openingDate = openingDate;
-    }
-
-    public String getParent()
-    {
-        return parent;
-    }
-
-    public void setParent( String parent )
-    {
-        this.parent = parent;
-    }
-
-    public Integer getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( Integer level )
-    {
-        this.level = level;
     }
 }

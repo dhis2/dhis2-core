@@ -10,23 +10,23 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.Me;
+import org.hisp.dhis.dto.OrgUnit;
+import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.models.User;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.ThrowingSupplier;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,10 +60,6 @@ public class TrackedEntityInstanceAclReadTests
 
     private static final String _DELETED = "deleted";
 
-    private static final String _ATTRIBUTES = "attributes";
-
-    private static final String _ATTRIBUTE = "attribute";
-
     private MetadataActions metadataActions;
 
     private UserActions userActions;
@@ -71,134 +67,6 @@ public class TrackedEntityInstanceAclReadTests
     private TEIActions teiActions;
 
     private static final List<User> users = new ArrayList<>();
-
-    private class User
-    {
-        private String username;
-
-        private String uid;
-
-        private String password;
-
-        private Map<String, List<String>> dataRead;
-
-        private Map<String, List<String>> noDataRead;
-
-        private List<String> groups = new ArrayList<>();
-
-        private List<String> searchScope = new ArrayList<>();
-
-        private List<String> captureScope = new ArrayList<>();
-
-        private boolean allAuthority;
-
-        public User( String username, String uid, String password )
-        {
-            this.username = username;
-            this.uid = uid;
-            this.password = password;
-        }
-
-        public String getUsername()
-        {
-            return username;
-        }
-
-        public void setUsername( String username )
-        {
-            this.username = username;
-        }
-
-        public String getUid()
-        {
-            return uid;
-        }
-
-        public void setUid( String uid )
-        {
-            this.uid = uid;
-        }
-
-        public String getPassword()
-        {
-            return password;
-        }
-
-        public void setPassword( String password )
-        {
-            this.password = password;
-        }
-
-        public Map<String, List<String>> getDataRead()
-        {
-            return dataRead;
-        }
-
-        public void setDataRead( Map<String, List<String>> dataRead )
-        {
-            this.dataRead = dataRead;
-        }
-
-        public Map<String, List<String>> getNoDataRead()
-        {
-            return noDataRead;
-        }
-
-        public void setNoDataRead( Map<String, List<String>> noDataRead )
-        {
-            this.noDataRead = noDataRead;
-        }
-
-        public List<String> getGroups()
-        {
-            return groups;
-        }
-
-        public void setGroups( List<String> groups )
-        {
-            this.groups = groups;
-        }
-
-        public List<String> getCaptureScope()
-        {
-            return captureScope;
-        }
-
-        public void setCaptureScope( List<String> captureScope )
-        {
-            this.captureScope = captureScope;
-        }
-
-        public List<String> getSearchScope()
-        {
-            return searchScope;
-        }
-
-        public void setSearchScope( List<String> searchScope )
-        {
-            this.searchScope = searchScope;
-        }
-
-        public List<String> getScopes()
-        {
-            return ListUtils.union( searchScope, captureScope );
-        }
-
-        public void setAllAuthority( boolean allAuthority )
-        {
-            this.allAuthority = allAuthority;
-        }
-
-        public boolean getAllAuthority()
-        {
-            return allAuthority;
-        }
-
-        public boolean hasAllAuthority()
-        {
-            return allAuthority;
-        }
-    }
 
     @BeforeAll
     public void before()
@@ -212,16 +80,13 @@ public class TrackedEntityInstanceAclReadTests
         new LoginActions().loginAsDefaultUser();
 
         // Set up metadata (Import twice to connect all references)
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
 
         // Import test data
-        JsonObject trackerData = new FileReaderUtils().read( new File( "src/test/resources/tracker/acl/data.json" ) )
-            .get( JsonObject.class );
-        teiActions.post( trackerData );
+        teiActions.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
 
         // Set up all users for testing
-        User admin = new User( "admin", "", "district" );
         users.add( new User( "User A", "O2PajOxjJSa", "UserA!123" ) );
         users.add( new User( "User B", "aDy67f9ijOe", "UserB!123" ) );
         users.add( new User( "User C", "CKrrGm5Be8O", "UserC!123" ) );
@@ -247,34 +112,21 @@ public class TrackedEntityInstanceAclReadTests
         new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
 
         // Get User information from /me
-        JsonObject me = new RestApiActions( "/me" ).get().getBody();
+        Me me = new RestApiActions( "/me" ).get().as( Me.class );
 
         // Add userGroups
-        for ( JsonElement groupUid : me.getAsJsonArray( "userGroups" ) )
-        {
-            user.getGroups().add( groupUid.getAsJsonObject().get( "id" ).getAsString() );
-        }
+        user.setGroups( me.getUserGroups().stream().map( UserGroup::getId ).collect( Collectors.toList() ) );
 
         // Add search-scope ous
-        for ( JsonElement ouUid : me.getAsJsonArray( "teiSearchOrganisationUnits" ) )
-        {
-            user.getSearchScope().add( ouUid.getAsJsonObject().get( "id" ).getAsString() );
-        }
+        user.setSearchScope(
+            me.getTeiSearchOrganisationUnits().stream().map( OrgUnit::getId ).collect( Collectors.toList() ) );
 
         // Add capture-scope ous
-        for ( JsonElement ouUid : me.getAsJsonArray( "organisationUnits" ) )
-        {
-            user.getCaptureScope().add( ouUid.getAsJsonObject().get( "id" ).getAsString() );
-        }
+        user.setCaptureScope(
+            me.getOrganisationUnits().stream().map( OrgUnit::getId ).collect( Collectors.toList() ) );
 
         // Add hasAllAuthority if user has ALL authority
-        for ( JsonElement authority : me.getAsJsonArray( "authorities" ) )
-        {
-            if ( authority.getAsString().equals( "ALL" ) )
-            {
-                user.setAllAuthority( true );
-            }
-        }
+        user.setAllAuthority( me.getAuthorities().contains( "ALL" ) );
 
         // Setup map to decide what data can and cannot be read.
         setupAccessMap( user );
@@ -288,7 +140,6 @@ public class TrackedEntityInstanceAclReadTests
     private void setupAccessMap( User user )
     {
         Map<String, List<String>> dataRead = new HashMap<>();
-        Map<String, List<String>> noDataRead = new HashMap<>();
 
         // Configure params to only return metadata we care about
         String params = (new QueryParamsBuilder())
@@ -310,7 +161,6 @@ public class TrackedEntityInstanceAclReadTests
             if ( !entry.getKey().equals( "system" ) )
             {
                 dataRead.put( entry.getKey(), new ArrayList<>() );
-                noDataRead.putIfAbsent( entry.getKey(), new ArrayList<>() );
 
                 entry.getValue().getAsJsonArray().forEach( obj -> {
                     JsonObject object = obj.getAsJsonObject();
@@ -353,17 +203,12 @@ public class TrackedEntityInstanceAclReadTests
                     {
                         dataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
                     }
-                    else
-                    {
-                        noDataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
-                    }
 
                 } );
             }
         } );
 
         user.setDataRead( dataRead );
-        user.setNoDataRead( noDataRead );
     }
 
     @ParameterizedTest
@@ -385,7 +230,7 @@ public class TrackedEntityInstanceAclReadTests
 
         JsonObject json = response.getBody();
 
-        assertTrue( json.has( _TEIS ) );
+        assertTrue( json.has( _TEIS ), "Payload is missing property " + _TEIS );
 
         json.getAsJsonArray( _TEIS ).iterator()
             .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
@@ -411,16 +256,12 @@ public class TrackedEntityInstanceAclReadTests
 
         if ( !user.hasAllAuthority() )
         {
-            assertStringIsInWhitelistOrNotInBlacklist( user.getDataRead().get( "trackedEntityTypes" ),
-                user.getNoDataRead().get( "trackedEntityTypes" ), trackedEntityType );
+            assertStringIsInWhitelist( user.getDataRead().get( "trackedEntityTypes" ), trackedEntityType );
         }
         assertWithinOuScope( user.getScopes(), ous );
         assertNotDeleted( tei );
 
         assertTrue( tei.has( _ENROLLMENTS ) );
-
-        tei.getAsJsonArray( _ATTRIBUTES )
-            .forEach( attributeJson -> assertAttribute( user, attributeJson.getAsJsonObject() ) );
 
         tei.getAsJsonArray( _ENROLLMENTS )
             .forEach( enrollmentJson -> assertEnrollment( user, enrollmentJson.getAsJsonObject(), tei ) );
@@ -440,8 +281,7 @@ public class TrackedEntityInstanceAclReadTests
 
         if ( !user.hasAllAuthority() )
         {
-            assertStringIsInWhitelistOrNotInBlacklist( user.getDataRead().get( "programs" ),
-                user.getNoDataRead().get( "programs" ), program );
+            assertStringIsInWhitelist( user.getDataRead().get( "programs" ), program );
         }
         assertSameValueForProperty( tei, enrollment, _TEI );
         assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
@@ -467,27 +307,12 @@ public class TrackedEntityInstanceAclReadTests
 
         if ( !user.hasAllAuthority() )
         {
-            assertStringIsInWhitelistOrNotInBlacklist( user.getDataRead().get( "programStages" ),
-                user.getNoDataRead().get( "programStages" ), programStage );
+            assertStringIsInWhitelist( user.getDataRead().get( "programStages" ), programStage );
         }
         assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
         assertSameValueForProperty( enrollment, event, _ENROLLMENT );
         assertSameValueForProperty( enrollment, event, _TEI );
         assertNotDeleted( event );
-    }
-
-    private void assertAttribute( User user, JsonObject attribute )
-    {
-        String attributeUid = attribute.get( _ATTRIBUTE ).getAsString();
-
-        // NoDataRead includes all attributes with metadata read, so we use NoDataRead to check access,
-        // instead of DataRead, since there is no DataRead for attributes.
-
-        if ( !user.hasAllAuthority() )
-        {
-            assertStringIsInWhitelistOrNotInBlacklist( user.getNoDataRead().get( "trackedEntityAttributes" ),
-                Lists.newArrayList(), attributeUid );
-        }
     }
 
     /**
@@ -497,7 +322,8 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertNotDeleted( JsonObject object )
     {
-        assertTrue( object.has( _DELETED ) && !object.get( _DELETED ).getAsBoolean() );
+        assertTrue( object.has( _DELETED ) && !object.get( _DELETED ).getAsBoolean(),
+            String.format( "Deleted object found: '%s'", object ) );
     }
 
     /**
@@ -509,8 +335,11 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertSameValueForProperty( JsonObject a, JsonObject b, String property )
     {
-        assertTrue( a.has( property ) && b.has( property ) );
-        assertEquals( a.get( property ), b.get( property ) );
+        assertTrue( a.has( property ) && b.has( property ),
+            String.format( "Property '%s' is not not present in both objects.", property ) );
+        assertEquals( a.get( property ), b.get( property ), String
+            .format( "Property '%s' expected to be the same, but is different: %s != %s", property, a.get( property ),
+                b.get( property ) ) );
     }
 
     /**
@@ -521,19 +350,21 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertWithinOuScope( List<String> inScope, List<String> other )
     {
-        assertFalse( ListUtils.intersection( inScope, other ).isEmpty() );
+        assertFalse( ListUtils.intersection( inScope, other ).isEmpty(),
+            String.format( "OrganisationUnit [%s] is not within user's capture or search scope [%s]",
+                String.join( ",", other ), String.join( ",", inScope ) ) );
     }
 
     /**
-     * Assert that a given String, str, either belongs to the whitelist, or is not in the blacklist.
+     * Assert that a given String, str, is part of a whitelist.
      *
      * @param whitelist list of strings we allow
-     * @param blacklist list of strings we dont allow
      * @param str       the string to test
      */
-    private void assertStringIsInWhitelistOrNotInBlacklist( List<String> whitelist, List<String> blacklist, String str )
+    private void assertStringIsInWhitelist( List<String> whitelist, String str )
     {
-        assertTrue( whitelist.contains( str ) || !blacklist.contains( str ) );
+        assertTrue( whitelist.contains( str ),
+            String.format( "User should not have access to data based on metadata with uid '%s'", str ) );
     }
 
 }
