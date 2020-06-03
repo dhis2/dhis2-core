@@ -79,6 +79,14 @@ public class ListMap<T, V>
         }
     }
 
+    public void putAll( ListMap<T, V> map )
+    {
+        for ( T key : map.keySet() )
+        {
+            putValues( key, map.get( key ) );
+        }
+    }
+
     public Collection<V> allValues()
     {
         Collection<V> results = new ArrayList<>();

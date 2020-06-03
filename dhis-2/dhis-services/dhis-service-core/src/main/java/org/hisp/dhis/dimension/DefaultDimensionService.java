@@ -38,8 +38,11 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Joiner;
+import org.apache.commons.validator.Var;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -368,7 +371,32 @@ public class DefaultDimensionService
     @Override
     public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
     {
-        return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
+        final Map<DimensionalItemId, DimensionalItemObject> map = getDataDimensionalItemObjectMap( itemIds );
+
+        Map<String, DimensionalItemObject> dios = new HashMap<>();
+        
+        Function<String[], String> makeKey = strings -> Joiner.on( "-" ).useForNull("null").join( strings );
+
+        for ( DimensionalItemId key : map.keySet() )
+        {
+            final String[] keyIds = {key.getId0(), key.getId1(), key.getId2()};
+            final DimensionalItemObject item = map.get( key );
+
+            if ( dios.containsKey( makeKey.apply( keyIds ) ) )
+            {
+                if ( dios.get( makeKey.apply( keyIds ) ).getPeriodOffset() == 0
+                    && item.getPeriodOffset() != 0 )
+                {
+                    dios.replace( item.getUid(), item );
+                }
+            }
+            else
+            {
+                dios.put( makeKey.apply( keyIds ), item );
+            }
+        }
+
+        return new HashSet<>( dios.values() );
     }
 
     @Override
@@ -523,14 +551,15 @@ public class DefaultDimensionService
             {
                 continue;
             }
-
+            BaseDimensionalItemObject dimensionalItemObject = null;
+                     
             switch ( id.getDimensionItemType() )
             {
                 case DATA_ELEMENT:
                     DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
                     if ( dataElement != null )
                     {
-                        itemObjectMap.put( id, dataElement );
+                        dimensionalItemObject = dataElement;
                     }
                     break;
 
@@ -538,7 +567,7 @@ public class DefaultDimensionService
                     Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
                     if ( indicator != null )
                     {
-                        itemObjectMap.put( id, indicator );
+                        dimensionalItemObject =  indicator;
                     }
                     break;
 
@@ -550,8 +579,7 @@ public class DefaultDimensionService
                         ( id.getId1() != null ) == ( categoryOptionCombo != null ) &&
                         ( id.getId2() != null ) == ( attributeOptionCombo != null ) )
                     {
-                        DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo, attributeOptionCombo );
-                        itemObjectMap.put( id, dataElementOperand );
+                        dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo, attributeOptionCombo );
                     }
                     break;
 
@@ -559,8 +587,7 @@ public class DefaultDimensionService
                     DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
                     if ( dataSet != null )
                     {
-                        ReportingRate reportingRate = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
-                        itemObjectMap.put( id, reportingRate );
+                        dimensionalItemObject = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
                     }
                     break;
 
@@ -569,8 +596,7 @@ public class DefaultDimensionService
                     dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
                     if ( program != null && dataElement != null )
                     {
-                        ProgramDataElementDimensionItem programDataElementDimensionItem = new ProgramDataElementDimensionItem( program, dataElement );
-                        itemObjectMap.put( id, programDataElementDimensionItem );
+                        dimensionalItemObject = new ProgramDataElementDimensionItem( program, dataElement );
                     }
                     break;
 
@@ -579,8 +605,7 @@ public class DefaultDimensionService
                     TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects.getValue( TrackedEntityAttribute.class, id.getId1() );
                     if ( program != null && attribute != null )
                     {
-                        ProgramTrackedEntityAttributeDimensionItem programTrackedEntityAttributeDimensionItem = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
-                        itemObjectMap.put( id, programTrackedEntityAttributeDimensionItem );
+                        dimensionalItemObject = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
                     }
                     break;
 
@@ -588,7 +613,7 @@ public class DefaultDimensionService
                     ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects.getValue( ProgramIndicator.class, id.getId0() );
                     if ( programIndicator != null )
                     {
-                        itemObjectMap.put( id, programIndicator );
+                        dimensionalItemObject = programIndicator;
                     }
                     break;
 
@@ -596,6 +621,15 @@ public class DefaultDimensionService
                     log.warn( "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getItemObjectMap" );
                     break;
             }
+            if ( dimensionalItemObject != null && id.getPeriodOffset() != 0 )
+            {
+                dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
+            }
+            if ( dimensionalItemObject != null )
+            {
+                itemObjectMap.put( id, dimensionalItemObject );
+            }
+
         }
 
         return itemObjectMap;
