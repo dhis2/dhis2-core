@@ -34,9 +34,14 @@ import static org.junit.Assert.assertNull;
 
 import java.util.Map;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Sets;
 
@@ -153,5 +158,19 @@ public class AnalyticsTestUtils
 
             assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
+    }
+
+    /**
+     * Asserts that an {@link IllegalQueryException} is thrown the given {@link ErrorCode}.
+     *
+     * @param exception the {@link ExpectedException}.
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public static void assertIllegalQueryEx( ExpectedException exception, ErrorCode errorCode )
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( errorCode ) ) );
+        exception.reportMissingExceptionWithMessage( String.format(
+            "Test does not throw an IllegalQueryException with error code: '%s'", errorCode ) );
     }
 }

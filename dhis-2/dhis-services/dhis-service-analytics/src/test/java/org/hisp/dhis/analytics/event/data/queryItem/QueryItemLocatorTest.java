@@ -124,7 +124,6 @@ public class QueryItemLocatorTest
     @Test
     public void verifyExceptionOnEmptyProgram()
     {
-
         exception.expect( NullPointerException.class );
         exception.expectMessage( "Program can not be null" );
 
@@ -158,7 +157,7 @@ public class QueryItemLocatorTest
     public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
         exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Program stage is mandatory for data element dimensions in enrollment analytics queries: " + dimension );
+        exception.expectMessage( "Program stage is mandatory for data element dimensions in enrollment analytics queries" );
 
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -172,7 +171,6 @@ public class QueryItemLocatorTest
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
 
         subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
-
     }
 
     @Test
@@ -352,10 +350,10 @@ public class QueryItemLocatorTest
 
         RelationshipType relationshipType = createRelationshipType();
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-                .thenReturn( programIndicatorA );
+            .thenReturn( programIndicatorA );
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
         QueryItem queryItem = subject.getQueryItemFromDimension(
-                relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( programIndicatorA ) );

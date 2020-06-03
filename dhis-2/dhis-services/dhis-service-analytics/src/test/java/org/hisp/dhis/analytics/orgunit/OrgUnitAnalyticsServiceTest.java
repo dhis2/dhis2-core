@@ -1,5 +1,3 @@
-package org.hisp.dhis.relationship;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,34 +26,40 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-import java.util.stream.Stream;
+package org.hisp.dhis.analytics.orgunit;
 
-import static java.util.stream.Collectors.toMap;
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
 
-public enum RelationshipEntity
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+
+/**
+ * @author Lars Helge Overland
+ */
+public class OrgUnitAnalyticsServiceTest
+    extends DhisSpringTest
 {
-    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
-    PROGRAM_INSTANCE( "enrollment" ),
-    PROGRAM_STAGE_INSTANCE( "event" );
+    @Autowired
+    private OrgUnitAnalyticsService subject;
 
-    private String name;
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
-    RelationshipEntity( String name )
+    @Test
+    public void testValidateNoOrgUnits()
     {
-        this.name = name;
-    }
+        assertIllegalQueryEx( exception, ErrorCode.E7300 );
 
-    private static final Map<String, RelationshipEntity> LOOKUP = Stream.of( values() )
-        .collect( toMap( RelationshipEntity::getName, x -> x ) );
+        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
+            .build();
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public static RelationshipEntity get( String name )
-    {
-        return LOOKUP.get( name );
+        subject.validate( params );
     }
 }
