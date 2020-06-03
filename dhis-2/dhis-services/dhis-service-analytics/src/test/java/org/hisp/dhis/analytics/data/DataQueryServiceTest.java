@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -805,7 +806,7 @@ public class DataQueryServiceTest
         dataQueryService.getFromRequest( dataQueryRequest );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetFromUrlInvalidOrganisationUnits()
     {
         Set<String> dimensionParams = new HashSet<>();
@@ -815,15 +816,7 @@ public class DataQueryServiceTest
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
             .dimension( dimensionParams ).build();
 
-        try
-        {
-            dataQueryService.getFromRequest( dataQueryRequest );
-        }
-        catch ( IllegalQueryException ex )
-        {
-            assertEquals( ErrorCode.E7124, ex.getErrorCode() );
-            throw ex;
-        }
+        assertIllegalQueryEx( req -> dataQueryService.getFromRequest( req ), dataQueryRequest, ErrorCode.E7124 );
     }
 
     @Test

@@ -31,11 +31,15 @@ package org.hisp.dhis.analytics.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.google.common.collect.Sets;
@@ -152,6 +156,31 @@ public class AnalyticsTestUtils
             Double expected = keyValue.get( key );
 
             assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
+        }
+    }
+
+    /**
+     * Asserts that a {@link IllegalQueryException} is thrown by the given consumer
+     * method with the given {@link ErrorCode}.
+     * <p>
+     * This method exists as JUnit does not currently allow for asserting exceptions
+     * beyond class type and message.
+     *
+     * @param method the consumer method.
+     * @param argument the method argument.
+     * @param errorCode the error code to assert.
+     */
+    public static <T> void assertIllegalQueryEx( Consumer<T> method, T argument, ErrorCode errorCode )
+    {
+        try
+        {
+            method.accept( argument );
+            fail( "Method did not throw an exception as expected" );
+        }
+        catch ( IllegalQueryException ex )
+        {
+            assertNotNull( ex );
+            assertEquals( errorCode, ex.getErrorCode() );
         }
     }
 }

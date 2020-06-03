@@ -28,17 +28,35 @@
 
 package org.hisp.dhis.analytics.orgunit;
 
-import org.hisp.dhis.DhisConvenienceTest;
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
+import static org.junit.Assert.assertNotNull;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 public class OrgUnitAnalyticsServiceTest
-    extends DhisConvenienceTest
+    extends DhisSpringTest
 {
+    @Autowired
+    private OrgUnitAnalyticsService subject;
+
     @Test
-    public void testValidate()
+    public void testValidateNoOrgUnits()
     {
+        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
+            .build();
+
+        assertNotNull( params );
+        assertNotNull( subject );
+
+        assertIllegalQueryEx( p -> subject.validate( p ), params, ErrorCode.E7300 );
     }
 }
