@@ -1179,7 +1179,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction() );
+            options.getRootJunction(), "true".equalsIgnoreCase( options.getOptions().get( "includeCaptureOnlyScope" ) )  );
         return queryService.count( query );
     }
 

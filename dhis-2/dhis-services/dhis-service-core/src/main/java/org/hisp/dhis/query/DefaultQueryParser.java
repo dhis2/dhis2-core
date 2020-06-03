@@ -126,7 +126,6 @@ public class DefaultQueryParser implements QueryParser
                 handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
             }
         }
-
         return query;
     }
 

@@ -312,6 +312,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
     /**
      * Check if all the criteria for the given query are associated to "persisted" properties
+     * Also checks one level deep into subqueries
      *
      * @param query a {@see Query} object
      * @return true, if all criteria are on persisted properties
@@ -329,6 +330,21 @@ public class DefaultQueryPlanner implements QueryPlanner
                     return false;
                 }
             }
+            else if ( criterion instanceof Junction )
+            {
+                for ( Criterion subCriterion : ((Junction) criterion).getCriterions() )
+                {
+                    if ( subCriterion instanceof Restriction )
+                    {
+                        Restriction restriction = (Restriction) subCriterion;
+                        if ( !persistedFields.contains( restriction.getPath() ) )
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+                
         }
 
         for ( Order order : query.getOrders() )
