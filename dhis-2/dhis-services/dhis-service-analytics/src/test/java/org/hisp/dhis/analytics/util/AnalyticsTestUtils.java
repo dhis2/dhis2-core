@@ -31,16 +31,17 @@ package org.hisp.dhis.analytics.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Sets;
 
@@ -160,27 +161,16 @@ public class AnalyticsTestUtils
     }
 
     /**
-     * Asserts that a {@link IllegalQueryException} is thrown by the given consumer
-     * method with the given {@link ErrorCode}.
-     * <p>
-     * This method exists as JUnit does not allow for asserting exceptions beyond
-     * class type and message.
+     * Asserts that an {@link IllegalQueryException} is thrown the given {@link ErrorCode}.
      *
-     * @param method the consumer method.
-     * @param argument the method argument.
-     * @param errorCode the error code to assert.
+     * @param exception the {@link ExpectedException}.
+     * @param errorCode the {@link ErrorCode}.
      */
-    public static <T> void assertIllegalQueryEx( Consumer<T> method, T argument, ErrorCode errorCode )
+    public static void assertIllegalQueryEx( ExpectedException exception, ErrorCode errorCode )
     {
-        try
-        {
-            method.accept( argument );
-            fail( "Method did not throw an exception as expected" );
-        }
-        catch ( IllegalQueryException ex )
-        {
-            assertNotNull( ex );
-            assertEquals( errorCode, ex.getErrorCode() );
-        }
+        exception.expect( IllegalQueryException.class );
+        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( errorCode ) ) );
+        exception.reportMissingExceptionWithMessage( String.format(
+            "Test does not throw an IllegalQueryException with error code: '%s'", errorCode ) );
     }
 }
