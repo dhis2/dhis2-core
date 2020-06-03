@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.List;
 
@@ -149,6 +150,10 @@ public class DefaultQueryService
             npQuery.setObjects( criteriaQueryEngine.query( pQuery ) );
             objects = inMemoryQueryEngine.query( npQuery );
             return objects.size();
+        }
+        else if ( isNotEmpty( npQuery.getObjects() ) )
+        {
+            return npQuery.getObjects().size();
         }
         else
         {

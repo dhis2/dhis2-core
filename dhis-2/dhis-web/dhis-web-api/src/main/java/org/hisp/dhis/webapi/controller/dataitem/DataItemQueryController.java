@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.springframework.http.HttpStatus.FOUND;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
@@ -67,7 +67,7 @@ import lombok.extern.slf4j.Slf4j;
  * It should expose only query methods.
  */
 @Slf4j
-@ApiVersion( { DEFAULT, DhisApiVersion.ALL } )
+@ApiVersion( { DEFAULT, ALL } )
 @RestController
 class DataItemQueryController
 {

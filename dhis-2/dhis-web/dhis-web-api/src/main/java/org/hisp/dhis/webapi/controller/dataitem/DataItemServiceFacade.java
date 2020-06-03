@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -71,6 +72,8 @@ class DataItemServiceFacade
 {
     private final QueryService queryService;
 
+    private final ProgramService programService;
+
     private final SchemaService schemaService;
 
     /**
@@ -89,12 +92,15 @@ class DataItemServiceFacade
             .build();
     // @formatter:on
 
-    DataItemServiceFacade( final QueryService queryService, final SchemaService schemaService )
+    DataItemServiceFacade( final QueryService queryService, final ProgramService programService,
+        final SchemaService schemaService )
     {
         checkNotNull( queryService );
+        checkNotNull( programService );
         checkNotNull( schemaService );
 
         this.queryService = queryService;
+        this.programService = programService;
         this.schemaService = schemaService;
     }
 
@@ -193,6 +199,14 @@ class DataItemServiceFacade
         final Query query = queryService.getQueryFromUrl( entity, filters, orders,
             getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
+
+        if ( options.contains( "program.id" ) )
+        {
+            final String programUid = options.get( "program.id" );
+            final List<ProgramDataElementDimensionItem> programDataElements = programService
+                .getGeneratedProgramDataElements( programUid );
+            query.setObjects( programDataElements );
+        }
 
         return query;
     }
