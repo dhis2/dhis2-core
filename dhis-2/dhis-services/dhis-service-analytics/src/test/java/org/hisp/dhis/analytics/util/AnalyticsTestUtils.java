@@ -163,8 +163,8 @@ public class AnalyticsTestUtils
      * Asserts that a {@link IllegalQueryException} is thrown by the given consumer
      * method with the given {@link ErrorCode}.
      * <p>
-     * This method exists as JUnit does not currently allow for asserting exceptions
-     * beyond class type and message.
+     * This method exists as JUnit does not allow for asserting exceptions beyond
+     * class type and message.
      *
      * @param method the consumer method.
      * @param argument the method argument.
