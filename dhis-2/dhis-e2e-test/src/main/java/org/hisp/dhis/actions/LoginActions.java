@@ -119,4 +119,9 @@ public class LoginActions
     {
         RestAssured.authentication = oauth2( token );
     }
+
+    public void loginAsAdmin()
+    {
+        loginAsUser( TestConfiguration.get().adminUserUsername(), TestConfiguration.get().adminUserPassword() );
+    }
 }

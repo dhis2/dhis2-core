@@ -1,5 +1,3 @@
-package org.hisp.dhis.helpers.config;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,32 +26,57 @@ package org.hisp.dhis.helpers.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.utils;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.Constants;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@org.aeonbits.owner.Config.LoadPolicy( org.aeonbits.owner.Config.LoadType.MERGE )
-@Config.Sources( { "system:properties", "system:env", "classpath:config.properties" } )
-public interface Config
-    extends org.aeonbits.owner.Config
+public class JsonObjectBuilder
 {
-    @Key( "instance.url" )
-    String baseUrl();
+    private JsonObject jsonObject;
+    public JsonObjectBuilder() {
+        jsonObject = new JsonObject();
+    }
 
-    @Key( "user.super.password" )
-    String superUserPassword();
+    public JsonObjectBuilder( JsonObject jsonObject ) {
+        this.jsonObject = jsonObject;
+    }
 
-    @Key( "user.super.username" )
-    String superUserUsername();
+    public static JsonObjectBuilder jsonObject() {
+        return new JsonObjectBuilder();
+    }
 
-    @Key( "user.default.username" )
-    String defaultUserUsername();
+    public static JsonObjectBuilder jsonObject( JsonObject jsonObject) {
+        return new JsonObjectBuilder( jsonObject );
+    }
 
-    @Key( "user.default.password" )
-    String defaultUSerPassword();
+    public JsonObjectBuilder addProperty(String property, String value) {
+        jsonObject.addProperty( property, value );
 
-    @Key( "user.admin.username" )
-    String adminUserUsername();
+        return this;
+    }
 
-    @Key( "user.admin.password" )
-    String adminUserPassword();
+    public JsonObjectBuilder addUserGroupAccess( ) {
+        JsonArray userGroupAccesses = new JsonArray(  );
+
+        JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
+            .addProperty( "access", "rwrw----" )
+            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
+            .addProperty( "id", Constants.USER_GROUP_ID )
+            .build();
+
+        userGroupAccesses.add( userGroupAccess );
+
+
+        jsonObject.add( "userGroupAccesses", userGroupAccesses );
+
+        return this;
+    }
+    public JsonObject build() {
+        return this.jsonObject;
+    }
 }

@@ -33,10 +33,13 @@ import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -57,6 +60,8 @@ public class EventImportDataValueValidationTests
 
     private RestApiActions dataElementActions;
 
+    private SharingActions sharingActions;
+
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
 
     private String programId;
@@ -71,6 +76,9 @@ public class EventImportDataValueValidationTests
         programActions = new ProgramActions();
         eventActions = new EventActions();
         dataElementActions = new RestApiActions( "/dataElements" );
+        sharingActions = new SharingActions();
+
+        new LoginActions().loginAsAdmin();
 
         setupData();
     }
@@ -85,6 +93,28 @@ public class EventImportDataValueValidationTests
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
             .body( "response.ignored", equalTo( 1 ) );
+    }
+
+    @Test
+    public void shouldValidateDataValuesOnUpdate() {
+        JsonObject body = JsonObjectBuilder.jsonObject()
+            .addProperty( "validationStrategy", "ON_UPDATE_AND_INSERT")
+            .build();
+
+        programActions.programStageActions.patch( programStageId, body )
+            .validate().statusCode( 204 );
+
+        programActions.programStageActions.get( programStageId )
+            .validate().body( "validationStrategy", equalTo( "ON_UPDATE_AND_INSERT" ) );
+
+        JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
+
+        ApiResponse response = eventActions.post( events );
+
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
+            .body( "response.ignored", equalTo( 1 ) );
+
     }
 
     @Test
@@ -112,9 +142,10 @@ public class EventImportDataValueValidationTests
     private void setupData()
     {
         ApiResponse response = programActions.createEventProgram( OU_ID );
-
         programId = response.extractUid();
         assertNotNull( programId, "Failed to create a program" );
+
+        sharingActions.setupSharingForConfiguredUserGroup( "program", programId );
 
         programStageId = programActions.get( programId, new QueryParamsBuilder().add( "fields=*" ) )
             .extractString( "programStages.id[0]" );

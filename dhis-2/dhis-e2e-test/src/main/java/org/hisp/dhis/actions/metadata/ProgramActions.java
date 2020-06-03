@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.JsonObjectBuilder;
 
 import java.util.Optional;
 
@@ -161,9 +162,10 @@ public class ProgramActions
     {
         String random = DataGenerator.randomString();
 
-        JsonObject object = new JsonObject();
-        object.addProperty( "name", "AutoTest program " + random );
-        object.addProperty( "shortName", "AutoTest program " + random );
+        JsonObject object = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", "AutoTest program " + random )
+            .addProperty( "shortName", "AutoTest program " + random )
+            .build();
 
         return object;
     }

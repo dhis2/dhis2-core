@@ -1,5 +1,3 @@
-package org.hisp.dhis.helpers.config;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,32 +26,30 @@ package org.hisp.dhis.helpers.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.actions.metadata;
+
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.utils.JsonObjectBuilder;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@org.aeonbits.owner.Config.LoadPolicy( org.aeonbits.owner.Config.LoadType.MERGE )
-@Config.Sources( { "system:properties", "system:env", "classpath:config.properties" } )
-public interface Config
-    extends org.aeonbits.owner.Config
+public class SharingActions extends RestApiActions
 {
-    @Key( "instance.url" )
-    String baseUrl();
+    public SharingActions( )
+    {
+        super( "/sharing" );
+    }
 
-    @Key( "user.super.password" )
-    String superUserPassword();
+    public void setupSharingForConfiguredUserGroup(String type, String id) {
 
-    @Key( "user.super.username" )
-    String superUserUsername();
+        JsonObject jsonObject = new JsonObject();
 
-    @Key( "user.default.username" )
-    String defaultUserUsername();
+        jsonObject.add( "object",JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
 
-    @Key( "user.default.password" )
-    String defaultUSerPassword();
+        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
+    }
 
-    @Key( "user.admin.username" )
-    String adminUserUsername();
-
-    @Key( "user.admin.password" )
-    String adminUserPassword();
 }

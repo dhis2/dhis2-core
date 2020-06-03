@@ -78,6 +78,8 @@ public class MetadataSetupExtension
                 "src/test/resources/setup/userGroups.json",
                 "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/userRoles.json",
+                "src/test/resources/setup/users.json",
                 "src/test/resources/setup/users.json"
             };
 
@@ -94,25 +96,34 @@ public class MetadataSetupExtension
 
             }
 
-            setupSuperuser();
+            setupUsers();
 
         }
     }
 
-    private void setupSuperuser()
+    private void setupUsers()
     {
-        logger.info( "Setting up super user" );
+        logger.info( "Adding users to the TA user group" );
         UserActions userActions = new UserActions();
-        String userRoleId = Constants.USER_ROLE_ID;
+        String[] users =  {
+            TestConfiguration.get().superUserUsername(),
+            TestConfiguration.get().defaultUserUsername(),
+            TestConfiguration.get().adminUserUsername()
+        };
+
         String userGroupId = Constants.USER_GROUP_ID;
 
-        String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
-            .extractString( "users.id[0]" );
 
-        userActions.addUserToUserGroup( userId, userGroupId );
-        userActions.addRoleToUser( userId, userRoleId );
+        for ( String user : users )
+        {
+            String userId = userActions.get( String.format(
+                "?filter=userCredentials.username:eq:%s", user ))
+                .extractString( "users.id[0]" );
 
-        TestRunStorage.removeEntity( "/users", userId );
+            userActions.addUserToUserGroup( userId, userGroupId );
+            TestRunStorage.removeEntity( "/users", userId );
+        }
+
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )

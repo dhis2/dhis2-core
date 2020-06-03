@@ -89,7 +89,7 @@ public class UserActions
 
         object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
 
-        this.update( userId, object );
+        this.update( userId, object ).validate().statusCode( 200 );
     }
 
     public void addUserToUserGroup( String userId, String userGroupId )
@@ -107,7 +107,7 @@ public class UserActions
 
         object.get( "userGroups" ).getAsJsonArray().add( userGroupAccess );
 
-        this.update( userId, object );
+        this.update( userId, object ).validate().statusCode( 200 );
     }
 
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )
