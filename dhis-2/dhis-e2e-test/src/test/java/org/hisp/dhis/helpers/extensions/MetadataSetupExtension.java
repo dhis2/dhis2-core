@@ -77,13 +77,12 @@ public class MetadataSetupExtension
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
                 "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/userRoles.json",
                 "src/test/resources/setup/users.json",
-                "src/test/resources/setup/users.json"
+                "src/test/resources/setup/metadata.json"
             };
 
-            String queryParams = "async=false";
+            String queryParams = "async=false&sharing=true";
             for ( String fileName : files )
             {
                 metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );

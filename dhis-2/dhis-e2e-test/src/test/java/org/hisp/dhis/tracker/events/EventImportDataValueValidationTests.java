@@ -84,41 +84,52 @@ public class EventImportDataValueValidationTests
     }
 
     @Test
-    public void shouldNotImportEventsWithoutCompulsoryDataElements()
+    public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy()
     {
+        setValidationStrategy( programStageId, "ON_COMPLETE" );
+
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
-        ApiResponse response = eventActions.post( events );
+        ApiResponse response = eventActions.post( events, new QueryParamsBuilder().add( "skipCache=true" ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
-            .body( "response.ignored", equalTo( 1 ) );
+            .body( "response.ignored", equalTo( 0 ) )
+            .body( "response.imported", equalTo( 1 ) );
+    }
+
+    @Test
+    public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted() {
+        setValidationStrategy( programStageId, "ON_COMPLETE" );
+
+        JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
+        event.addProperty( "status", "COMPLETED" );
+
+        ApiResponse response = eventActions.post( event, new QueryParamsBuilder().add( "skipCache=true" ) );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "response.ignored", equalTo( 1 ) )
+            .body( "response.imported", equalTo( 0 ) );
     }
 
     @Test
     public void shouldValidateDataValuesOnUpdate() {
-        JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", "ON_UPDATE_AND_INSERT")
-            .build();
-
-        programActions.programStageActions.patch( programStageId, body )
-            .validate().statusCode( 204 );
-
-        programActions.programStageActions.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( "ON_UPDATE_AND_INSERT" ) );
+        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
-        ApiResponse response = eventActions.post( events );
+        ApiResponse response = eventActions.post( events, new QueryParamsBuilder().add( "skipCache=true" ) );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "response.ignored", equalTo( 1 ) );
-
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .rootPath( "response" )
+            .body( "ignored", equalTo( 1 ) )
+            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
     }
 
     @Test
-    public void shouldImportEventsWithCompulsoryDataElements()
+    public void shouldImportEventsWithCompulsoryDataValues()
     {
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -172,6 +183,19 @@ public class EventImportDataValueValidationTests
 
         dataValues.add( dataValue );
         body.add( "dataValues", dataValues );
+    }
+
+    private void setValidationStrategy(String programStageId, String strategy) {
+        JsonObject body = JsonObjectBuilder.jsonObject()
+            .addProperty( "validationStrategy", strategy)
+            .build();
+
+        programActions.programStageActions.patch( programStageId, body )
+            .validate().statusCode( 204 );
+
+        programActions.programStageActions.get( programStageId )
+            .validate().body( "validationStrategy", equalTo( strategy ) );
+
     }
 
 }
