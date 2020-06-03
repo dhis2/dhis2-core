@@ -245,6 +245,21 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
+    /**
+     * Sends PATCH request to specified resource
+     * @param resourceId
+     * @param object
+     * @return
+     */
+    public ApiResponse patch( String resourceId, Object object) {
+        Response response =
+            this.given().body( object, ObjectMapperType.GSON )
+                .when()
+                .patch( resourceId );
+
+        return new ApiResponse( response );
+    }
+
     public ApiResponse postFile( File file )
     {
         return this.postFile( file, null );
