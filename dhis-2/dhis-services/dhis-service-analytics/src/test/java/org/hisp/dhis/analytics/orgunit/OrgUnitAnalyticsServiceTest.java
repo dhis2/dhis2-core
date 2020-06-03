@@ -29,7 +29,6 @@
 package org.hisp.dhis.analytics.orgunit;
 
 import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
-import static org.junit.Assert.assertNotNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -53,9 +52,6 @@ public class OrgUnitAnalyticsServiceTest
         OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
             .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
             .build();
-
-        assertNotNull( params );
-        assertNotNull( subject );
 
         assertIllegalQueryEx( p -> subject.validate( p ), params, ErrorCode.E7300 );
     }
