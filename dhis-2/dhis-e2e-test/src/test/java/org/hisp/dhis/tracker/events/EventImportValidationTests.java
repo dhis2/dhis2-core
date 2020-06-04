@@ -32,6 +32,7 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -60,6 +61,7 @@ public class EventImportValidationTests
     private static String eventProgramId;
     private static String eventProgramStageId;
     private static String trackerProgramId;
+    private static String ouIdWithoutAccess;
 
     @BeforeAll
     public void beforeAll()
@@ -76,6 +78,7 @@ public class EventImportValidationTests
     {
         return Stream.of(
             Arguments.arguments( null, eventProgramId, eventProgramStageId, "Event.orgUnit does not point to a valid organisation unit" ),
+            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId, "Program is not assigned to this organisation unit" ),
             Arguments.arguments( ouId, null, eventProgramStageId, "Event.program does not point to a valid program" ),
             Arguments.arguments( ouId, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ));
     }
@@ -107,7 +110,7 @@ public class EventImportValidationTests
             .body( "ignored", equalTo( 1 ) )
             .body( "importSummaries.description[0]", containsString( "Event date is required" ) );
     }
-    
+
 
     private void setupData()
     {
@@ -129,6 +132,6 @@ public class EventImportValidationTests
 
         assertNotNull( trackerProgramId, "Failed to find a suitable tracker program");
 
-
+        ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
     }
 }
