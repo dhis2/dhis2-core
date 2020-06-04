@@ -77,7 +77,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -193,8 +193,8 @@ public class JdbcAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
         catch ( RuntimeException ex )
         {

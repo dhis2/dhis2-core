@@ -153,6 +153,7 @@ public enum ErrorCode
     E7128( "Query result set exceeded max limit: `{0}`" ),
     E7129( "Program is specified but does not exist: `{0}`" ),
     E7130( "Program stage is specified but does not exist: `{0}`" ),
+    E7131( "Query failed, likely because the query timed out" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),

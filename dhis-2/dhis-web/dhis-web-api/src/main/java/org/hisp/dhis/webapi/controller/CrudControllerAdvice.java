@@ -39,7 +39,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
@@ -106,7 +106,13 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
     }
 
-    @ExceptionHandler( { QueryTimeoutException.class, DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
+    @ExceptionHandler( QueryRuntimeException.class )
+    public void queryRuntimeExceptionHandler( QueryRuntimeException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( { QueryRuntimeException.class, DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
     public void conflictsExceptionHandler( Exception ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
