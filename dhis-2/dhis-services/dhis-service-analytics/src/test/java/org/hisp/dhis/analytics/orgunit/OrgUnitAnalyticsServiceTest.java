@@ -26,29 +26,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.organisationunit.hibernate;
+package org.hisp.dhis.analytics.orgunit;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore" )
-public class HibernateOrganisationUnitGroupSetStore
-    extends HibernateIdentifiableObjectStore<OrganisationUnitGroupSet>
-    implements OrganisationUnitGroupSetStore
+public class OrgUnitAnalyticsServiceTest
+    extends DhisSpringTest
 {
-    public HibernateOrganisationUnitGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    @Autowired
+    private OrgUnitAnalyticsService subject;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void testValidateNoOrgUnits()
     {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroupSet.class, currentUserService, aclService, true );
+        assertIllegalQueryEx( exception, ErrorCode.E7300 );
+
+        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
+            .build();
+
+        subject.validate( params );
     }
 }
