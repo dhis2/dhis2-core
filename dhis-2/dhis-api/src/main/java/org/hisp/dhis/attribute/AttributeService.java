@@ -60,6 +60,12 @@ public interface AttributeService
     void deleteAttribute( Attribute attribute );
 
     /**
+     * Invalidate cached attribute
+     * @param attributeUid
+     */
+    void invalidateCachedAttribute( String attributeUid );
+
+    /**
      * Gets the attribute with the given id.
      *
      * @param id the attribute id.

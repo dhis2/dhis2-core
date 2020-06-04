@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.function;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,39 +28,33 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_BOOLEAN_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Program indicator function: d2 has value
- *
- * @author Jim Grace
- */
-public class D2HasValue
-    extends ProgramExpressionItem
+@Component
+public class AttributeObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        getProgramArgType( ctx ).getDescription( ctx, visitor );
+    private final AttributeService attributeService;
 
-        return DEFAULT_BOOLEAN_VALUE;
+    public AttributeObjectBundleHook( AttributeService attributeService )
+    {
+        checkNotNull( attributeService );
+        this.attributeService = attributeService;
     }
-
     @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        boolean savedReplaceNulls = visitor.getReplaceNulls();
+        if ( !Attribute.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
 
-        visitor.setReplaceNulls( false );
-
-        String argSql = (String) getProgramArgType( ctx ).getSql( ctx, visitor );
-
-        visitor.setReplaceNulls( savedReplaceNulls );
-
-        return "(" + argSql + " is not null)";
+        attributeService.invalidateCachedAttribute( persistedObject.getUid() );
     }
 }
