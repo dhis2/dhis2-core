@@ -1,5 +1,3 @@
-package org.hisp.dhis.attribute.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,13 @@ package org.hisp.dhis.attribute.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.attribute.hibernate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
@@ -39,10 +44,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -51,7 +52,6 @@ public class HibernateAttributeStore
     extends HibernateIdentifiableObjectStore<Attribute>
     implements AttributeStore
 {
-
     @Autowired
     public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
