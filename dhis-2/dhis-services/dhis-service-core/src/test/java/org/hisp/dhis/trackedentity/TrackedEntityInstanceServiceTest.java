@@ -235,4 +235,13 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( entityInstanceB1, entityInstanceService.getTrackedEntityInstance( "B1" ) );
     }
 
+    @Test
+    public void testStoredByColumnForTrackedEntityInstance()
+    {
+        entityInstanceA1.setStoredBy( "test" );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+
+        TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( entityInstanceA1.getUid() );
+        assertEquals( "test", tei.getStoredBy() );
+    }
 }
