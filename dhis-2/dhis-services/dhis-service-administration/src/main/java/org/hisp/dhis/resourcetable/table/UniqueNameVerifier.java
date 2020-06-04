@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.resourcetable.table;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,71 +28,51 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.BaseDimensionalObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TrackedEntity
-{
-    @JsonProperty
-    private String trackedEntity;
+public class UniqueNameVerifier {
 
-    @JsonProperty
-    private String trackedEntityType;
+    protected List<String> columnNames = new ArrayList<>();
 
-    @JsonProperty
-    private String createdAt;
+    /**
+     * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring
+     * that the short name is unique across the list of BaseDimensionalObject this
+     * class operates on
+     *
+     * @param baseDimensionalObject a {@see BaseDimensionalObject}
+     * @return a unique, quoted short name
+     */
+    protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
+    {
+        String columnName = quote( baseDimensionalObject.getShortName()
+                + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
 
-    @JsonProperty
-    private String updatedAt;
+        this.columnNames.add( baseDimensionalObject.getShortName() );
 
-    @JsonProperty
-    private String clientCreatedAt;
+        return columnName;
+    }
 
-    @JsonProperty
-    private String clientUpdatedAt;
+    /**
+     * Returns the name in quotes, ensuring
+     * that the name is unique across the list of objects this class operates on
+     *
+     * @param name a String
+     * @return a unique, quoted name
+     */
+    protected String ensureUniqueName( String name )
+    {
+        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
 
-    @JsonProperty
-    private String orgUnit;
+        this.columnNames.add( name );
 
-    @JsonProperty
-    private boolean inactive;
-
-    @JsonProperty
-    private boolean deleted;
-
-    @JsonProperty
-    private Geometry geometry;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<ProgramOwner> programOwners = new ArrayList<>();
+        return columnName;
+    }
 }
