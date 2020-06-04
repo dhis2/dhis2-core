@@ -41,6 +41,7 @@ import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Junction;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
@@ -71,10 +72,9 @@ public class DefaultQueryPlanner implements QueryPlanner
         // if only one filter, always set to Junction.Type AND
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND : query.getRootJunctionType();
         
-        if ( Junction.Type.OR == junctionType && !persistedOnly && !isFilterOnPersistedFieldOnly( query ))
+        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
         {
-            return QueryPlan.QueryPlanBuilder
-                .newBuilder()
+            return QueryPlan.QueryPlanBuilder.newBuilder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
                 .nonPersistedQuery( Query.from( query ).setPlannedQuery( true ) )
                 .build();
@@ -155,6 +155,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 
+    @Override
     public Path getQueryPath( Root root, Schema schema, String path )
     {
         Schema curSchema = schema;
@@ -318,6 +319,15 @@ public class DefaultQueryPlanner implements QueryPlanner
                 {
                     return false;
                 }
+            }
+        }
+
+        for ( Order order : query.getOrders() )
+        {
+
+            if ( !persistedFields.contains( order.getProperty().getName() ) )
+            {
+                return false;
             }
         }
         return true;
