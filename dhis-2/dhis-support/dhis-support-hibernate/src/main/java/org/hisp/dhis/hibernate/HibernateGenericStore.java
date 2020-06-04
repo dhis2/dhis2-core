@@ -74,9 +74,13 @@ public class HibernateGenericStore<T>
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
 
     protected SessionFactory sessionFactory;
+
     protected JdbcTemplate jdbcTemplate;
+
     protected ApplicationEventPublisher publisher;
+
     protected Class<T> clazz;
+
     protected boolean cacheable;
 
     public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
