@@ -108,7 +108,6 @@ public class AnalyticsUtils
     private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
 
     public static final String ERR_MSG_TABLE_NOT_EXISTING = "Query failed, likely because the requested analytics table does not exist";
-    public static final String ERR_MSG_QUERY_TIMEOUT = "Query failed, likely because the query timed out";
 
     /**
      * Returns an SQL statement for retrieving raw data values for

@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,16 +26,38 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class QueryTimeoutException
+package org.hisp.dhis.common;
+
+import org.hisp.dhis.feedback.ErrorCode;
+
+public class QueryRuntimeException
     extends RuntimeException
 {
-    public QueryTimeoutException( String message )
+    private ErrorCode errorCode;
+
+    /**
+     * Constructor. Sets the message based on the error code message.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public QueryRuntimeException( ErrorCode errorCode, Throwable cause )
     {
-        super( message );
+        super( errorCode.getMessage(), cause );
+        this.errorCode = errorCode;
     }
-    
-    public QueryTimeoutException( String message, Throwable throwable )
+
+    public QueryRuntimeException( String message, Throwable throwable )
     {
         super( message, throwable );
+    }
+
+    /**
+     * Returns the {@link ErrorCode} of the exception.
+     *
+     * @return the {@link ErrorCode} of the exception.
+     */
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 }
