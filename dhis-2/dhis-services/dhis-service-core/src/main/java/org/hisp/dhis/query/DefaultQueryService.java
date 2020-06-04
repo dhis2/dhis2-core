@@ -91,10 +91,13 @@ public class DefaultQueryService
     @Override
     public int count( Query query )
     {
-        query.setFirstResult( 0 );
-        query.setMaxResults( Integer.MAX_VALUE );
+        Query cloned = Query.from( query );
 
-        return queryObjects( query ).size();
+        cloned.clearOrders();
+        cloned.setFirstResult( 0 );
+        cloned.setMaxResults( Integer.MAX_VALUE );
+
+        return countObjects( cloned );
     }
 
     @Override
@@ -126,6 +129,24 @@ public class DefaultQueryService
     //---------------------------------------------------------------------------------------------
     // Helper methods
     //---------------------------------------------------------------------------------------------
+
+    private int countObjects( Query query )
+    {
+        List<? extends IdentifiableObject> objects;
+        QueryPlan queryPlan = queryPlanner.planQuery( query );
+        Query pQuery = queryPlan.getPersistedQuery();
+        Query npQuery = queryPlan.getNonPersistedQuery();
+        if ( !npQuery.isEmpty() )
+        {
+            npQuery.setObjects( criteriaQueryEngine.query( pQuery ) );
+            objects = inMemoryQueryEngine.query( npQuery );
+            return objects.size();
+        }
+        else
+        {
+            return criteriaQueryEngine.count( pQuery );
+        }
+    }
 
     private List<? extends IdentifiableObject> queryObjects( Query query )
     {
