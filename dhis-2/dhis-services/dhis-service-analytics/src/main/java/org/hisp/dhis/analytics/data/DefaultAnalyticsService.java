@@ -666,7 +666,8 @@ public class DefaultAnalyticsService
 
         for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
         {
-            // only add the operand if it's included in the DataQueryParams
+            // Only add the operand if included in the DataQueryParams
+            
             if ( operandKeys.stream().anyMatch( k -> entry.getKey().startsWith( k ) ) )
             {
                 Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
