@@ -30,12 +30,18 @@ package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -50,8 +56,9 @@ public class EventImportValidationTests
     private EventActions eventActions;
     private ProgramActions programActions;
 
-    private String programId;
-    private String programStageId;
+    private static String ouId = Constants.ORG_UNIT_IDS[0];
+    private static String programId;
+    private static String programStageId;
 
     @BeforeAll
     public void beforeAll()
@@ -64,18 +71,40 @@ public class EventImportValidationTests
         setupData();
     }
 
-    @Test
-    public void eventImportShouldValidateOu()
+    private static Stream<Arguments> provideValidationArguments()
     {
-        JsonObject jsonObject = eventActions.createEventBody( null, programId, programStageId );
+        return Stream.of(
+            Arguments.arguments( null, programId, programStageId, "Event.orgUnit does not point to a valid organisation unit" ),
+            Arguments.arguments( ouId, null, programStageId, "Event.program does not point to a valid program" ),
+            Arguments.arguments( ouId, programId, null, "Event.programStage does not point to a valid program stage" ));
+    }
+
+    @ParameterizedTest
+    @MethodSource( "provideValidationArguments" )
+    public void eventImportShouldValidateReferences(String ouId, String programId, String programStageId, String message) {
+        JsonObject jsonObject = eventActions.createEventBody( ouId, programId, programStageId );
 
         eventActions.post( jsonObject )
             .validate().statusCode( 409 )
             .body( "status", equalTo("ERROR") )
             .rootPath( "response" )
             .body( "ignored", equalTo( 1 ) )
-            .body( "importSummaries.description[0]", containsString( "Event.orgUnit does not point to a valid organisation unit" ) );
+            .body( "importSummaries.description[0]", containsString( message ) );
+    }
+    
+    @Test
+    public void eventImportShouldValidateEventDate() {
+        JsonObject object = eventActions.createEventBody( ouId, programId, programStageId );
 
+        object.addProperty( "eventDate", "" );
+        object.addProperty( "status", "ACTIVE" );
+
+        eventActions.post( object )
+            .validate().statusCode( 409 )
+            .body( "status", equalTo("ERROR") )
+            .rootPath( "response" )
+            .body( "ignored", equalTo( 1 ) )
+            .body( "importSummaries.description[0]", containsString( "Event date is required" ) );
     }
 
     private void setupData()
