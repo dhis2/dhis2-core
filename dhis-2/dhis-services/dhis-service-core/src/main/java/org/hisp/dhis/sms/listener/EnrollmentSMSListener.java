@@ -44,13 +44,13 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.SMSResponse;
-import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSAttributeValue;
-import org.hisp.dhis.smscompression.models.SMSEvent;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.smscompression.models.UID;
+import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsAttributeValue;
+import org.hisp.dhis.smscompression.models.SmsEvent;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -58,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -83,6 +84,8 @@ public class EnrollmentSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
+    private final TrackedEntityAttributeValueService attributeValueService;
+
     private final ProgramStageService programStageService;
 
     private final UserService userService;
@@ -92,7 +95,8 @@ public class EnrollmentSMSListener
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService, TrackedEntityInstanceService teiService,
+        ProgramStageInstanceService programStageInstanceService,
+        TrackedEntityAttributeValueService attributeValueService, TrackedEntityInstanceService teiService,
         ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
@@ -102,54 +106,55 @@ public class EnrollmentSMSListener
         this.teiService = teiService;
         this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;
+        this.attributeValueService = attributeValueService;
         this.userService = userService;
     }
 
     @Override
-    protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
         throws SMSProcessingException
     {
-        EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
+        EnrollmentSmsSubmission subm = (EnrollmentSmsSubmission) submission;
 
         Date enrollmentDate = subm.getEnrollmentDate();
         Date incidentDate = subm.getIncidentDate();
-        UID teiUID = subm.getTrackedEntityInstance();
-        UID progid = subm.getTrackerProgram();
-        UID tetid = subm.getTrackedEntityType();
-        UID ouid = subm.getOrgUnit();
-        UID enrollmentid = subm.getEnrollment();
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
+        Uid teiUid = subm.getTrackedEntityInstance();
+        Uid progid = subm.getTrackerProgram();
+        Uid tetid = subm.getTrackedEntityType();
+        Uid ouid = subm.getOrgUnit();
+        Uid enrollmentid = subm.getEnrollment();
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
 
-        Program program = programService.getProgram( progid.uid );
+        Program program = programService.getProgram( progid.getUid() );
         if ( program == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_PROGRAM.set( progid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
-        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.uid );
+        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.getUid() );
         if ( entityType == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_TETYPE.set( tetid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
         }
 
         if ( !program.hasOrganisationUnit( orgUnit ) )
         {
-            throw new SMSProcessingException( SMSResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
+            throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
 
         TrackedEntityInstance entityInstance;
-        boolean teiExists = teiService.trackedEntityInstanceExists( teiUID.uid );
+        boolean teiExists = teiService.trackedEntityInstanceExists( teiUid.getUid() );
 
         if ( teiExists )
         {
-            log.info( String.format( "Given TEI [%s] exists. Updating...", teiUID ) );
-            entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
+            log.info( String.format( "Given TEI [%s] exists. Updating...", teiUid ) );
+            entityInstance = teiService.getTrackedEntityInstance( teiUid.getUid() );
         }
         else
         {
-            log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUID ) );
+            log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUid ) );
             entityInstance = new TrackedEntityInstance();
-            entityInstance.setUid( teiUID.uid );
+            entityInstance.setUid( teiUid.getUid() );
             entityInstance.setOrganisationUnit( orgUnit );
             entityInstance.setTrackedEntityType( entityType );
         }
@@ -158,6 +163,7 @@ public class EnrollmentSMSListener
 
         if ( teiExists )
         {
+            updateAttributeValues( attributeValues, entityInstance.getTrackedEntityAttributeValues() );
             entityInstance.setTrackedEntityAttributeValues( attributeValues );
             teiService.updateTrackedEntityInstance( entityInstance );
         }
@@ -166,15 +172,15 @@ public class EnrollmentSMSListener
             teiService.createTrackedEntityInstance( entityInstance, attributeValues );
         }
 
-        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.uid );
+        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUid.getUid() );
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
         ProgramInstance enrollment;
-        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.uid );
+        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.getUid() );
         if ( enrollmentExists )
         {
-            enrollment = programInstanceService.getProgramInstance( enrollmentid.uid );
+            enrollment = programInstanceService.getProgramInstance( enrollmentid.getUid() );
             // Update these dates in case they've changed
             enrollment.setEnrollmentDate( enrollmentDate );
             enrollment.setIncidentDate( incidentDate );
@@ -182,22 +188,22 @@ public class EnrollmentSMSListener
         else
         {
             enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
-                orgUnit, enrollmentid.uid );
+                orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )
         {
-            throw new SMSProcessingException( SMSResponse.ENROLL_FAILED.set( teiUID, progid ) );
+            throw new SMSProcessingException( SmsResponse.ENROLL_FAILED.set( teiUid, progid ) );
         }
         enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
         enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
         programInstanceService.updateProgramInstance( enrollment );
 
         // We now check if the enrollment has events to process
-        User user = userService.getUser( subm.getUserID().uid );
+        User user = userService.getUser( subm.getUserId().getUid() );
         List<Object> errorUIDs = new ArrayList<>();
         if ( subm.getEvents() != null )
         {
-            for ( SMSEvent event : subm.getEvents() )
+            for ( SmsEvent event : subm.getEvents() )
             {
                 errorUIDs.addAll( processEvent( event, user, enrollment, sms ) );
             }
@@ -205,16 +211,52 @@ public class EnrollmentSMSListener
 
         if ( !errorUIDs.isEmpty() )
         {
-            return SMSResponse.WARN_DVERR.setList( errorUIDs );
+            return SmsResponse.WARN_DVERR.setList( errorUIDs );
         }
 
         if ( attributeValues == null || attributeValues.isEmpty() )
         {
             // TODO: Is this correct handling?
-            return SMSResponse.WARN_AVEMPTY;
+            return SmsResponse.WARN_AVEMPTY;
         }
 
-        return SMSResponse.SUCCESS;
+        return SmsResponse.SUCCESS;
+    }
+
+    private void updateAttributeValues( Set<TrackedEntityAttributeValue> attributeValues,
+        Set<TrackedEntityAttributeValue> oldAttributeValues )
+    {
+        // Update existing and add new values
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
+        {
+            TrackedEntityAttributeValue oldAttributeValue = findAttributeValue( attributeValue, oldAttributeValues );
+            if ( oldAttributeValue != null )
+            {
+                oldAttributeValue.setValue( attributeValue.getValue() );
+                attributeValueService.updateTrackedEntityAttributeValue( oldAttributeValue );
+            }
+            else
+            {
+                attributeValueService.addTrackedEntityAttributeValue( attributeValue );
+            }
+        }
+
+        // Delete any that don't exist anymore
+        for ( TrackedEntityAttributeValue oldAttributeValue : oldAttributeValues )
+        {
+            if ( findAttributeValue( oldAttributeValue, attributeValues ) == null )
+            {
+                attributeValueService.deleteTrackedEntityAttributeValue( oldAttributeValue );
+            }
+        }
+    }
+
+    private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
+        Set<TrackedEntityAttributeValue> attributeValues )
+    {
+        return attributeValues.stream()
+            .filter( v -> v.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) ).findAny()
+            .orElse( null );
     }
 
     @Override
@@ -223,7 +265,7 @@ public class EnrollmentSMSListener
         return (type == SubmissionType.ENROLLMENT);
     }
 
-    private Set<TrackedEntityAttributeValue> getSMSAttributeValues( EnrollmentSMSSubmission submission,
+    private Set<TrackedEntityAttributeValue> getSMSAttributeValues( EnrollmentSmsSubmission submission,
         TrackedEntityInstance entityInstance )
     {
         if ( submission.getValues() == null )
@@ -234,21 +276,22 @@ public class EnrollmentSMSListener
             .collect( Collectors.toSet() );
     }
 
-    protected TrackedEntityAttributeValue createTrackedEntityValue( SMSAttributeValue SMSAttributeValue,
+    protected TrackedEntityAttributeValue createTrackedEntityValue( SmsAttributeValue SMSAttributeValue,
         TrackedEntityInstance tei )
     {
-        UID attribUID = SMSAttributeValue.getAttribute();
+        Uid attribUid = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
 
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUID.uid );
+        TrackedEntityAttribute attribute = trackedEntityAttributeService
+            .getTrackedEntityAttribute( attribUid.getUid() );
         if ( attribute == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_ATTRIB.set( attribUID ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );
         }
         else if ( val == null )
         {
             // TODO: Is this an error we can't recover from?
-            throw new SMSProcessingException( SMSResponse.NULL_ATTRIBVAL.set( attribUID ) );
+            throw new SMSProcessingException( SmsResponse.NULL_ATTRIBVAL.set( attribUid ) );
         }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( attribute );
@@ -257,32 +300,32 @@ public class EnrollmentSMSListener
         return trackedEntityAttributeValue;
     }
 
-    protected List<Object> processEvent( SMSEvent event, User user, ProgramInstance programInstance, IncomingSms sms )
+    protected List<Object> processEvent( SmsEvent event, User user, ProgramInstance programInstance, IncomingSms sms )
     {
-        UID stageid = event.getProgramStage();
-        UID aocid = event.getAttributeOptionCombo();
-        UID orgunitid = event.getOrgUnit();
+        Uid stageid = event.getProgramStage();
+        Uid aocid = event.getAttributeOptionCombo();
+        Uid orgunitid = event.getOrgUnit();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.uid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.getUid() );
         if ( orgUnit == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_ORGUNIT.set( orgunitid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_ORGUNIT.set( orgunitid ) );
         }
 
-        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
+        ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
         if ( programStage == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
         if ( aoc == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( event.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
-            user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
+            aoc, user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
             event.getCoordinates() );
 
         return errorUIDs;
