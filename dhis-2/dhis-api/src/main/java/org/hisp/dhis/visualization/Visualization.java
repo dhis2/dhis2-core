@@ -1285,21 +1285,6 @@ public class Visualization
     // -------------------------------------------------------------------------
 
     /**
-     * Filtering out eventual null elements caused by occasional invalid sortOrder.
-     *
-     * @param list
-     * @return the list without null elements.
-     */
-    private List<String> removingNullElements( final List<String> list )
-    {
-        if ( isNotEmpty( list ) )
-        {
-            return list.stream().filter( x -> x != null ).collect( Collectors.toList() );
-        }
-        return list;
-    }
-
-    /**
      * Returns the category combo of the first data element.
      */
     private CategoryCombo getFirstCategoryCombo()
