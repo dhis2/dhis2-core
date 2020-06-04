@@ -1,6 +1,3 @@
-package org.hisp.dhis.datastatistics.hibernate;
-
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -29,6 +26,8 @@ package org.hisp.dhis.datastatistics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.datastatistics.hibernate;
+
 import java.util.Date;
 import java.util.List;
 
@@ -38,7 +37,6 @@ import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
@@ -59,11 +57,9 @@ public class HibernateDataStatisticsStore
     implements DataStatisticsStore
 {
     public HibernateDataStatisticsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataStatistics.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataStatistics.class, currentUserService, aclService, false );
     }
 
     // -------------------------------------------------------------------------

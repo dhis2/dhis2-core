@@ -1,5 +1,3 @@
-package org.hisp.dhis.mapping.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,9 +26,10 @@ package org.hisp.dhis.mapping.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.mapping.hibernate;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ExternalMapLayerStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -48,9 +47,8 @@ public class HibernateExternalMapLayerStore
     implements ExternalMapLayerStore
 {
     public HibernateExternalMapLayerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ExternalMapLayer.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, ExternalMapLayer.class, currentUserService, aclService, false );
     }
 }
