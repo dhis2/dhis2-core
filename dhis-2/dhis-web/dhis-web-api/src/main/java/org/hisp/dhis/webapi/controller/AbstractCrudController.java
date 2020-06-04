@@ -36,10 +36,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -137,6 +140,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
+    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+            .expireAfterWrite( 1, TimeUnit.MINUTES )
+            .build();
     //--------------------------------------------------------------------------
     // Dependencies
     //--------------------------------------------------------------------------
@@ -223,8 +229,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), entities.size(), options.getPageSize() );
-            entities = PagerUtils.pageCollection( entities, pager );
+            long count = paginationCountCache.computeIfAbsent(
+                calculatePaginationCountKey( currentUser, filters, options ), () -> count( options, filters, orders ) );
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         postProcessEntities( entities );
@@ -1127,11 +1134,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    protected Pagination getPaginationData(WebOptions options )
+    protected Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
-    } 
-    
+    }
+
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
@@ -1151,6 +1158,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return entityList;
+    }
+
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
+    {
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction() );
+        return queryService.count( query );
     }
 
     private List<T> getEntity( String uid )
@@ -1393,5 +1407,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return entitySimpleName;
+    }
+
+    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name();
     }
 }
