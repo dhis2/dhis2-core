@@ -5,6 +5,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections.ListUtils;
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.hamcrest.beans.HasProperty;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.core.IsNot;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -59,6 +65,8 @@ public class TrackedEntityInstanceAclReadTests
     private static final String _OWNEROU = "ownerOrgUnit";
 
     private static final String _DELETED = "deleted";
+
+    private static final String _DATAREAD = "..r.*";
 
     private MetadataActions metadataActions;
 
@@ -167,7 +175,7 @@ public class TrackedEntityInstanceAclReadTests
 
                     boolean hasDataRead = false;
 
-                    if ( object.get( "publicAccess" ).getAsString().matches( "..r.*" ) )
+                    if ( object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
                     {
                         hasDataRead = true;
                     }
@@ -179,7 +187,7 @@ public class TrackedEntityInstanceAclReadTests
                         for ( JsonElement access : userAccesses )
                         {
                             if ( access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() ) &&
-                                access.getAsJsonObject().get( "access" ).getAsString().matches( "..r.*" ) )
+                                access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
                             {
                                 hasDataRead = true;
                             }
@@ -191,7 +199,7 @@ public class TrackedEntityInstanceAclReadTests
                             {
                                 if ( user.getGroups()
                                     .contains( access.getAsJsonObject().get( "userGroupUid" ).getAsString() ) &&
-                                    access.getAsJsonObject().get( "access" ).getAsString().matches( "..r.*" ) )
+                                    access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
                                 {
                                     hasDataRead = true;
                                 }
@@ -228,9 +236,9 @@ public class TrackedEntityInstanceAclReadTests
 
         response.validate().statusCode( 200 );
 
-        JsonObject json = response.getBody();
+        response.validate().body( _TEIS, Matchers.not( Matchers.emptyArray() ) );
 
-        assertTrue( json.has( _TEIS ), "Payload is missing property " + _TEIS );
+        JsonObject json = response.getBody();
 
         json.getAsJsonArray( _TEIS ).iterator()
             .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
