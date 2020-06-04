@@ -57,8 +57,9 @@ public class EventImportValidationTests
     private ProgramActions programActions;
 
     private static String ouId = Constants.ORG_UNIT_IDS[0];
-    private static String programId;
-    private static String programStageId;
+    private static String eventProgramId;
+    private static String eventProgramStageId;
+    private static String trackerProgramId;
 
     @BeforeAll
     public void beforeAll()
@@ -74,9 +75,9 @@ public class EventImportValidationTests
     private static Stream<Arguments> provideValidationArguments()
     {
         return Stream.of(
-            Arguments.arguments( null, programId, programStageId, "Event.orgUnit does not point to a valid organisation unit" ),
-            Arguments.arguments( ouId, null, programStageId, "Event.program does not point to a valid program" ),
-            Arguments.arguments( ouId, programId, null, "Event.programStage does not point to a valid program stage" ));
+            Arguments.arguments( null, eventProgramId, eventProgramStageId, "Event.orgUnit does not point to a valid organisation unit" ),
+            Arguments.arguments( ouId, null, eventProgramStageId, "Event.program does not point to a valid program" ),
+            Arguments.arguments( ouId, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ));
     }
 
     @ParameterizedTest
@@ -91,10 +92,10 @@ public class EventImportValidationTests
             .body( "ignored", equalTo( 1 ) )
             .body( "importSummaries.description[0]", containsString( message ) );
     }
-    
+
     @Test
     public void eventImportShouldValidateEventDate() {
-        JsonObject object = eventActions.createEventBody( ouId, programId, programStageId );
+        JsonObject object = eventActions.createEventBody( ouId, eventProgramId, eventProgramStageId );
 
         object.addProperty( "eventDate", "" );
         object.addProperty( "status", "ACTIVE" );
@@ -106,19 +107,28 @@ public class EventImportValidationTests
             .body( "ignored", equalTo( 1 ) )
             .body( "importSummaries.description[0]", containsString( "Event date is required" ) );
     }
+    
 
     private void setupData()
     {
-        programId = programActions
+        eventProgramId = programActions
             .get( "", new QueryParamsBuilder().addAll( "filter=programType:eq:WITHOUT_REGISTRATION", "filter=name:$like:TA", "pageSize=1" ) )
             .extractString("programs.id[0]");
 
-        assertNotNull( programId, "Failed to find a suitable program");
+        assertNotNull( eventProgramId, "Failed to find a suitable event program");
 
-        programStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" + programId ))
+        eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
+            eventProgramId ))
             .extractString("programStages.id[0]");
 
-        assertNotNull( programStageId, "Failed to find a program stage" );
+        assertNotNull( eventProgramStageId, "Failed to find a program stage" );
+
+        trackerProgramId = programActions
+            .get( "", new QueryParamsBuilder().addAll( "filter=programType:eq:WITH_REGISTRATION", "filter=name:$like:TA", "pageSize=1" ) )
+            .extractString("programs.id[0]");
+
+        assertNotNull( trackerProgramId, "Failed to find a suitable tracker program");
+
 
     }
 }
