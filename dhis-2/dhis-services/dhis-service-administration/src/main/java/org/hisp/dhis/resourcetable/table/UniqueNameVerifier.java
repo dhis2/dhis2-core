@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.resourcetable.table;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,21 +28,51 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AbstractAuditPayload implements AuditPayload
-{
-    private final String type;
+import org.hisp.dhis.common.BaseDimensionalObject;
 
-    public AbstractAuditPayload( String type )
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class UniqueNameVerifier {
+
+    protected List<String> columnNames = new ArrayList<>();
+
+    /**
+     * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring
+     * that the short name is unique across the list of BaseDimensionalObject this
+     * class operates on
+     *
+     * @param baseDimensionalObject a {@see BaseDimensionalObject}
+     * @return a unique, quoted short name
+     */
+    protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
     {
-        this.type = type;
+        String columnName = quote( baseDimensionalObject.getShortName()
+                + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
+
+        this.columnNames.add( baseDimensionalObject.getShortName() );
+
+        return columnName;
     }
 
-    @Override
-    public String getType()
+    /**
+     * Returns the name in quotes, ensuring
+     * that the name is unique across the list of objects this class operates on
+     *
+     * @param name a String
+     * @return a unique, quoted name
+     */
+    protected String ensureUniqueName( String name )
     {
-        return type;
+        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
+
+        this.columnNames.add( name );
+
+        return columnName;
     }
 }

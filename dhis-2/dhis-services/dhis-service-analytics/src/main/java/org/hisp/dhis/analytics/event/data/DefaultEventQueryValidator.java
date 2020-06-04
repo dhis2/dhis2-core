@@ -192,7 +192,7 @@ public class DefaultEventQueryValidator
     @Override
     public void validateTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
     {
-        String violation = null;
+        ErrorMessage violation = null;
 
         if ( columns != null )
         {
@@ -200,7 +200,7 @@ public class DefaultEventQueryValidator
             {
                 if ( !params.hasDimension( column ) )
                 {
-                    violation = "Column must be present as dimension in query: " + column;
+                    violation = new ErrorMessage( ErrorCode.E7126, column );
                 }
             }
         }
@@ -211,7 +211,7 @@ public class DefaultEventQueryValidator
             {
                 if ( !params.hasDimension( row ) )
                 {
-                    violation = "Row must be present as dimension in query: " + row;
+                    violation = new ErrorMessage( ErrorCode.E7127, row );
                 }
             }
         }

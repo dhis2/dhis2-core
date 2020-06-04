@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.dxf2;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,48 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.annotation.Nonnull;
-
-import org.apache.commons.jexl2.JexlException;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.commons.util.ExpressionUtils;
-import org.hisp.dhis.rules.RuleExpressionEvaluator;
-import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * Created by zubair@dhis2.org on 11.10.17.
- */
-@Slf4j
-@Component( "org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" )
-public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
+public final class Constants
 {
-    /**
-     * Return string value of boolean output. False will be returned in case
-     * of wrongly created expression
-     *
-     * @param expression to be evaluated.
-     * @return string value of boolean true/false.
-     */
-
-    @Nonnull
-    @Override
-    public String evaluate( @Nonnull String expression )
-    {
-        String result;
-
-        try
-        {
-            result = ExpressionUtils.evaluate( expression ).toString();
-        }
-        catch ( JexlException je )
-        {
-            result = "false";
-
-            log.debug( DebugUtils.getStackTrace( je.getCause() ) );
-        }
-
-       return result;
-    }
+    public static final String UNKNOWN = "[Unknown]";
 }

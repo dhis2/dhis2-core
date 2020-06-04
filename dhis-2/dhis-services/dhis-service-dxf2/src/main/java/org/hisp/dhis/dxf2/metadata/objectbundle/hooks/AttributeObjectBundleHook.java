@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,33 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-public class MetadataAuditPayload implements AuditPayload
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component
+public class AttributeObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    @JsonProperty
-    private final IdentifiableObject identifiableObject;
+    private final AttributeService attributeService;
 
-    @Override
-    public String getType()
+    public AttributeObjectBundleHook( AttributeService attributeService )
     {
-        return "metadata";
+        checkNotNull( attributeService );
+        this.attributeService = attributeService;
+    }
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !Attribute.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
+        attributeService.invalidateCachedAttribute( persistedObject.getUid() );
     }
 }

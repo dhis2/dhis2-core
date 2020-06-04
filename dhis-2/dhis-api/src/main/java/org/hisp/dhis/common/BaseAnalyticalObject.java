@@ -1228,7 +1228,8 @@ public abstract class BaseAnalyticalObject
     }
 
     @Override
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;

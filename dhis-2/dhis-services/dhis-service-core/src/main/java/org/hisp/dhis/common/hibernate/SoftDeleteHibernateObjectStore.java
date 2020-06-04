@@ -28,11 +28,9 @@
 
 package org.hisp.dhis.common.hibernate;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -41,17 +39,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Enrico Colasante
  */
-@Slf4j
 public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
     extends HibernateIdentifiableObjectStore<T>
 {
     public SoftDeleteHibernateObjectStore( SessionFactory sessionFactory,
         JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz,
-        CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService,
-        AclService aclService, boolean cacheable )
+        CurrentUserService currentUserService, AclService aclService, boolean cacheable )
     {
-        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService,
             cacheable );
     }
 

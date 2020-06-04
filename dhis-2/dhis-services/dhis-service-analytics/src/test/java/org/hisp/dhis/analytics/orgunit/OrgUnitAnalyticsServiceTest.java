@@ -1,5 +1,3 @@
-package org.hisp.dhis.audit.payloads;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,20 +26,40 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+package org.hisp.dhis.analytics.orgunit;
+
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = MetadataAuditPayload.class, name = "metadata" ),
-    @JsonSubTypes.Type( value = TrackedEntityAuditPayload.class, name = "trackedEntity" ),
-} )
-public interface AuditPayload
+public class OrgUnitAnalyticsServiceTest
+    extends DhisSpringTest
 {
-    @JsonProperty
-    String getType();
+    @Autowired
+    private OrgUnitAnalyticsService subject;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void testValidateNoOrgUnits()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E7300 );
+
+        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
+            .build();
+
+        subject.validate( params );
+    }
 }

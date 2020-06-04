@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,17 +26,19 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.program.notification;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 16.11.17.
@@ -48,10 +48,10 @@ public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiab
     implements ProgramNotificationTemplateStore
 {
     public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramNotificationTemplate.class, currentUserService,
-            deletedObjectService, aclService, true );
+            aclService, true );
     }
 
     @Override

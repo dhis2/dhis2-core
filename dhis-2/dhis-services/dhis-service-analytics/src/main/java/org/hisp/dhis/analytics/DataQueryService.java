@@ -52,6 +52,7 @@ public interface DataQueryService
      *
      * @param request request wrapper object containing the URL parameters.
      * @return a data query parameter object created based on the given URL info.
+     * @throws IllegalQueryException if the query is illegal.
      */
     DataQueryParams getFromRequest( DataQueryRequest request );
 
@@ -60,6 +61,7 @@ public interface DataQueryService
      *
      * @param object the BaseAnalyticalObject.
      * @return a data query parameter object created based on the given BaseAnalyticalObject.
+     * @throws IllegalQueryException if the query is illegal.
      */
     DataQueryParams getFromAnalyticalObject( AnalyticalObject object );
 
@@ -75,8 +77,9 @@ public interface DataQueryService
      *        period dimension with no period items.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
      * @return a list of DimensionalObject.
+     * @throws IllegalQueryException if the query is illegal.
      */
-    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, 
+    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate,
         String userOrgUnit, I18nFormat format, boolean allowAllPeriods, IdScheme inputIdScheme );
 
     /**
@@ -99,8 +102,8 @@ public interface DataQueryService
      * @param allowAllPeriods whether to allow all period items, meaning specifying the
      *        period dimension with no period items.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
-     * @throws IllegalQueryException if no dimensions was found.
      * @return list of DimensionalObjects.
+     * @throws IllegalQueryException if the query is illegal.
      */
     DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriods, IdScheme inputIdScheme );

@@ -28,8 +28,6 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-
 import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
 
@@ -183,10 +181,4 @@ public interface AppManager
      */
     boolean markAppToDelete( App app );
 
-    /**
-     * Event handler for {@link ApplicationCacheClearedEvent}.
-     *
-     * @param event the {@link ApplicationCacheClearedEvent}.
-     */
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

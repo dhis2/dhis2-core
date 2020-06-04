@@ -45,7 +45,6 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -117,10 +116,8 @@ public class ContextUtils
     public void configureAnalyticsResponse( HttpServletResponse response, String contentType,
         CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
     {
-        // Progressive cache will always take priority.
-        if ( RESPECT_SYSTEM_SETTING == cacheStrategy
-            && webCache.isProgressiveCachingEnabled()
-            && latestEndDate != null )
+        // Progressive cache will always take priority
+        if ( RESPECT_SYSTEM_SETTING == cacheStrategy && webCache.isProgressiveCachingEnabled() && latestEndDate != null )
         {
             // Uses the progressive TTL
             final CacheControl cacheControl = webCache.getCacheControlFor( latestEndDate );
@@ -129,21 +126,21 @@ public class ContextUtils
         }
         else
         {
-            // Respects the fixed (predefined) settings.
+            // Respects the fixed (predefined) settings
             configureResponse( response, contentType, cacheStrategy, filename, attachment );
         }
     }
 
-    public void configureResponse( final HttpServletResponse response, final String contentType,
-                                  final CacheStrategy cacheStrategy, final String filename, final boolean attachment )
+    public void configureResponse( HttpServletResponse response, String contentType,
+        CacheStrategy cacheStrategy, String filename, boolean attachment )
     {
-        final CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
+        CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
 
         configureResponse( response, contentType, filename, attachment, cacheControl );
     }
 
-    private void configureResponse( final HttpServletResponse response, final String contentType, final String filename,
-        final boolean attachment, final CacheControl cacheControl )
+    private void configureResponse( HttpServletResponse response, String contentType, String filename,
+        boolean attachment, CacheControl cacheControl )
     {
         if ( contentType != null )
         {
@@ -403,8 +400,8 @@ public class ContextUtils
      */
     public static boolean isAcceptCsvGzip( HttpServletRequest request )
     {
-        return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
-            || (request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" )));
+        return request != null && ( ( request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ) )
+            || ( request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" ) ) ) ;
     }
 
     /**
@@ -420,7 +417,8 @@ public class ContextUtils
         {
             return null;
         }
-        final Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
+
+        Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
         return matcher.matches() ? matcher.group( 1 ) : null;
     }
 }
