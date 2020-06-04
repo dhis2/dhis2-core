@@ -515,6 +515,9 @@ public class UserCredentials
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    /**
+     * Refers to the user associated with this user credentials.
+     */
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

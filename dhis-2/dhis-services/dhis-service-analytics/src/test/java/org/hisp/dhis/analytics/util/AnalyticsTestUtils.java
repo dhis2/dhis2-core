@@ -161,7 +161,7 @@ public class AnalyticsTestUtils
     }
 
     /**
-     * Asserts that an {@link IllegalQueryException} is thrown the given {@link ErrorCode}.
+     * Asserts that a {@link IllegalQueryException} is thrown with the given {@link ErrorCode}.
      *
      * @param exception the {@link ExpectedException}.
      * @param errorCode the {@link ErrorCode}.
