@@ -29,6 +29,8 @@
 package org.hisp.dhis.visualization;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 import java.awt.*;
@@ -432,7 +434,7 @@ public class ChartImageGenerator {
         valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( visualization.chartSeries() );
-        List<NameableObject> categories = new ArrayList<>( visualization.chartCategory() );
+        List<NameableObject> categories = new ArrayList<>( defaultIfNull( visualization.chartCategory(), emptyList() ) );
 
         if ( visualization.hasSortOrder() )
         {

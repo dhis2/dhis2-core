@@ -37,25 +37,19 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.reporttable.ReportTable.*;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.event.*;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -63,7 +57,6 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.Timer;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -97,9 +90,6 @@ public class DefaultEventAnalyticsService
     private static final Option OPT_TRUE = new Option( "Yes", "1" );
     private static final Option OPT_FALSE = new Option( "No", "0" );
 
-    private static final int MAX_CACHE_ENTRIES = 20000;
-    private static final String CACHE_REGION = "eventAnalyticsQueryResponse";
-
     private final DataElementService dataElementService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -114,18 +104,13 @@ public class DefaultEventAnalyticsService
 
     private final DatabaseInfo databaseInfo;
 
-    private final DhisConfigurationProvider dhisConfig;
-
-    private final CacheProvider cacheProvider;
-
-    private final Environment environment;
+    private final AnalyticsCache analyticsCache;
 
     public DefaultEventAnalyticsService( DataElementService dataElementService,
         TrackedEntityAttributeService trackedEntityAttributeService, EventAnalyticsManager eventAnalyticsManager,
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
-        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment,
-        EnrollmentAnalyticsManager enrollmentAnalyticsManager )
+        AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager )
     {
         super( securityManager, queryValidator );
 
@@ -135,9 +120,7 @@ public class DefaultEventAnalyticsService
         checkNotNull( eventDataQueryService );
         checkNotNull( queryPlanner );
         checkNotNull( databaseInfo );
-        checkNotNull( dhisConfig );
-        checkNotNull( cacheProvider );
-        checkNotNull( environment );
+        checkNotNull( analyticsCache );
 
         this.dataElementService = dataElementService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -145,9 +128,7 @@ public class DefaultEventAnalyticsService
         this.eventDataQueryService = eventDataQueryService;
         this.queryPlanner = queryPlanner;
         this.databaseInfo = databaseInfo;
-        this.dhisConfig = dhisConfig;
-        this.cacheProvider = cacheProvider;
-        this.environment = environment;
+        this.analyticsCache = analyticsCache;
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
     }
 
@@ -158,24 +139,6 @@ public class DefaultEventAnalyticsService
     // TODO Use [longitude/latitude] format for event points
     // TODO Order event analytics tables on execution date to avoid default sort
     // TODO Sorting in queries
-
-    private Cache<Grid> queryCache;
-
-    @PostConstruct
-    public void init()
-    {
-        long expiration = dhisConfig.getAnalyticsCacheExpiration();
-        boolean enabled = expiration > 0 && !SystemUtils.isTestRun(this.environment.getActiveProfiles());
-
-        queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
-            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
-
-        log.info( String.format( "Event analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // Aggregate
-    // -------------------------------------------------------------------------
 
     @Override
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
@@ -193,6 +156,7 @@ public class DefaultEventAnalyticsService
         return getAggregatedEventData( params );
     }
 
+
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
@@ -206,10 +170,10 @@ public class DefaultEventAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( dhisConfig.isAnalyticsCacheEnabled() )
+        if ( analyticsCache.isEnabled() )
         {
-            final EventQueryParams query = new EventQueryParams.Builder( params ).build();
-            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).orElseGet(ListGrid::new);
+            final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
+            return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
         }
 
         return getAggregatedEventDataGrid( params );
@@ -630,7 +594,7 @@ public class DefaultEventAnalyticsService
     @EventListener
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
-        queryCache.invalidateAll();
+        analyticsCache.invalidateAll();
         log.info( "Event analytics cache cleared" );
     }
 

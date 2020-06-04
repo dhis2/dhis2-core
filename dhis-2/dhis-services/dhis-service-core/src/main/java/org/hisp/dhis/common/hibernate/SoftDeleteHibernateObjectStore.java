@@ -26,12 +26,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.common.hibernate;
+
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * The cache mode to be used when caching Analytics queries.
+ * @author Enrico Colasante
  */
-public enum AnalyticsCacheMode
+@Slf4j
+public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
+    extends HibernateIdentifiableObjectStore<T>
 {
-    FIXED, PROGRESSIVE
+    public SoftDeleteHibernateObjectStore( SessionFactory sessionFactory,
+        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService,
+        AclService aclService, boolean cacheable )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService,
+            cacheable );
+    }
+
+    @Override
+    public void delete( SoftDeletableObject object )
+    {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        object.setDeleted( true );
+        getSession().update( object );
+    }
 }

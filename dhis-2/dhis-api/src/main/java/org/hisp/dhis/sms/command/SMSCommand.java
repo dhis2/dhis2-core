@@ -339,15 +339,15 @@ public class SMSCommand extends BaseIdentifiableObject
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-                .add( "uid", uid )
-                .add( "name", name )
-                .add( "smscodes", codes )
-                .add( "program", program )
-                .add( "parsertype", parserType )
-                .add( "separator", separator )
-                .add( "dataset", dataset )
-                .add( "usergroup", userGroup )
-                .add( "programstage", programStage )
-                .toString();
+            .add( "uid", uid )
+            .add( "name", name )
+            .add( "smscodes", codes )
+            .add( "program", program )
+            .add( "parsertype", parserType )
+            .add( "separator", separator )
+            .add( "dataset", dataset )
+            .add( "usergroup", userGroup )
+            .add( "programstage", programStage )
+            .toString();
     }
 }
