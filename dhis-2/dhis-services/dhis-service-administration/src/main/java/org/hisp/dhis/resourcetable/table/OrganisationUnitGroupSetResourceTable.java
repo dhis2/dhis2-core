@@ -68,6 +68,8 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
             "organisationunitid bigint not null, " +
             "organisationunitname varchar(230), " +
@@ -75,7 +77,7 @@ public class OrganisationUnitGroupSetResourceTable
 
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
