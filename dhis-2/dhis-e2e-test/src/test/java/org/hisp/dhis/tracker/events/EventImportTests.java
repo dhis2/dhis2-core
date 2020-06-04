@@ -65,7 +65,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventsImportTests
+public class EventImportTests
     extends ApiTest
 {
     List<String> createdEvents = new ArrayList<>();
