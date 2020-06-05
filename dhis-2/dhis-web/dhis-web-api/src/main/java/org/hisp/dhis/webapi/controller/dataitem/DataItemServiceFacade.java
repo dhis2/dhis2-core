@@ -84,7 +84,7 @@ class DataItemServiceFacade
         .<String, Class<? extends BaseDimensionalItemObject>> builder()
             .put( "INDICATOR", Indicator.class )
             .put( "DATA_ELEMENT", DataElement.class )
-            .put( "DATA_ELEMENT_OPERAND", DataElementOperand.class )
+            .put( "DATA_ELEMENT_OPERAND", ProgramDataElementDimensionItem.class )
             .put( "DATA_SET", DataSet.class )
             .put( "PROGRAM_INDICATOR", ProgramIndicator.class )
             .put( "PROGRAM_DATA_ELEMENT", ProgramDataElementDimensionItem.class )
@@ -159,6 +159,11 @@ class DataItemServiceFacade
                     iterator.remove();
                 }
             }
+        }
+        else
+        {
+            // If no filter is set we search for all entities.
+            targetedEntities.addAll( DATA_TYPE_ENTITY_MAP.values() );
         }
 
         return targetedEntities;
