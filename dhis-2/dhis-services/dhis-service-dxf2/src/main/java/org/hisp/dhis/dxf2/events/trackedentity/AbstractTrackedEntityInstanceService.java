@@ -1461,6 +1461,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setInactive( daoTrackedEntityInstance.isInactive() );
         trackedEntityInstance.setGeometry( daoTrackedEntityInstance.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
+        trackedEntityInstance.setStoredBy( daoTrackedEntityInstance.getStoredBy() );
 
         if ( daoTrackedEntityInstance.getGeometry() != null )
         {

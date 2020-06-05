@@ -419,16 +419,20 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public String allowDeleteValidationResult( ValidationResult validationResult )
-    {
-        return null;
-    }
-
     public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
     }
 
     public String allowDeleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    {
+        return null;
+    }
+
+    public void deleteValidationResult( ValidationResult validationResult )
+    {
+    }
+
+    public String allowDeleteValidationResult( ValidationResult validationResult )
     {
         return null;
     }
@@ -1072,12 +1076,12 @@ public abstract class DeletionHandler
     public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
     }
-    
+
     public String allowDeleteVisualization( Visualization visualization )
     {
         return null;
     }
-    
+
     public void deleteVisualization( Visualization visualization )
     {
     }

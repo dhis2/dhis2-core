@@ -82,6 +82,8 @@ public class TrackedEntityInstance
 
     private Geometry geometry;
 
+    private String storedBy;
+
     public TrackedEntityInstance()
     {
     }
@@ -304,6 +306,18 @@ public class TrackedEntityInstance
     public void setGeometry( Geometry geometry )
     {
         this.geometry = geometry;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 
     @Override
