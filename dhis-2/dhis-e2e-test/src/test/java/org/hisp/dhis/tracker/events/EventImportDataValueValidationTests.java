@@ -109,8 +109,10 @@ public class EventImportDataValueValidationTests
 
         response.validate().statusCode( 409 )
             .body( "status", equalTo( "ERROR" ) )
-            .body( "response.ignored", equalTo( 1 ) )
-            .body( "response.imported", equalTo( 0 ) );
+            .rootPath( "response" )
+            .body( "ignored", equalTo( 1 ) )
+            .body( "imported", equalTo( 0 ) )
+            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
     }
 
     @Test
@@ -125,6 +127,7 @@ public class EventImportDataValueValidationTests
             .body( "status", equalTo( "ERROR" ) )
             .rootPath( "response" )
             .body( "ignored", equalTo( 1 ) )
+            .body( "imported", equalTo( 0 ) )
             .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
     }
 
