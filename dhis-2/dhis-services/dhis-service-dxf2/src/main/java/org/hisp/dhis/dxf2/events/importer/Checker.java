@@ -47,7 +47,7 @@ public interface Checker
     {
         if ( object == null )
         {
-            return error( description, event.getEvent() ).incrementIgnored();
+            return error( description, event.getEvent() );
         }
 
         return success();
