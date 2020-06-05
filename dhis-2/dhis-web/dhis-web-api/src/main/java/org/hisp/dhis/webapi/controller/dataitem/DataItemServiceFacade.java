@@ -30,14 +30,22 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.DIMENSION_TYPE_EQUAL_FILTER_PREFIX;
+import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.DIMENSION_TYPE_IN_FILTER_PREFIX;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -116,7 +124,7 @@ class DataItemServiceFacade
      * @return the consolidated collection of entities found.
      */
     List<BaseDimensionalItemObject> retrieveDataItemEntities(
-        final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
+        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
         final List<BaseDimensionalItemObject> dataItemEntities = new ArrayList<>( 0 );
@@ -134,15 +142,15 @@ class DataItemServiceFacade
     }
 
     /**
-     * This method returns a list of BaseDimensionalItemObject's based on the
+     * This method returns a set of BaseDimensionalItemObject's based on the
      * provided filters. It will also remove, from the filters, the objects found.
      *
      * @param filters
      * @return the data items classes to be queried
      */
-    List<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
+    Set<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
     {
-        final List<Class<? extends BaseDimensionalItemObject>> targetedEntities = new ArrayList<>( 0 );
+        final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities = new HashSet<>( 0 );
 
         if ( isNotEmpty( filters ) )
         {
@@ -150,12 +158,21 @@ class DataItemServiceFacade
 
             while ( iterator.hasNext() )
             {
-                final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromFilter( iterator.next() );
-                final boolean entityWasFound = entity != null;
+                final String filter = iterator.next();
+                final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromEqualFilter( filter );
+                final List<Class<? extends BaseDimensionalItemObject>> entities = extractEntitiesFromInFilter( filter );
 
-                if ( entityWasFound )
+                if ( entity != null || isNotEmpty( entities ) )
                 {
-                    targetedEntities.add( entity );
+                    if ( entity != null )
+                    {
+                        targetedEntities.add( entity );
+                    }
+                    if ( isNotEmpty( entities ) )
+                    {
+                        targetedEntities.addAll( entities );
+                    }
+
                     iterator.remove();
                 }
             }
@@ -219,36 +236,75 @@ class DataItemServiceFacade
     /**
      * This method will return the respective BaseDimensionalItemObject class from
      * the filter provided.
-     * 
-     * @param filter has a format of "dimensionItemType:eq:INDICATOR", where
-     *        INDICATOR represents the BaseDimensionalItemObject. It could be any
-     *        value represented by
+     *
+     * @param filter should have the format of "dimensionItemType:eq:INDICATOR",
+     *        where INDICATOR represents the BaseDimensionalItemObject. It could be
+     *        any value represented by
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
      * @throws org.hisp.dhis.query.QueryParserException if the filter points to a
      *         non supported class/entity.
      */
-    private Class<? extends BaseDimensionalItemObject> extractEntityFromFilter( final String filter )
+    private Class<? extends BaseDimensionalItemObject> extractEntityFromEqualFilter( final String filter )
     {
         final byte DIMENSION_TYPE = 2;
         Class<? extends BaseDimensionalItemObject> entity = null;
 
-        if ( trimToEmpty( filter ).contains( "dimensionItemType:eq:" ) )
+        if ( trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX ) )
         {
             final String[] array = filter.split( ":" );
             final boolean hasDimensionType = array.length == 3;
 
             if ( hasDimensionType )
             {
-                // TODO: Add support all other missing Entities
-                entity = DATA_TYPE_ENTITY_MAP.get( array[DIMENSION_TYPE] );
+                entity = getEntityFromString( array[DIMENSION_TYPE] );
+            }
+        }
 
-                if ( entity == null )
+        return entity;
+    }
+
+    /**
+     * This method will return the respective BaseDimensionalItemObject class from
+     * the filter provided.
+     *
+     * @param filter should have the format of
+     *        "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR and
+     *        DATA_SET represents the BaseDimensionalItemObject. The valid types are
+     *        found at {@link org.hisp.dhis.common.DataDimensionItemType}
+     * @return the respective classes associated with the given IN filter
+     * @throws org.hisp.dhis.query.QueryParserException if the filter points to a
+     *         non supported class/entity.
+     */
+    private List<Class<? extends BaseDimensionalItemObject>> extractEntitiesFromInFilter( final String filter )
+    {
+        final List<Class<? extends BaseDimensionalItemObject>> dimensionTypes = new ArrayList( 0 );
+
+        if ( contains( filter, DIMENSION_TYPE_IN_FILTER_PREFIX ) )
+        {
+            final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
+                "," );
+
+            if ( dimensionTypesInFilter != null )
+            {
+                for ( final String dimensionType : dimensionTypesInFilter )
                 {
-                    throw new QueryParserException( "Unable to parse `" + array[DIMENSION_TYPE]
-                        + "`, available values are: " + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
+                    dimensionTypes.add( getEntityFromString( dimensionType ) );
                 }
             }
+        }
+
+        return dimensionTypes;
+    }
+
+    private Class<? extends BaseDimensionalItemObject> getEntityFromString( final String entityType )
+    {
+        final Class<? extends BaseDimensionalItemObject> entity = DATA_TYPE_ENTITY_MAP.get( entityType );
+
+        if ( entity == null )
+        {
+            throw new QueryParserException( "Unable to parse `" + entityType
+                + "`, available values are: " + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
         }
 
         return entity;

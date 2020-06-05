@@ -31,6 +31,10 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.substringBetween;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
@@ -39,8 +43,10 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -72,6 +78,10 @@ import lombok.extern.slf4j.Slf4j;
 class DataItemQueryController
 {
     static final String API_RESOURCE_PATH = "/dataItems";
+
+    static final String DIMENSION_TYPE_IN_FILTER_PREFIX = "dimensionItemType:in:";
+
+    static final String DIMENSION_TYPE_EQUAL_FILTER_PREFIX = "dimensionItemType:eq:";
 
     private final DataItemServiceFacade dataItemServiceFacade;
 
@@ -142,13 +152,15 @@ class DataItemQueryController
         final List<String> filters = newArrayList( contextService.getParameterValues( "filter" ) );
         final WebOptions options = new WebOptions( urlParameters );
 
+        checkPaginationSupport( filters );
+
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.ALL.getFields() );
         }
 
         // Extracting the target entities to be queried.
-        final List<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade
+        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade
             .extractTargetEntities( filters );
 
         // Checking if the user can read all the target entities.
@@ -161,7 +173,8 @@ class DataItemQueryController
         // Creating the response node.
         final RootNode rootNode = createMetadata();
         responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
-        responseHandler.addPaginationToNode( rootNode, targetEntities, currentUser, options, filters );
+        responseHandler.addPaginationToNode( rootNode, new ArrayList<>( targetEntities ), currentUser, options,
+            filters );
 
         if ( isNotEmpty( dimensionalItems ) )
         {
@@ -171,8 +184,37 @@ class DataItemQueryController
         return new ResponseEntity<>( rootNode, NOT_FOUND );
     }
 
+    private void checkPaginationSupport( final List<String> filters )
+    {
+        short filterCount = 0;
+
+        if ( isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
+                    "," );
+                final boolean hasMultipleDimensionTypeFilters = (trimToEmpty( filter )
+                    .contains( DIMENSION_TYPE_IN_FILTER_PREFIX )
+                    || trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX ))
+                    || (dimensionTypesInFilter != null && dimensionTypesInFilter.length > 1);
+
+                if ( hasMultipleDimensionTypeFilters )
+                {
+                    filterCount++;
+                }
+            }
+
+            if ( filterCount > 1 )
+            {
+                throw new QueryParserException(
+                        "Pagination (paging=true) is not supported for multiple dataItemTypes filtering." );
+            }
+        }
+    }
+
     private void checkAuthorization( final User currentUser,
-        final List<Class<? extends BaseDimensionalItemObject>> entities )
+        final Set<Class<? extends BaseDimensionalItemObject>> entities )
     {
         if ( isNotEmpty( entities ) )
         {

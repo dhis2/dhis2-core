@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,8 +43,10 @@ import static org.mockito.junit.MockitoJUnit.rule;
 import static org.springframework.http.HttpStatus.FOUND;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -93,13 +96,14 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final List<Class<? extends BaseDimensionalItemObject>> targetEntities = asList( Indicator.class );
+        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
+            asList( Indicator.class ) );
         final List<BaseDimensionalItemObject> itemsFound = asList( new Indicator() );
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
         when( dataItemServiceFacade.retrieveDataItemEntities(
-            anyList(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
 
         final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
