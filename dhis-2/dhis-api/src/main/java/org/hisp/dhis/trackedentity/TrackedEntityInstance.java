@@ -85,6 +85,8 @@ public class TrackedEntityInstance
 
     private Date lastSynchronized = new Date( 0 );
 
+    private String storedBy;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -151,6 +153,18 @@ public class TrackedEntityInstance
     public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
     {
         this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 
     @JsonProperty

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,71 +26,38 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package org.hisp.dhis.common;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.feedback.ErrorCode;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TrackedEntity
+public class QueryRuntimeException
+    extends RuntimeException
 {
-    @JsonProperty
-    private String trackedEntity;
+    private ErrorCode errorCode;
 
-    @JsonProperty
-    private String trackedEntityType;
+    /**
+     * Constructor. Sets the message based on the error code message.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public QueryRuntimeException( ErrorCode errorCode, Throwable cause )
+    {
+        super( errorCode.getMessage(), cause );
+        this.errorCode = errorCode;
+    }
 
-    @JsonProperty
-    private String createdAt;
+    public QueryRuntimeException( String message, Throwable throwable )
+    {
+        super( message, throwable );
+    }
 
-    @JsonProperty
-    private String updatedAt;
-
-    @JsonProperty
-    private String clientCreatedAt;
-
-    @JsonProperty
-    private String clientUpdatedAt;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private boolean inactive;
-
-    @JsonProperty
-    private boolean deleted;
-
-    @JsonProperty
-    private Geometry geometry;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<ProgramOwner> programOwners = new ArrayList<>();
+    /**
+     * Returns the {@link ErrorCode} of the exception.
+     *
+     * @return the {@link ErrorCode} of the exception.
+     */
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
+    }
 }

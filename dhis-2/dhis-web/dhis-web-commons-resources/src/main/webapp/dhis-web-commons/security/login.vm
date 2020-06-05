@@ -42,7 +42,7 @@
         </div>
         #if ( $keyConfig.selfRegistrationAllowed() )
         <div id="accountArea">
-        	<a id="createAccountButton" class="greenButtonLink" href="account.action">Create an account</a>
+        	<a id="createAccountButton" class="greenButtonLink" href="account.action">$i18n.getString('create_an_account')</a>
         </div>
         #end
         <div id="loginField">
@@ -57,21 +57,21 @@
                     <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
                     <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password" required></div>
                     <div>
-                        <label><input type="checkbox" name="2fa" value="2fa" id="2fa" />Login using two factor authentication</label>
-                        <input type="code" id="2fa_code" name="2fa_code" placeholder="Two factor authentication code" hidden readonly >
+                        <label><input type="checkbox" name="2fa" value="2fa" id="2fa" />$i18n.getString('login_using_two_factor_authentication')</label>
+                        <input type="code" id="2fa_code" name="2fa_code" placeholder="$i18n.getString('two_factor_authentication_code')" hidden readonly >
                     </div>
                 </div>
                 <div id="submitDiv">
-                	<input id="submit" class="button" type="submit" value="Sign in">
+                	<input id="submit" class="button" type="submit" value="$i18n.getString('sign_in')">
                 </div>
                 #if( $keyAccountRecovery )
                 <div style="padding-bottom: 10px">
-                    <a id="forgotPasswordLink" href="recovery.action">Forgot password?</a>
+                    <a id="forgotPasswordLink" href="recovery.action">$i18n.getString('forgot_password')</a>
                 </div>
                 #end
                 #if( $keyConfig.selfRegistrationAllowed() )
                 <div style="padding-bottom: 10px">                	
-                	<a id="createAccountLink" href="account.action">Create an account</a>
+                	<a id="createAccountLink" href="account.action">$i18n.getString('create_an_account')</a>
                 </div>
                 #end
             </form>
@@ -82,7 +82,7 @@
                     #if( $keyOpenIdProviderLabel )
                   	<input style="width: 269px;" id="submit" class="button" type="submit" value="$keyOpenIdProviderLabel">
                     #else
-                    <input style="width: 269px;" id="submit" class="button" type="submit" value="Sign in with OpenID">
+                    <input style="width: 269px;" id="submit" class="button" type="submit" value="$i18n.getString( 'sign_in_with_openID' )">
                     #end
                   </div>
               </form>
@@ -109,7 +109,7 @@
 			<div id="rightFooterArea" class="innerFooterArea">
 				<span id="applicationRightFooter">$!{keyApplicationRightFooter}</span>
 				<select id="localeSelect" onchange="login.localeChanged()" style="margin-left: 30px">
-	        		<option value="">[ Change language ]</option>
+	        		<option value="">[ $i18n.getString( "change_language" ) ]</option>
 	        		#foreach( $locale in $availableLocales )
 	        		<option value="${locale.language}">${locale.displayName}</option>
 			        #end
