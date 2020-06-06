@@ -25,13 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-package org.hisp.dhis.analytics;
+import java.util.Objects;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * The cache mode to be used when caching Analytics queries.
+ * @author Enrico Colasante
  */
-public enum AnalyticsCacheMode
+@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
+public class RelationshipTypeDeletionHandler
+    extends
+    DeletionHandler
 {
-    FIXED, PROGRESSIVE
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private final RelationshipTypeService relationshipTypeService;
+
+    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
+    {
+        this.relationshipTypeService = relationshipTypeService;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return RelationshipType.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteProgram( Program program )
+    {
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
+    }
 }

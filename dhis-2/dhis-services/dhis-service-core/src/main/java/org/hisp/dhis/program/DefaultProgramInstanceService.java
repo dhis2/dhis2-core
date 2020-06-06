@@ -28,14 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.common.*;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -43,7 +39,11 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotif
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -52,7 +52,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 
 /**
  * @author Abyot Asalefew
@@ -112,23 +117,16 @@ public class DefaultProgramInstanceService
     @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        deleteProgramInstance( programInstance, false );
+        programInstance.setStatus( ProgramStatus.CANCELLED );
+        programInstanceStore.update( programInstance );
+        programInstanceStore.delete( programInstance );
     }
 
     @Override
     @Transactional
-    public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
+    public void hardDeleteProgramInstance( ProgramInstance programInstance )
     {
-        if ( forceDelete )
-        {
-            programInstanceStore.delete( programInstance );
-        }
-        else
-        {
-            programInstance.setDeleted( true );
-            programInstance.setStatus( ProgramStatus.CANCELLED );
-            programInstanceStore.update( programInstance );
-        }
+        programInstanceStore.hardDelete( programInstance );
     }
 
     @Override
@@ -179,6 +177,13 @@ public class DefaultProgramInstanceService
     public void updateProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.update( programInstance );
+    }
+
+    @Override
+    @Transactional
+    public void updateProgramInstance( ProgramInstance programInstance, User user )
+    {
+        programInstanceStore.update( programInstance, user );
     }
 
     @Override

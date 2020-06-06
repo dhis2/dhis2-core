@@ -117,18 +117,7 @@ public interface DhisConfigurationProvider
      *
      * @return true if the system is in read-only mode.
      */
-    public boolean isReadOnlyMode();
-
-    /**
-     * Returns the analytics server-side cache expiration in seconds.
-     */
-    long getAnalyticsCacheExpiration();
-
-    /**
-     * Indicates whether analytics server-side cache is enabled, i.e. whether
-     * an expiration greater than 0 is defined.
-     */
-    public boolean isAnalyticsCacheEnabled();
+    boolean isReadOnlyMode();
 
     /**
      * Indicates whether clustering is enabled.

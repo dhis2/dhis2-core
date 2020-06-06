@@ -69,7 +69,7 @@ public class OrganisationUnitGroupSetResourceTable
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
-            "organisationunitid integer not null, " +
+            "organisationunitid bigint not null, " +
             "organisationunitname varchar(230), " +
             "startdate date, ";
 

@@ -28,17 +28,11 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -48,9 +42,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Luciano Fiandesio
@@ -160,7 +158,6 @@ public class TrackerBundleParamsConverterTest
         trackedEntity.setGeometry( null );
         trackedEntity.setTrackedEntity( uid );
         trackedEntity.setEnrollments( enrollments );
-        trackedEntity.setCoordinates( null );
         return trackedEntity;
     }
 
@@ -177,7 +174,6 @@ public class TrackerBundleParamsConverterTest
         enrollment.setEnrollment( uid );
         enrollment.setTrackedEntity( parent );
         enrollment.setEvents( events );
-        enrollment.setCoordinate( null );
         return enrollment;
     }
 
@@ -190,7 +186,6 @@ public class TrackerBundleParamsConverterTest
             event.setGeometry( null );
             event.setEvent( uid + i );
             event.setEnrollment( parent );
-            event.setCoordinate( null );
             events.add( event );
         }
 

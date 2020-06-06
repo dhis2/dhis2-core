@@ -31,11 +31,15 @@ package org.hisp.dhis.setting;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.analytics.AnalyticsCacheMode;
+import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
@@ -79,9 +83,8 @@ public enum SettingKey
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     SMS_CONFIG( "keySmsSetting", new SmsConfiguration(), SmsConfiguration.class ),
-    CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_6AM_TOMORROW, CacheStrategy.class ),
+    CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
-    CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
     ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
@@ -167,15 +170,17 @@ public enum SettingKey
     ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
 
     /**
-     * The Analytics query time to live caching factor. It's used as a factor to assist with the
-     * caching TTL calculation.
+     * Progressive caching factor definition for Analytics. In order to enable it,
+     * the {@link #ANALYTICS_CACHE_TTL_MODE} has to be set to PROGRESSIVE.
+     *
+     * @see AnalyticsCacheTtlMode
      */
-    ANALYTICS_TTL_CACHE_FACTOR( "keyAnalyticsTtlCacheFactor", 160, Integer.class ),
+    ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR( "keyAnalyticsCacheProgressiveTtlFactor", 160, Integer.class ),
 
     /**
-     * The cache mode enabled for Analytics. It can be FIXED or PROGRESSIVE.
+     * The caching strategy enabled
      */
-    ANALYTICS_CACHE_MODE( "keyAnalyticsCacheMode", AnalyticsCacheMode.FIXED, AnalyticsCacheMode.class );
+    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
 
     private final String name;
 

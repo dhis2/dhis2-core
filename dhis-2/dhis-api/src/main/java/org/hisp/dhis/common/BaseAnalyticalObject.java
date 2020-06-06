@@ -28,13 +28,15 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.category.CategoryDimension;
@@ -59,17 +61,22 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.User;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.hisp.dhis.visualization.DefaultValue;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically
@@ -838,7 +845,7 @@ public abstract class BaseAnalyticalObject
     }
 
     @JsonProperty( value = "relativePeriods" )
-    @JacksonXmlProperty( localName="relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
     public RelativePeriods getRelatives()
     {
         return relatives;
@@ -1228,7 +1235,8 @@ public abstract class BaseAnalyticalObject
     }
 
     @Override
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;
