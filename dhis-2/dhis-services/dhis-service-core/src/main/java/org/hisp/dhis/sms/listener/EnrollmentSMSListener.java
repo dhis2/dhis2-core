@@ -267,42 +267,6 @@ public class EnrollmentSMSListener
             .orElse( null );
     }
 
-    private void updateAttributeValues( Set<TrackedEntityAttributeValue> attributeValues,
-        Set<TrackedEntityAttributeValue> oldAttributeValues )
-    {
-        // Update existing and add new values
-        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
-        {
-            TrackedEntityAttributeValue oldAttributeValue = findAttributeValue( attributeValue, oldAttributeValues );
-            if ( oldAttributeValue != null )
-            {
-                oldAttributeValue.setValue( attributeValue.getValue() );
-                attributeValueService.updateTrackedEntityAttributeValue( oldAttributeValue );
-            }
-            else
-            {
-                attributeValueService.addTrackedEntityAttributeValue( attributeValue );
-            }
-        }
-
-        // Delete any that don't exist anymore
-        for ( TrackedEntityAttributeValue oldAttributeValue : oldAttributeValues )
-        {
-            if ( findAttributeValue( oldAttributeValue, attributeValues ) == null )
-            {
-                attributeValueService.deleteTrackedEntityAttributeValue( oldAttributeValue );
-            }
-        }
-    }
-
-    private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
-        Set<TrackedEntityAttributeValue> attributeValues )
-    {
-        return attributeValues.stream()
-            .filter( v -> v.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) ).findAny()
-            .orElse( null );
-    }
-
     @Override
     protected boolean handlesType( SubmissionType type )
     {
