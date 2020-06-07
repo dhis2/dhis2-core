@@ -63,15 +63,8 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
     @Autowired
     private CategoryService categoryService;
-
-    @Override
-    public int getOrder()
-    {
-        return 4;
-    }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,

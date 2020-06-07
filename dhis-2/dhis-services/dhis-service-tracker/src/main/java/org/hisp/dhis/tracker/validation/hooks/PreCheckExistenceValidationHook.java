@@ -54,12 +54,6 @@ public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public int getOrder()
-    {
-        return 1;
-    }
-
-    @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
     {

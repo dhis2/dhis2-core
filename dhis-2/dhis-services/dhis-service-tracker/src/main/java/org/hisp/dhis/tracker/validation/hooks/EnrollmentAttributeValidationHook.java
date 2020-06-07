@@ -59,12 +59,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_IN
 public class EnrollmentAttributeValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 105;
-    }
-
     public EnrollmentAttributeValidationHook()
     {
         super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );

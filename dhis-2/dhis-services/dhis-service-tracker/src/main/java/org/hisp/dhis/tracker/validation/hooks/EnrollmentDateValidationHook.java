@@ -51,12 +51,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_N
 public class EnrollmentDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 107;
-    }
-
     public EnrollmentDateValidationHook()
     {
         super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );

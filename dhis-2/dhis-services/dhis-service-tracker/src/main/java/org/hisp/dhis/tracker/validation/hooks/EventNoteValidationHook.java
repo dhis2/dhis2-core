@@ -43,13 +43,6 @@ import java.util.List;
 @Component
 public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
-
-    @Override
-    public int getOrder()
-    {
-        return 106;
-    }
-
     public EventNoteValidationHook()
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );

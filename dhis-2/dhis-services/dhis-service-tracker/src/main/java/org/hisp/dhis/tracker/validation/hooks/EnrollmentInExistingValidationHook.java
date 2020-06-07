@@ -78,12 +78,6 @@ public class EnrollmentInExistingValidationHook
     @Autowired
     private TrackerImportAccessManager trackerImportAccessManager;
 
-    @Override
-    public int getOrder()
-    {
-        return 104;
-    }
-
     public EnrollmentInExistingValidationHook()
     {
         super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );

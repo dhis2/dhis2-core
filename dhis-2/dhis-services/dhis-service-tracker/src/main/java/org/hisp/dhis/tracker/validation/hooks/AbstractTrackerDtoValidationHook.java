@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -71,6 +72,19 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_AT
 public abstract class AbstractTrackerDtoValidationHook
     implements TrackerValidationHook
 {
+    private int order = Ordered.LOWEST_PRECEDENCE;
+
+    @Override
+    public int getOrder()
+    {
+        return order;
+    }
+
+    public void setOrder( int order )
+    {
+        this.order = order;
+    }
+
     public static final String IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD = "Implementing class fail to override this method!";
 
     @Autowired
@@ -335,5 +349,11 @@ public abstract class AbstractTrackerDtoValidationHook
     public boolean isValidDateStringAndNotNull( String dateString )
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        return getClass() != o.getClass();
     }
 }

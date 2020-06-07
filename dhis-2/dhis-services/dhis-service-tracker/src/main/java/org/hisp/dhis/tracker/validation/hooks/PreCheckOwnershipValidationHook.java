@@ -70,12 +70,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL
 public class PreCheckOwnershipValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 5;
-    }
-
     @Autowired
     private TrackerImportAccessManager trackerImportAccessManager;
 

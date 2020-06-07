@@ -44,12 +44,6 @@ import org.springframework.stereotype.Component;
 public class EventGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 304;
-    }
-
     public EventGeoValidationHook()
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );

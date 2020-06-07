@@ -57,12 +57,6 @@ public class EventCountValidationHook
     @Autowired
     protected ProgramInstanceService programInstanceService;
 
-    @Override
-    public int getOrder()
-    {
-        return 305;
-    }
-
     public EventCountValidationHook()
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );

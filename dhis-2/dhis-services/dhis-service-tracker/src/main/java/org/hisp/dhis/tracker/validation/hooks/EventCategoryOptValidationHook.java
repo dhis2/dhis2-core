@@ -61,12 +61,6 @@ public class EventCategoryOptValidationHook
     @Autowired
     protected I18nManager i18nManager;
 
-    @Override
-    public int getOrder()
-    {
-        return 303;
-    }
-
     public EventCategoryOptValidationHook()
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );

@@ -87,12 +87,6 @@ public class TrackedEntityAttributeValidationHook
     private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Override
-    public int getOrder()
-    {
-        return 53;
-    }
-
-    @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();

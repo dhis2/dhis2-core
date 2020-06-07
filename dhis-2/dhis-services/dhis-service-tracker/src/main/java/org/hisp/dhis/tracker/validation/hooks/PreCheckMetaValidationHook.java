@@ -55,12 +55,6 @@ public class PreCheckMetaValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public int getOrder()
-    {
-        return 2;
-    }
-
-    @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();

@@ -56,12 +56,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL
 public class PreCheckSecurityValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 3;
-    }
-
     @Autowired
     private TrackerImportAccessManager accessManager;
 

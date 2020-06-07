@@ -54,12 +54,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 302;
-    }
-
     public EventDateValidationHook()
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );

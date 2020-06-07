@@ -44,12 +44,6 @@ import java.util.Objects;
 public class EnrollmentGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Override
-    public int getOrder()
-    {
-        return 108;
-    }
-
     public EnrollmentGeoValidationHook()
     {
         super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );

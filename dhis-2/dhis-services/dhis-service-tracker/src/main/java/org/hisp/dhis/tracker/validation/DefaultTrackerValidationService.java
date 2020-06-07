@@ -38,7 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+
+import static org.hisp.dhis.tracker.validation.ValidationConfig.VALIDATION_ORDER;
+import static org.hisp.dhis.tracker.validation.ValidationConfig.VALIDATION_ORDER_MAP;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,6 +58,14 @@ public class DefaultTrackerValidationService
     public void setValidationHooks( List<TrackerValidationHook> validationHooks )
     {
         this.validationHooks = validationHooks;
+
+        if ( !VALIDATION_ORDER.containsAll( validationHooks ) )
+        {
+            throw new RuntimeException(
+                "ValidationConfig.class is missing a validation hook in the validation order list, please add it to the list" );
+        }
+
+        this.validationHooks.sort( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) );
     }
 
     @Override
@@ -62,6 +74,7 @@ public class DefaultTrackerValidationService
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         User user = bundle.getUser();
+        
         if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +

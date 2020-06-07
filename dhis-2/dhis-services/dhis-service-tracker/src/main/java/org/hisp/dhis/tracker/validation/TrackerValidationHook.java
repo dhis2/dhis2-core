@@ -48,9 +48,6 @@ public interface TrackerValidationHook
 
     List<TrackerErrorReport> validate( TrackerImportValidationContext bundle );
 
-    @Override
-    default int getOrder()
-    {
-        return Ordered.LOWEST_PRECEDENCE;
-    }
+    void setOrder( int order );
+
 }
