@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -57,7 +58,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerEventBundleServiceTest extends IntegrationTestBase
+public class TrackerEventBundleServiceTest extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -99,11 +100,11 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
         objectBundleService.commit( bundle );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+//    @Override
+//    public boolean emptyDatabaseAfterTest()
+//    {
+//        return true;
+//    }
 
     @Test
     public void testCreateSingleEventData()

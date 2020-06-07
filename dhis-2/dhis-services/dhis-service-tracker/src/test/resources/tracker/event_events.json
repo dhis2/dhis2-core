@@ -9,7 +9,7 @@
       "orgUnit": "PlKwabX2xRW",
       "status": "COMPLETED",
       "occurredAt": "2019-01-28T00:00:00.000",
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": "xYerKDKCefk;XXXrKDKCefk",
       "updatedAt": "2019-01-28T12:10:38.109",
       "createdAt": "2019-01-28T12:10:38.108",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -32,7 +32,7 @@
       "updatedAt": "2019-01-28T12:10:38.109",
       "createdAt": "2019-01-28T12:10:38.108",
       "completedAt": "2019-01-28T00:00:00.000",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": "XXXvX50cXC0",
       "completedBy": "admin",
       "dataValues": [
         { "updatedAt": "2019-01-28T12:10:38.115", "storedBy": "admin", "createdAt": "2019-01-28T12:10:38.115", "dataElement": "VD2olWcRozZ", "value": "2019-01-28", "providedElsewhere": false }

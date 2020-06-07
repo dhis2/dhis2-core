@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -69,7 +70,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityProgramAttributeReservedValueTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -116,11 +117,11 @@ public class TrackedEntityProgramAttributeReservedValueTest
         objectBundleService.commit( bundle );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+//    @Override
+//    public boolean emptyDatabaseAfterTest()
+//    {
+//        return true;
+//    }
 
     @Test
     public void testTrackedEntityProgramAttributeReservedValue() throws IOException, TextPatternGenerationException, ReserveValueException
