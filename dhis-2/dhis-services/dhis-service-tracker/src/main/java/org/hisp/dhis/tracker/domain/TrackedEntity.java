@@ -80,6 +80,9 @@ public class TrackedEntity implements TrackerDto
     private Geometry geometry;
 
     @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 

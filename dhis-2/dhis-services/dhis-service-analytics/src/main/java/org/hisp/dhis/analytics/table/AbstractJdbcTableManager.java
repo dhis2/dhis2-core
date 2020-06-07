@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 import lombok.extern.slf4j.Slf4j;
@@ -501,7 +502,7 @@ public abstract class AbstractJdbcTableManager
      * Checks whether the given list of columns are valid.
      *
      * @param columns the list of {@link AnalyticsTableColumn}.
-     * @throws IllegalStateException if not valid.
+     * @throws IllegalArgumentException if not valid.
      */
     protected void validateDimensionColumns( List<AnalyticsTableColumn> columns )
     {
@@ -514,10 +515,9 @@ public abstract class AbstractJdbcTableManager
 
         Set<String> duplicates = ListUtils.getDuplicates( columnNames );
 
-        if ( !duplicates.isEmpty() )
-        {
-            throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
-        }
+        boolean columnsAreUnique = duplicates.isEmpty();
+
+        Preconditions.checkArgument( columnsAreUnique, String.format( "Analytics table dimensions contain duplicates: %s", duplicates ) );
     }
 
     /**

@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,16 +26,40 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class QueryTimeoutException
-    extends RuntimeException
+package org.hisp.dhis.analytics.orgunit;
+
+import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+
+/**
+ * @author Lars Helge Overland
+ */
+public class OrgUnitAnalyticsServiceTest
+    extends DhisSpringTest
 {
-    public QueryTimeoutException( String message )
+    @Autowired
+    private OrgUnitAnalyticsService subject;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void testValidateNoOrgUnits()
     {
-        super( message );
-    }
-    
-    public QueryTimeoutException( String message, Throwable throwable )
-    {
-        super( message, throwable );
+        assertIllegalQueryEx( exception, ErrorCode.E7300 );
+
+        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
+            .build();
+
+        subject.validate( params );
     }
 }
