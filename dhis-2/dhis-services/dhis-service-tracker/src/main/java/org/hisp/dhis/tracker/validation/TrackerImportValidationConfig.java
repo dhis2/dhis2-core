@@ -59,7 +59,7 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ValidationConfig
+public class TrackerImportValidationConfig
 {
     protected final static List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(
 

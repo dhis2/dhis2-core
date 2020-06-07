@@ -41,8 +41,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.hisp.dhis.tracker.validation.ValidationConfig.VALIDATION_ORDER;
-import static org.hisp.dhis.tracker.validation.ValidationConfig.VALIDATION_ORDER_MAP;
+import static org.hisp.dhis.tracker.validation.TrackerImportValidationConfig.VALIDATION_ORDER;
+import static org.hisp.dhis.tracker.validation.TrackerImportValidationConfig.VALIDATION_ORDER_MAP;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,7 +74,7 @@ public class DefaultTrackerValidationService
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         User user = bundle.getUser();
-        
+
         if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
