@@ -48,8 +48,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -80,8 +78,8 @@ class ResponseHandler
 
     private final FieldFilterService fieldFilterService;
 
-    private final ProgramService programService;
-    
+    private final DataItemServiceFacade dataItemServiceFacade;
+
     private final Environment environment;
 
     private final CacheProvider cacheProvider;
@@ -89,20 +87,20 @@ class ResponseHandler
     private Cache<Integer> PAGE_COUNTING_CACHE;
 
     ResponseHandler( final QueryService queryService, final LinkService linkService,
-        final FieldFilterService fieldFilterService, final ProgramService programService, final Environment environment,
-        final CacheProvider cacheProvider )
+        final FieldFilterService fieldFilterService, final DataItemServiceFacade dataItemServiceFacade,
+        final Environment environment, final CacheProvider cacheProvider )
     {
         checkNotNull( queryService );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
-        checkNotNull( programService );
+        checkNotNull( dataItemServiceFacade );
         checkNotNull( environment );
         checkNotNull( cacheProvider );
 
         this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
-        this.programService = programService;
+        this.dataItemServiceFacade = dataItemServiceFacade;
         this.environment = environment;
         this.cacheProvider = cacheProvider;
     }
@@ -164,13 +162,7 @@ class ResponseHandler
         final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(), new Pagination(),
             options.getRootJunction() );
 
-        if ( options.contains( "program.id" ) )
-        {
-            final String programUid = options.get( "program.id" );
-            final List<ProgramDataElementDimensionItem> programDataElements = programService
-                    .getGeneratedProgramDataElements( programUid );
-            query.setObjects( programDataElements );
-        }
+        dataItemServiceFacade.addQueryFilters( options, query );
 
         return queryService.count( query );
     }

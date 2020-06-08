@@ -187,6 +187,23 @@ class DataItemServiceFacade
     }
 
     /**
+     * Add existing filters, if any, to the given query.
+     * 
+     * @param options the WebOptions
+     * @param query the query which the filters should be added to
+     */
+    void addQueryFilters( final WebOptions options, final Query query )
+    {
+        if ( options.contains( "program.id" ) )
+        {
+            final String programUid = options.get( "program.id" );
+            final List<ProgramDataElementDimensionItem> programDataElements = programService
+                .getGeneratedProgramDataElements( programUid );
+            query.setObjects( programDataElements );
+        }
+    }
+
+    /**
      * Execute the given query.
      *
      * @param query the query to be executed
@@ -222,13 +239,7 @@ class DataItemServiceFacade
             getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
 
-        if ( options.contains( "program.id" ) )
-        {
-            final String programUid = options.get( "program.id" );
-            final List<ProgramDataElementDimensionItem> programDataElements = programService
-                .getGeneratedProgramDataElements( programUid );
-            query.setObjects( programDataElements );
-        }
+        addQueryFilters( options, query );
 
         return query;
     }
