@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events.importer.context;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -48,7 +48,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

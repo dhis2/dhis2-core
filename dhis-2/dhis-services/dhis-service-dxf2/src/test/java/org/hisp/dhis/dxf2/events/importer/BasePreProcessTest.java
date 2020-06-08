@@ -1,15 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.common.collect.Lists;
+package org.hisp.dhis.dxf2.events.importer;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -39,32 +28,59 @@ import com.google.common.collect.Lists;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createBaseEvent;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceStore;
+import org.junit.Before;
+import org.junit.Rule;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Luciano Fiandesio
  */
-public class UidGeneratorTest
+public class BasePreProcessTest
 {
-    private UidGenerator subject;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    protected WorkContext workContext;
+
+    @Mock
+    protected ServiceDelegator serviceDelegator;
+
+    @Mock
+    protected ProgramInstanceStore programInstanceStore;
+
+    protected Event event;
+
+    protected Program program;
 
     @Before
-    public void setUp()
+    public void superSetUp()
     {
-        subject = new UidGenerator();
-    }
+        event = createBaseEvent();
+        program = createProgram( 'P' );
 
-    @Test
-    public void verifyEventsGetUidAssigned()
-    {
-        Event event1 = new Event();
-        Event event2 = new Event();
-        Event event3 = new Event();
-        Event event4 = new Event();
-        event4.setEvent( "aaaaaaa" );
+        Map<String, Program> programMap = new HashMap<>();
+        programMap.put( program.getUid(), program );
 
-        List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
+        when( workContext.getProgramsMap() ).thenReturn( programMap );
+        when( workContext.getImportOptions() ).thenReturn( ImportOptions.getDefaultImportOptions() );
+        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
 
-        assertThat( events, hasSize( 4 ) );
-        events.forEach( e -> assertNotNull( e.getUid() ) );
+        when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
     }
 
 }

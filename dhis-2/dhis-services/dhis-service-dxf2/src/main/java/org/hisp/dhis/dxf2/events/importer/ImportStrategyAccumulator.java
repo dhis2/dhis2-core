@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events.importer;
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 
@@ -45,11 +46,11 @@ import lombok.Getter;
 @Getter
 public class ImportStrategyAccumulator
 {
-    private List<Event> create = new ArrayList<>();
+    private final List<Event> create = new ArrayList<>();
 
-    private List<Event> update = new ArrayList<>();
+    private final List<Event> update = new ArrayList<>();
 
-    private List<Event> delete = new ArrayList<>();
+    private final List<Event> delete = new ArrayList<>();
 
     public ImportStrategyAccumulator partitionEvents( List<Event> events, ImportStrategy importStrategy,
         Map<String, ProgramStageInstance> existingEvents )

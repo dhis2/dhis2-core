@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.validation;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createBaseEvent;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +50,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramInstanceStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mock;
@@ -82,6 +84,9 @@ public class BaseValidationTest
 
     protected ObjectMapper objectMapper = new ObjectMapper();
 
+    @Mock
+    protected ProgramInstanceStore programInstanceStore;
+
     @Before
     public void superSetUp()
     {
@@ -93,16 +98,8 @@ public class BaseValidationTest
 
         // Service delegator
         when( serviceDelegator.getJsonMapper() ).thenReturn( objectMapper );
+        when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
 
-    }
-
-    private Event createBaseEvent()
-    {
-        Event event = new Event();
-        String uid = CodeGenerator.generateUid();
-        event.setUid( uid );
-        event.setEvent( uid );
-        return event;
     }
 
     protected void assertNoError( ImportSummary summary )
