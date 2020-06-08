@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -46,6 +47,7 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,13 +65,11 @@ import com.google.common.collect.Lists;
 public class ProgramController
     extends AbstractCrudController<Program>
 {
-    private final ProgramService programService;
+    @Autowired
+    private ProgramService programService;
 
-    public ProgramController( ProgramService programService )
-    {
-        checkNotNull( programService );
-        this.programService = programService;
-    }
+    @Autowired
+    private  ProgramInstanceService programInstanceService;
 
     @Override
     @SuppressWarnings( "unchecked" )

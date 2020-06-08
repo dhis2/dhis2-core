@@ -65,16 +65,16 @@ public class RequestIdentifierFilter
     /**
      * The hash algorithm to use (default is SHA-256)
      */
-    private String hashAlgo;
+    private final String hashAlgo;
 
     /**
      * Set the maximum length of the String used as request id
      */
-    private int maxSize;
+    private final int maxSize;
 
     private final static String IDENTIFIER_PREFIX = "ID";
 
-    private boolean enabled;
+    private final boolean enabled;
 
     public RequestIdentifierFilter( DhisConfigurationProvider dhisConfig )
     {
