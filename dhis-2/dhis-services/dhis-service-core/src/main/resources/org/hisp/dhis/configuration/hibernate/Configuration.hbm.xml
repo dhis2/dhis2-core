@@ -35,7 +35,7 @@
     <many-to-one name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
         column="selfRegistrationOrgUnit" foreign-key="fk_configuration_selfregistrationorgunit" />
 
-    <set name="corsWhitelist" table="configuration_corswhitelist">
+    <set name="corsWhitelist" table="configuration_corswhitelist" lazy="false">
       <cache usage="read-write" />
       <key column="configurationid" foreign-key="fk_configuration_corswhitelist" />
       <element type="string" column="corswhitelist" />
