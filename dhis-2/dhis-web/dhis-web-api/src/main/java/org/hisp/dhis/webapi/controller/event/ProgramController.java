@@ -72,21 +72,6 @@ public class ProgramController
     private ProgramService programService;
 
     @Override
-    protected void postCreateEntity( Program program )
-    {
-        if ( program.isWithoutRegistration() )
-        {
-            ProgramInstance programInstance = new ProgramInstance();
-            programInstance.setEnrollmentDate( new Date() );
-            programInstance.setIncidentDate( new Date() );
-            programInstance.setProgram( program );
-            programInstance.setStatus( ProgramStatus.ACTIVE );
-
-            programInstanceService.addProgramInstance( programInstance );
-        }
-    }
-
-    @Override
     @SuppressWarnings( "unchecked" )
     protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
