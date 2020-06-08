@@ -28,16 +28,16 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -46,7 +46,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,8 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,25 +63,12 @@ import java.util.List;
 public class ProgramController
     extends AbstractCrudController<Program>
 {
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private final ProgramService programService;
 
-    @Autowired
-    private ProgramService programService;
-
-    @Override
-    protected void postCreateEntity( Program program )
+    public ProgramController( ProgramService programService )
     {
-        if ( program.isWithoutRegistration() )
-        {
-            ProgramInstance programInstance = new ProgramInstance();
-            programInstance.setEnrollmentDate( new Date() );
-            programInstance.setIncidentDate( new Date() );
-            programInstance.setProgram( program );
-            programInstance.setStatus( ProgramStatus.ACTIVE );
-
-            programInstanceService.addProgramInstance( programInstance );
-        }
+        checkNotNull( programService );
+        this.programService = programService;
     }
 
     @Override
