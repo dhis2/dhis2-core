@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller.dataitem;
  */
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.rules.ExpectedException.none;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -50,8 +52,10 @@ import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -59,6 +63,7 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.http.ResponseEntity;
@@ -82,6 +87,9 @@ public class DataItemQueryControllerTest
     @Rule
     public MockitoRule mockitoRule = rule();
 
+    @Rule
+    public ExpectedException expectedException = none();
+
     @Before
     public void setUp()
     {
@@ -90,7 +98,7 @@ public class DataItemQueryControllerTest
     }
 
     @Test
-    public void testGetJsonWithSuccess()
+    public void testGetWithSuccess()
     {
         // Given
         final Map<String, String> anyUrlParameters = new HashMap<>();
@@ -102,9 +110,9 @@ public class DataItemQueryControllerTest
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
         when( dataItemServiceFacade.retrieveDataItemEntities(
             anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
 
         final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
             anyOrderParams, anyUser );
@@ -114,5 +122,50 @@ public class DataItemQueryControllerTest
         assertThat( actualResponse.getStatusCode(), is( FOUND ) );
         verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
         verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
+    }
+
+    @Test
+    public void testGetWhenAclIsInvalid()
+    {
+        // Given
+        final Map<String, String> anyUrlParameters = new HashMap<>();
+        final OrderParams anyOrderParams = new OrderParams();
+        final User anyUser = new User();
+        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
+            asList( Indicator.class ) );
+        final boolean invalidAcl = false;
+
+        // Then
+        expectedException.expect( ReadAccessDeniedException.class );
+        expectedException
+            .expectMessage( containsString( "You don't have the proper permissions to read objects of type" ) );
+
+        // When
+        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
+
+        dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
+    }
+
+    @Test
+    public void testGetWhenPaginationIsNotAllowed()
+    {
+        // Given
+        final Map<String, String> anyUrlParameters = new HashMap<>();
+        final OrderParams anyOrderParams = new OrderParams();
+        final User anyUser = new User();
+        final Set<String> someFilters = new HashSet<>( asList( "dimensionItemType:eq:INDICATOR",
+            "dimensionItemType:eq:DATA_ELEMENT" ) );
+
+        // Then
+        expectedException.expect( QueryParserException.class );
+        expectedException
+            .expectMessage( containsString(
+                "Pagination (paging=true) is not supported for multiple dimensionItemType filtering." ) );
+
+        // When
+        when( contextService.getParameterValues( "filter" ) ).thenReturn( someFilters );
+
+        dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
     }
 }

@@ -208,7 +208,7 @@ class DataItemQueryController
             if ( filterCount > 1 )
             {
                 throw new QueryParserException(
-                        "Pagination (paging=true) is not supported for multiple dataItemTypes filtering." );
+                        "Pagination (paging=true) is not supported for multiple dimensionItemType filtering." );
             }
         }
     }
