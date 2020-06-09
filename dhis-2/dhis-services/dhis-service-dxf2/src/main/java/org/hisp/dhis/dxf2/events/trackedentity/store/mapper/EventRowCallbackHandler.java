@@ -94,10 +94,11 @@ public class EventRowCallbackHandler
         event.setAttributeOptionCombo( rs.getString("cocuid") );
         event.setAttributeCategoryOptions( rs.getString("catoptions") );
 
+        // TODO
 //        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
 //        {
 //            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-//        } TODO
+//        }
 
         return event;
     }
