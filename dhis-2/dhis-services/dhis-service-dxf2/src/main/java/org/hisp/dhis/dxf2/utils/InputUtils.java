@@ -48,6 +48,7 @@ import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 /**
  * @author Lars Helge Overland
  */
@@ -61,7 +62,7 @@ public class InputUtils
     private final IdentifiableObjectManager idObjectManager;
 
     private final Environment env;
-    
+
     private final CacheProvider cacheProvider;
 
     public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, Environment env,

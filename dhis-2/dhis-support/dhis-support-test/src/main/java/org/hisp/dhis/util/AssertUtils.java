@@ -26,40 +26,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.orgunit;
+package org.hisp.dhis.util;
 
-import static org.hisp.dhis.util.AssertUtils.assertIllegalQueryEx;
-
-import org.hisp.dhis.DhisSpringTest;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitAnalyticsServiceTest
-    extends DhisSpringTest
+public class AssertUtils
 {
-    @Autowired
-    private OrgUnitAnalyticsService subject;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    @Test
-    public void testValidateNoOrgUnits()
+    /**
+     * Asserts that a {@link IllegalQueryException} is thrown with the given {@link ErrorCode}.
+     *
+     * @param exception the {@link ExpectedException}.
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public static void assertIllegalQueryEx( ExpectedException exception, ErrorCode errorCode )
     {
-        assertIllegalQueryEx( exception, ErrorCode.E7300 );
-
-        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
-            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
-            .build();
-
-        subject.validate( params );
+        exception.expect( IllegalQueryException.class );
+        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( errorCode ) ) );
+        exception.reportMissingExceptionWithMessage( String.format(
+            "Test does not throw an IllegalQueryException with error code: '%s'", errorCode ) );
     }
 }

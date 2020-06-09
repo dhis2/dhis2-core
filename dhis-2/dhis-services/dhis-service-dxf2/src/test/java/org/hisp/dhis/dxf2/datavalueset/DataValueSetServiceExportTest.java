@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,8 +26,16 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
+package org.hisp.dhis.dxf2.datavalueset;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.hisp.dhis.util.AssertUtils.assertIllegalQueryEx;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Date;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -41,13 +47,13 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -58,15 +64,14 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Date;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -100,6 +105,9 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private ObjectMapper jsonMapper;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     private DataElement deA;
     private DataElement deB;
@@ -236,7 +244,8 @@ public class DataValueSetServiceExportTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testExportBasic() throws IOException
+    public void testExportBasic()
+        throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -263,7 +272,8 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportAttributeOptionCombo() throws IOException
+    public void testExportAttributeOptionCombo()
+        throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -290,7 +300,8 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportOrgUnitChildren() throws IOException
+    public void testExportOrgUnitChildren()
+        throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -317,7 +328,8 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportOutputSingleDataValueSetIdSchemeCode() throws IOException
+    public void testExportOutputSingleDataValueSetIdSchemeCode()
+        throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -352,7 +364,8 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportOutputIdSchemeAttribute() throws IOException
+    public void testExportOutputIdSchemeAttribute()
+        throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -387,7 +400,8 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportLastUpdated() throws IOException
+    public void testExportLastUpdated()
+        throws IOException
     {
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -406,7 +420,8 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportLastUpdatedWithDeletedValues() throws IOException
+    public void testExportLastUpdatedWithDeletedValues()
+        throws IOException
     {
         DataValue dvA = new DataValue( deC, peA, ouA, cocA, cocA, "1" );
         DataValue dvB = new DataValue( deC, peB, ouA, cocA, cocA, "2" );
@@ -440,9 +455,10 @@ public class DataValueSetServiceExportTest
     /**
      * Org unit C is outside the hierarchy of the current user.
      */
-    @Test( expected = IllegalQueryException.class )
     public void testExportAccessOrgUnitHierarchy()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E2012 );
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
