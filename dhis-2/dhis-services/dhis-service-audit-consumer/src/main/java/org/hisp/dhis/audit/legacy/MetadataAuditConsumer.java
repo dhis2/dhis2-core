@@ -28,11 +28,8 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Objects;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
@@ -42,9 +39,9 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.jms.TextMessage;
+import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A MetadataAudit object consumer.
@@ -57,7 +54,8 @@ public class MetadataAuditConsumer implements AuditConsumer
 {
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
-    private final boolean metadataAuditLog;
+    private final boolean isAuditLogEnabled;
+    private final boolean isAuditPersistenceEnabled;
 
     public MetadataAuditConsumer(
         AuditService auditService,
@@ -67,7 +65,8 @@ public class MetadataAuditConsumer implements AuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
+        this.isAuditPersistenceEnabled = true;
     }
 
     @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
@@ -75,7 +74,7 @@ public class MetadataAuditConsumer implements AuditConsumer
     {
         try
         {
-            log.debug( "[MetadataAuditConsumer] Receiving message: "+ message  );
+            log.debug( "[MetadataAuditConsumer] Receiving message: " + message );
             String payload = message.getText();
 
             Audit auditMessage = objectMapper.readValue( payload, Audit.class );
@@ -87,12 +86,15 @@ public class MetadataAuditConsumer implements AuditConsumer
 
             org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
 
-            if ( metadataAuditLog )
+            if ( isAuditLogEnabled )
             {
                 log.info( objectMapper.writeValueAsString( audit ) );
             }
 
-            auditService.addAudit( audit );
+            if ( isAuditPersistenceEnabled )
+            {
+                auditService.addAudit( audit );
+            }
         }
         catch ( IOException e )
         {

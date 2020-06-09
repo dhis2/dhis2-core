@@ -45,7 +45,6 @@ import java.util.Objects;
 
 /**
  * A Aggregate object consumer.
- *
  */
 @Slf4j
 @Component
@@ -55,6 +54,7 @@ public class AggregateAuditConsumer
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final boolean isAuditLogEnabled;
+    private final boolean isAuditPersistenceEnabled;
 
     public AggregateAuditConsumer(
         AuditService auditService,
@@ -65,6 +65,7 @@ public class AggregateAuditConsumer
         this.objectMapper = objectMapper;
 
         this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AGGREGATE_AUDIT_LOG ), "on" );
+        this.isAuditPersistenceEnabled = true;
     }
 
     @JmsListener( destination = Topics.AGGREGATE_TOPIC_NAME )
@@ -88,7 +89,10 @@ public class AggregateAuditConsumer
                 log.info( objectMapper.writeValueAsString( audit ) );
             }
 
-            auditService.addAudit( audit );
+            if ( isAuditPersistenceEnabled )
+            {
+                auditService.addAudit( audit );
+            }
         }
         catch ( IOException e )
         {

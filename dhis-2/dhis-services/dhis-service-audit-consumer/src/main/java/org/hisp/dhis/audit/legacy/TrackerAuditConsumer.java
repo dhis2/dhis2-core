@@ -51,12 +51,17 @@ public class TrackerAuditConsumer implements AuditConsumer
 {
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final boolean isAuditLogEnabled;
+    private final boolean isAuditPersistenceEnabled;
 
     public TrackerAuditConsumer(
         AuditService auditService, ObjectMapper objectMapper )
     {
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+
+        this.isAuditLogEnabled = false;
+        this.isAuditPersistenceEnabled = true;
     }
 
     @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
@@ -69,7 +74,17 @@ public class TrackerAuditConsumer implements AuditConsumer
             Audit auditMessage = objectMapper.readValue( payload, Audit.class );
             auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
 
-            auditService.addAudit( auditMessage.toAudit() );
+            org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
+
+            if ( isAuditLogEnabled )
+            {
+                log.info( objectMapper.writeValueAsString( audit ) );
+            }
+
+            if ( isAuditPersistenceEnabled )
+            {
+                auditService.addAudit( audit );
+            }
         }
         catch ( IOException e )
         {
