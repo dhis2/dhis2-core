@@ -272,28 +272,14 @@ public class DataValueServiceTest
 
         params = new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementB ) )
-            .setPeriods( Sets.newHashSet( periodA ) );
+            .setPeriods( Sets.newHashSet( periodA ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) );
 
         values = dataValueService.getDataValues( params );
 
         assertEquals( 2, values.size() );
         assertTrue( values.contains( dataValueE ) );
         assertTrue( values.contains( dataValueF ) );
-
-        params = new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA ) )
-            .setLimit( 2 );
-
-        values = dataValueService.getDataValues( params );
-
-        assertEquals( 2, values.size() );
-
-        params = new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) );
-
-        values = dataValueService.getDataValues( params );
-
-        assertEquals( 10, values.size() );
     }
 
     @Test
@@ -321,12 +307,10 @@ public class DataValueServiceTest
         dataValueService.addDataValue( dataValueI );
         dataValueService.addDataValue( dataValueJ );
 
-        assertEquals( 6, dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) ) ).size() );
-        assertEquals( 4, dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementB ) ) ).size() );
-
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
-            .setPeriods( Sets.newHashSet( periodB ) ) )
+            .setPeriods( Sets.newHashSet( periodB ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
 
         assertEquals( 2, dataValueService.getDataValues( new DataExportParams()
@@ -336,17 +320,14 @@ public class DataValueServiceTest
             .size() );
 
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
-            .setPeriods( Sets.newHashSet( periodB ) ) )
-            .size() );
-
-        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA ) )
-            .setPeriods( Sets.newHashSet( periodA, periodC ) ) )
+            .setPeriods( Sets.newHashSet( periodA, periodC ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
 
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodA, periodB ) )
             .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
 
