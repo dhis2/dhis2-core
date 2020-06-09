@@ -69,12 +69,6 @@ public enum ConfigurationKey
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
-    @Deprecated
-    METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
-    @Deprecated
-    TRACKER_AUDIT_LOG( "tracker.audit.log", "off", false ),
-    @Deprecated
-    AGGREGATE_AUDIT_LOG( "aggregate.audit.log", "off", false ),
     REDIS_HOST( "redis.host", "localhost", false ),
     REDIS_PORT( "redis.port", "6379", false ),
     REDIS_PASSWORD( "redis.password", "", true ),

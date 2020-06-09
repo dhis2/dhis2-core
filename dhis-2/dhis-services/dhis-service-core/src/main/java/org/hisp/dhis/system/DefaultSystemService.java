@@ -28,16 +28,8 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-
+import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -60,9 +52,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -248,14 +245,6 @@ public class DefaultSystemService
 
         info.setDatabaseInfo( databaseInfo.instance() );
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
-
-        // ---------------------------------------------------------------------
-        // Metadata Audit
-        // ---------------------------------------------------------------------
-
-        info.setMetadataAudit( new MetadataAudit(
-            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
-        ) );
 
         // ---------------------------------------------------------------------
         // System env variables and properties
