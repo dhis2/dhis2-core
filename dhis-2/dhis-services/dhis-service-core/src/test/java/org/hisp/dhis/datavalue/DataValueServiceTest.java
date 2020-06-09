@@ -329,28 +329,34 @@ public class DataValueServiceTest
             .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
             .setPeriods( Sets.newHashSet( periodB ) ) )
             .size() );
+
         assertEquals( 2, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
             .setPeriods( Sets.newHashSet( periodA ) )
             .setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
             .size() );
+
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
             .setPeriods( Sets.newHashSet( periodB ) ) )
             .size() );
+
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA ) )
             .setPeriods( Sets.newHashSet( periodA, periodC ) ) )
             .size() );
+
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementB ) )
             .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
+
         assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementB ) )
             .setPeriods( Sets.newHashSet( periodB ) )
             .setOrganisationUnits( Sets.newHashSet( sourceA ) ) )
             .size() );
+
         assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA ) )
             .setPeriods( Sets.newHashSet( periodA ) )
