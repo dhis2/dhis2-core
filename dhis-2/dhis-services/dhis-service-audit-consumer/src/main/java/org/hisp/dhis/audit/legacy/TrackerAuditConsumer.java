@@ -28,19 +28,17 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
 import org.hisp.dhis.audit.AuditService;
-import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * Tracker audits consumer.
@@ -52,13 +50,13 @@ import lombok.extern.slf4j.Slf4j;
 public class TrackerAuditConsumer implements AuditConsumer
 {
     private final AuditService auditService;
-    private final RenderService renderService;
+    private final ObjectMapper objectMapper;
 
     public TrackerAuditConsumer(
-        AuditService auditService, RenderService renderService )
+        AuditService auditService, ObjectMapper objectMapper )
     {
         this.auditService = auditService;
-        this.renderService = renderService;
+        this.objectMapper = objectMapper;
     }
 
     @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
@@ -68,8 +66,8 @@ public class TrackerAuditConsumer implements AuditConsumer
         {
             String payload = message.getText();
 
-            Audit auditMessage = renderService.fromJson( payload, Audit.class );
-            auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
+            Audit auditMessage = objectMapper.readValue( payload, Audit.class );
+            auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
 
             auditService.addAudit( auditMessage.toAudit() );
         }
