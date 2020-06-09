@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -64,14 +65,12 @@ import java.util.stream.Collectors;
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
-
-    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    public EventTrackerConverterService()
     {
-        this.trackerPreheatService = trackerPreheatService;
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Event to( ProgramStageInstance programStageInstance )
     {
         List<Event> events = to( Collections.singletonList( programStageInstance ) );
@@ -85,6 +84,7 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
@@ -149,19 +149,7 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public ProgramStageInstance from( Event event )
-    {
-        List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
-
-        if ( programStageInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programStageInstances.get( 0 );
-    }
-
-    @Override
+    @Transactional( readOnly = true )
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
@@ -175,12 +163,8 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public List<ProgramStageInstance> from( List<Event> events )
-    {
-        return from( preheat( events ), events );
-    }
-
-    private List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
+    @Transactional( readOnly = true )
+    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
@@ -267,14 +251,5 @@ public class EventTrackerConverterService
 
         // no valid enrollment given and program not single event, just return null
         return null;
-    }
-
-    private TrackerPreheat preheat( List<Event> events )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .events( events )
-            .build();
-
-        return trackerPreheatService.preheat( params );
     }
 }

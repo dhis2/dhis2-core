@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,9 +26,15 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+package org.hisp.dhis.tracker.programrule;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -45,26 +49,28 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Sets;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
+public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTest
 {
+
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -86,12 +92,16 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
     @Autowired
     private ProgramRuleActionService programRuleActionService;
 
+    @Autowired
+    private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
+    private SetMandatoryFieldImplementer implementerToTest;
+
     @Override
     protected void setUpTest()
         throws IOException
     {
-        preCreateInjectAdminUserWithoutPersistence();
-
         renderService = _renderService;
         userService = _userService;
 
@@ -109,40 +119,77 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
         objectBundleService.commit( bundle );
 
+        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" );
+        DataElement dataElement = bundle.getPreheat()
+            .get( PreheatIdentifier.UID, DataElement.class, "DSKTW8qFP0z" );
+        ProgramRuleVariable programRuleVariable = createProgramRuleVariable( 'A', program );
+        programRuleVariable.setDataElement( dataElement );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariable );
+
         ProgramRule programRule = createProgramRule( 'A',
-            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" ) );
+            program );
         programRuleService.addProgramRule( programRule );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SETMANDATORYFIELD );
         programRuleActionService.addProgramRuleAction( programRuleAction );
+        programRuleAction.setDataElement( dataElement );
+
+        ProgramRule programRule2 = createProgramRule( 'B',
+            program );
+        programRule2.setCondition( "d2:hasValue(#{ProgramRuleVariableA})" );
+        programRuleService.addProgramRule( programRule2 );
+        ProgramRuleAction programRuleAction2 = createProgramRuleAction( 'B', programRule2 );
+        programRuleAction2.setProgramRuleActionType( ProgramRuleActionType.SHOWERROR );
+        programRuleAction2.setContent( "SHOW ERROR DATA" );
+        programRuleActionService.addProgramRuleAction( programRuleAction2 );
 
         programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
         programRuleService.updateProgramRule( programRule );
-
+        programRule2.setProgramRuleActions( Sets.newHashSet( programRuleAction2 ) );
+        programRuleService.updateProgramRule( programRule2 );
     }
 
     @Test
-    public void testRunRuleEngineForEventOnBundleCreate()
+    public void testValidateOkMandatoryFieldsForEvents()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
-            .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
-        assertEquals( 8, trackerBundle.getEvents().size() );
-
-        List<TrackerBundle> trackerBundles = trackerBundleService.create(
-            TrackerBundleParams.builder()
-                .events( trackerBundle.getEvents() )
-                .enrollments( trackerBundle.getEnrollments() )
-                .trackedEntities( trackerBundle.getTrackedEntities() )
-                .build() );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
         trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        assertEquals( 1, trackerBundles.size() );
-        assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
+        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles.get( 0 ) );
+
+        assertFalse( errors.isEmpty() );
+
+        errors.entrySet().stream()
+            .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
+    }
+
+    @Test
+    public void testValidateWithErrorMandatoryFieldsForEvents()
+        throws IOException
+    {
+        TrackerBundleParams bundleParams = createBundleFromJson(
+            "tracker/event_events_and_enrollment_with_null_data_element.json" );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
+
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
+
+        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles.get( 0 ) );
+
+        assertFalse( errors.isEmpty() );
+
+        errors.entrySet().stream()
+            .filter( e -> !e.getKey().equals( "D9PbzJY8bJO" ) )
+            .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
+
+        errors.entrySet().stream()
+            .filter( e -> e.getKey().equals( "D9PbzJY8bJO" ) )
+            .forEach( e -> assertTrue( e.getValue().size() == 1 ) );
     }
 }

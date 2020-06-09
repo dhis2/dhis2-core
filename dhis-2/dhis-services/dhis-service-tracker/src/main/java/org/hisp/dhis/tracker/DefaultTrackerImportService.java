@@ -40,6 +40,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -51,6 +52,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,6 +66,8 @@ public class DefaultTrackerImportService
 
     private final TrackerValidationService trackerValidationService;
 
+    private final TrackerPreprocessService trackerPreprocessService;
+
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
@@ -73,12 +77,14 @@ public class DefaultTrackerImportService
     public DefaultTrackerImportService(
         TrackerBundleService trackerBundleService,
         TrackerValidationService trackerValidationService,
+        TrackerPreprocessService trackerPreprocessService,
         CurrentUserService currentUserService,
         IdentifiableObjectManager manager,
         Notifier notifier )
     {
         this.trackerBundleService = trackerBundleService;
         this.trackerValidationService = trackerValidationService;
+        this.trackerPreprocessService = trackerPreprocessService;
         this.currentUserService = currentUserService;
         this.manager = manager;
         this.notifier = notifier;
@@ -99,6 +105,8 @@ public class DefaultTrackerImportService
         }
 
         List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
+
+        trackerBundles = preProcessBundle( trackerBundles, importReport );
 
         TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
 
@@ -135,6 +143,20 @@ public class DefaultTrackerImportService
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
         importReport.getTimings().setPreheat( preheatTimer.toString() );
+        return trackerBundles;
+    }
+
+    protected List<TrackerBundle> preProcessBundle( List<TrackerBundle> bundles, TrackerImportReport importReport )
+    {
+        Timer preProcessTimer = new SystemTimer().start();
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.runRuleEngine( bundles );
+        trackerBundles = trackerBundles
+            .stream()
+            .map( tb -> trackerPreprocessService.preprocess( tb ) )
+            .collect( Collectors.toList() );
+
+        importReport.getTimings().setProgramrule( preProcessTimer.toString() );
         return trackerBundles;
     }
 

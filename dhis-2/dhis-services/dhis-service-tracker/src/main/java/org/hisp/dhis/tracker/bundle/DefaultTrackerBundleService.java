@@ -37,6 +37,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -160,14 +161,28 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-//        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-//            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-//        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-//            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-//        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-//        trackerBundle.setEventRuleEffects( eventRuleEffects );
-
         return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
+    }
+
+    @Override
+    public List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles )
+    {
+        try
+        {
+            bundles.forEach( trackerBundle -> {
+                Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+                    .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+                Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+                    .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+                trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+                trackerBundle.setEventRuleEffects( eventRuleEffects );
+            } );
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+        }
+        return bundles;
     }
 
     @Override

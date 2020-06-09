@@ -31,8 +31,6 @@ package org.hisp.dhis.programrule.engine;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,7 +89,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        List<RuleEffect> ruleEffects = getRuleEffects( programInstance, Optional.empty(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
             programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
@@ -102,6 +100,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
                 i.implement( effect, programInstance );
             } );
         }
+
         return ruleEffects;
     }
 
@@ -115,7 +114,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        List<RuleEffect> ruleEffects = getRuleEffects( psi.getProgramInstance(), Optional.of( psi ),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( psi.getProgramInstance(), psi,
             psi.getProgramInstance().getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
@@ -128,11 +127,5 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
 
         return ruleEffects;
-    }
-
-    private List<RuleEffect> getRuleEffects( ProgramInstance enrollment, Optional<ProgramStageInstance> event,
-        Set<ProgramStageInstance> events )
-    {
-        return programRuleEngine.evaluate( enrollment, event, events );
     }
 }

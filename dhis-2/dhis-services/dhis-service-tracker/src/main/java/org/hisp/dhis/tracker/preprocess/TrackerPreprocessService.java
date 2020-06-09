@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.converter;
+package org.hisp.dhis.tracker.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,20 +28,18 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-
-import java.util.List;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public interface TrackerConverterService<From, To>
+public interface TrackerPreprocessService
 {
-    From to( To object );
-
-    List<From> to( List<To> objects );
-
-    To from( TrackerPreheat preheat, From object );
-
-    List<To> from( TrackerPreheat preheat, List<From> objects );
+    /**
+     * Execute preprocess actions on bundle
+     *
+     * @param bundle Bundle to preprocess
+     */
+    TrackerBundle preprocess( TrackerBundle bundle );
 }

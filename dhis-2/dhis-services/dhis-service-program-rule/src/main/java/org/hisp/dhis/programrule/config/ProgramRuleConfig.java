@@ -53,27 +53,33 @@ public class ProgramRuleConfig
     private OrganisationUnitGroupService organisationUnitGroupService;
 
     @Autowired
-    private RuleVariableInMemoryMap inMemoryMap;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
     private ConstantService constantService;
 
+    /**
+     * This bean is used in the system when an event is intercepted by
+     * {@link ProgramRuleEngineListener}. Only the notification rule actions are
+     * executed.
+     */
     @Bean( "oldRuleEngine" )
     public ProgramRuleEngine oldRuleEngine( OldImplementableRuleService oldImplementableRuleService )
     {
         return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService,
-            organisationUnitGroupService, inMemoryMap, currentUserService, constantService,
+            organisationUnitGroupService, currentUserService, constantService,
             oldImplementableRuleService );
     }
 
-    @Bean( "newRuleEngine" )
+    /**
+     * This bean is used when the new importer is called. All the relevant rule
+     * actions are executed.
+     */
+    @Bean( "newImporterRuleEngine" )
     public ProgramRuleEngine newRuleEngine( NewImplementableRuleService newImplementableRuleService )
     {
         return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService,
-            organisationUnitGroupService, inMemoryMap, currentUserService, constantService,
+            organisationUnitGroupService, currentUserService, constantService,
             newImplementableRuleService );
     }
 }

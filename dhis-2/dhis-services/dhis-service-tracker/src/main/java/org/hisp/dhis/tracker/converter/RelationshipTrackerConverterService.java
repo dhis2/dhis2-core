@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,14 +56,13 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 public class RelationshipTrackerConverterService
     implements TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
 {
-    private final TrackerPreheatService trackerPreheatService;
 
-    public RelationshipTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    public RelationshipTrackerConverterService()
     {
-        this.trackerPreheatService = trackerPreheatService;
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Relationship to( org.hisp.dhis.relationship.Relationship relationship )
     {
         List<Relationship> relationships = to( Collections.singletonList( relationship ) );
@@ -76,6 +76,7 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<Relationship> to( List<org.hisp.dhis.relationship.Relationship> relationships )
     {
         return relationships.stream().map( fromRelationship -> {
@@ -106,19 +107,7 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.relationship.Relationship from( Relationship relationship )
-    {
-        List<org.hisp.dhis.relationship.Relationship> relationships = from( Collections.singletonList( relationship ) );
-
-        if ( relationships.isEmpty() )
-        {
-            return null;
-        }
-
-        return relationships.get( 0 );
-    }
-
-    @Override
+    @Transactional( readOnly = true )
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
@@ -133,12 +122,8 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.relationship.Relationship> from( List<Relationship> relationships )
-    {
-        return from( preheat( relationships ), relationships );
-    }
-
-    private List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
+    @Transactional( readOnly = true )
+    public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
         List<Relationship> fromRelationships )
     {
         List<org.hisp.dhis.relationship.Relationship> toRelationships = new ArrayList<>();
@@ -213,11 +198,5 @@ public class RelationshipTrackerConverterService
         } );
 
         return toRelationships;
-    }
-
-    private TrackerPreheat preheat( List<Relationship> relationships )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder().relationships( relationships ).build();
-        return trackerPreheatService.preheat( params );
     }
 }
