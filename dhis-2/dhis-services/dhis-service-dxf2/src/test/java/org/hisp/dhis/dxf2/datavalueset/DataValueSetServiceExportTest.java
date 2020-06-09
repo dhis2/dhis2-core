@@ -452,10 +452,8 @@ public class DataValueSetServiceExportTest
         assertEquals( 14, dvs.getDataValues().size() );
     }
 
-    /**
-     * Org unit C is outside the hierarchy of the current user.
-     */
-    public void testExportAccessOrgUnitHierarchy()
+    @Test
+    public void testAccessOutsideOrgUnitHierarchy()
     {
         assertIllegalQueryEx( exception, ErrorCode.E2012 );
 
@@ -465,6 +463,81 @@ public class DataValueSetServiceExportTest
             .setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouC ) )
             .setPeriods( Sets.newHashSet( peA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testMissingDataSetElementGroup()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2001 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setOrganisationUnits( Sets.newHashSet( ouB ) )
+            .setPeriods( Sets.newHashSet( peA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testMissingPeriodStartEndDate()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2002 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testPeriodAndStartEndDate()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2003 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouB ) )
+            .setPeriods( Sets.newHashSet( peA ) )
+            .setStartDate( getDate( 2019, 1, 1 ) )
+            .setEndDate( getDate( 2019, 1, 31 ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testStartDateAfterEndDate()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2004 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouB ) )
+            .setStartDate( getDate( 2019, 3, 1 ) )
+            .setEndDate( getDate( 2019, 1, 31 ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testMissingOrgUnit()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2006 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouB ) );
 
         dataValueSetService.writeDataValueSetJson( params, out );
     }
