@@ -260,6 +260,7 @@ public class DataValueServiceTest
 
         DataExportParams params = new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setPeriods( Sets.newHashSet( periodA, periodB, periodC ) )
             .setOrganisationUnits( Sets.newHashSet( sourceA ) );
 
         List<DataValue> values = dataValueService.getDataValues( params );
@@ -293,8 +294,6 @@ public class DataValueServiceTest
         values = dataValueService.getDataValues( params );
 
         assertEquals( 10, values.size() );
-
-        //TODO more tests
     }
 
     @Test
