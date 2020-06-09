@@ -55,7 +55,7 @@ public class MetadataAuditConsumer implements AuditConsumer
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final boolean isAuditLogEnabled;
-    private final boolean isAuditPersistenceEnabled;
+    private final boolean isAuditDatabaseEnabled;
 
     public MetadataAuditConsumer(
         AuditService auditService,
@@ -65,8 +65,8 @@ public class MetadataAuditConsumer implements AuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
-        this.isAuditPersistenceEnabled = true;
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_LOGGER ), "on" );
+        this.isAuditDatabaseEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_DATABASE ), "on" );
     }
 
     @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
@@ -74,10 +74,7 @@ public class MetadataAuditConsumer implements AuditConsumer
     {
         try
         {
-            log.debug( "[MetadataAuditConsumer] Receiving message: " + message );
-            String payload = message.getText();
-
-            Audit auditMessage = objectMapper.readValue( payload, Audit.class );
+            Audit auditMessage = objectMapper.readValue( message.getText(), Audit.class );
 
             if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
             {
@@ -91,7 +88,7 @@ public class MetadataAuditConsumer implements AuditConsumer
                 log.info( objectMapper.writeValueAsString( audit ) );
             }
 
-            if ( isAuditPersistenceEnabled )
+            if ( isAuditDatabaseEnabled )
             {
                 auditService.addAudit( audit );
             }

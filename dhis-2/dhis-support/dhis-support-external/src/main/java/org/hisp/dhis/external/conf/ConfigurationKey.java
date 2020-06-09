@@ -69,8 +69,11 @@ public enum ConfigurationKey
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
+    @Deprecated
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
+    @Deprecated
     TRACKER_AUDIT_LOG( "tracker.audit.log", "off", false ),
+    @Deprecated
     AGGREGATE_AUDIT_LOG( "aggregate.audit.log", "off", false ),
     REDIS_HOST( "redis.host", "localhost", false ),
     REDIS_PORT( "redis.port", "6379", false ),
@@ -105,6 +108,8 @@ public enum ConfigurationKey
     APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
     APPHUB_API_URL( "apphub.api.url", "https://apps.dhis2.org/api", false ),
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "off" ),
+    AUDIT_LOGGER( "audit.logger", "off", false ),
+    AUDIT_DATABASE( "audit.database", "on", false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );

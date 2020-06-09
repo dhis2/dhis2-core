@@ -34,11 +34,14 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
 import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.jms.TextMessage;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Tracker audits consumer.
@@ -52,16 +55,18 @@ public class TrackerAuditConsumer implements AuditConsumer
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final boolean isAuditLogEnabled;
-    private final boolean isAuditPersistenceEnabled;
+    private final boolean isAuditDatabaseEnabled;
 
     public TrackerAuditConsumer(
-        AuditService auditService, ObjectMapper objectMapper )
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
     {
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        this.isAuditLogEnabled = false;
-        this.isAuditPersistenceEnabled = true;
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_LOGGER ), "off" );
+        this.isAuditDatabaseEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_DATABASE ), "on" );
     }
 
     @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
@@ -69,9 +74,7 @@ public class TrackerAuditConsumer implements AuditConsumer
     {
         try
         {
-            String payload = message.getText();
-
-            Audit auditMessage = objectMapper.readValue( payload, Audit.class );
+            Audit auditMessage = objectMapper.readValue( message.getText(), Audit.class );
             auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
 
             org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
@@ -81,7 +84,7 @@ public class TrackerAuditConsumer implements AuditConsumer
                 log.info( objectMapper.writeValueAsString( audit ) );
             }
 
-            if ( isAuditPersistenceEnabled )
+            if ( isAuditDatabaseEnabled )
             {
                 auditService.addAudit( audit );
             }
