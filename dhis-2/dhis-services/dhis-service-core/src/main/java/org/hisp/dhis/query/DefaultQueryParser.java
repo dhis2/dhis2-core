@@ -142,7 +142,7 @@ public class DefaultQueryParser implements QueryParser
             Collectors.toList() );
 
         disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
-        disjunction.add( getRestriction( schema, "organisationUnits", "empty", null ) );
+        disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
     
     
