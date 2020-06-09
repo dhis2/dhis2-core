@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.legacy;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,60 +28,41 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.jms.TextMessage;
 
 /**
- * Tracker audits consumer.
+ * A MetadataAudit object consumer.
  *
- * @author Morten Olav Hansen <morten@dhis2.org>
+ * @author Luciano Fiandesio
  */
-@Slf4j
 @Component
-public class TrackerAuditConsumer implements AuditConsumer
+public class MetadataAuditConsumer
+    extends AbstractAuditConsumer
 {
-    private final AuditService auditService;
-    private final RenderService renderService;
-
-    public TrackerAuditConsumer(
-        AuditService auditService, RenderService renderService )
+    public MetadataAuditConsumer(
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
     {
         this.auditService = auditService;
-        this.renderService = renderService;
+        this.objectMapper = objectMapper;
+
+        this.isAuditLogEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_LOGGER );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
-    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
+    @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
     public void consume( TextMessage message )
     {
-        try
-        {
-            String payload = message.getText();
-
-            Audit auditMessage = renderService.fromJson( payload, Audit.class );
-            auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
-
-            auditService.addAudit( auditMessage.toAudit() );
-        }
-        catch ( IOException e )
-        {
-            log.error(
-                "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
-                e );
-        }
-        catch ( Exception e )
-        {
-            log.error( "An error occurred persisting an Audit message of type 'TRACKER'", e );
-        }
+        _consume( message );
     }
 }

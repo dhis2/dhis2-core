@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.legacy;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,38 +28,28 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Objects;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.jms.TextMessage;
+import java.util.Objects;
 
 /**
- * A MetadataAudit object consumer.
+ * Tracker audit consumer.
  *
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <morten@dhis2.org>
  */
-@Slf4j
 @Component
-public class MetadataAuditConsumer implements AuditConsumer
+public class TrackerAuditConsumer
+    extends AbstractAuditConsumer
 {
-    private final AuditService auditService;
-    private final ObjectMapper objectMapper;
-    private final boolean metadataAuditLog;
-
-    public MetadataAuditConsumer(
+    public TrackerAuditConsumer(
         AuditService auditService,
         ObjectMapper objectMapper,
         DhisConfigurationProvider dhisConfig )
@@ -67,42 +57,14 @@ public class MetadataAuditConsumer implements AuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
+        // for legacy reasons we are overriding the default here and using "off" for tracking logger (we don't have a specific key for tracker logger)
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
-    @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
+    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
     public void consume( TextMessage message )
     {
-        try
-        {
-            log.debug( "[MetadataAuditConsumer] Receiving message: "+ message  );
-            String payload = message.getText();
-
-            Audit auditMessage = objectMapper.readValue( payload, Audit.class );
-
-            if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
-            {
-                auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
-            }
-
-            org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
-
-            if ( metadataAuditLog )
-            {
-                log.info( objectMapper.writeValueAsString( audit ) );
-            }
-
-            auditService.addAudit( audit );
-        }
-        catch ( IOException e )
-        {
-            log.error(
-                "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
-                e );
-        }
-        catch ( Exception e )
-        {
-            log.error( "An error occurred persisting an Audit message of type 'METADATA'", e );
-        }
+        _consume( message );
     }
 }
