@@ -75,7 +75,11 @@ public class TrackerAuditConsumer implements AuditConsumer
         try
         {
             Audit auditMessage = objectMapper.readValue( message.getText(), Audit.class );
-            auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
+
+            if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
+            {
+                auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
+            }
 
             org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
 
