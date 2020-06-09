@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events.importer.context;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -36,6 +36,8 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Note;
 
 /**
  * UID generator for Tracker entities.
@@ -56,7 +58,7 @@ public class UidGenerator
      * @param events a List of {@see Events}
      * @return a List of {@see Events} with the uid field populated
      */
-    public List<Event> assignUidToEvents( List<Event> events )
+    public List<Event> assignUidToEvents(List<Event> events )
     {
         for ( Event event : events )
         {

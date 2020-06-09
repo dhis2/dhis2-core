@@ -81,6 +81,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -279,7 +280,12 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    /**
+     * TODO:  LUCIANO: this test has been ignored because the Importer should not import an event linked to a Program
+     * with 2 or more Program Instances
+     */
     @Test
+    @Ignore
     public void testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
         throws IOException
     {

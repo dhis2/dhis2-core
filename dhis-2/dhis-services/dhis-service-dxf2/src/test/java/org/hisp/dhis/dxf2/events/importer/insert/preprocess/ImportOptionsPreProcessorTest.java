@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preprocess;
+package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
 import static org.mockito.Mockito.when;
 

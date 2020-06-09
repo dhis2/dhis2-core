@@ -30,10 +30,8 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -84,31 +82,14 @@ public class ProgramInstancePreProcessor implements Processor
             List<ProgramInstance> programInstances = getProgramInstances( ctx.getServiceDelegator().getJdbcTemplate(),
                 program, ProgramStatus.ACTIVE );
 
-            if ( programInstances.isEmpty() )
-            {
-                // Create PI if it doesn't exist (should only be one)
-                ProgramInstance pi = new ProgramInstance();
-                pi.setUid( CodeGenerator.generateUid() );
-                pi.setEnrollmentDate( new Date() );
-                pi.setIncidentDate( new Date() );
-                pi.setProgram( program );
-                pi.setStatus( ProgramStatus.ACTIVE );
-                pi.setStoredBy( event.getStoredBy() );
-
-                // Persist Program Instance
-                ctx.getServiceDelegator().getProgramInstanceStore().save( pi, ctx.getImportOptions().getUser() );
-
-                programInstances.add( pi );
-
-                // Add PI to caches //
-                event.setEnrollment( pi.getUid() );
-                ctx.getProgramInstanceMap().put( event.getUid(), pi );
-            }
-            else
+            // the "original" event import code creates a Program Instance, if none is found
+            // but this is no longer needed, since a Program POST-CREATION hook takes care of that
+            if ( programInstances.size() == 1 )
             {
                 event.setEnrollment( programInstances.get( 0 ).getUid() );
                 ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
             }
+            // If more than one Program Instance is present, the validation will detect it later
         }
     }
 

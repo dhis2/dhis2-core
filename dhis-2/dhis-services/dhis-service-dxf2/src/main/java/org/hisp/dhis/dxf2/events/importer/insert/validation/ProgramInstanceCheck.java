@@ -28,14 +28,14 @@
 
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -65,27 +65,26 @@ public class ProgramInstanceCheck implements Checker
 
                 if ( programInstances.isEmpty() )
                 {
-                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: "
-                        + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid() )
-                            .setReference( event.getEvent() ).incrementIgnored();
+                    return error( "Tracked entity instance: "
+                        + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid(),
+                        event.getEvent() );
                 }
                 else if ( programInstances.size() > 1 )
                 {
-                    return new ImportSummary( ImportStatus.ERROR,
-                        "Tracked entity instance: " + trackedEntityInstance.getUid()
-                            + " has multiple active enrollments in program: " + program.getUid() )
-                                .setReference( event.getEvent() ).incrementIgnored();
+                    return error( "Tracked entity instance: " + trackedEntityInstance.getUid()
+                        + " has multiple active enrollments in program: " + program.getUid(),
+                        event.getEvent() );
                 }
             }
             else
             {
                 programInstances = ctx.getServiceDelegator().getProgramInstanceStore().get( program,
                     ProgramStatus.ACTIVE );
+
                 if ( programInstances.size() > 1 )
                 {
-                    return new ImportSummary( ImportStatus.ERROR,
-                        "Multiple active program instances exists for program: " + program.getUid() )
-                            .setReference( event.getEvent() ).incrementIgnored();
+                    return error( "Multiple active program instances exists for program: " + program.getUid(),
+                        event.getEvent() );
                 }
             }
         }

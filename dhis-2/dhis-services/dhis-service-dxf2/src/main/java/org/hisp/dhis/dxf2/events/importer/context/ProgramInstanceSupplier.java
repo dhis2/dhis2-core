@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -76,23 +77,23 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
         // @formatter:off
         // Collect all the program instance UIDs to pass as SQL query argument
-        // TODO: Maikel, ask Luciano about it. Should we use also "program" ?
         Set<String> programInstanceUids = events.stream()
-                .filter( e -> e.getEnrollment() != null )
-                .map( Event::getEnrollment ).collect( Collectors.toSet() );
+            .filter( e -> StringUtils.isNotEmpty(e.getEnrollment()) )
+            .map( Event::getEnrollment ).collect( Collectors.toSet() );
 
-        // Create a bi-directional map enrollment uid -> event uid
-        Multimap<String, String> programInstanceToEvent = HashMultimap.create();
-        for ( Event event : events )
-        {
-            programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
-        }
         // @formatter:on
 
         Map<String, ProgramInstance> programInstances = new HashMap<>();
 
         if ( !programInstanceUids.isEmpty() )
         {
+            // Create a bi-directional map enrollment uid -> event uid
+            Multimap<String, String> programInstanceToEvent = HashMultimap.create();
+            for ( Event event : events )
+            {
+                programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
+            }
+
             // Collect all the Program Stage Instances specified in the Events (enrollment property)
             programInstances = getProgramInstancesByUid( importOptions, events, programInstanceToEvent,
                 programInstanceUids );
@@ -103,7 +104,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         // if the Event does not have the "enrollment" property set OR enrollment is pointing to an invalid UID
         // use the Program Instance connected to the Event. This only makes sense if the Program Stage Instance
         // already exist in the database
-        if ( programInstancesByEvent.size() > 0 )
+        if ( !programInstancesByEvent.isEmpty() )
         {
             for ( Event event : events )
             {

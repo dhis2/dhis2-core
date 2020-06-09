@@ -1,17 +1,17 @@
-package org.hisp.dhis.dxf2.events.event.preprocess;
+package org.hisp.dhis.dxf2.events.importer.context;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
+import java.util.List;
 
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
-import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.dxf2.events.importer.context.UidGenerator;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -44,40 +44,29 @@ import org.junit.Test;
 /**
  * @author Luciano Fiandesio
  */
-public class EventGeometryPreProcessorTest
+public class UidGeneratorTest
 {
-    private EventGeometryPreProcessor subject;
+    private UidGenerator subject;
 
     @Before
     public void setUp()
     {
-
-        this.subject = new EventGeometryPreProcessor();
+        subject = new UidGenerator();
     }
 
     @Test
-    public void verifyEventGeometryGetCorrectSRID()
-        throws IOException
+    public void verifyEventsGetUidAssigned()
     {
-        Event event = new Event();
-        event.setGeometry( GeoUtils.getGeoJsonPoint( 20.0, 30.0 ) );
-        event.getGeometry().setSRID( 0 );
-        subject.process( event, WorkContext.builder().build() );
+        Event event1 = new Event();
+        Event event2 = new Event();
+        Event event3 = new Event();
+        Event event4 = new Event();
+        event4.setEvent( "aaaaaaa" );
 
-        assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
-    }
+        List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
 
-    @Test
-    public void verifyEventWithCoordinateHasGeometrySet()
-        throws IOException
-    {
-        Event event = new Event();
-        event.setCoordinate( new Coordinate( 20.0, 22.0 ) );
-        subject.process( event, WorkContext.builder().build() );
-
-        assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
-        assertThat( event.getGeometry().getCoordinate().x, is( 20.0 ) );
-        assertThat( event.getGeometry().getCoordinate().y, is( 22.0 ) );
+        assertThat( events, hasSize( 4 ) );
+        events.forEach( e -> assertNotNull( e.getUid() ) );
     }
 
 }
