@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.oauth2.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,9 +26,12 @@ package org.hisp.dhis.security.oauth2.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.security.oauth2.hibernate;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.security.oauth2.OAuth2ClientStore;
@@ -39,21 +40,18 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Repository( "org.hisp.dhis.security.oauth2.OAuth2ClientStore" )
 public class HibernateOAuth2ClientStore
     extends HibernateIdentifiableObjectStore<OAuth2Client>
-    implements OAuth2ClientStore
+        implements OAuth2ClientStore
 {
     public HibernateOAuth2ClientStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, OAuth2Client.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, OAuth2Client.class, currentUserService, aclService,
             true );
     }
 

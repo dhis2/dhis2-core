@@ -1,4 +1,4 @@
-package org.hisp.dhis.system;
+package org.hisp.dhis.resourcetable.table;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,38 +28,51 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.BaseDimensionalObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataAudit
-{
-    private boolean log;
+public class UniqueNameVerifier {
 
-    public MetadataAudit()
+    protected List<String> columnNames = new ArrayList<>();
+
+    /**
+     * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring
+     * that the short name is unique across the list of BaseDimensionalObject this
+     * class operates on
+     *
+     * @param baseDimensionalObject a {@see BaseDimensionalObject}
+     * @return a unique, quoted short name
+     */
+    protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
     {
+        String columnName = quote( baseDimensionalObject.getShortName()
+                + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
+
+        this.columnNames.add( baseDimensionalObject.getShortName() );
+
+        return columnName;
     }
 
-    public MetadataAudit( boolean log )
+    /**
+     * Returns the name in quotes, ensuring
+     * that the name is unique across the list of objects this class operates on
+     *
+     * @param name a String
+     * @return a unique, quoted name
+     */
+    protected String ensureUniqueName( String name )
     {
-        this.log = log;
-    }
+        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLog()
-    {
-        return log;
-    }
+        this.columnNames.add( name );
 
-    public void setLog( boolean log )
-    {
-        this.log = log;
+        return columnName;
     }
-
 }

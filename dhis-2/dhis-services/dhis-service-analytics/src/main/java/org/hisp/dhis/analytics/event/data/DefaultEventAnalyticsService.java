@@ -96,6 +96,8 @@ import org.hisp.dhis.util.Timer;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Preconditions;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -396,10 +398,7 @@ public class DefaultEventAnalyticsService
     private void addEventReportDimensionalItems( ValueTypedDimensionalItemObject eventDimensionalItemObject,
         List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
     {
-        if ( eventDimensionalItemObject == null )
-        {
-            throw new IllegalStateException( String.format( "Data dimension '%s' is invalid", dimension ) );
-        }
+        Preconditions.checkNotNull( eventDimensionalItemObject, String.format( "Data dimension '%s' is invalid", dimension ) );
 
         String parentUid = eventDimensionalItemObject.getUid();
 

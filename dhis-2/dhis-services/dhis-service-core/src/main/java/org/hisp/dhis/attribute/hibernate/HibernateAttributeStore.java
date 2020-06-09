@@ -1,5 +1,3 @@
-package org.hisp.dhis.attribute.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,21 +26,23 @@ package org.hisp.dhis.attribute.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.attribute.hibernate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -52,13 +52,11 @@ public class HibernateAttributeStore
     extends HibernateIdentifiableObjectStore<Attribute>
     implements AttributeStore
 {
-
     @Autowired
     public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, deletedObjectService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, aclService, true );
     }
 
     @Override

@@ -1,5 +1,3 @@
-package org.hisp.dhis.category.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,17 @@ package org.hisp.dhis.category.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.category.hibernate;
+
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -38,16 +47,11 @@ import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.*;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -61,10 +65,9 @@ public class HibernateCategoryOptionComboStore
 
     public HibernateCategoryOptionComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService, DbmsManager dbmsManager )
+        AclService aclService, DbmsManager dbmsManager )
     {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionCombo.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionCombo.class, currentUserService, aclService, true );
         this.dbmsManager = dbmsManager;
     }
 

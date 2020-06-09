@@ -60,7 +60,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -92,24 +91,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 {
     protected CurrentUserService currentUserService;
 
-    private DeletedObjectService deletedObjectService;
-
     protected AclService aclService;
 
     protected boolean transientIdentifiableProperties = false;
 
     public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, Class<T> clazz, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
+        AclService aclService, boolean cacheable )
     {
         super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
 
         checkNotNull( currentUserService );
-        checkNotNull( deletedObjectService );
         checkNotNull( aclService );
 
         this.currentUserService = currentUserService;
-        this.deletedObjectService = deletedObjectService;
         this.aclService = aclService;
         this.cacheable = cacheable;
     }
@@ -1394,7 +1389,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( userCredentials != null )
         {
-            return userCredentials.getUser();
+            return userCredentials.getUserInfo();
         }
 
         return null;

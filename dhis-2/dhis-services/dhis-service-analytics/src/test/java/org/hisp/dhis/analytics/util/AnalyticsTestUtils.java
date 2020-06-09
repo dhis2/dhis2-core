@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.util;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,6 +25,8 @@ package org.hisp.dhis.analytics.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+package org.hisp.dhis.analytics.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -161,7 +161,7 @@ public class AnalyticsTestUtils
     }
 
     /**
-     * Asserts that an {@link IllegalQueryException} is thrown the given {@link ErrorCode}.
+     * Asserts that a {@link IllegalQueryException} is thrown with the given {@link ErrorCode}.
      *
      * @param exception the {@link ExpectedException}.
      * @param errorCode the {@link ErrorCode}.

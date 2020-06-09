@@ -139,6 +139,7 @@ public class TrackedEntityTrackerConverterService
                 trackedEntity.setCreatedAtClient( now );
                 trackedEntity.setLastUpdated( now );
                 trackedEntity.setLastUpdatedAtClient( now );
+                trackedEntity.setStoredBy( te.getStoredBy() );
             }
 
             if ( !CodeGenerator.isValidUid( trackedEntity.getUid() ) )

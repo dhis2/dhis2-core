@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,16 +28,39 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class QueryTimeoutException
-    extends RuntimeException
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
+
+import javax.jms.TextMessage;
+
+/**
+ * A Aggregate object consumer.
+ */
+@Component
+public class AggregateAuditConsumer
+    extends AbstractAuditConsumer
 {
-    public QueryTimeoutException( String message )
+    public AggregateAuditConsumer(
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
     {
-        super( message );
+        this.auditService = auditService;
+        this.objectMapper = objectMapper;
+
+        this.isAuditLogEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_LOGGER );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
-    
-    public QueryTimeoutException( String message, Throwable throwable )
+
+    @JmsListener( destination = Topics.AGGREGATE_TOPIC_NAME )
+    public void consume( TextMessage message )
     {
-        super( message, throwable );
+        _consume( message );
     }
 }
