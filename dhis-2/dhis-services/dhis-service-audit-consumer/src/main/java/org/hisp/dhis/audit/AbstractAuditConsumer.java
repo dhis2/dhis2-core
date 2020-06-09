@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.legacy;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,51 +30,28 @@ package org.hisp.dhis.audit.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditConsumer;
-import org.hisp.dhis.audit.AuditService;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.stereotype.Component;
 
 import javax.jms.TextMessage;
 import java.io.IOException;
-import java.util.Objects;
 
 /**
- * Tracker audits consumer.
- *
- * @author Morten Olav Hansen <morten@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Component
-public class TrackerAuditConsumer implements AuditConsumer
+public abstract class AbstractAuditConsumer
+    implements AuditConsumer
 {
-    private final AuditService auditService;
-    private final ObjectMapper objectMapper;
-    private final boolean isAuditLogEnabled;
-    private final boolean isAuditDatabaseEnabled;
+    protected AuditService auditService;
+    protected ObjectMapper objectMapper;
 
-    public TrackerAuditConsumer(
-        AuditService auditService,
-        ObjectMapper objectMapper,
-        DhisConfigurationProvider dhisConfig )
-    {
-        this.auditService = auditService;
-        this.objectMapper = objectMapper;
+    protected boolean isAuditLogEnabled;
+    protected boolean isAuditDatabaseEnabled;
 
-        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_LOGGER ), "off" );
-        this.isAuditDatabaseEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_DATABASE ), "on" );
-    }
-
-    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
-    public void consume( TextMessage message )
+    protected void _consume( TextMessage message )
     {
         try
         {
-            Audit auditMessage = objectMapper.readValue( message.getText(), Audit.class );
+            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(), org.hisp.dhis.artemis.audit.Audit.class );
 
             if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
             {

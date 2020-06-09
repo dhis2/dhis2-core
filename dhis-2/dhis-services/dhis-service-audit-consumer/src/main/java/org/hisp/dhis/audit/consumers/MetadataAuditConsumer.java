@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.legacy;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,8 +31,7 @@ package org.hisp.dhis.audit.legacy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -40,23 +39,19 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.jms.TextMessage;
-import java.io.IOException;
 import java.util.Objects;
 
 /**
- * A Aggregate object consumer.
+ * A MetadataAudit object consumer.
+ *
+ * @author Luciano Fiandesio
  */
 @Slf4j
 @Component
-public class AggregateAuditConsumer
-    implements AuditConsumer
+public class MetadataAuditConsumer
+    extends AbstractAuditConsumer
 {
-    private final AuditService auditService;
-    private final ObjectMapper objectMapper;
-    private final boolean isAuditLogEnabled;
-    private final boolean isAuditDatabaseEnabled;
-
-    public AggregateAuditConsumer(
+    public MetadataAuditConsumer(
         AuditService auditService,
         ObjectMapper objectMapper,
         DhisConfigurationProvider dhisConfig )
@@ -68,39 +63,9 @@ public class AggregateAuditConsumer
         this.isAuditDatabaseEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_DATABASE ), "on" );
     }
 
-    @JmsListener( destination = Topics.AGGREGATE_TOPIC_NAME )
+    @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
     public void consume( TextMessage message )
     {
-        try
-        {
-            Audit auditMessage = objectMapper.readValue( message.getText(), Audit.class );
-
-            if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
-            {
-                auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
-            }
-
-            org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
-
-            if ( isAuditLogEnabled )
-            {
-                log.info( objectMapper.writeValueAsString( audit ) );
-            }
-
-            if ( isAuditDatabaseEnabled )
-            {
-                auditService.addAudit( audit );
-            }
-        }
-        catch ( IOException e )
-        {
-            log.error(
-                "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
-                e );
-        }
-        catch ( Exception e )
-        {
-            log.error( "An error occurred persisting an Audit message of type 'METADATA'", e );
-        }
+        _consume( message );
     }
 }
