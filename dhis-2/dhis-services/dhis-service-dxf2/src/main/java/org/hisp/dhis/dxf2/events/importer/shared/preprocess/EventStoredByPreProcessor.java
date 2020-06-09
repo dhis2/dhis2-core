@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,20 +28,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.postprocess;
+import java.util.Set;
 
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.Processor;
 
-public class PreheatDataElementsPostProcessor
-    implements
-    Processor
+/**
+ * Sets the "storedBy" property on the event and on the event's Data Values
+ * @author Luciano Fiandesio
+ */
+public class EventStoredByPreProcessor implements Processor
 {
-
     @Override
-    public void process( final Event event, final WorkContext ctx )
+    public void process( Event event, WorkContext ctx )
     {
-        // TODO: Is preheat really needed? I believe it was already done in the pre-processing?
+        String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
+        event.setStoredBy( storedBy );
+        Set<DataValue> dataValues = event.getDataValues();
+
+        for ( DataValue dataValue : dataValues )
+        {
+            dataValue.setStoredBy( storedBy );
+        }
     }
 }

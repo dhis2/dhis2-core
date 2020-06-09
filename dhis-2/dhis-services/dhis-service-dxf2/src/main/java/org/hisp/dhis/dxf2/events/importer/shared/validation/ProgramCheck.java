@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,31 +28,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
-
-import java.util.Set;
-
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
- * Sets the "storedBy" property on the event and on the event's Data Values
  * @author Luciano Fiandesio
  */
-public class EventStoredByPreProcessor implements Processor
+public class ProgramCheck implements Checker
 {
     @Override
-    public void process( Event event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
-        event.setStoredBy( storedBy );
-        Set<DataValue> dataValues = event.getDataValues();
-        for ( DataValue dataValue : dataValues )
-        {
-            dataValue.setStoredBy( storedBy );
-        }
+        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
+            "Event.program does not point to a valid program: " + event.getProgram(), event );
     }
 }

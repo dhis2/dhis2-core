@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;

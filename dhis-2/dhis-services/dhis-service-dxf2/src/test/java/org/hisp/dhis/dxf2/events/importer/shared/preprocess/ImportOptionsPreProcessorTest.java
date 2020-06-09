@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
 import static org.mockito.Mockito.when;
 
@@ -7,7 +7,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ImportOptionsPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.Before;

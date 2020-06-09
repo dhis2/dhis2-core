@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.mockito.Mockito.when;
 
@@ -10,6 +10,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;

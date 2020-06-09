@@ -37,6 +37,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
@@ -47,7 +48,7 @@ import org.hisp.dhis.program.ProgramInstance;
 public class ProgramOrgUnitCheck implements Checker
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
 

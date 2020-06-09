@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
@@ -38,7 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 public class OrgUnitCheck implements Checker
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         return checkNull( ctx.getOrganisationUnitMap().get( event.getUid() ),
             "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit(), event );

@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -45,7 +46,7 @@ import org.springframework.util.StringUtils;
 public class ProgramStageCheck implements Checker
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         // Get the program stage id from the event.

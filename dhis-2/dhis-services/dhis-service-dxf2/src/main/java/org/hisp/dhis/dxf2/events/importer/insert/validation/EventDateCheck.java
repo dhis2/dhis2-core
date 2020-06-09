@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
@@ -45,7 +46,7 @@ public class EventDateCheck
     Checker
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {

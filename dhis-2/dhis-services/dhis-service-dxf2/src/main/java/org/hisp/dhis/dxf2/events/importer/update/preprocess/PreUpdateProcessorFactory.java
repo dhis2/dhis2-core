@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.dxf2.events.importer.update.preprocess;
 
+import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isUpdate;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.List;
@@ -35,7 +36,6 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.EventProcessing;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -57,7 +57,7 @@ public class PreUpdateProcessorFactory implements EventProcessing
     {
         final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
 
-        if ( ImportStrategyUtils.isUpdate( importStrategy ) )
+        if ( isUpdate( importStrategy ) )
         {
             new ProcessorRunner( workContext, events ).run( eventUpdatePreProcessorMap.get( UPDATE ) );
         }

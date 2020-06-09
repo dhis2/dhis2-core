@@ -140,7 +140,6 @@ public class ProgramInstanceUpdatePreProcessor implements Processor
         {
             if ( importSummary != null )
             {
-                // TODO: luciano this should be moved to the new logic
                 importSummary.getConflicts().add( new ImportConflict( "Username", validUsername + " is more than "
                     + USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
