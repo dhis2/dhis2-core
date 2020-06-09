@@ -437,6 +437,7 @@ public class DataValueServiceTest
 
         assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
             .setDataElements( Sets.newHashSet( dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodA, periodB ) )
             .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
 

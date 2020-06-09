@@ -56,6 +56,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -135,6 +136,8 @@ public class DataValueSetServiceExportTest
     private OrganisationUnit ouB;
     private OrganisationUnit ouC;
 
+    private OrganisationUnitGroup ogA;
+
     private User user;
 
     @Override
@@ -194,6 +197,10 @@ public class DataValueSetServiceExportTest
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
+
+        ogA = createOrganisationUnitGroup( 'A' );
+
+        idObjectManager.save( ogA );
 
         avA = new AttributeValue( "AttributeValueA", atA );
         avB = new AttributeValue( "AttributeValueB", atA );
@@ -453,21 +460,6 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testAccessOutsideOrgUnitHierarchy()
-    {
-        assertIllegalQueryEx( exception, ErrorCode.E2012 );
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataExportParams params = new DataExportParams()
-            .setDataSets( Sets.newHashSet( dsA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouC ) )
-            .setPeriods( Sets.newHashSet( peA ) );
-
-        dataValueSetService.writeDataValueSetJson( params, out );
-    }
-
-    @Test
     public void testMissingDataSetElementGroup()
     {
         assertIllegalQueryEx( exception, ErrorCode.E2001 );
@@ -537,8 +529,56 @@ public class DataValueSetServiceExportTest
 
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouB ) );
+            .setPeriods( Sets.newHashSet( peA ) );
 
         dataValueSetService.writeDataValueSetJson( params, out );
     }
+
+    @Test
+    public void testAtLestOneOrgUnitWithChildren()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2008 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA, peB ) )
+            .setOrganisationUnitGroups( Sets.newHashSet( ogA ) )
+            .setIncludeChildren( true );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testLimitLimitNotLessThanZero()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2009 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA, peB ) )
+            .setOrganisationUnits( Sets.newHashSet( ouB ) )
+            .setLimit( -2 );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    @Test
+    public void testAccessOutsideOrgUnitHierarchy()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2012 );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouC ) )
+            .setPeriods( Sets.newHashSet( peA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
 }
