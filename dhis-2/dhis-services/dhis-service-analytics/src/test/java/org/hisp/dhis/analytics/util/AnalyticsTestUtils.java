@@ -159,6 +159,7 @@ public class AnalyticsTestUtils
             assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
+
     /**
      * Asserts that a {@link IllegalQueryException} is thrown with the given {@link ErrorCode}.
      *
