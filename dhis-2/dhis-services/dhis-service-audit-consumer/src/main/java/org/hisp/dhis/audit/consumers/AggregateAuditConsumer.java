@@ -29,7 +29,6 @@ package org.hisp.dhis.audit.consumers;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
@@ -39,12 +38,10 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.jms.TextMessage;
-import java.util.Objects;
 
 /**
  * A Aggregate object consumer.
  */
-@Slf4j
 @Component
 public class AggregateAuditConsumer
     extends AbstractAuditConsumer
@@ -57,8 +54,8 @@ public class AggregateAuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_LOGGER ), "on" );
-        this.isAuditDatabaseEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_DATABASE ), "on" );
+        this.isAuditLogEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_LOGGER );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
     @JmsListener( destination = Topics.AGGREGATE_TOPIC_NAME )

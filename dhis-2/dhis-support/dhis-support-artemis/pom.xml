@@ -28,6 +28,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
     </dependency>
+
     <!-- Other -->
     <dependency>
       <groupId>org.apache.activemq</groupId>

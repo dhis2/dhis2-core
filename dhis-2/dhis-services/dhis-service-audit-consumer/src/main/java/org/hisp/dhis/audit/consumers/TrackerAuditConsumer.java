@@ -29,7 +29,6 @@ package org.hisp.dhis.audit.consumers;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
@@ -42,11 +41,10 @@ import javax.jms.TextMessage;
 import java.util.Objects;
 
 /**
- * Tracker audits consumer.
+ * Tracker audit consumer.
  *
  * @author Morten Olav Hansen <morten@dhis2.org>
  */
-@Slf4j
 @Component
 public class TrackerAuditConsumer
     extends AbstractAuditConsumer
@@ -59,8 +57,9 @@ public class TrackerAuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
+        // for legacy reasons we are overriding the default here and using "off" for tracking logger (we don't have a specific key for tracker logger)
         this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_LOGGER ), "off" );
-        this.isAuditDatabaseEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_DATABASE ), "on" );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
     @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
