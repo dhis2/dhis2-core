@@ -109,7 +109,8 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractTrackedEntityInstanceService
+public abstract class
+AbstractTrackedEntityInstanceService
     implements
     TrackedEntityInstanceService
 {
@@ -248,11 +249,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
-                                                                  TrackedEntityInstanceParams params, boolean skipAccessValidation )
+        TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
-
-        // TODO DHIS2-7336 here we should only get the TEI ids, since we don't need the
-        // TEI object
+        // TODO DHIS2-7336 here we should only get the TEI ids, since we don't need the TEI object
         List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
 
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
@@ -262,27 +261,26 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
-            return this.trackedEntityInstanceAggregate.find(ids, params);
+            return this.trackedEntityInstanceAggregate.find( ids, params );
         }
         else
         {
-            Set<TrackedEntityAttribute> attributes;
-            attributes = new HashSet<>( trackedEntityTypeAttributes );
+            Set<TrackedEntityAttribute> attributes = new HashSet<>( trackedEntityTypeAttributes );
 
-            if ( queryParams.hasProgram() )
+            if ( queryParams != null && queryParams.hasProgram() )
             {
                 attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
             }
 
             // for ( org.hisp.dhis.trackedentity.TrackedEntityInstance
             // daoTrackedEntityInstance : daoTEIs )
-//            {
+            // {
             // if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance,
             // queryParams.getProgram() ) )
-//                {
-//                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-//                }
-//            }
+            // {
+            // dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+            // }
+            // }
         }
 
         return dtoTeis;
@@ -1618,9 +1616,11 @@ public abstract class AbstractTrackedEntityInstanceService
             for ( String programUid : programs )
             {
                 Program program = getProgram( idSchemes, programUid );
-
-                readableAttributesCopy.addAll( program.getTrackedEntityAttributes().stream()
-                    .filter( att -> !att.getSkipSynchronization() ).collect( Collectors.toSet() ) );
+                if ( program != null )
+                {
+                    readableAttributesCopy.addAll( program.getTrackedEntityAttributes().stream()
+                        .filter( att -> !att.getSkipSynchronization() ).collect( Collectors.toSet() ) );
+                }
             }
         }
         else

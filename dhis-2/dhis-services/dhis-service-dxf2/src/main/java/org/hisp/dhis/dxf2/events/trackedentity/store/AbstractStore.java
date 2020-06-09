@@ -54,25 +54,26 @@ public abstract class AbstractStore
         + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
         + "where ri.%s in (:ids)";
 
-    private final static String GET_RELATIONSHIP_SQL = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-        + "       coalesce((select tei.uid from trackedentityinstance tei "
-        + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-        + "                 where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
-        + "                 from programinstance pi "
-        + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-        + "                 where ri.relationshipitemid = r.to_relationshipitemid), (select psi.uid "
-        + "                 from programstageinstance psi "
-        + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
-        + "                 where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-        + "       coalesce((select tei.uid from trackedentityinstance tei "
-        + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-        + "                 where ri.relationshipitemid = r.from_relationshipitemid) , (select pi.uid "
-        + "                 from programinstance pi "
-        + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-        + "                 where ri.relationshipitemid = r.from_relationshipitemid), (select psi.uid "
-        + "                 from programstageinstance psi "
-        + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
-        + "                 where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
+    private final static String GET_RELATIONSHIP_SQL = "select "
+        + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
+        + "coalesce((select tei.uid from trackedentityinstance tei "
+        + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
+        + "where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
+        + "from programinstance pi "
+        + "join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
+        + "where ri.relationshipitemid = r.to_relationshipitemid), (select psi.uid "
+        + "from programstageinstance psi "
+        + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
+        + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
+        + "coalesce((select tei.uid from trackedentityinstance tei "
+        + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
+        + "where ri.relationshipitemid = r.from_relationshipitemid) , (select pi.uid "
+        + "from programinstance pi "
+        + "join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
+        + "where ri.relationshipitemid = r.from_relationshipitemid), (select psi.uid "
+        + "from programstageinstance psi "
+        + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
+        + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
         + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
         + "where r.relationshipid in (:ids)";
 
@@ -136,7 +137,7 @@ public abstract class AbstractStore
      *
      * @return a merge between the sql and the aclSql
      */
-    String withAclCheck( String sql, AggregateContext ctx, String aclSql )
+    protected String withAclCheck( String sql, AggregateContext ctx, String aclSql )
     {
         return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
     }
@@ -151,7 +152,7 @@ public abstract class AbstractStore
      * @return a Multimap where the keys are of the same type as the specified
      *         {@see RowCallbackHandler}
      */
-    <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
+    protected <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
     {
         jdbcTemplate.query( sql, createIdsParam( ids ), handler );
         return handler.getItems();
