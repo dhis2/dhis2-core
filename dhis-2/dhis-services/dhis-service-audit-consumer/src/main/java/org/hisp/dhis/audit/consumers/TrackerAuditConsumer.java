@@ -58,7 +58,7 @@ public class TrackerAuditConsumer
         this.objectMapper = objectMapper;
 
         // for legacy reasons we are overriding the default here and using "off" for tracking logger (we don't have a specific key for tracker logger)
-        this.isAuditLogEnabled = Objects.equals( dhisConfig.getProperty( ConfigurationKey.AUDIT_LOGGER ), "off" );
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
         this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
