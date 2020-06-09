@@ -28,7 +28,7 @@
 
 package org.hisp.dhis.analytics.orgunit;
 
-import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
+import static org.hisp.dhis.util.AssertUtils.assertIllegalQueryEx;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;

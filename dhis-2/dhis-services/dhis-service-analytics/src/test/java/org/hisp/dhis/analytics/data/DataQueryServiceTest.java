@@ -28,9 +28,9 @@
 
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.analytics.util.AnalyticsTestUtils.assertIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.util.AssertUtils.assertIllegalQueryEx;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
