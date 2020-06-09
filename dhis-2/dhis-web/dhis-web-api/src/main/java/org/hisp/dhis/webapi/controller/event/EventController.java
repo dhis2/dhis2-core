@@ -991,7 +991,7 @@ public class EventController
             List<Event> events = eventService.getEventsJson( inputStream );
             startAsyncImport( importOptions, events, request, response );
         }
-e l    }
+    }
 
     @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
