@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.util;
+package org.hisp.dhis.dxf2.util;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
