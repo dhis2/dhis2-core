@@ -85,6 +85,8 @@ public enum EnrollmentStatus
             return CANCELLED;
         case "COMPLETED":
             return COMPLETED;
+        default:
+            // Do nothing and fail
         }
         throw new IllegalArgumentException( "Enum value not found for string: " + status );
     }
