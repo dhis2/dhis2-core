@@ -82,6 +82,6 @@ public interface QueryService
 
     Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException;
 
-    Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Type rootJunction, boolean includeCaptureScopeOnly  )
+    Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Type rootJunction, boolean restrictToCaptureScope  )
         throws QueryParserException;
 }

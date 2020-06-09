@@ -62,7 +62,7 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
     protected void postProcessResponseEntities( List<CategoryOption> entityList, WebOptions options, Map<String, String> parameters )
     {
 
-        if ( "true".equalsIgnoreCase( options.getOptions().get( "includeCaptureOnlyScope" ) ) )
+        if ( "true".equalsIgnoreCase( options.getOptions().get( "restrictToCaptureScope" ) ) )
         {
             User user = currentUserService.getCurrentUser();
 

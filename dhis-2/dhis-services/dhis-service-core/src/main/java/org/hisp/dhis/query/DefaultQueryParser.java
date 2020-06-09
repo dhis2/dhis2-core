@@ -54,6 +54,8 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryParser implements QueryParser
 {
     private static final String IDENTIFIABLE = "identifiable";
+    
+    private static final String ORGANISATION_UNITS = "organisationUnits";
 
     private final SchemaService schemaService;
     
@@ -84,7 +86,7 @@ public class DefaultQueryParser implements QueryParser
     }
     
     @Override
-    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction, boolean includeCaptureScopeOnly ) throws QueryParserException
+    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction, boolean restrictToCaptureScope ) throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
@@ -117,7 +119,7 @@ public class DefaultQueryParser implements QueryParser
             }
         }
         
-        if ( includeCaptureScopeOnly ) 
+        if ( restrictToCaptureScope && schema.haveProperty( ORGANISATION_UNITS ) )
         {
             User user = currentUserService.getCurrentUser();
 

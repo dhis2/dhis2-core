@@ -61,6 +61,6 @@ public interface QueryParser
 
     Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException;
 
-    Query parse( Class<?> klass, List<String> filters, Type rootJunction, boolean includeCaptureScopeOnly  )
+    Query parse( Class<?> klass, List<String> filters, Type rootJunction, boolean restrictToCaptureScope  )
         throws QueryParserException;
 }
