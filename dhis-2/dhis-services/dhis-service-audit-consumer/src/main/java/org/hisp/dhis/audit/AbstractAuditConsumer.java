@@ -1,4 +1,4 @@
-package org.hisp.dhis.system;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,38 +28,57 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataAudit
+@Slf4j
+public abstract class AbstractAuditConsumer
+    implements AuditConsumer
 {
-    private boolean log;
+    protected AuditService auditService;
+    protected ObjectMapper objectMapper;
 
-    public MetadataAudit()
+    protected boolean isAuditLogEnabled;
+    protected boolean isAuditDatabaseEnabled;
+
+    protected void _consume( TextMessage message )
     {
-    }
+        try
+        {
+            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(), org.hisp.dhis.artemis.audit.Audit.class );
 
-    public MetadataAudit( boolean log )
-    {
-        this.log = log;
-    }
+            if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
+            {
+                auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
+            }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLog()
-    {
-        return log;
-    }
+            org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
 
-    public void setLog( boolean log )
-    {
-        this.log = log;
-    }
+            if ( isAuditLogEnabled )
+            {
+                log.info( objectMapper.writeValueAsString( audit ) );
+            }
 
+            if ( isAuditDatabaseEnabled )
+            {
+                auditService.addAudit( audit );
+            }
+        }
+        catch ( IOException e )
+        {
+            log.error(
+                "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
+                e );
+        }
+        catch ( Exception e )
+        {
+            log.error( "An error occurred persisting an Audit message of type 'TRACKER'", e );
+        }
+    }
 }
