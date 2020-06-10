@@ -1439,6 +1439,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name();
+            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
 }
