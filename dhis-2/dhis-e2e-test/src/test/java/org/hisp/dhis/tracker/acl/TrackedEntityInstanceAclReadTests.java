@@ -42,30 +42,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TrackedEntityInstanceAclReadTests
     extends ApiTest
 {
-    private static final String _TEIS = "trackedEntityInstances";
-
-    private static final String _ENROLLMENTS = "enrollments";
-
-    private static final String _EVENTS = "events";
-
-    private static final String _TET = "trackedEntityType";
-
-    private static final String _PROGRAM = "program";
-
-    private static final String _PROGRAMSTAGE = "programStage";
-
-    private static final String _OU = "orgUnit";
-
-    private static final String _TEI = "trackedEntityInstance";
-
-    private static final String _ENROLLMENT = "enrollment";
-
-    private static final String _PROGRAMOWNERS = "programOwners";
-
-    private static final String _OWNEROU = "ownerOrgUnit";
-
-    private static final String _DELETED = "deleted";
-
     private static final String _DATAREAD = "..r.*";
 
     private MetadataActions metadataActions;
@@ -175,7 +151,7 @@ public class TrackedEntityInstanceAclReadTests
 
                     boolean hasDataRead = false;
 
-                    if ( object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
+                    if ( object.has( "publicAccess" ) && object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
                     {
                         hasDataRead = true;
                     }
@@ -236,11 +212,11 @@ public class TrackedEntityInstanceAclReadTests
 
         response.validate().statusCode( 200 );
 
-        response.validate().body( _TEIS, Matchers.not( Matchers.emptyArray() ) );
+        response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );
 
         JsonObject json = response.getBody();
 
-        json.getAsJsonArray( _TEIS ).iterator()
+        json.getAsJsonArray( "trackedEntityInstances" ).iterator()
             .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
 
     }
@@ -256,11 +232,11 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertTrackedEntityInstance( User user, JsonObject tei )
     {
-        String trackedEntityType = tei.get( _TET ).getAsString();
-        List<String> ous = Lists.newArrayList( tei.getAsJsonObject().get( _OU ).getAsString() );
-        tei.getAsJsonObject().getAsJsonArray( _PROGRAMOWNERS )
+        String trackedEntityType = tei.get( "trackedEntityType" ).getAsString();
+        List<String> ous = Lists.newArrayList( tei.getAsJsonObject().get( "orgUnit" ).getAsString() );
+        tei.getAsJsonObject().getAsJsonArray( "programOwners" )
             .forEach(
-                ( programOwner ) -> ous.add( programOwner.getAsJsonObject().get( _OWNEROU ).getAsString() ) );
+                ( programOwner ) -> ous.add( programOwner.getAsJsonObject().get( "ownerOrgUnit" ).getAsString() ) );
 
         if ( !user.hasAllAuthority() )
         {
@@ -269,9 +245,9 @@ public class TrackedEntityInstanceAclReadTests
         assertWithinOuScope( user.getScopes(), ous );
         assertNotDeleted( tei );
 
-        assertTrue( tei.has( _ENROLLMENTS ) );
+        assertTrue( tei.has( "enrollments" ) );
 
-        tei.getAsJsonArray( _ENROLLMENTS )
+        tei.getAsJsonArray( "enrollments" )
             .forEach( enrollmentJson -> assertEnrollment( user, enrollmentJson.getAsJsonObject(), tei ) );
     }
 
@@ -284,20 +260,20 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertEnrollment( User user, JsonObject enrollment, JsonObject tei )
     {
-        String program = enrollment.get( _PROGRAM ).getAsString();
-        String orgUnit = enrollment.get( _OU ).getAsString();
+        String program = enrollment.get( "program" ).getAsString();
+        String orgUnit = enrollment.get( "orgUnit" ).getAsString();
 
         if ( !user.hasAllAuthority() )
         {
             assertStringIsInWhitelist( user.getDataRead().get( "programs" ), program );
         }
-        assertSameValueForProperty( tei, enrollment, _TEI );
+        assertSameValueForProperty( tei, enrollment, "trackedEntityInstance" );
         assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
         assertNotDeleted( enrollment );
 
-        assertTrue( enrollment.has( _EVENTS ) );
+        assertTrue( enrollment.has( "events" ) );
 
-        enrollment.get( _EVENTS ).getAsJsonArray()
+        enrollment.get( "events" ).getAsJsonArray()
             .forEach( eventJson -> assertEvent( user, eventJson.getAsJsonObject(), enrollment ) );
     }
 
@@ -310,16 +286,16 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertEvent( User user, JsonObject event, JsonObject enrollment )
     {
-        String programStage = event.get( _PROGRAMSTAGE ).getAsString();
-        String orgUnit = event.get( _OU ).getAsString();
+        String programStage = event.get( "programStage" ).getAsString();
+        String orgUnit = event.get( "orgUnit" ).getAsString();
 
         if ( !user.hasAllAuthority() )
         {
             assertStringIsInWhitelist( user.getDataRead().get( "programStages" ), programStage );
         }
         assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
-        assertSameValueForProperty( enrollment, event, _ENROLLMENT );
-        assertSameValueForProperty( enrollment, event, _TEI );
+        assertSameValueForProperty( enrollment, event, "enrollment" );
+        assertSameValueForProperty( enrollment, event, "trackedEntityInstance" );
         assertNotDeleted( event );
     }
 
@@ -330,7 +306,7 @@ public class TrackedEntityInstanceAclReadTests
      */
     private void assertNotDeleted( JsonObject object )
     {
-        assertTrue( object.has( _DELETED ) && !object.get( _DELETED ).getAsBoolean(),
+        assertTrue( object.has( "deleted" ) && !object.get( "deleted" ).getAsBoolean(),
             String.format( "Deleted object found: '%s'", object ) );
     }
 
