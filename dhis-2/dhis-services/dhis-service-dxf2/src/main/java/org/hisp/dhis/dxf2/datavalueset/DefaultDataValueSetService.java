@@ -329,7 +329,7 @@ public class DefaultDataValueSetService
 
         if ( params == null )
         {
-            error = new ErrorMessage( ErrorCode.E2000 );
+            throw new IllegalQueryException( ErrorCode.E2000 );
         }
 
         if ( !params.hasDataElements() && !params.hasDataSets() && !params.hasDataElementGroups() )
