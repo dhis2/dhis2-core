@@ -35,10 +35,13 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -62,6 +65,9 @@ public class DataValueServiceTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Rule
+    private ExpectedException exception = ExpectedException.none();
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -480,5 +486,25 @@ public class DataValueServiceTest
         assertEquals( 2, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA, dataElementB ), null ).size() );
         assertEquals( 1, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA ), optionCombo ).size() );
         assertEquals( 1, dataValueService.getDataValues(  sourceA,  periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
+    }
+
+    @Test
+    public void testMissingPeriod()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2002 );
+
+        dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceB ) ) );
+    }
+
+    @Test
+    public void testMissingOrgUnit()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E2006 );
+
+        dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodB ) ) );
     }
 }
