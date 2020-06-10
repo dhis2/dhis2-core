@@ -57,6 +57,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -409,7 +411,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             if ( !orgUnitService.isInUserHierarchy( ou ) )
             {
-                throw new IllegalQueryException( "User is not allowed to view org unit: " + ou.getUid() );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2012, ou.getUid() ) );
             }
         }
     }
