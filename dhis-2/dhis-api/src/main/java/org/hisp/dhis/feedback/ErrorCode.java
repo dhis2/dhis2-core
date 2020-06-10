@@ -46,18 +46,19 @@ public enum ErrorCode
     /* Data */
 
     E2000( "Query parameters cannot be null" ),
-    E2001( "At least one valid data element, data set or data element group must be specified" ),
-    E2002( "At least one valid period, start/end dates, last updated or last updated duration must be specified" ),
+    E2001( "At least one data element, data set or data element group must be specified" ),
+    E2002( "At least one period, start/end dates, last updated or last updated duration must be specified" ),
     E2003( "Both periods and start/end date cannot be specified" ),
     E2004( "Start date must be before end date" ),
     E2005( "Duration is not valid: `{0}`" ),
-    E2006( "At least one valid organisation unit or organisation unit group must be specified" ),
+    E2006( "At least one organisation unit or organisation unit group must be specified" ),
     E2007( "Organisation unit children cannot be included for organisation unit groups" ),
-    E2008( "At least one valid organisation unit must be specified when children is included" ),
+    E2008( "At least one organisation unit must be specified when children are included" ),
     E2009( "Limit cannot be less than zero: `{0}`" ),
     E2010( "User is not allowed to read data for data set: `{0}`" ),
     E2011( "User is not allowed to read data for attribute option combo: `{0}`" ),
     E2012( "User is not allowed to view org unit: `{0}`" ),
+    E2013( "At least one data set must be specified" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),

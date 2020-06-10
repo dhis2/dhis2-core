@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.DefaultCacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
@@ -80,6 +82,7 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -182,6 +185,9 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     private CategoryOptionCombo DEFAULT_COC;
 
     @Before
@@ -250,7 +256,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             categoryOptionB );
         Period period = createPeriod( "201907" );
 
-        String payload = cretePayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA, categoryOptionB );
+        String payload = createPayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA, categoryOptionB );
 
         whenNew( MetadataCaches.class ).withNoArguments().thenReturn( metaDataCaches );
 
@@ -289,7 +295,19 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             is( "User has no data write access for CategoryOption: " + categoryOptionA.getUid() ) );
     }
 
-    private String cretePayload( Period period, OrganisationUnit organisationUnit, DataSet dataSet,
+    @Test
+    public void testValidateAssertMissingDataSet()
+    {
+        DhisConvenienceTest.assertIllegalQueryEx( exception, ErrorCode.E2013 );
+
+        ExportParams params = new ExportParams()
+            .setOrganisationUnits( Sets.newHashSet( new OrganisationUnit() ) )
+            .setPeriods( Sets.newHashSet( new Period() ) );
+
+        subject.validate( params );
+    }
+
+    private String createPayload( Period period, OrganisationUnit organisationUnit, DataSet dataSet,
         CategoryCombo categoryCombo, CategoryOption... categoryOptions )
     {
         return "{\"completeDataSetRegistrations\":[{\"cc\":\"" + categoryCombo.getUid() + "\","
