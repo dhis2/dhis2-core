@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.util.AssertUtils.assertIllegalQueryEx;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
