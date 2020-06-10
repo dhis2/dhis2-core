@@ -1,5 +1,3 @@
-package org.hisp.dhis.datavalue;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,8 +26,15 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+package org.hisp.dhis.datavalue;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -44,9 +49,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Kristian Nordal
@@ -67,7 +71,7 @@ public class DataValueServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Rule
-    private ExpectedException exception = ExpectedException.none();
+    public ExpectedException exception = ExpectedException.none();
 
     // -------------------------------------------------------------------------
     // Supporting data
