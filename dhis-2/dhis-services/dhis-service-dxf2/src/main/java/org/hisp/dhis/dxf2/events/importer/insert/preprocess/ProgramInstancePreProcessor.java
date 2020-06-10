@@ -64,7 +64,7 @@ public class ProgramInstancePreProcessor implements Processor
         }
 
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
+        TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getKey();
 
         if ( program.isRegistration() && programInstance == null )
         {

@@ -84,11 +84,7 @@ public class  DefaultEventPersistenceService
 
         jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
-        // TODO update teis
-        if ( !context.getImportOptions().isSkipLastUpdated() )
-        {
-            //updateTrackedEntityInstance( programStageInstance, user, bulkSave );
-        }
+        updateTeis( context, events );
     }
 
     /**
@@ -109,11 +105,21 @@ public class  DefaultEventPersistenceService
 
             jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
 
-            // TODO update teis
-            if ( !context.getImportOptions().isSkipLastUpdated() )
-            {
-                //updateTrackedEntityInstance( programStageInstance, user, bulkSave );
-            }
+            updateTeis( context, events );
+        }
+    }
+    
+    private void updateTeis( final WorkContext context, final List<Event> events )
+    {
+        if ( !context.getImportOptions().isSkipLastUpdated() )
+        {
+            jdbcEventStore.updateTrackedEntityInstances( events.stream()
+                //
+                // filter out TEIs which have the canUpdate flag set to false
+                //
+                .filter( e -> context.getTrackedEntityInstanceMap().get( e.getUid() ).getRight() )
+                .map( Event::getTrackedEntityInstance )
+                .collect( Collectors.toList() ), context.getImportOptions().getUser() );
         }
     }
 

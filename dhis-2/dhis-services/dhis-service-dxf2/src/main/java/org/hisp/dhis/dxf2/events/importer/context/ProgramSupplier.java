@@ -199,14 +199,31 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         if ( requiresReload || programMap == null )
         {
+            //
+            // Load all the Programs
+            //
             programMap = loadPrograms( importOptions.getIdSchemes() );
+
+            //
+            // Load all mandatory DataElements for each Program Stage
+            //
             Map<Long, Set<DataElement>> dataElementMandatoryMap = loadProgramStageDataElementMandatoryMap();
 
+            //
+            // Load a Map of OrgUnits belonging to a Program (key: program id, value: Set of OrgUnits)
+            //
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
+
+            //
+            // Load User Access data for all the Programs (required for ACL checks)
+            //
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
             Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
             Map<Long, Set<UserAccess>> tetUserAccessMap = loadUserAccessesForTrackedEntityTypes();
 
+            //
+            // Load User Group Access data for all the Programs (required for ACL checks)
+            //
             Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
             Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
             Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();

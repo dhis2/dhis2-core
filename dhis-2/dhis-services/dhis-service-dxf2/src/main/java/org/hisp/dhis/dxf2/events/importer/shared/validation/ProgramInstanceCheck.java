@@ -53,7 +53,7 @@ public class ProgramInstanceCheck implements Checker
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
+        TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getKey();
 
         List<ProgramInstance> programInstances;
 

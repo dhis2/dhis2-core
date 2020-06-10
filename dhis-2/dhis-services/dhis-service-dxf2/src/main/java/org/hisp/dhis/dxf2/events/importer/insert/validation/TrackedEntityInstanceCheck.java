@@ -47,7 +47,7 @@ public class TrackedEntityInstanceCheck implements Checker
     public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
+        TrackedEntityInstance tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getKey();
 
         if ( program.isRegistration() && tei == null )
         {

@@ -91,6 +91,7 @@ import org.postgis.PGgeometry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -139,6 +140,9 @@ public class JdbcEventStore implements EventStore
 
     private final JdbcTemplate jdbcTemplate;
 
+    // required for update tei operation
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
@@ -160,6 +164,7 @@ public class JdbcEventStore implements EventStore
         this.currentUserService = currentUserService;
         this.manager = identifiableObjectManager;
         this.jsonMapper = jsonMapper;
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate.getDataSource() );
     }
 
     // -------------------------------------------------------------------------
@@ -1421,10 +1426,10 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Save all the comments ({@see TrackedEntityComment} for the list of {@see ProgramStageInstance}
-
+     * Save all the comments ({@see TrackedEntityComment} for the list of
+     * {@see ProgramStageInstance}
+     * 
      * @param batch a List of {@see ProgramStageInstance}
-     * @return a List of {@see ProgramStageInstance} for which the comments were saved with success
      */
     private void saveAllComments( List<ProgramStageInstance> batch )
     {
@@ -1492,7 +1497,7 @@ public class JdbcEventStore implements EventStore
         return (long) keyHolder.getKey();
     }
 
-    private void saveCommentToEvent(Long programStageInstanceId, Long commentId, int sortOrder)
+    private void saveCommentToEvent( Long programStageInstanceId, Long commentId, int sortOrder )
     {
         try
         {
@@ -1509,9 +1514,26 @@ public class JdbcEventStore implements EventStore
         catch ( DataAccessException e )
         {
             log.error(
-                    "An error occurred saving a link between a TrackedEntityComment and a ProgramStageInstance with primary key: "
-                            + programStageInstanceId,
-                    e );
+                "An error occurred saving a link between a TrackedEntityComment and a ProgramStageInstance with primary key: "
+                    + programStageInstanceId,
+                e );
+            throw e;
+        }
+    }
+
+    public void updateTrackedEntityInstances( List<String> teiUids, User user )
+    {
+        try
+        {
+            Map<String, Object> params = new HashMap<>();
+            params.put( "uids", teiUids );
+            params.put( "lastUpdated", toTimestamp( new Date() ) );
+            params.put( "lastUpdatedBy", user.getId()  );
+            namedParameterJdbcTemplate.update( UPDATE_TEI_SQL, params );
+        }
+        catch ( DataAccessException e )
+        {
+            log.error( "", e );
             throw e;
         }
     }
@@ -1661,7 +1683,7 @@ public class JdbcEventStore implements EventStore
                 String dataElementsUidsSqlString = getQuotedCommaDelimitedString( deUids );
 
                 String deSql = "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute()
-                    + ", value}' as value " + "from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") "
+                    + ", value}' as value from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") "
                     + "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
 
                 SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );

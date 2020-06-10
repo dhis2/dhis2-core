@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.importer.BasePreProcessTest;
 import org.hisp.dhis.program.Program;
@@ -106,8 +107,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), tei );
+        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+        teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
 
         ProgramInstance programInstance = new ProgramInstance();
@@ -131,8 +132,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), tei );
+        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+        teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
 
         ProgramInstance programInstance1 = new ProgramInstance();
