@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
@@ -107,9 +108,7 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), Pair.of( tei, true ) );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
 
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( CodeGenerator.generateUid() );
@@ -119,6 +118,9 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
 
         event.setProgram( program.getUid() );
 
+        //
+        // Method under test
+        //
         subject.process( event, workContext );
 
         assertThat( event.getEnrollment(), is( programInstance.getUid() ) );

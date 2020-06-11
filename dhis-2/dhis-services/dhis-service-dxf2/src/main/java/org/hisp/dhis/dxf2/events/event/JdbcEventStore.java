@@ -1532,7 +1532,8 @@ public class JdbcEventStore implements EventStore
             Map<String, Object> params = new HashMap<>();
             params.put( "uids", teiUids );
             params.put( "lastUpdated", toTimestamp( new Date() ) );
-            params.put( "lastUpdatedBy", user.getId()  );
+            // The user can be null
+            params.put( "lastUpdatedBy", user != null ? user.getId() : null  );
             namedParameterJdbcTemplate.update( UPDATE_TEI_SQL, params );
         }
         catch ( DataAccessException e )
