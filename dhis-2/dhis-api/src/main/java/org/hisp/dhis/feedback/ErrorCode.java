@@ -94,24 +94,31 @@ public enum ErrorCode
     E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`" ),
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`" ),
     E4018( "Property `{0}` must be set when property `{1}` is `{2}`" ),
-
-    /* TextPattern */
     E4019( "Failed to parse pattern `{0}`. {1}" ),
     E4020( "The value `{0}` does not conform to the attribute pattern `{1}`" ),
-
-    /* TextPattern for ID generation */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
     E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
-
-    /* Tracker relationship */
     E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
     E4024( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together." ),
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
-
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
+
+    /* SQL views */
+    E4300( "SQL query is null" ),
+    E4301( "SQL query must be a select query" ),
+    E4302( "SQL query can only contain a single semi-colon at the end of the query" ),
+    E4303( "Variables contains null key" ),
+    E4304( "Variables contains null value" ),
+    E4305( "Variable params are invalid: `{0}`" ),
+    E4306( "Variables are invalid: `{0}`" ),
+    E4307( "SQL query contains variables not provided in request: `{0}`" ),
+    E4308( "Criteria params are invalid: `{0}`" ),
+    E4309( "Criteria values are invalid: `{0}`" ),
+    E4310( "SQL query contains references to protected tables" ),
+    E4311( "SQL query contains illegal keywords" ),
 
     /* Preheat */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
