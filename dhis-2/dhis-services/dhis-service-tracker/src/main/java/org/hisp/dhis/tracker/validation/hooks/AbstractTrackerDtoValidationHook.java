@@ -196,7 +196,8 @@ public abstract class AbstractTrackerDtoValidationHook
 
         String error = null;
 
-        // TODO: We need to do try/catch here since validateValueType() since it can cast IllegalArgumentException e.g. on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
+        // TODO: We need to do try/catch here since validateValueType() since it can cast IllegalArgumentException e.g.
+        //  on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
         try
         {
             error = teAttrService.validateValueType( teAttr, attr.getValue() );
@@ -307,37 +308,6 @@ public abstract class AbstractTrackerDtoValidationHook
             }
         }
     }
-//    protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
-//    {
-//        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
-//        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
-//
-//        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-//            .getTei( bundle, te.getTrackedEntity() );
-//
-//        OrganisationUnit organisationUnit =
-//            trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
-//
-//        return bundle.getImportStrategy().isCreateOrCreateAndUpdate()
-//            ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
-//            : organisationUnit;
-//    }
-//
-//    protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
-//    {
-//        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
-//        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
-//
-//        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-//            .getTei( bundle, te.getTrackedEntity() );
-//
-//        TrackedEntityType trackedEntityType =
-//            trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;
-//
-//        return bundle.getImportStrategy().isCreateOrCreateAndUpdate()
-//            ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
-//            : trackedEntityType;
-//    }
 
     public boolean isNotValidDateString( String dateString )
     {
@@ -349,11 +319,5 @@ public abstract class AbstractTrackerDtoValidationHook
     public boolean isValidDateStringAndNotNull( String dateString )
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        return getClass() != o.getClass();
     }
 }

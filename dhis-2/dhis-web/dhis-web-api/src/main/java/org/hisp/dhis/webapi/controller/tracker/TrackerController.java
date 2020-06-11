@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -39,7 +40,10 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -65,6 +69,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
+@Slf4j
 @RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
 {
@@ -96,7 +101,9 @@ public class TrackerController
     {
         TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        TrackerBundle trackerBundle = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( request.getInputStream(), TrackerBundleParams.class );
+        TrackerBundle trackerBundle = trackerBundleParams.toTrackerBundle();
         params.setTrackedEntities( trackerBundle.getTrackedEntities() );
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
@@ -117,6 +124,33 @@ public class TrackerController
                     .build()
             ) );
     }
+
+    @PostMapping( value = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
+    public TrackerImportReport postJsonTrackerSync( HttpServletRequest request, HttpServletResponse response, User currentUser ) throws IOException
+    {
+        TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( request.getInputStream(), TrackerBundleParams.class );
+        TrackerBundle trackerBundle = trackerBundleParams.toTrackerBundle();
+        params.setTrackedEntities( trackerBundle.getTrackedEntities() );
+        params.setEnrollments( trackerBundle.getEnrollments() );
+        params.setEvents( trackerBundle.getEvents() );
+        params.setRelationships( trackerBundle.getRelationships() );
+        params.setUser( currentUser );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
+
+
+
+        throw new HttpClientErrorException( HttpStatus.INTERNAL_SERVER_ERROR );
+    }
+
+
 
     @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
     public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response ) throws HttpStatusCodeException

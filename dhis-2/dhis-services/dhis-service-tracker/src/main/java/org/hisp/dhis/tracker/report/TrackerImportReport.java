@@ -55,6 +55,12 @@ public class TrackerImportReport
         return stats;
     }
 
+    @JsonProperty
+    public TrackerStatus getStatus()
+    {
+        return status;
+    }
+
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------

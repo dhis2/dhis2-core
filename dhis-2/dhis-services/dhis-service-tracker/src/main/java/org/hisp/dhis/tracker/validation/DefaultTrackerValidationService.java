@@ -103,6 +103,19 @@ public class DefaultTrackerValidationService
             validationReport.add( e.getErrors() );
         }
 
+        if ( validationReport.getErrorReports().size() > 0 )
+        {
+            printReport( validationReport );
+        }
+
         return validationReport;
+    }
+
+    protected void printReport( TrackerValidationReport report )
+    {
+        for ( TrackerErrorReport errorReport : report.getErrorReports() )
+        {
+            log.error( errorReport.toString() );
+        }
     }
 }

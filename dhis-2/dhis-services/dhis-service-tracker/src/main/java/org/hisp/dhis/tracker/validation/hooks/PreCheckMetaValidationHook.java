@@ -147,6 +147,7 @@ public class PreCheckMetaValidationHook
         {
             // We use a little trick here to put a program into the event and bundle
             // if program is missing from event but exists on the program stage.
+            // TODO: This trick mutates the data, try to avoid this...
             program = programStage.getProgram();
             TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getProgramIdScheme();
             bundle.getPreheat().put( identifier, program );
