@@ -494,6 +494,28 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public long countAllValuesByAttributes( List<Attribute> attributes )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
+        Root<T> root = query.from( getClazz() );
+        query.select( builder.countDistinct( root ) );
+
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute ->
+                builder.isNotNull(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                        builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
+
+        return getSession().createQuery( query )
+            .getSingleResult();
+    }
+
+    @Override
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         return getAllValuesByAttributes( Lists.newArrayList( attribute ) );
