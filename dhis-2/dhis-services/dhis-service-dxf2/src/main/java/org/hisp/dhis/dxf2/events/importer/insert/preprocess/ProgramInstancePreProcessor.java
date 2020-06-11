@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
@@ -64,12 +65,12 @@ public class ProgramInstancePreProcessor implements Processor
         }
 
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getKey();
+        final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
         if ( program.isRegistration() && programInstance == null )
         {
             List<ProgramInstance> programInstances = new ArrayList<>(
-                programInstanceStore.get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
+                programInstanceStore.get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
 
             if ( programInstances.size() == 1 )
             {

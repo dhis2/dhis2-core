@@ -1523,6 +1523,10 @@ public class JdbcEventStore implements EventStore
 
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
+        if ( teiUids.isEmpty() )
+        {
+            return;
+        }
         try
         {
             Map<String, Object> params = new HashMap<>();
@@ -1533,7 +1537,7 @@ public class JdbcEventStore implements EventStore
         }
         catch ( DataAccessException e )
         {
-            log.error( "", e );
+            log.error( "An error occurred updating one or more Tracked Entity Instances", e );
             throw e;
         }
     }

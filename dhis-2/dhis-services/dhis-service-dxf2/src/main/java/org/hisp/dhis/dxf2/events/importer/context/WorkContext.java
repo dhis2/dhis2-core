@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -163,5 +164,12 @@ public class WorkContext
             }
         }
         return null;
+    }
+    
+    public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
+    {
+        final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
+
+        return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
 }

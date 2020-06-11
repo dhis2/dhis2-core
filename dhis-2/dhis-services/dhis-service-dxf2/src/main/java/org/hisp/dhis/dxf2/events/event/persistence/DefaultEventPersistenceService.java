@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventStore;
@@ -111,15 +113,20 @@ public class  DefaultEventPersistenceService
     
     private void updateTeis( final WorkContext context, final List<Event> events )
     {
+        List<String> teiUidList = new ArrayList<>();
+
         if ( !context.getImportOptions().isSkipLastUpdated() )
         {
-            jdbcEventStore.updateTrackedEntityInstances( events.stream()
-                //
-                // filter out TEIs which have the canUpdate flag set to false
-                //
-                .filter( e -> context.getTrackedEntityInstanceMap().get( e.getUid() ).getRight() )
-                .map( Event::getTrackedEntityInstance )
-                .collect( Collectors.toList() ), context.getImportOptions().getUser() );
+            for ( Event event : events )
+            {
+                final Optional<TrackedEntityInstance> trackedEntityInstance = context
+                    .getTrackedEntityInstance( event.getUid() );
+
+                trackedEntityInstance.ifPresent( t -> teiUidList.add( t.getUid() ) );
+            }
+
+            jdbcEventStore.updateTrackedEntityInstances( teiUidList, context.getImportOptions().getUser() );
+
         }
     }
 

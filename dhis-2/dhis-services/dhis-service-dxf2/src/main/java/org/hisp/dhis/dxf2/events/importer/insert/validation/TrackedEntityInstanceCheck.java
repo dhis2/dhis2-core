@@ -36,6 +36,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import java.util.Optional;
+
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 /**
@@ -47,9 +49,9 @@ public class TrackedEntityInstanceCheck implements Checker
     public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getKey();
+        final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
-        if ( program.isRegistration() && tei == null )
+        if ( program.isRegistration() && !trackedEntityInstance.isPresent()  )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
