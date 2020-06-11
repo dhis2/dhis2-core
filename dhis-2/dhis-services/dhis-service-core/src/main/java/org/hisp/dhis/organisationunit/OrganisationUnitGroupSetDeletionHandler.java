@@ -40,7 +40,7 @@ public class OrganisationUnitGroupSetDeletionHandler
 {
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -50,7 +50,7 @@ public class OrganisationUnitGroupSetDeletionHandler
     {
         return OrganisationUnitGroupSet.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
