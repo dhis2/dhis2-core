@@ -72,6 +72,8 @@ import org.springframework.stereotype.Component;
 @Component
 class ResponseHandler
 {
+    private final String CACHE_DATA_ITEMS_PAGINATION = "dataItemsPagination";
+
     private final QueryService queryService;
 
     private final LinkService linkService;
@@ -179,7 +181,7 @@ class ResponseHandler
     {
         // formatter:off
         PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Integer.class )
-            .forRegion( "dataItemsPagination" )
+            .forRegion( CACHE_DATA_ITEMS_PAGINATION )
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( 1000 )
             .forceInMemory()

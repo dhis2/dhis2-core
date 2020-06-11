@@ -31,10 +31,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
-import static org.apache.commons.lang3.StringUtils.split;
-import static org.apache.commons.lang3.StringUtils.substringBetween;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
@@ -79,9 +75,8 @@ class DataItemQueryController
 {
     static final String API_RESOURCE_PATH = "/dataItems";
 
-    static final String DIMENSION_TYPE_IN_FILTER_PREFIX = "dimensionItemType:in:";
-
-    static final String DIMENSION_TYPE_EQUAL_FILTER_PREFIX = "dimensionItemType:eq:";
+    private static final String FIELDS = "fields";
+    private static final String FILTER = "filter";
 
     private final DataItemServiceFacade dataItemServiceFacade;
 
@@ -148,11 +143,11 @@ class DataItemQueryController
         final OrderParams orderParams )
     {
         // Defining the input params.
-        final List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
-        final List<String> filters = newArrayList( contextService.getParameterValues( "filter" ) );
+        final List<String> fields = newArrayList( contextService.getParameterValues( FIELDS ) );
+        final List<String> filters = newArrayList( contextService.getParameterValues( FILTER ) );
         final WebOptions options = new WebOptions( urlParameters );
 
-        checkPaginationSupport( filters );
+        // checkPaginationSupport( filters );
 
         if ( fields.isEmpty() )
         {
@@ -182,35 +177,6 @@ class DataItemQueryController
         }
 
         return new ResponseEntity<>( rootNode, NOT_FOUND );
-    }
-
-    private void checkPaginationSupport( final List<String> filters )
-    {
-        short filterCount = 0;
-
-        if ( isNotEmpty( filters ) )
-        {
-            for ( final String filter : filters )
-            {
-                final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
-                    "," );
-                final boolean hasMultipleDimensionTypeFilters = (trimToEmpty( filter )
-                    .contains( DIMENSION_TYPE_IN_FILTER_PREFIX )
-                    || trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX ))
-                    || (dimensionTypesInFilter != null && dimensionTypesInFilter.length > 1);
-
-                if ( hasMultipleDimensionTypeFilters )
-                {
-                    filterCount++;
-                }
-            }
-
-            if ( filterCount > 1 )
-            {
-                throw new QueryParserException(
-                        "Pagination (paging=true) is not supported for multiple dimensionItemType filtering." );
-            }
-        }
     }
 
     private void checkAuthorization( final User currentUser,

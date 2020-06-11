@@ -1,3 +1,5 @@
+package org.hisp.dhis.webapi.controller.dataitem.helper;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,49 +28,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.query;
+import java.util.List;
+
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
- * Simple POJO containing the pagination directive from the HTTP Request
- * 
- * @author Luciano Fiandesio
+ * Helper class responsible for providing pagination capabilities on top of data
+ * item objects.
  */
-public class Pagination
+public class PaginationHelper
 {
-    private int firstResult;
-
-    private int size;
-
-    private boolean hasPagination = false;
-
-    public Pagination( int firstResult, int size )
-    {
-        assert (size > 0);
-        this.firstResult = firstResult;
-        this.size = size;
-        this.hasPagination = true;
-    }
-
     /**
-     * This constructor can be used to signal that there is no pagination data
+     * This method will slice the given list based on the given option and return
+     * only the elements present in the pagination window.
+     * 
+     * @param options
+     * @param dataItemEntities
+     * @return the list of "sliced" items
      */
-    public Pagination()
+    public static List<BaseDimensionalItemObject> slice( final WebOptions options,
+        List<BaseDimensionalItemObject> dataItemEntities )
     {
-        // empty constructor
-    }
+        if ( options.hasPaging() )
+        {
+            final Pager pager = new Pager( options.getPage(), dataItemEntities.size(), options.getPageSize() );
 
-    public int getFirstResult()
-    {
-        return firstResult;
-    }
-
-    public int getSize()
-    {
-        return size;
-    }
-
-    public boolean hasPagination()
-    {
-        return hasPagination;
+            if ( dataItemEntities.size() - pager.getOffset() > pager.getPageSize() )
+            {
+                dataItemEntities = dataItemEntities.subList( pager.getOffset(),
+                    pager.getPageSize() * pager.getPage() );
+            }
+            else
+            {
+                dataItemEntities = dataItemEntities.subList( pager.getOffset(),
+                    (dataItemEntities.size()) );
+            }
+        }
+        return dataItemEntities;
     }
 }
