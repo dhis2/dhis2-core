@@ -215,6 +215,16 @@ public class SqlViewServiceTest
     }
 
     @Test
+    public void testValidateIllegalKeywordsAfterSemicolon()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+
+        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test
     public void testValidateProtectedTables()
     {
         assertIllegalQueryEx( exception, ErrorCode.E4310 );
@@ -255,16 +265,6 @@ public class SqlViewServiceTest
         variables.put( "valueType", "int" );
 
         sqlViewService.validateSqlView( sqlView, null, variables );
-    }
-
-    @Test
-    public void testValidateIllegalSemiColon()
-    {
-        assertIllegalQueryEx( exception, ErrorCode.E4302 );
-
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
     }
 
     @Test
