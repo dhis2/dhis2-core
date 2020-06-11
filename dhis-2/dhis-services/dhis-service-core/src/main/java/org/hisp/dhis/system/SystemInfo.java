@@ -143,8 +143,6 @@ public class SystemInfo
 
     private boolean isMetadataSyncEnabled;
 
-    private MetadataAudit metadataAudit;
-
     public SystemInfo instance()
     {
         SystemInfo info = new SystemInfo();
@@ -174,7 +172,6 @@ public class SystemInfo
         this.memoryInfo = null;
         this.cpuCores = null;
         this.systemMonitoringUrl = null;
-        this.metadataAudit = null;
 
         if ( this.databaseInfo != null )
         {
@@ -712,17 +709,5 @@ public class SystemInfo
     public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
     {
         this.isMetadataSyncEnabled = isMetadataSyncEnabled;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MetadataAudit getMetadataAudit()
-    {
-        return metadataAudit;
-    }
-
-    public void setMetadataAudit( MetadataAudit metadataAudit )
-    {
-        this.metadataAudit = metadataAudit;
     }
 }
