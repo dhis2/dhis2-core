@@ -383,6 +383,8 @@ public class AttributeValueServiceTest
 
         attributeService.addAttributeValue( dataElementA, avA );
 
+        assertEquals( 1, manager.countAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1 ) ) );
+
         attributeService.deleteAttribute( attribute1 );
     }
 }
