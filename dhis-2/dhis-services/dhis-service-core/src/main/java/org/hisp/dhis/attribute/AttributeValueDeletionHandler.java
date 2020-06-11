@@ -66,7 +66,7 @@ public class AttributeValueDeletionHandler
     {
         for (  Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
         {
-            if ( identifiableObjectManager.getAllValuesByAttributes( supportedClass, Lists.newArrayList( attribute ) ).size() > 0 )
+            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass, Lists.newArrayList( attribute ) ) > 0 )
             {
                 supportedClassName = supportedClass.getSimpleName();
                 return ERROR;
