@@ -76,8 +76,6 @@
 
   <bean id="formHttpMessageConverter" class="org.springframework.http.converter.FormHttpMessageConverter" />
 
-  <bean id="dataStreamSerializableMessageConverter" class="org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter" />
-
   <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
 
   <bean id="defaultHandlerExceptionResolver" class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
@@ -173,7 +171,6 @@
       <bean class="org.springframework.http.converter.StringHttpMessageConverter" />
       <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
       <bean class="org.springframework.http.converter.FormHttpMessageConverter" />
-      <bean class="org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter" />
       <ref bean="org.hisp.dhis.webapi.utils.RenderServiceMessageConverter" />
     </mvc:message-converters>
   </mvc:annotation-driven>
