@@ -41,7 +41,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -112,16 +111,6 @@ public class HibernateDataSetStore
             .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) ) ;
 
         return getList( builder, parameters );
-    }
-
-    @Override
-    public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
-    {
-        String hql = "from DataSet d where :source in elements(d.sources) and d.mobile = true";
-
-        Query<DataSet> query = getQuery( hql );
-
-        return query.setParameter( "source", source ).list();
     }
 
     @Override
