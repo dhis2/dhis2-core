@@ -120,7 +120,8 @@ public class DefaultTrackerImportService
             notifier.update( params.getJobConfiguration(), message );
         }
 
-        if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
+//        if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
+        if ( validationReport.isEmpty() )
         {
             Timer commitTimer = new SystemTimer().start();
 

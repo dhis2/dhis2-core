@@ -72,7 +72,8 @@ public class DefaultTrackerValidationService
 
             throw new RuntimeException(
                 String.format(
-                    "ValidationConfig.class is missing a validation hook in the validation order list, please add it to the list. Order list: %s, service list: %s",
+                    "ValidationConfig.class is missing a validation hook in the validation order list, " +
+                        "please add it to the list. Order list: %s, service list: %s",
                     orderList, internList ) );
         }
 

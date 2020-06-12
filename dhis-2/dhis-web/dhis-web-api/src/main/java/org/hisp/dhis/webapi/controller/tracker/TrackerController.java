@@ -144,7 +144,10 @@ public class TrackerController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-
+        if ( trackerImportReport != null )
+        {
+            return trackerImportReport;
+        }
 
 
         throw new HttpClientErrorException( HttpStatus.INTERNAL_SERVER_ERROR );
