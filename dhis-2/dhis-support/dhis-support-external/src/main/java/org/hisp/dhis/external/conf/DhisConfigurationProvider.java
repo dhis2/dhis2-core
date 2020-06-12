@@ -53,7 +53,8 @@ public interface DhisConfigurationProvider
     Properties getProperties();
 
     /**
-     * Get the property value for the given key, or the default value for the
+     * Get the property value for the given key, or the default value as
+     * specified in the {@link ConfigurationKey#getDefaultValue()} for the
      * configuration key if not exists.
      *
      * @param key the configuration key.

@@ -66,7 +66,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
-import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18n;
@@ -323,63 +325,63 @@ public class DefaultDataValueSetService
     @Override
     public void validate( DataExportParams params )
     {
-        String violation = null;
+        ErrorMessage error = null;
 
         if ( params == null )
         {
-            throw new IllegalArgumentException( "Params cannot be null" );
+            throw new IllegalQueryException( ErrorCode.E2000 );
         }
 
-        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        if ( !params.hasDataElements() && !params.hasDataSets() && !params.hasDataElementGroups() )
         {
-            violation = "At least one valid data set or data element group must be specified";
+            error = new ErrorMessage( ErrorCode.E2001 );
         }
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasLastUpdated() && !params.hasLastUpdatedDuration() )
         {
-            violation = "At least one valid period, start/end dates, last updated or last updated duration must be specified";
+            error = new ErrorMessage( ErrorCode.E2002 );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
         {
-            violation = "Both periods and start/end date cannot be specified";
+            error = new ErrorMessage( ErrorCode.E2003 );
         }
 
         if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
         {
-            violation = "Start date must be before end date";
+            error = new ErrorMessage( ErrorCode.E2004 );
         }
 
         if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
         {
-            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+            error = new ErrorMessage( ErrorCode.E2005 );
         }
 
         if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
         {
-            violation = "At least one valid organisation unit or organisation unit group must be specified";
+            error = new ErrorMessage( ErrorCode.E2006 );
         }
 
         if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
         {
-            violation = "Children cannot be included for organisation unit groups";
+            error = new ErrorMessage( ErrorCode.E2007 );
         }
 
         if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
         {
-            violation = "At least one valid organisation unit must be specified when children is included";
+            error = new ErrorMessage( ErrorCode.E2008 );
         }
 
         if ( params.hasLimit() && params.getLimit() < 0 )
         {
-            violation = "Limit cannot be less than zero: " + params.getLimit();
+            error = new ErrorMessage( ErrorCode.E2009, params.getLimit() );
         }
 
-        if ( violation != null )
+        if ( error != null )
         {
-            log.warn( "Validation failed: " + violation );
+            log.warn( "Validation failed: " + error );
 
-            throw new IllegalQueryException( violation );
+            throw new IllegalQueryException( error );
         }
     }
 
@@ -394,7 +396,7 @@ public class DefaultDataValueSetService
         {
             if ( !aclService.canDataRead( user, dataSet ) )
             {
-                throw new IllegalQueryException( "User is not allowed to read data for data set: " + dataSet.getUid() );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2010, dataSet.getUid() ) );
             }
         }
 
@@ -404,7 +406,7 @@ public class DefaultDataValueSetService
         {
             if ( !aclService.canDataRead( user, optionCombo ) )
             {
-                throw new IllegalQueryException( "User is not allowed to read data for attribute option combo: " + optionCombo.getUid() );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2011, optionCombo.getUid() ) );
             }
         }
 
@@ -414,7 +416,7 @@ public class DefaultDataValueSetService
         {
             if ( !organisationUnitService.isInUserHierarchy( unit ) )
             {
-                throw new IllegalQueryException( "User is not allowed to view org unit: " + unit.getUid() );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2012, unit.getUid() ) );
             }
         }
     }
