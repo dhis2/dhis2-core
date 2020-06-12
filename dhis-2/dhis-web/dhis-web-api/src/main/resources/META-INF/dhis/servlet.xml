@@ -99,7 +99,6 @@
         <ref bean="stringHttpMessageConverter" />
         <ref bean="byteArrayHttpMessageConverter" />
         <ref bean="formHttpMessageConverter" />
-        <ref bean="dataStreamSerializableMessageConverter" />
         <ref bean="renderServiceMessageConverter" />
       </list>
     </property>
@@ -139,7 +138,6 @@
         <ref bean="stringHttpMessageConverter" />
         <ref bean="byteArrayHttpMessageConverter" />
         <ref bean="formHttpMessageConverter" />
-        <ref bean="dataStreamSerializableMessageConverter" />
         <ref bean="renderServiceMessageConverter" />
       </list>
     </property>
