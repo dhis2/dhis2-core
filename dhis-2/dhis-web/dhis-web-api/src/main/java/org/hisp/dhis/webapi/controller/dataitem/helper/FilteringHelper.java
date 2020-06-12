@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -39,6 +40,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.query.QueryParserException;
 
@@ -47,7 +49,6 @@ import org.hisp.dhis.query.QueryParserException;
  */
 public class FilteringHelper
 {
-
     private static final String DIMENSION_TYPE_IN_FILTER_PREFIX = "dimensionItemType:in:";
 
     private static final String DIMENSION_TYPE_EQUAL_FILTER_PREFIX = "dimensionItemType:eq:";
@@ -73,12 +74,16 @@ public class FilteringHelper
             final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
 
-            if ( dimensionTypesInFilter != null )
+            if ( isNotEmpty( dimensionTypesInFilter ) )
             {
                 for ( final String dimensionType : dimensionTypesInFilter )
                 {
-                    dimensionTypes.add( getEntityFromString( dimensionType ) );
+                    dimensionTypes.add( entityClassFromString( dimensionType ) );
                 }
+            }
+            else
+            {
+                throw new QueryParserException( "Unable to parse the filter `" + filter + "`" );
             }
         }
 
@@ -109,14 +114,18 @@ public class FilteringHelper
 
             if ( hasDimensionType )
             {
-                entity = getEntityFromString( array[DIMENSION_TYPE] );
+                entity = entityClassFromString( array[DIMENSION_TYPE] );
+            }
+            else
+            {
+                throw new QueryParserException( "Unable to parse the filter `" + filter + "`" );
             }
         }
 
         return entity;
     }
 
-    private static Class<? extends BaseDimensionalItemObject> getEntityFromString( final String entityType )
+    private static Class<? extends BaseDimensionalItemObject> entityClassFromString( final String entityType )
     {
         final Class<? extends BaseDimensionalItemObject> entity = DATA_TYPE_ENTITY_MAP.get( entityType );
 

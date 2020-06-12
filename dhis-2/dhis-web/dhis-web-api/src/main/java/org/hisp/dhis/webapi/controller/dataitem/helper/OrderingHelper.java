@@ -57,12 +57,12 @@ public class OrderingHelper
     /**
      * Sorts the given list based on the given sorting params.
      *
-     * @param list
+     * @param dimensionalItems
      * @param sortingParams
      */
-    public static void sort( final List<BaseDimensionalItemObject> list, final OrderParams sortingParams )
+    public static void sort( final List<BaseDimensionalItemObject> dimensionalItems, final OrderParams sortingParams )
     {
-        if ( sortingParams != null )
+        if ( sortingParams != null && isNotEmpty( dimensionalItems ) )
         {
             final ComparatorChain<BaseDimensionalItemObject> chainOfComparators = new ComparatorChain();
             final Set<String> orderingPairs = sortingParams.getOrders();
@@ -74,7 +74,7 @@ public class OrderingHelper
                     chainOfComparators.addComparator( getComparator( orderingPair ) );
                 }
 
-                Collections.sort( list, chainOfComparators );
+                Collections.sort( dimensionalItems, chainOfComparators );
             }
         }
     }
@@ -82,8 +82,9 @@ public class OrderingHelper
     private static Comparator getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );
+        final boolean hasValidOrderingAttributes = orderingAttributes != null & orderingAttributes.length == 2;
 
-        if ( orderingAttributes != null & orderingAttributes.length == 2 )
+        if ( hasValidOrderingAttributes )
         {
             final BeanComparator<BaseDimensionalItemObject> comparator = new BeanComparator(
                 orderingAttributes[ORDERING_ATTRIBUTE], new NullComparator( true ) );
@@ -92,6 +93,7 @@ public class OrderingHelper
             {
                 return comparator.reversed();
             }
+
             return comparator;
         }
         else

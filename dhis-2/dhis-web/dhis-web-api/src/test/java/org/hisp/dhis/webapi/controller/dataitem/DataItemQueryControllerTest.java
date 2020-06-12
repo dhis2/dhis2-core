@@ -83,13 +83,13 @@ public class DataItemQueryControllerTest
     @Mock
     private AclService aclService;
 
-    private DataItemQueryController dataItemQueryController;
-
     @Rule
     public MockitoRule mockitoRule = rule();
 
     @Rule
     public ExpectedException expectedException = none();
+
+    private DataItemQueryController dataItemQueryController;
 
     @Before
     public void setUp()

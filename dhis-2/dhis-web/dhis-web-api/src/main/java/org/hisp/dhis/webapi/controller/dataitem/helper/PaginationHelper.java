@@ -28,6 +28,9 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.springframework.util.Assert.state;
+
 import java.util.List;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -45,27 +48,39 @@ public class PaginationHelper
      * only the elements present in the pagination window.
      * 
      * @param options
-     * @param dataItemEntities
+     * @param dimensionalItems
      * @return the list of "sliced" items
      */
     public static List<BaseDimensionalItemObject> slice( final WebOptions options,
-        List<BaseDimensionalItemObject> dataItemEntities )
+        List<BaseDimensionalItemObject> dimensionalItems )
     {
-        if ( options.hasPaging() )
-        {
-            final Pager pager = new Pager( options.getPage(), dataItemEntities.size(), options.getPageSize() );
+        state( options.getPage() > 0, "Current page must be greater than zero." );
+        state( options.getPageSize() > 0, "Page size must be greater than zero." );
 
-            if ( dataItemEntities.size() - pager.getOffset() > pager.getPageSize() )
+        if ( options.hasPaging() && isNotEmpty( dimensionalItems ) )
+        {
+            // Pagination input
+            final int currentPage = options.getPage();
+            final int totalOfElements = dimensionalItems.size();
+            final int maxElementsPerPage = options.getPageSize();
+
+            final Pager pager = new Pager( currentPage, totalOfElements, maxElementsPerPage );
+
+            final int currentElementIndex = pager.getOffset();
+            final boolean hasMorePages = (totalOfElements - currentElementIndex) > pager.getPageSize();
+
+            if ( hasMorePages )
             {
-                dataItemEntities = dataItemEntities.subList( pager.getOffset(),
-                    pager.getPageSize() * pager.getPage() );
+                final int nextElementsWindow = pager.getPageSize() * pager.getPage();
+                dimensionalItems = dimensionalItems.subList( currentElementIndex, nextElementsWindow );
             }
             else
             {
-                dataItemEntities = dataItemEntities.subList( pager.getOffset(),
-                    (dataItemEntities.size()) );
+                // This is the last page
+                dimensionalItems = dimensionalItems.subList( pager.getOffset(), totalOfElements );
             }
         }
-        return dataItemEntities;
+
+        return dimensionalItems;
     }
 }
