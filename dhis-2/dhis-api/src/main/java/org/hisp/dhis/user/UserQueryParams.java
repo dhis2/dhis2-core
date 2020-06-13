@@ -326,7 +326,6 @@ public class UserQueryParams
         this.includeOrgUnitChildren = includeOrgUnitChildren;
         return this;
     }
-    
 
     public boolean isPrefetchUserGroups()
     {
