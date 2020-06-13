@@ -149,6 +149,18 @@ public class UserController
             params.setAuthSubset( true );
         }
 
+        if ( !filters.isEmpty() )
+        {
+            for ( String filter : filters )
+            {
+                if ( filter.startsWith( "userGroups." ) )
+                {
+                    params.setPrefetchUserGroups( true );
+                    break;
+                }
+            }
+        }
+
         int count = userService.getUserCount( params );
 
         if ( options.hasPaging() && filters.isEmpty() )
