@@ -28,14 +28,6 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -45,7 +37,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -74,6 +65,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -83,13 +82,13 @@ public class DefaultTrackerBundleService
 {
     private final TrackerPreheatService trackerPreheatService;
 
-    private final TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService;
+    private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter;
 
-    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
+    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter;
 
-    private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+    private final TrackerConverterService<Event, ProgramStageInstance> eventConverter;
 
-    private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService;
+    private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
 
     private final CurrentUserService currentUserService;
 
@@ -136,10 +135,10 @@ public class DefaultTrackerBundleService
 
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
-        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
-        this.eventTrackerConverterService = eventTrackerConverterService;
-        this.relationshipTrackerConverterService = relationshipTrackerConverterService;
+        this.teConverter = trackedEntityTrackerConverterService;
+        this.enrollmentConverter = enrollmentTrackerConverterService;
+        this.eventConverter = eventTrackerConverterService;
+        this.relationshipConverter = relationshipTrackerConverterService;
         this.currentUserService = currentUserService;
         this.manager = manager;
         this.sessionFactory = sessionFactory;
@@ -216,33 +215,35 @@ public class DefaultTrackerBundleService
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
             TrackedEntity trackedEntity = trackedEntities.get( idx );
-            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService
-                .from( bundle.getPreheat(), trackedEntity );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY,
-                trackedEntityInstance.getUid(), idx );
+            TrackedEntityInstance tei = teConverter.from( bundle.getPreheat(), trackedEntity );
+            tei.setLastUpdated( now );
+            tei.setLastUpdatedAtClient( now );
+            tei.setLastUpdatedBy( bundle.getUser() );
+
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, tei.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
-            trackedEntityInstance.setLastUpdated( now );
-            trackedEntityInstance.setLastUpdatedAtClient( now );
-            trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
+            session.persist( tei );
 
-            session.persist( trackedEntityInstance );
-            bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(),
-                Collections.singletonList( trackedEntityInstance ) );
+            bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(), Collections.singletonList( tei ) );
 
-            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(),
-                trackedEntityInstance );
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(), tei );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
                 session.flush();
             }
+
+            // TODO: check create/update/delete?
+            typeReport.getStats().incCreated();
         }
 
         session.flush();
+
         trackedEntities
-            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
+            .forEach( o -> bundleHooks.forEach( hook ->
+                hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
     }
@@ -260,26 +261,28 @@ public class DefaultTrackerBundleService
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
             Enrollment enrollment = enrollments.get( idx );
-            ProgramInstance programInstance = enrollmentTrackerConverterService.from( bundle.getPreheat(), enrollment );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT,
-                programInstance.getUid(), idx );
-            typeReport.addObjectReport( objectReport );
-
+            ProgramInstance programInstance = enrollmentConverter.from( bundle.getPreheat(), enrollment );
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
             programInstance.setLastUpdatedBy( bundle.getUser() );
 
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
+            typeReport.addObjectReport( objectReport );
+
             session.persist( programInstance );
+
             bundle.getPreheat().putEnrollments( bundle.getIdentifier(), Collections.singletonList( programInstance ) );
 
-            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(),
-                programInstance.getEntityInstance() );
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(), programInstance.getEntityInstance() );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
                 session.flush();
             }
+
+            // TODO: check create/update?
+            typeReport.getStats().incCreated();
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
@@ -310,27 +313,27 @@ public class DefaultTrackerBundleService
         for ( int idx = 0; idx < events.size(); idx++ )
         {
             Event event = events.get( idx );
-            ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT,
-                programStageInstance.getUid(), idx );
-            typeReport.addObjectReport( objectReport );
-
+            ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
             Date now = new Date();
-
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setLastUpdatedBy( bundle.getUser() );
 
-            session.persist( programStageInstance );
-            bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, programStageInstance.getUid(), idx );
+            typeReport.addObjectReport( objectReport );
 
-            typeReport.getStats().incCreated();
+            session.persist( programStageInstance );
+
+            bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
                 session.flush();
             }
+
+            // TODO: check create/update?
+            typeReport.getStats().incCreated();
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramStageInstance.class )
@@ -345,6 +348,7 @@ public class DefaultTrackerBundleService
         }
 
         session.flush();
+
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
 
         return typeReport;
@@ -359,27 +363,26 @@ public class DefaultTrackerBundleService
 
         for ( int idx = 0; idx < relationships.size(); idx++ )
         {
-            Relationship relationship = relationships.get( idx );
-            org.hisp.dhis.relationship.Relationship toRelationship = relationshipTrackerConverterService
-                .from( bundle.getPreheat(), relationship );
+            org.hisp.dhis.relationship.Relationship relationship = relationshipConverter.from( bundle.getPreheat(), relationships.get( idx ) );
+            Date now = new Date();
+            relationship.setLastUpdated( now );
+            relationship.setLastUpdatedBy( bundle.getUser() );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, toRelationship.getUid(),
-                idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, relationship.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
-            Date now = new Date();
-
-            toRelationship.setLastUpdated( now );
-            toRelationship.setLastUpdatedBy( bundle.getUser() );
-
-            session.persist( toRelationship );
+            session.persist( relationship );
             typeReport.getStats().incCreated();
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
                 session.flush();
             }
+
+            typeReport.getStats().incCreated();
         }
+
+        session.flush();
 
         relationships.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Relationship.class, o, bundle ) ) );
 
@@ -447,11 +450,12 @@ public class DefaultTrackerBundleService
                 attributeValues.add( attributeValue );
             }
 
-
-            Objects.requireNonNull( attributeValue.getAttribute(), "Attribute should never be NULL here if validation is enforced before commit." );
+            Objects.requireNonNull( attributeValue.getAttribute(),
+                "Attribute should never be NULL here if validation is enforced before commit." );
 
             // TODO: What to do here? Should this be allowed? i.e ,  attributeValue.getAttribute() != null  this makes a NP
-            if ( !attributeValuesForDeletion.contains( at.getAttribute() )  && attributeValue.getAttribute().getValueType().isFile() )
+            if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
+                attributeValue.getAttribute().getValueType().isFile() )
             {
                 assignedFileResources.add( at.getValue() );
             }
@@ -464,7 +468,8 @@ public class DefaultTrackerBundleService
             // as it will be reloaded on session clear
             TrackedEntityAttribute attribute = attributeValue.getAttribute();
 
-            Objects.requireNonNull( attribute, "Attribute should never be NULL here if validation is enforced before commit." );
+            Objects.requireNonNull( attribute,
+                "Attribute should never be NULL here if validation is enforced before commit." );
 
             if ( attributeValuesForDeletion.contains( attribute.getUid() ) )
             {
@@ -516,7 +521,7 @@ public class DefaultTrackerBundleService
     private User getUser( User user, String userUid )
     {
         if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current
-                            // tx
+        // tx
         {
             return manager.get( User.class, user.getUid() );
         }

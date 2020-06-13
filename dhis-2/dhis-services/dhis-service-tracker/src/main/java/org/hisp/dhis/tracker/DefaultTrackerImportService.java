@@ -40,7 +40,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -101,8 +100,6 @@ public class DefaultTrackerImportService
             notifier.notify( params.getJobConfiguration(), message );
         }
 
-        TrackerImportReport importReport = new TrackerImportReport();
-
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
@@ -121,14 +118,14 @@ public class DefaultTrackerImportService
         }
 
 //        if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
+        TrackerImportReport importReport = new TrackerImportReport();
+
         if ( validationReport.isEmpty() )
         {
             Timer commitTimer = new SystemTimer().start();
 
-            trackerBundles.forEach( tb -> {
-                TrackerBundleReport bundleReport = trackerBundleService.commit( tb );
-                importReport.getBundleReports().add( bundleReport );
-            } );
+            trackerBundles.forEach( tb ->
+                importReport.getBundleReports().add( trackerBundleService.commit( tb ) ) );
 
             if ( !importReport.isEmpty() )
             {
@@ -151,7 +148,8 @@ public class DefaultTrackerImportService
         message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
         log.info( message );
 
-        TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
+//        params.getReportMode()
+        TrackerBundleReportModeUtils.filter( importReport,  TrackerBundleReportMode.FULL);
 
         if ( params.hasJobConfiguration() )
         {
@@ -170,7 +168,8 @@ public class DefaultTrackerImportService
         params.setUser( getUser( params.getUser(), params.getUserId() ) );
         params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, "validationMode",
             ValidationMode.FULL ) );
-        params.setImportMode( getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
+        params.setImportMode(
+            getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
         params.setIdentifiers( getTrackerIdentifiers( parameters ) );
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, "importStrategy",
             TrackerImportStrategy.CREATE_AND_UPDATE ) );
@@ -186,22 +185,33 @@ public class DefaultTrackerImportService
 
     private TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
-        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "idScheme", TrackerIdScheme.UID );
-        TrackerIdScheme orgUnitIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "orgUnitIdScheme", idScheme );
-        TrackerIdScheme programIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "programIdScheme", idScheme );
-        TrackerIdScheme programStageIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "programStageIdScheme", idScheme );
-        TrackerIdScheme dataElementIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "dataElementIdScheme", idScheme );
+        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "idScheme",
+            TrackerIdScheme.UID );
+        TrackerIdScheme orgUnitIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "orgUnitIdScheme",
+            idScheme );
+        TrackerIdScheme programIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "programIdScheme",
+            idScheme );
+        TrackerIdScheme programStageIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            "programStageIdScheme", idScheme );
+        TrackerIdScheme dataElementIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            "dataElementIdScheme", idScheme );
 
         return TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifier.builder().idScheme( idScheme ).value( getAttributeUidOrNull( parameters, "idScheme" ) ).build() )
-            .orgUnitIdScheme( TrackerIdentifier.builder().idScheme( orgUnitIdScheme ).value( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) ).build() )
-            .programIdScheme( TrackerIdentifier.builder().idScheme( programIdScheme ).value( getAttributeUidOrNull( parameters, "programIdScheme" ) ).build() )
-            .programStageIdScheme( TrackerIdentifier.builder().idScheme( programStageIdScheme ).value( getAttributeUidOrNull( parameters, "programStageIdScheme" ) ).build() )
-            .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme ).value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
+            .idScheme( TrackerIdentifier.builder().idScheme( idScheme )
+                .value( getAttributeUidOrNull( parameters, "idScheme" ) ).build() )
+            .orgUnitIdScheme( TrackerIdentifier.builder().idScheme( orgUnitIdScheme )
+                .value( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) ).build() )
+            .programIdScheme( TrackerIdentifier.builder().idScheme( programIdScheme )
+                .value( getAttributeUidOrNull( parameters, "programIdScheme" ) ).build() )
+            .programStageIdScheme( TrackerIdentifier.builder().idScheme( programStageIdScheme )
+                .value( getAttributeUidOrNull( parameters, "programStageIdScheme" ) ).build() )
+            .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme )
+                .value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
             .build();
     }
 
-    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
+    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
+        String key, T defaultValue )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
         {
@@ -218,7 +228,7 @@ public class DefaultTrackerImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private String getAttributeUidOrNull(Map<String, List<String>> parameters, String key)
+    private String getAttributeUidOrNull( Map<String, List<String>> parameters, String key )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
         {
