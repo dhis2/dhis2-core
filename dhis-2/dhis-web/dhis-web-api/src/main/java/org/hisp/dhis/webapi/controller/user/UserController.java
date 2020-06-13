@@ -153,6 +153,18 @@ public class UserController
             params.setCanManage( true );
             params.setAuthSubset( true );
         }
+        
+        if ( !filters.isEmpty() )
+        {
+            for ( String filter : filters )
+            {
+                if ( filter.startsWith( "userGroups." ) )
+                {
+                    params.setPrefetchUserGroups( true );
+                    break;
+                }
+            }
+        }
 
         int count = userService.getUserCount( params );
 
