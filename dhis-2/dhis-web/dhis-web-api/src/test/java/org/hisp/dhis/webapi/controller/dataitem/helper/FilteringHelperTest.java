@@ -41,9 +41,9 @@ import static org.junit.rules.ExpectedException.none;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.query.QueryParserException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -76,7 +76,7 @@ public class FilteringHelperTest
         final String filtersWithInvalidType = "dimensionItemType:in:[INVALID_TYPE,DATA_SET]";
 
         // Expect
-        expectedException.expect( QueryParserException.class );
+        expectedException.expect( IllegalQueryException.class );
         expectedException.expectMessage( "Unable to parse `" + "INVALID_TYPE" );
 
         // When
@@ -90,7 +90,7 @@ public class FilteringHelperTest
         final String filtersWithInvalidType = "dimensionItemType:in:[,]";
 
         // Expect
-        expectedException.expect( QueryParserException.class );
+        expectedException.expect( IllegalQueryException.class );
         expectedException.expectMessage( "Unable to parse the filter `" + filtersWithInvalidType + "`" );
 
         // When
@@ -135,8 +135,8 @@ public class FilteringHelperTest
         final String filtersWithInvalidType = "dimensionItemType:eq:INVALID_TYPE";
 
         // Expect
-        expectedException.expect( QueryParserException.class );
-        expectedException.expectMessage( "Unable to parse `" + "INVALID_TYPE" );
+        expectedException.expect( IllegalQueryException.class );
+        expectedException.expectMessage( "Unable to parse `" + "INVALID_TYPE`. The values available are" );
 
         // When
         extractEntityFromEqualFilter( filtersWithInvalidType );
@@ -149,7 +149,7 @@ public class FilteringHelperTest
         final String invalidFilter = "dimensionItemType:eq:";
 
         // Expect
-        expectedException.expect( QueryParserException.class );
+        expectedException.expect( IllegalQueryException.class );
         expectedException.expectMessage( "Unable to parse the filter `" + invalidFilter + "`" );
 
         // When

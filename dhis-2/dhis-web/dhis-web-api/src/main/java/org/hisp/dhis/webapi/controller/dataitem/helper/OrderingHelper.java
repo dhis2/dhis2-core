@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.hisp.dhis.feedback.ErrorCode.E2015;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,8 +41,9 @@ import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.collections4.comparators.NullComparator;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Helper class responsible for providing sorting capabilities.
@@ -98,7 +100,7 @@ public class OrderingHelper
         }
         else
         {
-            throw new QueryParserException( "Unable to parse the order param: `" + orderingParam + "`" );
+            throw new IllegalQueryException( new ErrorMessage( E2015, orderingParam ) );
         }
     }
 }

@@ -53,8 +53,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.acl.AclService;
@@ -165,9 +165,9 @@ public class DataItemQueryControllerTest
         final boolean invalidAcl = false;
 
         // Then
-        expectedException.expect( ReadAccessDeniedException.class );
+        expectedException.expect( IllegalQueryException.class );
         expectedException
-            .expectMessage( containsString( "You don't have the proper permissions to read objects of type" ) );
+            .expectMessage( containsString( "does not have read access for object" ) );
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );

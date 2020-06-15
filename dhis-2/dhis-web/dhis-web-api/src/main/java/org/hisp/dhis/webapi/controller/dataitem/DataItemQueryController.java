@@ -33,6 +33,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
+import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -45,8 +46,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
@@ -76,6 +78,7 @@ class DataItemQueryController
     static final String API_RESOURCE_PATH = "/dataItems";
 
     private static final String FIELDS = "fields";
+
     private static final String FILTER = "filter";
 
     private final DataItemServiceFacade dataItemServiceFacade;
@@ -188,8 +191,8 @@ class DataItemQueryController
             {
                 if ( !aclService.canRead( currentUser, entity ) )
                 {
-                    throw new ReadAccessDeniedException(
-                        "You don't have the proper permissions to read objects of type " + entity.getSimpleName() );
+                    throw new IllegalQueryException(
+                        new ErrorMessage( E3012, currentUser.getUsername(), entity.getSimpleName() ) );
                 }
             }
         }

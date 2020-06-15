@@ -34,15 +34,17 @@ import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.feedback.ErrorCode.E2014;
+import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Helper class responsible for reading and extracting the URL filters.
@@ -62,8 +64,8 @@ public class FilteringHelper
      *        DATA_SET represents the BaseDimensionalItemObject. The valid types are
      *        found at {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective classes associated with the given IN filter
-     * @throws org.hisp.dhis.query.QueryParserException if the filter points to a
-     *         non supported class/entity.
+     * @throws IllegalQueryException if the filter points to a non supported
+     *         class/entity.
      */
     public static Set<Class<? extends BaseDimensionalItemObject>> extractEntitiesFromInFilter( final String filter )
     {
@@ -83,7 +85,7 @@ public class FilteringHelper
             }
             else
             {
-                throw new QueryParserException( "Unable to parse the filter `" + filter + "`" );
+                throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
             }
         }
 
@@ -99,8 +101,8 @@ public class FilteringHelper
      *        any value represented by
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
-     * @throws org.hisp.dhis.query.QueryParserException if the filter points to a
-     *         non supported class/entity.
+     * @throws IllegalQueryException if the filter points to a non supported
+     *         class/entity.
      */
     public static Class<? extends BaseDimensionalItemObject> extractEntityFromEqualFilter( final String filter )
     {
@@ -118,7 +120,7 @@ public class FilteringHelper
             }
             else
             {
-                throw new QueryParserException( "Unable to parse the filter `" + filter + "`" );
+                throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
             }
         }
 
@@ -131,8 +133,8 @@ public class FilteringHelper
 
         if ( entity == null )
         {
-            throw new QueryParserException( "Unable to parse `" + entityType
-                + "`, available values are: " + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
+            throw new IllegalQueryException(
+                new ErrorMessage( E2016, entityType, Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) ) );
         }
 
         return entity;

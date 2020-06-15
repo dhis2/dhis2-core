@@ -43,8 +43,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.query.QueryParserException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -126,7 +126,7 @@ public class OrderingHelperTest
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
 
         // Expect
-        expectedException.expect( QueryParserException.class );
+        expectedException.expect( IllegalQueryException.class );
         expectedException.expectMessage( "Unable to parse the order param: `" + "name:" + "`" );
 
         // When

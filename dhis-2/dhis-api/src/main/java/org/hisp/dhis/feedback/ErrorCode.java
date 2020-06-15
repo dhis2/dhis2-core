@@ -31,6 +31,7 @@ package org.hisp.dhis.feedback;
 /**
  * Error series:
  *
+ * E2000 - E2999: Data
  * E3000 - E3999: Security
  * E4000 - E4999: Metadata validation
  * E5000 - E5999: Preheat
@@ -44,7 +45,6 @@ package org.hisp.dhis.feedback;
 public enum ErrorCode
 {
     /* Data */
-
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
     E2002( "At least one period, start/end dates, last updated or last updated duration must be specified" ),
@@ -59,6 +59,9 @@ public enum ErrorCode
     E2011( "User is not allowed to read data for attribute option combo: `{0}`" ),
     E2012( "User is not allowed to view org unit: `{0}`" ),
     E2013( "At least one data set must be specified" ),
+    E2014( "Unable to parse the filter `{0}`" ),
+    E2015( "Unable to parse the order param: `{0}`" ),
+    E2016( "Unable to parse `{0}`. The values available are: {1}" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
