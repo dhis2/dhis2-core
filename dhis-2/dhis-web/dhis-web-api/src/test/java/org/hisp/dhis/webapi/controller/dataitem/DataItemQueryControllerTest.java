@@ -172,7 +172,6 @@ public class DataItemQueryControllerTest
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
-
         dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
     }
 }

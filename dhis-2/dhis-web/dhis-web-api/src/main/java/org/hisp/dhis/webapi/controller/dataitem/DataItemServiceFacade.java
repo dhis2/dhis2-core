@@ -72,9 +72,9 @@ import com.google.common.collect.ImmutableMap;
 @Component
 public class DataItemServiceFacade
 {
-    private final int PAGINATION_FIRST_RESULT = 0;
+    static final String PROGRAM_ID = "program.id";
 
-    private final String PROGRAM_ID = "program.id";
+    private final int PAGINATION_FIRST_RESULT = 0;
 
     private final QueryService queryService;
 
@@ -187,7 +187,7 @@ public class DataItemServiceFacade
     }
 
     /**
-     * Add existing filters, if any, to the given query.
+     * Add query filters, if any, to the given query.
      * 
      * @param options the WebOptions
      * @param query the query which the filters should be added to
