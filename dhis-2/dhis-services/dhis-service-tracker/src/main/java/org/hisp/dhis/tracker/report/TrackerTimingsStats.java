@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.timer;
+package org.hisp.dhis.tracker.report;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,35 +26,40 @@ package org.hisp.dhis.commons.timer;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Simple interface that captures time durations and pretty prints it back to you.
- *
- * @author Morten Olav Hansen
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface Timer
+@Data
+@NoArgsConstructor
+public class TrackerTimingsStats
 {
-    static Timer startTimer()
-    {
-        return new SystemTimer().start();
-    }
 
-    /**
-     * Starts the Timer immediately.
-     * @return this Timer.
-     */
-    Timer start();
+    @JsonProperty
+    private String prepareRequest;
 
-    /**
-     * Stops the Timer immediately.
-     * @return this Timer.
-     */
-    Timer stop();
+    @JsonProperty
+    private String validation;
 
-    /**
-     * Returns the elapsed time between {@link #start()} and {@link #stop()} was called.
-     * @return the elapsed time in nanoseconds.
-     */
-    Long duration();
+    @JsonProperty
+    private String commit;
+
+    @JsonProperty
+    private String preheat;
+
+    @JsonProperty
+    private String programrule;
+
+    @JsonProperty
+    private String totalImport;
+
+    @JsonProperty
+    private String totalRequest;
+
 }

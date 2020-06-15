@@ -91,7 +91,9 @@ public class DefaultTrackerImportService
     {
         params.setUser( getUser( params.getUser(), params.getUserId() ) );
 
-        Timer timer = new SystemTimer().start();
+        TrackerImportReport importReport = new TrackerImportReport();
+
+        Timer totalTimer = new SystemTimer().start();
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
@@ -100,17 +102,27 @@ public class DefaultTrackerImportService
             notifier.notify( params.getJobConfiguration(), message );
         }
 
+        Timer preheatTimer = new SystemTimer().start();
+
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
+
+        importReport.getTimings().setPreheat( preheatTimer.toString() );
 
         Timer validationTimer = new SystemTimer().start();
 
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        trackerBundles.forEach( tb -> validationReport.add( trackerValidationService.validate( tb ) ) );
+        trackerBundles.forEach( tb ->
+            validationReport.add( trackerValidationService.validate( tb ) ) );
 
-        message = "(" + params.getUsername() + ") Import:Validation took " + validationTimer.toString();
+        String validationTimeFormatted = validationTimer.toString();
+        message = "(" + params.getUsername() + ") Import:Validation took " + validationTimeFormatted;
         log.info( message );
+
+        importReport.getTimings().setValidation( validationTimeFormatted );
+
+        importReport.setTrackerValidationReport( validationReport );
 
         if ( params.hasJobConfiguration() )
         {
@@ -118,9 +130,7 @@ public class DefaultTrackerImportService
         }
 
 //        if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
-        TrackerImportReport importReport = new TrackerImportReport();
-
-        if ( validationReport.isEmpty() )
+        if ( validationReport.hasErrors() )
         {
             Timer commitTimer = new SystemTimer().start();
 
@@ -132,8 +142,11 @@ public class DefaultTrackerImportService
                 importReport.setStatus( TrackerStatus.WARNING );
             }
 
-            message = "(" + params.getUsername() + ") Import:Commit took " + commitTimer.toString();
+            String commitTimeFormatted = commitTimer.toString();
+            message = "(" + params.getUsername() + ") Import:Commit took " + commitTimeFormatted;
             log.info( message );
+
+            importReport.getTimings().setCommit( commitTimeFormatted );
 
             if ( params.hasJobConfiguration() )
             {
@@ -145,11 +158,14 @@ public class DefaultTrackerImportService
             importReport.setStatus( TrackerStatus.ERROR );
         }
 
-        message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
+        String totalTimeFormatted = totalTimer.toString();
+        message = "(" + params.getUsername() + ") Import:Done took " + totalTimeFormatted;
         log.info( message );
 
-//        params.getReportMode()
-        TrackerBundleReportModeUtils.filter( importReport,  TrackerBundleReportMode.FULL);
+        importReport.getTimings().setTotalImport( totalTimeFormatted );
+
+//        params.getReportMode() -->
+        TrackerBundleReportModeUtils.filter( importReport, TrackerBundleReportMode.FULL );
 
         if ( params.hasJobConfiguration() )
         {
