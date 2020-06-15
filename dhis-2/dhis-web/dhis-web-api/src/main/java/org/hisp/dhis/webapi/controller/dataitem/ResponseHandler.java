@@ -64,7 +64,7 @@ import org.springframework.stereotype.Component;
  * It also keeps an internal cache which's used to speed up the pagination
  * process.
  *
- * IMPORTANT: This caching should be removed once we have a new centralized
+ * IMPORTANT: This cache should be removed once we have a new centralized
  * caching solution in place. At that stage, the new solution should be
  * favoured.
  */
