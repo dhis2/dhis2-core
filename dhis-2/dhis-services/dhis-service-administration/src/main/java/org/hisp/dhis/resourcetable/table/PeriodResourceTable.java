@@ -103,19 +103,7 @@ public class PeriodResourceTable
             if ( period != null && period.isValid() )
             {
                 final String isoDate = period.getIsoDate();
-                int year;
-
-                // Weekly type has to be treated separately from other Period types.
-                // In order to handle all weekly types uniformly, 3 days are added to the week start day and
-                // the year of the modified start date is used as reference year for the Period
-                if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
-                {
-                    year = new DateTime( period.getStartDate().getTime() ).plusDays( 3 ).getYear();
-                }
-                else
-                {
-                    year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
-                }
+                final int year = resolveYearFromPeriod( period );
 
                 if ( !uniqueIsoDates.add( isoDate ) )
                 {
@@ -153,5 +141,21 @@ public class PeriodResourceTable
         String sql = "create unique index " + name + " on " + getTempTableName() + "(iso)";
 
         return Lists.newArrayList( sql );
+    }
+    
+    private int resolveYearFromPeriod( Period period )
+    {
+        // Weekly type has to be treated separately from other Period types.
+        // In order to handle all weekly types uniformly, 3 days are added to the week start day and
+        // the year of the modified start date is used as reference year for the Period
+
+        if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
+        {
+            return new DateTime( period.getStartDate().getTime() ).plusDays( 3 ).getYear();
+        }
+        else
+        {
+            return PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+        }
     }
 }
