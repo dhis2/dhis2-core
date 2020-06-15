@@ -58,7 +58,7 @@ public class OrganisationUnitGroupSetDeletionHandler
     {
         return OrganisationUnitGroupSet.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
