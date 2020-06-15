@@ -121,8 +121,9 @@ public class DataItemQueryControllerTest
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
         assertThat( actualResponse.getStatusCode(), is( FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
+        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anyList() );
+        verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anyList(), any(), any(),
+            anyList() );
     }
 
     @Test

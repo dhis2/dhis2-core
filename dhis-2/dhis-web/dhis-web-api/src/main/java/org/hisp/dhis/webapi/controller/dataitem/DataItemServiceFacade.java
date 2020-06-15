@@ -120,7 +120,7 @@ public class DataItemServiceFacade
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
-        List<BaseDimensionalItemObject> dataItemEntities = new ArrayList<>( 0 );
+        List<BaseDimensionalItemObject> dimensionalItems = new ArrayList<>( 0 );
 
         if ( isNotEmpty( targetEntities ) )
         {
@@ -128,17 +128,17 @@ public class DataItemServiceFacade
             for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
             {
                 final Query query = buildQueryForEntity( entity, filters, options );
-                dataItemEntities.addAll( executeQuery( query ) );
+                dimensionalItems.addAll( executeQuery( query ) );
             }
 
             // In memory sorting
-            sort( dataItemEntities, orderParams );
+            sort( dimensionalItems, orderParams );
 
             // In memory pagination.
-            dataItemEntities = slice( options, dataItemEntities );
+            dimensionalItems = slice( options, dimensionalItems );
         }
 
-        return dataItemEntities;
+        return dimensionalItems;
     }
 
     /**

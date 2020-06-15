@@ -28,37 +28,54 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
 import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.core.env.Environment;
 
 public class ResponseHandlerTest
 {
-
     @Mock
     private QueryService queryService;
 
@@ -80,9 +97,6 @@ public class ResponseHandlerTest
     @Rule
     public MockitoRule mockitoRule = rule();
 
-    @Rule
-    public ExpectedException expectedException = none();
-
     private ResponseHandler responseHandler;
 
     @Before
@@ -93,7 +107,7 @@ public class ResponseHandlerTest
     }
 
     @Test
-    public void testAddResultsToNode()
+    public void testAddResultsToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -113,7 +127,103 @@ public class ResponseHandlerTest
     }
 
     @Test
-    public void addPaginationToNode()
+    public void testAddPaginationToNodeWithSuccess()
     {
+        // Given
+        final RootNode anyRootNode = new RootNode( "any" );
+        final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
+            DataSet.class );
+        final List<String> anyFilters = asList( "any" );
+        final User anyUser = new User();
+        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
+        final String[] testEnvironmentVars = { "test" };
+        final CacheBuilder<Integer> testingCacheBuilder = new SimpleCacheBuilder<>();
+
+        // When
+        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
+        when( cacheProvider.newCacheBuilder( Integer.class ) ).thenReturn( testingCacheBuilder );
+        responseHandler.init();
+        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, anyWebOptions,
+            anyFilters );
+
+        // Then
+        assertThat( anyRootNode, is( notNullValue() ) );
+        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
+        assertThat( anyRootNode.getChildren(), hasSize( 1 ) );
+        assertThat( anyRootNode.getChildren().get( 0 ).isMetadata(), is( true ) );
+        assertThat( anyRootNode.getChildren().get( 0 ).isComplex(), is( true ) );
+        verify( linkService, times( 1 ) ).generatePagerLinks( any( Pager.class ), anyString() );
+    }
+
+    @Test
+    public void testAddPaginationToNodeWhenPagingIsFalse()
+    {
+        // Given
+        final RootNode anyRootNode = new RootNode( "any" );
+        final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
+            DataSet.class );
+        final List<String> anyFilters = asList( "any" );
+        final User anyUser = new User();
+        final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
+        final String[] testEnvironmentVars = { "test" };
+        final CacheBuilder<Integer> testingCacheBuilder = new SimpleCacheBuilder<>();
+
+        // When
+        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
+        when( cacheProvider.newCacheBuilder( Integer.class ) ).thenReturn( testingCacheBuilder );
+        responseHandler.init();
+        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging,
+            anyFilters );
+
+        // Then
+        assertThat( anyRootNode, is( notNullValue() ) );
+        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
+        assertThat( anyRootNode.getChildren(), is( empty() ) );
+        verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
+    }
+
+    @Test
+    public void testAddPaginationToNodeWhenTargetEntitiesIsEmpty()
+    {
+        // Given
+        final RootNode anyRootNode = new RootNode( "any" );
+        final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
+        final List<String> anyFilters = asList( "any" );
+        final User anyUser = new User();
+        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
+        final String[] testEnvironmentVars = { "test" };
+        final CacheBuilder<Integer> testingCacheBuilder = new SimpleCacheBuilder<>();
+
+        // When
+        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
+        when( cacheProvider.newCacheBuilder( Integer.class ) ).thenReturn( testingCacheBuilder );
+        responseHandler.init();
+        responseHandler.addPaginationToNode( anyRootNode, emptyTargetEntities, anyUser, anyWebOptions,
+            anyFilters );
+
+        // Then
+        assertThat( anyRootNode, is( notNullValue() ) );
+        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
+        assertThat( anyRootNode.getChildren(), is( empty() ) );
+        verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
+        verify( queryService, never() ).count( any( Query.class ) );
+    }
+
+    private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
+    {
+        final Map<String, String> options = new HashMap<>( 0 );
+        options.put( PAGE_SIZE, valueOf( pageSize ) );
+        options.put( PAGE, valueOf( pageNumber ) );
+        options.put( PAGING, "true" );
+
+        return new WebOptions( options );
+    }
+
+    private WebOptions mockWebOptionsNoPaging()
+    {
+        final Map<String, String> options = new HashMap<>( 0 );
+        options.put( PAGING, "false" );
+
+        return new WebOptions( options );
     }
 }

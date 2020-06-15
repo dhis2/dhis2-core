@@ -53,7 +53,6 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -129,10 +128,7 @@ class ResponseHandler
         final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final User currentUser,
         final WebOptions options, final List<String> filters )
     {
-        final WebMetadata metadata = new WebMetadata();
-        Pager pager = metadata.getPager();
-
-        if ( options.hasPaging() && pager == null )
+        if ( options.hasPaging() )
         {
             if ( isNotEmpty( targetEntities ) )
             {
@@ -146,14 +142,11 @@ class ResponseHandler
                         p -> countEntityRowsTotal( entity, options, filters ) ).orElse( 0 );
                 }
 
-                pager = new Pager( options.getPage(), count, options.getPageSize() );
+                final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
 
                 linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
 
-                if ( pager != null )
-                {
-                    rootNode.addChild( createPager( pager ) );
-                }
+                rootNode.addChild( createPager( pager ) );
             }
         }
     }
@@ -177,7 +170,7 @@ class ResponseHandler
     }
 
     @PostConstruct
-    private void init()
+    void init()
     {
         // formatter:off
         PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Integer.class )

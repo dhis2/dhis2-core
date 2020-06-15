@@ -28,7 +28,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -66,7 +66,7 @@ public class FilteringHelperTest
 
         // Then
         assertThat( actualClasses, hasSize( 2 ) );
-        assertThat( actualClasses.toArray(), is( arrayContainingInAnyOrder( expectedClasses ) ) );
+        assertThat( actualClasses, containsInAnyOrder( expectedClasses ) );
     }
 
     @Test
@@ -110,7 +110,7 @@ public class FilteringHelperTest
 
         // Then
         assertThat( actualClasses, hasSize( 1 ) );
-        assertThat( actualClasses.toArray(), is( arrayContainingInAnyOrder( expectedClasses ) ) );
+        assertThat( actualClasses, containsInAnyOrder( expectedClasses ) );
     }
 
     @Test
