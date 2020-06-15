@@ -39,7 +39,6 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
 
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -91,12 +90,6 @@ public class MockCurrentUserService
         return currentUser.getUsername();
     }
 
-    @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        return Sets.newHashSet( currentUser.getUserCredentials().getAllAuthorities() );
-    }
-    
     @Override
     public User getCurrentUser()
     {
