@@ -32,14 +32,18 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -67,8 +71,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         this.programSupplier = programSupplier;
     }
 
-    @Override
-    public Map<String, ProgramInstance> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, ProgramInstance> get( ImportOptions importOptions,
+        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap, List<Event> events )
     {
         if ( events == null )
         {
@@ -94,16 +98,19 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                 programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
             }
 
-            // Collect all the Program Stage Instances specified in the Events (enrollment property)
+            // Collect all the Program Stage Instances specified in the Events (enrollment
+            // property)
             programInstances = getProgramInstancesByUid( importOptions, events, programInstanceToEvent,
                 programInstanceUids );
         }
         // Collect all the Program Stage Instances by event uid
         final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
-        
-        // if the Event does not have the "enrollment" property set OR enrollment is pointing to an invalid UID
-        // use the Program Instance connected to the Event. This only makes sense if the Program Stage Instance
-        // already exist in the database
+
+        // if the Event does not have the "enrollment" property set OR enrollment is
+        // pointing to an invalid UID
+        // use the Program Instance connected to the Event.
+        // This only makes sense if the Program Stage Instance already exist in the
+        // database (update)
         if ( !programInstancesByEvent.isEmpty() )
         {
             for ( Event event : events )
@@ -118,12 +125,76 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             }
         }
 
+        // Loop through the events and check if there is any event left without
+        // a Program Instance: for each Event without a PI, try to fetch the Program
+        // Instance by
+        // Program and Tracked Entity Instance
+        for ( Event event : events )
+        {
+            if ( !programInstances.containsKey( event.getUid() ) )
+            {
+                Pair<TrackedEntityInstance, Boolean> teiPair = teiMap.get( event.getUid() );
+                Program program = getProgramByUid( event.getProgram(),
+                    programSupplier.get( importOptions, events ).values() );
+                if ( teiPair != null && program != null )
+                {
+                    TrackedEntityInstance tei = teiPair.getKey();
+
+                    ProgramInstance programInstance = getByTeiAndProgram( importOptions, tei.getId(), program.getId(),
+                        event );
+                    if ( programInstance != null )
+                    {
+                        programInstances.put( event.getUid(), programInstance );
+                    }
+                }
+
+            }
+        }
+
         return programInstances;
     }
 
     private Program getProgramById( long id, Collection<Program> programs )
     {
         return programs.stream().filter( p -> p.getId() == id ).findFirst().orElse( null );
+    }
+
+    private Program getProgramByUid( String uid, Collection<Program> programs )
+    {
+        return programs.stream().filter( p -> p.getUid().equals( uid ) ).findFirst().orElse( null );
+    }
+    
+    private ProgramInstance getByTeiAndProgram( ImportOptions importOptions, Long teiId, Long programId, Event event )
+    {
+        final String sql = "select pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, " +
+                "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi " +
+                "join trackedentityinstance t on t.trackedentityinstanceid = pi.trackedentityinstanceid " +
+                "join organisationunit ou on t.organisationunitid = ou.organisationunitid " +
+                "where pi.programid = :programid " +
+                "and pi.status = 'ACTIVE' " +
+                "and pi.trackedentityinstanceid = :teiid";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue( "programid", programId );
+        parameters.addValue( "teiid", teiId );
+
+        List<ProgramInstance> query = jdbcTemplate.query(sql, parameters, (ResultSet rs) -> {
+
+            List<ProgramInstance> results = new ArrayList<>();
+
+            while ( rs.next() )
+            {
+                results.add( mapFromResultset( rs, importOptions, Collections.singletonList( event ) ) );
+            }
+            return results;
+        });
+        
+        if (query != null && query.size() == 1) {
+            
+            return query.get( 0 );
+        } else {
+            return null;
+        }
     }
 
     private Map<String, ProgramInstance> getProgramInstanceByEvent( ImportOptions importOptions, List<Event> events )
@@ -213,5 +284,11 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         }
 
         return pi;
+    }
+
+    @Override
+    public Map<String, ProgramInstance> get( ImportOptions importOptions, List<Event> events )
+    {
+        throw new NotImplementedException("Use other get method");
     }
 }

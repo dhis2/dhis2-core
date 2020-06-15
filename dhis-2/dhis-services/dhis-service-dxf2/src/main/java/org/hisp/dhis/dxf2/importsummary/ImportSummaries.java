@@ -130,7 +130,7 @@ public class ImportSummaries extends AbstractWebMessageResponse
     {
         for ( ImportSummary importSummary : importSummaries )
         {
-            if ( importSummary.getReference().equals( reference ) )
+            if ( importSummary.getReference() != null && importSummary.getReference().equals( reference ) )
             {
                 return Optional.of( importSummary );
             }
