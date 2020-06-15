@@ -31,8 +31,10 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
@@ -83,9 +85,9 @@ public class WorkContext
      * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to
      * import.
      *
-     * Map: key -> Event UID value -> TrackedEntityInstance
+     * Map: key -> Event UID value -> Pair<TrackedEntityInstance, canBeUpdatedByCurrentUser boolean>
      */
-    private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap;
+    private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
 
     /**
      * Holds a Map of all {@see ProgramInstance} associated to the Events to import.
@@ -162,5 +164,12 @@ public class WorkContext
             }
         }
         return null;
+    }
+    
+    public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
+    {
+        final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
+
+        return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
 }

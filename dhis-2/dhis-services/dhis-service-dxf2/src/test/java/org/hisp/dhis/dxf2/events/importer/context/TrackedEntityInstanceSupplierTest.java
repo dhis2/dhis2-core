@@ -38,12 +38,15 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 /**
  * @author Luciano Fiandesio
@@ -52,10 +55,13 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
 {
     private TrackedEntityInstanceSupplier subject;
 
+    @Mock
+    private AclService aclService;
+
     @Before
     public void setUp()
     {
-        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate );
+        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate, aclService );
     }
 
     @Test
@@ -81,10 +87,10 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, TrackedEntityInstance> map = subject.get( ImportOptions.getDefaultImportOptions(),
+        Map<String, Pair<TrackedEntityInstance, Boolean>> map = subject.get( ImportOptions.getDefaultImportOptions(),
             Collections.singletonList( event ) );
 
-        TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() );
+        TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() ).getKey();
         assertThat( trackedEntityInstance, is( notNullValue() ) );
         assertThat( trackedEntityInstance.getId(), is( 100L ) );
         assertThat( trackedEntityInstance.getUid(), is( "abcded" ) );

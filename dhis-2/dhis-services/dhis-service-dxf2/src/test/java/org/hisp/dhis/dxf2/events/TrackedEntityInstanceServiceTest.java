@@ -440,7 +440,6 @@ public class TrackedEntityInstanceServiceTest
     public void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
     {
         // Making program stage repeatable
-        programStageA1.setRepeatable( true );
         programStageA2.setRepeatable( true );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );

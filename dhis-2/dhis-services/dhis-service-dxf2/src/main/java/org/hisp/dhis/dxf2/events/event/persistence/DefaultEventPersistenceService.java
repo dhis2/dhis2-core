@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventStore;
@@ -84,11 +86,7 @@ public class  DefaultEventPersistenceService
 
         jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
-        // TODO update teis
-        if ( !context.getImportOptions().isSkipLastUpdated() )
-        {
-            //updateTrackedEntityInstance( programStageInstance, user, bulkSave );
-        }
+        updateTeis( context, events );
     }
 
     /**
@@ -109,11 +107,26 @@ public class  DefaultEventPersistenceService
 
             jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
 
-            // TODO update teis
-            if ( !context.getImportOptions().isSkipLastUpdated() )
+            updateTeis( context, events );
+        }
+    }
+    
+    private void updateTeis( final WorkContext context, final List<Event> events )
+    {
+        List<String> teiUidList = new ArrayList<>();
+
+        if ( !context.getImportOptions().isSkipLastUpdated() )
+        {
+            for ( Event event : events )
             {
-                //updateTrackedEntityInstance( programStageInstance, user, bulkSave );
+                final Optional<TrackedEntityInstance> trackedEntityInstance = context
+                    .getTrackedEntityInstance( event.getUid() );
+
+                trackedEntityInstance.ifPresent( t -> teiUidList.add( t.getUid() ) );
             }
+
+            jdbcEventStore.updateTrackedEntityInstances( teiUidList, context.getImportOptions().getUser() );
+
         }
     }
 

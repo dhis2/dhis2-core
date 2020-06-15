@@ -35,6 +35,7 @@ import java.util.Set;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,6 +102,8 @@ public interface EventStore
             "where uid = ?;";                   // 19
         // @formatter:on
 
+    String UPDATE_TEI_SQL = "update trackedentityinstance set lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy where uid in (:uids)";
+
     /**
      * Inserts a List of {@see ProgramStageInstance}, including notes and Data
      * Values.
@@ -128,4 +131,6 @@ public interface EventStore
      * @param events List to be removed
      */
     void delete( List<Event> events );
+
+    void updateTrackedEntityInstances( List<String> teiUid, User user );
 }

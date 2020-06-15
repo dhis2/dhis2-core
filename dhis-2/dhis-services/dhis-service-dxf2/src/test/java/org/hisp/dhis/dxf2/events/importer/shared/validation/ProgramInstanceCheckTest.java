@@ -35,7 +35,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -88,9 +90,7 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), tei );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of(tei) );
 
         event.setProgram( program.getUid() );
 
@@ -116,9 +116,7 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), tei );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of(tei) );
 
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();
@@ -156,8 +154,8 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), tei );
+        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+        teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
 
         ProgramInstance programInstance1 = new ProgramInstance();

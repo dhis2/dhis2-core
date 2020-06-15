@@ -42,6 +42,7 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class JdbcEventStoreTest
 
     @Mock
     private JdbcTemplate jdbcTemplate;
-
+    
     @Mock
     private CurrentUserService currentUserService;
 
@@ -75,15 +76,18 @@ public class JdbcEventStoreTest
     @Before
     public void setUp()
     {
-        ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService, manager );
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
+
+        when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
+            manager );
     }
 
     @Test
     public void verifyEventDataValuesAreProcessedOnceForEachPSI()
     {
-
         mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
 
