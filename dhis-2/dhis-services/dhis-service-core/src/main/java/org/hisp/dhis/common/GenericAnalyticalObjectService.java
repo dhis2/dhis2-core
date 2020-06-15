@@ -36,6 +36,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -76,7 +78,7 @@ public abstract class GenericAnalyticalObjectService<T extends AnalyticalObject>
     {
         return getAnalyticalObjectStore().getAnalyticalObjectsByDataDimension( attribute );
     }
-    
+
     @Override
     public List<T> getAnalyticalObjects( DataSet dataSet )
     {
@@ -102,11 +104,23 @@ public abstract class GenericAnalyticalObjectService<T extends AnalyticalObject>
     }
 
     @Override
+    public List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup )
+    {
+        return getAnalyticalObjectStore().getAnalyticalObjects( organisationUnitGroup );
+    }
+
+    @Override
+    public List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet )
+    {
+        return getAnalyticalObjectStore().getAnalyticalObjects( organisationUnitGroupSet );
+    }
+
+    @Override
     public List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( categoryOptionGroup );
     }
-    
+
     @Override
     public List<T> getAnalyticalObjects( LegendSet legendSet )
     {
