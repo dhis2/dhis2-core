@@ -84,21 +84,6 @@ public abstract class AbstractSpringSecurityCurrentUserService
         throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
     }
 
-    @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        UserDetails userDetails = getCurrentUserDetails();
-
-        if ( userDetails == null )
-        {
-            return new HashSet<>();
-        }
-
-        return userDetails.getAuthorities().stream()
-            .map( GrantedAuthority::getAuthority )
-            .collect( Collectors.toSet() );
-    }
-
     /**
      * Returns the current UserDetails, or null of there is no
      * current user or if principal is not of type UserDetails.

@@ -51,12 +51,6 @@ public interface CurrentUserService
     String getCurrentUsername();
 
     /**
-     * @return the set of authorities granted to the currently logged in user.
-     *          If no current user exists, an empty set is returned.
-     */
-    Set<String> getCurrentUserAuthorities();
-
-    /**
      * @return the currently logged in user. If no user is logged in or the auto
      *          access admin is active, null is returned.
      */
