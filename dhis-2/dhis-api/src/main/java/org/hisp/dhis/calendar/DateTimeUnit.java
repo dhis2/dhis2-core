@@ -37,6 +37,9 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.chrono.ISOChronology;
 
 import javax.validation.constraints.NotNull;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.IsoFields;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -176,6 +179,20 @@ public class DateTimeUnit
     public int getYear()
     {
         return year;
+    }
+
+    /**
+     * Get the year for the week this DateTime unit falls in, based ISO calendar system 
+     * where the week year starts in the first week with at least 4 days in that year.
+     * 
+     * @return a year
+     */
+    public int getWeekYear()
+    {
+        final ZonedDateTime now = ZonedDateTime.of( this.year, this.month, this.day, this.hour, this.minute, this.second, 0,
+            ZoneId.systemDefault() );
+
+        return now.get( IsoFields.WEEK_BASED_YEAR );
     }
 
     public void setYear( int year )

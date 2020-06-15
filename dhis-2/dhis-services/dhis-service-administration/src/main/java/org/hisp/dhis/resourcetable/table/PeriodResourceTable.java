@@ -39,6 +39,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -101,7 +102,16 @@ public class PeriodResourceTable
             if ( period != null && period.isValid() )
             {
                 final String isoDate = period.getIsoDate();
-                final int year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+                int year;
+
+                if ( period.getPeriodType().equalsName( WeeklyPeriodType.NAME ) )
+                {
+                    year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getWeekYear();
+                }
+                else
+                {
+                    year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+                }
 
                 if ( !uniqueIsoDates.add( isoDate ) )
                 {

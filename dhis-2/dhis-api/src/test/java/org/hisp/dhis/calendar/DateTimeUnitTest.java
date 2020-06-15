@@ -142,4 +142,18 @@ public class DateTimeUnitTest
 
         dateTimeUnit.toJodaDateTime();
     }
+
+    @Test
+    public void testYearOfWeek()
+    {
+        assertEquals( 2020, getDateTimeUnit( 2019, Calendar.DECEMBER, 31 ).getWeekYear() );
+        assertEquals( 2019, getDateTimeUnit( 2019, Calendar.DECEMBER, 29 ).getWeekYear() );
+    }
+    
+    private DateTimeUnit getDateTimeUnit( int year, int month, int day )
+    {
+        java.util.Calendar cal = new GregorianCalendar( year, month, day );
+        Date date = cal.getTime();
+        return DateTimeUnit.fromJdkDate( date );
+    }
 }
