@@ -89,10 +89,4 @@ public abstract class AbstractSpringSecurityCurrentUserService
 
         return (UserDetails) authentication.getPrincipal();
     }
-
-    @Override
-    public void clearCurrentUser()
-    {
-        SecurityContextHolder.clearContext();
-    }
 }

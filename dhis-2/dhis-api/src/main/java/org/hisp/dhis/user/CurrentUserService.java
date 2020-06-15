@@ -75,12 +75,6 @@ public interface CurrentUserService
     boolean currentUserIsSuper();
 
     /**
-     * Clears the current logged in state, which means that the currently logged
-     * in user is logged out.
-     */
-    void clearCurrentUser();
-
-    /**
      * Indicates whether the current user has been granted the given authority.
      */
     boolean currentUserIsAuthorized( String auth );
