@@ -52,6 +52,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -71,6 +73,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
@@ -87,6 +90,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -155,6 +159,7 @@ import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.Advised;
@@ -340,6 +345,21 @@ public abstract class DhisConvenienceTest
     public static String message( Object expected, Object actual )
     {
         return message( expected ) + " Actual was: " + ((actual != null) ? "[" + actual.toString() + "]" : "[null]");
+    }
+
+    /**
+     * Asserts that a {@link IllegalQueryException} is thrown with the given
+     * {@link ErrorCode}.
+     *
+     * @param exception the {@link ExpectedException}.
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public static void assertIllegalQueryEx( ExpectedException exception, ErrorCode errorCode )
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( errorCode ) ) );
+        exception.reportMissingExceptionWithMessage( String.format(
+            "Test does not throw an IllegalQueryException with error code: '%s'", errorCode ) );
     }
 
     // -------------------------------------------------------------------------
@@ -1022,16 +1042,17 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param value                The value.
-     * @param categoryOptionCombo  The category option combo.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
+     * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
-     * @param deleted              Whether the data valeu is deleted.
+     * @param deleted Whether the data valeu is deleted.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value, boolean deleted )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
+        boolean deleted )
     {
         DataValue dataValue = new DataValue();
 

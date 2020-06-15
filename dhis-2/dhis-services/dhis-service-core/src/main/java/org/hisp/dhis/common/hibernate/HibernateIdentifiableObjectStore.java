@@ -1388,7 +1388,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( userCredentials != null )
         {
-            return userCredentials.getUser();
+            return userCredentials.getUserInfo();
         }
 
         return null;

@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,39 +28,39 @@ package org.hisp.dhis.api.mobile;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.api.mobile.model.Interpretation;
-import org.hisp.dhis.api.mobile.model.Message;
-import org.hisp.dhis.api.mobile.model.MessageConversation;
-import org.hisp.dhis.api.mobile.model.User;
+import javax.jms.TextMessage;
 
-public interface ActivityReportingService
+/**
+ * A Aggregate object consumer.
+ */
+@Component
+public class AggregateAuditConsumer
+    extends AbstractAuditConsumer
 {
-    Collection<User> findUser( String keyword )
-        throws NotAllowedException;
+    public AggregateAuditConsumer(
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
+    {
+        this.auditService = auditService;
+        this.objectMapper = objectMapper;
 
-    String sendFeedback( org.hisp.dhis.api.mobile.model.Message message )
-        throws NotAllowedException;
-    
-    String sendMessage( Message message )
-        throws NotAllowedException;
+        this.isAuditLogEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_LOGGER );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
+    }
 
-    Collection<MessageConversation> downloadMessageConversation()
-        throws NotAllowedException;
-
-    Collection<Message> getMessage( String conversationId )
-        throws NotAllowedException;
-
-    String replyMessage( Message message )
-        throws NotAllowedException;
-
-    Interpretation getInterpretation( String uId )
-        throws NotAllowedException;
-
-    String postInterpretation( String data )
-        throws NotAllowedException;
-
-    String postInterpretationComment( String data )
-        throws NotAllowedException;
+    @JmsListener( destination = Topics.AGGREGATE_TOPIC_NAME )
+    public void consume( TextMessage message )
+    {
+        _consume( message );
+    }
 }

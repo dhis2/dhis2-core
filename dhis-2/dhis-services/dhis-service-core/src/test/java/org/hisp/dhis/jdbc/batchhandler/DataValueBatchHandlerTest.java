@@ -174,8 +174,10 @@ public class DataValueBatchHandlerTest
 
         batchHandler.flush();
 
-        List<DataValue> values = dataValueService.getDataValues(
-            new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) ) );
+        List<DataValue> values = dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setPeriods( Sets.newHashSet( periodA, periodB ) )
+            .setOrganisationUnits( Sets.newHashSet( unitA, unitB ) ) );
 
         assertNotNull( values );
         assertEquals( 4, values.size() );
@@ -198,8 +200,10 @@ public class DataValueBatchHandlerTest
 
         batchHandler.flush();
 
-        List<DataValue> values = dataValueService.getDataValues(
-            new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) ) );
+        List<DataValue> values = dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setPeriods( Sets.newHashSet( periodA, periodB ) )
+            .setOrganisationUnits( Sets.newHashSet( unitA, unitB ) ) );
 
         assertNotNull( values );
         assertEquals( 4, values.size() );

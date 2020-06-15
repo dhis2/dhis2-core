@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile.model;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,71 +28,43 @@ package org.hisp.dhis.api.mobile.model;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
-public class DataSetValueList
-    extends Model
+import javax.jms.TextMessage;
+import java.util.Objects;
+
+/**
+ * Tracker audit consumer.
+ *
+ * @author Morten Olav Hansen <morten@dhis2.org>
+ */
+@Component
+public class TrackerAuditConsumer
+    extends AbstractAuditConsumer
 {
-    private String clientVersion;
-
-    private List<DataSetValue> dataSetValues = new ArrayList<>();
-
-    public DataSetValueList()
+    public TrackerAuditConsumer(
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
     {
+        this.auditService = auditService;
+        this.objectMapper = objectMapper;
+
+        // for legacy reasons we are overriding the default here and using "off" for tracking logger (we don't have a specific key for tracker logger)
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
-    public List<DataSetValue> getDataSetValues()
+    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
+    public void consume( TextMessage message )
     {
-        return dataSetValues;
-    }
-
-    public void setDataSetValues( List<DataSetValue> dataSetValues )
-    {
-        this.dataSetValues = dataSetValues;
-    }
-
-    @Override
-    public String getClientVersion()
-    {
-        return clientVersion;
-    }
-
-    @Override
-    public void setClientVersion( String clientVersion )
-    {
-        this.clientVersion = clientVersion;
-    }
-
-    @Override
-    public void serialize( DataOutputStream dout )
-        throws IOException
-    {
-        dout.writeInt( dataSetValues.size() );
-        for ( DataSetValue dataSetValue : dataSetValues )
-        {
-            dataSetValue.serialize( dout );
-        }
-    }
-
-    @Override
-    public void deSerialize( DataInputStream dataInputStream )
-        throws IOException
-    {
-        int size = 0;
-        size = dataInputStream.readInt();
-        if ( size > 0 )
-        {
-            dataSetValues = new ArrayList<>();
-            for ( int i = 0; i < size; i++ )
-            {
-                DataSetValue dataSetValue = new DataSetValue();
-                dataSetValue.deSerialize( dataInputStream );
-                dataSetValues.add( dataSetValue );
-            }
-        }
+        _consume( message );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.legacy;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,50 +28,47 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.jms.TextMessage;
-
-import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditConsumer;
-import org.hisp.dhis.audit.AuditService;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.stereotype.Component;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.jms.TextMessage;
+import java.io.IOException;
+
 /**
- * Tracker audits consumer.
- *
- * @author Morten Olav Hansen <morten@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Component
-public class TrackerAuditConsumer implements AuditConsumer
+public abstract class AbstractAuditConsumer
+    implements AuditConsumer
 {
-    private final AuditService auditService;
-    private final RenderService renderService;
+    protected AuditService auditService;
+    protected ObjectMapper objectMapper;
 
-    public TrackerAuditConsumer(
-        AuditService auditService, RenderService renderService )
-    {
-        this.auditService = auditService;
-        this.renderService = renderService;
-    }
+    protected boolean isAuditLogEnabled;
+    protected boolean isAuditDatabaseEnabled;
 
-    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
-    public void consume( TextMessage message )
+    protected void _consume( TextMessage message )
     {
         try
         {
-            String payload = message.getText();
+            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(), org.hisp.dhis.artemis.audit.Audit.class );
 
-            Audit auditMessage = renderService.fromJson( payload, Audit.class );
-            auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
+            if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
+            {
+                auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
+            }
 
-            auditService.addAudit( auditMessage.toAudit() );
+            org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
+
+            if ( isAuditLogEnabled )
+            {
+                log.info( objectMapper.writeValueAsString( audit ) );
+            }
+
+            if ( isAuditDatabaseEnabled )
+            {
+                auditService.addAudit( audit );
+            }
         }
         catch ( IOException e )
         {

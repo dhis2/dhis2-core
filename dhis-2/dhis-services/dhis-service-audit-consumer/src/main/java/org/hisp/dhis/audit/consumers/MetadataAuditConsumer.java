@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile.model;
+package org.hisp.dhis.audit.consumers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,87 +28,41 @@ package org.hisp.dhis.api.mobile.model;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
-public class MessageConversation
-    implements DataStreamSerializable
+import javax.jms.TextMessage;
+
+/**
+ * A MetadataAudit object consumer.
+ *
+ * @author Luciano Fiandesio
+ */
+@Component
+public class MetadataAuditConsumer
+    extends AbstractAuditConsumer
 {
-    private String clientVersion;
-
-    private long id;
-
-    private String subject;
-
-    public String getClientVersion()
+    public MetadataAuditConsumer(
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
     {
-        return clientVersion;
+        this.auditService = auditService;
+        this.objectMapper = objectMapper;
+
+        this.isAuditLogEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_LOGGER );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
-    public void setClientVersion( String clientVersion )
+    @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
+    public void consume( TextMessage message )
     {
-        this.clientVersion = clientVersion;
+        _consume( message );
     }
-
-    public long getId()
-    {
-        return id;
-    }
-
-    public void setId( long id )
-    {
-        this.id = id;
-    }
-
-    public String getSubject()
-    {
-        return subject;
-    }
-
-    public void setSubject( String subject )
-    {
-        this.subject = subject;
-    }
-
-    @Override
-    public void serialize( DataOutputStream dout )
-        throws IOException
-    {
-        dout.writeLong( id );
-        dout.writeUTF( subject );
-
-    }
-
-    @Override
-    public void deSerialize( DataInputStream din )
-        throws IOException
-    {
-
-        this.id = din.readLong();
-        this.subject = din.readUTF();
-
-    }
-
-    @Override
-    public void serializeVersion2_8( DataOutputStream dataOutputStream )
-        throws IOException
-    {
-
-    }
-
-    @Override
-    public void serializeVersion2_9( DataOutputStream dataOutputStream )
-        throws IOException
-    {
-
-    }
-
-    @Override
-    public void serializeVersion2_10( DataOutputStream dataOutputStream )
-        throws IOException
-    {
-
-    }
-
 }
