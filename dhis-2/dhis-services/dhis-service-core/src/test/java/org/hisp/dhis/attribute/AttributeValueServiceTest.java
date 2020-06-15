@@ -34,6 +34,7 @@ import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -350,7 +351,7 @@ public class AttributeValueServiceTest
         assertEquals( "DataElementB", de2.getName() );
         assertEquals( "DataElementC", de3.getName() );
     }
-    
+
     @Test
     public void testGetAllValuesByAttributes()
     {
@@ -373,5 +374,17 @@ public class AttributeValueServiceTest
         assertEquals( 2, values.size() );
         assertTrue( values.stream().anyMatch( av -> av.getValue().equals( "valueA" ) ) );
         assertTrue( values.stream().anyMatch( av -> av.getValue().equals( "valueB" ) ) );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDeleteAttributeWithReferences()
+    {
+        AttributeValue avA = new AttributeValue( "valueA", attribute1 );
+
+        attributeService.addAttributeValue( dataElementA, avA );
+
+        assertEquals( 1, manager.countAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1 ) ) );
+
+        attributeService.deleteAttribute( attribute1 );
     }
 }
