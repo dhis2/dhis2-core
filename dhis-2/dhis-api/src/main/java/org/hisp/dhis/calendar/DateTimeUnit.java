@@ -182,7 +182,7 @@ public class DateTimeUnit
     }
 
     /**
-     * Get the year for the week this DateTime unit falls in, based ISO calendar system 
+     * Get the year for the week this DateTime unit falls in, based on the ISO calendar system
      * where the week year starts in the first week with at least 4 days in that year.
      * 
      * @return a year
