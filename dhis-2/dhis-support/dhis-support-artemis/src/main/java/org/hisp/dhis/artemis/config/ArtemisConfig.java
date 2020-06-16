@@ -45,6 +45,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -60,6 +61,7 @@ import java.util.Map;
  */
 @EnableJms
 @Configuration
+@DependsOn( "artemisPortChecker" )
 public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
