@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.artemis.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,54 +28,26 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-import org.hisp.dhis.artemis.config.ArtemisConfigData;
-import org.hisp.dhis.artemis.config.ArtemisEnabledCondition;
-import org.hisp.dhis.artemis.config.ArtemisMode;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.ConfigurationCondition;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
-@Service
-@Conditional( value = ArtemisEnabledCondition.class )
-public class ArtemisManager
+public class ArtemisEnabledCondition
+    extends PropertiesAwareConfigurationCondition
 {
-    private final EmbeddedActiveMQ embeddedActiveMQ;
-    private final ArtemisConfigData artemisConfigData;
-
-    public ArtemisManager(
-        EmbeddedActiveMQ embeddedActiveMQ,
-        ArtemisConfigData artemisConfigData )
+    @Override
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        this.embeddedActiveMQ = embeddedActiveMQ;
-        this.artemisConfigData = artemisConfigData;
+        return !isTestRun( context ) || isAuditTest( context );
     }
 
-    @PostConstruct
-    public void startAmqp() throws Exception
+    @Override
+    public ConfigurationCondition.ConfigurationPhase getConfigurationPhase()
     {
-        if ( ArtemisMode.EMBEDDED == artemisConfigData.getMode() )
-        {
-            log.info( "Starting embedded Artemis ActiveMQ server." );
-            embeddedActiveMQ.start();
-        }
-    }
-
-    @PreDestroy
-    public void stopAmqp() throws Exception
-    {
-        if ( embeddedActiveMQ == null )
-        {
-            return;
-        }
-
-        embeddedActiveMQ.stop();
+        return ConfigurationCondition.ConfigurationPhase.REGISTER_BEAN;
     }
 }
