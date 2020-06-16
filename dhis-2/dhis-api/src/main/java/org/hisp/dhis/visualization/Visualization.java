@@ -416,12 +416,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "columnDimension", namespace = DXF_2_0 )
     public List<String> getColumnDimensions()
     {
-        return removingNullElements( columnDimensions );
+        return columnDimensions;
     }
 
     public void setColumnDimensions( List<String> columnDimensions )
     {
-        this.columnDimensions = removingNullElements( columnDimensions );
+        this.columnDimensions = columnDimensions;
     }
 
     @JsonProperty
@@ -429,12 +429,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "rowDimension", namespace = DXF_2_0 )
     public List<String> getRowDimensions()
     {
-        return removingNullElements( rowDimensions );
+        return rowDimensions;
     }
 
     public void setRowDimensions( List<String> rowDimensions )
     {
-        this.rowDimensions = removingNullElements( rowDimensions );
+        this.rowDimensions = rowDimensions;
     }
 
     @JsonProperty
@@ -442,12 +442,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "filterDimension", namespace = DXF_2_0 )
     public List<String> getFilterDimensions()
     {
-        return removingNullElements( filterDimensions );
+        return filterDimensions;
     }
 
     public void setFilterDimensions( List<String> filterDimensions )
     {
-        this.filterDimensions = removingNullElements( filterDimensions );
+        this.filterDimensions = filterDimensions;
     }
 
     @JsonProperty
@@ -1217,17 +1217,29 @@ public class Visualization
 
         for ( String dimension : columnDimensions )
         {
-            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( dimension != null )
+            {
+                tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         for ( String dimension : rowDimensions )
         {
-            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( dimension != null )
+            {
+                tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         for ( String filter : filterDimensions )
         {
-            filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( filter != null )
+            {
+                filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
@@ -1271,21 +1283,6 @@ public class Visualization
     // -------------------------------------------------------------------------
     // Display and supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Filtering out eventual null elements caused by occasional invalid sortOrder.
-     *
-     * @param list
-     * @return the list without null elements.
-     */
-    private List<String> removingNullElements( final List<String> list )
-    {
-        if ( isNotEmpty( list ) )
-        {
-            return list.stream().filter( x -> x != null ).collect( Collectors.toList() );
-        }
-        return list;
-    }
 
     /**
      * Returns the category combo of the first data element.

@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.analytics.util.GridRenderUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -138,17 +139,17 @@ public class DefaultOrgUnitAnalyticsService
     {
         if ( params == null )
         {
-            throw new IllegalQueryException( "Query cannot be null" );
+            throw new IllegalQueryException( ErrorCode.E7100 );
         }
 
         if ( params.getOrgUnits().isEmpty() )
         {
-            throw new IllegalQueryException( "At least one org unit must be specified" );
+            throw new IllegalQueryException( ErrorCode.E7300 );
         }
 
         if ( params.getOrgUnitGroupSets().isEmpty() )
         {
-            throw new IllegalQueryException( "At least one org unit group set must be specified" );
+            throw new IllegalQueryException( ErrorCode.E7301 );
         }
     }
 
