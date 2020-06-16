@@ -54,13 +54,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Junction.Type;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -79,15 +76,6 @@ public class DataItemServiceFacadeTest
     @Mock
     private QueryService queryService;
 
-    @Mock
-    private ProgramService programService;
-
-    @Mock
-    private CategoryService dataElementCategoryService;
-
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
-
     @Rule
     public MockitoRule mockitoRule = rule();
 
@@ -99,8 +87,7 @@ public class DataItemServiceFacadeTest
     @Before
     public void setUp()
     {
-        dataItemServiceFacade = new DataItemServiceFacade( queryService, programService, dataElementCategoryService,
-            identifiableObjectManager );
+        dataItemServiceFacade = new DataItemServiceFacade( queryService );
     }
 
     @Test

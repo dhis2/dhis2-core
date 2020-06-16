@@ -44,9 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -54,7 +52,6 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -74,21 +71,9 @@ import com.google.common.collect.ImmutableMap;
 @Component
 public class DataItemServiceFacade
 {
-    static final String PROGRAM_ID_EQ_FILTER = "program.id:eq:";
-
-    static final String DATA_ELEMENT_GROUP_ID_EQ_FILTER = "dataElementGroups.id:eq:";
-
-    public static final String TOTALS_PARAM = "totals";
-
     private final int PAGINATION_FIRST_RESULT = 0;
 
     private final QueryService queryService;
-
-    private final ProgramService programService;
-
-    private final CategoryService dataElementCategoryService;
-
-    private final IdentifiableObjectManager identifiableObjectManager;
 
     /**
      * This Map holds the allowed data types to be queried.
@@ -106,18 +91,11 @@ public class DataItemServiceFacade
             .build();
     // @formatter:on
 
-    DataItemServiceFacade( final QueryService queryService, final ProgramService programService,
-        final CategoryService dataElementCategoryService, final IdentifiableObjectManager identifiableObjectManager )
+    DataItemServiceFacade( final QueryService queryService )
     {
         checkNotNull( queryService );
-        checkNotNull( programService );
-        checkNotNull( dataElementCategoryService );
-        checkNotNull( identifiableObjectManager );
 
         this.queryService = queryService;
-        this.programService = programService;
-        this.dataElementCategoryService = dataElementCategoryService;
-        this.identifiableObjectManager = identifiableObjectManager;
     }
 
     /**
