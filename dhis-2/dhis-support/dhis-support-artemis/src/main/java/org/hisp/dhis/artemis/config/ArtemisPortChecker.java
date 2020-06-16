@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
@@ -41,7 +40,6 @@ import java.net.ServerSocket;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @Component
 public class ArtemisPortChecker
 {
@@ -70,7 +68,6 @@ public class ArtemisPortChecker
             message += "############################################################################################\n";
             message += "\n\n";
 
-            // log.error( builder.toString() );
             System.err.println( message );
 
             System.exit( -1 );
