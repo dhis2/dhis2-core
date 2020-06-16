@@ -1160,7 +1160,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
-            "true".equalsIgnoreCase( options.getOptions().get( "restrictToCaptureScope" ) ) );
+            options.isTrue( "restrictToCaptureScope" ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1179,7 +1179,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction(), "true".equalsIgnoreCase( options.getOptions().get( "restrictToCaptureScope" ) )  );
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" )  );
         return queryService.count( query );
     }
 

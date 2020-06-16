@@ -126,12 +126,13 @@ public class DefaultQueryParser implements QueryParser
             if ( user != null )
             {
                 handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
+                query.setUser( user );
             }
         }
         return query;
     }
 
-    private void handleCaptureScopeOuFiltering(Schema schema, User user, Disjunction disjunction)
+    private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -144,7 +145,6 @@ public class DefaultQueryParser implements QueryParser
         disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
         disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
-    
     
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
     {
