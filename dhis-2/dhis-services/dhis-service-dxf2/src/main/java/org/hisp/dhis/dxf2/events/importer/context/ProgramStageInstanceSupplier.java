@@ -30,18 +30,20 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -50,6 +52,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -60,11 +64,14 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
 {
     private final ObjectMapper jsonMapper;
 
+    private final ProgramSupplier programSupplier;
+
     public ProgramStageInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate,
-        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper )
+        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, ProgramSupplier programSupplier )
     {
         super( jdbcTemplate );
         this.jsonMapper = jsonMapper;
+        this.programSupplier = programSupplier;
     }
 
     @Override
@@ -82,7 +89,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
             return new HashMap<>();
         }
 
-        final String sql = "select psi.programinstanceid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted, "
+        final String sql = "select psi.programinstanceid, psi.programstageid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted, "
             + "psi.eventdatavalues from programstageinstance psi where psi.uid in (:ids)";
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", psiUid );
@@ -93,11 +100,12 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
             while ( rs.next() )
             {
                 ProgramStageInstance psi = new ProgramStageInstance();
+
                 psi.setId( rs.getLong( "programstageinstanceid" ) );
                 psi.setUid( rs.getString( "uid" ) );
                 psi.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
                 psi.setDeleted( rs.getBoolean( "deleted" ) );
-
+                psi.setProgramStage( getProgramStage( importOptions, rs.getLong( "programstageid" ) ) );
                 try
                 {
                     psi.setEventDataValues( EventUtils.jsonToEventDataValues( jsonMapper, rs.getObject(
@@ -114,5 +122,23 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
             }
             return results;
         } );
+    }
+    
+    private ProgramStage getProgramStage( ImportOptions importOptions, Long programStageId )
+    {
+        Collection<Program> programs = this.programSupplier.get( importOptions, new ArrayList<>() ).values();
+        for ( Program program : programs )
+        {
+            Set<ProgramStage> programStages = program.getProgramStages();
+            for ( ProgramStage programStage : programStages )
+            {
+                if ( programStageId.equals( programStage.getId() ) )
+                {
+                    programStage.setProgram( program );
+                    return programStage;
+                }
+            }
+        }
+        return null;
     }
 }

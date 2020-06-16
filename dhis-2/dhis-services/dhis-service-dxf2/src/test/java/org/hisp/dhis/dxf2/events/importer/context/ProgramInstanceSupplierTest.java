@@ -67,7 +67,7 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
+        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), new HashMap<>(), null ) );
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
             .thenReturn( programMap );
 
-        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, Collections.singletonList( event ) );
+        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(), Collections.singletonList( event ) );
 
         ProgramInstance programInstance = map.get( event.getUid() );
         assertThat( programInstance, is( notNullValue() ) );

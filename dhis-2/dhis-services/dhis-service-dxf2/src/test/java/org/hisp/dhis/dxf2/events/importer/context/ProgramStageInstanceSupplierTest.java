@@ -47,6 +47,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.mockito.Mock;
 
 /**
  * @author Luciano Fiandesio
@@ -55,11 +56,14 @@ public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<Progr
 {
     private ProgramStageInstanceSupplier subject;
 
+    @Mock
+    private ProgramSupplier programSupplier;
+
     @Before
     public void setUp()
     {
         JsonMapper mapper = new JsonMapper();
-        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper);
+        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper, programSupplier);
     }
 
     @Test
