@@ -58,7 +58,7 @@ public class ArtemisPortChecker
         final int artemisPort = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) );
         final String artemisHost = dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST );
 
-        if ( isEmbedded() && isPortAvailable( artemisHost, artemisPort ) )
+        if ( isEmbedded() && !isPortAvailable( artemisHost, artemisPort ) )
         {
             String message = "\n\n";
             message += "############################################################################################\n";
