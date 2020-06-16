@@ -95,6 +95,7 @@ public class MockCurrentUserService
     @Override
     public Collection<? extends GrantedAuthority> getCurrentUserAuthorities()
     {
+
         throw new RuntimeException( "Not implemented yet..." );
     }
 
