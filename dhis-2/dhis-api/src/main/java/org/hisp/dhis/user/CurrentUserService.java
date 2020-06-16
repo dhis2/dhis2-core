@@ -29,7 +29,9 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -50,6 +52,12 @@ public interface CurrentUserService
      */
     String getCurrentUsername();
 
+    /**
+     * Returns the authorities of the current user
+     *
+     * @return Set of user's authorities
+     */
+    public Collection<? extends GrantedAuthority> getCurrentUserAuthorities();
     /**
      * @return the currently logged in user. If no user is logged in or the auto
      *          access admin is active, null is returned.
@@ -75,20 +83,9 @@ public interface CurrentUserService
     boolean currentUserIsSuper();
 
     /**
-     * Clears the current logged in state, which means that the currently logged
-     * in user is logged out.
-     */
-    void clearCurrentUser();
-
-    /**
      * Indicates whether the current user has been granted the given authority.
      */
     boolean currentUserIsAuthorized( String auth );
-
-    /**
-     * Expire all the sessions associated with current user.
-     */
-    void expireUserSessions();
 
     /**
      * Return UserCredentials of current User

@@ -28,15 +28,16 @@ package org.hisp.dhis.mock;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -92,9 +93,10 @@ public class MockCurrentUserService
     }
 
     @Override
-    public Set<String> getCurrentUserAuthorities()
+    public Collection<? extends GrantedAuthority> getCurrentUserAuthorities()
     {
-        return Sets.newHashSet( currentUser.getUserCredentials().getAllAuthorities() );
+
+        throw new RuntimeException( "Not implemented yet..." );
     }
 
     @Override
@@ -123,12 +125,6 @@ public class MockCurrentUserService
     }
 
     @Override
-    public void clearCurrentUser()
-    {
-        currentUser = null;
-    }
-
-    @Override
     public boolean currentUserIsAuthorized( String auth )
     {
         return true;
@@ -138,11 +134,5 @@ public class MockCurrentUserService
     public UserCredentials getCurrentUserCredentials()
     {
         return currentUser.getUserCredentials();
-    }
-
-    @Override
-    public void expireUserSessions()
-    {
-        currentUser = null;
     }
 }
