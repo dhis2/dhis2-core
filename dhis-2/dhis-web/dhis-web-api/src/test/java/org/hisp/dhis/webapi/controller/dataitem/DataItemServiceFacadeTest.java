@@ -34,14 +34,10 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.query.Query.from;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.PROGRAM_ID;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -49,8 +45,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
@@ -60,11 +54,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Junction.Type;
 import org.hisp.dhis.query.Pagination;
@@ -87,6 +82,12 @@ public class DataItemServiceFacadeTest
     @Mock
     private ProgramService programService;
 
+    @Mock
+    private CategoryService dataElementCategoryService;
+
+    @Mock
+    private IdentifiableObjectManager identifiableObjectManager;
+
     @Rule
     public MockitoRule mockitoRule = rule();
 
@@ -98,7 +99,8 @@ public class DataItemServiceFacadeTest
     @Before
     public void setUp()
     {
-        dataItemServiceFacade = new DataItemServiceFacade( queryService, programService );
+        dataItemServiceFacade = new DataItemServiceFacade( queryService, programService, dataElementCategoryService,
+            identifiableObjectManager );
     }
 
     @Test
@@ -196,50 +198,12 @@ public class DataItemServiceFacadeTest
         assertThat( actualTargetEntities, containsInAnyOrder( DATA_TYPE_ENTITY_MAP.values().toArray() ) );
     }
 
-    @Test
-    public void testAddQueryFilters()
-    {
-        // Given
-        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
-        final Query theQuery = from( new Schema( Indicator.class, "indicator", "indicators" ) );
-        final ProgramDataElementDimensionItem dimensionItemFilter = new ProgramDataElementDimensionItem();
-        final List<ProgramDataElementDimensionItem> anyProgramDataElements = asList( dimensionItemFilter );
-
-        // When
-        when( programService.getGeneratedProgramDataElements( anyWebOptions.get( PROGRAM_ID ) ) )
-            .thenReturn( anyProgramDataElements );
-        dataItemServiceFacade.addQueryFilters( anyWebOptions, theQuery );
-
-        // Then
-        assertThat( theQuery.getObjects(), is( not( empty() ) ) );
-        assertThat( theQuery.getObjects().size(), is( 1 ) );
-        assertThat( theQuery.getObjects().get( 0 ), is( equalTo( dimensionItemFilter ) ) );
-    }
-
-    @Test
-    public void testAddQueryFiltersWhenThereAreNoFilters()
-    {
-        // Given
-        final WebOptions anyWebOptionsNoFilter = mockWebOptionsNoPagingNoFilter();
-        final Query theQuery = from( new Schema( Indicator.class, "indicator", "indicators" ) );
-        final ProgramDataElementDimensionItem dimensionItemFilter = new ProgramDataElementDimensionItem();
-        final List<ProgramDataElementDimensionItem> anyProgramDataElements = asList( dimensionItemFilter );
-
-        // When
-        dataItemServiceFacade.addQueryFilters( anyWebOptionsNoFilter, theQuery );
-
-        // Then
-        assertThat( theQuery.getObjects(), is( nullValue() ) );
-        verify( programService, never() ).getGeneratedProgramDataElements( any( String.class ) );
-    }
-
     private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
     {
         final Map<String, String> options = new HashMap<>( 0 );
         options.put( PAGE_SIZE, valueOf( pageSize ) );
         options.put( PAGE, valueOf( pageNumber ) );
         options.put( PAGING, "true" );
-        options.put( PROGRAM_ID, "abcwer2s" );
 
         return new WebOptions( options );
     }

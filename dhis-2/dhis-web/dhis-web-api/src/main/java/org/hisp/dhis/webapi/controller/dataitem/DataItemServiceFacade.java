@@ -44,7 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -72,13 +74,21 @@ import com.google.common.collect.ImmutableMap;
 @Component
 public class DataItemServiceFacade
 {
-    static final String PROGRAM_ID = "program.id";
+    static final String PROGRAM_ID_EQ_FILTER = "program.id:eq:";
+
+    static final String DATA_ELEMENT_GROUP_ID_EQ_FILTER = "dataElementGroups.id:eq:";
+
+    public static final String TOTALS_PARAM = "totals";
 
     private final int PAGINATION_FIRST_RESULT = 0;
 
     private final QueryService queryService;
 
     private final ProgramService programService;
+
+    private final CategoryService dataElementCategoryService;
+
+    private final IdentifiableObjectManager identifiableObjectManager;
 
     /**
      * This Map holds the allowed data types to be queried.
@@ -96,13 +106,18 @@ public class DataItemServiceFacade
             .build();
     // @formatter:on
 
-    DataItemServiceFacade( final QueryService queryService, final ProgramService programService )
+    DataItemServiceFacade( final QueryService queryService, final ProgramService programService,
+        final CategoryService dataElementCategoryService, final IdentifiableObjectManager identifiableObjectManager )
     {
         checkNotNull( queryService );
         checkNotNull( programService );
+        checkNotNull( dataElementCategoryService );
+        checkNotNull( identifiableObjectManager );
 
         this.queryService = queryService;
         this.programService = programService;
+        this.dataElementCategoryService = dataElementCategoryService;
+        this.identifiableObjectManager = identifiableObjectManager;
     }
 
     /**
@@ -187,23 +202,6 @@ public class DataItemServiceFacade
     }
 
     /**
-     * Add query filters, if any, to the given query.
-     * 
-     * @param options the WebOptions
-     * @param query the query which the filters should be added to
-     */
-    void addQueryFilters( final WebOptions options, final Query query )
-    {
-        if ( options.contains( PROGRAM_ID ) )
-        {
-            final String programUid = options.get( PROGRAM_ID );
-            final List<ProgramDataElementDimensionItem> programDataElements = programService
-                .getGeneratedProgramDataElements( programUid );
-            query.setObjects( programDataElements );
-        }
-    }
-
-    /**
      * Execute the given query.
      *
      * @param query the query to be executed
@@ -228,8 +226,7 @@ public class DataItemServiceFacade
      *         query creation
      */
     private Query buildQueryForEntity( final Class<? extends BaseDimensionalItemObject> entity,
-        final List<String> filters,
-        final WebOptions options )
+        final List<String> filters, final WebOptions options )
     {
         final int maxLimit = options.getPage() * options.getPageSize();
         final Pagination pagination = options.hasPaging()
@@ -239,8 +236,6 @@ public class DataItemServiceFacade
         final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(),
             pagination, options.getRootJunction() );
         query.setDefaultOrder();
-
-        addQueryFilters( options, query );
 
         return query;
     }

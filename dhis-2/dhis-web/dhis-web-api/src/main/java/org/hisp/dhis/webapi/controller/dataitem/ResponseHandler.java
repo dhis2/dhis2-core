@@ -157,8 +157,6 @@ class ResponseHandler
         final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(), new Pagination(),
             options.getRootJunction() );
 
-        dataItemServiceFacade.addQueryFilters( options, query );
-
         return queryService.count( query );
     }
 
