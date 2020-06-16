@@ -62,27 +62,31 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
     protected void postProcessResponseEntities( List<CategoryOption> entityList, WebOptions options, Map<String, String> parameters )
     {
 
-        if ( options.isTrue( "restrictToCaptureScope" ) )
+        if ( !options.isTrue( "restrictToCaptureScope" ) )
         {
-            User user = currentUserService.getCurrentUser();
+            return;
+        }
 
-            if ( user != null )
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            return;
+        }
+        
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        params.setParents( user.getOrganisationUnits() );
+        params.setFetchChildren( true );
+
+        Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
+            Collectors.toSet() );
+
+        for ( CategoryOption catOpt : entityList )
+        {
+            if ( catOpt.getOrganisationUnits() != null && catOpt.getOrganisationUnits().size() > 0 )
             {
-                OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-                params.setParents( user.getOrganisationUnits() );
-                params.setFetchChildren( true );
-
-                Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
-                    Collectors.toSet() );
-
-                for ( CategoryOption catOpt : entityList )
-                {
-                    if ( catOpt.getOrganisationUnits() != null && catOpt.getOrganisationUnits().size() > 0 )
-                    {
-                        catOpt.setOrganisationUnits(
-                            catOpt.getOrganisationUnits().stream().filter( ou -> orgUnits.contains( ou.getUid() ) ).collect( Collectors.toSet() ) );
-                    }
-                }
+                catOpt.setOrganisationUnits(
+                    catOpt.getOrganisationUnits().stream().filter( ou -> orgUnits.contains( ou.getUid() ) ).collect( Collectors.toSet() ) );
             }
         }
     }
