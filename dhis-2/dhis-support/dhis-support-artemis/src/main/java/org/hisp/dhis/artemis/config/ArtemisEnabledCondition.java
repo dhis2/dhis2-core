@@ -42,7 +42,7 @@ public class ArtemisEnabledCondition
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        return !isTestRun( context ) || isAuditTest( context );
+        return !isTestRun( context );
     }
 
     @Override
