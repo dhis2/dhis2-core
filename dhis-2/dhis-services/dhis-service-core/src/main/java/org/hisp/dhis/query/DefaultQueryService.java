@@ -151,10 +151,6 @@ public class DefaultQueryService
             objects = inMemoryQueryEngine.query( npQuery );
             return objects.size();
         }
-        else if ( isNotEmpty( npQuery.getObjects() ) )
-        {
-            return npQuery.getObjects().size();
-        }
         else
         {
             return criteriaQueryEngine.count( pQuery );
