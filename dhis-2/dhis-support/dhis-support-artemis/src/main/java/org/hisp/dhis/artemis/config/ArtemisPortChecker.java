@@ -1,15 +1,5 @@
 package org.hisp.dhis.artemis.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.net.ServerSocketFactory;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -37,6 +27,16 @@ import java.net.ServerSocket;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.net.ServerSocketFactory;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
