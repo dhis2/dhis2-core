@@ -28,83 +28,55 @@ package org.hisp.dhis.dto;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.annotations.Expose;
+import java.util.List;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class OrgUnit
+public class Me
 {
-    private String id;
+    private List<UserGroup> userGroups;
 
-    private String name;
+    private List<OrgUnit> teiSearchOrganisationUnits;
 
-    private String shortName;
+    private List<OrgUnit> organisationUnits;
 
-    private String openingDate;
+    private List<String> authorities;
 
-    @Expose( serialize = false, deserialize = false )
-    private String parent;
-
-    private Integer level;
-
-    public String getId()
+    public List<UserGroup> getUserGroups()
     {
-        return id;
+        return userGroups;
     }
 
-    public void setId( String id )
+    public void setUserGroups( List<UserGroup> userGroups )
     {
-        this.id = id;
+        this.userGroups = userGroups;
     }
 
-    public String getName()
+    public List<OrgUnit> getTeiSearchOrganisationUnits()
     {
-        return name;
+        return teiSearchOrganisationUnits;
     }
 
-    public void setName( String name )
+    public void setTeiSearchOrganisationUnits( List<OrgUnit> teiSearchOrganisationUnits )
     {
-        this.name = name;
+        this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
     }
 
-    public String getShortName()
+    public List<OrgUnit> getOrganisationUnits()
     {
-        return shortName;
+        return organisationUnits;
     }
 
-    public void setShortName( String shortName )
+    public void setOrganisationUnits( List<OrgUnit> organisationUnits )
     {
-        this.shortName = shortName;
+        this.organisationUnits = organisationUnits;
     }
 
-    public String getOpeningDate()
+    public List<String> getAuthorities()
     {
-        return openingDate;
+        return authorities;
     }
 
-    public void setOpeningDate( String openingDate )
+    public void setAuthorities( List<String> authorities )
     {
-        this.openingDate = openingDate;
-    }
-
-    public String getParent()
-    {
-        return parent;
-    }
-
-    public void setParent( String parent )
-    {
-        this.parent = parent;
-    }
-
-    public Integer getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( Integer level )
-    {
-        this.level = level;
+        this.authorities = authorities;
     }
 }
