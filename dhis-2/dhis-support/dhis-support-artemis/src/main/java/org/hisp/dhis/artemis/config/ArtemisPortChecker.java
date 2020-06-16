@@ -1,5 +1,6 @@
 package org.hisp.dhis.artemis.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,7 @@ import java.net.ServerSocket;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Component
 public class ArtemisPortChecker
 {
@@ -56,17 +58,20 @@ public class ArtemisPortChecker
         final int artemisPort = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) );
         final String artemisHost = dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST );
 
-        if ( isEmbedded() && !isPortAvailable( artemisHost, artemisPort ) )
+        if ( isEmbedded() && isPortAvailable( artemisHost, artemisPort ) )
         {
-            System.err.println( "\n\n" );
-            System.err.println( "############################################################################################" );
-            System.err.println( "# " );
-            System.err.println( String.format( "# Current selected Apache Artemis port '%s' on host '%s' is already in use.", artemisPort, artemisHost ) );
-            System.err.println( "# " );
-            System.err.println( "# Please change this in your 'dhis.conf' by using the 'artemis.port = X' key." );
-            System.err.println( "# " );
-            System.err.println( "############################################################################################" );
-            System.err.println( "\n\n" );
+            String message = "\n\n";
+            message += "############################################################################################\n";
+            message += "#\n";
+            message += String.format( "# Current selected Apache Artemis port '%s' on host '%s' is already in use.\n", artemisPort, artemisHost );
+            message += "#\n";
+            message += "# Please change this in your 'dhis.conf' by using the 'artemis.port = X' key.\n";
+            message += "#\n";
+            message += "############################################################################################\n";
+            message += "\n\n";
+
+            // log.error( builder.toString() );
+            System.err.println( message );
 
             System.exit( -1 );
         }
