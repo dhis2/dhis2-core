@@ -154,12 +154,12 @@ public class DataExportParams
 
     public DataSet getFirstDataSet()
     {
-        return dataSets != null && !dataSets.isEmpty() ? dataSets.iterator().next() : null;
+        return hasDataSets() ? dataSets.iterator().next() : null;
     }
 
     public Period getFirstPeriod()
     {
-        return periods != null && !periods.isEmpty() ? periods.iterator().next() : null;
+        return hasPeriods() ? periods.iterator().next() : null;
     }
 
     public boolean hasPeriods()
