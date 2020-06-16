@@ -77,10 +77,9 @@ public class ArtemisPortChecker
         }
     }
 
-    // TODO how do we check for this?
     private boolean isEmbedded()
     {
-        return true;
+        return ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) == ArtemisMode.EMBEDDED;
     }
 
     private boolean isPortAvailable( String host, int port )
