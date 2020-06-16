@@ -1,4 +1,4 @@
-package org.hisp.dhis.dto;
+package org.hisp.dhis.helpers.models;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,95 +28,97 @@ package org.hisp.dhis.dto;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.annotations.Expose;
+import org.apache.commons.collections.ListUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Stian Sandvold
  */
-public class OrgUnit
+public class User
 {
-    private String id;
+    private String username;
 
-    private String name;
+    private String uid;
 
-    private String shortName;
+    private String password;
 
-    private String openingDate;
+    private Map<String, List<String>> dataRead;
 
-    private String code;
+    private List<String> groups = new ArrayList<>();
 
-    @Expose( serialize = false, deserialize = false )
-    private String parent;
+    private List<String> searchScope = new ArrayList<>();
 
-    private Integer level;
+    private List<String> captureScope = new ArrayList<>();
 
-    public String getId()
+    private boolean allAuthority;
+
+    public User( String username, String uid, String password )
     {
-        return id;
+        this.username = username;
+        this.uid = uid;
+        this.password = password;
     }
 
-    public void setId( String id )
+    public String getUsername()
     {
-        this.id = id;
+        return username;
     }
 
-    public String getName()
+    public String getUid()
     {
-        return name;
+        return uid;
     }
 
-    public void setName( String name )
+    public String getPassword()
     {
-        this.name = name;
+        return password;
     }
 
-    public String getShortName()
+    public Map<String, List<String>> getDataRead()
     {
-        return shortName;
+        return dataRead;
     }
 
-    public void setShortName( String shortName )
+    public void setDataRead( Map<String, List<String>> dataRead )
     {
-        this.shortName = shortName;
+        this.dataRead = dataRead;
     }
 
-    public String getOpeningDate()
+    public List<String> getGroups()
     {
-        return openingDate;
+        return groups;
     }
 
-    public void setOpeningDate( String openingDate )
+    public void setGroups( List<String> groups )
     {
-        this.openingDate = openingDate;
+        this.groups = groups;
     }
 
-    public String getParent()
+    public void setCaptureScope( List<String> captureScope )
     {
-        return parent;
+        this.captureScope = captureScope;
     }
 
-    public void setParent( String parent )
+    public void setSearchScope( List<String> searchScope )
     {
-        this.parent = parent;
+        this.searchScope = searchScope;
     }
 
-    public Integer getLevel()
+    public List<String> getScopes()
     {
-        return level;
+        return ListUtils.union( searchScope, captureScope );
     }
 
-    public void setLevel( Integer level )
+    public void setAllAuthority( boolean allAuthority )
     {
-        this.level = level;
+        this.allAuthority = allAuthority;
     }
 
-    public String getCode()
+    public boolean hasAllAuthority()
     {
-        return code;
-    }
-
-    public void setCode( String code )
-    {
-        this.code = code;
+        return allAuthority;
     }
 }

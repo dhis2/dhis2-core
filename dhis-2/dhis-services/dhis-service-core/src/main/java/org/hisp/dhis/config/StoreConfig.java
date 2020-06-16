@@ -30,7 +30,6 @@ package org.hisp.dhis.config;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.constant.Constant;
@@ -237,13 +236,6 @@ public class StoreConfig
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, EventChart.class, currentUserService, aclService, true );
-    }
-
-    @Bean( "org.hisp.dhis.color.ColorSetStore" )
-    public HibernateIdentifiableObjectStore<ColorSet> colorSetStore()
-    {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, ColorSet.class, currentUserService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
