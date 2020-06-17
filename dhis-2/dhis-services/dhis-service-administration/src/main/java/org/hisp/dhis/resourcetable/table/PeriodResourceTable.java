@@ -101,6 +101,7 @@ public class PeriodResourceTable
             if ( period != null && period.isValid() )
             {
                 final String isoDate = period.getIsoDate();
+
                 final int year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
 
                 if ( !uniqueIsoDates.add( isoDate ) )
