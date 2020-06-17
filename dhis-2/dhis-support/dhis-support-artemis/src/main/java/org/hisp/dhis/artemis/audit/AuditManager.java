@@ -29,9 +29,11 @@ package org.hisp.dhis.artemis.audit;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
+import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,6 +49,7 @@ public class AuditManager
     private final AuditProducerConfiguration config;
     private final AuditScheduler auditScheduler;
     private final AuditMatrix auditMatrix;
+    private final UsernameSupplier usernameSupplier;
 
     private final AuditObjectFactory objectFactory;
 
@@ -55,18 +58,21 @@ public class AuditManager
         AuditScheduler auditScheduler,
         AuditProducerConfiguration config,
         AuditMatrix auditMatrix,
-        AuditObjectFactory auditObjectFactory )
+        AuditObjectFactory auditObjectFactory,
+        UsernameSupplier usernameSupplier )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
         checkNotNull( auditMatrix );
         checkNotNull( auditObjectFactory );
+        checkNotNull( usernameSupplier );
 
         this.auditProducerSupplier = auditProducerSupplier;
         this.config = config;
         this.auditScheduler = auditScheduler;
         this.auditMatrix = auditMatrix;
         this.objectFactory = auditObjectFactory;
+        this.usernameSupplier = usernameSupplier;
     }
 
     public void send( Audit audit )
@@ -75,6 +81,11 @@ public class AuditManager
         {
             log.debug( "Audit message ignored:\n" + audit.toLog() );
             return;
+        }
+
+        if ( StringUtils.isEmpty( audit.getCreatedBy() ) )
+        {
+            audit.setCreatedBy( usernameSupplier.get() );
         }
 
         if ( audit.getData() == null )
