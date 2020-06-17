@@ -1,6 +1,4 @@
-package org.hisp.dhis.query;
-
-import org.hisp.dhis.query.Junction.Type;
+package org.hisp.dhis.dto;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,37 +28,55 @@ import org.hisp.dhis.query.Junction.Type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-
 import java.util.List;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface QueryParser
+public class Me
 {
-    /**
-     * Parses filter expressions, need 2 or 3 components depending on operator.
-     * i.e. for null you can use "name:null" which checks to see if property name is null
-     * i.e. for eq you can use "name:eq:ANC" which check to see if property name is equal to ANC
-     * <p>
-     * The general syntax is "propertyName:operatorName:<Value to check against if needed>"
-     *
-     * @param klass        Class type to query for
-     * @param filters      List of filters to add to Query
-     * @param rootJunction Root junction to use (defaults to AND)
-     * @return Query instance based on Schema of klass and filters list
-     * @throws QueryParserException
-     */
-    Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction ) throws QueryParserException;
+    private List<UserGroup> userGroups;
 
-    Query parse( Class<?> klass, List<String> filters ) throws QueryParserException;
+    private List<OrgUnit> teiSearchOrganisationUnits;
 
-    Property getProperty( Schema schema, String path ) throws QueryParserException;
+    private List<OrgUnit> organisationUnits;
 
-    Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException;
+    private List<String> authorities;
 
-    Query parse( Class<?> klass, List<String> filters, Type rootJunction, boolean restrictToCaptureScope )
-        throws QueryParserException;
+    public List<UserGroup> getUserGroups()
+    {
+        return userGroups;
+    }
+
+    public void setUserGroups( List<UserGroup> userGroups )
+    {
+        this.userGroups = userGroups;
+    }
+
+    public List<OrgUnit> getTeiSearchOrganisationUnits()
+    {
+        return teiSearchOrganisationUnits;
+    }
+
+    public void setTeiSearchOrganisationUnits( List<OrgUnit> teiSearchOrganisationUnits )
+    {
+        this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
+    }
+
+    public List<OrgUnit> getOrganisationUnits()
+    {
+        return organisationUnits;
+    }
+
+    public void setOrganisationUnits( List<OrgUnit> organisationUnits )
+    {
+        this.organisationUnits = organisationUnits;
+    }
+
+    public List<String> getAuthorities()
+    {
+        return authorities;
+    }
+
+    public void setAuthorities( List<String> authorities )
+    {
+        this.authorities = authorities;
+    }
 }

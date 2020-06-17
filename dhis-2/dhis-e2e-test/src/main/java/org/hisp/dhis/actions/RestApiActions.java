@@ -271,6 +271,7 @@ public class RestApiActions
         {
             return;
         }
+
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
