@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.query.Junction.Type;
 
 import java.util.List;
 
@@ -80,4 +81,7 @@ public interface QueryService
     Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination) throws QueryParserException;
 
     Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException;
+
+    Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Type rootJunction, boolean restrictToCaptureScope )
+        throws QueryParserException;
 }
