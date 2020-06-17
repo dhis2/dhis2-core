@@ -76,6 +76,8 @@ public class UserQueryParams
 
     private boolean includeOrgUnitChildren;
     
+    private boolean prefetchUserGroups;
+    
     private Boolean disabled;
 
     // -------------------------------------------------------------------------
@@ -115,6 +117,7 @@ public class UserQueryParams
             .add( "first", first )
             .add( "max", max )
             .add( "includeOrgUnitChildren", includeOrgUnitChildren )
+            .add( "prefetchUserGroups", prefetchUserGroups )
             .add( "disabled", disabled ).toString();
     }
 
@@ -321,6 +324,17 @@ public class UserQueryParams
     public UserQueryParams setIncludeOrgUnitChildren( boolean includeOrgUnitChildren )
     {
         this.includeOrgUnitChildren = includeOrgUnitChildren;
+        return this;
+    }
+
+    public boolean isPrefetchUserGroups()
+    {
+        return prefetchUserGroups;
+    }
+
+    public UserQueryParams setPrefetchUserGroups( boolean prefetchUserGroups )
+    {
+        this.prefetchUserGroups = prefetchUserGroups;
         return this;
     }
 

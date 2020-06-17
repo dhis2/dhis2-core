@@ -577,7 +577,7 @@
       <dependency>
         <groupId>org.hisp.dhis.parser</groupId>
         <artifactId>dhis-antlr-expression-parser</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0.6-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
@@ -618,7 +618,7 @@
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
-        <version>2.0.1-SNAPSHOT</version>
+        <version>2.0.2-SNAPSHOT</version>
       </dependency>
 
       <!-- Spring -->
@@ -1532,7 +1532,7 @@
         <artifactId>jts-io</artifactId>
         <version>1.14.0</version>
       </dependency>
-      
+
       <!-- Test -->
       <dependency>
         <groupId>org.hamcrest</groupId>

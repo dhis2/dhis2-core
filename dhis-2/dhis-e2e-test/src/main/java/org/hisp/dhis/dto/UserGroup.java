@@ -1,4 +1,4 @@
-package org.hisp.dhis.color;
+package org.hisp.dhis.dto;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,44 +28,17 @@ package org.hisp.dhis.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * @author Lars Helge Overland
- */
-@Service( "org.hisp.dhis.color.ColorService" )
-public class DefaultColorService
-    implements ColorService
+public class UserGroup
 {
-    private final IdentifiableObjectStore<ColorSet> colorSetStore;
+    private String id;
 
-    public DefaultColorService(
-        @Qualifier( "org.hisp.dhis.color.ColorSetStore" ) IdentifiableObjectStore<ColorSet> colorSetStore )
+    public String getId()
     {
-        checkNotNull( colorSetStore );
-
-        this.colorSetStore = colorSetStore;
+        return id;
     }
 
-    // -------------------------------------------------------------------------
-    // ColorService implementation
-    // -------------------------------------------------------------------------
-    @Override
-    @Transactional
-    public long addColorSet( ColorSet colorSet )
+    public void setId( String id )
     {
-        colorSetStore.save( colorSet );
-        return colorSet.getId();
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public ColorSet getColorSet( String uid )
-    {
-        return colorSetStore.getByUid( uid );
+        this.id = id;
     }
 }

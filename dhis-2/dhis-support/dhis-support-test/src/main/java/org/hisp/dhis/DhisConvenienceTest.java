@@ -66,8 +66,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -1270,22 +1268,6 @@ public abstract class DhisConvenienceTest
         }
 
         return legendSet;
-    }
-
-    public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
-    {
-        ColorSet colorSet = new ColorSet();
-        colorSet.setAutoFields();
-        colorSet.setName( "ColorSet" + uniqueCharacter );
-
-        for ( String colorCode : hexColorCodes )
-        {
-            Color color = new Color( colorCode );
-            color.setAutoFields();
-            colorSet.getColors().add( color );
-        }
-
-        return colorSet;
     }
 
     public static Visualization createVisualization( final String name )
