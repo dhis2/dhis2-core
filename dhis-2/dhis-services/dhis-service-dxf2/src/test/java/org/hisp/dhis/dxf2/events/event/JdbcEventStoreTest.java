@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -70,6 +71,9 @@ public class JdbcEventStoreTest
     @Mock
     protected SqlRowSet rowSet;
 
+    @Mock
+    private Environment env;
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -82,7 +86,7 @@ public class JdbcEventStoreTest
 
         ObjectMapper objectMapper = new ObjectMapper();
         subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
-            manager );
+            manager, env );
     }
 
     @Test

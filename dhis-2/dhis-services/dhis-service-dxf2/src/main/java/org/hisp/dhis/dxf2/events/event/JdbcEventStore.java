@@ -85,6 +85,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -111,6 +112,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.postgis.PGgeometry;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -172,15 +174,18 @@ public class JdbcEventStore implements EventStore
 
     private final ObjectMapper jsonMapper;
 
+    private final Environment env;
+
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
-        IdentifiableObjectManager identifiableObjectManager )
+        IdentifiableObjectManager identifiableObjectManager, Environment env )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( identifiableObjectManager );
         checkNotNull( jsonMapper );
+        checkNotNull( env );
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
@@ -188,6 +193,8 @@ public class JdbcEventStore implements EventStore
         this.manager = identifiableObjectManager;
         this.jsonMapper = jsonMapper;
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate.getDataSource() );
+        this.env = env;
+        
     }
 
     // -------------------------------------------------------------------------
@@ -1556,7 +1563,7 @@ public class JdbcEventStore implements EventStore
                 .map( s -> "'" + s + "'" )
                 .collect( Collectors.joining( ", " ) );
 
-            jdbcTemplate.execute( UPDATE_TEI_SQL, (PreparedStatementCallback<Boolean>) psc -> {
+            jdbcTemplate.execute( getUpdateTeiSql(), (PreparedStatementCallback<Boolean>) psc -> {
                 psc.setString( 1, result );
                 psc.setTimestamp( 2, toTimestamp( new Date() ) );
                 if ( user != null )
@@ -1576,6 +1583,18 @@ public class JdbcEventStore implements EventStore
             log.error( "An error occurred updating one or more Tracked Entity Instances", e );
             throw e;
         }
+    }
+
+    /**
+     * Awful hack required for the H2-based tests to pass. H2 does not support the
+     * "SKIP LOCKED" clause, therefore we need to remove it from the SQL statement
+     * when executing the H2 tests.
+     *
+     * @return a SQL String
+     */
+    private String getUpdateTeiSql()
+    {
+        return String.format( UPDATE_TEI_SQL, SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED" );
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
