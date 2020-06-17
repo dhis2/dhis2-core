@@ -3,7 +3,7 @@
 
 alter table visualization drop column if exists colorsetid;
 
--- Removes colorset tables
+-- Remove colorset tables
 
 drop table colorset_colors;
 drop table color;
