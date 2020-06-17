@@ -236,7 +236,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
-
+        
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
         Pager pager = metadata.getPager();
@@ -1078,7 +1078,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
     }
-
+    
     /**
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
@@ -1159,7 +1159,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws QueryParserException
     {
         List<T> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
+            options.isTrue( "restrictToCaptureScope" ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1178,7 +1179,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction() );
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" )  );
         return queryService.count( query );
     }
 
@@ -1438,6 +1439,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name();
+            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
 }
