@@ -72,9 +72,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -175,6 +179,11 @@ public class JdbcEventStore implements EventStore
     private final ObjectMapper jsonMapper;
 
     private final Environment env;
+
+    private final Cache<String, String> teiUpdateCache = new Cache2kBuilder<String, String>() {}
+            .name( "teiUpdateCache" + RandomStringUtils.randomAlphabetic(5) )
+            .expireAfterWrite( 10, TimeUnit.SECONDS )
+            .build();
 
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
@@ -1559,24 +1568,39 @@ public class JdbcEventStore implements EventStore
         }
         try
         {
-            final String result = teiUids.stream()
-                .map( s -> "'" + s + "'" )
-                .collect( Collectors.joining( ", " ) );
+            List<String> updatableTeiUid = new ArrayList<>();
+            for ( String uid : teiUids )
+            {
+                if ( !teiUpdateCache.containsKey( uid ) )
+                {
 
-            jdbcTemplate.execute( getUpdateTeiSql(), (PreparedStatementCallback<Boolean>) psc -> {
-                psc.setString( 1, result );
-                psc.setTimestamp( 2, toTimestamp( new Date() ) );
-                if ( user != null )
-                {
-                    psc.setLong( 3, user.getId() );
+                    updatableTeiUid.add( uid );
+                    teiUpdateCache.put( uid, uid );
                 }
-                else
-                {
-                    psc.setNull( 3, Types.INTEGER );
-                }
-                psc.setString( 4, result );
-                return psc.execute();
-            } );
+            }
+            
+
+            if ( !updatableTeiUid.isEmpty() )
+            {
+                final String result = updatableTeiUid.stream()
+                    .map( s -> "'" + s + "'" )
+                    .collect( Collectors.joining( ", " ) );
+
+                jdbcTemplate.execute( getUpdateTeiSql(), (PreparedStatementCallback<Boolean>) psc -> {
+                    psc.setString( 1, result );
+                    psc.setTimestamp( 2, toTimestamp( new Date() ) );
+                    if ( user != null )
+                    {
+                        psc.setLong( 3, user.getId() );
+                    }
+                    else
+                    {
+                        psc.setNull( 3, Types.INTEGER );
+                    }
+                    psc.setString( 4, result );
+                    return psc.execute();
+                } );
+            }
         }
         catch ( DataAccessException e )
         {
