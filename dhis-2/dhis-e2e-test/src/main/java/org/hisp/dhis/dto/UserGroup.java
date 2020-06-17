@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile.model;
+package org.hisp.dhis.dto;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,87 +28,17 @@ package org.hisp.dhis.api.mobile.model;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-public class MessageConversation
-    implements DataStreamSerializable
+public class UserGroup
 {
-    private String clientVersion;
+    private String id;
 
-    private long id;
-
-    private String subject;
-
-    public String getClientVersion()
-    {
-        return clientVersion;
-    }
-
-    public void setClientVersion( String clientVersion )
-    {
-        this.clientVersion = clientVersion;
-    }
-
-    public long getId()
+    public String getId()
     {
         return id;
     }
 
-    public void setId( long id )
+    public void setId( String id )
     {
         this.id = id;
     }
-
-    public String getSubject()
-    {
-        return subject;
-    }
-
-    public void setSubject( String subject )
-    {
-        this.subject = subject;
-    }
-
-    @Override
-    public void serialize( DataOutputStream dout )
-        throws IOException
-    {
-        dout.writeLong( id );
-        dout.writeUTF( subject );
-
-    }
-
-    @Override
-    public void deSerialize( DataInputStream din )
-        throws IOException
-    {
-
-        this.id = din.readLong();
-        this.subject = din.readUTF();
-
-    }
-
-    @Override
-    public void serializeVersion2_8( DataOutputStream dataOutputStream )
-        throws IOException
-    {
-
-    }
-
-    @Override
-    public void serializeVersion2_9( DataOutputStream dataOutputStream )
-        throws IOException
-    {
-
-    }
-
-    @Override
-    public void serializeVersion2_10( DataOutputStream dataOutputStream )
-        throws IOException
-    {
-
-    }
-
 }

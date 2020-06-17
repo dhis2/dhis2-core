@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
+package org.hisp.dhis.helpers.models;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,86 +28,97 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import org.apache.commons.collections.ListUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.hisp.dhis.api.mobile.model.Model;
+import java.util.Map;
 
 /**
- * @author Nguyen Kim Lai
- * 
- * @version OptionSet.java 3:42:54 PM Mar 12, 2013 $
+ * @author Stian Sandvold
  */
-public class OptionSet
-    extends Model
+public class User
 {
-private String clientVersion;
-    
-    private List<String> options = new ArrayList<>();
+    private String username;
 
-    public List<String> getOptions()
+    private String uid;
+
+    private String password;
+
+    private Map<String, List<String>> dataRead;
+
+    private List<String> groups = new ArrayList<>();
+
+    private List<String> searchScope = new ArrayList<>();
+
+    private List<String> captureScope = new ArrayList<>();
+
+    private boolean allAuthority;
+
+    public User( String username, String uid, String password )
     {
-        return options;
+        this.username = username;
+        this.uid = uid;
+        this.password = password;
     }
 
-    public void setOptions( List<String> options )
+    public String getUsername()
     {
-        this.options = options;
-    }
-    
-    @Override
-    public String getClientVersion()
-    {
-        return clientVersion;
+        return username;
     }
 
-    @Override
-    public void setClientVersion( String clientVersion )
+    public String getUid()
     {
-        this.clientVersion = clientVersion;
+        return uid;
     }
-    
-    @Override
-    public void serialize( DataOutputStream dout )
-        throws IOException
+
+    public String getPassword()
     {
-
-        dout.writeLong( this.getId() );
-        dout.writeUTF( this.getName() );
-        dout.writeInt( this.options.size() );
-
-        for ( String option : this.options )
-        {
-            dout.writeUTF( option );
-        }
-
+        return password;
     }
-    
-    @Override
-    public void deSerialize( DataInputStream dint )
-        throws IOException
+
+    public Map<String, List<String>> getDataRead()
     {
-        long id = dint.readLong();
-        if ( id != 0 )
-        {
-            this.setId( id );
-            this.setName( dint.readUTF() );
-            int optionSize = dint.readInt();
-            if ( optionSize > 0 )
-            {
-                for ( int i = 0; i < optionSize; i++ )
-                {
-                    String option = dint.readUTF();
-                    options.add( option );
-                }
-            }
-        }
-        else
-        {
-            this.setId( id );
-        }
+        return dataRead;
+    }
+
+    public void setDataRead( Map<String, List<String>> dataRead )
+    {
+        this.dataRead = dataRead;
+    }
+
+    public List<String> getGroups()
+    {
+        return groups;
+    }
+
+    public void setGroups( List<String> groups )
+    {
+        this.groups = groups;
+    }
+
+    public void setCaptureScope( List<String> captureScope )
+    {
+        this.captureScope = captureScope;
+    }
+
+    public void setSearchScope( List<String> searchScope )
+    {
+        this.searchScope = searchScope;
+    }
+
+    public List<String> getScopes()
+    {
+        return ListUtils.union( searchScope, captureScope );
+    }
+
+    public void setAllAuthority( boolean allAuthority )
+    {
+        this.allAuthority = allAuthority;
+    }
+
+    public boolean hasAllAuthority()
+    {
+        return allAuthority;
     }
 }

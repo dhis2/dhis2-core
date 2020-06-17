@@ -155,8 +155,16 @@ public class HibernateUserStore
 
         hql +=
             "from User u " +
-            "inner join u.userCredentials uc " +
-            "left join u.groups g ";
+            "inner join u.userCredentials uc ";
+
+        if ( params.isPrefetchUserGroups() && !count )
+        {
+            hql += "left join fetch u.groups g ";
+        }
+        else
+        {
+            hql += "left join u.groups g ";
+        }
 
         if ( !params.getOrganisationUnits().isEmpty() )
         {

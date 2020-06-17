@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile.model;
+package org.hisp.dhis.dto;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,71 +28,55 @@ package org.hisp.dhis.api.mobile.model;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-public class DataSetValueList
-    extends Model
+public class Me
 {
-    private String clientVersion;
+    private List<UserGroup> userGroups;
 
-    private List<DataSetValue> dataSetValues = new ArrayList<>();
+    private List<OrgUnit> teiSearchOrganisationUnits;
 
-    public DataSetValueList()
+    private List<OrgUnit> organisationUnits;
+
+    private List<String> authorities;
+
+    public List<UserGroup> getUserGroups()
     {
+        return userGroups;
     }
 
-    public List<DataSetValue> getDataSetValues()
+    public void setUserGroups( List<UserGroup> userGroups )
     {
-        return dataSetValues;
+        this.userGroups = userGroups;
     }
 
-    public void setDataSetValues( List<DataSetValue> dataSetValues )
+    public List<OrgUnit> getTeiSearchOrganisationUnits()
     {
-        this.dataSetValues = dataSetValues;
+        return teiSearchOrganisationUnits;
     }
 
-    @Override
-    public String getClientVersion()
+    public void setTeiSearchOrganisationUnits( List<OrgUnit> teiSearchOrganisationUnits )
     {
-        return clientVersion;
+        this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
     }
 
-    @Override
-    public void setClientVersion( String clientVersion )
+    public List<OrgUnit> getOrganisationUnits()
     {
-        this.clientVersion = clientVersion;
+        return organisationUnits;
     }
 
-    @Override
-    public void serialize( DataOutputStream dout )
-        throws IOException
+    public void setOrganisationUnits( List<OrgUnit> organisationUnits )
     {
-        dout.writeInt( dataSetValues.size() );
-        for ( DataSetValue dataSetValue : dataSetValues )
-        {
-            dataSetValue.serialize( dout );
-        }
+        this.organisationUnits = organisationUnits;
     }
 
-    @Override
-    public void deSerialize( DataInputStream dataInputStream )
-        throws IOException
+    public List<String> getAuthorities()
     {
-        int size = 0;
-        size = dataInputStream.readInt();
-        if ( size > 0 )
-        {
-            dataSetValues = new ArrayList<>();
-            for ( int i = 0; i < size; i++ )
-            {
-                DataSetValue dataSetValue = new DataSetValue();
-                dataSetValue.deSerialize( dataInputStream );
-                dataSetValues.add( dataSetValue );
-            }
-        }
+        return authorities;
+    }
+
+    public void setAuthorities( List<String> authorities )
+    {
+        this.authorities = authorities;
     }
 }
