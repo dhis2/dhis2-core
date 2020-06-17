@@ -153,6 +153,8 @@ public class UserController
             params.setCanManage( true );
             params.setAuthSubset( true );
         }
+        
+        params.setPrefetchUserGroups( filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) ) );
 
         int count = userService.getUserCount( params );
 
