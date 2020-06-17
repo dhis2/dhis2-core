@@ -32,16 +32,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
-import static org.hisp.dhis.util.DateUtils.*;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -91,6 +113,7 @@ import org.postgis.PGgeometry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -1529,12 +1552,24 @@ public class JdbcEventStore implements EventStore
         }
         try
         {
-            Map<String, Object> params = new HashMap<>();
-            params.put( "uids", teiUids );
-            params.put( "lastUpdated", toTimestamp( new Date() ) );
-            // The user can be null
-            params.put( "lastUpdatedBy", user != null ? user.getId() : null  );
-            namedParameterJdbcTemplate.update( UPDATE_TEI_SQL, params );
+            final String result = teiUids.stream()
+                .map( s -> "'" + s + "'" )
+                .collect( Collectors.joining( ", " ) );
+
+            jdbcTemplate.execute( UPDATE_TEI_SQL, (PreparedStatementCallback<Boolean>) psc -> {
+                psc.setString( 1, result );
+                psc.setTimestamp( 2, toTimestamp( new Date() ) );
+                if ( user != null )
+                {
+                    psc.setLong( 3, user.getId() );
+                }
+                else
+                {
+                    psc.setNull( 3, Types.INTEGER );
+                }
+                psc.setString( 4, result );
+                return psc.execute();
+            } );
         }
         catch ( DataAccessException e )
         {

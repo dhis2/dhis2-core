@@ -102,7 +102,7 @@ public interface EventStore
             "where uid = ?;";                   // 19
         // @formatter:on
 
-    String UPDATE_TEI_SQL = "update trackedentityinstance set lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy where uid in (:uids)";
+    String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE SKIP LOCKED;update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
 
     /**
      * Inserts a List of {@see ProgramStageInstance}, including notes and Data
