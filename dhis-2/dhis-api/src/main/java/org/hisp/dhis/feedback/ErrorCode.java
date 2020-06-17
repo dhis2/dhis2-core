@@ -59,9 +59,9 @@ public enum ErrorCode
     E2011( "User is not allowed to read data for attribute option combo: `{0}`" ),
     E2012( "User is not allowed to view org unit: `{0}`" ),
     E2013( "At least one data set must be specified" ),
-    E2014( "Unable to parse the filter `{0}`" ),
-    E2015( "Unable to parse the order param: `{0}`" ),
-    E2016( "Unable to parse `{0}`. The values available are: {1}" ),
+    E2014( "Unable to parse filter `{0}`" ),
+    E2015( "Unable to parse order param: `{0}`" ),
+    E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),

@@ -127,7 +127,7 @@ public class OrderingHelperTest
 
         // Expect
         expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse the order param: `" + "name:" + "`" );
+        expectedException.expectMessage( "Unable to parse order param: `" + "name:" + "`" );
 
         // When
         sort( anyDimensionalItems, orderParams );

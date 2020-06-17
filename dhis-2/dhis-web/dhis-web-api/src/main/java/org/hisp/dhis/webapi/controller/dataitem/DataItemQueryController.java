@@ -73,7 +73,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
 @RestController
-class DataItemQueryController
+public class DataItemQueryController
 {
     static final String API_RESOURCE_PATH = "/dataItems";
 

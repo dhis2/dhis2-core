@@ -33,11 +33,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -77,7 +79,9 @@ public class FilteringHelperTest
 
         // Expect
         expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse `" + "INVALID_TYPE" );
+        expectedException.expectMessage(
+            "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
+                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
 
         // When
         extractEntitiesFromInFilter( filtersWithInvalidType );
@@ -91,7 +95,7 @@ public class FilteringHelperTest
 
         // Expect
         expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse the filter `" + filtersWithInvalidType + "`" );
+        expectedException.expectMessage( "Unable to parse filter `" + filtersWithInvalidType + "`" );
 
         // When
         extractEntitiesFromInFilter( filtersWithInvalidType );
@@ -136,7 +140,9 @@ public class FilteringHelperTest
 
         // Expect
         expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse `" + "INVALID_TYPE`. The values available are" );
+        expectedException.expectMessage(
+                "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
+                        + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
 
         // When
         extractEntityFromEqualFilter( filtersWithInvalidType );
@@ -150,7 +156,7 @@ public class FilteringHelperTest
 
         // Expect
         expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse the filter `" + invalidFilter + "`" );
+        expectedException.expectMessage( "Unable to parse filter `" + invalidFilter + "`" );
 
         // When
         extractEntityFromEqualFilter( invalidFilter );
