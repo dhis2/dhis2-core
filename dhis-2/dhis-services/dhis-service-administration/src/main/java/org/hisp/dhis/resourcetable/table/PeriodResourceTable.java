@@ -157,9 +157,6 @@ public class PeriodResourceTable
      */
     private int resolveYearFromPeriod( Period period )
     {
-        //
-        // In order to handle all weekly types uniformly,
-
         if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
         {
             return new DateTime( period.getStartDate().getTime() ).plusDays( 3 ).getYear();
