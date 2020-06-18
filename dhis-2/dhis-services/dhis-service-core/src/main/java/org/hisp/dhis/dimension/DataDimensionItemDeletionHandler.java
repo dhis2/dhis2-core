@@ -30,6 +30,8 @@ package org.hisp.dhis.dimension;
  *
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -65,7 +67,8 @@ public class DataDimensionItemDeletionHandler
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid=" + optionCombo.getId();
+        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid="
+            + optionCombo.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
