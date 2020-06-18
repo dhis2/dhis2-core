@@ -287,7 +287,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( !isUpdateAllowed( object, user ) )
         {
             AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );
-            throw new UpdateAccessDeniedException( object.toString() );
+            throw new UpdateAccessDeniedException( String.valueOf( object ) );
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );

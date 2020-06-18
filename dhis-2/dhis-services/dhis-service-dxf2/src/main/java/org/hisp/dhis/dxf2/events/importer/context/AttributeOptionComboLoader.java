@@ -223,7 +223,8 @@ public class AttributeOptionComboLoader
 
     private String resolveCategoryComboId( CategoryCombo categoryCombo, IdScheme idScheme )
     {
-        String id;
+        String id = null;
+
         if ( idScheme.is( IdentifiableProperty.ID ) )
         {
             id = String.valueOf( categoryCombo.getId() );
@@ -240,10 +241,7 @@ public class AttributeOptionComboLoader
         {
             id = categoryCombo.getName();
         }
-        else
-        {
-            id = null;
-        }
+
         return id;
     }
 

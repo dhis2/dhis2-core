@@ -41,6 +41,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -309,9 +310,14 @@ public class EventManager
             }
             else
             {
-                final ImportSummary is = importSummaries.getByReference( event.getUid() ).get();
-                is.setStatus( ERROR );
-                is.incrementIgnored();
+                final Optional<ImportSummary> isOptional = importSummaries.getByReference( event.getUid() );
+
+                if ( isOptional.isPresent() )
+                {
+                    final ImportSummary is = isOptional.get();
+                    is.setStatus( ERROR );
+                    is.incrementIgnored();
+                }
             }
         }
     }
