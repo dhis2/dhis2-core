@@ -50,6 +50,13 @@ public class TrackerValidationReport
     @Builder.Default
     private List<TrackerErrorReport> errorReports = new ArrayList<>();
 
+    @JsonProperty
+    @Builder.Default
+    private List<TrackerWarningReport> warningReports = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -57,6 +64,14 @@ public class TrackerValidationReport
     public void add( TrackerValidationReport validationReport )
     {
         add( validationReport.getErrorReports() );
+        this.warningReports.addAll( validationReport.getWarningReports() );
+        addPerfReports( validationReport.getPerformanceReport() );
+    }
+
+    public void add( ValidationErrorReporter validationReporter )
+    {
+        this.errorReports.addAll( validationReporter.getReportList() );
+        this.warningReports.addAll( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )
@@ -64,8 +79,18 @@ public class TrackerValidationReport
         this.errorReports.addAll( errorReports );
     }
 
-    public boolean isEmpty()
+    public void addPerfReports( List<TrackerValidationHookTimerReport> reports )
     {
-        return errorReports == null || errorReports.isEmpty();
+        this.performanceReport.addAll( reports );
+    }
+
+    public void add( TrackerValidationHookTimerReport report )
+    {
+        performanceReport.add( report );
+    }
+
+    public boolean hasErrors()
+    {
+        return !errorReports.isEmpty();
     }
 }

@@ -64,9 +64,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceAudit;
-import org.hisp.dhis.program.ProgramInstanceAuditQueryParams;
-import org.hisp.dhis.program.ProgramInstanceAuditService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -117,8 +114,6 @@ public class AuditController
     private final DataApprovalAuditService dataApprovalAuditService;
 
     private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-    
-    private final ProgramInstanceAuditService programInstanceAuditService;
 
     private final FieldFilterService fieldFilterService;
 
@@ -132,7 +127,7 @@ public class AuditController
         TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
         DataApprovalAuditService dataApprovalAuditService,
         TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
-        ProgramInstanceAuditService programInstanceAuditService, FieldFilterService fieldFilterService,
+        FieldFilterService fieldFilterService,
         ContextService contextService, FileResourceService fileResourceService )
     {
         checkNotNull( manager );
@@ -141,7 +136,6 @@ public class AuditController
         checkNotNull( trackedEntityDataValueAuditService );
         checkNotNull( trackedEntityAttributeValueAuditService );
         checkNotNull( dataApprovalAuditService );
-        checkNotNull( programInstanceAuditService );
         checkNotNull( fieldFilterService );
         checkNotNull( contextService );
         checkNotNull( fileResourceService );
@@ -153,7 +147,6 @@ public class AuditController
         this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
         this.dataApprovalAuditService = dataApprovalAuditService;
         this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
-        this.programInstanceAuditService = programInstanceAuditService;
         this.fieldFilterService = fieldFilterService;
         this.contextService = contextService;
         this.fileResourceService = fileResourceService;
@@ -474,71 +467,6 @@ public class AuditController
         CollectionNode trackedEntityInstanceAudits = rootNode.addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
         trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
-
-        return rootNode;
-
-    }
-
-    @RequestMapping( value = "enrollment", method = RequestMethod.GET )
-    public @ResponseBody RootNode getEnrollmentAudit(
-        @RequestParam( required = false, defaultValue = "" ) List<String> en,
-        @RequestParam( required = false, defaultValue = "" ) List<String> pr,
-        @RequestParam( required = false, defaultValue = "" ) List<String> user,
-        @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
-        @RequestParam( required = false, defaultValue = "1" ) int page
-    ) throws WebMessageException
-    {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
-        ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
-
-        List<ProgramInstance> pis = getEnrollments( en );
-
-        List<Program> prs = getPrograms( pr );
-
-        params.setProgramInstances( new HashSet<>( pis ) );
-        params.setPrograms( new HashSet<>( prs ) );
-        params.setUsers( new HashSet<>(  user ) );
-        params.setAuditType( auditType );
-        params.setStartDate( startDate );
-        params.setEndDate( endDate );
-        params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
-
-        List<ProgramInstanceAudit> piAudits;
-        Pager pager = null;
-
-        if ( !params.isSkipPaging() )
-        {
-            int total = programInstanceAuditService.getProgramInstanceAuditsCount( params );
-
-            pager = new Pager( page, total, pageSize );
-
-            params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );
-        }
-
-        piAudits = programInstanceAuditService.getProgramInstanceAudits( params );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( pager != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
-        }
-
-        CollectionNode programInstanceAudits = rootNode.addChild( new CollectionNode( "programInstanceAudits", true ) );
-        programInstanceAudits.addChildren( fieldFilterService.toCollectionNode( ProgramInstanceAudit.class,
-            new FieldFilterParams( piAudits, fields ) ).getChildren() );
 
         return rootNode;
 

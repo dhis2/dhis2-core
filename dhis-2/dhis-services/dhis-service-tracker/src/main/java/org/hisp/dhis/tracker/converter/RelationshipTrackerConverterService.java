@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +45,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 /**
  * @author Enrico Colasante
@@ -53,12 +56,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.*;
 public class RelationshipTrackerConverterService
     implements TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
 {
-    private final TrackerPreheatService trackerPreheatService;
-
-    public RelationshipTrackerConverterService( TrackerPreheatService trackerPreheatService )
-    {
-        this.trackerPreheatService = trackerPreheatService;
-    }
 
     @Override
     public Relationship to( org.hisp.dhis.relationship.Relationship relationship )
@@ -85,8 +82,6 @@ public class RelationshipTrackerConverterService
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
             toRelationship.setUpdatedAt( fromRelationship.getLastUpdated().toString() );
-            // TODO do we need this? this is not even the translated name..
-            // toRelationship.setRelationshipName( fromRelationship.getName() );
             toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
 
             return toRelationship;
@@ -106,22 +101,10 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.relationship.Relationship from( Relationship relationship )
-    {
-        List<org.hisp.dhis.relationship.Relationship> relationships = from( Collections.singletonList( relationship ) );
-
-        if ( relationships.isEmpty() )
-        {
-            return null;
-        }
-
-        return relationships.get( 0 );
-    }
-
-    @Override
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
     {
-        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat, Collections.singletonList( relationship ) );
+        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
+            Collections.singletonList( relationship ) );
 
         if ( relationships.isEmpty() )
         {
@@ -132,13 +115,8 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.relationship.Relationship> from( List<Relationship> relationships )
-    {
-        return from( preheat( relationships ), relationships );
-    }
-
-    @Override
-    public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat, List<Relationship> fromRelationships )
+    public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
+        List<Relationship> fromRelationships )
     {
         List<org.hisp.dhis.relationship.Relationship> toRelationships = new ArrayList<>();
 
@@ -164,8 +142,6 @@ public class RelationshipTrackerConverterService
                 toRelationship.setUid( CodeGenerator.generateUid() );
             }
 
-            // TODO do we need this? this is not even the translated name..
-            // toRelationship.setName( fromRelationship.getRelationshipName() );
             toRelationship.setRelationshipType( relationshipType );
 
             if ( fromRelationship.getRelationship() != null )
@@ -214,11 +190,5 @@ public class RelationshipTrackerConverterService
         } );
 
         return toRelationships;
-    }
-
-    private TrackerPreheat preheat( List<Relationship> relationships )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder().relationships( relationships ).build();
-        return trackerPreheatService.preheat( params );
     }
 }

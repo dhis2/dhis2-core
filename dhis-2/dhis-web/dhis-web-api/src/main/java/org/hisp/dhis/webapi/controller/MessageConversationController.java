@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -52,6 +54,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
@@ -175,7 +178,7 @@ public class MessageConversationController
             messageConversations = new ArrayList<>( messageService.getMessageConversations( ) );
         }
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
@@ -194,9 +197,22 @@ public class MessageConversationController
                 "messages.text:" + queryOperator + ":" + options.get( "queryString" ),
                 "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
             Query subQuery = queryService
-                .getQueryFromUrl( getEntityClass(), queryFilter, Collections.emptyList(), getPaginationData(options), Junction.Type.OR );
+                .getQueryFromUrl( getEntityClass(), queryFilter, Collections.emptyList(), new Pagination(), Junction.Type.OR );
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
+        }
+        
+        int count = messageConversations.size();
+        
+        Query paginatedQuery = queryService.getQueryFromUrl( getEntityClass(), Collections.emptyList(), Collections.emptyList(), getPaginationData(options), options.getRootJunction() );
+        paginatedQuery.setObjects( messageConversations );
+
+        messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( paginatedQuery );
+        
+        if ( options.hasPaging() )
+        {
+            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+            metadata.setPager( pager );
         }
 
         return messageConversations;

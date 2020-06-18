@@ -29,6 +29,8 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
@@ -36,17 +38,24 @@ import java.util.*;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.util.ObjectUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -91,6 +100,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private ProgramRuleVariable programRuleVariableB = null;
 
+    private ProgramRuleVariable programRuleVariableC = null;
+
     private OrganisationUnit organisationUnit;
 
     private TrackedEntityAttribute trackedEntityAttribute;
@@ -128,6 +139,15 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     private ProgramRuleVariableService programRuleVariableService;
 
     @Mock
+    private ConstantService constantService;
+
+    @Mock
+    private I18nManager i18nManager;
+
+    @Mock
+    private I18n i18n;
+
+    @Mock
     private DataElementService dataElementService;
 
     private DefaultProgramRuleEntityMapperService subject;
@@ -136,7 +156,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
-            dataElementService );
+            dataElementService, constantService, i18nManager );
 
         setUpProgramRules();
     }
@@ -188,7 +208,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         List<RuleVariable> ruleVariables = subject.toMappedProgramRuleVariables();
 
-        assertEquals( ruleVariables.size(), 2 );
+        assertEquals( ruleVariables.size(), 3 );
 
         for ( RuleVariable variable : ruleVariables )
         {
@@ -255,7 +275,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(
-            Sets.newHashSet( programStageInstanceA, programStageInstanceB ), Optional.of( programStageInstanceA ) );
+            Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA );
 
         assertEquals( ruleEvents.size(), 1 );
         RuleEvent ruleEvent = ruleEvents.get( 0 );
@@ -281,7 +301,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
         List<RuleEvent> ruleEvents = subject
-            .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), Optional.empty() );
+            .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), null );
 
         assertEquals( ruleEvents.size(), 2 );
     }
@@ -305,20 +325,69 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         assertEquals( ruleEnrollment.attributeValues().get( 0 ).value(), SAMPLE_VALUE_A );
     }
 
+    @Test
+    public void testGetItemStore()
+    {
+        String env_variable = "Completed date";
+        Constant constant = new Constant();
+        constant.setValue( 7.8 );
+        constant.setAutoFields();
+        constant.setName( "Gravity" );
+        List<Constant> constants = ListUtils.newList( constant );
+
+        when( constantService.getAllConstants() ).thenReturn( constants );
+        when( i18nManager.getI18n() ).thenReturn( i18n );
+        when ( i18n.getString( anyString() ) ).thenReturn( env_variable );
+
+        Map<String, DataItem> itemStore = subject.getItemStore( ListUtils.newList( programRuleVariableA,
+            programRuleVariableB, programRuleVariableC ) );
+
+        assertNotNull( itemStore );
+        assertTrue( itemStore.containsKey( programRuleVariableA.getName() ) );
+        assertEquals( itemStore.get( programRuleVariableA.getName() ).getDisplayName(),
+                ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
+
+        assertTrue( itemStore.containsKey( programRuleVariableB.getName() ) );
+        assertEquals( itemStore.get( programRuleVariableB.getName() ).getDisplayName(),
+              ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(), programRuleVariableB.getAttribute().getDisplayFormName(),
+              programRuleVariableB.getAttribute().getName() ) );
+
+        assertTrue( itemStore.containsKey( programRuleVariableC.getName() ) );
+        assertEquals( itemStore.get( programRuleVariableC.getName() ).getDisplayName(),
+             ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
+             programRuleVariableC.getDataElement().getFormName(), programRuleVariableC.getDataElement().getName() ) );
+
+        assertTrue( itemStore.containsKey( constant.getUid() ) );
+        assertEquals( itemStore.get( constant.getUid() ).getDisplayName(), "Gravity" );
+    }
+
     private void setUpProgramRules()
     {
         program = createProgram( 'P' );
         programStage = createProgramStage( 'S', program );
 
-        programRuleVariableA = createProgramRuleVariable( 'V', program );
-        programRuleVariableB = createProgramRuleVariable( 'W', program );
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'Z' );
+        attribute.setName( "Tracked_entity_attribute_A" );
+
+        DataElement dataElement1 = createDataElement( 'E' );
+        dataElement1.setDisplayFormName( "DateElement_E" );
+
+        programRuleVariableA = createProgramRuleVariable( 'A', program );
+        programRuleVariableB = createProgramRuleVariable( 'B', program );
+        programRuleVariableC = createProgramRuleVariable( 'C', program );
+
         programRuleVariableA = setProgramRuleVariable( programRuleVariableA,
             ProgramRuleVariableSourceType.CALCULATED_VALUE, program, null, createDataElement( 'D' ), null );
+
         programRuleVariableB = setProgramRuleVariable( programRuleVariableB,
-            ProgramRuleVariableSourceType.TEI_ATTRIBUTE, program, null, null, createTrackedEntityAttribute( 'Z' ) );
+            ProgramRuleVariableSourceType.TEI_ATTRIBUTE, program, null, null, attribute );
+
+        programRuleVariableC = setProgramRuleVariable( programRuleVariableC,
+            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, program, null, dataElement1, null );
 
         programRuleVariables.add( programRuleVariableA );
         programRuleVariables.add( programRuleVariableB );
+        programRuleVariables.add( programRuleVariableC );
 
         programRuleA = createProgramRule( 'A', program );
         programRuleB = createProgramRule( 'B', program );

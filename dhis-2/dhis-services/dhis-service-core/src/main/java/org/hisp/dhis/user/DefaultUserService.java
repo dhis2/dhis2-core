@@ -56,9 +56,13 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 /**
  * @author Chau Thu Tran
@@ -171,6 +175,48 @@ public class DefaultUserService
     public User getUser( String uid )
     {
         return userStore.getByUid( uid );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByUuid( UUID uuid )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUuid( uuid );
+
+        return userCredentials != null ? userCredentials.getUserInfo() : null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByUsername( String username )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
+
+        return userCredentials != null ? userCredentials.getUserInfo() : null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByIdentifier( String id )
+    {
+        User user = null;
+
+        if ( isValidUid( id ) && ( user = getUser( id ) ) != null )
+        {
+            return user;
+        }
+
+        if ( uuidIsValid( id ) && ( user = getUserByUuid( UUID.fromString( id ) ) ) != null )
+        {
+            return user;
+        }
+
+        if ( usernameIsValid( id ) && ( user = getUserByUsername( id ) ) != null )
+        {
+            return user;
+        }
+
+        return user;
     }
 
     @Override

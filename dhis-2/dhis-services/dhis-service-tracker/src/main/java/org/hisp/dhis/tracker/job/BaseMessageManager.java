@@ -46,13 +46,15 @@ import java.io.IOException;
 public abstract class BaseMessageManager
 {
     private final MessageManager messageManager;
+
     private final SchedulingManager schedulingManager;
+
     private final RenderService renderService;
 
     public BaseMessageManager(
-            MessageManager messageManager,
-            SchedulingManager schedulingManager,
-            RenderService renderService )
+        MessageManager messageManager,
+        SchedulingManager schedulingManager,
+        RenderService renderService )
     {
         this.messageManager = messageManager;
         this.schedulingManager = schedulingManager;
@@ -74,7 +76,8 @@ public abstract class BaseMessageManager
         schedulingManager.executeJob( runnable );
     }
 
-    public TrackerSideEffectDataBundle toBundle( TextMessage message ) throws JMSException, IOException
+    public TrackerSideEffectDataBundle toBundle( TextMessage message )
+        throws JMSException, IOException
     {
         String payload = message.getText();
 

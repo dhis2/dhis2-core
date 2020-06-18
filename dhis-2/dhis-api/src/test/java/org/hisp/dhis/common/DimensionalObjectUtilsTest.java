@@ -350,4 +350,22 @@ public class DimensionalObjectUtilsTest
 
         assertEquals( "DE ShortNameA DE ShortNameB DE ShortNameC", name );
     }
+
+    @Test
+    public void testConvertToDimItemValueMap()
+    {
+        DataElement deA = new DataElement( "DE NameA" );
+        DataElement deB = new DataElement( "DE NameB" );
+        DataElement deC = new DataElement( "DE NameC" );
+
+        List<DimensionItemObjectValue> list = Lists.newArrayList( new DimensionItemObjectValue( deA, 10D ),
+            new DimensionItemObjectValue( deB, 20D ), new DimensionItemObjectValue( deC, 30D ) );
+
+        final Map<DimensionalItemObject, Double> asMap = DimensionalObjectUtils.convertToDimItemValueMap( list );
+
+        assertEquals( asMap.size(), 3 );
+        assertEquals( asMap.get( deA).intValue(), 10 );
+        assertEquals( asMap.get( deB).intValue(), 20 );
+        assertEquals( asMap.get( deC).intValue(), 30 );
+    }
 }

@@ -46,7 +46,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataWrapper;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
@@ -79,19 +79,19 @@ DefaultMetadataVersionService
 
     private final MetadataVersionStore versionStore;
     private final MetadataExportService metadataExportService;
-    private final KeyJsonValueService keyJsonValueService;
+    private final MetadataKeyJsonService metaDataKeyJsonService;
     private final NodeService nodeService;
     private final MetadataSystemSettingService metadataSystemSettingService;
     private final RenderService renderService;
 
     public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
-        MetadataExportService metadataExportService, KeyJsonValueService keyJsonValueService,
+        MetadataExportService metadataExportService, MetadataKeyJsonService metaDataKeyJsonService,
         NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
         RenderService renderService )
     {
         this.versionStore = metadataVersionStore;
         this.metadataExportService = metadataExportService;
-        this.keyJsonValueService = keyJsonValueService;
+        this.metaDataKeyJsonService = metaDataKeyJsonService;
         this.nodeService = nodeService;
         this.metadataSystemSettingService = metadataSystemSettingService;
         this.renderService = renderService;
@@ -270,7 +270,7 @@ DefaultMetadataVersionService
     @Transactional( readOnly = true )
     public String getVersionData( String versionName )
     {
-        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, versionName );
+        KeyJsonValue keyJsonValue = metaDataKeyJsonService.getMetaDataVersion( versionName );
 
         if ( keyJsonValue != null )
         {
@@ -305,7 +305,7 @@ DefaultMetadataVersionService
 
         try
         {
-            keyJsonValueService.addKeyJsonValue( keyJsonValue );
+            metaDataKeyJsonService.addMetaDataKeyJsonValue( keyJsonValue );
 
         }
         catch ( Exception ex )
@@ -320,11 +320,11 @@ DefaultMetadataVersionService
     @Transactional
     public void deleteMetadataVersionInDataStore( String nameSpaceKey )
     {
-        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, nameSpaceKey );
+        KeyJsonValue keyJsonValue = metaDataKeyJsonService.getMetaDataVersion(  nameSpaceKey );
 
         try
         {
-            keyJsonValueService.deleteKeyJsonValue( keyJsonValue );
+            metaDataKeyJsonService.deleteMetaDataKeyJsonValue( keyJsonValue );
         }
         catch ( Exception ex )
         {

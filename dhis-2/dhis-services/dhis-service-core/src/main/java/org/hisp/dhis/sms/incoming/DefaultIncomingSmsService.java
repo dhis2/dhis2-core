@@ -123,7 +123,10 @@ public class DefaultIncomingSmsService
     {
         IncomingSms incomingSms = incomingSmsStore.get( id );
 
-        incomingSmsStore.delete( incomingSms );
+        if ( incomingSms != null )
+        {
+            incomingSmsStore.delete( incomingSms );
+        }
     }
 
     @Override
@@ -131,13 +134,6 @@ public class DefaultIncomingSmsService
     public IncomingSms findBy( Integer id )
     {
         return incomingSmsStore.get( id );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public IncomingSms getNextUnprocessed()
-    {
-        return null;
     }
 
     @Override
@@ -149,9 +145,9 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional(readOnly = true)
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator )
     {
-        return incomingSmsStore.getSmsByStatus( status, keyword );
+        return incomingSmsStore.getSmsByStatus( status, originator );
     }
 
     @Override

@@ -1,27 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" fill="#333" transform="translate(0,-284.3)">
-  <path id="rect884" d="m0 0v48h48v-48zm24 4 20 40h-40zm-1.5605 12.832 0.19727 15.91h2.543l0.21289-15.91zm1.5527 19.139c-0.54812 1e-8 -0.96384 0.15799-1.248 0.47266-0.27406 0.30451-0.41211 0.68386-0.41211 1.1406 0 0.45677 0.13805 0.83807 0.41211 1.1426 0.28421 0.29436 0.69993 0.44141 1.248 0.44141 0.54812 0 0.96384-0.14704 1.248-0.44141 0.28421-0.30451 0.42773-0.68581 0.42773-1.1426 0-0.45677-0.14352-0.83611-0.42773-1.1406-0.28421-0.31466-0.69993-0.47266-1.248-0.47266z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M48 0H0V48H48V0ZM39.0602 42.0001H8.94024C5.86024 42.0001 3.94024 38.6601 5.48024 36.0001L20.5402 9.98011C22.0802 7.32011 25.9202 7.32011 27.4602 9.98011L42.5202 36.0001C44.0602 38.6601 42.1402 42.0001 39.0602 42.0001ZM22.0002 26.0001C22.0002 27.1001 22.9002 28.0001 24.0002 28.0001C25.1002 28.0001 26.0002 27.1001 26.0002 26.0001V22.0001C26.0002 20.9001 25.1002 20.0001 24.0002 20.0001C22.9002 20.0001 22.0002 20.9001 22.0002 22.0001V26.0001ZM24.0002 36.0001C25.1048 36.0001 26.0002 35.1047 26.0002 34.0001C26.0002 32.8955 25.1048 32.0001 24.0002 32.0001C22.8957 32.0001 22.0002 32.8955 22.0002 34.0001C22.0002 35.1047 22.8957 36.0001 24.0002 36.0001Z" fill="#333333"/>
 </svg>

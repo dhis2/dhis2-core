@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +65,11 @@ public class RelationshipTrackerConverterServiceTest
 {
 
     private final static String MOTHER_TO_CHILD_RELATIONSHIP_TYPE = "dDrh5UyCyvQ";
+
     private final static String CHILD_TO_MOTHER_RELATIONSHIP_TYPE = "tBeOL0DL026";
+
     private final static String MOTHER = "Ea0rRdBPAIp";
+
     private final static String CHILD = "G1afLIEKt8A";
 
     @Autowired
@@ -95,11 +99,12 @@ public class RelationshipTrackerConverterServiceTest
 
     private TrackerBundle trackerBundle;
 
-
-
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -110,17 +115,21 @@ public class RelationshipTrackerConverterServiceTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit, trackedEntityAttribute );
+        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit,
+            trackedEntityAttribute );
         trackedEntityInstanceA.setUid( MOTHER );
-        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit, trackedEntityAttribute );
+        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit,
+            trackedEntityAttribute );
         trackedEntityInstanceB.setUid( CHILD );
 
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
 
-        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A' , null, trackedEntityType, false);
+        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A', null, trackedEntityType,
+            false );
         relationshipTypeA.setUid( MOTHER_TO_CHILD_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType, false );
+        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType,
+            false );
         relationshipTypeB.setUid( CHILD_TO_MOTHER_RELATIONSHIP_TYPE );
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );
@@ -129,11 +138,15 @@ public class RelationshipTrackerConverterServiceTest
             .fromJson( new ClassPathResource( "tracker/relationships.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
+        User adminUser = createAndInjectAdminUser();
+
         TrackerImportParams trackerImportParams =
             TrackerImportParams
                 .builder()
                 .relationships( trackerBundleParams.getRelationships() )
+                .user( adminUser )
                 .build();
+
         trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() ).get( 0 );
     }
 
@@ -141,7 +154,7 @@ public class RelationshipTrackerConverterServiceTest
     public void testConverterFromRelationships()
     {
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( trackerBundle.getRelationships() );
+            .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
 
         assertNotNull( from );
         assertEquals( 2, from.size() );
@@ -167,7 +180,7 @@ public class RelationshipTrackerConverterServiceTest
     public void testConverterToRelationships()
     {
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( trackerBundle.getRelationships() );
+            .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
 
         List<Relationship> to = relationshipConverterService.to( from );
 

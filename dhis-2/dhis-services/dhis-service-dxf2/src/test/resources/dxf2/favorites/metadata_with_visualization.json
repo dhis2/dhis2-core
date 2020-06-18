@@ -237,6 +237,17 @@
       "filterDimensions": [
         "ou"
       ],
+      "series": [
+        {
+          "dimensionItem": "JXWenbITNIR",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Kvv6LltZuOd",
+          "visualizationType": "LINE"
+        }
+      ],
       "organisationUnitLevels": [ ],
       "id": "gyYXi0rXAIc",
       "user": {
@@ -290,13 +301,37 @@
       "regression": false,
       "type": "COLUMN",
       "aggregationType": "SUM",
-      "series": "dx",
       "created": "2016-03-17T01:56:51.847+0000",
       "periods": [ ],
       "hideLegend": false,
       "itemOrganisationUnitGroups": [ ],
       "lastUpdated": "2016-03-17T01:56:51.847+0000",
-      "userOrganisationUnitGrandChildren": false
+      "userOrganisationUnitGrandChildren": false,
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",
+          "textAlign": "CENTER"
+        }
+      },
+      "colorSet": "color_set_01",
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     },
     {
       "organisationUnits": [
@@ -330,6 +365,17 @@
               "id": "c8yQa2ZIqhL"
             }
           }
+        }
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
         }
       ],
       "completedOnly": false,
@@ -391,9 +437,33 @@
       "hideLegend": false,
       "userOrganisationUnitGrandChildren": false,
       "lastUpdated": "2016-03-17T01:57:13.118+0000",
-      "series": "dx",
       "periods": [ ],
-      "created": "2016-03-17T01:57:13.118+0000"
+      "created": "2016-03-17T01:57:13.118+0000",
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",
+          "textAlign": "CENTER"
+        }
+      },
+      "colorSet": "color_set_01",
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     },
     {
       "aggregationType": "SUM",
@@ -410,7 +480,6 @@
       "itemOrganisationUnitGroups": [ ],
       "created": "2016-03-17T01:57:32.354+0000",
       "periods": [ ],
-      "series": "dx",
       "dataDimensionItems": [
         {
           "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
@@ -437,6 +506,17 @@
       ],
       "filterDimensions": [
         "ou"
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
+        }
       ],
       "showData": true,
       "organisationUnits": [
@@ -490,7 +570,32 @@
       "userOrganisationUnitChildren": false,
       "organisationUnitGroups": [ ],
       "name": "ChartC",
-      "organisationUnitLevels": [ ]
+      "organisationUnitLevels": [ ],
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",          
+          "textAlign": "CENTER"
+        }
+      },
+      "colorSet": "color_set_01",
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     }
   ],
   "categoryCombos": [

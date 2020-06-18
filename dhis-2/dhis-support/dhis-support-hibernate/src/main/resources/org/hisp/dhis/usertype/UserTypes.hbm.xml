@@ -25,18 +25,22 @@
     <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbVisualizationFontStyle">
+    <param name="clazz">org.hisp.dhis.visualization.VisualizationFontStyle</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
     <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbSectionRenderType">
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
-    <param name="deserializer">org.hisp.dhis.common.adapter.SectionRenderTypeDeserialize</param>
+    <param name="renderType">org.hisp.dhis.render.type.SectionRenderingObject</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbValueRenderType">
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
-    <param name="deserializer">org.hisp.dhis.common.adapter.ValueRenderTypeDeserialize</param>
+    <param name="renderType">org.hisp.dhis.render.type.ValueTypeRenderingObject</param>
   </typedef>
   
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">
@@ -57,6 +61,10 @@
   
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventQueryCriteria">
     <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
+  </typedef>
+  
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
+    <param name="clazz">org.hisp.dhis.visualization.Series</param>
   </typedef>
   
    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">

@@ -39,13 +39,14 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataSetElement implements EmbeddedObject
+public class DataSetElement implements EmbeddedObject, Serializable
 {
     /**
      * The database internal identifier for this Object.

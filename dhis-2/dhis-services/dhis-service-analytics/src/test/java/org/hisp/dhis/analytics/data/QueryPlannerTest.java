@@ -28,9 +28,28 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -38,20 +57,18 @@ import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -72,23 +89,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -293,20 +293,29 @@ public class QueryPlannerTest
         assertEquals( pesB, paramsB.getPeriods() );
     }
 
+    private String makeKey( DataElement de, CategoryOptionCombo coc, OrganisationUnit ou, String period )
+    {
+        return de.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ou.getUid() + DIMENSION_SEP
+            + period;
+    }
+
     @Test
     public void testGetPermutationDimensionalItemValueMapCocEnabled()
     {
-        Map<String, Double> aggregatedDataMap = new HashMap<>();
-        aggregatedDataMap.put( deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1", 1d );
-        aggregatedDataMap.put( deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2", 2d );
-        aggregatedDataMap.put( deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1", 3d );
-        aggregatedDataMap.put( deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2", 4d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1", 5d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2", 6d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1", 7d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2", 8d );
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = new ArrayListValuedHashMap<>();
 
-        MapMap<String, DimensionalItemObject, Double> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
+        aggregatedDataMap.put( makeKey( deA, coc, ouA, "2000Q1" ), new DimensionItemObjectValue( deA, 1d ) );
+        aggregatedDataMap.put( makeKey( deA, coc, ouA, "2000Q2" ), new DimensionItemObjectValue( deA, 2d ) );
+        aggregatedDataMap.put( makeKey( deA, coc, ouB, "2000Q1" ), new DimensionItemObjectValue( deA, 3d ) );
+        aggregatedDataMap.put( makeKey( deA, coc, ouB, "2000Q2" ), new DimensionItemObjectValue( deA, 4d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q1" ), new DimensionItemObjectValue( deB, 5d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q2" ), new DimensionItemObjectValue( deB, 6d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q1" ), new DimensionItemObjectValue( deB, 7d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q2" ), new DimensionItemObjectValue( deB, 8d ) );
+
+        // Method under test //
+        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams
+            .getPermutationDimensionalItemValueMap( aggregatedDataMap );
 
         assertNotNull( permutationMap );
 
@@ -315,55 +324,53 @@ public class QueryPlannerTest
         String ouBQ1Key = ouB.getUid() + DIMENSION_SEP + "2000Q1";
         String ouBQ2Key = ouB.getUid() + DIMENSION_SEP + "2000Q2";
 
-        Map<DimensionalItemObject, Double> ouAQ1 = permutationMap.get( ouAQ1Key );
-        Map<DimensionalItemObject, Double> ouAQ2 = permutationMap.get( ouAQ2Key );
-        Map<DimensionalItemObject, Double> ouBQ1 = permutationMap.get( ouBQ1Key );
-        Map<DimensionalItemObject, Double> ouBQ2 = permutationMap.get( ouBQ2Key );
+        List<DimensionItemObjectValue> ouAQ1 = permutationMap.get( ouAQ1Key );
+        List<DimensionItemObjectValue> ouAQ2 = permutationMap.get( ouAQ2Key );
+        List<DimensionItemObjectValue> ouBQ1 = permutationMap.get( ouBQ1Key );
+        List<DimensionItemObjectValue> ouBQ2 = permutationMap.get( ouBQ2Key );
 
         assertEquals( 2, ouAQ1.size() );
         assertEquals( 2, ouAQ2.size() );
         assertEquals( 2, ouBQ1.size() );
         assertEquals( 2, ouBQ2.size() );
 
-        BaseDimensionalItemObject deACoc = new BaseDimensionalItemObject( deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() );
-        BaseDimensionalItemObject deBCoc = new BaseDimensionalItemObject( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() );
+        List<DimensionItemObjectValue> ouAQ1Expected = new ArrayList<>();
+        ouAQ1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
+        ouAQ1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
-        Map<DimensionalItemObject, Double> ouAQ1Expected = new HashMap<>();
-        ouAQ1Expected.put( deACoc, 1d );
-        ouAQ1Expected.put( deBCoc, 5d );
+        List<DimensionItemObjectValue> ouAQ2Expected = new ArrayList<>();
+        ouAQ2Expected.add( new DimensionItemObjectValue( deA, 2d ));
+        ouAQ2Expected.add( new DimensionItemObjectValue( deB, 6d ));
 
-        Map<DimensionalItemObject, Double> ouAQ2Expected = new HashMap<>();
-        ouAQ2Expected.put( deACoc, 2d );
-        ouAQ2Expected.put( deBCoc, 6d );
+        List<DimensionItemObjectValue> ouBQ1Expected = new ArrayList<>();
+        ouBQ1Expected.add( new DimensionItemObjectValue( deA, 3d ));
+        ouBQ1Expected.add( new DimensionItemObjectValue( deB, 7d ));
 
-        Map<DimensionalItemObject, Double> ouBQ1Expected = new HashMap<>();
-        ouBQ1Expected.put( deACoc, 3d );
-        ouBQ1Expected.put( deBCoc, 7d );
+        List<DimensionItemObjectValue> ouBQ2Expected = new ArrayList<>();
+        ouBQ2Expected.add( new DimensionItemObjectValue( deA, 4d ));
+        ouBQ2Expected.add( new DimensionItemObjectValue( deB, 8d ));
 
-        Map<DimensionalItemObject, Double> ouBQ2Expected = new HashMap<>();
-        ouBQ2Expected.put( deACoc, 4d );
-        ouBQ2Expected.put( deBCoc, 8d );
-
-        assertEquals( ouAQ1Expected, ouAQ1 );
-        assertEquals( ouAQ2Expected, ouAQ2 );
-        assertEquals( ouBQ1Expected, ouBQ1 );
-        assertEquals( ouBQ2Expected, ouBQ2 );
+        assertCollectionsMatch( ouAQ1Expected, ouAQ1 );
+        assertCollectionsMatch( ouAQ2Expected, ouAQ2 );
+        assertCollectionsMatch( ouBQ1Expected, ouBQ1 );
+        assertCollectionsMatch( ouBQ2Expected, ouBQ2 );
     }
 
     @Test
     public void testGetPermutationDimensionalItemValueMapCocDisabled()
     {
-        Map<String, Double> aggregatedDataMap = new HashMap<>();
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101", 1d );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102", 2d );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101", 3d );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102", 4d );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101", 5d );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102", 6d );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101", 7d );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102", 8d );
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = new ArrayListValuedHashMap<>();
 
-        MapMap<String, DimensionalItemObject, Double> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deA, 1d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deA, 2d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deA, 3d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deA, 4d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deB, 5d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deB, 6d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deB, 7d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deB, 8d ) );
+
+        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
 
         assertNotNull( permutationMap );
 
@@ -372,56 +379,55 @@ public class QueryPlannerTest
         String ouBM1Key = ouB.getUid() + DIMENSION_SEP + "200101";
         String ouBM2Key = ouB.getUid() + DIMENSION_SEP + "200102";
 
-        Map<DimensionalItemObject, Double> ouAM1 = permutationMap.get( ouAM1Key );
-        Map<DimensionalItemObject, Double> ouAM2 = permutationMap.get( ouAM2Key );
-        Map<DimensionalItemObject, Double> ouBM1 = permutationMap.get( ouBM1Key );
-        Map<DimensionalItemObject, Double> ouBM2 = permutationMap.get( ouBM2Key );
+        List<DimensionItemObjectValue> ouAM1 = permutationMap.get( ouAM1Key );
+        List<DimensionItemObjectValue> ouAM2 = permutationMap.get( ouAM2Key );
+        List<DimensionItemObjectValue> ouBM1 = permutationMap.get( ouBM1Key );
+        List<DimensionItemObjectValue> ouBM2 = permutationMap.get( ouBM2Key );
 
         assertEquals( 2, ouAM1.size() );
         assertEquals( 2, ouAM2.size() );
         assertEquals( 2, ouBM1.size() );
         assertEquals( 2, ouBM2.size() );
 
-        BaseDimensionalItemObject deACoc = new BaseDimensionalItemObject( deA.getUid() );
-        BaseDimensionalItemObject deBCoc = new BaseDimensionalItemObject( deB.getUid() );
 
-        Map<DimensionalItemObject, Double> ouAM1Expected = new HashMap<>();
-        ouAM1Expected.put( deACoc, 1d );
-        ouAM1Expected.put( deBCoc, 5d );
+        List<DimensionItemObjectValue> ouAM1Expected = new ArrayList<>();
+        ouAM1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
+        ouAM1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
-        Map<DimensionalItemObject, Double> ouAM2Expected = new HashMap<>();
-        ouAM2Expected.put( deACoc, 2d );
-        ouAM2Expected.put( deBCoc, 6d );
+        List<DimensionItemObjectValue> ouAM2Expected = new ArrayList<>();
+        ouAM2Expected.add( new DimensionItemObjectValue( deA, 2d ) );
+        ouAM2Expected.add( new DimensionItemObjectValue( deB, 6d ) );
 
-        Map<DimensionalItemObject, Double> ouBM1Expected = new HashMap<>();
-        ouBM1Expected.put( deACoc, 3d );
-        ouBM1Expected.put( deBCoc, 7d );
+        List<DimensionItemObjectValue> ouBM1Expected = new ArrayList<>();
+        ouBM1Expected.add( new DimensionItemObjectValue( deA, 3d ) );
+        ouBM1Expected.add( new DimensionItemObjectValue( deB, 7d ) );
 
-        Map<DimensionalItemObject, Double> ouBM2Expected = new HashMap<>();
-        ouBM2Expected.put( deACoc, 4d );
-        ouBM2Expected.put( deBCoc, 8d );
+        List<DimensionItemObjectValue> ouBM2Expected = new ArrayList<>();
+        ouBM2Expected.add( new DimensionItemObjectValue( deA, 4d ) );
+        ouBM2Expected.add( new DimensionItemObjectValue( deB, 8d ) );
 
-        assertEquals( ouAM1Expected, ouAM1 );
-        assertEquals( ouAM2Expected, ouAM2 );
-        assertEquals( ouBM1Expected, ouBM1 );
-        assertEquals( ouBM2Expected, ouBM2 );
+        assertCollectionsMatch( ouAM1Expected, ouAM1 );
+        assertCollectionsMatch( ouAM2Expected, ouAM2 );
+        assertCollectionsMatch( ouBM1Expected, ouBM1 );
+        assertCollectionsMatch( ouBM2Expected, ouBM2 );
     }
 
     @Test
     public void testGetPermutationDimensionalItemValueMap()
     {
-        Map<String, Double> aggregatedDataMap = new HashMap<>();
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1", 1d );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2", 2d );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1", 3d );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2", 4d );
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = new ArrayListValuedHashMap<>();
 
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1", 5d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2", 6d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1", 7d );
-        aggregatedDataMap.put( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2", 8d );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1", new DimensionItemObjectValue( deA, 1d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2", new DimensionItemObjectValue( deA, 2d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1", new DimensionItemObjectValue( deA, 3d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2", new DimensionItemObjectValue( deA, 4d ) );
 
-        MapMap<String, DimensionalItemObject, Double> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
+        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q1"), new DimensionItemObjectValue( deB, 5d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q2"), new DimensionItemObjectValue( deB, 6d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q1"), new DimensionItemObjectValue( deB, 7d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q2"), new DimensionItemObjectValue( deB, 8d ) );
+
+        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
 
         assertNotNull( permutationMap );
 
@@ -430,39 +436,36 @@ public class QueryPlannerTest
         String ouBQ1Key = ouB.getUid() + DIMENSION_SEP + "2000Q1";
         String ouBQ2Key = ouB.getUid() + DIMENSION_SEP + "2000Q2";
 
-        Map<DimensionalItemObject, Double> ouAQ1 = permutationMap.get( ouAQ1Key );
-        Map<DimensionalItemObject, Double> ouAQ2 = permutationMap.get( ouAQ2Key );
-        Map<DimensionalItemObject, Double> ouBQ1 = permutationMap.get( ouBQ1Key );
-        Map<DimensionalItemObject, Double> ouBQ2 = permutationMap.get( ouBQ2Key );
+        List<DimensionItemObjectValue> ouAQ1 = permutationMap.get( ouAQ1Key );
+        List<DimensionItemObjectValue> ouAQ2 = permutationMap.get( ouAQ2Key );
+        List<DimensionItemObjectValue> ouBQ1 = permutationMap.get( ouBQ1Key );
+        List<DimensionItemObjectValue> ouBQ2 = permutationMap.get( ouBQ2Key );
 
         assertEquals( 2, ouAQ1.size() );
         assertEquals( 2, ouAQ2.size() );
         assertEquals( 2, ouBQ1.size() );
         assertEquals( 2, ouBQ2.size() );
 
-        BaseDimensionalItemObject deACoc = new BaseDimensionalItemObject( deA.getUid() );
-        BaseDimensionalItemObject deBCoc = new BaseDimensionalItemObject( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() );
+        List<DimensionItemObjectValue> ouAQ1Expected = new ArrayList<>();
+        ouAQ1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
+        ouAQ1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
-        Map<DimensionalItemObject, Double> ouAQ1Expected = new HashMap<>();
-        ouAQ1Expected.put( deACoc, 1d );
-        ouAQ1Expected.put( deBCoc, 5d );
+        List<DimensionItemObjectValue> ouAQ2Expected = new ArrayList<>();
+        ouAQ2Expected.add( new DimensionItemObjectValue( deA, 2d ) );
+        ouAQ2Expected.add( new DimensionItemObjectValue( deB, 6d ) );
 
-        Map<DimensionalItemObject, Double> ouAQ2Expected = new HashMap<>();
-        ouAQ2Expected.put( deACoc, 2d );
-        ouAQ2Expected.put( deBCoc, 6d );
+        List<DimensionItemObjectValue> ouBQ1Expected = new ArrayList<>();
+        ouBQ1Expected.add( new DimensionItemObjectValue( deA, 3d ) );
+        ouBQ1Expected.add( new DimensionItemObjectValue( deB, 7d ) );
 
-        Map<DimensionalItemObject, Double> ouBQ1Expected = new HashMap<>();
-        ouBQ1Expected.put( deACoc, 3d );
-        ouBQ1Expected.put( deBCoc, 7d );
+        List<DimensionItemObjectValue> ouBQ2Expected = new ArrayList<>();
+        ouBQ2Expected.add( new DimensionItemObjectValue( deA, 4d ) );
+        ouBQ2Expected.add( new DimensionItemObjectValue( deB, 8d ) );
 
-        Map<DimensionalItemObject, Double> ouBQ2Expected = new HashMap<>();
-        ouBQ2Expected.put( deACoc, 4d );
-        ouBQ2Expected.put( deBCoc, 8d );
-
-        assertEquals( ouAQ1Expected, ouAQ1 );
-        assertEquals( ouAQ2Expected, ouAQ2 );
-        assertEquals( ouBQ1Expected, ouBQ1 );
-        assertEquals( ouBQ2Expected, ouBQ2 );
+        assertCollectionsMatch( ouAQ1Expected, ouAQ1 );
+        assertCollectionsMatch( ouAQ2Expected, ouAQ2 );
+        assertCollectionsMatch( ouBQ1Expected, ouBQ1 );
+        assertCollectionsMatch( ouBQ2Expected, ouBQ2 );
     }
 
     /**
@@ -505,8 +508,8 @@ public class QueryPlannerTest
 
         assertEquals( 2, map.size() );
 
-        assertTrue( map.keySet().contains( createPeriod( "2000" ) ) );
-        assertTrue( map.keySet().contains( createPeriod( "2001" ) ) );
+        assertTrue( map.containsKey( createPeriod( "2000" ) ) );
+        assertTrue( map.containsKey( createPeriod( "2001" ) ) );
 
         assertEquals( 4, map.get( createPeriod( "2000" ) ).size() );
         assertEquals( 2, map.get( createPeriod( "2001" ) ).size() );
@@ -898,7 +901,7 @@ public class QueryPlannerTest
     {
         planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST );
     }
-    
+
     private void planQueryForFirstOrLastAggregationType(AnalyticsAggregationType analyticsAggregationType)
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -1211,6 +1214,18 @@ public class QueryPlannerTest
         for ( DimensionalObject filter : params.getFilters() )
         {
             assertNotNull( filter.getDimensionName() );
+        }
+    }
+
+    private void assertCollectionsMatch(List<DimensionItemObjectValue> collection, final List<DimensionItemObjectValue> in )
+    {
+        Function<String, Double> findValueByUid = ( String uid ) -> in.stream()
+                .filter( v -> v.getDimensionalItemObject().getUid().equals( uid ) ).findFirst().get().getValue();
+
+        for ( DimensionItemObjectValue dimensionItemObjectValue : collection )
+        {
+            final Double val = findValueByUid.apply( dimensionItemObjectValue.getDimensionalItemObject().getUid() );
+            assertEquals( val, dimensionItemObjectValue.getValue() );
         }
     }
 }

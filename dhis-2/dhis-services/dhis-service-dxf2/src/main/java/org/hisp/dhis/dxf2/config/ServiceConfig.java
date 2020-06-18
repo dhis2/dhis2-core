@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
@@ -99,7 +100,6 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @Configuration( "dxf2ServiceConfig" )
-@SuppressWarnings( "unchecked" )
 public class ServiceConfig
 {
     @Autowired
@@ -126,7 +126,7 @@ public class ServiceConfig
         Map<Class<? extends Throwable>, Boolean> exceptionMap = new HashMap<>();
         exceptionMap.put( MetadataSyncServiceException.class, true );
         SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(
-            Integer.parseInt( (String) maxAttempts.getObject() ), exceptionMap );
+                Integer.parseInt( (String) maxAttempts.getObject() ), exceptionMap );
 
         RetryTemplate retryTemplate = new RetryTemplate();
         retryTemplate.setBackOffPolicy( backOffPolicy );
@@ -135,65 +135,22 @@ public class ServiceConfig
         return retryTemplate;
     }
 
-    /*
-     * // @formatter:off
-        __  ___ ______ ______ ___     ____   ___   ______ ___
-       /  |/  // ____//_  __//   |   / __ \ /   | /_  __//   |
-      / /|_/ // __/    / /  / /| |  / / / // /| |  / /  / /| |
-     / /  / // /___   / /  / ___ | / /_/ // ___ | / /  / ___ |
-    /_/  /_//_____/  /_/  /_/  |_|/_____//_/  |_|/_/  /_/  |_|
-                                                              
-     * // @formatter:on
-     */
+    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
+            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
+            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
-    // @formatter:off
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class
-    // @formatter:on
-    );
+    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
+            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
-    // @formatter:off
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        CreationCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class
-    // @formatter:on
-    );
+    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
+            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
+            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
-    // @formatter:off
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        UpdateCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class
-    // @formatter:on
-    );
+    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
+            DeletionCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
-    // @formatter:off
-        SecurityCheck.class,
-        DeletionCheck.class
-    // @formatter:on
-    );
-
+    
     @Bean( "validatorMap" )
     public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
     {
@@ -205,17 +162,6 @@ public class ServiceConfig
             ImportStrategy.DELETE, DELETE_CHECKS );
         // @formatter:on
     }
-
-    /*
-     * // @formatter:off
-      ______ ____   ___    ______ __ __  ______ ____
-     /_  __// __ \ /   |  / ____// //_/ / ____// __ \
-      / /  / /_/ // /| | / /    / ,<   / __/  / /_/ /
-     / /  / _, _// ___ |/ /___ / /| | / /___ / _, _/
-    /_/  /_/ |_|/_/  |_|\____//_/ |_|/_____//_/ |_|
-
-     * // @formatter:on
-     */
 
     /*
      * TRACKER EVENT IMPORT VALIDATION
@@ -242,7 +188,7 @@ public class ServiceConfig
             AttributeOptionComboAclCheck.class,
             DataValueCheck.class,
             DataValueAclCheck.class
-        )
+            )
         );
         // @formatter:on
     }
@@ -272,7 +218,7 @@ public class ServiceConfig
     {
         // @formatter:off
         return ImmutableMap.of( DELETE, newArrayList(
-            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class
+                org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class
         ) );
         // @formatter:on
     }
@@ -318,5 +264,4 @@ public class ServiceConfig
         ) );
         // @formatter:on
     }
-
 }

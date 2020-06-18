@@ -71,9 +71,13 @@ public class TrackerController
     public static final String RESOURCE_PATH = "/tracker";
 
     private final TrackerImportService trackerImportService;
+
     private final RenderService renderService;
+
     private final ContextService contextService;
+
     private final TrackerMessageManager trackerMessageManager;
+
     private final Notifier notifier;
 
     public TrackerController(
@@ -92,11 +96,14 @@ public class TrackerController
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
-    public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser ) throws IOException
+    public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
+        throws IOException
     {
         TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        TrackerBundle trackerBundle = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( request.getInputStream(), TrackerBundleParams.class );
+        TrackerBundle trackerBundle = trackerBundleParams.toTrackerBundle();
         params.setTrackedEntities( trackerBundle.getTrackedEntities() );
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
@@ -119,7 +126,8 @@ public class TrackerController
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response ) throws HttpStatusCodeException
+    public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response )
+        throws HttpStatusCodeException
     {
         List<Notification> notifications = notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );
@@ -128,7 +136,8 @@ public class TrackerController
     }
 
     @GetMapping( value = "/jobs/{uid}/report", produces = MediaType.APPLICATION_JSON_VALUE )
-    public TrackerImportReport getJobReport( @PathVariable String uid, HttpServletResponse response ) throws HttpStatusCodeException
+    public TrackerImportReport getJobReport( @PathVariable String uid, HttpServletResponse response )
+        throws HttpStatusCodeException
     {
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );

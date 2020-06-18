@@ -29,21 +29,19 @@ package org.hisp.dhis.webapi.controller.sms;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -63,8 +61,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -80,21 +76,18 @@ public class SmsController
     private final RenderService renderService;
     private final SMSCommandService smsCommandService;
     private final UserService userService;
-    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
-    private final ProgramMessageService programMessageService;
     private final CurrentUserService currentUserService;
+    private final OutboundSmsService outboundSmsService;
 
     public SmsController(
-            @Qualifier( "smsMessageSender" ) MessageSender smsSender,
-            WebMessageService webMessageService,
-            IncomingSmsService incomingSMSService,
-            RenderService renderService,
-            SMSCommandService smsCommandService,
-            UserService userService,
-            @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-            IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore,
-            ProgramMessageService programMessageService,
-            CurrentUserService currentUserService )
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender,
+        WebMessageService webMessageService,
+        IncomingSmsService incomingSMSService,
+        RenderService renderService,
+        SMSCommandService smsCommandService,
+        UserService userService,
+        CurrentUserService currentUserService,
+        OutboundSmsService outboundSmsService )
     {
         this.smsSender = smsSender;
         this.webMessageService = webMessageService;
@@ -102,9 +95,8 @@ public class SmsController
         this.renderService = renderService;
         this.smsCommandService = smsCommandService;
         this.userService = userService;
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
-        this.programMessageService = programMessageService;
         this.currentUserService = currentUserService;
+        this.outboundSmsService = outboundSmsService;
     }
 
     // -------------------------------------------------------------------------
@@ -112,39 +104,36 @@ public class SmsController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
-    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/outbound/messages", method = RequestMethod.GET, produces = "application/json" )
+    public void getOutboundMessages( @RequestParam( required = false ) OutboundSmsStatus status, HttpServletResponse response ) throws IOException
     {
-        List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
+        response.setContentType( "application/json" );
 
-        if ( scheduledAt != null )
+        if ( status == null )
         {
-            instances = instances.parallelStream().filter( Objects::nonNull )
-                .filter( i -> scheduledAt.equals( i.getScheduledAt() ) )
-                .collect( Collectors.toList() );
+            renderService.toJson( response.getOutputStream(), outboundSmsService.getAllOutboundSms() );
+            return;
         }
 
-        renderService.toJson( response.getOutputStream(), instances );
+        renderService.toJson( response.getOutputStream(), outboundSmsService.getOutboundSms( status ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
-    public void getScheduledSentMessage(
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
-        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
+    @RequestMapping( value = "/inbound/messages", method = RequestMethod.GET, produces = "application/json" )
+    public void getInboundMessages( @RequestParam( required = false ) SmsMessageStatus status,
+        @RequestParam( required = false ) String originator,
         HttpServletResponse response ) throws IOException
     {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
-            null, page, pageSize, afterDate, null );
+        response.setContentType( "application/json" );
 
+        if ( status == null )
+        {
+            renderService.toJson( response.getOutputStream(), incomingSMSService.listAllMessage() );
+            return;
+        }
 
-        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
-
-        renderService.toJson( response.getOutputStream(), programMessages );
+        renderService.toJson( response.getOutputStream(), incomingSMSService.getSmsByStatus( status, originator ) );
     }
-
 
     // -------------------------------------------------------------------------
     // POST
@@ -245,6 +234,32 @@ public class SmsController
 
         webMessageService.send( WebMessageUtils.ok( "Import successful" ), response, request );
     }
+
+    // -------------------------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
+    public void deleteOutboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
+    {
+        ids.forEach( outboundSmsService::deleteById );
+
+        webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
+    }
+
+    @RequestMapping( value = "/inbound/message", method = RequestMethod.DELETE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
+    public void deleteInboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
+    {
+        ids.forEach( incomingSMSService::deleteById );
+
+        webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
+    }
+
+    // -------------------------------------------------------------------------
+    // SUPPORTIVE METHOD
+    // -------------------------------------------------------------------------
 
     private User getUserByPhoneNumber( String phoneNumber, String text ) throws WebMessageException
     {

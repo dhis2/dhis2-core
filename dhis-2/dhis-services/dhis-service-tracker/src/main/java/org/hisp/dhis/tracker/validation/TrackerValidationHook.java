@@ -28,8 +28,8 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.core.Ordered;
 
 import java.util.List;
@@ -39,11 +39,13 @@ import java.util.List;
  */
 public interface TrackerValidationHook extends Ordered
 {
-    List<TrackerErrorReport> validate( TrackerBundle bundle );
-
-    @Override
-    default int getOrder()
+    default boolean isEnabled()
     {
-        return Ordered.LOWEST_PRECEDENCE;
+        return true;
     }
+
+    ValidationErrorReporter validate( TrackerImportValidationContext bundle );
+
+    void setOrder( int order );
+
 }

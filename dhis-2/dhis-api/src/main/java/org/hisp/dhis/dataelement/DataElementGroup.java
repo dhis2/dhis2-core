@@ -137,7 +137,7 @@ public class DataElementGroup
     {
         return hasMembers() ? members.iterator().next().getPeriodType() : null;
     }
-    
+
     /**
      * Indicates whether this group has a period type.
      */
@@ -153,7 +153,7 @@ public class DataElementGroup
     {
         return members != null && !members.isEmpty();
     }
-    
+
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------

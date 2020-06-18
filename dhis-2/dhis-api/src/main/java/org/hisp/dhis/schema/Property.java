@@ -261,6 +261,11 @@ public class Property implements Ordered, Klass
     private String apiEndpoint;
 
     /**
+     * PropertyTransformer to apply to this property before and field filtering is applied.
+     */
+    private Class<? extends PropertyTransformer> propertyTransformer;
+
+    /**
      * Default value of the Property
      */
     private Object defaultValue;
@@ -540,7 +545,7 @@ public class Property implements Ordered, Klass
         return analyticalObject;
     }
 
-    public void setAnalyticalObject(boolean analyticalObject)
+    public void setAnalyticalObject( boolean analyticalObject )
     {
         this.analyticalObject = analyticalObject;
     }
@@ -710,19 +715,7 @@ public class Property implements Ordered, Klass
             return null;
         }
 
-        switch ( name )
-        {
-            case "name":
-                return TranslationProperty.NAME;
-            case "shortName":
-                return TranslationProperty.SHORT_NAME;
-            case "description":
-                return TranslationProperty.DESCRIPTION;
-            case "formName":
-                return TranslationProperty.FORM_NAME;
-        }
-
-        return null;
+        return TranslationProperty.fromValue( name );
     }
 
     @JsonProperty
@@ -774,6 +767,23 @@ public class Property implements Ordered, Klass
         this.apiEndpoint = apiEndpoint;
     }
 
+    @JsonProperty( "propertyTransformer" )
+    @JacksonXmlProperty( localName = "propertyTransformer", namespace = DxfNamespaces.DXF_2_0 )
+    public boolean hasPropertyTransformer()
+    {
+        return propertyTransformer != null;
+    }
+
+    public Class<? extends PropertyTransformer> getPropertyTransformer()
+    {
+        return propertyTransformer;
+    }
+
+    public void setPropertyTransformer( Class<? extends PropertyTransformer> propertyTransformer )
+    {
+        this.propertyTransformer = propertyTransformer;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Object getDefaultValue()
@@ -783,7 +793,7 @@ public class Property implements Ordered, Klass
 
     public void setDefaultValue( Object defaultValue )
     {
-        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ))
+        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ) )
         {
             this.defaultValue = defaultValue;
         }

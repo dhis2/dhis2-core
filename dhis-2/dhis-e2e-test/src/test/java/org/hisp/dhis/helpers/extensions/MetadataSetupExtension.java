@@ -28,7 +28,6 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -51,7 +50,7 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataSetupExtension
-    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
+        implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
 {
     private static boolean started = false;
 
@@ -75,14 +74,13 @@ public class MetadataSetupExtension
             new LoginActions().loginAsDefaultUser();
 
             String[] files = {
-                "src/test/resources/setup/userGroups.json",
-                "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/userRoles.json",
-                "src/test/resources/setup/users.json",
-                "src/test/resources/setup/metadata.json"
+                    "src/test/resources/setup/userGroups.json",
+                    "src/test/resources/setup/metadata.json",
+                    "src/test/resources/setup/metadata.json",
+                    "src/test/resources/setup/users.json"
             };
 
-            String queryParams = "async=false&sharing=true";
+            String queryParams = "async=false";
             for ( String fileName : files )
             {
                 metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
@@ -95,34 +93,25 @@ public class MetadataSetupExtension
 
             }
 
-            setupUsers();
+            setupSuperuser();
 
         }
     }
 
-    private void setupUsers()
+    private void setupSuperuser()
     {
-        logger.info( "Adding users to the TA user group" );
+        logger.info( "Setting up super user" );
         UserActions userActions = new UserActions();
-        String[] users =  {
-            TestConfiguration.get().superUserUsername(),
-            TestConfiguration.get().defaultUserUsername(),
-            TestConfiguration.get().adminUserUsername()
-        };
+        String userRoleId = "yrB6vc5Ip7r";
+        String userGroupId = "OPVIvvXzNTw";
 
-        String userGroupId = Constants.USER_GROUP_ID;
-
-
-        for ( String user : users )
-        {
-            String userId = userActions.get( String.format(
-                "?filter=userCredentials.username:eq:%s", user ))
+        String userId = userActions.get( "?filter=userCredentials.username:eq:" + TestConfiguration.get().superUserUsername() )
                 .extractString( "users.id[0]" );
 
-            userActions.addUserToUserGroup( userId, userGroupId );
-            TestRunStorage.removeEntity( "/users", userId );
-        }
+        userActions.addUserToUserGroup( userId, userGroupId );
+        userActions.addURoleToUser( userId, userRoleId );
 
+        TestRunStorage.removeEntity( "/users", userId );
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )
@@ -138,7 +127,7 @@ public class MetadataSetupExtension
 
     @Override
     public void close()
-        throws Throwable
+            throws Throwable
     {
         TestCleanUp testCleanUp = new TestCleanUp();
 
