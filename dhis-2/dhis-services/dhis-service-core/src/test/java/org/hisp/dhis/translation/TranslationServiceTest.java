@@ -209,4 +209,28 @@ public class TranslationServiceTest
 
         assertEquals( translatedValue, programSection.getDisplayFormName() );
     }
+
+    @Test
+    public void testRelationshipTypeFromAndToTranslation()
+    {
+        RelationshipType relationshipType = createRelationshipType( 'A' );
+
+        relationshipType.setFromToName( "From to name" );
+        relationshipType.setToFromName( "To from name" );
+
+        manager.save( relationshipType );
+
+        String fromToNameTranslated = "From to name translated";
+
+        String toFromNameTranslated = "To from name translated";
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME, toFromNameTranslated ) );
+        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME, fromToNameTranslated ) );
+
+        manager.updateTranslations( relationshipType, translations );
+
+        assertEquals( fromToNameTranslated, relationshipType.getDisplayFromToName() );
+        assertEquals( toFromNameTranslated, relationshipType.getDisplayToFromName() );
+    }
 }
