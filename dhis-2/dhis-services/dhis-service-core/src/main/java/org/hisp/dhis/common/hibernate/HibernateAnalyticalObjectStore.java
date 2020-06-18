@@ -40,6 +40,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
@@ -128,6 +130,22 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     {
         String hql = "from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)";
         return getQuery( hql ).setParameter( "organisationUnit", organisationUnit ).list();
+    }
+
+    @Override
+    public List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup )
+    {
+        String hql = "from " + clazz.getName()
+            + " c JOIN FETCH c.organisationUnitGroupSetDimensions d where :organisationUnitGroup in elements(d.items)";
+        return getQuery( hql ).setParameter( "organisationUnitGroup", organisationUnitGroup ).list();
+    }
+
+    @Override
+    public List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet )
+    {
+        String hql = "from " + clazz.getName()
+            + " c JOIN FETCH c.organisationUnitGroupSetDimensions d where :organisationUnitGroupSet = d.dimension";
+        return getQuery( hql ).setParameter( "organisationUnitGroupSet", organisationUnitGroupSet ).list();
     }
 
     @Override
