@@ -30,8 +30,6 @@ package org.hisp.dhis.visualization;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -40,7 +38,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.common.DimensionType;
 
@@ -48,42 +45,71 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * This class is used to hold the association between a dimension and its type.
+ * Its main goal is to track the associations across dynamic dimensions and
+ * their actual type.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 public class DimensionDescriptor
 {
-    private String value;
+    private String dimension;
 
     private DimensionType type;
 
-    public boolean hasAbbreviation( final String abbreviation )
+    public boolean hasDimension( final String dimension )
     {
-        return trimToEmpty( abbreviation ).equalsIgnoreCase( trimToEmpty( getValue() ) );
+        return trimToEmpty( dimension ).equalsIgnoreCase( trimToEmpty( getDimension() ) );
     }
 
-    public static String retrieveDescriptiveValue( final List<DimensionDescriptor> dimensionDescriptors,
-        final String valueToRetrieve, final Map<String, String> metaData )
+    /**
+     * Based on the given dimension and the given DimensionDescriptor list, this
+     * method will retrieve the respective dimension identifier. See the examples
+     * below.
+     *
+     * For regular dimensions: a "dimension" `dx` will have a type of
+     * {@link DimensionType#DATA_X}. Hence the dimension identifier returned will be
+     * `dx`.
+     *
+     * For dynamic dimensions: a "dimension" `mq4jAnN6fg3` (of an org unit, for
+     * example), will have a type of {@link DimensionType#ORGANISATION_UNIT}. Hence
+     * the dimension identifier returned by this method will be `ou`.
+     * 
+     * @param dimensionDescriptors the list of descriptors to be compared.
+     * @param dimension the value to be retrieved from the list of
+     *        dimensionDescriptors
+     * @return the respective descriptive value
+     */
+    public static String getDimensionIdentifierFor( final String dimension,
+        final List<DimensionDescriptor> dimensionDescriptors )
     {
-        String descriptiveValue = EMPTY;
-
         if ( isNotEmpty( dimensionDescriptors ) )
         {
+            // For each dimension descriptor
             for ( final DimensionDescriptor dimensionDescriptor : dimensionDescriptors )
             {
-                if ( dimensionDescriptor.hasAbbreviation( valueToRetrieve ) )
+                if ( dimensionDescriptor.hasDimension( dimension ) )
                 {
-                    return !equalsIgnoreCase( dimensionDescriptor.getDescriptiveValue(), EMPTY )
-                        ? dimensionDescriptor.getDescriptiveValue()
-                        : defaultIfEmpty( metaData.get( valueToRetrieve ), valueToRetrieve );
+                    // Returns the string/value associated with the dimension type.
+                    return dimensionDescriptor.getDimensionIdentifier();
                 }
             }
         }
 
-        return descriptiveValue;
+        return dimension;
     }
 
-    private String getDescriptiveValue()
+    /**
+     * This method will return the respective dimension identifier associated with
+     * the current dimension {@link #type}.
+     * 
+     * @return the dimension identifier. See
+     *         {@link org.hisp.dhis.common.DimensionalObject} for the list of
+     *         possible dimension identifiers.
+     */
+    private String getDimensionIdentifier()
     {
         switch ( getType() )
         {

@@ -1004,7 +1004,7 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : columns )
             {
-                visualization.holdDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
 
                 visualization.getColumnDimensions().add( dimension );
                 tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
@@ -1015,7 +1015,7 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : rows )
             {
-                visualization.holdDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
 
                 visualization.getRowDimensions().add( dimension );
                 tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );

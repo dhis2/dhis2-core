@@ -47,7 +47,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.visualization.DimensionDescriptor.retrieveDescriptiveValue;
+import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.util.ArrayList;
@@ -343,7 +343,7 @@ public class Visualization
 
     private transient List<List<DimensionalItemObject>> gridRows = new ArrayList<>();
 
-    private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>( 0 );
+    private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>();
 
     public Visualization()
     {
@@ -1029,8 +1029,8 @@ public class Visualization
     }
 
     /**
-     * Returns the list of DimensionDescriptor held internaly to the current Visualization object.
-     * See {@link #holdDimensionDescriptor}.
+     * Returns the list of DimensionDescriptor held internally to the current Visualization object.
+     * See {@link #addDimensionDescriptor}.
      *
      * @return the list of DimensionDescriptor's held.
      */
@@ -1043,11 +1043,11 @@ public class Visualization
      * This method will hold the mapping of a dimension and its respective formal
      * type.
      *
-     * @param dimension: the dimension, which should also be found in
+     * @param dimension the dimension, which should also be found in
      *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
-     * @param dimensionType: the formal dimension type. See {@link DimensionType}
+     * @param dimensionType the formal dimension type. See {@link DimensionType}
      */
-    public void holdDimensionDescriptor( final String dimension, final DimensionType dimensionType )
+    public void addDimensionDescriptor( final String dimension, final DimensionType dimensionType )
     {
         this.dimensionDescriptors.add( new DimensionDescriptor( dimension, dimensionType ) );
     }
@@ -1409,11 +1409,11 @@ public class Visualization
         final Map<String, String> metaData = getMetaData();
         metaData.putAll( PRETTY_NAMES );
 
-        for ( String row : rowDimensions )
+        for ( String dimension : rowDimensions )
         {
-            final String descriptiveValue = retrieveDescriptiveValue( getDimensionDescriptors(), row, metaData );
-            final String name = defaultIfEmpty( metaData.get( descriptiveValue ), row );
-            final String col = defaultIfEmpty( COLUMN_NAMES.get( descriptiveValue ), row );
+            final String dimensionId = getDimensionIdentifierFor( dimension, getDimensionDescriptors() );
+            final String name = defaultIfEmpty( metaData.get( dimensionId ), dimensionId );
+            final String col = defaultIfEmpty( COLUMN_NAMES.get( dimensionId ), dimensionId );
 
             grid.addHeader( new GridHeader( name + " ID", col + "id", TEXT, String.class.getName(), true, true ) );
             grid.addHeader( new GridHeader( name, col + "name", TEXT, String.class.getName(), false, true ) );

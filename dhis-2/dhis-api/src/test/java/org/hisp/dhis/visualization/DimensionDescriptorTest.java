@@ -28,19 +28,16 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PRETTY_NAMES;
-import static org.hisp.dhis.visualization.DimensionDescriptor.retrieveDescriptiveValue;
+import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
 import static org.junit.Assert.assertThat;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.common.DimensionType;
 import org.junit.Test;
@@ -48,7 +45,7 @@ import org.junit.Test;
 public class DimensionDescriptorTest
 {
     @Test
-    public void testHasAbbreviationWithSuccess()
+    public void testHasDimensionWithSuccess()
     {
         // Given
         final String anyDimensionValue = "dx";
@@ -57,14 +54,14 @@ public class DimensionDescriptorTest
         final String dimensionAbbreviation = "dx";
 
         // When
-        final boolean actualResult = aDimensionDescriptor.hasAbbreviation( dimensionAbbreviation );
+        final boolean actualResult = aDimensionDescriptor.hasDimension( dimensionAbbreviation );
 
         // Then
         assertThat( actualResult, is( true ) );
     }
 
     @Test
-    public void testHasAbbreviationFails()
+    public void testHasDimensionFails()
     {
         // Given
         final String anyDimensionValue = "dx";
@@ -73,7 +70,7 @@ public class DimensionDescriptorTest
         final String nonExistingDimensionAbbreviation = "ou";
 
         // When
-        final boolean actualResult = aDimensionDescriptor.hasAbbreviation( nonExistingDimensionAbbreviation );
+        final boolean actualResult = aDimensionDescriptor.hasDimension( nonExistingDimensionAbbreviation );
 
         // Then
         assertThat( actualResult, is( false ) );
@@ -85,11 +82,11 @@ public class DimensionDescriptorTest
         // Given
         final String anyDimensionDynamicValue = "ZyxerTyuP";
         final List<DimensionDescriptor> someDimensionDescriptors = mockDimensionDescriptors( anyDimensionDynamicValue );
-        final String aValueToRetrieve = "dx";
-        final Map<String, String> metaData = mockMetaData();
+        final String theDimensionToRetrieve = "dx";
 
         // When
-        final String actualResult = retrieveDescriptiveValue( someDimensionDescriptors, aValueToRetrieve, metaData );
+        final String actualResult = getDimensionIdentifierFor( theDimensionToRetrieve,
+            someDimensionDescriptors );
 
         // Then
         assertThat( actualResult, is( DATA_X_DIM_ID ) );
@@ -99,33 +96,23 @@ public class DimensionDescriptorTest
     public void testRetrieveDescriptiveValueDynamicValue()
     {
         // Given
-        final String theDimensionDynamicValueToRetrieve = "ZyxerTyuP";
+        final String theDynamicDimensionToRetrieve = "ZyxerTyuP";
         final List<DimensionDescriptor> someDimensionDescriptors = mockDimensionDescriptors(
-            theDimensionDynamicValueToRetrieve );
-        final Map<String, String> metaData = mockMetaData();
+            theDynamicDimensionToRetrieve );
 
         // When
-        final String actualResult = retrieveDescriptiveValue( someDimensionDescriptors,
-            theDimensionDynamicValueToRetrieve,
-            metaData );
+        final String actualResult = getDimensionIdentifierFor( theDynamicDimensionToRetrieve,
+            someDimensionDescriptors );
 
         // Then
         assertThat( actualResult, is( ORGUNIT_DIM_ID ) );
     }
 
-    private List<DimensionDescriptor> mockDimensionDescriptors( final String aDynamicValue )
+    private List<DimensionDescriptor> mockDimensionDescriptors( final String orgUnitDynamicDimension )
     {
         final DimensionDescriptor dx = new DimensionDescriptor( "dx", DATA_X );
-        final DimensionDescriptor dynamicOu = new DimensionDescriptor( aDynamicValue, ORGANISATION_UNIT );
+        final DimensionDescriptor dynamicOu = new DimensionDescriptor( orgUnitDynamicDimension, ORGANISATION_UNIT );
 
-        return Arrays.asList( dx, dynamicOu );
-    }
-
-    private Map<String, String> mockMetaData()
-    {
-        final Map<String, String> metaData = new HashMap<>();
-        metaData.putAll( PRETTY_NAMES );
-
-        return metaData;
+        return asList( dx, dynamicOu );
     }
 }
