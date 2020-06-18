@@ -73,21 +73,6 @@ public abstract class AbstractSpringSecurityCurrentUserService
         return userDetails.getUsername();
     }
 
-    @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        UserDetails userDetails = getCurrentUserDetails();
-
-        if ( userDetails == null )
-        {
-            return new HashSet<>();
-        }
-
-        return userDetails.getAuthorities().stream()
-            .map( GrantedAuthority::getAuthority )
-            .collect( Collectors.toSet() );
-    }
-
     /**
      * Returns the current UserDetails, or null of there is no
      * current user or if principal is not of type UserDetails.
@@ -103,11 +88,5 @@ public abstract class AbstractSpringSecurityCurrentUserService
         }
 
         return (UserDetails) authentication.getPrincipal();
-    }
-
-    @Override
-    public void clearCurrentUser()
-    {
-        SecurityContextHolder.clearContext();
     }
 }

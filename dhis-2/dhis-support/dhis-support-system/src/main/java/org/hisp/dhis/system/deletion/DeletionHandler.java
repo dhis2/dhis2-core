@@ -36,8 +36,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -936,24 +934,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteOAuth2Client( OAuth2Client oAuth2Client )
-    {
-        return null;
-    }
-
-    public void deleteColorSet( ColorSet colorSet )
-    {
-    }
-
-    public String allowDeleteColorSet( ColorSet colorSet )
-    {
-        return null;
-    }
-
-    public void deleteColor( Color color )
-    {
-    }
-
-    public String allowDeleteColor( Color color )
     {
         return null;
     }
