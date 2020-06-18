@@ -66,7 +66,7 @@ public class OrderingHelper
     {
         if ( sortingParams != null && isNotEmpty( dimensionalItems ) )
         {
-            final ComparatorChain<BaseDimensionalItemObject> chainOfComparators = new ComparatorChain();
+            final ComparatorChain<BaseDimensionalItemObject> chainOfComparators = new ComparatorChain<>();
             final Set<String> orderingPairs = sortingParams.getOrders();
 
             if ( sortingParams != null && isNotEmpty( orderingPairs ) )
@@ -76,12 +76,12 @@ public class OrderingHelper
                     chainOfComparators.addComparator( getComparator( orderingPair ) );
                 }
 
-                Collections.sort( dimensionalItems, chainOfComparators );
+                dimensionalItems.sort( chainOfComparators );
             }
         }
     }
 
-    private static Comparator getComparator( final String orderingParam )
+    private static Comparator<BaseDimensionalItemObject> getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );
         final boolean hasValidOrderingAttributes = orderingAttributes != null & orderingAttributes.length == 2;
@@ -89,7 +89,7 @@ public class OrderingHelper
         if ( hasValidOrderingAttributes )
         {
             final BeanComparator<BaseDimensionalItemObject> comparator = new BeanComparator(
-                orderingAttributes[ORDERING_ATTRIBUTE], new NullComparator( true ) );
+                orderingAttributes[ORDERING_ATTRIBUTE], new NullComparator<>( true ) );
 
             if ( DESC.equals( orderingAttributes[ORDERING_VALUE] ) )
             {

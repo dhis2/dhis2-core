@@ -150,8 +150,6 @@ public class DataItemQueryController
         final List<String> filters = newArrayList( contextService.getParameterValues( FILTER ) );
         final WebOptions options = new WebOptions( urlParameters );
 
-        // checkPaginationSupport( filters );
-
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.ALL.getFields() );
