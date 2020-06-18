@@ -287,6 +287,13 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
+        Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
+        assertNotNull( dataElementOperandVisualization );
+        assertEquals( 2, dataElementOperandVisualization.getDataDimensionItems().size() );
+        dataElementOperandVisualization.getDataDimensionItems()
+            .stream()
+            .forEach( item -> assertNotNull( item.getDataElementOperand() ) );
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
             RenderFormat.JSON );
