@@ -91,7 +91,6 @@ import com.google.common.collect.Sets;
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
-@Ignore // FIXME LUCIANO temporarily ignoring to allow the build to pass
 public class ProgramRuleEngineTest extends DhisSpringTest
 {
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd" );

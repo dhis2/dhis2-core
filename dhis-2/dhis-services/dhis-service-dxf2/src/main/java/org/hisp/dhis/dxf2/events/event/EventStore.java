@@ -103,7 +103,14 @@ public interface EventStore
             "where uid = ?;";                   // 19
         // @formatter:on
 
-    String UPDATE_TEI_SQL = "update trackedentityinstance set lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy where uid in (:uids)";
+    /**
+     * Updates Tracked Entity Instance after an event update. In order to prevent
+     * deadlocks, SELECT ... FOR UPDATE SKIP LOCKED is used before the actual UPDATE
+     * statement. This prevents deadlocks when Postgres tries to update the same
+     * TEI.
+     */
+    String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
+        "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
 
     /**
      * Inserts a List of {@see ProgramStageInstance}, including notes and Data
