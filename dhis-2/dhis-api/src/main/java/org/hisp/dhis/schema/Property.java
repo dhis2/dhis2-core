@@ -705,19 +705,7 @@ public class Property implements Ordered, Klass
             return null;
         }
 
-        switch ( name )
-        {
-            case "name":
-                return TranslationProperty.NAME;
-            case "shortName":
-                return TranslationProperty.SHORT_NAME;
-            case "description":
-                return TranslationProperty.DESCRIPTION;
-            case "formName":
-                return TranslationProperty.FORM_NAME;
-        }
-
-        return null;
+        return TranslationProperty.fromValue( name );
     }
 
     @JsonProperty
