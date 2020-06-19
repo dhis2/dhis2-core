@@ -7,7 +7,7 @@
 	<!-- Web Portal -->
   
    <context:component-scan base-package="org.hisp.dhis.configuration" />
- 
+
 
   <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
     <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
@@ -509,6 +509,8 @@
   <bean id="org.hisp.dhis.interceptor.I18nInterceptor" class="org.hisp.dhis.interceptor.I18nInterceptor">
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService"/>
   </bean>
 
   <bean id="org.hisp.dhis.interceptor.SystemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor">
