@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -886,5 +887,20 @@ public class AnalyticsUtils
     {
         return periods.stream().map( d -> (Period) d ).map( Period::getIsoDate )
             .anyMatch( date -> date.equals( period ) );
+    }
+
+    /**
+     * Filters a List by Dimensional Item Object UID and returns one ore more
+     * {@see DimensionalItemObject} matching the given UID
+     *
+     * @param uid a uid to filter {@see DimensionalItemObject} on
+     * @param items the filtered List
+     * @return a List only containing the {@see DimensionalItemObject} matching the
+     *         uid
+     */
+    public static List<DimensionalItemObject> findDimensionalItems( String uid, List<DimensionalItemObject> items )
+    {
+        return items.stream().filter( dio -> dio.getUid() != null && dio.getUid().equals( uid ) )
+            .collect( Collectors.toList() );
     }
 }

@@ -1401,7 +1401,7 @@ public class DefaultAnalyticsService
                     ArrayUtils.remove( row.toArray( new Object[0] ), valueIndex ),
                     DimensionalObject.DIMENSION_SEP );
 
-                final DimensionalItemObject dimensionalItemObject = findDimensionalItem( (String) row.get( dataIndex ), items ).get( 0 );
+                final DimensionalItemObject dimensionalItemObject = AnalyticsUtils.findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
                 DimensionalItemObject clone = dimensionalItemObject;
                 if ( dimensionalItemObject.getPeriodOffset() != 0 )
                 {
@@ -1424,19 +1424,6 @@ public class DefaultAnalyticsService
         }
         
         return result;
-    }
-
-    /**
-     * Filters by uid and returns one ore more {@see DimensionalItemObject} from a
-     * List
-     * 
-     * @param uid a uid to filter {@see DimensionalItemObject} on
-     * @param items the filtered List
-     * @return a List only containing the  {@see DimensionalItemObject} matching the uid
-     */
-    private List<DimensionalItemObject> findDimensionalItem( String uid, List<DimensionalItemObject> items )
-    {
-        return items.stream().filter( dio -> dio.getUid().equals( uid ) ).collect( Collectors.toList() );
     }
 
     /**
