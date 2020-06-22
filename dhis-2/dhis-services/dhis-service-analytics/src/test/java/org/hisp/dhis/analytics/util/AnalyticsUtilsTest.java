@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -605,5 +606,18 @@ public class AnalyticsUtilsTest
         assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
         assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType() ), 0 ) ;
         assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
+    }
+    
+    @Test
+    public void testIsPeriodInPeriods()
+    {
+        Period p1 = PeriodType.getPeriodFromIsoString( "202001" );
+        Period p2 = PeriodType.getPeriodFromIsoString( "202002" );
+        Period p3 = PeriodType.getPeriodFromIsoString( "202003" );
+
+        List<DimensionalItemObject> periods = Lists.newArrayList( p1, p2, p3 );
+
+        assertTrue( AnalyticsUtils.isPeriodInPeriods( "202001", periods ) );
+        assertFalse( AnalyticsUtils.isPeriodInPeriods( "202005", periods ) );
     }
 }

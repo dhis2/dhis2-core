@@ -873,4 +873,18 @@ public class AnalyticsUtils
     {
         throw new IllegalQueryException( new ErrorMessage( errorCode, args ) );
     }
+
+    /**
+     * Checks of the given Period string (iso) matches at least one Periods in the
+     * given list
+     * 
+     * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
+     * @param periods a List of DimensionalItemObject of type Period
+     * @return true, if the Period is found in the list
+     */
+    public static boolean isPeriodInPeriods( String period, List<DimensionalItemObject> periods )
+    {
+        return periods.stream().map( d -> (Period) d ).map( Period::getIsoDate )
+            .anyMatch( date -> date.equals( period ) );
+    }
 }

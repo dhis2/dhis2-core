@@ -42,7 +42,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.validator.Var;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -629,7 +628,6 @@ public class DefaultDimensionService
             {
                 itemObjectMap.put( id, dimensionalItemObject );
             }
-
         }
 
         return itemObjectMap;
