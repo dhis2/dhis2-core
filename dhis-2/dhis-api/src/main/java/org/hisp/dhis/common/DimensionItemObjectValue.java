@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.data;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -34,7 +34,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 
 @Getter
 @AllArgsConstructor
-public class DimensionItemWithValue
+public class DimensionItemObjectValue
 {
     private final DimensionalItemObject dimensionalItemObject;
 

@@ -50,7 +50,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.data.DimensionItemWithValue;
+import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -1704,10 +1704,10 @@ public class DataQueryParams
      * @return a mapping of permutation keys and mappings of data element operands
      *         and values.
      */
-    public static Map<String, List<DimensionItemWithValue>> getPermutationDimensionalItemValueMap(
-        MultiValuedMap<String, DimensionItemWithValue> aggregatedDataMap )
+    public static Map<String, List<DimensionItemObjectValue>> getPermutationDimensionalItemValueMap(
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap )
     {
-        Map<String, List<DimensionItemWithValue>> permutationMap = new HashMap<>();
+        Map<String, List<DimensionItemObjectValue>> permutationMap = new HashMap<>();
 
         for ( String key : aggregatedDataMap.keySet() )
         {
@@ -1715,12 +1715,12 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
             keys.remove( DX_INDEX );
 
-            final Collection<DimensionItemWithValue> dimensionItemWithValues = aggregatedDataMap.get( key );
+            final Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
 
             // Generate final permutation key
             final String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
-            for ( DimensionItemWithValue dimWithValue : dimensionItemWithValues )
+            for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues)
             {
                 //Number number = dimWithValue.getValue();
 

@@ -80,6 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -112,10 +113,10 @@ import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -500,7 +501,7 @@ public class DefaultAnalyticsService
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
 
-            Map<String, List<DimensionItemWithValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
+            Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
 
             handleEmptyDimensionItemPermutations( dimensionItemPermutations );
 
@@ -510,7 +511,7 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    final List<DimensionItemWithValue> valueMap = permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
+                    final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
 
                     List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
                         : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
@@ -522,7 +523,7 @@ public class DefaultAnalyticsService
                     Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null ? permutationOrgUnitTargetMap.get( ou ) : null;
 
                     IndicatorValue value = expressionService.getIndicatorValueObject( indicator, periods,
-                        convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
+                        DimensionalObjectUtils.convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
 
                     if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
@@ -1329,7 +1330,7 @@ public class DefaultAnalyticsService
      * @param params the {@link DataQueryParams}.
      * @return
      */
-    private Map<String, List<DimensionItemWithValue>> getPermutationDimensionItemValueMap( DataQueryParams params )
+    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap(DataQueryParams params )
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
@@ -1348,8 +1349,8 @@ public class DefaultAnalyticsService
      * @param indicators the list of indicators.
      * @return a dimensional items to aggregate values map.
      */
-    private MultiValuedMap<String, DimensionItemWithValue> getAggregatedDataValueMap( DataQueryParams params,
-        List<Indicator> indicators )
+    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap(DataQueryParams params,
+                                                                                       List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists
                 .newArrayList( expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
@@ -1374,11 +1375,19 @@ public class DefaultAnalyticsService
 
         // Each row in the Grid contains: dimension uid | period | value
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
-        final int periodIndex = grid.getIndexOfHeader( PERIOD_DIM_ID );
-        final int dataIndex = grid.getIndexOfHeader( DATA_X_DIM_ID );
-        final int valueIndex = grid.getWidth() - 1;
+        MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
-        MultiValuedMap<String, DimensionItemWithValue> result = new ArrayListValuedHashMap<>();
+        if ( grid.getRows().size() == 0 )
+        {
+            return result;
+        }
+
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex ) 
+                -> index == -1 ? defaultIndex : index;
+
+        final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
+        final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
+        final int valueIndex = grid.getWidth() - 1;
 
         final List<DimensionalItemObject> basePeriods = params.getPeriods();
 
@@ -1401,7 +1410,7 @@ public class DefaultAnalyticsService
                     if ( periodOffsetRow != null )
                     {
                         result.put( key,
-                            new DimensionItemWithValue( dimensionalItemObject,
+                            new DimensionItemObjectValue( dimensionalItemObject,
                                 (Double) periodOffsetRow.get( valueIndex ) ) );
 
                     } // TODO throw exception?
@@ -1410,7 +1419,7 @@ public class DefaultAnalyticsService
                 }
 
                 result.put( key,
-                    new DimensionItemWithValue( clone, (Double) row.get( valueIndex ) ) );
+                    new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
             }
         }
         
@@ -1460,26 +1469,6 @@ public class DefaultAnalyticsService
         {
             dimensionItemPermutations.add( new ArrayList<>() );
         }
-    }
-
-    /**
-     * Transforms a List of {@see DimensionItemWithValue} into a Map where:
-     * 
-     * key -> DimensionalItemObject value -> the value of the DimensionalItemObject
-     * 
-     */
-    private Map<DimensionalItemObject, Double> convertToDimItemValueMap(
-        List<DimensionItemWithValue> dimensionItemWithValues )
-    {
-        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
-        for ( DimensionItemWithValue dimensionItemWithValue : dimensionItemWithValues )
-        {
-            final BaseDimensionalItemObject dimItem = (BaseDimensionalItemObject) dimensionItemWithValue
-                .getDimensionalItemObject();
-
-            valueMap.put( dimItem, dimensionItemWithValue.getValue() );
-        }
-        return valueMap;
     }
 
     /**

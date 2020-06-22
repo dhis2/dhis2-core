@@ -725,4 +725,15 @@ public class DimensionalObjectUtils
             .map( DimensionalItemObject::getShortName )
             .collect( Collectors.joining( COL_SEP ) );
     }
+
+    /**
+     * Transforms a List of {@see DimensionItemObjectValue} into a Map of
+     * {@see DimensionalItemObject} and value
+     */
+    public static Map<DimensionalItemObject, Double> convertToDimItemValueMap(
+        List<DimensionItemObjectValue> dimensionItemObjectValues )
+    {
+        return dimensionItemObjectValues.stream().collect( Collectors
+            .toMap( DimensionItemObjectValue::getDimensionalItemObject, DimensionItemObjectValue::getValue ) );
+    }
 }
