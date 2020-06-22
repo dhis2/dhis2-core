@@ -342,7 +342,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         String sql = "select dv.dataelementid, dv.periodid, " + orgUnitId +
             ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
-            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup" +
+            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted" +
             " from datavalue dv";
 
         String where = "";
@@ -470,10 +470,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             Date lastUpdated = rowSet.getDate( 9 );
             String comment = rowSet.getString( 10 );
             boolean followup = rowSet.getBoolean( 11 );
+            boolean deleted = rowSet.getBoolean( 12 );
 
             result.add( new DeflatedDataValue( dataElementId, periodId,
                 organisationUnitId, categoryOptionComboId, attributeOptionComboId,
-                value, storedBy, created, lastUpdated, comment, followup ) );
+                value, storedBy, created, lastUpdated, comment, followup, deleted ) );
         }
 
         log.debug( result.size() + " DeflatedDataValues returned from: " + sql );
