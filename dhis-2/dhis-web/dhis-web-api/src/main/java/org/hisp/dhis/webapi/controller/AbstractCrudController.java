@@ -229,8 +229,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( options.hasPaging() && pager == null )
         {
-            long count = paginationCountCache.computeIfAbsent(
-                calculatePaginationCountKey( currentUser, filters, options ), () -> count( options, filters, orders ) );
+            long count;
+            if ( options.getOptions().containsKey( "query" ) )
+            {
+                count = entities.size();
+                entities = entities.stream().skip( (options.getPage() - 1) * options.getPageSize() ).limit( options.getPageSize() ).collect( Collectors.toList() );
+            }
+            else
+            {
+                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( metadata, options, filters, orders ) );
+            }
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
