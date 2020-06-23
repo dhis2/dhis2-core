@@ -100,9 +100,4 @@ public interface DimensionalItemObject
      * @return an int.
      */
     int getPeriodOffset();
-
-    /**
-     * Set the Period Offset to 0
-     */
-    void resetPeriodOffset();
 }

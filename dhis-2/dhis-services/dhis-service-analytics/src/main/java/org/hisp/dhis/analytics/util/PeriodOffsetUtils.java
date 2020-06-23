@@ -41,6 +41,7 @@ import org.hisp.dhis.period.PeriodType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
@@ -183,8 +184,11 @@ public class PeriodOffsetUtils
             return null;
         }
 
-        final int dataIndex = grid.getIndexOfHeader( DATA_X_DIM_ID );
-        final int periodIndex = grid.getIndexOfHeader( PERIOD_DIM_ID );
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex )
+                -> index == -1 ? defaultIndex : index;
+
+        final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
+        final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
 
         Period shifted = offset != 0 ? shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), offset )
             : PeriodType.getPeriodFromIsoString( isoPeriod );

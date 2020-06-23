@@ -1328,9 +1328,8 @@ public class DefaultAnalyticsService
      * and values based on the given query.
      *
      * @param params the {@link DataQueryParams}.
-     * @return
      */
-    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap(DataQueryParams params )
+    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap( DataQueryParams params )
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
@@ -1403,6 +1402,7 @@ public class DefaultAnalyticsService
 
                 final DimensionalItemObject dimensionalItemObject = AnalyticsUtils.findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
                 DimensionalItemObject clone = dimensionalItemObject;
+                // 
                 if ( dimensionalItemObject.getPeriodOffset() != 0 )
                 {
                     List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
@@ -1415,7 +1415,6 @@ public class DefaultAnalyticsService
 
                     } // TODO throw exception?
                     clone = SerializationUtils.clone( dimensionalItemObject );
-                    clone.resetPeriodOffset();
                 }
 
                 result.put( key,

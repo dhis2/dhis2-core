@@ -175,14 +175,8 @@ public class BaseDimensionalItemObject
     {
         return periodOffset;
     }
-
-    @Override
-    public void resetPeriodOffset()
-    {
-        this.periodOffset = 0;
-    }
-
-    public void setPeriodOffset(int periodOffset )
+    
+    public void setPeriodOffset( int periodOffset )
     {
         this.periodOffset = periodOffset;
     }
