@@ -49,15 +49,13 @@ public class ProgramStageInstanceBasicCheck
 
         if ( programStageInstance == null )
         {
-            final ImportSummary error = error( "ID " + event.getEvent() + " doesn't point to valid event",
+            final ImportSummary error = error( "Event ID " + event.getEvent() + " doesn't point to valid event",
                 event.getEvent() );
             error.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
 
             return error;
         }
-
-        if ( programStageInstance != null
-            && (programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate()) )
+        else if ( programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate() )
         {
             return error(
                 "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )

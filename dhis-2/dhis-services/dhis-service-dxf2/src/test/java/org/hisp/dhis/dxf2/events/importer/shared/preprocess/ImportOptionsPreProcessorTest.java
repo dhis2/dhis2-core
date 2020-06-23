@@ -81,21 +81,4 @@ public class ImportOptionsPreProcessorTest
         subject.process( new Event(), wc );
     }
 
-    @Test
-    public void verifyGetUserIfNull()
-    {
-        ImportOptions importOptions = new ImportOptions();
-        importOptions.setUser( null );
-        // @formatter:off
-        WorkContext wc = WorkContext.builder()
-            .serviceDelegator( this.serviceDelegator )
-            .importOptions( importOptions )
-            .build();
-        // @formatter:on
-
-        when( serviceDelegator.getCurrentUserService() ).thenReturn( this.currentUserService );
-        when( currentUserService.getCurrentUser() ).thenReturn( new User() );
-        subject.process( new Event(), wc );
-    }
-
 }
