@@ -237,7 +237,7 @@ public class AttributeOptionComboLoader
         {
             id = categoryCombo.getCode();
         }
-        else if ( idScheme.is( IdentifiableProperty.ID ) )
+        else if ( idScheme.is( IdentifiableProperty.NAME ) )
         {
             id = categoryCombo.getName();
         }
