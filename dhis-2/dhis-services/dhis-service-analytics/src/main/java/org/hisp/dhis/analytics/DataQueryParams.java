@@ -1720,10 +1720,8 @@ public class DataQueryParams
             // Generate final permutation key
             final String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
-            for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues)
+            for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues )
             {
-                //Number number = dimWithValue.getValue();
-
                 if ( !permutationMap.containsKey( permKey ) )
                 {
                     permutationMap.put( permKey, Lists.newArrayList( dimWithValue ) );

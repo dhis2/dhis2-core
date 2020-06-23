@@ -61,7 +61,6 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -315,7 +314,9 @@ public class QueryPlannerTest
         aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q1" ), new DimensionItemObjectValue( deB, 7d ) );
         aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q2" ), new DimensionItemObjectValue( deB, 8d ) );
 
-        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
+        // Method under test //
+        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams
+            .getPermutationDimensionalItemValueMap( aggregatedDataMap );
 
         assertNotNull( permutationMap );
 
@@ -334,29 +335,26 @@ public class QueryPlannerTest
         assertEquals( 2, ouBQ1.size() );
         assertEquals( 2, ouBQ2.size() );
 
-        BaseDimensionalItemObject deACoc = new BaseDimensionalItemObject( deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() );
-        BaseDimensionalItemObject deBCoc = new BaseDimensionalItemObject( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() );
+        List<DimensionItemObjectValue> ouAQ1Expected = new ArrayList<>();
+        ouAQ1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
+        ouAQ1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
-        Map<DimensionalItemObject, Double> ouAQ1Expected = new HashMap<>();
-        ouAQ1Expected.put( deACoc, 1d );
-        ouAQ1Expected.put( deBCoc, 5d );
+        List<DimensionItemObjectValue> ouAQ2Expected = new ArrayList<>();
+        ouAQ2Expected.add( new DimensionItemObjectValue( deA, 2d ));
+        ouAQ2Expected.add( new DimensionItemObjectValue( deB, 6d ));
 
-        Map<DimensionalItemObject, Double> ouAQ2Expected = new HashMap<>();
-        ouAQ2Expected.put( deACoc, 2d );
-        ouAQ2Expected.put( deBCoc, 6d );
+        List<DimensionItemObjectValue> ouBQ1Expected = new ArrayList<>();
+        ouBQ1Expected.add( new DimensionItemObjectValue( deA, 3d ));
+        ouBQ1Expected.add( new DimensionItemObjectValue( deB, 7d ));
 
-        Map<DimensionalItemObject, Double> ouBQ1Expected = new HashMap<>();
-        ouBQ1Expected.put( deACoc, 3d );
-        ouBQ1Expected.put( deBCoc, 7d );
+        List<DimensionItemObjectValue> ouBQ2Expected = new ArrayList<>();
+        ouBQ2Expected.add( new DimensionItemObjectValue( deA, 4d ));
+        ouBQ2Expected.add( new DimensionItemObjectValue( deB, 8d ));
 
-        Map<DimensionalItemObject, Double> ouBQ2Expected = new HashMap<>();
-        ouBQ2Expected.put( deACoc, 4d );
-        ouBQ2Expected.put( deBCoc, 8d );
-// FIXME luciano
-//        assertEquals( ouAQ1Expected, ouAQ1 );
-//        assertEquals( ouAQ2Expected, ouAQ2 );
-//        assertEquals( ouBQ1Expected, ouBQ1 );
-//        assertEquals( ouBQ2Expected, ouBQ2 );
+        assertCollectionsMatch( ouAQ1Expected, ouAQ1 );
+        assertCollectionsMatch( ouAQ2Expected, ouAQ2 );
+        assertCollectionsMatch( ouBQ1Expected, ouBQ1 );
+        assertCollectionsMatch( ouBQ2Expected, ouBQ2 );
     }
 
     @Test
@@ -392,29 +390,27 @@ public class QueryPlannerTest
         assertEquals( 2, ouBM1.size() );
         assertEquals( 2, ouBM2.size() );
 
-        BaseDimensionalItemObject deACoc = new BaseDimensionalItemObject( deA.getUid() );
-        BaseDimensionalItemObject deBCoc = new BaseDimensionalItemObject( deB.getUid() );
 
-        Map<DimensionalItemObject, Double> ouAM1Expected = new HashMap<>();
-        ouAM1Expected.put( deACoc, 1d );
-        ouAM1Expected.put( deBCoc, 5d );
+        List<DimensionItemObjectValue> ouAM1Expected = new ArrayList<>();
+        ouAM1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
+        ouAM1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
-        Map<DimensionalItemObject, Double> ouAM2Expected = new HashMap<>();
-        ouAM2Expected.put( deACoc, 2d );
-        ouAM2Expected.put( deBCoc, 6d );
+        List<DimensionItemObjectValue> ouAM2Expected = new ArrayList<>();
+        ouAM2Expected.add( new DimensionItemObjectValue( deA, 2d ) );
+        ouAM2Expected.add( new DimensionItemObjectValue( deB, 6d ) );
 
-        Map<DimensionalItemObject, Double> ouBM1Expected = new HashMap<>();
-        ouBM1Expected.put( deACoc, 3d );
-        ouBM1Expected.put( deBCoc, 7d );
+        List<DimensionItemObjectValue> ouBM1Expected = new ArrayList<>();
+        ouBM1Expected.add( new DimensionItemObjectValue( deA, 3d ) );
+        ouBM1Expected.add( new DimensionItemObjectValue( deB, 7d ) );
 
-        Map<DimensionalItemObject, Double> ouBM2Expected = new HashMap<>();
-        ouBM2Expected.put( deACoc, 4d );
-        ouBM2Expected.put( deBCoc, 8d );
-// FIXME luciano
-//        assertEquals( ouAM1Expected, ouAM1.get(1).getDimensionalItemObject() );
-//        assertEquals( ouAM2Expected, ouAM2 );
-//        assertEquals( ouBM1Expected, ouBM1 );
-//        assertEquals( ouBM2Expected, ouBM2 );
+        List<DimensionItemObjectValue> ouBM2Expected = new ArrayList<>();
+        ouBM2Expected.add( new DimensionItemObjectValue( deA, 4d ) );
+        ouBM2Expected.add( new DimensionItemObjectValue( deB, 8d ) );
+
+        assertCollectionsMatch( ouAM1Expected, ouAM1 );
+        assertCollectionsMatch( ouAM2Expected, ouAM2 );
+        assertCollectionsMatch( ouBM1Expected, ouBM1 );
+        assertCollectionsMatch( ouBM2Expected, ouBM2 );
     }
 
     @Test
@@ -451,29 +447,26 @@ public class QueryPlannerTest
         assertEquals( 2, ouBQ1.size() );
         assertEquals( 2, ouBQ2.size() );
 
-        BaseDimensionalItemObject deACoc = new BaseDimensionalItemObject( deA.getUid() );
-        BaseDimensionalItemObject deBCoc = new BaseDimensionalItemObject( deB.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() );
+        List<DimensionItemObjectValue> ouAQ1Expected = new ArrayList<>();
+        ouAQ1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
+        ouAQ1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
-        Map<DimensionalItemObject, Double> ouAQ1Expected = new HashMap<>();
-        ouAQ1Expected.put( deACoc, 1d );
-        ouAQ1Expected.put( deBCoc, 5d );
+        List<DimensionItemObjectValue> ouAQ2Expected = new ArrayList<>();
+        ouAQ2Expected.add( new DimensionItemObjectValue( deA, 2d ) );
+        ouAQ2Expected.add( new DimensionItemObjectValue( deB, 6d ) );
 
-        Map<DimensionalItemObject, Double> ouAQ2Expected = new HashMap<>();
-        ouAQ2Expected.put( deACoc, 2d );
-        ouAQ2Expected.put( deBCoc, 6d );
+        List<DimensionItemObjectValue> ouBQ1Expected = new ArrayList<>();
+        ouBQ1Expected.add( new DimensionItemObjectValue( deA, 3d ) );
+        ouBQ1Expected.add( new DimensionItemObjectValue( deB, 7d ) );
 
-        Map<DimensionalItemObject, Double> ouBQ1Expected = new HashMap<>();
-        ouBQ1Expected.put( deACoc, 3d );
-        ouBQ1Expected.put( deBCoc, 7d );
+        List<DimensionItemObjectValue> ouBQ2Expected = new ArrayList<>();
+        ouBQ2Expected.add( new DimensionItemObjectValue( deA, 4d ) );
+        ouBQ2Expected.add( new DimensionItemObjectValue( deB, 8d ) );
 
-        Map<DimensionalItemObject, Double> ouBQ2Expected = new HashMap<>();
-        ouBQ2Expected.put( deACoc, 4d );
-        ouBQ2Expected.put( deBCoc, 8d );
-// FIXME luciano
-//        assertEquals( ouAQ1Expected, ouAQ1 );
-//        assertEquals( ouAQ2Expected, ouAQ2 );
-//        assertEquals( ouBQ1Expected, ouBQ1 );
-//        assertEquals( ouBQ2Expected, ouBQ2 );
+        assertCollectionsMatch( ouAQ1Expected, ouAQ1 );
+        assertCollectionsMatch( ouAQ2Expected, ouAQ2 );
+        assertCollectionsMatch( ouBQ1Expected, ouBQ1 );
+        assertCollectionsMatch( ouBQ2Expected, ouBQ2 );
     }
 
     /**
@@ -1222,6 +1215,18 @@ public class QueryPlannerTest
         for ( DimensionalObject filter : params.getFilters() )
         {
             assertNotNull( filter.getDimensionName() );
+        }
+    }
+
+    private void assertCollectionsMatch(List<DimensionItemObjectValue> collection, final List<DimensionItemObjectValue> in )
+    {
+        Function<String, Double> findValueByUid = ( String uid ) -> in.stream()
+                .filter( v -> v.getDimensionalItemObject().getUid().equals( uid ) ).findFirst().get().getValue();
+
+        for ( DimensionItemObjectValue dimensionItemObjectValue : collection )
+        {
+            final Double val = findValueByUid.apply( dimensionItemObjectValue.getDimensionalItemObject().getUid() );
+            assertEquals( val, dimensionItemObjectValue.getValue() );
         }
     }
 }
