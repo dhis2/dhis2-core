@@ -29,8 +29,11 @@ package org.hisp.dhis.dataset;
  */
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -65,24 +68,35 @@ public class SectionDeletionHandler
     {
         return Section.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteDataElement( DataElement dataElement )
     {
         for ( Section section : sectionService.getAllSections() )
         {
-            if ( section.getDataElements().remove( dataElement ) )
+            List<DataElementOperand> operandsToRemove = section
+                .getGreyedFields()
+                .stream()
+                .filter( operand -> operand.getDataElement().equals( dataElement ) )
+                .collect( Collectors.toList() );
+
+            operandsToRemove
+                .stream()
+                .forEach( operand -> section.getGreyedFields().remove( operand ) );
+
+            if ( section.getDataElements().remove( dataElement ) || !operandsToRemove.isEmpty() )
             {
                 sectionService.updateSection( section );
             }
+
         }
     }
-    
+
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
         Iterator<Section> iterator = dataSet.getSections().iterator();
-        
+
         while ( iterator.hasNext() )
         {
             Section section = iterator.next();
