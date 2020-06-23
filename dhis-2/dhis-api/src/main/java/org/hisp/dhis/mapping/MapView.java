@@ -194,6 +194,7 @@ public class MapView
 
     public MapView()
     {
+        this.thematicMapType = ThematicMapType.CHOROPLETH;
         this.renderingStrategy = MapViewRenderingStrategy.SINGLE;
     }
 
