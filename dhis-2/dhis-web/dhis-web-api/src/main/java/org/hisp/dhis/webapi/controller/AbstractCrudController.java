@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -229,8 +229,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( options.hasPaging() && pager == null )
         {
-            long count = paginationCountCache.computeIfAbsent(
-                calculatePaginationCountKey( currentUser, filters, options ), () -> count( options, filters, orders ) );
+            long count;
+            if ( options.getOptions().containsKey( "query" ) )
+            {
+                count = entities.size();
+                entities = entities.stream().skip( (options.getPage() - 1) * options.getPageSize() ).limit( options.getPageSize() ).collect( Collectors.toList() );
+            }
+            else
+            {
+                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey( currentUser, filters, options ), () -> count( options, filters, orders ) );
+            }
+            
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
