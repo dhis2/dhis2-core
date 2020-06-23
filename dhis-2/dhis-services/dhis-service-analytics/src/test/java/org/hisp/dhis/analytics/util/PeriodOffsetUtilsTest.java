@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.offset;
+package org.hisp.dhis.analytics.util;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
