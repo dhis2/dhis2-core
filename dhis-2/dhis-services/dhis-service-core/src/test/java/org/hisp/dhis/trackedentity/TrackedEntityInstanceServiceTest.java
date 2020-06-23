@@ -27,27 +27,12 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -58,17 +43,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -76,8 +53,8 @@ import com.google.common.collect.Sets;
  * @author Chau Thu Tran
  */
 public class TrackedEntityInstanceServiceTest
-    extends
-    DhisSpringTest
+        extends
+        DhisSpringTest
 {
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -100,93 +77,58 @@ public class TrackedEntityInstanceServiceTest
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
-
     private ProgramStageInstance programStageInstanceA;
 
     private ProgramInstance programInstanceA;
-
-    private Program programA;
 
     private TrackedEntityInstance entityInstanceA1;
 
     private TrackedEntityInstance entityInstanceB1;
 
-    private TrackedEntityAttribute entityInstanceAttribute;
-
-    private OrganisationUnit organisationUnit;
-
-    private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
-    private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
-    private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
-    private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
-    private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     @Override
     public void setUpTest()
     {
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
+        final OrganisationUnit organisationUnit = createOrganisationUnit('A');
+        organisationUnitService.addOrganisationUnit(organisationUnit);
 
         OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        entityInstanceAttribute = createTrackedEntityAttribute( 'A' );
-        attributeService.addTrackedEntityAttribute( entityInstanceAttribute );
+        final TrackedEntityAttribute entityInstanceAttribute = createTrackedEntityAttribute('A');
+        attributeService.addTrackedEntityAttribute(entityInstanceAttribute);
 
-        entityInstanceA1 = createTrackedEntityInstance( organisationUnit );
-        entityInstanceB1 = createTrackedEntityInstance( organisationUnit );
+        entityInstanceA1 = createTrackedEntityInstance(organisationUnit);
+        entityInstanceB1 = createTrackedEntityInstance(organisationUnit);
         entityInstanceB1.setUid( "UID-B1" );
 
-        programA = createProgram( 'A', new HashSet<>(), organisationUnit );
+        final Program programA = createProgram('A', new HashSet<>(), organisationUnit);
 
-        programService.addProgram( programA );
+        programService.addProgram(programA);
 
-        ProgramStage stageA = createProgramStage( 'A', programA );
+        ProgramStage stageA = createProgramStage( 'A', programA);
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
 
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programA.setProgramStages( programStages );
-        programService.updateProgram( programA );
+        programService.updateProgram(programA);
 
         DateTime enrollmentDate = DateTime.now();
         enrollmentDate.withTimeAtStartOfDay();
         enrollmentDate = enrollmentDate.minusDays( 70 );
 
-        DateTime incidenDate = DateTime.now();
-        incidenDate.withTimeAtStartOfDay();
+        DateTime incidentDate = DateTime.now();
+        incidentDate.withTimeAtStartOfDay();
 
-        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidenDate.toDate(), entityInstanceA1,
-            programA );
+        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidentDate.toDate(), entityInstanceA1,
+                programA);
         programInstanceA.setUid( "UID-A" );
-        programInstanceA.setOrganisationUnit( organisationUnit );
+        programInstanceA.setOrganisationUnit(organisationUnit);
 
         programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
         programInstanceA.setUid( "UID-PSI-A" );
-        programInstanceA.setOrganisationUnit( organisationUnit );
-
-        trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
-
-        attributeService.addTrackedEntityAttribute( attrD );
-        attributeService.addTrackedEntityAttribute( attrE );
-        attributeService.addTrackedEntityAttribute( filtF );
-        attributeService.addTrackedEntityAttribute( filtG );
-
-        super.userService = this.userService;
-        User user = createUser( "testUser" );
-        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+        programInstanceA.setOrganisationUnit(organisationUnit);
     }
 
     @Test
@@ -229,8 +171,8 @@ public class TrackedEntityInstanceServiceTest
         long psIdA = programInstanceService.addProgramInstance( programInstanceA );
         long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
-        programInstanceA.setProgramStageInstances( newHashSet( programStageInstanceA ) );
-        entityInstanceA1.setProgramInstances( newHashSet( programInstanceA ) );
+        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        entityInstanceA1.setProgramInstances( Sets.newHashSet( programInstanceA ) );
 
         programInstanceService.updateProgramInstance( programInstanceA );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
@@ -295,361 +237,5 @@ public class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( entityInstanceA1.getUid() );
         assertEquals( "test", tei.getStoredBy() );
-    }
-
-    @Test
-    public void testGetFromUrl()
-    {
-        final TrackedEntityInstanceQueryParams queryParams = entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 8, 5 ),
-            getDate( 2020, 8, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "A1234567890", "B1234567890" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-
-        assertThat( queryParams.getQuery().getFilter(), is( "query-test" ) );
-        assertThat( queryParams.getQuery().getOperator(), is( QueryOperator.EQ ) );
-
-        assertThat( queryParams.getProgram(), is( programA ) );
-        assertThat( queryParams.getTrackedEntityType(), is( trackedEntityTypeA ) );
-        assertThat( queryParams.getOrganisationUnits(), hasSize( 1 ) );
-        assertThat( queryParams.getOrganisationUnits().iterator().next(), is( organisationUnit ) );
-        assertThat( queryParams.getAttributes(), hasSize( 2 ) );
-        assertTrue(
-            queryParams.getAttributes().stream().anyMatch( a -> a.getItem().getUid().equals( attrD.getUid() ) ) );
-        assertTrue(
-            queryParams.getAttributes().stream().anyMatch( a -> a.getItem().getUid().equals( attrE.getUid() ) ) );
-
-        assertThat( queryParams.getFilters(), hasSize( 2 ) );
-        assertTrue( queryParams.getFilters().stream().anyMatch( a -> a.getItem().getUid().equals( filtF.getUid() ) ) );
-        assertTrue( queryParams.getFilters().stream().anyMatch( a -> a.getItem().getUid().equals( filtG.getUid() ) ) );
-
-        assertThat( queryParams.getPageSizeWithDefault(), is( 50 ) );
-        assertThat( queryParams.getPageSize(), is( 50 ) );
-        assertThat( queryParams.getPage(), is( 1 ) );
-        assertThat( queryParams.isTotalPages(), is( false ) );
-
-        assertThat( queryParams.getProgramStatus(), is( ProgramStatus.ACTIVE ) );
-        assertThat( queryParams.getFollowUp(), is( false ) );
-
-        assertThat( queryParams.getLastUpdatedStartDate(), is( getDate( 2019, 1, 1 ) ) );
-        assertThat( queryParams.getLastUpdatedEndDate(), is( getDate( 2020, 1, 1 ) ) );
-        assertThat( queryParams.getProgramEnrollmentStartDate(), is( getDate( 2019, 5, 5 ) ) );
-        assertThat( queryParams.getProgramEnrollmentEndDate(), is( DateUtils.addDays( getDate( 2020, 5, 5 ), 1 ) ) );
-        assertThat( queryParams.getProgramIncidentStartDate(), is( getDate( 2019, 8, 5 ) ) );
-        assertThat( queryParams.getProgramIncidentEndDate(), is( DateUtils.addDays( getDate( 2020, 8, 5 ), 1 ) ) );
-        assertThat( queryParams.getEventStatus(), is( EventStatus.COMPLETED ) );
-        assertThat( queryParams.getEventStartDate(), is( getDate( 2019, 7, 7 ) ) );
-        assertThat( queryParams.getEventEndDate(), is( getDate( 2020, 7, 7 ) ) );
-        assertThat( queryParams.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "A1234567890" ) ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "B1234567890" ) ) );
-
-        assertThat( queryParams.isIncludeDeleted(), is( true ) );
-        assertThat( queryParams.isIncludeAllAttributes(), is( false ) );
-
-        assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "order-1" ) ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnMissingAttribute()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Attribute does not exist: missing" );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid(), "missing" ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnMissingFilter()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Attribute does not exist: missing" );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid(), "missing" ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnMissingProgram()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Program does not exist: " + programA.getUid() + "A" );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid() + "A",
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnMissingTrackerEntityType()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Tracked entity type does not exist: " + trackedEntityTypeA.getUid() + "A" );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid() + "A",
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnMissingOrgUnit()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Organisation unit does not exist: " + organisationUnit.getUid() + "A" );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() + "A" ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnUserNonInOuHierarchy()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Organisation unit is not part of the search scope: " + organisationUnit.getUid() );
-
-        // Force Current User Service to return a User without search org unit
-        ReflectionTestUtils.setField( entityInstanceService, "currentUserService",
-            new MockCurrentUserService( createUser( "testUser2" ) ) );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
-    }
-
-    @Test
-    public void testGetFromUrlFailOnNonProvidedAndAssignedUsers()
-    {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-
-        entityInstanceService.getFromUrl(
-            "query-test",
-            newHashSet( attrD.getUid(), attrE.getUid() ),
-            newHashSet( filtF.getUid(), filtG.getUid() ),
-            newHashSet( organisationUnit.getUid() ),
-            OrganisationUnitSelectionMode.DESCENDANTS,
-            programA.getUid(),
-            ProgramStatus.ACTIVE,
-            false,
-            getDate( 2019, 1, 1 ),
-            getDate( 2020, 1, 1 ),
-            "20",
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            getDate( 2019, 5, 5 ),
-            getDate( 2020, 5, 5 ),
-            trackedEntityTypeA.getUid(),
-            null,
-            EventStatus.COMPLETED,
-            getDate( 2019, 7, 7 ),
-            getDate( 2020, 7, 7 ),
-            AssignedUserSelectionMode.CURRENT,
-            newHashSet( "user-1", "user-2" ),
-            true,
-            1,
-            50,
-            false,
-            false,
-            true,
-            false,
-            newArrayList( "order-1" ) );
     }
 }
