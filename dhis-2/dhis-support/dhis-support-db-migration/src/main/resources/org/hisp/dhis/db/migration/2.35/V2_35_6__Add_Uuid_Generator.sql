@@ -1,5 +1,6 @@
 
 
+/*
 CREATE OR REPLACE FUNCTION gen_random_uuid() RETURNS uuid
     AS $$
         SELECT uuid_in(
@@ -8,5 +9,12 @@ CREATE OR REPLACE FUNCTION gen_random_uuid() RETURNS uuid
                 placing to_hex(floor(random()*(11-8+1) + 8)::int)::text from 17
             )::cstring
         )::uuid
+    $$
+    LANGUAGE SQL;
+*/
+
+CREATE OR REPLACE FUNCTION gen_random_uuid() RETURNS uuid
+    AS $$
+        SELECT md5(random()::text || random()::text)::uuid
     $$
     LANGUAGE SQL;
