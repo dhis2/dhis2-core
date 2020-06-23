@@ -208,7 +208,7 @@
 
     <property name="eventPointRadius" />
     
-    <property name="thematicMapType" length="50" column="thematicmaptype" not-null="true">
+    <property name="thematicMapType" length="50" column="thematicmaptype">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.mapping.ThematicMapType</param>
         <param name="useNamed">true</param>
