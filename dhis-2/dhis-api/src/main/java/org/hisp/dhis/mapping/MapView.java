@@ -168,6 +168,8 @@ public class MapView
 
     private MapViewRenderingStrategy renderingStrategy;
 
+    private ThematicMapType thematicMapType;
+
     /**
      * General configuration property for JSON values used to store information
      * for layers with arbitrary configuration needs.
@@ -714,6 +716,18 @@ public class MapView
     public void setRenderingStrategy( MapViewRenderingStrategy renderingStrategy )
     {
         this.renderingStrategy = renderingStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ThematicMapType getThematicMapType()
+    {
+        return thematicMapType;
+    }
+
+    public void setThematicMapType( ThematicMapType thematicMapType )
+    {
+        this.thematicMapType = thematicMapType;
     }
 
     @JsonProperty
