@@ -295,22 +295,4 @@ public class SimpleEventSMSListenerTest
 
         return subm;
     }
-
-    private SimpleEventSMSSubmission createSimpleEventSubmissionWithNulls()
-    {
-        SimpleEventSMSSubmission subm = createSimpleEventSubmission();
-        subm.setEventDate( null );
-        subm.setDueDate( null );
-        subm.setCoordinates( null );
-
-        return subm;
-    }
-
-    private SimpleEventSMSSubmission createSimpleEventSubmissionNoValues()
-    {
-        SimpleEventSMSSubmission subm = createSimpleEventSubmission();
-        subm.setValues( null );
-
-        return subm;
-    }
 }
