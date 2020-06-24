@@ -58,6 +58,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Nguyen Hong Duc
@@ -68,6 +69,11 @@ public class UserCredentials
     implements UserDetails
 {
     public static final int USERNAME_MAX_LENGTH = 255;
+
+    /**
+     * Global unique identifier for User (to be used for sharing etc)
+     */
+    private UUID uuid;
 
     /**
      * Required and unique.
@@ -191,6 +197,17 @@ public class UserCredentials
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
         this.setSecret();
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        if ( uuid == null )
+        {
+            uuid = UUID.randomUUID();
+        }
+
+        super.setAutoFields();
     }
 
     // -------------------------------------------------------------------------
@@ -514,6 +531,18 @@ public class UserCredentials
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UUID getUuid()
+    {
+        return uuid;
+    }
+
+    public void setUuid( UUID uuid )
+    {
+        this.uuid = uuid;
+    }
 
     /**
      * Refers to the user associated with this user credentials.
