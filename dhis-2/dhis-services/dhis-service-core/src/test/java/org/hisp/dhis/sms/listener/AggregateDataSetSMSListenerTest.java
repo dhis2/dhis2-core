@@ -234,6 +234,7 @@ public class AggregateDataSetSMSListenerTest
         incomingSmsAggregate = createSMSFromSubmission( createAggregateDatasetSubmission() );
 
         AggregateDatasetSmsSubmission subm = createAggregateDatasetSubmission();
+
         subm.setValues( null );
         incomingSmsAggregateNoValues = createSMSFromSubmission( subm );
     }

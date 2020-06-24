@@ -79,43 +79,37 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    private String eventDate;
+    private String occurredAt;
 
     @JsonProperty
-    private String dueDate;
+    private String scheduledAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
-    private Coordinate coordinate;
-
-    @JsonProperty
-    private boolean followup;
+    private boolean followUp;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
-    private String created;
+    private String createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private String updatedAt;
 
     @JsonProperty
-    private String createdAtClient;
+    private String clientCreatedAt;
 
     @JsonProperty
-    private String lastUpdatedAtClient;
+    private String clientUpdatedAt;
 
     @JsonProperty
     private String attributeOptionCombo;
@@ -127,16 +121,10 @@ public class Event
     private String completedBy;
 
     @JsonProperty
-    private String completedDate;
+    private String completedAt;
 
     @JsonProperty
     private Geometry geometry;
-
-    @JsonProperty
-    private String assignedUser;
-
-    @JsonProperty
-    private String assignedUserUsername;
 
     @JsonProperty
     @Builder.Default

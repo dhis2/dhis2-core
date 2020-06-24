@@ -28,17 +28,24 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,15 +54,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultQueryParser implements QueryParser
 {
     private static final String IDENTIFIABLE = "identifiable";
+    
+    private static final String ORGANISATION_UNITS = "organisationUnits";
 
     private final SchemaService schemaService;
+    
+    private final OrganisationUnitService organisationUnitService;
+    
+    private final CurrentUserService currentUserService;
 
     @Autowired
-    public DefaultQueryParser( SchemaService schemaService )
+    public DefaultQueryParser( SchemaService schemaService, CurrentUserService currentUserService, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( schemaService );
 
         this.schemaService = schemaService;
+        this.currentUserService = currentUserService;
+        this.organisationUnitService = organisationUnitService;
     }
 
     @Override
@@ -66,6 +81,12 @@ public class DefaultQueryParser implements QueryParser
 
     @Override
     public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction ) throws QueryParserException
+    {
+        return parse( klass, filters, rootJunction, false );
+    }
+    
+    @Override
+    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction, boolean restrictToCaptureScope ) throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
@@ -97,10 +118,34 @@ public class DefaultQueryParser implements QueryParser
                 query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
+        
+        if ( restrictToCaptureScope && schema.haveProperty( ORGANISATION_UNITS ) )
+        {
+            User user = currentUserService.getCurrentUser();
 
+            if ( user != null )
+            {
+                handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
+                query.setUser( user );
+            }
+        }
         return query;
     }
 
+    private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
+    {
+
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        params.setParents( user.getOrganisationUnits() );
+        params.setFetchChildren( true );
+
+        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
+            Collectors.toList() );
+
+        disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
+        disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
+    }
+    
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
     {
         disjunction.add( getRestriction( schema, "id", operator, arg ) );

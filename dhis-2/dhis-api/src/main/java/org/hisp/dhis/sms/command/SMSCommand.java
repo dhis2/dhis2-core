@@ -50,8 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "smscommand", namespace = DxfNamespaces.DXF_2_0 )
-public class SMSCommand extends BaseIdentifiableObject
-    implements MetadataObject
+public class SMSCommand
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String WRONG_FORMAT_MESSAGE = "Wrong command format";
     public static final String MORE_THAN_ONE_ORGUNIT_MESSAGE = "Found more than one org unit for this number. Please specify one organisation unit";
@@ -339,15 +339,15 @@ public class SMSCommand extends BaseIdentifiableObject
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-                .add( "uid", uid )
-                .add( "name", name )
-                .add( "smscodes", codes )
-                .add( "program", program )
-                .add( "parsertype", parserType )
-                .add( "separator", separator )
-                .add( "dataset", dataset )
-                .add( "usergroup", userGroup )
-                .add( "programstage", programStage )
-                .toString();
+            .add( "uid", uid )
+            .add( "name", name )
+            .add( "smscodes", codes )
+            .add( "program", program )
+            .add( "parsertype", parserType )
+            .add( "separator", separator )
+            .add( "dataset", dataset )
+            .add( "usergroup", userGroup )
+            .add( "programstage", programStage )
+            .toString();
     }
 }

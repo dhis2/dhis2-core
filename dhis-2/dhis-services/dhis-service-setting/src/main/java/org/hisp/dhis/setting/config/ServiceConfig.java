@@ -125,6 +125,7 @@ public class ServiceConfig
         flags.add( "laos" );
         flags.add( "lesotho" );
         flags.add( "liberia" );
+        flags.add( "madagascar" );
         flags.add( "malawi" );
         flags.add( "mauritania" );
         flags.add( "mauritius" );

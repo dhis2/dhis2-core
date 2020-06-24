@@ -33,8 +33,10 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.vividsolutions.jts.geom.Geometry;
 
-
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
@@ -46,13 +48,13 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
@@ -69,6 +71,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -78,6 +81,9 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.MapViewRenderingStrategy;
+import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -99,6 +105,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramType;
@@ -137,6 +144,7 @@ import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.Advised;
@@ -333,6 +341,20 @@ public abstract class DhisConvenienceTest
     public static String message( Object expected, Object actual )
     {
         return message( expected ) + " Actual was: " + ((actual != null) ? "[" + actual.toString() + "]" : "[null]");
+    }
+
+    /**
+     * Asserts that a {@link IllegalQueryException} is thrown with the given {@link ErrorCode}.
+     *
+     * @param exception the {@link ExpectedException}.
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public static void assertIllegalQueryEx( ExpectedException exception, ErrorCode errorCode )
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( errorCode ) ) );
+        exception.reportMissingExceptionWithMessage( String.format(
+            "Test does not throw an IllegalQueryException with error code: '%s'", errorCode ) );
     }
 
     // -------------------------------------------------------------------------
@@ -1011,6 +1033,21 @@ public abstract class DhisConvenienceTest
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
+        return createDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo, value, false );
+    }
+
+    /**
+     * @param dataElement          The data element.
+     * @param period               The period.
+     * @param source               The source.
+     * @param value                The value.
+     * @param categoryOptionCombo  The category option combo.
+     * @param attributeOptionCombo The attribute option combo.
+     * @param deleted              Whether the data valeu is deleted.
+     */
+    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value, boolean deleted )
+    {
         DataValue dataValue = new DataValue();
 
         dataValue.setDataElement( dataElement );
@@ -1023,6 +1060,7 @@ public abstract class DhisConvenienceTest
         dataValue.setStoredBy( "StoredBy" );
         dataValue.setCreated( new Date() );
         dataValue.setLastUpdated( new Date() );
+        dataValue.setDeleted( deleted );
 
         return dataValue;
     }
@@ -1227,22 +1265,6 @@ public abstract class DhisConvenienceTest
         return legendSet;
     }
 
-    public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
-    {
-        ColorSet colorSet = new ColorSet();
-        colorSet.setAutoFields();
-        colorSet.setName( "ColorSet" + uniqueCharacter );
-
-        for ( String colorCode : hexColorCodes )
-        {
-            Color color = new Color( colorCode );
-            color.setAutoFields();
-            colorSet.getColors().add( color );
-        }
-
-        return colorSet;
-    }
-
     public static Visualization createVisualization( final String name )
     {
         final Visualization visualization = new Visualization();
@@ -1311,6 +1333,22 @@ public abstract class DhisConvenienceTest
         user.setAutoFields();
 
         return user;
+    }
+
+    public static MapView createMapView( String layer )
+    {
+        MapView mapView = new MapView();
+        mapView.setAutoFields();
+
+        mapView.setLayer( layer );
+        mapView.setAggregationType( AggregationType.SUM );
+        mapView.setThematicMapType( ThematicMapType.CHOROPLETH );
+        mapView.setProgramStatus( ProgramStatus.COMPLETED );
+        mapView.setOrganisationUnitSelectionMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        mapView.setRenderingStrategy( MapViewRenderingStrategy.SINGLE );
+        mapView.setUserOrgUnitType( UserOrgUnitType.DATA_CAPTURE );
+
+        return mapView;
     }
 
     public static UserCredentials createUserCredentials( char uniqueCharacter, User user )

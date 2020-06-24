@@ -28,11 +28,14 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -47,19 +50,25 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -82,6 +91,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * TODO could use row_number() and filtering for paging.
+ * TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -91,14 +101,11 @@ public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EventAnalyticsManager
 {
-    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                     ProgramIndicatorService programIndicatorService,
-                                     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+        ProgramIndicatorService programIndicatorService, ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
-
-    //TODO introduce dedicated "year" partition column
 
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
@@ -108,6 +115,13 @@ public class JdbcEventAnalyticsManager
         return grid;
     }
 
+    /**
+     * Adds event to the given grid based on the given parameters and SQL statement.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @param grid the {@link Grid}.
+     * @param sql the SQL statement used to retrieve events.
+     */
     private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
@@ -204,8 +218,8 @@ public class JdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
 
         return count;
@@ -249,6 +263,7 @@ public class JdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
+    @Override
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
@@ -391,19 +406,12 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
-        if ( isNotEmpty( dynamicDimensions ) )
+        // Apply pre-authorized dimensions filtering
+        for ( DimensionalObject dim : dynamicDimensions )
         {
-            // Apply pre-authorized dimensions filtering
-            for ( DimensionalObject dim : dynamicDimensions )
-            {
-                String col = quoteAlias( dim.getDimensionName() );
-                sql += sqlHelper.whereAnd() + " " + col + " in ("
-                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
-            }
-        }
-        else if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
-        {
-            sql += filterOutNotAuthorizedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
+            String col = quoteAlias( dim.getDimensionName() );
+            sql += sqlHelper.whereAnd() + " " + col + " in ("
+                + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -520,66 +528,14 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * This method will generate a sql sentence responsible for filtering out all
-     * the category options (of this program categories). The list of category
-     * options within this list of categories should contains only not authorized
-     * category options (it means the category options that cannot be read by the
-     * current user based on the sharing settings defined for the category options.
-     * See
-     * @see org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#excludeOnlyAuthorizedCategoryOptions
-     * and
-     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
-     * to check how the category options of these categories were set.
-     *
-     * @param programCategories the list of program categories containing the list
-     *        of category options not authorized for the current user.
-     * @return the sql statement in the format: "and ax."mEXqxV2KIUl" not in
-     *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
-     */
-    String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
-    {
-        final StringBuilder query = new StringBuilder();
-        final SqlHelper sqlHelper = new SqlHelper(true);
-
-        if ( isNotEmpty( programCategories ) )
-        {
-            for ( final Category category : programCategories )
-            {
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    query.append( sqlHelper.andOr() );
-                    query.append( buildInFilterForCategory( category, categoryOptions ) );
-                }
-            }
-        }
-        return query.toString();
-    }
-
-    /**
-     * This method will generate a "in" sql statement for the given category and
-     * category options.
-     *
-     * @param category
-     * @param categoryOptions
-     * @return a sql statement in the format: "ax."mEXqxV2KIUl" in ('qNqYLugIySD') "
-     */
-    String buildInFilterForCategory(final Category category, final List<CategoryOption> categoryOptions )
-    {
-        final String categoryColumn = quoteAlias( category.getUid() );
-        final String inFilter = categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
-            + ") ";
-        return inFilter;
-    }
-
-    /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the execution date, latest first. The events are partitioned by
      * org unit and attribute option combo. A column {@code pe_rank} defines the rank.
      * Only data for the last 10 years relative to the period end date is included.
+     *
+     * @param the {@link EventQueryParams}.
      */
-    private String getFirstOrLastValueSubquerySql(EventQueryParams params )
+    private String getFirstOrLastValueSubquerySql( EventQueryParams params )
     {
         Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
 
@@ -614,8 +570,10 @@ public class JdbcEventAnalyticsManager
      * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
      * The period dimension is replaced by the name of the single period in the given
      * query.
+     *
+     * @param the {@link EventQueryParams}.
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
@@ -644,6 +602,7 @@ public class JdbcEventAnalyticsManager
         return cols;
     }
 
+    @Override
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.EVENT;

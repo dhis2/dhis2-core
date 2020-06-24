@@ -266,6 +266,7 @@ public abstract class CompressionSMSListener
         ArrayList<Object> errorUids = new ArrayList<>();
         ProgramStageInstance programStageInstance;
         // If we aren't given a Uid for the event, it will be auto-generated
+
         if ( programStageInstanceService.programStageInstanceExists( eventUid ) )
         {
             programStageInstance = programStageInstanceService.getProgramStageInstance( eventUid );
@@ -301,12 +302,14 @@ public abstract class CompressionSMSListener
                 String val = dv.getValue();
 
                 DataElement de = dataElementService.getDataElement( deid.getUid() );
+
                 // TODO: Is this the correct way of handling errors here?
                 if ( de == null )
                 {
                     log.warn( String
                         .format( "Given data element [%s] could not be found. Continuing with submission...", deid ) );
                     errorUids.add( deid );
+
                     continue;
                 }
                 else if ( val == null || StringUtils.isEmpty( val ) )

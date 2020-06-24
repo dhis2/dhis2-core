@@ -126,12 +126,14 @@ public class EnrollmentSMSListener
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
 
         Program program = programService.getProgram( progid.getUid() );
+
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.getUid() );
+
         if ( entityType == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
@@ -208,6 +210,20 @@ public class EnrollmentSMSListener
                 errorUIDs.addAll( processEvent( event, user, enrollment, sms ) );
             }
         }
+        enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
+        enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
+        programInstanceService.updateProgramInstance( enrollment );
+
+        // We now check if the enrollment has events to process
+        User user = userService.getUser( subm.getUserID().getUID() );
+        List<Object> errorUIDs = new ArrayList<>();
+        if ( subm.getEvents() != null )
+        {
+            for ( SMSEvent event : subm.getEvents() )
+            {
+                errorUIDs.addAll( processEvent( event, user, enrollment, sms ) );
+            }
+        }
 
         if ( !errorUIDs.isEmpty() )
         {
@@ -221,6 +237,42 @@ public class EnrollmentSMSListener
         }
 
         return SmsResponse.SUCCESS;
+    }
+
+    private void updateAttributeValues( Set<TrackedEntityAttributeValue> attributeValues,
+        Set<TrackedEntityAttributeValue> oldAttributeValues )
+    {
+        // Update existing and add new values
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
+        {
+            TrackedEntityAttributeValue oldAttributeValue = findAttributeValue( attributeValue, oldAttributeValues );
+            if ( oldAttributeValue != null )
+            {
+                oldAttributeValue.setValue( attributeValue.getValue() );
+                attributeValueService.updateTrackedEntityAttributeValue( oldAttributeValue );
+            }
+            else
+            {
+                attributeValueService.addTrackedEntityAttributeValue( attributeValue );
+            }
+        }
+
+        // Delete any that don't exist anymore
+        for ( TrackedEntityAttributeValue oldAttributeValue : oldAttributeValues )
+        {
+            if ( findAttributeValue( oldAttributeValue, attributeValues ) == null )
+            {
+                attributeValueService.deleteTrackedEntityAttributeValue( oldAttributeValue );
+            }
+        }
+    }
+
+    private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
+        Set<TrackedEntityAttributeValue> attributeValues )
+    {
+        return attributeValues.stream()
+            .filter( v -> v.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) ).findAny()
+            .orElse( null );
     }
 
     private void updateAttributeValues( Set<TrackedEntityAttributeValue> attributeValues,
@@ -284,6 +336,7 @@ public class EnrollmentSMSListener
 
         TrackedEntityAttribute attribute = trackedEntityAttributeService
             .getTrackedEntityAttribute( attribUid.getUid() );
+            
         if ( attribute == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );

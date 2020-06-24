@@ -28,6 +28,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
     </dependency>
+
     <!-- Other -->
     <dependency>
       <groupId>org.apache.activemq</groupId>
@@ -77,12 +78,10 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
     </dependency>
 
   </dependencies>

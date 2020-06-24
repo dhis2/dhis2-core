@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -148,12 +149,12 @@ public class EnrollmentTrackerConverterService
                 programInstance.setUid( CodeGenerator.generateUid() );
             }
 
-            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
-            programInstance.setIncidentDate( enrollment.getIncidentDate() );
+            programInstance.setEnrollmentDate( DateUtils.parseDate( enrollment.getEnrolledAt() ) );
+            programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getOccurredAt() ) );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.isFollowup() );
+            programInstance.setFollowup( enrollment.isFollowUp() );
             programInstance.setGeometry( enrollment.getGeometry() );
 
             if ( enrollment.getStatus() == null )

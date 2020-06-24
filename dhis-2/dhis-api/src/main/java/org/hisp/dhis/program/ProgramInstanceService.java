@@ -58,7 +58,7 @@ public interface ProgramInstanceService
      * Adds an {@link ProgramInstance}
      *
      * @param programInstance The to ProgramInstance add.
-     * @param user the current user.
+     * @param user            the current user.
      * @return A generated unique id of the added {@link ProgramInstance}.
      */
     long addProgramInstance( ProgramInstance programInstance, User user );
@@ -71,13 +71,11 @@ public interface ProgramInstanceService
     void deleteProgramInstance( ProgramInstance programInstance );
 
     /**
-     * Deletes a program instance. Based on the forceDelete parameter, the program instance is
-     * either soft deleted (false) or hard deleted (true)
+     * Hard deletes a {@link ProgramInstance}.
      *
-     * @param programInstance to delete
-     * @param forceDelete     soft delete or hard delete
+     * @param programInstance the ProgramInstance to delete.
      */
-    void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
+    void hardDeleteProgramInstance( ProgramInstance programInstance );
 
     /**
      * Updates an {@link ProgramInstance}.
@@ -85,6 +83,8 @@ public interface ProgramInstanceService
      * @param programInstance the ProgramInstance to update.
      */
     void updateProgramInstance( ProgramInstance programInstance );
+
+    void updateProgramInstance( ProgramInstance programInstance, User user );
 
     /**
      * Returns a {@link ProgramInstance}.

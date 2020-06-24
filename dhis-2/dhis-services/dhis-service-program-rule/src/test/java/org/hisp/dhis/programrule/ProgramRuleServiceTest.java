@@ -29,10 +29,8 @@ package org.hisp.dhis.programrule;
  */
 
 import com.google.common.collect.Sets;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -40,7 +38,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.HashSet;
 import java.util.List;
@@ -80,9 +77,6 @@ public class ProgramRuleServiceTest
 
     @Autowired
     private DeletedObjectStore deletedObjectStore;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     @Override
     public boolean emptyDatabaseAfterTest()

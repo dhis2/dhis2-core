@@ -284,6 +284,7 @@ public class TrackerEventSMSListenerTest
         subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
         ArrayList<SmsDataValue> values = new ArrayList<>();
         values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
+
         subm.setValues( values );
         subm.setSubmissionId( 1 );
 

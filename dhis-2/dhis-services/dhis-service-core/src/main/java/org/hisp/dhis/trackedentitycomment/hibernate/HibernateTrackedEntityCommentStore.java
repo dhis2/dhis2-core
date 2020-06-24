@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentitycomment.hibernate;/*
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -54,9 +54,10 @@ package org.hisp.dhis.trackedentitycomment.hibernate;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.trackedentitycomment.hibernate;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
@@ -73,13 +74,10 @@ public class HibernateTrackedEntityCommentStore
     extends HibernateIdentifiableObjectStore<TrackedEntityComment>
     implements TrackedEntityCommentStore
 {
-
     public HibernateTrackedEntityCommentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityComment.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityComment.class, currentUserService, aclService, false );
     }
 
     @Override

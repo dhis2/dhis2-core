@@ -42,6 +42,7 @@ import java.util.Map;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.TypeReport;
@@ -58,7 +59,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -87,7 +87,7 @@ public class ValidationFactoryTest
     {
         // Create a validation factory with a dummy check
         validationFactory = new ValidationFactory( schemaValidator, schemaService, aclService, userService,
-            Collections.emptyList(), ImmutableMap.of( CREATE_AND_UPDATE, Lists.newArrayList( DummyCheck.class ) ) );
+            Collections.emptyList(), ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( DummyCheck.class ) ) );
     }
 
     @Test

@@ -31,7 +31,7 @@ package org.hisp.dhis.query;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -65,8 +65,6 @@ public class DefaultQueryServiceTest
     @Mock
     private QueryParser queryParser;
 
-    private QueryPlanner queryPlanner;
-
     @Mock
     private CriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
 
@@ -79,7 +77,7 @@ public class DefaultQueryServiceTest
     @Before
     public void setUp()
     {
-        queryPlanner = new DefaultQueryPlanner( schemaService );
+        QueryPlanner queryPlanner = new DefaultQueryPlanner( schemaService );
         subject = new DefaultQueryService( queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine );
     }
 
@@ -111,7 +109,7 @@ public class DefaultQueryServiceTest
         return result;
     }
 
-    class QueryWithPagination
+    static class QueryWithPagination
         implements
         ArgumentMatcher<Query>
     {

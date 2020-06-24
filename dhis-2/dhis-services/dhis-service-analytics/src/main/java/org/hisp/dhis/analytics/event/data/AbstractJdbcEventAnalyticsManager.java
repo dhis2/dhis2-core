@@ -37,14 +37,12 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.QueryTimeoutException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -53,8 +51,10 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
@@ -92,12 +92,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final StatementBuilder statementBuilder;
 
     protected final ProgramIndicatorService programIndicatorService;
-    
-    protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
-    
-    public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-                                             StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-                                             DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+
+    protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
+
+    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
@@ -258,7 +258,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
                         getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
                 }
-                
+
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -339,8 +339,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
 
         return grid;
@@ -471,7 +471,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         }
     }
-    
+
     /**
      * Returns an item value for the given query, query item and value. Assumes that
      * data dimensions are collapsed for the given query. Returns the short name
@@ -646,8 +646,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new org.hisp.dhis.common.QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
     }
 
@@ -659,19 +659,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected abstract String getSelectClause( EventQueryParams params );
 
     /**
-     * Generate the SQL for the from-clause. Generally this means which analytics table to get data from.
+     * Generates the SQL for the from-clause. Generally this means which analytics table to get data from.
+     *
      * @param params the {@link EventQueryParams} that define what is going to be queried.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getFromClause( EventQueryParams params );
 
     /**
-     * Generate the SQL for the where-clause. Generally this means adding filters, grouping and ordering
+     * Generates the SQL for the where-clause. Generally this means adding filters, grouping and ordering
      * to the SQL.
+     *
      * @param params the {@link EventQueryParams} that defines the details of the filters, grouping and ordering.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );
 
+    /**
+     * Returns the relevant {@link AnalyticsType}.
+     *
+     * @return the {@link AnalyticsType}.
+     */
     protected abstract AnalyticsType getAnalyticsType();
 }

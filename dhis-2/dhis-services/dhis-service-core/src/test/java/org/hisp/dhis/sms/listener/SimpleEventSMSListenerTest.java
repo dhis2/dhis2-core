@@ -269,6 +269,7 @@ public class SimpleEventSMSListenerTest
         subm.setEventDate( new Date() );
         subm.setDueDate( new Date() );
         subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
+        
         ArrayList<SmsDataValue> values = new ArrayList<>();
         values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "true" ) );
         subm.setValues( values );
@@ -290,6 +291,24 @@ public class SimpleEventSMSListenerTest
     private SimpleEventSmsSubmission createSimpleEventSubmissionNoValues()
     {
         SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+        subm.setValues( null );
+
+        return subm;
+    }
+
+    private SimpleEventSMSSubmission createSimpleEventSubmissionWithNulls()
+    {
+        SimpleEventSMSSubmission subm = createSimpleEventSubmission();
+        subm.setEventDate( null );
+        subm.setDueDate( null );
+        subm.setCoordinates( null );
+
+        return subm;
+    }
+
+    private SimpleEventSMSSubmission createSimpleEventSubmissionNoValues()
+    {
+        SimpleEventSMSSubmission subm = createSimpleEventSubmission();
         subm.setValues( null );
 
         return subm;

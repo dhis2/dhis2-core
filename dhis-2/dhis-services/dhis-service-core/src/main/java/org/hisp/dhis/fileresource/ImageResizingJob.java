@@ -89,17 +89,16 @@ public class ImageResizingJob extends AbstractJob
         {
             String key = fileResource.getStorageKey();
 
-            try
+            tmpFile = new File( UUID.randomUUID().toString() );
+
+	    if ( !fileResourceContentStore.fileResourceContentExists( key ) )
             {
-                if ( !fileResourceContentStore.fileResourceContentExists( key ) )
-                {
-                    log.error( "The referenced file could not be found for FileResource: " + fileResource.getUid() );
-                    continue;
-                }
+                log.error( "The referenced file could not be found for FileResource: " + fileResource.getUid() );
+                continue;
+            }
 
-                tmpFile = new File( UUID.randomUUID().toString() );
-
-                FileOutputStream fileOutputStream = new FileOutputStream( tmpFile );
+            try ( FileOutputStream fileOutputStream = new FileOutputStream( tmpFile ) )
+            {
 
                 fileResourceContentStore.copyContent( key, fileOutputStream );
 
