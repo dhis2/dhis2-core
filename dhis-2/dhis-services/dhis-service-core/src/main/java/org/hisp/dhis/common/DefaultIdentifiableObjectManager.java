@@ -582,6 +582,26 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes)
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return 0;
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return 0;
+        }
+
+        return  store.countAllValuesByAttributes( attributes );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids )

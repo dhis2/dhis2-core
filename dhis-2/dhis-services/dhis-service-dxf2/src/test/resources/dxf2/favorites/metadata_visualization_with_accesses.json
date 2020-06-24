@@ -254,6 +254,17 @@
       "filterDimensions": [
         "ou"
       ],
+      "series": [
+        {
+          "dimensionItem": "JXWenbITNIR",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Kvv6LltZuOd",
+          "visualizationType": "LINE"
+        }
+      ],
       "organisationUnitLevels": [ ],
       "id": "gyYXi0rXAIc",
       "user": {
@@ -306,7 +317,6 @@
       "regression": false,
       "type": "COLUMN",
       "aggregationType": "SUM",
-      "series": "dx",
       "created": "2016-03-17T01:56:51.847+0000",
       "periods": [ ],
       "hideLegend": false,
@@ -346,6 +356,17 @@
               "id": "c8yQa2ZIqhL"
             }
           }
+        }
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
         }
       ],
       "completedOnly": false,
@@ -407,7 +428,6 @@
       "hideLegend": false,
       "userOrganisationUnitGrandChildren": false,
       "lastUpdated": "2016-03-17T01:57:13.118+0000",
-      "series": "dx",
       "periods": [ ],
       "created": "2016-03-17T01:57:13.118+0000"
     },
@@ -426,7 +446,6 @@
       "itemOrganisationUnitGroups": [ ],
       "created": "2016-03-17T01:57:32.354+0000",
       "periods": [ ],
-      "series": "dx",
       "dataDimensionItems": [
         {
           "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
@@ -453,6 +472,17 @@
       ],
       "filterDimensions": [
         "ou"
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
+        }
       ],
       "showData": true,
       "organisationUnits": [

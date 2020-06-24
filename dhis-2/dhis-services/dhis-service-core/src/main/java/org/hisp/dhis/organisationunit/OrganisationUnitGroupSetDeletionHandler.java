@@ -65,7 +65,7 @@ public class OrganisationUnitGroupSetDeletionHandler
     {
         for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
         {
-            groupSet.removeOrganisationUnitGroup( group );
+            groupSet.getOrganisationUnitGroups().remove( group );
             idObjectManager.updateNoAcl( groupSet );
         }
     }

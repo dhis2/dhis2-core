@@ -63,11 +63,12 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -217,8 +218,8 @@ public class JdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
 
         return count;

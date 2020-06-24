@@ -74,8 +74,8 @@ public class DefaultDataSetService
 
     private CurrentUserService currentUserService;
 
-    public DefaultDataSetService(DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
-                                 @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
+    public DefaultDataSetService( DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
+        @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
     {
         checkNotNull( dataSetStore );
         checkNotNull( lockExceptionStore );
@@ -154,13 +154,6 @@ public class DefaultDataSetService
     public List<DataSet> getDataSetsByPeriodType( PeriodType periodType )
     {
         return dataSetStore.getDataSetsByPeriodType( periodType );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
-    {
-        return dataSetStore.getDataSetsForMobile( source );
     }
 
     @Override

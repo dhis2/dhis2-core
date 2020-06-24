@@ -29,7 +29,14 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -40,26 +47,27 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 /**
- * {@inheritDoc}
  * @author Luciano Fiandesio
  */
 @Component
-public class DefaultQueryItemLocator implements QueryItemLocator
+public class DefaultQueryItemLocator
+    implements QueryItemLocator
 {
     private final ProgramStageService programStageService;
 
@@ -85,12 +93,9 @@ public class DefaultQueryItemLocator implements QueryItemLocator
         this.relationshipTypeService = relationshipTypeService;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type ) {
-
+    public QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
+    {
         checkNotNull( program, "Program can not be null" );
 
         LegendSet legendSet = getLegendSet(dimension);
@@ -98,10 +103,9 @@ public class DefaultQueryItemLocator implements QueryItemLocator
         return getDataElement( dimension, program, legendSet, type )
             .orElseGet( () -> getTrackedEntityAttribute( dimension, program, legendSet )
             .orElseGet( () -> getProgramIndicator( dimension, program, legendSet )
-            .orElseThrow( () -> new IllegalQueryException(
-                "Item identifier does not reference any data element, attribute or indicator part of the program: " + dimension ) ) ) );
+            .orElseThrow( () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) );
     }
-    
+
     private LegendSet getLegendSet( String dimension )
     {
         String[] legendSplit = dimension.split( ITEM_SEP );
@@ -113,7 +117,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator
     private String getElement( String dimension, int pos )
     {
         String dim = StringUtils.substringBefore(dimension, ITEM_SEP);
-        
+
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 
         return dimSplit.length == 1 ? dimSplit[0] : dimSplit[pos];
@@ -143,24 +147,25 @@ public class DefaultQueryItemLocator implements QueryItemLocator
             ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
 
             qi = new QueryItem( de, program, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
+
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
-                throw new IllegalQueryException( "For enrollment analytics queries,"
-                    + "program stage is mandatory for data element dimensions: " + dimension );
+                throwIllegalQueryEx( ErrorCode.E7225, dimension );
             }
         }
+
         return Optional.ofNullable( qi );
     }
 
     private Optional<QueryItem> getTrackedEntityAttribute( String dimension, Program program,
         LegendSet legendSet )
     {
-
         QueryItem qi = null;
+
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( getSecondElement( dimension ) );
 
         if ( at != null && program.containsAttribute( at ) )
@@ -169,6 +174,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator
 
             qi = new QueryItem( at, program, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
+
         return Optional.ofNullable( qi );
     }
 
@@ -180,7 +186,8 @@ public class DefaultQueryItemLocator implements QueryItemLocator
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( getSecondElement( dimension ) );
 
-        // only allow a program indicator from a different program to be add, when a relationship type is present
+        // Only allow a program indicator from a different program to be added when a relationship type is present
+
         if ( pi != null )
         {
             if ( relationshipType != null )
@@ -224,11 +231,9 @@ public class DefaultQueryItemLocator implements QueryItemLocator
 
         if ( requiresIdObject && !found.isPresent() )
         {
-            throw new IllegalQueryException(
-                "Dimension: " + dimension + " could not be translated into a valid query item" );
+            throwIllegalQueryEx( ErrorCode.E7226, dimension );
         }
 
         return found.orElse( null );
     }
-
 }

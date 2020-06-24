@@ -14,7 +14,6 @@
   <modules>
     <module>dhis-web-commons</module>
     <module>dhis-web-commons-resources</module>
-    <module>dhis-web-api-mobile</module>
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
     <module>dhis-web-uaa</module>

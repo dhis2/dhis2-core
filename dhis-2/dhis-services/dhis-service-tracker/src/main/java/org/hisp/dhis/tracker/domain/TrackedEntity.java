@@ -78,6 +78,9 @@ public class TrackedEntity
     private Geometry geometry;
 
     @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 

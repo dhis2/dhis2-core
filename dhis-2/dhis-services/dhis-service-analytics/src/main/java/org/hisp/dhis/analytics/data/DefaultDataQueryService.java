@@ -29,29 +29,81 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.DataQueryParams.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_LATITUDE;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_LONGITUDE;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_PERIOD;
+import static org.hisp.dhis.analytics.DataQueryParams.KEY_DE_GROUP;
+import static org.hisp.dhis.analytics.DataQueryParams.KEY_IN_GROUP;
+import static org.hisp.dhis.analytics.DataQueryParams.getMeasureCriteriaFromParam;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.LATITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.LONGITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifier;
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalKeywords;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -294,7 +346,7 @@ public class DefaultDataQueryService
 
             if ( dataDimensionItems.isEmpty() )
             {
-                throw new IllegalQueryException( "Dimension dx is present in query without any valid dimension options" );
+                throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.DATA_X_DIM_ID );
             }
 
             return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dimensionalKeywords, dataDimensionItems );
@@ -462,8 +514,7 @@ public class DefaultDataQueryService
 
             if ( orgUnits.isEmpty() )
             {
-                throw new IllegalQueryException(
-                    "Dimension ou is present in query without any valid dimension options" );
+                throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.ORGUNIT_DIM_ID );
             }
 
             orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
@@ -529,7 +580,7 @@ public class DefaultDataQueryService
             return null;
         }
 
-        throw new IllegalQueryException( "Dimension identifier does not reference any dimension: " + dimension );
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7125, dimension ) );
     }
 
     @Override

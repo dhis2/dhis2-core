@@ -375,6 +375,11 @@ public abstract class AbstractTrackedEntityInstanceService
         daoEntityInstance.setUid( CodeGenerator.isValidUid( dtoEntityInstance.getTrackedEntityInstance() ) ?
             dtoEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
+        String storedBy = !StringUtils.isEmpty( dtoEntityInstance.getStoredBy() ) ? dtoEntityInstance.getStoredBy() :
+            (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
+
+        daoEntityInstance.setStoredBy( storedBy );
+
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         return daoEntityInstance;
@@ -1461,6 +1466,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setInactive( daoTrackedEntityInstance.isInactive() );
         trackedEntityInstance.setGeometry( daoTrackedEntityInstance.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
+        trackedEntityInstance.setStoredBy( daoTrackedEntityInstance.getStoredBy() );
 
         if ( daoTrackedEntityInstance.getGeometry() != null )
         {
