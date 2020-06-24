@@ -174,6 +174,7 @@ public class MappingServiceTest
 
         MapView mapView = map.getMapViews().get( 0 );
         assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
         assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
     }
 }

@@ -130,7 +130,8 @@ public class AnalyticalObjectStoreTest
         assertTrue( actual.contains( mvB ) );
     }
 
-    public void testAssertEnumProperties()
+    @Test
+    public void testAssertProperties()
     {
         MapView mapView = mapViewStore.getByUid( mvA.getUid() );
 
@@ -140,5 +141,6 @@ public class AnalyticalObjectStoreTest
         assertEquals( OrganisationUnitSelectionMode.DESCENDANTS, mapView.getOrganisationUnitSelectionMode() );
         assertEquals( MapViewRenderingStrategy.SINGLE, mapView.getRenderingStrategy() );
         assertEquals( UserOrgUnitType.DATA_CAPTURE, mapView.getUserOrgUnitType() );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
     }
 }
