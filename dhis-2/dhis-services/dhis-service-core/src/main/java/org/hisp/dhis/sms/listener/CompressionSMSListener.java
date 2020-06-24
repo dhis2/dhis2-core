@@ -78,6 +78,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -227,7 +228,7 @@ public abstract class CompressionSMSListener
         SMSSubmissionReader reader = new SMSSubmissionReader();
         try
         {
-            return reader.readHeader( smsBytes );
+            return reader.readHeader( Objects.requireNonNull( smsBytes ) );
         }
         catch ( Exception e )
         {
@@ -257,7 +258,7 @@ public abstract class CompressionSMSListener
     private List<SMSMetadata.ID> getTypeUidsBefore( Class<? extends IdentifiableObject> klass, Date lastSyncDate )
     {
         return identifiableObjectManager.getUidsCreatedBefore( klass, lastSyncDate ).stream()
-            .map( o -> new SMSMetadata.ID( o ) ).collect( Collectors.toList() );
+            .map( SMSMetadata.ID::new ).collect( Collectors.toList() );
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,

@@ -70,7 +70,7 @@ public class RelationshipSMSListener
 {
     private enum RelationshipDir
     {
-        FROM, TO;
+        FROM, TO
     }
 
     private final RelationshipService relationshipService;
