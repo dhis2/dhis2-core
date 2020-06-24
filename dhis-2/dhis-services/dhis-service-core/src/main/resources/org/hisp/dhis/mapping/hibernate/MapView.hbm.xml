@@ -176,6 +176,8 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_mapview_maplegendsetid" />
+      
+    <property name="noDataColor" length="7" />
 
     <property name="radiusLow" />
 

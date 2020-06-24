@@ -43,7 +43,8 @@
               ]
             }
           ],
-          "startDate": "2018-09-01",          
+          "startDate": "2018-09-01",
+          "noDataColor": "#ddeeff",     
           "thematicMapType": "CHOROPLETH"
         }
       ],

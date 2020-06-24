@@ -1347,6 +1347,7 @@ public abstract class DhisConvenienceTest
         mapView.setOrganisationUnitSelectionMode( OrganisationUnitSelectionMode.DESCENDANTS );
         mapView.setRenderingStrategy( MapViewRenderingStrategy.SINGLE );
         mapView.setUserOrgUnitType( UserOrgUnitType.DATA_CAPTURE );
+        mapView.setNoDataColor( "#ddeeff" );
 
         return mapView;
     }
