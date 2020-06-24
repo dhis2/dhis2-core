@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 
@@ -135,6 +136,12 @@ public class MapView
     private String colorScale;
 
     private LegendSet legendSet;
+
+    /**
+     * Color in hex format to use for features with no corresponding
+     * data. Must be exactly 7 characters.
+     */
+    private String noDataColor;
 
     private Integer radiusLow;
 
@@ -523,6 +530,20 @@ public class MapView
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 7, max = 7 )
+    public String getNoDataColor()
+    {
+        return noDataColor;
+    }
+
+    public void setNoDataColor( String noDataColor )
+    {
+        this.noDataColor = noDataColor;
     }
 
     @JsonProperty
