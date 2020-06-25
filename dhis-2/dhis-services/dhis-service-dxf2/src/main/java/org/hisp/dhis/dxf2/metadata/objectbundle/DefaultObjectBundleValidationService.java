@@ -90,7 +90,7 @@ public class DefaultObjectBundleValidationService
 
             // Validate the bundle by running the validation checks chain
             validation.addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects,
-                    nonPersistedObjects ) );
+                nonPersistedObjects ) );
         }
 
         validateAtomicity( bundle, validation );
