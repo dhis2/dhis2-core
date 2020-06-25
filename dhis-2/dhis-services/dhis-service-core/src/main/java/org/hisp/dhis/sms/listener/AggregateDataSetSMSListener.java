@@ -111,10 +111,10 @@ public class AggregateDataSetSMSListener
         String per = subm.getPeriod();
         UID aocid = subm.getAttributeOptionCombo();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
-        User user = userService.getUser( subm.getUserID().uid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUID() );
+        User user = userService.getUser( subm.getUserID().getUID() );
 
-        DataSet dataSet = dataSetService.getDataSet( dsid.uid );
+        DataSet dataSet = dataSetService.getDataSet( dsid.getUID() );
         if ( dataSet == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_DATASET.set( dsid ) );
@@ -126,7 +126,7 @@ public class AggregateDataSetSMSListener
             throw new SMSProcessingException( SMSResponse.INVALID_PERIOD.set( per ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUID() );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
@@ -188,7 +188,7 @@ public class AggregateDataSetSMSListener
             UID cocid = smsdv.getCategoryOptionCombo();
             String combid = deid + "-" + cocid;
 
-            DataElement de = dataElementService.getDataElement( deid.uid );
+            DataElement de = dataElementService.getDataElement( deid.getUID() );
             if ( de == null )
             {
                 log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
@@ -196,7 +196,7 @@ public class AggregateDataSetSMSListener
                 continue;
             }
 
-            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.uid );
+            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.getUID() );
             if ( coc == null )
             {
                 log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",

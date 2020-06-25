@@ -96,29 +96,29 @@ public class TrackerEventSMSListener
         UID enrolmentid = subm.getEnrollment();
         UID aocid = subm.getAttributeOptionCombo();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
-        User user = userService.getUser( subm.getUserID().uid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUID() );
+        User user = userService.getUser( subm.getUserID().getUID() );
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.uid );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUID() );
         if ( programInstance == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_ENROLL.set( enrolmentid ) );
         }
 
-        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
+        ProgramStage programStage = programStageService.getProgramStage( stageid.getUID() );
         if ( programStage == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUID() );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
-            user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
+        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUID(), orgUnit, programStage, programInstance, sms,
+            aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
         if ( !errorUIDs.isEmpty() )
         {
