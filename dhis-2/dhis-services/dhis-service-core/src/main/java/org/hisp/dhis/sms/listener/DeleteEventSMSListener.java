@@ -38,11 +38,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.SMSResponse;
-import org.hisp.dhis.smscompression.models.DeleteSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.smscompression.models.UID;
+import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -69,21 +69,22 @@ public class DeleteEventSMSListener
     }
 
     @Override
-    protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
         throws SMSProcessingException
     {
-        DeleteSMSSubmission subm = (DeleteSMSSubmission) submission;
+        DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 
-        UID eventid = subm.getEvent();
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUID() );
+        Uid eventid = subm.getEvent();
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUid() );
+
         if ( psi == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_EVENT.set( eventid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( eventid ) );
         }
 
         programStageInstanceService.deleteProgramStageInstance( psi );
 
-        return SMSResponse.SUCCESS;
+        return SmsResponse.SUCCESS;
     }
 
     @Override
