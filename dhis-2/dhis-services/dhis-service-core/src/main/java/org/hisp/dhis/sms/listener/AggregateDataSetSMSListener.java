@@ -127,6 +127,7 @@ public class AggregateDataSetSMSListener
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
@@ -189,6 +190,7 @@ public class AggregateDataSetSMSListener
             String combid = deid + "-" + cocid;
 
             DataElement de = dataElementService.getDataElement( deid.getUid() );
+
             if ( de == null )
             {
                 log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
@@ -197,6 +199,7 @@ public class AggregateDataSetSMSListener
             }
 
             CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.getUid() );
+
             if ( coc == null )
             {
                 log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",

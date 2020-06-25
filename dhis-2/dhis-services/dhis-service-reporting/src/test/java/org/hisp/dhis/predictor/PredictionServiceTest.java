@@ -124,6 +124,7 @@ public class PredictionServiceTest
     private DataElement dataElementD;
     private DataElement dataElementX;
     private DataElement dataElementY;
+    private DataElement dataElementZ;
 
     private CategoryOptionCombo defaultCombo;
 
@@ -180,6 +181,7 @@ public class PredictionServiceTest
         dataElementD = createDataElement( 'D' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
         dataElementY = createDataElement( 'Y', ValueType.INTEGER, AggregationType.NONE );
+        dataElementZ = createDataElement( 'Z', ValueType.INTEGER, AggregationType.NONE );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
@@ -187,6 +189,7 @@ public class PredictionServiceTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
         dataElementService.addDataElement( dataElementY );
+        dataElementService.addDataElement( dataElementZ );
 
         dataElements = new HashSet<>();
 
@@ -306,7 +309,13 @@ public class PredictionServiceTest
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo, Number value )
     {
-        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, defaultCombo, attributeOptionCombo, value == null ? null : value.toString() ) );
+        useDataValue( e, p, s, attributeOptionCombo, value, false );
+    }
+
+    private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo, Number value, boolean deleted )
+    {
+        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, defaultCombo,
+            attributeOptionCombo, value == null ? null : value.toString(), deleted ) );
     }
 
     private String getDataValue( DataElement dataElement, CategoryOptionCombo combo, OrganisationUnit source, Period period )
@@ -1373,5 +1382,75 @@ public class PredictionServiceTest
         assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
 
         assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+    }
+
+    @Test
+    public void testPredictCarryingForwardPredictedDataElement()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 1 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "2 * sum(#{" + dataElementA.getUid() + "})",
+            "description", MissingValueStrategy.NEVER_SKIP );
+
+        Predictor predictor = createPredictor( dataElementA, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 9 ), monthStart( 2010, 12 ), summary );
+
+        assertEquals( "Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "1", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        assertEquals( "2", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
+        assertEquals( "4", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 10 ) ) );
+        assertEquals( "8", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 11 ) ) );
+    }
+
+    @Test
+    public void testPredictCarryingForwardPredictedDataElementOperand()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 1 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "3 * sum(#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "})",
+            "description", MissingValueStrategy.NEVER_SKIP );
+
+        Predictor predictor = createPredictor( dataElementA, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 9 ), monthStart( 2010, 12 ), summary );
+
+        assertEquals( "Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "1", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        assertEquals( "3", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
+        assertEquals( "9", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 10 ) ) );
+        assertEquals( "27", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 11 ) ) );
+    }
+
+    @Test
+    public void testPredictToReplaceDeletedValue()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, defaultCombo, 22 );
+        useDataValue( dataElementA, makeMonth( 2010, 9 ), sourceA, defaultCombo, 33 );
+        useDataValue( dataElementZ, makeMonth( 2010, 8 ), sourceA, defaultCombo, 22, true );
+        useDataValue( dataElementZ, makeMonth( 2010, 9 ), sourceA, defaultCombo, 1, true );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "}",
+            "description", MissingValueStrategy.NEVER_SKIP );
+
+        Predictor predictor = createPredictor( dataElementZ, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 10 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 2 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "22", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        assertEquals( "33", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
     }
 }

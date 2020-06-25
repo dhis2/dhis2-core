@@ -28,19 +28,25 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -57,9 +63,24 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -100,6 +121,8 @@ public class DefaultTrackedEntityInstanceService
 
     private final RenderService renderService;
 
+    private final ApplicationEventPublisher publisher;
+
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -108,7 +131,8 @@ public class DefaultTrackedEntityInstanceService
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
         TrackedEntityAttributeValueAuditService attributeValueAuditService,
         TrackedEntityInstanceAuditService trackedEntityInstanceAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager,
+        RenderService renderService, ApplicationEventPublisher publisher )
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -123,6 +147,7 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
         checkNotNull( renderService );
+        checkNotNull( publisher );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -137,6 +162,7 @@ public class DefaultTrackedEntityInstanceService
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
         this.renderService = renderService;
+        this.publisher = publisher;
     }
 
     // -------------------------------------------------------------------------
@@ -173,6 +199,10 @@ public class DefaultTrackedEntityInstanceService
         params.handleCurrentUserSelectionMode();
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
+
+        trackedEntityInstances = trackedEntityInstances.stream()
+            .filter( (tei) -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
+            .collect( Collectors.toList() );
 
         String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
@@ -415,6 +445,13 @@ public class DefaultTrackedEntityInstanceService
         if ( params.hasTrackedEntityType() && !aclService.canDataRead( user, params.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
+        }
+        else
+        {
+            params.setTrackedEntityTypes( trackedEntityTypeService.getAllTrackedEntityType().stream()
+                .filter( tet -> aclService.canDataRead( user, tet ) )
+                .collect( Collectors.toList() )
+            );
         }
     }
 
@@ -894,6 +931,12 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    public void updateTrackedEntityInstance( TrackedEntityInstance entityInstance, User user )
+    {
+        trackedEntityInstanceStore.update( entityInstance, user );
+    }
+
+    @Override
     @Transactional
     public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
@@ -907,6 +950,7 @@ public class DefaultTrackedEntityInstanceService
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( instance ) );
     }
 
     @Override
@@ -925,6 +969,16 @@ public class DefaultTrackedEntityInstanceService
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
         addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
+
+        return tei;
+    }
+
+    @Override
+    @Transactional
+    public TrackedEntityInstance getTrackedEntityInstance( String uid, User user )
+    {
+        TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
+        addTrackedEntityInstanceAudit( tei, User.username( user ), AuditType.READ );
 
         return tei;
     }

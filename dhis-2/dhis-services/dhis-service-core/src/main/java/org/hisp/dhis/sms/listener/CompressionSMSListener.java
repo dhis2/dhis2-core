@@ -78,6 +78,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -227,7 +228,7 @@ public abstract class CompressionSMSListener
         SmsSubmissionReader reader = new SmsSubmissionReader();
         try
         {
-            return reader.readHeader( smsBytes );
+            return reader.readHeader( Objects.requireNonNull( smsBytes ) );
         }
         catch ( Exception e )
         {
@@ -302,6 +303,7 @@ public abstract class CompressionSMSListener
                 String val = dv.getValue();
 
                 DataElement de = dataElementService.getDataElement( deid.getUid() );
+
                 // TODO: Is this the correct way of handling errors here?
                 if ( de == null )
                 {
@@ -318,6 +320,7 @@ public abstract class CompressionSMSListener
                 }
 
                 EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), user.getUsername() );
+
                 eventDataValue.setAutoFields();
                 dataElementsAndEventDataValues.put( de, eventDataValue );
             }

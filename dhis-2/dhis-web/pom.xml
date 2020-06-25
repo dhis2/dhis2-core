@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.33.4-SNAPSHOT</version>
+    <version>2.33.5-SNAPSHOT</version>
   </parent>
   <artifactId>dhis-web</artifactId>
   <packaging>pom</packaging>
@@ -20,6 +20,7 @@
     <module>dhis-web-uaa</module>
     <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>
+    <module>dhis-web-approval</module>
     <module>dhis-web-apps</module>
     <module>dhis-web-portal</module>
   </modules>

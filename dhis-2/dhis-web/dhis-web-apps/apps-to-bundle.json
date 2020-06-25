@@ -5,7 +5,7 @@
   "https://github.com/d2-ci/core-resource-app#master",
   "https://github.com/d2-ci/dashboards-app#v33",
   "https://github.com/d2-ci/data-administration-app#v33",
-  "https://github.com/d2-ci/data-visualizer-app#v33",
+  "https://github.com/d2-ci/data-visualizer-app#33.x",
   "https://github.com/d2-ci/data-quality-app#v33",
   "https://github.com/d2-ci/datastore-app#v33",
   "https://github.com/d2-ci/event-reports-app#v33",

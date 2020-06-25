@@ -39,6 +39,8 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
@@ -53,7 +55,8 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
-    extends HibernateIdentifiableObjectStore<T> implements AnalyticalObjectStore<T>
+    extends HibernateIdentifiableObjectStore<T>
+    implements AnalyticalObjectStore<T>
 {
     public HibernateAnalyticalObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
         Class<T> clazz, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
@@ -62,47 +65,53 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
         super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService, cacheable );
     }
 
-    //TODO program indicator, tracked entity attribute
+    // TODO program indicator, tracked entity attribute
 
     @Override
     public List<T> getAnalyticalObjects( Indicator indicator )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.indicator = :indicator";
         return getQuery( hql ).setParameter( "indicator", indicator ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjects( DataElement dataElement )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.dataElement = :dataElement";
         return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataElementDimensions d where d.dataElement = :dataElement";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataElementDimensions d where d.dataElement = :dataElement";
         return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.attributeDimensions d where d.attribute = :attribute";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.attributeDimensions d where d.attribute = :attribute";
         return getQuery( hql ).setParameter( "attribute", attribute ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjects( DataSet dataSet )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.reportingRate.dataSet = :dataSet";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.reportingRate.dataSet = :dataSet";
         return getQuery( hql ).setParameter( "dataSet", dataSet ).list();
     }
 
     @Override
     public List<T> getAnalyticalObjects( ProgramIndicator programIndicator )
     {
-        String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator";
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator";
         return getQuery( hql ).setParameter( "programIndicator", programIndicator ).list();
     }
 
@@ -118,6 +127,22 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     {
         String hql = "from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)";
         return getQuery( hql ).setParameter( "organisationUnit", organisationUnit ).list();
+    }
+
+    @Override
+    public List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup )
+    {
+        String hql = "from " + clazz.getName()
+            + " c JOIN FETCH c.organisationUnitGroupSetDimensions d where :organisationUnitGroup in elements(d.items)";
+        return getQuery( hql ).setParameter( "organisationUnitGroup", organisationUnitGroup ).list();
+    }
+
+    @Override
+    public List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet )
+    {
+        String hql = "from " + clazz.getName()
+            + " c JOIN FETCH c.organisationUnitGroupSetDimensions d where :organisationUnitGroupSet = d.dimension";
+        return getQuery( hql ).setParameter( "organisationUnitGroupSet", organisationUnitGroupSet ).list();
     }
 
     @Override

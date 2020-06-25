@@ -28,12 +28,8 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,6 +40,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -75,7 +72,12 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -83,11 +85,20 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -247,7 +258,7 @@ public abstract class AbstractTrackedEntityInstanceService
             throw new IllegalQueryException( errors.toString() );
         }
 
-        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes( user );
 
         return getTei( daoTrackedEntityInstance, readableAttributes, params, user );
     }
@@ -418,17 +429,14 @@ public abstract class AbstractTrackedEntityInstanceService
                 .setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
         }
 
-        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
-
         dtoEntityInstance.trimValuesToNull();
 
-        Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
-        checkAttributes( dtoEntityInstance, importOptions, importConflicts, false );
+        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
+        importSummary.getConflicts().addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
+        checkAttributes( dtoEntityInstance, importOptions, importSummary.getConflicts(), false );
 
-        if ( !importConflicts.isEmpty() )
+        if ( !importSummary.getConflicts().isEmpty() )
         {
-            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
             return importSummary;
@@ -437,8 +445,10 @@ public abstract class AbstractTrackedEntityInstanceService
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = createDAOTrackedEntityInstance(
             dtoEntityInstance, importOptions, importSummary );
 
-        if ( daoEntityInstance == null )
+        if ( daoEntityInstance == null || !importSummary.getConflicts().isEmpty() )
         {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getImportCount().incrementIgnored();
             return importSummary;
         }
 
@@ -532,7 +542,7 @@ public abstract class AbstractTrackedEntityInstanceService
         checkAttributes( dtoEntityInstance, importOptions, importConflicts, true );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
-            .getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+            .getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoEntityInstance );
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), dtoEntityInstance.getOrgUnit() );
         Program program = getProgram( importOptions.getIdSchemes(), programId );
@@ -794,13 +804,13 @@ public abstract class AbstractTrackedEntityInstanceService
         List<Relationship> delete = new ArrayList<>( daoEntityInstance.getRelationshipItems().stream()
             .map( RelationshipItem::getRelationship )
 
-                // Remove items we cant write to
-                .filter(
-                    relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
-                .filter(
-                    relationship -> isTeiPartOfRelationship( relationship, daoEntityInstance )
-                )
-                .map( org.hisp.dhis.relationship.Relationship::getUid )
+            // Remove items we cant write to
+            .filter(
+                relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
+            .filter(
+                relationship -> isTeiPartOfRelationship( relationship, daoEntityInstance )
+            )
+            .map( org.hisp.dhis.relationship.Relationship::getUid )
 
             // Remove items we are already referencing
             .filter( ( uid ) -> !relationshipUids.contains( uid ) )
@@ -938,7 +948,7 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummaries.addImportSummaries( enrollmentService.deleteEnrollments( delete, importOptions, false ) );
         importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, false ) );
         importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
-       
+
         return importSummaries;
     }
 
@@ -979,8 +989,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
         {
-            String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
-                user == null ? "[Unknown]" : user.getUsername() );
+            String storedBy = getStoredBy( dtoAttribute, new ImportSummary(), User.username( user, Constants.UNKNOWN ) );
 
             TrackedEntityAttributeValue existingAttributeValue = teiAttributeToValueMap.get( dtoAttribute.getAttribute() );
 
@@ -992,7 +1001,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     existingAttributeValue.setStoredBy( storedBy );
                     existingAttributeValue.setValue( dtoAttribute.getValue() );
-                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue );
+                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue, user );
                 }
             }
             else // value is new, do add
@@ -1043,8 +1052,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 daoEntityInstance.addAttributeValue( daoAttributeValue );
 
-                String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
-                    user == null ? "[Unknown]" : user.getUsername() );
+                String storedBy = getStoredBy( dtoAttribute, new ImportSummary(), User.username( user, Constants.UNKNOWN ) );
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
@@ -1150,7 +1158,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( teiExistsInDatabase )
         {
-            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
 
             daoEntityInstance.getTrackedEntityAttributeValues().stream()
                 .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() ).forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
@@ -1257,14 +1265,13 @@ public abstract class AbstractTrackedEntityInstanceService
         daoEntityInstance.setAutoFields();
     }
 
-    private String getStoredBy( Attribute attributeValue, ImportSummary importSummary,
-        String fallbackUsername )
+    private String getStoredBy( Attribute attributeValue, ImportSummary importSummary, String fallbackUsername )
     {
         String storedBy = attributeValue.getStoredBy();
 
         if ( StringUtils.isEmpty( storedBy ) )
         {
-            storedBy = User.getSafeUsername( fallbackUsername );
+            return fallbackUsername;
         }
         else if ( storedBy.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
@@ -1274,7 +1281,7 @@ public abstract class AbstractTrackedEntityInstanceService
                     storedBy + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
-            storedBy = User.getSafeUsername( fallbackUsername );
+            return fallbackUsername;
         }
 
         return storedBy;
@@ -1443,7 +1450,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             readableAttributesCopy = readableAttributes.stream()
                 .filter( att -> !att.getSkipSynchronization() )
-                .collect( Collectors.toSet() ) ;
+                .collect( Collectors.toSet() );
 
             IdSchemes idSchemes = new IdSchemes();
             for ( String programUid : programs )

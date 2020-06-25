@@ -100,18 +100,21 @@ public class TrackerEventSMSListener
         User user = userService.getUser( subm.getUserId().getUid() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUid() );
+        
         if ( programInstance == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( enrolmentid ) );
         }
 
         ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
+
         if ( programStage == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );

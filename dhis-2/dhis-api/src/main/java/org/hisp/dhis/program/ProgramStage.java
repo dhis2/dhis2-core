@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -60,17 +61,9 @@ import java.util.stream.Collectors;
  */
 @JacksonXmlRootElement( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStage
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
-    private String description;
-
-    /**
-     * The i18n variant of the description. Should not be persisted.
-     */
-    protected transient String displayDescription;
-
-    private String formName;
-
     private int minDaysFromStart;
 
     private boolean repeatable;
@@ -247,32 +240,6 @@ public class ProgramStage
     public void setDataEntryForm( DataEntryForm dataEntryForm )
     {
         this.dataEntryForm = dataEntryForm;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayDescription()
-    {
-        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
-        return displayDescription != null ? displayDescription : getDescription();
-    }
-
-    public void setDisplayDescription( String displayDescription )
-    {
-        this.displayDescription = displayDescription;
     }
 
     @JsonProperty( "programStageSections" )
@@ -511,18 +478,6 @@ public class ProgramStage
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
     }
 
     @JsonProperty

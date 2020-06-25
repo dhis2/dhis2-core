@@ -67,7 +67,7 @@ public class PeriodResourceTable
     {
         String sql =
             "create table " + getTempTableName() +
-            " (periodid integer not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
+            " (periodid bigint not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {

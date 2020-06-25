@@ -44,7 +44,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -425,11 +424,6 @@ public class User
         return false;
     }
 
-    public static String getSafeUsername( String username )
-    {
-        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
-    }
-
     public boolean hasEmail()
     {
         return email != null && !email.isEmpty();
@@ -775,6 +769,16 @@ public class User
     public void setAvatar( FileResource avatar )
     {
         this.avatar = avatar;
+    }
+
+    public static String username( User user )
+    {
+        return username( user, "system-process" );
+    }
+
+    public static String username( User user, String defaultValue )
+    {
+        return user != null ? user.getUsername() : defaultValue;
     }
 
     @Override

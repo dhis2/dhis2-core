@@ -98,12 +98,14 @@ public class SimpleEventSMSListener
         User user = userService.getUser( subm.getUserId().getUid() );
 
         Program program = programService.getProgram( subm.getEventProgram().getUid() );
+
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );

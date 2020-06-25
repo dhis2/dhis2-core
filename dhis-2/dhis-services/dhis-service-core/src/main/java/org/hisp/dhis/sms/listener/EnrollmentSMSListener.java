@@ -127,12 +127,14 @@ public class EnrollmentSMSListener
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
 
         Program program = programService.getProgram( progid.getUid() );
+
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.getUid() );
+
         if ( entityType == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
@@ -182,6 +184,7 @@ public class EnrollmentSMSListener
         if ( enrollmentExists )
         {
             enrollment = programInstanceService.getProgramInstance( enrollmentid.getUid() );
+
             // Update these dates in case they've changed
             enrollment.setEnrollmentDate( enrollmentDate );
             enrollment.setIncidentDate( incidentDate );
@@ -201,6 +204,7 @@ public class EnrollmentSMSListener
 
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserId().getUid() );
+
         List<Object> errorUIDs = new ArrayList<>();
         if ( subm.getEvents() != null )
         {
@@ -285,6 +289,7 @@ public class EnrollmentSMSListener
 
         TrackedEntityAttribute attribute = trackedEntityAttributeService
             .getTrackedEntityAttribute( attribUid.getUid() );
+
         if ( attribute == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );
@@ -308,18 +313,21 @@ public class EnrollmentSMSListener
         Uid orgunitid = event.getOrgUnit();
 
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.getUid() );
+
         if ( orgUnit == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ORGUNIT.set( orgunitid ) );
         }
 
         ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
+
         if ( programStage == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );

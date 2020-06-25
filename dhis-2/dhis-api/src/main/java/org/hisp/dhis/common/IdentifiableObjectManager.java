@@ -104,6 +104,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
+    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
+
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );

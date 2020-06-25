@@ -73,6 +73,8 @@ public interface GenericStore<T>
      */
     T get( long id );
 
+    long countAllValuesByAttributes( List<Attribute> attributes );
+
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
     /**
