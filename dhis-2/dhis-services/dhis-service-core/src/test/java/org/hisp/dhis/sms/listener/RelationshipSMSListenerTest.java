@@ -45,8 +45,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.models.RelationshipSMSSubmission;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -143,7 +143,7 @@ public class RelationshipSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -181,7 +181,7 @@ public class RelationshipSMSListenerTest
     }
 
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         user = createUser( 'U' );
         user.setPhoneNumber( ORIGINATOR );
@@ -199,16 +199,16 @@ public class RelationshipSMSListenerTest
         incomingSmsRelationship = createSMSFromSubmission( createRelationshipSubmission() );
     }
 
-    private RelationshipSMSSubmission createRelationshipSubmission()
+    private RelationshipSmsSubmission createRelationshipSubmission()
     {
-        RelationshipSMSSubmission subm = new RelationshipSMSSubmission();
+        RelationshipSmsSubmission subm = new RelationshipSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setRelationshipType( relationshipType.getUid() );
         subm.setRelationship( "uf3svrmpzOj" );
         subm.setFrom( programInstance.getUid() );
         subm.setTo( programInstance.getUid() );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }
