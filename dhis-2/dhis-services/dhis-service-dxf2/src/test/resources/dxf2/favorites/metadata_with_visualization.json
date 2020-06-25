@@ -308,7 +308,9 @@
       "lastUpdated": "2016-03-17T01:56:51.847+0000",
       "userOrganisationUnitGrandChildren": false,
       "rangeAxisMinValue": -10,
-      "rangeAxisMaxValue": 20
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     },
     {
       "organisationUnits": [
@@ -417,7 +419,9 @@
       "periods": [ ],
       "created": "2016-03-17T01:57:13.118+0000",
       "rangeAxisMinValue": -10,
-      "rangeAxisMaxValue": 20
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     },
     {
       "aggregationType": "SUM",
@@ -526,7 +530,9 @@
       "name": "ChartC",
       "organisationUnitLevels": [ ],
       "rangeAxisMinValue": -10,
-      "rangeAxisMaxValue": 20
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     }
   ],
   "categoryCombos": [
