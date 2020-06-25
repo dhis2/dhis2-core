@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -109,7 +108,8 @@ public class EnrollmentAttrValidationTests
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_basic_metadata_mandatory_attr.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/tracker_basic_metadata_mandatory_attr.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );

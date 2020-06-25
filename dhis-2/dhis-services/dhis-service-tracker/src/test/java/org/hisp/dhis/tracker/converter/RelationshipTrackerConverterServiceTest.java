@@ -64,8 +64,11 @@ public class RelationshipTrackerConverterServiceTest
 {
 
     private final static String MOTHER_TO_CHILD_RELATIONSHIP_TYPE = "dDrh5UyCyvQ";
+
     private final static String CHILD_TO_MOTHER_RELATIONSHIP_TYPE = "tBeOL0DL026";
+
     private final static String MOTHER = "Ea0rRdBPAIp";
+
     private final static String CHILD = "G1afLIEKt8A";
 
     @Autowired
@@ -95,10 +98,9 @@ public class RelationshipTrackerConverterServiceTest
 
     private TrackerBundle trackerBundle;
 
-
-
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -110,17 +112,21 @@ public class RelationshipTrackerConverterServiceTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit, trackedEntityAttribute );
+        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit,
+            trackedEntityAttribute );
         trackedEntityInstanceA.setUid( MOTHER );
-        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit, trackedEntityAttribute );
+        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit,
+            trackedEntityAttribute );
         trackedEntityInstanceB.setUid( CHILD );
 
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
 
-        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A' , null, trackedEntityType, false);
+        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A', null, trackedEntityType,
+            false );
         relationshipTypeA.setUid( MOTHER_TO_CHILD_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType, false );
+        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType,
+            false );
         relationshipTypeB.setUid( CHILD_TO_MOTHER_RELATIONSHIP_TYPE );
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );

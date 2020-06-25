@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.preheat;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -139,7 +138,7 @@ public class TrackerPreheatServiceIntegration
 
         trackerPreheatService.validate( trackerPreheatParams );
 
-            TrackerPreheat preheat = trackerPreheatService.preheat( trackerPreheatParams );
+        TrackerPreheat preheat = trackerPreheatService.preheat( trackerPreheatParams );
 
         assertNotNull( preheat );
         assertNotNull( preheat.getMap() );

@@ -42,10 +42,10 @@ import org.hisp.dhis.user.User;
  */
 public interface TrackerImportAccessManager
 {
-    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
+    void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
         OrganisationUnit orgUnit );
 
-    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
+    void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
         OrganisationUnit orgUnit );
 
     void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,

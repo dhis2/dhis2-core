@@ -33,6 +33,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -86,7 +87,6 @@ public class EventDateValidationHook
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
-        // TODO: Check is completeEventsExpiryDays actually in use, can't find any code usage other than in import validation.
         if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())
             || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
         {
@@ -116,12 +116,12 @@ public class EventDateValidationHook
 
             //TODO: This is troublesome, according to the error text this actually an auth check...
             // This should probably we moved and merged with the auth check on isAuthorized F_EDIT_EXPIRED above
-//            if ( completedDate != null && (new Date()).after(
-//                DateUtils.getDateAfterAddition( completedDate, program.getCompleteEventsExpiryDays() ) ) )
-//            {
-//                errorReporter.addError( newReport( TrackerErrorCode.E1043 )
-//                    .addArg( event ) );
-//            }
+            if ( completedDate != null && (new Date())
+                .after( DateUtils.getDateAfterAddition( completedDate, program.getCompleteEventsExpiryDays() ) ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1043 )
+                    .addArg( event ) );
+            }
         }
     }
 

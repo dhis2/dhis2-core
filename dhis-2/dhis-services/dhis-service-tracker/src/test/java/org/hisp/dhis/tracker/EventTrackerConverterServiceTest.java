@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;

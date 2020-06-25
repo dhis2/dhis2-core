@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.bundle;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -83,7 +82,8 @@ public class TrackerBundleServiceTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -121,10 +121,12 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testTrackedEntityInstanceImport() throws IOException
+    public void testTrackedEntityInstanceImport()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 

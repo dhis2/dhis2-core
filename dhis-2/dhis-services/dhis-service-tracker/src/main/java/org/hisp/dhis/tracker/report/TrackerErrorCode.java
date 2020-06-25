@@ -139,7 +139,7 @@ public enum TrackerErrorCode
 
     E9999( "N/A" );
 
-    private String message;
+    private final String message;
 
     TrackerErrorCode( String message )
     {

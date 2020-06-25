@@ -50,19 +50,6 @@ public class TrackedEntityGeoValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
-        TrackerBundle bundle = validationContext.getBundle();
 
-//        TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, trackedEntity );
-        // TODO: Check if this is still valid since tei.getFeatureType(); is removed...
-//        FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
-//            trackedEntityType.getFeatureType() :
-//            tei.getFeatureType();
-//
-//        if ( tei.getGeometry() != null )
-//        {
-//            validateGeo( reporter, tei.getGeometry(), featureType );
-//        }
     }
 }

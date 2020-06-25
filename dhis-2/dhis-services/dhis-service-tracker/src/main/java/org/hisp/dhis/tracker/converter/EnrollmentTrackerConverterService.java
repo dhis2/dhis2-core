@@ -128,9 +128,11 @@ public class EnrollmentTrackerConverterService
 
         enrollments.forEach( enrollment -> {
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
             Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+            TrackedEntityInstance trackedEntityInstance = preheat
+                .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
             if ( programInstance == null )
             {
@@ -163,7 +165,6 @@ public class EnrollmentTrackerConverterService
             }
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
-
 
             programInstances.add( programInstance );
         } );

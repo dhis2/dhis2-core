@@ -68,7 +68,8 @@ public class TrackerValidationReport
         this.errorReports.addAll( errorReports );
     }
 
-    public void addPerfReports( List<TrackerValidationHookTimerReport> reports ){
+    public void addPerfReports( List<TrackerValidationHookTimerReport> reports )
+    {
         this.performanceReport.addAll( reports );
     }
 

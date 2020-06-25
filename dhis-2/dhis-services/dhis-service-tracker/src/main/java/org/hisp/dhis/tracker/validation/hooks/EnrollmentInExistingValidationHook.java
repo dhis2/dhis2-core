@@ -88,7 +88,6 @@ public class EnrollmentInExistingValidationHook
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
 
-        // TODO: check existing on update...
         if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
         {
             return;
@@ -117,7 +116,7 @@ public class EnrollmentInExistingValidationHook
         TrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        // TODO:  create a dedicated sql query....?
+        // TODO: Create a dedicated sql query....?
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, actingUser, program, tei )
             .stream()
             .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
@@ -132,15 +131,12 @@ public class EnrollmentInExistingValidationHook
             if ( !activeOnly.isEmpty() )
             {
                 // TODO: How do we do this check on an import set, this only checks when the DB already contains it
-                //Error: TrackedEntityInstance already has an active enrollment in another program...
                 reporter.addError( newReport( TrackerErrorCode.E1015 )
                     .addArg( tei )
                     .addArg( program ) );
             }
         }
 
-        // Enrollment(¶4.b.ii) - The error of enrolling more than once is possible only if the imported enrollment
-        // has a state other than CANCELLED... i.e. ACTIVE OR COMPLETED!
         if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !activeAndCompleted.isEmpty() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1016 )

@@ -195,7 +195,8 @@ public class EventTrackerConverterService
         events.forEach( e -> {
             ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, e.getEvent() );
             ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, e.getProgramStage() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
 
             if ( programStageInstance == null )
             {
@@ -262,7 +263,8 @@ public class EventTrackerConverterService
         return programStageInstances;
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment, Program program )
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
+        Program program )
     {
         if ( !StringUtils.isEmpty( enrollment ) )
         {

@@ -138,7 +138,6 @@ public class EnrollmentAttributeValidationHook
         Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
 
-        // TODO: This is my attempt to fix this after impl. Abyot's comments on the initial/original version.
         // 1. Get all tei attributes, map attrValue attr. into set of attr.
         Set<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityInstance.getTrackedEntityAttributeValues()
             .stream()
@@ -157,9 +156,10 @@ public class EnrollmentAttributeValidationHook
             TrackedEntityAttribute attribute = entry.getKey();
             Boolean attributeIsMandatory = entry.getValue();
 
+            // TODO: This is quite ugly and should be considered to be solved differently,
+            //  e.i. authorization should be handled in one common place.
             boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
                 .getUser()
-
                 .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
 
             boolean hasMissingAttribute = attributeIsMandatory
@@ -168,12 +168,10 @@ public class EnrollmentAttributeValidationHook
 
             if ( hasMissingAttribute )
             {
-                // Missing mandatory attribute
-                reporter.addError( newReport( TrackerErrorCode.E1018 )
-                    .addArg( attribute ) );
+                reporter.addError( newReport( TrackerErrorCode.E1018 ).addArg( attribute ) );
             }
 
-            // Remove program attr. from enrollment attr. list (
+            // Remove program attr. from enrollment attr. list
             attributeValueMap.remove( attribute.getUid() );
         }
 

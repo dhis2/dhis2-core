@@ -73,6 +73,7 @@ public abstract class AbstractImportValidationTest
     public static final String USER_4 = "---USER4---";
 
     public static final String USER_5 = "---USER5---";
+
     public static final String USER_6 = "---USER6---";
 
     protected TrackerBundleParams createBundleFromJson( String jsonFile )
@@ -102,7 +103,7 @@ public abstract class AbstractImportValidationTest
         return ValidateAndCommit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
-            .trackerBundleParams( createBundleFromJson(jsonFileName) )
+            .trackerBundleParams( createBundleFromJson( jsonFileName ) )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();

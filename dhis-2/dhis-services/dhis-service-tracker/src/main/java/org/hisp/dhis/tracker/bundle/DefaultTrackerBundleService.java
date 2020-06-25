@@ -267,14 +267,16 @@ public class DefaultTrackerBundleService
             programInstance.setLastUpdatedAtClient( now );
             programInstance.setLastUpdatedBy( bundle.getUser() );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT,
+                programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             session.persist( programInstance );
 
             bundle.getPreheat().putEnrollments( bundle.getIdentifier(), Collections.singletonList( programInstance ) );
 
-            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(), programInstance.getEntityInstance() );
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(),
+                programInstance.getEntityInstance() );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -320,7 +322,8 @@ public class DefaultTrackerBundleService
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setLastUpdatedBy( bundle.getUser() );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, programStageInstance.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT,
+                programStageInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             session.persist( programStageInstance );
@@ -363,7 +366,8 @@ public class DefaultTrackerBundleService
 
         for ( int idx = 0; idx < relationships.size(); idx++ )
         {
-            org.hisp.dhis.relationship.Relationship relationship = relationshipConverter.from( bundle.getPreheat(), relationships.get( idx ) );
+            org.hisp.dhis.relationship.Relationship relationship = relationshipConverter
+                .from( bundle.getPreheat(), relationships.get( idx ) );
             Date now = new Date();
             relationship.setLastUpdated( now );
             relationship.setLastUpdatedBy( bundle.getUser() );

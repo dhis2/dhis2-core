@@ -75,9 +75,9 @@ public class TrackerImportValidationContext
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
             .getResolvedStrategyMap();
 
-        resolvedMap.put( Event.class, new HashMap<String, TrackerImportStrategy>() );
-        resolvedMap.put( Enrollment.class, new HashMap<String, TrackerImportStrategy>() );
-        resolvedMap.put( TrackedEntity.class, new HashMap<String, TrackerImportStrategy>() );
+        resolvedMap.put( Event.class, new HashMap<>() );
+        resolvedMap.put( Enrollment.class, new HashMap<>() );
+        resolvedMap.put( TrackedEntity.class, new HashMap<>() );
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )

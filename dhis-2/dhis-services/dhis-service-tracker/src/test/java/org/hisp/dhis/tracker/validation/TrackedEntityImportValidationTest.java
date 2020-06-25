@@ -290,7 +290,6 @@ public class TrackedEntityImportValidationTest
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
-
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
     }

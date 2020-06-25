@@ -101,15 +101,6 @@ public class PreCheckDataRelationsValidationHook
                 .addArg( tei )
                 .addArg( program ) );
         }
-
-        //TODO: This dont make sense
-//        ProgramInstance programInstance = context.getProgramInstance(  enrollment.getEnrollment() );
-//        if ( !bundle.getImportStrategy().isCreateOrCreateAndUpdate() && programInstance == null )
-//        {
-//            reporter.addError( newReport( TrackerErrorCode.E1015 )
-//                .addArg( enrollment )
-//                .addArg( enrollment.getEnrollment() ) );
-//        }
     }
 
     @Override
@@ -161,7 +152,7 @@ public class PreCheckDataRelationsValidationHook
         {
             categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
-        else if ( !aocEmpty && !acoEmpty && program.getCategoryCombo() != null )
+        else if ( !aocEmpty && program.getCategoryCombo() != null )
         {
             String attributeCategoryOptions = event.getAttributeCategoryOptions();
             CategoryCombo categoryCombo = program.getCategoryCombo();

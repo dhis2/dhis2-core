@@ -338,8 +338,6 @@ public class EnrollmentSecurityImportValidationTest
         printReport( report );
         assertEquals( 2, report.getErrorReports().size() );
 
-
-
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1102 ) ) ) );
 

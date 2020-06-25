@@ -103,7 +103,6 @@ public class PreCheckMetaValidationHook
                 .addArg( program.getOrganisationUnits() ) );
         }
 
-        //TODO: Change program is not allowed?
         if ( strategy.isUpdate() )
         {
             ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );

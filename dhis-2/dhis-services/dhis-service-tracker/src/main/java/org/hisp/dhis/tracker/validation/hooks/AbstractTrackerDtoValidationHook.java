@@ -194,10 +194,10 @@ public abstract class AbstractTrackerDtoValidationHook
         Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
         Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
-        String error = null;
+        String error;
 
-        // TODO: We need to do try/catch here since validateValueType() since it can cast IllegalArgumentException e.g.
-        //  on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
+        // We need to do try/catch here since validateValueType() since validateValueType can cast IllegalArgumentException e.g.
+        // on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
         try
         {
             error = teAttrService.validateValueType( teAttr, attr.getValue() );

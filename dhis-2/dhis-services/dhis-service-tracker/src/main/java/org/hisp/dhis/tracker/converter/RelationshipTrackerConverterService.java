@@ -44,7 +44,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 /**
  * @author Enrico Colasante
@@ -121,7 +123,8 @@ public class RelationshipTrackerConverterService
     @Override
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
     {
-        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat, Collections.singletonList( relationship ) );
+        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
+            Collections.singletonList( relationship ) );
 
         if ( relationships.isEmpty() )
         {
@@ -138,7 +141,8 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat, List<Relationship> fromRelationships )
+    public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
+        List<Relationship> fromRelationships )
     {
         List<org.hisp.dhis.relationship.Relationship> toRelationships = new ArrayList<>();
 

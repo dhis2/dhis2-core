@@ -119,7 +119,8 @@ public class TrackerIdentifierCollector
             addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, event.getEnrollment() );
             addIdentifier( map, Event.class, TrackerIdScheme.UID, event.getEvent() );
             addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), event.getProgram() );
-            addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(), event.getProgramStage() );
+            addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
+                event.getProgramStage() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
 
             Stream.of( Objects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
@@ -164,10 +165,8 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        attributes.forEach( attribute -> {
-            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID,
-                attribute.getAttribute() );
-        } );
+        attributes.forEach( attribute ->
+            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
     }
 
     private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,

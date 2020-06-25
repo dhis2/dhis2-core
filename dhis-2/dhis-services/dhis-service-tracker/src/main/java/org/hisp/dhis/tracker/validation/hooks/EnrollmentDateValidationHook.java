@@ -67,12 +67,10 @@ public class EnrollmentDateValidationHook
 
         validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
 
-        // TODO: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
-        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
-            && !isValidDateStringAndNotNull( enrollment.getOccurredAt() ) )
+        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
+            !isValidDateStringAndNotNull( enrollment.getOccurredAt() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1023 )
-                .addArg( enrollment.getOccurredAt() ) );
+            reporter.addError( newReport( TrackerErrorCode.E1023 ).addArg( enrollment.getOccurredAt() ) );
         }
     }
 

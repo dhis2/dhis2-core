@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.bundle;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -92,13 +91,15 @@ public class TrackedEntityProgramAttributeFileResourceTest
     private FileResourceService fileResourceService;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/te_program_with_tea_fileresource_metadata.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/te_program_with_tea_fileresource_metadata.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -119,7 +120,8 @@ public class TrackedEntityProgramAttributeFileResourceTest
 //    }
 
     @Test
-    public void testTrackedEntityProgramAttributeFileResourceValue() throws IOException
+    public void testTrackedEntityProgramAttributeFileResourceValue()
+        throws IOException
     {
         FileResource fileResource = new FileResource( "test.pdf", "application/pdf",
             0, "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
@@ -129,8 +131,9 @@ public class TrackedEntityProgramAttributeFileResourceTest
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
 
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_fileresource_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_fileresource_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -147,8 +150,9 @@ public class TrackedEntityProgramAttributeFileResourceTest
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
-            trackedEntityInstance );
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
+            .getTrackedEntityAttributeValues(
+                trackedEntityInstance );
 
         assertEquals( 5, attributeValues.size() );
 

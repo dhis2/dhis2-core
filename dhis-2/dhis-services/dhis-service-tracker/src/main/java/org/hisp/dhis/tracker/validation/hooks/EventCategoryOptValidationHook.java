@@ -36,7 +36,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -91,8 +90,7 @@ public class EventCategoryOptValidationHook
             return;
         }
 
-        // TODO: How to best get current date into iso format?
-        Date eventDate = null;
+        Date eventDate;
         try
         {
             eventDate = DateUtils.parseDate( ObjectUtils
@@ -100,7 +98,7 @@ public class EventCategoryOptValidationHook
         }
         catch ( IllegalArgumentException e )
         {
-            log.debug("Failed to parse dates, an error should already be reported.");
+            log.debug( "Failed to parse dates, an error should already be reported." );
             return;
         }
 

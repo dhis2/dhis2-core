@@ -79,7 +79,6 @@ public class TrackerErrorReport
 
     protected int listIndex;
 
-
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
         Class<?> errorKlass, String[] errorProperties, Object value )
     {
