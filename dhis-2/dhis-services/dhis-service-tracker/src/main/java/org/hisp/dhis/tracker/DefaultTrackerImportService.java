@@ -130,7 +130,7 @@ public class DefaultTrackerImportService
         }
 
 //        if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
-        if ( validationReport.hasErrors() )
+        if ( !validationReport.hasErrors() )
         {
             Timer commitTimer = new SystemTimer().start();
 
