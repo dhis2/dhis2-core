@@ -123,8 +123,6 @@ public class ObjectBundleServiceFavoritesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        System.out.println( "ERRORS" );
-        System.out.println( validate.getErrorReports() );
         assertTrue( validate.getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
 
