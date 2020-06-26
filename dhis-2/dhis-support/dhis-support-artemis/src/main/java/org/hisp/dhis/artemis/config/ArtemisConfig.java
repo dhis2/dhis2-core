@@ -46,14 +46,18 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.util.SocketUtils;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 
 /**
@@ -66,13 +70,16 @@ public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
     private final LocationManager locationManager;
+    private final Environment environment;
 
     public ArtemisConfig(
         DhisConfigurationProvider dhisConfig,
-        LocationManager locationManager )
+        LocationManager locationManager,
+        Environment environment )
     {
         this.dhisConfig = dhisConfig;
         this.locationManager = locationManager;
+        this.environment = environment;
     }
 
     @Bean
@@ -200,7 +207,14 @@ public class ArtemisConfig
         artemisConfigData
             .setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
         artemisConfigData.setHost( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST ) );
+
         artemisConfigData.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) ) );
+
+        if ( isTestRun( this.environment.getActiveProfiles() ) )
+        {
+            artemisConfigData.setPort( SocketUtils.findAvailableTcpPort( 3000 ) );
+        }
+
         artemisConfigData.setUsername( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_USERNAME ) );
         artemisConfigData.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
 

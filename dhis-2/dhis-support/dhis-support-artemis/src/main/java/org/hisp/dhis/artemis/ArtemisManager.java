@@ -31,9 +31,7 @@ package org.hisp.dhis.artemis;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.hisp.dhis.artemis.config.ArtemisConfigData;
-import org.hisp.dhis.artemis.config.ArtemisEnabledCondition;
 import org.hisp.dhis.artemis.config.ArtemisMode;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -44,7 +42,6 @@ import javax.annotation.PreDestroy;
  */
 @Slf4j
 @Service
-@Conditional( value = ArtemisEnabledCondition.class )
 public class ArtemisManager
 {
     private final EmbeddedActiveMQ embeddedActiveMQ;
