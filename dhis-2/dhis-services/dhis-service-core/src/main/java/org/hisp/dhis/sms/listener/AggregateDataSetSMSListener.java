@@ -1,5 +1,40 @@
 package org.hisp.dhis.sms.listener;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -31,41 +66,6 @@ package org.hisp.dhis.sms.listener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.SMSResponse;
-import org.hisp.dhis.smscompression.models.AggregateDatasetSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.smscompression.models.UID;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -100,45 +100,47 @@ public class AggregateDataSetSMSListener
     }
 
     @Override
-    protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
         throws SMSProcessingException
     {
-        AggregateDatasetSMSSubmission subm = (AggregateDatasetSMSSubmission) submission;
+        AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
-        UID ouid = subm.getOrgUnit();
-        UID dsid = subm.getDataSet();
+        Uid ouid = subm.getOrgUnit();
+        Uid dsid = subm.getDataSet();
         String per = subm.getPeriod();
-        UID aocid = subm.getAttributeOptionCombo();
+        Uid aocid = subm.getAttributeOptionCombo();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUID() );
-        User user = userService.getUser( subm.getUserID().getUID() );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
+        User user = userService.getUser( subm.getUserId().getUid() );
 
-        DataSet dataSet = dataSetService.getDataSet( dsid.getUID() );
+        DataSet dataSet = dataSetService.getDataSet( dsid.getUid() );
+
         if ( dataSet == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_DATASET.set( dsid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_DATASET.set( dsid ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( per );
         if ( period == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_PERIOD.set( per ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_PERIOD.set( per ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUID() );
-        if ( aoc == null )
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+       
+       if ( aoc == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
         if ( !dataSet.hasOrganisationUnit( orgUnit ) )
         {
-            throw new SMSProcessingException( SMSResponse.OU_NOTIN_DATASET.set( ouid, dsid ) );
+            throw new SMSProcessingException( SmsResponse.OU_NOTIN_DATASET.set( ouid, dsid ) );
         }
 
         if ( dataSetService.isLocked( null, dataSet, period, orgUnit, aoc, null ) )
         {
-            throw new SMSProcessingException( SMSResponse.DATASET_LOCKED.set( dsid, per ) );
+            throw new SMSProcessingException( SmsResponse.DATASET_LOCKED.set( dsid, per ) );
         }
 
         List<Object> errorElems = submitDataValues( subm.getValues(), period, orgUnit, aoc, user );
@@ -160,18 +162,18 @@ public class AggregateDataSetSMSListener
 
         if ( !errorElems.isEmpty() )
         {
-            return SMSResponse.WARN_DVERR.setList( errorElems );
+            return SmsResponse.WARN_DVERR.setList( errorElems );
         }
         else if ( subm.getValues() == null || subm.getValues().isEmpty() )
         {
             // TODO: Should we save if there are no data values?
-            return SMSResponse.WARN_DVEMPTY;
+            return SmsResponse.WARN_DVEMPTY;
         }
 
-        return SMSResponse.SUCCESS;
+        return SmsResponse.SUCCESS;
     }
 
-    private List<Object> submitDataValues( List<SMSDataValue> values, Period period, OrganisationUnit orgUnit,
+    private List<Object> submitDataValues( List<SmsDataValue> values, Period period, OrganisationUnit orgUnit,
         CategoryOptionCombo aoc, User user )
     {
         ArrayList<Object> errorElems = new ArrayList<>();
@@ -181,13 +183,14 @@ public class AggregateDataSetSMSListener
             return errorElems;
         }
 
-        for ( SMSDataValue smsdv : values )
+        for ( SmsDataValue smsdv : values )
         {
-            UID deid = smsdv.getDataElement();
-            UID cocid = smsdv.getCategoryOptionCombo();
+            Uid deid = smsdv.getDataElement();
+            Uid cocid = smsdv.getCategoryOptionCombo();
             String combid = deid + "-" + cocid;
 
-            DataElement de = dataElementService.getDataElement( deid.getUID() );
+            DataElement de = dataElementService.getDataElement( deid.getUid() );
+
             if ( de == null )
             {
                 log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
@@ -195,7 +198,8 @@ public class AggregateDataSetSMSListener
                 continue;
             }
 
-            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.getUID() );
+            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.getUid() );
+
             if ( coc == null )
             {
                 log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",
