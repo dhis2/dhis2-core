@@ -93,11 +93,6 @@ public abstract class CompressionSMSListener
     extends
     BaseSMSListener
 {
-    protected abstract SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
-        throws SMSProcessingException;
-
-    protected abstract boolean handlesType( SubmissionType type );
-
     protected final UserService userService;
 
     protected final TrackedEntityTypeService trackedEntityTypeService;
@@ -209,6 +204,15 @@ public abstract class CompressionSMSListener
         sendSMSResponse( resp, sms, header.getSubmissionId() );
     }
 
+    protected abstract SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
+            throws SMSProcessingException;
+
+    protected abstract boolean handlesType( SubmissionType type );
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
     private void checkUser( SmsSubmission subm )
     {
         Uid userid = subm.getUserId();
@@ -256,7 +260,7 @@ public abstract class CompressionSMSListener
     private List<SmsMetadata.Id> getTypeUidsBefore( Class<? extends IdentifiableObject> klass, Date lastSyncDate )
     {
         return identifiableObjectManager.getUidsCreatedBefore( klass, lastSyncDate ).stream()
-            .map( o -> new SmsMetadata.Id( o ) ).collect( Collectors.toList() );
+            .map( SmsMetadata.Id::new ).collect( Collectors.toList() );
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
@@ -299,8 +303,9 @@ public abstract class CompressionSMSListener
             {
                 Uid deid = dv.getDataElement();
                 String val = dv.getValue();
-
+                
                 DataElement de = dataElementService.getDataElement( deid.getUid() );
+                
                 // TODO: Is this the correct way of handling errors here?
                 if ( de == null )
                 {
@@ -315,8 +320,9 @@ public abstract class CompressionSMSListener
                         .format( "Value for atttribute [%s] is null or empty. Continuing with submission...", deid ) );
                     continue;
                 }
-
+                
                 EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), user.getUsername() );
+                
                 eventDataValue.setAutoFields();
                 dataElementsAndEventDataValues.put( de, eventDataValue );
             }

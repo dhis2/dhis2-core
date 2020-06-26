@@ -152,7 +152,9 @@ public class RelationshipSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
+
             TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUid() );
+            
             if ( tei == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
@@ -161,7 +163,9 @@ public class RelationshipSMSListener
             break;
 
         case PROGRAM_INSTANCE:
+
             ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUid() );
+            
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
@@ -170,7 +174,9 @@ public class RelationshipSMSListener
             break;
 
         case PROGRAM_STAGE_INSTANCE:
+
             ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUid() );
+            
             if ( stageInst == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
@@ -188,5 +194,4 @@ public class RelationshipSMSListener
     {
         return (type == SubmissionType.RELATIONSHIP);
     }
-
 }

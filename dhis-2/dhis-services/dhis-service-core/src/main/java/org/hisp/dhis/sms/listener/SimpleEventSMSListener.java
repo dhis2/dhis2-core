@@ -98,12 +98,14 @@ public class SimpleEventSMSListener
         User user = userService.getUser( subm.getUserId().getUid() );
 
         Program program = programService.getProgram( subm.getEventProgram().getUid() );
+        
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+        
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
@@ -148,6 +150,7 @@ public class SimpleEventSMSListener
         List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
             aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
+            
         if ( !errorUIDs.isEmpty() )
         {
             return SmsResponse.WARN_DVERR.setList( errorUIDs );
@@ -164,7 +167,6 @@ public class SimpleEventSMSListener
     @Override
     protected boolean handlesType( SubmissionType type )
     {
-        return (type == SubmissionType.SIMPLE_EVENT);
+        return ( type == SubmissionType.SIMPLE_EVENT );
     }
-
 }

@@ -76,6 +76,7 @@ public class DeleteEventSMSListener
 
         Uid eventid = subm.getEvent();
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUid() );
+        
         if ( psi == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( eventid ) );
@@ -89,7 +90,6 @@ public class DeleteEventSMSListener
     @Override
     protected boolean handlesType( SubmissionType type )
     {
-        return (type == SubmissionType.DELETE);
+        return ( type == SubmissionType.DELETE );
     }
-
 }
