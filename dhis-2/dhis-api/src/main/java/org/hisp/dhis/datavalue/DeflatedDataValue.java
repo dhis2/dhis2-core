@@ -69,6 +69,8 @@ public class DeflatedDataValue
 
     private boolean followup;
 
+    private boolean deleted;
+
     // -------------------------------------------------------------------------
     // Optional attributes
     // -------------------------------------------------------------------------
@@ -106,12 +108,13 @@ public class DeflatedDataValue
         this.lastUpdated = dataValue.getLastUpdated();
         this.comment = dataValue.getComment();
         this.followup = dataValue.isFollowup();
+        this.deleted = dataValue.isDeleted();
     }
 
     public DeflatedDataValue( Integer dataElementId, Integer periodId, Integer sourceId,
         Integer categoryOptionComboId, Integer attributeOptionComboId, String value,
         String storedBy, Date created, Date lastUpdated,
-        String comment, boolean followup )
+        String comment, boolean followup, boolean deleted )
     {
         this.dataElementId = dataElementId;
         this.periodId = periodId;
@@ -124,6 +127,7 @@ public class DeflatedDataValue
         this.lastUpdated = lastUpdated;
         this.comment = comment;
         this.followup = followup;
+        this.deleted = deleted;
     }
 
     public DeflatedDataValue( Integer dataElementId, Integer periodId, Integer sourceId,
@@ -323,6 +327,17 @@ public class DeflatedDataValue
     public void setCategoryOptionComboName( String categoryOptionComboName )
     {
         this.categoryOptionComboName = categoryOptionComboName;
+    }
+
+    @JsonProperty
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     // -------------------------------------------------------------------------
