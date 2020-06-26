@@ -60,6 +60,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
         List<TrackedEntity> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
@@ -76,6 +77,11 @@ public class TrackedEntityTrackerConverterService
     @Transactional( readOnly = true )
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
+        return _to( trackedEntityInstances );
+    }
+
+    private List<TrackedEntity> _to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    {
         return trackedEntityInstances.stream().map( tei -> {
             TrackedEntity trackedEntity = new TrackedEntity();
             trackedEntity.setTrackedEntity( tei.getUid() );
@@ -85,6 +91,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntity trackedEntityInstance )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from(
@@ -99,6 +106,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat,
         TrackedEntity trackedEntityInstance )
     {
@@ -114,6 +122,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntity> trackedEntityInstances )
     {
         return from( preheat( trackedEntityInstances ), trackedEntityInstances );
@@ -122,6 +131,12 @@ public class TrackedEntityTrackerConverterService
     @Override
     @Transactional( readOnly = true )
     public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
+        List<TrackedEntity> trackedEntityInstances )
+    {
+        return _from( preheat, trackedEntityInstances );
+    }
+
+    private List<org.hisp.dhis.trackedentity.TrackedEntityInstance> _from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
