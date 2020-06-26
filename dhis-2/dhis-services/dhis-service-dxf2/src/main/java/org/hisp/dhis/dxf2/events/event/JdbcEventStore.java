@@ -786,6 +786,11 @@ public class JdbcEventStore
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
+                    else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                    {
+                        sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
                     else
                     {
                         sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
