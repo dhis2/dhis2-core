@@ -206,8 +206,6 @@ public class EventSecurityImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
-        ////////////////////////////////////////
-
         trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
@@ -225,7 +223,7 @@ public class EventSecurityImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    protected void setupMetaData()
+    protected void setupMetadata()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
@@ -323,7 +321,7 @@ public class EventSecurityImportValidationTest
     public void testNoWriteAccessToProgramStage()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-programStage-access.json" );
@@ -350,7 +348,7 @@ public class EventSecurityImportValidationTest
     public void testNoUncompleteEventAuth()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         ValidateAndCommit createAndUpdate = doValidateAndCommit(
             "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );

@@ -40,12 +40,16 @@ public class TrackerErrorMessage
 {
     private final TrackerErrorCode errorCode;
 
-    private final List<String> args;
+    private final List<String> args =  new ArrayList<>();
 
     public TrackerErrorMessage( TrackerErrorCode errorCode )
     {
         this.errorCode = errorCode;
-        this.args = new ArrayList<>();
+    }
+
+    public TrackerErrorMessage of( TrackerErrorCode errorCode )
+    {
+        return new TrackerErrorMessage( errorCode );
     }
 
     public void addArgument( String arg )

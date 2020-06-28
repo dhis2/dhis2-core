@@ -56,7 +56,7 @@ public class EnrollmentGeoValidationHook
 
         Program program = context.getProgram( enrollment.getProgram() );
 
-        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         if ( enrollment.getGeometry() != null )
         {

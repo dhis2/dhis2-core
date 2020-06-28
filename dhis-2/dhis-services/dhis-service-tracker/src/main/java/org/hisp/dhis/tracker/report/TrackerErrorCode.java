@@ -105,7 +105,7 @@ public enum TrackerErrorCode
     E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
     E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
     E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
-    E1048( "Object: `{0}`, uid: `{1}`, has an invalid uuid format." ),
+    E1048( "Object: `{0}`, uid: `{1}`, has an invalid uid format." ),
 
     // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted." ),

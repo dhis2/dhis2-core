@@ -71,16 +71,16 @@ public class EventCategoryOptValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         Program program = context.getProgram( event.getProgram() );
-        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( context.getBundle().getUser(), Constants.USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
+        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( context.getBundle().getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
 
         CategoryOptionCombo categoryOptionCombo = context
             .getCategoryOptionCombo(
                 reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getUid() ) );
 
-        Objects.requireNonNull( categoryOptionCombo, Constants.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
+        Objects.requireNonNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         if ( categoryOptionCombo.isDefault()
             && program.getCategoryCombo() != null

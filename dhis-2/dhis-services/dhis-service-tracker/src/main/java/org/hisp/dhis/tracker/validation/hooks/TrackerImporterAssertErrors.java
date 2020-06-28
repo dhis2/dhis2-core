@@ -28,9 +28,9 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class Constants
+public class TrackerImporterAssertErrors
 {
-    private Constants()
+    private TrackerImporterAssertErrors()
     {
         throw new IllegalArgumentException( "Don't make an instance of me!" );
     }
@@ -38,8 +38,6 @@ public class Constants
     public static final String TRACKED_ENTITY_CANT_BE_NULL = "TrackedEntity can't be null";
 
     public static final String TRACKED_ENTITY_TYPE_CANT_BE_NULL = "TrackedEntityType can't be null";
-
-    public static final String TRACKER_BUNDLE_CANT_BE_NULL = "TrackerBundle can't be null";
 
     public static final String USER_CANT_BE_NULL = "User can't be null";
 
@@ -52,8 +50,6 @@ public class Constants
     public static final String ATTRIBUTE_VALUE_MAP_CANT_BE_NULL = "AttributeValueMap can't be null";
 
     public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
-
-    public static final String ATTRIBUTE_VALUE_TYPE_CANT_BE_NULL = "Attribute value type can't be null";
 
     public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
 
@@ -70,8 +66,6 @@ public class Constants
     public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "ProgramStageInstance can't be null";
 
     public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL = "CategoryOptionCombo can't be null";
-
-    public static final String FEATURE_TYPE_CANT_BE_NULL = "FeatureType can't be null";
 
     public static final String DATE_STRING_CANT_BE_NULL = "Date string can not be null";
 

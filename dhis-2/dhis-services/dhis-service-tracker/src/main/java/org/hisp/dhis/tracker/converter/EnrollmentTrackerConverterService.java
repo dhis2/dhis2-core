@@ -127,6 +127,7 @@ public class EnrollmentTrackerConverterService
         List<ProgramInstance> programInstances = new ArrayList<>();
 
         enrollments.forEach( enrollment -> {
+
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
             OrganisationUnit organisationUnit = preheat
                 .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );

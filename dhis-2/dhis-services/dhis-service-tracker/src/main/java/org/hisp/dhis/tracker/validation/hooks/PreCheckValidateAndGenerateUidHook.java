@@ -49,6 +49,7 @@ public class PreCheckValidateAndGenerateUidHook
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         String uid = trackedEntity.getTrackedEntity();
+
         if ( uid != null && !CodeGenerator.isValidUid( uid ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1048 )
@@ -71,6 +72,7 @@ public class PreCheckValidateAndGenerateUidHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         String uid = enrollment.getEnrollment();
+
         if ( uid != null && !CodeGenerator.isValidUid( uid ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1048 )
@@ -93,6 +95,7 @@ public class PreCheckValidateAndGenerateUidHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         String uid = event.getEvent();
+
         if ( uid != null && !CodeGenerator.isValidUid( uid ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1048 )

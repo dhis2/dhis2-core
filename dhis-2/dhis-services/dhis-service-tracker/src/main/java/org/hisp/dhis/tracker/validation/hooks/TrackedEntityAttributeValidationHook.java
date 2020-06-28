@@ -56,9 +56,9 @@ import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -75,13 +75,13 @@ public class TrackedEntityAttributeValidationHook
     }
 
     @Autowired
-    protected FileResourceService fileResourceService;
+    private FileResourceService fileResourceService;
 
     @Autowired
-    protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
-    protected ReservedValueService reservedValueService;
+    private ReservedValueService reservedValueService;
 
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;
@@ -100,7 +100,7 @@ public class TrackedEntityAttributeValidationHook
     protected void validateAttributes( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit )
     {
-        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
 
         Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( tei != null )

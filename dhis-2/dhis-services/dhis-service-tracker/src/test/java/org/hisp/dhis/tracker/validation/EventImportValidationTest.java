@@ -127,8 +127,6 @@ public class EventImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
-        ////////////////////////////////////////
-
         trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
@@ -167,7 +165,7 @@ public class EventImportValidationTest
         throws IOException
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events-invalid-uuid-format.json" );
+            "tracker/validations/events-invalid-uid-format.json" );
 
         ValidateAndCommit createAndUpdate = doValidateAndCommit( trackerBundleParams, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();

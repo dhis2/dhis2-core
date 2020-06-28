@@ -113,12 +113,6 @@ public class TrackedEntityProgramAttributeFileResourceTest
         objectBundleService.commit( bundle );
     }
 
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
-
     @Test
     public void testTrackedEntityProgramAttributeFileResourceValue()
         throws IOException

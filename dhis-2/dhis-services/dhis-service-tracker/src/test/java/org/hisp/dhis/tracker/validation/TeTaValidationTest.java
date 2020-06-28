@@ -108,7 +108,7 @@ public class TeTaValidationTest
     @Autowired
     private FileResourceService fileResourceService;
 
-    public void setupMetaData( String metaDataFile )
+    public void setupMetadata( String metaDataFile )
         throws IOException
     {
         renderService = _renderService;
@@ -136,7 +136,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         FileResource fileResource = new FileResource( "test.pdf", "application/pdf",
             0, "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
@@ -190,7 +190,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         FileResource fileResource = new FileResource( "test.pdf", "application/pdf",
             0, "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
@@ -263,7 +263,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
@@ -308,7 +308,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_generated_data.json" )
@@ -354,7 +354,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_too_long_text_value.json" )
@@ -387,7 +387,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_encryption_data.json" )
@@ -423,7 +423,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
@@ -475,7 +475,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_format_value.json" )
@@ -508,7 +508,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_image_value.json" )
@@ -544,7 +544,7 @@ public class TeTaValidationTest
         throws IOException
     {
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
-        setupMetaData( metaDataFile );
+        setupMetadata( metaDataFile );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_value_isnull.json" )

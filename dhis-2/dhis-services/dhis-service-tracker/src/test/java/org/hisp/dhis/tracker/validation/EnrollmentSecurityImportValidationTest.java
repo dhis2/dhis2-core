@@ -150,7 +150,7 @@ public class EnrollmentSecurityImportValidationTest
 
     private TrackedEntityType trackedEntityType;
 
-    protected void setupMetaData()
+    protected void setupMetadata()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
@@ -287,7 +287,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testEnrollmentOrgUnitProgramOrgUnitMismatch()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
@@ -315,7 +315,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserNoAccessToTrackedEntity()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
@@ -350,7 +350,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserNoWriteAccessToProgram()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -381,7 +381,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserHasWriteAccessToProgram()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -409,7 +409,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserHasNoAccessToProgramTeiType()
         throws IOException
     {
-        setupMetaData();
+        setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 

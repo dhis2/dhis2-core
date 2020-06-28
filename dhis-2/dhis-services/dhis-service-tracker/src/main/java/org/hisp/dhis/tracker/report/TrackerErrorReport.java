@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -54,10 +55,10 @@ import java.util.List;
 @Builder
 public class TrackerErrorReport
 {
-    private final TrackerErrorMessage message;
-
     @JsonProperty
     private final Class<?> mainKlass;
+
+    private final String errorMessage;
 
     @JsonProperty
     private String mainId;
@@ -79,28 +80,32 @@ public class TrackerErrorReport
 
     protected int listIndex;
 
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
+    public TrackerErrorReport( Class<?> mainKlass, String errorMessage, TrackerErrorCode errorCode, int line,
+        String mainId,
         Class<?> errorKlass, String[] errorProperties, Object value )
     {
         this.mainKlass = mainKlass;
-        this.message = message;
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+
         this.lineNumber = line;
         this.mainId = mainId;
         this.errorKlass = errorKlass;
         this.errorProperties = errorProperties;
         this.value = value;
+
     }
 
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
-        return message.getErrorCode();
+        return errorCode;
     }
 
     @JsonProperty
     public String getMessage()
     {
-        return message.getMessage();
+        return errorMessage;
     }
 
     public static class TrackerErrorReportBuilder
@@ -118,12 +123,11 @@ public class TrackerErrorReport
             TrackerIdScheme scheme = bundle.getIdentifier();
             TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
 
-            TrackerErrorMessage trackerErrorMessage = new TrackerErrorMessage( this.errorCode );
-
+            List<String> args = new ArrayList<>();
             for ( Object argument : this.arguments )
             {
                 String s = parseArgs( identifier, argument );
-                trackerErrorMessage.addArgument( s );
+                args.add( s );
             }
 
             if ( this.mainObject != null )
@@ -131,7 +135,9 @@ public class TrackerErrorReport
                 this.mainId = parseArgs( identifier, this.mainObject );
             }
 
-            return new TrackerErrorReport( this.mainKlass, trackerErrorMessage, this.listIndex, this.mainId,
+            String errorMessage = MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
+
+            return new TrackerErrorReport( this.mainKlass, errorMessage, this.errorCode, this.listIndex, this.mainId,
                 this.mainKlass, this.errorProperties, this.value );
         }
 
@@ -173,8 +179,8 @@ public class TrackerErrorReport
     public String toString()
     {
         return "TrackerErrorReport{" +
-            "message=" + message.getMessage() +
-            ", errorCode=" + message.getErrorCode() +
+            "message=" + errorMessage +
+            ", errorCode=" + errorCode +
             ", mainId='" + mainId + '\'' +
             ", mainClass=" + mainKlass +
             ", errorClass=" + errorKlass +
