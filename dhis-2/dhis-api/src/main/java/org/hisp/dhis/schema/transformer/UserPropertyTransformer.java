@@ -31,8 +31,9 @@ package org.hisp.dhis.schema.transformer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.schema.PropertyTransformer;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,9 +44,17 @@ public class UserPropertyTransformer
     @Override
     public Object transform( Object o )
     {
+        if ( !(o instanceof User) )
+        {
+            return o;
+        }
+
+        User user = (User) o;
+        UserCredentials userCredentials = user.getUserCredentials();
+
         return UserDto.builder()
-            .id( CodeGenerator.generateUid() )
-            .username( "some-user-name" )
+            .id( userCredentials.getUuid().toString() )
+            .username( userCredentials.getUsername() )
             .build();
     }
 
