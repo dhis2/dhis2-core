@@ -44,8 +44,10 @@ public class ArtemisConfigData
     private String host = "127.0.0.1";
 
     // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
-    // so we keep 15672 as default port (since we default to embedded server).
-    private int port = 15672;
+    // so we keep 25672 as default port (since we default to embedded server).
+    //
+    // NOTE we used 15672 before here, but it was changed as it interfers with RabbitMQ default port
+    private int port = 25672;
 
     private String username = "guest";
 
