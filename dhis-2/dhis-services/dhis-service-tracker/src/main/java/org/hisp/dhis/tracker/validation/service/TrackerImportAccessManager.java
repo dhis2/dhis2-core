@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.service;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -42,23 +43,96 @@ import org.hisp.dhis.user.User;
  */
 public interface TrackerImportAccessManager
 {
-    void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
-        OrganisationUnit orgUnit );
+    /**
+     * Same as {@link OrganisationUnitService#isInUserSearchHierarchyCached(User, OrganisationUnit)}
+     * Checks the importing user has access to "search hierarchy" of the input OrganisationUnit.
+     *
+     * @param reporter error reporter instance
+     * @param orgUnit  input orgUnit to validate against
+     */
+    void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
 
-    void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
-        OrganisationUnit orgUnit );
+    /**
+     * Same as {@link OrganisationUnitService#isInUserHierarchyCached(User, OrganisationUnit)}
+     * Checks the importing user has access to "capture hierarchy" of the input OrganisationUnit.
+     *
+     * @param reporter error reporter instance
+     * @param orgUnit  input orgUnit to validate against
+     */
+    void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
 
-    void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,
-        TrackedEntityType trackedEntityType );
+    /**
+     * Checks the importing user has write access to the TrackedEntityType.
+     *
+     * @param reporter          error reporter instance
+     * @param trackedEntityType teiType to check importing user has write access to
+     */
+    void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackedEntityType trackedEntityType );
 
-    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, User user, ProgramInstance programInstance );
+    /**
+     * Checks the importing user has read access enrollment.
+     * <p>
+     * If enrollment is a registration:
+     * <p>
+     * 1. Check has read access to program and if it is a registration program
+     * <p>
+     * 2. Check that user has read access to program tei type.
+     * <p>
+     * 3. Check has access to the tei - program combination.
+     * <p>
+     * If enrollment is a non registration:
+     * <p>
+     * 1. Check user is in "search scope" of the program's org. unit.
+     *
+     * @param reporter        error reporter instance
+     * @param programInstance enrollment to check user has read access
+     */
+    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, ProgramInstance programInstance );
 
-    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, User user, Program program,
+    /**
+     * Check importing user has write access to enrollment.
+     * 1. Check user has write access to program
+     * <p>
+     * 2 If program is registration, check :
+     * a. Check that user has read access to program tei type.
+     * b. Check has access to the tei - program combination.
+     *
+     * @param reporter        error reporter instance
+     * @param program         program to check user has write access
+     * @param programInstance enrollment to check user has write access
+     */
+    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
         ProgramInstance programInstance );
 
-    void checkEventWriteAccess( ValidationErrorReporter reporter, User user,
-        ProgramStageInstance programStageInstance );
+    /**
+     * Check importing user has write access to event.
+     * <p>
+     * Check user has access to either "search scope or capture scope" according to isCreatableInSearchScope()
+     * <p>
+     * Check program stage is registration.
+     * If it is a registration check:
+     * 1. Program stage write access
+     * 2. Program read access
+     * 3. Pprogram tei type. read access
+     * 4. Tei - Program combination access
+     * <p>
+     * If NOT a registration check:
+     * 1. Program write access
+     * <p>
+     * If event has a Attribute Option Combo:
+     * 1. Check user has write access to the combo.
+     *
+     * @param reporter             error reporter instance
+     * @param programStageInstance event to check user has write access to
+     */
+    void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStageInstance programStageInstance );
 
-    void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user,
+    /**
+     * Loops trough all CategoryOptionCombo options and check that the importing user has write access to all of them.
+     *
+     * @param reporter            error reporter instance
+     * @param categoryOptionCombo CategoryOptionCombo to check user has write access
+     */
+    void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter,
         CategoryOptionCombo categoryOptionCombo );
 }

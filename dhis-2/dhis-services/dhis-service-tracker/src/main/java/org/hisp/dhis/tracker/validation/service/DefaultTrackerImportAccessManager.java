@@ -84,8 +84,7 @@ public class DefaultTrackerImportAccessManager
         this.organisationUnitService = organisationUnitService;
     }
 
-    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
-        OrganisationUnit orgUnit )
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -102,8 +101,7 @@ public class DefaultTrackerImportAccessManager
         }
     }
 
-    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
-        OrganisationUnit orgUnit )
+    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -119,9 +117,11 @@ public class DefaultTrackerImportAccessManager
         }
     }
 
-    public void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,
-        TrackedEntityType trackedEntityType )
+    public void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackedEntityType trackedEntityType )
     {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
@@ -134,9 +134,11 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, User user,
-        ProgramInstance programInstance )
+    public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, ProgramInstance programInstance )
     {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( programInstance.getProgram(), PROGRAM_CANT_BE_NULL );
@@ -182,9 +184,12 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, User user, Program program,
+    public void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
         ProgramInstance programInstance )
     {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
@@ -199,25 +204,26 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void checkEventWriteAccess( ValidationErrorReporter reporter, User user,
-        ProgramStageInstance programStageInstance )
+    public void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStageInstance programStageInstance )
     {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance.getProgramStage(), PROGRAM_STAGE_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance.getOrganisationUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+        OrganisationUnit orgUnit = programStageInstance.getOrganisationUnit();
 
-        // TODO: Get better explanation for isCreatableInSearchScope() what is this
         if ( programStageInstance.isCreatableInSearchScope() ?
-            !organisationUnitService.isInUserSearchHierarchyCached( user, ou )
-            : !organisationUnitService.isInUserHierarchyCached( user, ou ) )
+            !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
+            : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( user )
-                .addArg( ou ) );
+                .addArg( orgUnit ) );
         }
 
         if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
@@ -238,7 +244,7 @@ public class DefaultTrackerImportAccessManager
 
         if ( programStageInstance.getAttributeOptionCombo() != null )
         {
-            checkWriteCategoryOptionComboAccess( reporter, user, programStageInstance.getAttributeOptionCombo() );
+            checkWriteCategoryOptionComboAccess( reporter, programStageInstance.getAttributeOptionCombo() );
         }
     }
 
@@ -285,9 +291,12 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user,
+    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter,
         CategoryOptionCombo categoryOptionCombo )
     {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 

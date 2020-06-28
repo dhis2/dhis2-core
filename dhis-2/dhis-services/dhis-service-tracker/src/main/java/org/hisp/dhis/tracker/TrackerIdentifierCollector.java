@@ -54,7 +54,12 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
+ * This class "collects" identifiers from all input objects.
+ * This resulting map of all identifiers will then be used to "preheat/cache"
+ * all the objects needed into memory to speed up the validation process.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
  */
 public class TrackerIdentifierCollector
 {

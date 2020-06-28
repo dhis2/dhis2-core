@@ -144,7 +144,7 @@ public class EnrollmentAttrValidationTests
     {
         TrackerBundleParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json" );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
@@ -163,7 +163,7 @@ public class EnrollmentAttrValidationTests
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-uuid.json" );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
@@ -182,7 +182,7 @@ public class EnrollmentAttrValidationTests
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-value.json" );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
@@ -226,7 +226,7 @@ public class EnrollmentAttrValidationTests
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
@@ -245,7 +245,7 @@ public class EnrollmentAttrValidationTests
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-only-program-attr.json" );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();

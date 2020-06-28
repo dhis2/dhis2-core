@@ -97,10 +97,10 @@ public abstract class AbstractImportValidationTest
         }
     }
 
-    protected ValidateAndCommit doValidateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
+    protected ValidateAndCommitTestUnit doValidateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
         throws IOException
     {
-        return ValidateAndCommit.builder()
+        return ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
             .trackerBundleParams( createBundleFromJson( jsonFileName ) )
@@ -109,9 +109,10 @@ public abstract class AbstractImportValidationTest
             .invoke();
     }
 
-    protected ValidateAndCommit doValidateAndCommit( TrackerBundleParams params, TrackerImportStrategy strategy )
+    protected ValidateAndCommitTestUnit doValidateAndCommit( TrackerBundleParams params,
+        TrackerImportStrategy strategy )
     {
-        return ValidateAndCommit.builder()
+        return ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
             .trackerBundleParams( params )
@@ -120,7 +121,7 @@ public abstract class AbstractImportValidationTest
             .invoke();
     }
 
-    protected ValidateAndCommit doValidateAndCommit( TrackerBundleParams params )
+    protected ValidateAndCommitTestUnit doValidateAndCommit( TrackerBundleParams params )
     {
         return doValidateAndCommit( params, TrackerImportStrategy.CREATE_AND_UPDATE );
     }

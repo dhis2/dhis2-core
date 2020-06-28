@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -119,7 +118,8 @@ public class DefaultTrackerImportService
         if ( params.hasJobConfiguration() )
         {
             notifier
-                .update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " + requestTimer, true );
+                .update( params.getJobConfiguration(),
+                    "(" + params.getUsername() + ") Import:Done took " + requestTimer, true );
 
             notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
         }
@@ -177,7 +177,8 @@ public class DefaultTrackerImportService
         if ( params.hasJobConfiguration() )
         {
             notifier
-                .update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Validation took " + validationTimer );
+                .update( params.getJobConfiguration(),
+                    "(" + params.getUsername() + ") Import:Validation took " + validationTimer );
         }
         return validationReport;
     }

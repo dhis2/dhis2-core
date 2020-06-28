@@ -350,7 +350,7 @@ public class EventSecurityImportValidationTest
     {
         setupMetadata();
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit(
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit(
             "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
 

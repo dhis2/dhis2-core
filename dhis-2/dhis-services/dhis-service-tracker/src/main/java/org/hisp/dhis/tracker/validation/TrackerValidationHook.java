@@ -36,10 +36,8 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerValidationHook
-    extends Ordered
+public interface TrackerValidationHook extends Ordered
 {
-
     default boolean isEnabled()
     {
         return true;

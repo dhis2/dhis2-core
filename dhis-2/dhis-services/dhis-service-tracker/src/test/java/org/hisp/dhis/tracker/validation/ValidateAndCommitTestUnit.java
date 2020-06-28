@@ -39,10 +39,13 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
+/**
+ * Convenience class for calling creating bundle and calling validation and commit in one "unit of work"
+ */
 @Data
 @Builder
 @Slf4j
-public class ValidateAndCommit
+public class ValidateAndCommitTestUnit
 {
     private TrackerValidationService trackerValidationService;
 
@@ -63,7 +66,12 @@ public class ValidateAndCommit
     @Builder.Default
     private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
-    public ValidateAndCommit invoke()
+    /**
+     * Runs the "unit of work"
+     *
+     * @return a instance of it self to retrieve the commit and validation results.
+     */
+    public ValidateAndCommitTestUnit invoke()
     {
         trackerBundleParams.setImportStrategy( trackerImportStrategy );
 
@@ -79,7 +87,7 @@ public class ValidateAndCommit
             }
             catch ( Exception e )
             {
-                e.printStackTrace();
+                log.info( "Failed to commit. Exception:" + e.getMessage() );
                 commitException = e;
             }
         }

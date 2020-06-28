@@ -107,9 +107,9 @@ public class EnrollmentInExistingValidationHook
     protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
         Enrollment enrollment, Program program )
     {
-        User actingUser = reporter.getValidationContext().getBundle().getUser();
+        User user = reporter.getValidationContext().getBundle().getUser();
 
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
@@ -117,7 +117,7 @@ public class EnrollmentInExistingValidationHook
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         // TODO: Create a dedicated sql query....?
-        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, actingUser, program, tei )
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei )
             .stream()
             .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
             .collect( Collectors.toSet() );
@@ -145,10 +145,12 @@ public class EnrollmentInExistingValidationHook
         }
     }
 
-    public List<Enrollment> getAllEnrollments( ValidationErrorReporter reporter, User actingUser,
-        Program program, TrackedEntityInstance trackedEntityInstance )
+    public List<Enrollment> getAllEnrollments( ValidationErrorReporter reporter, Program program,
+        TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        User user = reporter.getValidationContext().getBundle().getUser();
+
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
@@ -165,13 +167,13 @@ public class EnrollmentInExistingValidationHook
         {
             // TODO: Move to ownership/security pre check hook if possible?
             if ( trackerOwnershipManager
-                .hasAccess( actingUser, programInstance.getEntityInstance(), programInstance.getProgram() ) )
+                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 // Always create a fork of the reporter when used for checking/counting errors,
                 // this is needed for thread safety in parallel mode.
                 ValidationErrorReporter reporterFork = reporter.fork();
 
-                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, actingUser, programInstance );
+                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance );
 
                 if ( reporterFork.hasErrors() )
                 {

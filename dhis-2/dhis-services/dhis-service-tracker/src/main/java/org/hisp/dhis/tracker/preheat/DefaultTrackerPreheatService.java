@@ -74,6 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -150,13 +151,7 @@ public class DefaultTrackerPreheatService
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
 
-        // TODO: Morten/Stian could this be done earlier, and rather not allow user to be set to NULL above, ?
-        //  since this has big security implication it would be nicer to separate out this to
-        //  a dedicated security controller/place...?
-        if ( preheat.getUser() == null )
-        {
-            preheat.setUser( currentUserService.getCurrentUser() );
-        }
+        Objects.requireNonNull( preheat.getUser(), "Preheater is missing the user object." );
 
         Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
 

@@ -273,7 +273,7 @@ public class EnrollmentSecurityImportValidationTest
         User user = userService.getUser( USER_2 );
         params.setUser( user );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -302,7 +302,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
@@ -332,7 +332,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -367,7 +367,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -398,7 +398,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -428,7 +428,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );

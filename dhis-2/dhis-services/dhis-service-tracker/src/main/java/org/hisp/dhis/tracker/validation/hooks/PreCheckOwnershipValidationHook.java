@@ -104,12 +104,12 @@ public class PreCheckOwnershipValidationHook
         {
             TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
             TrackedEntityType trackedEntityType = tei.getTrackedEntityType();
-            trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), trackedEntityType );
+            trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, trackedEntityType );
         }
 
         TrackedEntityType trackedEntityType = context
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
-        trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), trackedEntityType );
+        trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, trackedEntityType );
     }
 
     @Override
@@ -153,10 +153,10 @@ public class PreCheckOwnershipValidationHook
         {
             ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
             trackerImportAccessManager
-                .checkWriteEnrollmentAccess( reporter, user, programInstance.getProgram(), programInstance );
+                .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), programInstance );
         }
 
-        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, user, program,
+        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
             new ProgramInstance( program, tei, organisationUnit ) );
     }
 
@@ -209,7 +209,7 @@ public class PreCheckOwnershipValidationHook
             .setOrganisationUnit( organisationUnit );
         newProgramStageInstance.setAttributeOptionCombo( categoryOptionCombo );
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, actingUser, newProgramStageInstance );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, newProgramStageInstance );
     }
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
@@ -222,7 +222,7 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, user, programStageInstance );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, programStageInstance );
 
         if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()

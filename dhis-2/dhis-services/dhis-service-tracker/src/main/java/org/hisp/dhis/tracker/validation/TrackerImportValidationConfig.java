@@ -57,6 +57,9 @@ import java.util.stream.IntStream;
 import static java.util.stream.Collectors.toMap;
 
 /**
+ * Configuration class for the tracker importer validation hook ordering.
+ * The Hooks will be run in the same order they apear in this class.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class TrackerImportValidationConfig

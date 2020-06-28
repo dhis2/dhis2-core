@@ -40,7 +40,7 @@ public class TrackerErrorMessage
 {
     private final TrackerErrorCode errorCode;
 
-    private final List<String> args =  new ArrayList<>();
+    private final List<String> args = new ArrayList<>();
 
     public TrackerErrorMessage( TrackerErrorCode errorCode )
     {
