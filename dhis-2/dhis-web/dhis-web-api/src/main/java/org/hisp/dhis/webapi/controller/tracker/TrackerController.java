@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -98,8 +99,16 @@ public class TrackerController
         this.notifier = notifier;
     }
 
+    @PostMapping( value = "/empty", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.OK )
+    public String emptyCall( HttpServletRequest request, HttpServletResponse response,
+        User currentUser )
+        throws IOException
+    {
+        return "empty";
+    }
+
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
@@ -130,7 +139,6 @@ public class TrackerController
     }
 
     @PostMapping( value = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public TrackerImportReport postJsonTrackerSync( HttpServletRequest request, HttpServletResponse response,
         User currentUser )
         throws IOException
