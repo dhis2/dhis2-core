@@ -51,7 +51,7 @@ public class UserPropertyTransformer
 
     @Data
     @Builder
-    class UserDto
+    private static class UserDto
     {
         @JsonProperty
         private String id;
