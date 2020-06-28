@@ -54,6 +54,18 @@ public abstract class AbstractSpringSecurityCurrentUserService implements Curren
 
         Object principal = authentication.getPrincipal();
 
+        // Principal being a string implies anonymous authentication
+        // This is the state before user is logged in.
+        if ( principal instanceof String )
+        {
+            String anonymousUser = (String) principal;
+            if ( !anonymousUser.equals( "anonymousUser" ) )
+            {
+                return null;
+            }
+            return anonymousUser;
+        }
+
         if ( principal instanceof UserDetails )
         {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();

@@ -136,6 +136,11 @@ public class DefaultCurrentUserService
     {
         String currentUsername = getCurrentUsername();
 
+        if ( currentUsername == null )
+        {
+            return null;
+        }
+
         Long userId = USERNAME_ID_CACHE.get( currentUsername, this::getUserId ).orElse( null );
 
         if ( userId == null )
