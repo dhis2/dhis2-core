@@ -1,7 +1,7 @@
 package org.hisp.dhis.keyjsonvalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ public interface KeyJsonValueService
      * @param keyJsonValue the KeyJsonValue to be stored.
      * @return the id of the KeyJsonValue stored.
      */
-    long addKeyJsonValue( KeyJsonValue keyJsonValue );
+    Long addKeyJsonValue( KeyJsonValue keyJsonValue );
 
     /**
      * Updates a KeyJsonValue.
