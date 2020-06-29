@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface MetaDataKeyJsonService
+public interface MetadataKeyJsonService
 {
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.

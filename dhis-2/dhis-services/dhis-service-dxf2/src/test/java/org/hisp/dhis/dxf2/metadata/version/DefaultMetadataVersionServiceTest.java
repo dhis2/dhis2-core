@@ -35,7 +35,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService;
+import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
@@ -62,7 +62,7 @@ public class DefaultMetadataVersionServiceTest
     private MetadataVersionService versionService;
 
     @Autowired
-    private MetaDataKeyJsonService metaDataKeyJsonService;
+    private MetadataKeyJsonService metaDataKeyJsonService;
 
     @Autowired
     private IdentifiableObjectManager manager;

@@ -42,14 +42,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
-public class DefaultMetaDataKeyJsonService implements MetaDataKeyJsonService
+public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
 
     private final KeyJsonValueStore keyJsonValueStore;
 
     private final ObjectMapper jsonMapper;
 
-    public DefaultMetaDataKeyJsonService(
+    public DefaultMetadataKeyJsonService(
         KeyJsonValueStore keyJsonValueStore,
         ObjectMapper jsonMapper )
     {

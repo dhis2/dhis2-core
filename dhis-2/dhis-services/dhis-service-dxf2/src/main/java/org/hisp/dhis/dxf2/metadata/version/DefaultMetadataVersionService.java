@@ -46,7 +46,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataWrapper;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService;
+import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
@@ -79,13 +79,13 @@ DefaultMetadataVersionService
 
     private final MetadataVersionStore versionStore;
     private final MetadataExportService metadataExportService;
-    private final MetaDataKeyJsonService metaDataKeyJsonService;
+    private final MetadataKeyJsonService metaDataKeyJsonService;
     private final NodeService nodeService;
     private final MetadataSystemSettingService metadataSystemSettingService;
     private final RenderService renderService;
 
     public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
-        MetadataExportService metadataExportService, MetaDataKeyJsonService metaDataKeyJsonService,
+        MetadataExportService metadataExportService, MetadataKeyJsonService metaDataKeyJsonService,
         NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
         RenderService renderService )
     {
