@@ -64,6 +64,7 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Relationship to( org.hisp.dhis.relationship.Relationship relationship )
     {
         List<Relationship> relationships = to( Collections.singletonList( relationship ) );
@@ -77,7 +78,13 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<Relationship> to( List<org.hisp.dhis.relationship.Relationship> relationships )
+    {
+        return _to( relationships );
+    }
+
+    private List<Relationship> _to( List<org.hisp.dhis.relationship.Relationship> relationships )
     {
         return relationships.stream().map( fromRelationship -> {
 

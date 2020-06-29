@@ -147,7 +147,8 @@ public class DefaultTrackerPreheatService
         preheat.setIdentifiers( params.getIdentifiers() );
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
-        preheat.setUser( getImportingUser( preheat.getUser() ) );
+        User importingUser = getImportingUser( preheat.getUser() );
+        preheat.setUser( importingUser );
 
         Objects.requireNonNull( preheat.getUser(), "Preheater is missing the user object." );
 
@@ -268,7 +269,7 @@ public class DefaultTrackerPreheatService
     @Override
     public void validate( TrackerPreheatParams params )
     {
-
+        //TODO: Implement validation
     }
 
     private Restriction generateRestrictionFromIdentifiers( TrackerIdScheme idScheme, List<String> ids )
@@ -320,6 +321,7 @@ public class DefaultTrackerPreheatService
             return manager.get( User.class, user.getUid() );
         }
 
-        return currentUserService.getCurrentUser();
+        User currentUser = currentUserService.getCurrentUser();
+        return currentUser;
     }
 }

@@ -97,43 +97,43 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment event )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerBundle bundle = context.getBundle();
         TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        ProgramInstance existingPi = context.getProgramInstance( event.getEnrollment() );
+        ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
 
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPi == null )
             {
-                context.setStrategy( event, TrackerImportStrategy.CREATE );
+                context.setStrategy( enrollment, TrackerImportStrategy.CREATE );
             }
             else
             {
-                context.setStrategy( event, TrackerImportStrategy.UPDATE );
+                context.setStrategy( enrollment, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingPi != null && importStrategy.isCreate() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1080 )
-                .addArg( event.getEnrollment() ) );
+                .addArg( enrollment.getEnrollment() ) );
         }
         else if ( existingPi != null && existingPi.isDeleted() && importStrategy.isDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1113 )
-                .addArg( event.getEnrollment() ) );
+                .addArg( enrollment.getEnrollment() ) );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1081 )
-                .addArg( event.getEnrollment() ) );
+                .addArg( enrollment.getEnrollment() ) );
         }
         else
         {
-            context.setStrategy( event, importStrategy );
+            context.setStrategy( enrollment, importStrategy );
         }
     }
 

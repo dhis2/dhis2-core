@@ -81,6 +81,8 @@ public class TrackerEventBundleServiceTest extends DhisSpringTest
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -98,12 +100,6 @@ public class TrackerEventBundleServiceTest extends DhisSpringTest
 
         objectBundleService.commit( bundle );
     }
-
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
 
     @Test
     public void testCreateSingleEventData()

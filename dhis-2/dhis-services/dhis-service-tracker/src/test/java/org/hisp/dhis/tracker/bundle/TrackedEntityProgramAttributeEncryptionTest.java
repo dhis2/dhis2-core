@@ -92,6 +92,8 @@ public class TrackedEntityProgramAttributeEncryptionTest
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 

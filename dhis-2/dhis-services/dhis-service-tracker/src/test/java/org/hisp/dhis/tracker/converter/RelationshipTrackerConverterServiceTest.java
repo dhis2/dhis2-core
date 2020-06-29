@@ -102,6 +102,8 @@ public class RelationshipTrackerConverterServiceTest
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 

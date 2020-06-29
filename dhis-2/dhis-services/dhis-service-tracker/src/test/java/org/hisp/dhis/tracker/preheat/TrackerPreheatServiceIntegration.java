@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.preheat;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -46,6 +47,8 @@ import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,10 +84,15 @@ public class TrackerPreheatServiceIntegration
 
     private final String ATTRIBUTE_UID = "ATTR1234567";
 
+    @Autowired
+    private UserService _userService;
+
     @Override
     public void setUpTest()
         throws Exception
     {
+        userService = _userService;
+
         // Set up placeholder OU; We add Code for testing idScheme.
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         ouA.setCode( "OUA" );

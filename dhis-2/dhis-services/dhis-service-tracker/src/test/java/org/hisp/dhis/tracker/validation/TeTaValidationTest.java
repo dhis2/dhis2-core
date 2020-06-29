@@ -108,7 +108,7 @@ public class TeTaValidationTest
     @Autowired
     private FileResourceService fileResourceService;
 
-    public void setupMetadata( String metaDataFile )
+    private void setupMetadata( String metaDataFile )
         throws IOException
     {
         renderService = _renderService;

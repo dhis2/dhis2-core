@@ -85,6 +85,8 @@ public class TrackerBundleServiceTest
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -102,12 +104,6 @@ public class TrackerBundleServiceTest
 
         objectBundleService.commit( bundle );
     }
-
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
 
     @Test
     public void testVerifyMetadata()

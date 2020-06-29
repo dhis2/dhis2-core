@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,6 +65,7 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Enrollment to( ProgramInstance programInstance )
     {
         List<Enrollment> enrollments = to( Collections.singletonList( programInstance ) );
@@ -77,7 +80,12 @@ public class EnrollmentTrackerConverterService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> to( List<ProgramInstance> programInstances )
+    public List<Enrollment> to( List<ProgramInstance> enrollments )
+    {
+        return _to( enrollments );
+    }
+
+    private List<Enrollment> _to( List<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
@@ -123,22 +131,27 @@ public class EnrollmentTrackerConverterService
         return from( preheat( enrollments ), enrollments );
     }
 
-
     private List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
 
         enrollments.forEach( enrollment -> {
 
-            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
-
             OrganisationUnit organisationUnit = preheat
                 .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
 
+            Objects.requireNonNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
+
             Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+
+            Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
             TrackedEntityInstance trackedEntityInstance = preheat
                 .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+
+            Objects.requireNonNull( trackedEntityInstance, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
+
+            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
 
             if ( programInstance == null )
             {

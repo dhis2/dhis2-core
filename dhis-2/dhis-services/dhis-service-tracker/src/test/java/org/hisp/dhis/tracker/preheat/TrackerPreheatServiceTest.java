@@ -92,15 +92,11 @@ public class TrackerPreheatServiceTest
     @Override
     protected void setUpTest()
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
     }
-
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
 
     @Test
     public void testEventMetadata()

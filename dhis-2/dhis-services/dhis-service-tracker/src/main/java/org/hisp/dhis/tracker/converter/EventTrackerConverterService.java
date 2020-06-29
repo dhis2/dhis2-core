@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -73,6 +74,7 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Event to( ProgramStageInstance programStageInstance )
     {
         List<Event> events = to( Collections.singletonList( programStageInstance ) );
@@ -88,6 +90,11 @@ public class EventTrackerConverterService
     @Override
     @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
+    {
+        return _to( programStageInstances );
+    }
+
+    private List<Event> _to( List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
 
