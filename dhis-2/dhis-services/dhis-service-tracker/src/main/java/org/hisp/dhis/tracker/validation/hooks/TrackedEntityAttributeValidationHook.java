@@ -159,6 +159,7 @@ public class TrackedEntityAttributeValidationHook
         Objects.requireNonNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
         Objects.requireNonNull( teav.getValue(), TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
+        // Validate value (string) don't exceed the max length
         if ( teav.getValue().length() > MAX_ATTR_VALUE_LENGTH )
         {
             reporter.addError( newReport( TrackerErrorCode.E1077 )
@@ -166,14 +167,16 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( MAX_ATTR_VALUE_LENGTH ) );
         }
 
-        boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
+        // Validate if that encryption is configured properly if someone sets value to (confidential)
         boolean isConfidential = teav.getAttribute().isConfidentialBool();
+        boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
         if ( isConfidential && !encryptionStatusOk )
         {
             reporter.addError( newReport( TrackerErrorCode.E1112 )
                 .addArg( teav ) );
         }
 
+        // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
         String result = dataValueIsValid( teav.getValue(), teav.getAttribute().getValueType() );
         if ( result != null )
         {
