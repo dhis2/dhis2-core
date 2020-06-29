@@ -223,7 +223,7 @@ public class EventSecurityImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    protected void setupMetadata()
+    private void setupMetadata()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );

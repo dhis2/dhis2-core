@@ -150,7 +150,7 @@ public class EnrollmentSecurityImportValidationTest
 
     private TrackedEntityType trackedEntityType;
 
-    protected void setupMetadata()
+    private void setupMetadata()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
