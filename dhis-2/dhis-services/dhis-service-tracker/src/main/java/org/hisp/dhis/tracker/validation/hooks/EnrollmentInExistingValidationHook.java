@@ -205,18 +205,11 @@ public class EnrollmentInExistingValidationHook
         if ( programInstance.getOrganisationUnit() != null )
         {
             enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
-//            enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
         }
 
         if ( programInstance.getGeometry() != null )
         {
             enrollment.setGeometry( programInstance.getGeometry() );
-
-//            if ( programInstance.getProgram().getFeatureType() == FeatureType.POINT )
-//            {
-//                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
-//                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
-//            }
         }
 
         enrollment.setCreatedAt( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
