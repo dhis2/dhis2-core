@@ -5,6 +5,6 @@ alter table visualization drop column if exists colorsetid;
 
 -- Remove colorset tables
 
-drop table colorset_colors;
-drop table color;
-drop table colorset;
+drop table if exists colorset_colors;
+drop table if exists color;
+drop table if exists colorset;

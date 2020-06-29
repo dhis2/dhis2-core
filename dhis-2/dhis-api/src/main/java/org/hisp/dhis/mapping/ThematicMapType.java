@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate.dialect;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,34 +26,15 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.H2Dialect;
-
-import java.sql.Types;
+package org.hisp.dhis.mapping;
 
 /**
+ * Represents the type of thematic map visualisation.
+ *
  * @author Lars Helge Overland
  */
-public class DhisH2Dialect extends H2Dialect
+public enum ThematicMapType
 {
-    public DhisH2Dialect()
-    {
-        registerColumnType( Types.JAVA_OBJECT, "text" );
-        registerColumnType( Types.JAVA_OBJECT, "jsonb" );
-        registerColumnType( Types.OTHER, "uuid" );
-    }
-
-    @Override
-    public String getDropSequenceString( String sequenceName )
-    {
-        // Adding the "if exists" clause to avoid warnings
-        return "drop sequence if exists " + sequenceName;
-    }
-
-    @Override
-    public boolean dropConstraints()
-    {
-        // No need to drop constraints before dropping tables, leads to error
-        // messages
-        return false;
-    }
+    CHOROPLETH,
+    BUBBLE;
 }

@@ -49,14 +49,14 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.SMSConsts.SMSEnrollmentStatus;
-import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
-import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEnrollmentStatus;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
+import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
 import org.hisp.dhis.smscompression.models.GeoPoint;
-import org.hisp.dhis.smscompression.models.SMSAttributeValue;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
-import org.hisp.dhis.smscompression.models.SMSEvent;
+import org.hisp.dhis.smscompression.models.SmsAttributeValue;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
+import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -198,7 +198,7 @@ public class EnrollmentSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -319,7 +319,7 @@ public class EnrollmentSMSListenerTest
     }
 
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         trackedEntityType = createTrackedEntityType( 'T' );
         organisationUnit = createOrganisationUnit( 'O' );
@@ -365,11 +365,11 @@ public class EnrollmentSMSListenerTest
         incomingSmsEnrollmentEventNoValues = createSMSFromSubmission( createEnrollmentSubmissionEventNoValues() );
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmissionNoEvents()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionNoEvents()
     {
-        EnrollmentSMSSubmission subm = new EnrollmentSMSSubmission();
+        EnrollmentSmsSubmission subm = new EnrollmentSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setTrackerProgram( program.getUid() );
         subm.setTrackedEntityType( trackedEntityType.getUid() );
@@ -377,47 +377,47 @@ public class EnrollmentSMSListenerTest
         subm.setEnrollment( programInstance.getUid() );
         subm.setEnrollmentDate( new Date() );
         subm.setIncidentDate( new Date() );
-        subm.setEnrollmentStatus( SMSEnrollmentStatus.ACTIVE );
+        subm.setEnrollmentStatus( SmsEnrollmentStatus.ACTIVE );
         subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
-        ArrayList<SMSAttributeValue> values = new ArrayList<>();
-        values.add( new SMSAttributeValue( trackedEntityAttribute.getUid(), ATTRIBUTE_VALUE ) );
+        ArrayList<SmsAttributeValue> values = new ArrayList<>();
+        values.add( new SmsAttributeValue( trackedEntityAttribute.getUid(), ATTRIBUTE_VALUE ) );
         subm.setValues( values );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmissionWithEvents()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionWithEvents()
     {
-        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
 
-        ArrayList<SMSEvent> events = new ArrayList<>();
+        ArrayList<SmsEvent> events = new ArrayList<>();
         events.add( createEvent() );
         subm.setEvents( events );
         return subm;
     }
 
-    private SMSEvent createEvent()
+    private SmsEvent createEvent()
     {
-        SMSEvent event = new SMSEvent();
+        SmsEvent event = new SmsEvent();
         event.setOrgUnit( organisationUnit.getUid() );
         event.setProgramStage( programStage.getUid() );
         event.setAttributeOptionCombo( categoryOptionCombo.getUid() );
         event.setEvent( programStageInstance.getUid() );
-        event.setEventStatus( SMSEventStatus.COMPLETED );
+        event.setEventStatus( SmsEventStatus.COMPLETED );
         event.setEventDate( new Date() );
         event.setDueDate( new Date() );
         event.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
-        ArrayList<SMSDataValue> eventValues = new ArrayList<>();
-        eventValues.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
+        ArrayList<SmsDataValue> eventValues = new ArrayList<>();
+        eventValues.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
         event.setValues( eventValues );
 
         return event;
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmissionWithNulls()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionWithNulls()
     {
-        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
         subm.setEnrollmentDate( null );
         subm.setIncidentDate( null );
         subm.setCoordinates( null );
@@ -426,34 +426,34 @@ public class EnrollmentSMSListenerTest
         return subm;
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmissionNoAttribs()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionNoAttribs()
     {
-        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
         subm.setValues( null );
 
         return subm;
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmissionEventWithNulls()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionEventWithNulls()
     {
-        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
-        SMSEvent event = createEvent();
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+        SmsEvent event = createEvent();
         event.setEventDate( null );
         event.setDueDate( null );
         event.setCoordinates( null );
-        ArrayList<SMSEvent> events = new ArrayList<>();
+        ArrayList<SmsEvent> events = new ArrayList<>();
         events.add( event );
         subm.setEvents( events );
 
         return subm;
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmissionEventNoValues()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionEventNoValues()
     {
-        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
-        SMSEvent event = createEvent();
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+        SmsEvent event = createEvent();
         event.setValues( null );
-        ArrayList<SMSEvent> events = new ArrayList<>();
+        ArrayList<SmsEvent> events = new ArrayList<>();
         events.add( event );
         subm.setEvents( events );
 
