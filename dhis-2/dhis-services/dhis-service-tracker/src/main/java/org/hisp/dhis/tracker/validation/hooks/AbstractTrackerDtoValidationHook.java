@@ -28,8 +28,10 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -58,12 +60,14 @@ import org.springframework.core.Ordered;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 
 /**
@@ -84,8 +88,6 @@ public abstract class AbstractTrackerDtoValidationHook
     {
         this.order = order;
     }
-
-    public static final String IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD = "Implementing class fail to override this method!";
 
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
@@ -113,21 +115,45 @@ public abstract class AbstractTrackerDtoValidationHook
         this.strategy = strategy;
     }
 
+    /**
+     * Must be implemented if dtoTypeClass == Event or dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param event    entity to validate
+     */
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
+    /**
+     * Must be implemented if dtoTypeClass == Enrollment or dtoTypeClass == null
+     *
+     * @param reporter   ValidationErrorReporter instance
+     * @param enrollment entity to validate
+     */
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
+    /**
+     * Must be implemented if dtoTypeClass == TrackedEntity or dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param tei      entity to validate
+     */
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
+    /**
+     * Delegating validate method, this delegates validation to the different implementing hooks.
+     *
+     * @param context validation context
+     * @return list of error reports
+     */
     @Override
     public List<TrackerErrorReport> validate( TrackerImportValidationContext context )
     {
@@ -135,50 +161,64 @@ public abstract class AbstractTrackerDtoValidationHook
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context, this.getClass() );
 
+        // If this hook impl. has no strategy set, i.e. (strategy == null)
+        // it implies it is for all strategies; create/update/delete
         if ( this.strategy != null )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-
+            // If there is a strategy set and it is not delete and the importing strategy is delete,
+            // just return as there is nothing to validate.
             if ( importStrategy.isDelete() && !this.strategy.isDelete() )
             {
                 return reporter.getReportList();
             }
         }
 
-        if ( dtoTypeClass == null || dtoTypeClass.equals( TrackedEntity.class ) )
-        {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateTrackedEntity( r, o ),
-                bundle.getTrackedEntities() );
-        }
+        // Setup all the mapping between validation methods and entity lists and dto classes.
+        Map<Class<? extends TrackerDto>,
+            Pair<ValidationFunction<TrackerDto>,
+                List<? extends TrackerDto>>> allValidations = ImmutableMap.of(
+            TrackedEntity.class, Pair.of( ( o, r ) ->
+                validateTrackedEntity( r, (TrackedEntity) o ), bundle.getTrackedEntities() ),
+            Enrollment.class, Pair.of( ( o, r ) ->
+                validateEnrollment( r, (Enrollment) o ), bundle.getEnrollments() ),
+            Event.class, Pair.of( ( o, r ) ->
+                validateEvent( r, (Event) o ), bundle.getEvents() ) );
 
-        if ( dtoTypeClass == null || dtoTypeClass.equals( Enrollment.class ) )
+        // If no dtoTypeClass is set, we will validate all types of entities in bundle
+        // i.e. that impl. hook is meant for all types.
+        if ( dtoTypeClass == null )
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateEnrollment( r, o ), bundle.getEnrollments() );
+            allValidations.forEach( ( dtoClass, validationMethod ) ->
+                validateTrackerDTOs( reporter, validationMethod ) );
         }
-
-        if ( dtoTypeClass == null || dtoTypeClass.equals( Event.class ) )
+        else
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateEvent( r, o ), bundle.getEvents() );
+            // If not dtoTypeClass == null, this hook class is run for one specific dto class only
+            validateTrackerDTOs( reporter, allValidations.get( dtoTypeClass ) );
         }
 
         return reporter.getReportList();
     }
 
-    public <T extends TrackerDto> void validateTrackerDTOs( ValidationErrorReporter reporter,
-        ValidationFunction<T> function, List<T> dtoInstances )
+    private <T extends TrackerDto> void validateTrackerDTOs( ValidationErrorReporter reporter,
+        Pair<ValidationFunction<TrackerDto>, List<? extends TrackerDto>> pair )
     {
-        Iterator<T> iterator = dtoInstances.iterator();
+        Iterator<? extends TrackerDto> iterator = pair.getRight().iterator();
 
         while ( iterator.hasNext() )
         {
-            T dto = iterator.next();
+            TrackerDto dto = iterator.next();
 
             // Fork the report in order to be thread-safe so we can support multi-threaded validation in future.
             // Iterator needs to be changed to split variant also...
             ValidationErrorReporter reportFork = reporter.fork( dto );
 
-            function.validateTrackerDto( dto, reportFork );
+            pair.getLeft().validateTrackerDto( dto, reportFork );
 
+            // Remove entity that failed validation from the list, i.e. it
+            // will not be validated on next hook since it has already failed and can't be used for next "level" of hooks.
+            // This feature is used in the prehooks.
             if ( this.removeOnError && reportFork.hasErrors() )
             {
                 iterator.remove();

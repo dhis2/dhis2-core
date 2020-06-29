@@ -95,6 +95,8 @@ public class EnrollmentInExistingValidationHook
 
         Program program = validationContext.getProgram( enrollment.getProgram() );
 
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+
         if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
             && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
         {
