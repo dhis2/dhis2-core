@@ -955,6 +955,7 @@ public class DefaultPredictionService
         params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
         params.setPeriods( periods );
         params.setOrganisationUnits( new HashSet<>( orgUnits ) );
+        params.setIncludeDeleted( true );
 
         List<DeflatedDataValue> oldValueList = dataValueService.getDeflatedDataValues( params );
 
@@ -997,7 +998,7 @@ public class DefaultPredictionService
             }
             else
             {
-                if ( newValue.getValue().equals( oldValue.getValue() ) )
+                if ( newValue.getValue().equals( oldValue.getValue() ) && !oldValue.isDeleted() )
                 {
                     summary.incrementUnchanged();
                 }
