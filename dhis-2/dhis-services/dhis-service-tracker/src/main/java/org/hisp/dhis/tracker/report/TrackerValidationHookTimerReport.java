@@ -34,6 +34,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * This class is used for timing (performance) reports of the individual validation hook.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
