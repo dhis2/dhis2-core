@@ -49,9 +49,11 @@ import org.hisp.dhis.tracker.validation.hooks.PreCheckValidateAndGenerateUidHook
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityGeoValidationHook;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toMap;
@@ -93,4 +95,30 @@ public class TrackerImportValidationConfig
         .range( 0, VALIDATION_ORDER.size() )
         .boxed()
         .collect( toMap( VALIDATION_ORDER::get, Function.identity() ) );
+
+    /**
+     *
+     * @param hooks
+     */
+    public static void validateAndSortHooks( List<TrackerValidationHook> hooks )
+    {
+        if ( !VALIDATION_ORDER
+            .containsAll(
+                hooks.stream().map( TrackerValidationHook::getClass ).collect( Collectors.toList() ) ) )
+        {
+            String orderList = VALIDATION_ORDER.stream().map( Class::getName )
+                .collect( Collectors.joining( "," ) );
+
+            String internList = hooks.stream().map( i -> i.getClass().getName() )
+                .collect( Collectors.joining( "," ) );
+
+            throw new RuntimeException(
+                String.format(
+                    "ValidationConfig.class is missing a validation hook in the validation order list, " +
+                        "please add it to the list. Order list: %s, service list: %s",
+                    orderList, internList ) );
+        }
+
+        hooks.sort( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) );
+    }
 }

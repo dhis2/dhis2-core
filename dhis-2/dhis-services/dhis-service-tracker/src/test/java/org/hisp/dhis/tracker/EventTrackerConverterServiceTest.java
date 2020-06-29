@@ -100,12 +100,6 @@ public class EventTrackerConverterServiceTest
         objectBundleService.commit( objectBundle );
     }
 
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
-
     @Test
     public void testToProgramStageInstance()
         throws IOException

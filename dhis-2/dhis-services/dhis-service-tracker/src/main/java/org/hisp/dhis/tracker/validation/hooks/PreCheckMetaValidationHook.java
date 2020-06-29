@@ -60,7 +60,6 @@ public class PreCheckMetaValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
-
         if ( organisationUnit == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1011 )

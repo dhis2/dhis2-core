@@ -89,6 +89,7 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramInstance from( Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( Collections.singletonList( enrollment ) );
@@ -102,6 +103,7 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
@@ -115,23 +117,26 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramInstance> from( List<Enrollment> enrollments )
     {
         return from( preheat( enrollments ), enrollments );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
+
+    private List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
 
         enrollments.forEach( enrollment -> {
 
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+
             OrganisationUnit organisationUnit = preheat
                 .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+
             Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+
             TrackedEntityInstance trackedEntityInstance = preheat
                 .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 

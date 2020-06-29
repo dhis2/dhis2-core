@@ -111,12 +111,6 @@ public class TrackedEntityProgramAttributeEncryptionTest
         objectBundleService.commit( bundle );
     }
 
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
-
     @Test
     public void testTrackedEntityProgramAttributeEncryptedValue()
         throws IOException

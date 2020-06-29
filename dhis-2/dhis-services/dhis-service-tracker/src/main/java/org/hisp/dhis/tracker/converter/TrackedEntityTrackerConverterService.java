@@ -128,15 +128,7 @@ public class TrackedEntityTrackerConverterService
         return from( preheat( trackedEntityInstances ), trackedEntityInstances );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
-        List<TrackedEntity> trackedEntityInstances )
-    {
-        return _from( preheat, trackedEntityInstances );
-    }
-
-    private List<org.hisp.dhis.trackedentity.TrackedEntityInstance> _from( TrackerPreheat preheat,
+    private List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();

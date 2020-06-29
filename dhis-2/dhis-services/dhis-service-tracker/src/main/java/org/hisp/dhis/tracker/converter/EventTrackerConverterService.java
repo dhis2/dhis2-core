@@ -153,6 +153,7 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramStageInstance from( Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
@@ -166,6 +167,7 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
@@ -179,14 +181,14 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramStageInstance> from( List<Event> events )
     {
         return from( preheat( events ), events );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
+
+    private List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 

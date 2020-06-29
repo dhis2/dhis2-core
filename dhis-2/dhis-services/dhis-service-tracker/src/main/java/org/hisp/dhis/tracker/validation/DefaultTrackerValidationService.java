@@ -62,24 +62,7 @@ public class DefaultTrackerValidationService
     {
         this.validationHooks = validationHooks;
 
-        if ( !VALIDATION_ORDER
-            .containsAll(
-                validationHooks.stream().map( TrackerValidationHook::getClass ).collect( Collectors.toList() ) ) )
-        {
-            String orderList = VALIDATION_ORDER.stream().map( Class::getName )
-                .collect( Collectors.joining( "," ) );
-
-            String internList = validationHooks.stream().map( i -> i.getClass().getName() )
-                .collect( Collectors.joining( "," ) );
-
-            throw new RuntimeException(
-                String.format(
-                    "ValidationConfig.class is missing a validation hook in the validation order list, " +
-                        "please add it to the list. Order list: %s, service list: %s",
-                    orderList, internList ) );
-        }
-
-        this.validationHooks.sort( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) );
+        TrackerImportValidationConfig.validateAndSortHooks(validationHooks);
     }
 
     @Override
@@ -123,10 +106,7 @@ public class DefaultTrackerValidationService
             validationReport.add( e.getErrors() );
         }
 
-        if ( validationReport.getErrorReports().size() > 0 )
-        {
-            printReport( validationReport );
-        }
+        printReport( validationReport );
 
         return validationReport;
     }

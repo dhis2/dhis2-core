@@ -40,7 +40,9 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
- * Convenience class for calling creating bundle and calling validation and commit in one "unit of work"
+ * Convenience class for creating a tracker bundle and calling validation and commit.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 @Builder
@@ -67,9 +69,9 @@ public class ValidateAndCommitTestUnit
     private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
     /**
-     * Runs the "unit of work"
+     * Runs the work
      *
-     * @return a instance of it self to retrieve the commit and validation results.
+     * @return an instance of it self to retrieve the commit and validation results from later.
      */
     public ValidateAndCommitTestUnit invoke()
     {

@@ -67,6 +67,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,8 +105,6 @@ public class DefaultTrackerPreheatService
 
     private final ProgramStageInstanceStore programStageInstanceStore;
 
-    private final IdentifiableObjectManager identifiableObjectManager;
-
     private final RelationshipStore relationshipStore;
 
     private List<TrackerPreheatHook> preheatHooks = new ArrayList<>();
@@ -125,7 +124,6 @@ public class DefaultTrackerPreheatService
         TrackedEntityInstanceStore trackedEntityInstanceStore,
         ProgramInstanceStore programInstanceStore,
         ProgramStageInstanceStore programStageInstanceStore,
-        IdentifiableObjectManager identifiableObjectManager,
         RelationshipStore relationshipStore )
     {
         this.schemaService = schemaService;
@@ -135,7 +133,6 @@ public class DefaultTrackerPreheatService
         this.periodStore = periodStore;
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.programInstanceStore = programInstanceStore;
-        this.identifiableObjectManager = identifiableObjectManager;
         this.programStageInstanceStore = programStageInstanceStore;
         this.relationshipStore = relationshipStore;
     }
@@ -150,6 +147,7 @@ public class DefaultTrackerPreheatService
         preheat.setIdentifiers( params.getIdentifiers() );
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
+        preheat.setUser( getImportingUser( preheat.getUser() ) );
 
         Objects.requireNonNull( preheat.getUser(), "Preheater is missing the user object." );
 
@@ -298,7 +296,7 @@ public class DefaultTrackerPreheatService
             {
                 Attribute attribute = new Attribute();
                 attribute.setUid( identifier.getValue() );
-                objects = identifiableObjectManager.getAllByAttributeAndValues(
+                objects = manager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }
             else
@@ -312,5 +310,16 @@ public class DefaultTrackerPreheatService
 
             preheat.put( identifier, objects );
         }
+    }
+
+    private User getImportingUser( User user )
+    {
+        // ıf user already set, reload the user to make sure its loaded in the current tx
+        if ( user != null )
+        {
+            return manager.get( User.class, user.getUid() );
+        }
+
+        return currentUserService.getCurrentUser();
     }
 }

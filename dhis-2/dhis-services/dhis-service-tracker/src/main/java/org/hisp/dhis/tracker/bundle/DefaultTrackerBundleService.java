@@ -92,7 +92,7 @@ public class DefaultTrackerBundleService
 
     private final CurrentUserService currentUserService;
 
-    private final IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager identifiableObjectManager;
 
     private final SessionFactory sessionFactory;
 
@@ -126,7 +126,7 @@ public class DefaultTrackerBundleService
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService,
         CurrentUserService currentUserService,
-        IdentifiableObjectManager manager,
+        IdentifiableObjectManager identifiableObjectManager,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
@@ -140,7 +140,7 @@ public class DefaultTrackerBundleService
         this.eventConverter = eventTrackerConverterService;
         this.relationshipConverter = relationshipTrackerConverterService;
         this.currentUserService = currentUserService;
-        this.manager = manager;
+        this.identifiableObjectManager = identifiableObjectManager;
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
@@ -235,7 +235,7 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            // TODO: check create/update/delete?
+            // TODO: Implement support for update and delete and rollback/decrement create etc.
             typeReport.getStats().incCreated();
         }
 
@@ -283,7 +283,7 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            // TODO: check create/update?
+            // TODO: Implement support for update and delete and rollback/decrement create etc.
             typeReport.getStats().incCreated();
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
@@ -335,7 +335,7 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            // TODO: check create/update?
+            // TODO: Implement support for update and delete and rollback/decrement create etc.
             typeReport.getStats().incCreated();
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
@@ -527,12 +527,12 @@ public class DefaultTrackerBundleService
         if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current
         // tx
         {
-            return manager.get( User.class, user.getUid() );
+            return identifiableObjectManager.get( User.class, user.getUid() );
         }
 
         if ( !StringUtils.isEmpty( userUid ) )
         {
-            user = manager.get( User.class, userUid );
+            user = identifiableObjectManager.get( User.class, userUid );
         }
 
         if ( user == null )

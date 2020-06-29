@@ -153,15 +153,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -207,15 +207,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -242,15 +242,15 @@ public class TeTaValidationTest
                     .getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        build = TrackerBundleParams.builder()
+        bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        trackerBundles = trackerBundleService.create( build );
+        trackerBundles = trackerBundleService.create( bundle );
         report = trackerValidationService.validate( trackerBundles.get( 0 ) );
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -272,15 +272,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -317,15 +317,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -363,15 +363,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -432,15 +432,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -451,7 +451,7 @@ public class TeTaValidationTest
                     .getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        build = TrackerBundleParams.builder()
+        bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
@@ -459,9 +459,9 @@ public class TeTaValidationTest
 
         user = userService.getUser( ADMIN_USER_UID );
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        trackerBundles = trackerBundleService.create( build );
+        trackerBundles = trackerBundleService.create( bundle );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
         assertEquals( 1, report.getErrorReports().size() );
@@ -484,15 +484,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -517,15 +517,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
         assertEquals( 1, trackerBundles.size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
@@ -553,15 +553,15 @@ public class TeTaValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
 
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build();
 
-        build.setUser( user );
+        bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
         assertEquals( 1, trackerBundles.size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
