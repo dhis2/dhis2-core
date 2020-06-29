@@ -139,25 +139,7 @@ public class EnrollmentAttrValidationTests
     }
 
     @Test
-    public void testAttributesOk()
-        throws IOException
-    {
-        TrackerBundleParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
-
-        assertEquals( 0, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
-    }
-
-    @Test
-    public void testAttributesMissingUiid()
+    public void testAttributesMissingUid()
         throws IOException
     {
         TrackerBundleParams params = createBundleFromJson(
