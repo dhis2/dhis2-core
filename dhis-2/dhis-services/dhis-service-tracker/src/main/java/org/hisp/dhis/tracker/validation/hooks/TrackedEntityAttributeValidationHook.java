@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
@@ -100,7 +101,7 @@ public class TrackedEntityAttributeValidationHook
     protected void validateAttributes( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit )
     {
-        Objects.requireNonNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
 
         Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( tei != null )
@@ -156,8 +157,8 @@ public class TrackedEntityAttributeValidationHook
 
     public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttributeValue teav )
     {
-        Objects.requireNonNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
-        Objects.requireNonNull( teav.getValue(), TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        checkNotNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        checkNotNull( teav.getValue(), TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
         if ( teav.getValue().length() > MAX_ATTR_VALUE_LENGTH )
@@ -190,8 +191,8 @@ public class TrackedEntityAttributeValidationHook
         Attribute attribute, TrackedEntityAttribute tea, TrackedEntityAttributeValue existingValue )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
-        Objects.requireNonNull( attribute, ATTRIBUTE_CANT_BE_NULL );
-        Objects.requireNonNull( tea, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( attribute, ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         if ( !tea.isGenerated() )
         {
@@ -232,7 +233,7 @@ public class TrackedEntityAttributeValidationHook
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
         Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
     {
-        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
 
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
         if ( !attrIsFile )

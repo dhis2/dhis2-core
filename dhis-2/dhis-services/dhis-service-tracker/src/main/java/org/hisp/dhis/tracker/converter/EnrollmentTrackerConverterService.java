@@ -48,7 +48,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -140,16 +141,16 @@ public class EnrollmentTrackerConverterService
             OrganisationUnit organisationUnit = preheat
                 .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
 
-            Objects.requireNonNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
+            checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
 
             Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
 
-            Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+            checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
             TrackedEntityInstance trackedEntityInstance = preheat
                 .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
-            Objects.requireNonNull( trackedEntityInstance, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
+            checkNotNull( trackedEntityInstance, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
 
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
 

@@ -58,8 +58,8 @@ import org.springframework.core.Ordered;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
@@ -191,8 +191,9 @@ public abstract class AbstractTrackerDtoValidationHook
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
-        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
-        Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         String error;
 
@@ -222,7 +223,7 @@ public abstract class AbstractTrackerDtoValidationHook
         TrackedEntityInstance trackedEntityInstanceUid,
         OrganisationUnit organisationUnit )
     {
-        Objects.requireNonNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
+        checkNotNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
@@ -242,7 +243,7 @@ public abstract class AbstractTrackerDtoValidationHook
 
     protected void validateGeometry( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
     {
-        Objects.requireNonNull( geometry, GEOMETRY_CANT_BE_NULL );
+        checkNotNull( geometry, GEOMETRY_CANT_BE_NULL );
 
         if ( featureType == null )
         {
@@ -311,7 +312,7 @@ public abstract class AbstractTrackerDtoValidationHook
 
     public boolean isNotValidDateString( String dateString )
     {
-        Objects.requireNonNull( dateString, DATE_STRING_CANT_BE_NULL );
+        checkNotNull( dateString, DATE_STRING_CANT_BE_NULL );
 
         return !DateUtils.dateIsValid( dateString );
     }

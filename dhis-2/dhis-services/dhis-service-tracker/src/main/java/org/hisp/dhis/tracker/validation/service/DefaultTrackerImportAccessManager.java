@@ -47,8 +47,7 @@ import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
@@ -75,9 +74,9 @@ public class DefaultTrackerImportAccessManager
     public DefaultTrackerImportAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager,
         OrganisationUnitService organisationUnitService )
     {
-        Objects.requireNonNull( aclService );
-        Objects.requireNonNull( ownershipAccessManager );
-        Objects.requireNonNull( organisationUnitService );
+        checkNotNull( aclService );
+        checkNotNull( ownershipAccessManager );
+        checkNotNull( organisationUnitService );
 
         this.aclService = aclService;
         this.ownershipAccessManager = ownershipAccessManager;
@@ -89,8 +88,8 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
@@ -106,8 +105,8 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
@@ -122,8 +121,8 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
@@ -139,9 +138,9 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( programInstance.getProgram(), PROGRAM_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( programInstance.getProgram(), PROGRAM_CANT_BE_NULL );
 
         checkProgramReadAccess( reporter, user, programInstance.getProgram() );
 
@@ -161,10 +160,10 @@ public class DefaultTrackerImportAccessManager
         TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
+        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
@@ -190,15 +189,15 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         checkProgramWriteAccess( reporter, user, program );
 
         if ( program.isRegistration() )
         {
-            Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
+            checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
             checkTeiTypeAndTeiProgramAccess( reporter, user, programInstance.getEntityInstance(), program );
         }
     }
@@ -209,11 +208,11 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance.getProgramStage(), PROGRAM_STAGE_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance.getOrganisationUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
+        checkNotNull( programStageInstance.getProgramStage(), PROGRAM_STAGE_CANT_BE_NULL );
+        checkNotNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
+        checkNotNull( programStageInstance.getOrganisationUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         OrganisationUnit orgUnit = programStageInstance.getOrganisationUnit();
 
@@ -232,7 +231,7 @@ public class DefaultTrackerImportAccessManager
         }
         else
         {
-            Objects.requireNonNull( programStageInstance.getProgramInstance(), PROGRAM_INSTANCE_CANT_BE_NULL );
+            checkNotNull( programStageInstance.getProgramInstance(), PROGRAM_INSTANCE_CANT_BE_NULL );
 
             checkProgramStageWriteAccess( reporter, user, programStageInstance.getProgramStage() );
             checkProgramReadAccess( reporter, user, programStageInstance.getProgramStage().getProgram() );
@@ -251,8 +250,8 @@ public class DefaultTrackerImportAccessManager
     protected void checkProgramReadAccess( ValidationErrorReporter reporter, User user,
         Program program )
     {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         if ( !aclService.canDataRead( user, program ) )
         {
@@ -265,8 +264,8 @@ public class DefaultTrackerImportAccessManager
     protected void checkProgramStageWriteAccess( ValidationErrorReporter reporter, User user,
         ProgramStage programStage )
     {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
 
         if ( !aclService.canDataWrite( user, programStage ) )
         {
@@ -279,8 +278,8 @@ public class DefaultTrackerImportAccessManager
     protected void checkProgramWriteAccess( ValidationErrorReporter reporter, User user,
         Program program )
     {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         if ( !aclService.canDataWrite( user, program ) )
         {
@@ -297,8 +296,8 @@ public class DefaultTrackerImportAccessManager
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {

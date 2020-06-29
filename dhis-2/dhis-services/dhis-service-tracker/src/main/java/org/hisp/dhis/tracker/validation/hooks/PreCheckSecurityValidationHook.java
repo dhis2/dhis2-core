@@ -41,8 +41,7 @@ import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
@@ -66,9 +65,9 @@ public class PreCheckSecurityValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
 
-        Objects.requireNonNull( context.getBundle().getUser(), USER_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( context.getBundle().getUser(), USER_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( strategy.isUpdateOrDelete() )
         {
@@ -91,9 +90,9 @@ public class PreCheckSecurityValidationHook
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
         TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
 
-        Objects.requireNonNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
+        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( strategy.isUpdateOrDelete() )
         {
@@ -111,9 +110,9 @@ public class PreCheckSecurityValidationHook
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
         TrackerImportStrategy strategy = validationContext.getStrategy( event );
 
-        Objects.requireNonNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
-        Objects.requireNonNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
+        checkNotNull( event, EVENT_CANT_BE_NULL );
+        checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( strategy.isUpdateOrDelete() )
         {

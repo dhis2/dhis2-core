@@ -51,8 +51,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
@@ -81,14 +80,14 @@ public class PreCheckOwnershipValidationHook
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( bundle.getUser(), USER_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( strategy.isDelete() )
         {
             TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-            Objects.requireNonNull( tei, TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+            checkNotNull( tei, TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
@@ -120,22 +119,22 @@ public class PreCheckOwnershipValidationHook
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         if ( strategy.isDelete() )
         {
             ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
-            Objects.requireNonNull( pi, PROGRAM_INSTANCE_CANT_BE_NULL );
+            checkNotNull( pi, PROGRAM_INSTANCE_CANT_BE_NULL );
 
             boolean b1 = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
             boolean b2 = !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
@@ -168,8 +167,8 @@ public class PreCheckOwnershipValidationHook
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( event, EVENT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         Program program = context.getProgram( event.getProgram() );
@@ -197,9 +196,9 @@ public class PreCheckOwnershipValidationHook
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Program program )
     {
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( actingUser, USER_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         boolean noProgramStageAndProgramIsWithoutReg = programStage == null && program.isWithoutRegistration();
 
@@ -218,9 +217,9 @@ public class PreCheckOwnershipValidationHook
         TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( event, EVENT_CANT_BE_NULL );
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, programStageInstance );
 

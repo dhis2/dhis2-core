@@ -70,8 +70,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -454,7 +455,7 @@ public class DefaultTrackerBundleService
                 attributeValues.add( attributeValue );
             }
 
-            Objects.requireNonNull( attributeValue.getAttribute(),
+            checkNotNull( attributeValue.getAttribute(),
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
             // TODO: What to do here? Should this be allowed? i.e ,  attributeValue.getAttribute() != null  this makes a NP
@@ -472,7 +473,7 @@ public class DefaultTrackerBundleService
             // as it will be reloaded on session clear
             TrackedEntityAttribute attribute = attributeValue.getAttribute();
 
-            Objects.requireNonNull( attribute,
+            checkNotNull( attribute,
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
             if ( attributeValuesForDeletion.contains( attribute.getUid() ) )

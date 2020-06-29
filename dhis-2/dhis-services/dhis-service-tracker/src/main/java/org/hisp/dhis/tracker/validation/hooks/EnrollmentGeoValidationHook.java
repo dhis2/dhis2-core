@@ -35,7 +35,7 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
+import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -56,7 +56,7 @@ public class EnrollmentGeoValidationHook
 
         Program program = context.getProgram( enrollment.getProgram() );
 
-        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         if ( enrollment.getGeometry() != null )
         {

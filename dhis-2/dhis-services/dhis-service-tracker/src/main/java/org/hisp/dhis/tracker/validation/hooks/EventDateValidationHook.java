@@ -43,8 +43,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.Objects;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -82,9 +82,9 @@ public class EventDateValidationHook
     private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program,
         ProgramStageInstance programStageInstance, User actingUser )
     {
-        Objects.requireNonNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
-        Objects.requireNonNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
-        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
+        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())
             || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
@@ -127,8 +127,8 @@ public class EventDateValidationHook
     private void validatePeriodType( ValidationErrorReporter reporter, Event event,
         Program program, ProgramStageInstance programStageInstance )
     {
-        Objects.requireNonNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
-        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         //TODO: Cant find any reference outside validation code... is this still in use?
         PeriodType periodType = program.getExpiryPeriodType();
@@ -177,7 +177,7 @@ public class EventDateValidationHook
 
     private void validateDateFormat( ValidationErrorReporter reporter, Event event )
     {
-        Objects.requireNonNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
+        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
 
         if ( event.getScheduledAt() != null && isNotValidDateString( event.getScheduledAt() ) )
         {

@@ -40,12 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.tracker.validation.TrackerImportValidationConfig.VALIDATION_ORDER;
-import static org.hisp.dhis.tracker.validation.TrackerImportValidationConfig.VALIDATION_ORDER_MAP;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,7 +57,7 @@ public class DefaultTrackerValidationService
     {
         this.validationHooks = validationHooks;
 
-        TrackerImportValidationConfig.validateAndSortHooks(validationHooks);
+        TrackerImportValidationConfig.validateAndSortHooks( validationHooks );
     }
 
     @Override

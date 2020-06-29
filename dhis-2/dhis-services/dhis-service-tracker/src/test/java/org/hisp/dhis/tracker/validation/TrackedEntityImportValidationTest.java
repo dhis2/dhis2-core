@@ -294,48 +294,6 @@ public class TrackedEntityImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
     }
 
-//    @Test
-//    public void testGeoFeatureTypeMismatch()
-//        throws IOException
-//    {
-//        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-//            "tracker/validations/te-data_error_geo-ftype-mismatch.json" );
-//
-//        User user = userService.getUser( ADMIN_USER );
-//        trackerBundleParams.setUser( user );
-//
-//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-//        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
-//
-//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-//        assertEquals( 1, report.getErrorReports().size() );
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
-//
-//        printErrors( report );
-//    }
-
-//    @Test
-//    public void testGeoFeatureTypeNone()
-//        throws IOException
-//    {
-//        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-//            "tracker/validations/te-data_error_geo-ftype-none.json" );
-//
-//        User user = userService.getUser( ADMIN_USER );
-//        trackerBundleParams.setUser( user );
-//
-//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-//        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
-//
-//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-//        assertEquals( 1, report.getErrorReports().size() );
-//        assertThat( report.getErrorReports(),
-//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
-//
-//        printErrors( report );
-//    }
-
     @Test
     public void testGeoOk()
         throws IOException

@@ -75,8 +75,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,7 +151,7 @@ public class DefaultTrackerPreheatService
         User importingUser = getImportingUser( preheat.getUser() );
         preheat.setUser( importingUser );
 
-        Objects.requireNonNull( preheat.getUser(), "Preheater is missing the user object." );
+        checkNotNull( preheat.getUser(), "Preheater is missing the user object." );
 
         Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
 

@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.validation.hooks.PreCheckOwnershipValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckSecurityValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckValidateAndGenerateUidHook;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityGeoValidationHook;
 
 import java.util.Comparator;
 import java.util.List;
@@ -76,7 +75,6 @@ public class TrackerImportValidationConfig
         PreCheckOwnershipValidationHook.class,
 
         TrackedEntityAttributeValidationHook.class,
-        TrackedEntityGeoValidationHook.class,
 
         EnrollmentNoteValidationHook.class,
         EnrollmentInExistingValidationHook.class,
@@ -97,7 +95,6 @@ public class TrackerImportValidationConfig
         .collect( toMap( VALIDATION_ORDER::get, Function.identity() ) );
 
     /**
-     *
      * @param hooks
      */
     public static void validateAndSortHooks( List<TrackerValidationHook> hooks )

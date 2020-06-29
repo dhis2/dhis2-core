@@ -51,10 +51,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
@@ -109,9 +109,9 @@ public class EnrollmentInExistingValidationHook
     {
         User user = reporter.getValidationContext().getBundle().getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         TrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
@@ -150,9 +150,9 @@ public class EnrollmentInExistingValidationHook
     {
         User user = reporter.getValidationContext().getBundle().getUser();
 
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -191,7 +191,7 @@ public class EnrollmentInExistingValidationHook
 
     public Enrollment getEnrollmentFromProgramInstance( ProgramInstance programInstance )
     {
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
 
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );

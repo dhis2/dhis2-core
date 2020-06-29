@@ -44,10 +44,10 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
@@ -134,9 +134,9 @@ public class EnrollmentAttributeValidationHook
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
         Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
-        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        checkNotNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
 
         // 1. Get all tei attributes, map attrValue attr. into set of attr.
         Set<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityInstance.getTrackedEntityAttributeValues()

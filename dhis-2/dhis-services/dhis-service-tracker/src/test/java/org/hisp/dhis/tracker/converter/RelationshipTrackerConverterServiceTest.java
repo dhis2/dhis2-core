@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,11 +138,15 @@ public class RelationshipTrackerConverterServiceTest
             .fromJson( new ClassPathResource( "tracker/relationships.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
+        User adminUser = createAndInjectAdminUser();
+
         TrackerImportParams trackerImportParams =
             TrackerImportParams
                 .builder()
                 .relationships( trackerBundleParams.getRelationships() )
+                .user( adminUser )
                 .build();
+
         trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() ).get( 0 );
     }
 

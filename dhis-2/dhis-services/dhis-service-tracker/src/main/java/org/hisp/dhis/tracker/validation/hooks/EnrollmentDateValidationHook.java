@@ -38,8 +38,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.Objects;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
@@ -76,7 +76,7 @@ public class EnrollmentDateValidationHook
 
     private void validateMandatoryDates( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         // NOTE: getEnrollmentDate is always mandatory?
         if ( !isValidDateStringAndNotNull( enrollment.getEnrolledAt() ) )
@@ -89,8 +89,8 @@ public class EnrollmentDateValidationHook
     private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter reporter, Program program,
         Enrollment enrollment )
     {
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         if ( isValidDateStringAndNotNull( enrollment.getEnrolledAt() )
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )

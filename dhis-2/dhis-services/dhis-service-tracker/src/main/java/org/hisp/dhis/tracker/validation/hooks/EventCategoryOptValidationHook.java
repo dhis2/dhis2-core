@@ -45,8 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.Objects;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -71,16 +71,16 @@ public class EventCategoryOptValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         Program program = context.getProgram( event.getProgram() );
-        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( context.getBundle().getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        checkNotNull( context.getBundle().getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
 
         CategoryOptionCombo categoryOptionCombo = context
             .getCategoryOptionCombo(
                 reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getUid() ) );
 
-        Objects.requireNonNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
+        checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         if ( categoryOptionCombo.isDefault()
             && program.getCategoryCombo() != null
