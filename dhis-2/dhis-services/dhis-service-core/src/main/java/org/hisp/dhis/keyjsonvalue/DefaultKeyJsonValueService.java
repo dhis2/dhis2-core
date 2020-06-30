@@ -30,10 +30,12 @@ package org.hisp.dhis.keyjsonvalue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UncheckedIOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -47,6 +49,7 @@ public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
     private final KeyJsonValueStore keyJsonValueStore;
+
     private final ObjectMapper jsonMapper;
 
     public DefaultKeyJsonValueService(
@@ -67,13 +70,21 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public List<String> getNamespaces()
     {
-        return keyJsonValueStore.getNamespaces();
+        List<String> namespaces = keyJsonValueStore.getNamespaces();
+        namespaces.remove( MetadataVersionService.METADATASTORE );
+
+        return namespaces;
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<String> getKeysInNamespace( String namespace )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return Collections.emptyList();
+        }
+
         return keyJsonValueStore.getKeysInNamespace( namespace );
     }
 
@@ -81,6 +92,11 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return Collections.emptyList();
+        }
+
         return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
     }
 
@@ -88,6 +104,11 @@ public class DefaultKeyJsonValueService
     @Transactional
     public void deleteNamespace( String namespace )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return;
+        }
+
         keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
     }
 
@@ -95,6 +116,11 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public KeyJsonValue getKeyJsonValue( String namespace, String key )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return null;
+        }
+
         return keyJsonValueStore.getKeyJsonValue( namespace, key );
     }
 
@@ -102,13 +128,23 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return Collections.emptyList();
+        }
+
         return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
     }
 
     @Override
     @Transactional
-    public long addKeyJsonValue( KeyJsonValue keyJsonValue )
+    public Long addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        {
+            return null;
+        }
+
         keyJsonValueStore.save( keyJsonValue );
 
         return keyJsonValue.getId();
@@ -118,6 +154,11 @@ public class DefaultKeyJsonValueService
     @Transactional
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        {
+            return;
+        }
+
         keyJsonValueStore.update( keyJsonValue );
     }
 
@@ -125,6 +166,11 @@ public class DefaultKeyJsonValueService
     @Transactional
     public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        {
+            return;
+        }
+
         keyJsonValueStore.delete( keyJsonValue );
     }
 
@@ -153,20 +199,21 @@ public class DefaultKeyJsonValueService
     @Transactional
     public <T> void addValue( String namespace, String key, T object )
     {
-        String value = null;
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return;
+        }
 
         try
         {
-            value = jsonMapper.writeValueAsString( object );
+            String value = jsonMapper.writeValueAsString( object );
+            KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
+            keyJsonValueStore.save( keyJsonValue );
         }
         catch ( JsonProcessingException ex )
         {
             throw new UncheckedIOException( ex );
         }
-
-        KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
-
-        keyJsonValueStore.save( keyJsonValue );
     }
 
     @Override
@@ -181,19 +228,15 @@ public class DefaultKeyJsonValueService
                 "No object found for namespace '%s' and key '%s'", namespace, key ) );
         }
 
-        String value = null;
-
         try
         {
-            value = jsonMapper.writeValueAsString( object );
+            String value = jsonMapper.writeValueAsString( object );
+            keyJsonValue.setValue( value );
+            keyJsonValueStore.update( keyJsonValue );
         }
         catch ( JsonProcessingException ex )
         {
             throw new UncheckedIOException( ex );
         }
-
-        keyJsonValue.setValue( value );
-
-        keyJsonValueStore.update( keyJsonValue );
     }
 }
