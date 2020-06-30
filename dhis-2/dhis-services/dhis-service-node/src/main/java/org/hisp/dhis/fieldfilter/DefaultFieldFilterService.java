@@ -28,16 +28,11 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -65,12 +60,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,8 +103,13 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService, AttributeService attributeService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
+    public DefaultFieldFilterService(
+        FieldParser fieldParser,
+        SchemaService schemaService,
+        AclService aclService,
+        CurrentUserService currentUserService,
+        AttributeService attributeService,
+        @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
@@ -223,13 +230,13 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean mayExclude( Class<?> klass, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isAssignableFrom( klass ) &&
-            ( Preheat.isDefaultClass( klass ) || klass.isInterface() || ( klass.getModifiers() & Modifier.ABSTRACT ) != 0 );
+            (Preheat.isDefaultClass( klass ) || klass.isInterface() || (klass.getModifiers() & Modifier.ABSTRACT) != 0);
     }
 
     private boolean shouldExclude( Object object, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
-            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default" .equals( ((IdentifiableObject) object).getName() );
     }
 
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName, Defaults defaults )
@@ -277,6 +284,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
+
             if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection() && property.getKlass().isInterface() && !property.isIdentifiableObject() )
             {
                 // try to retrieve schema from concrete class
@@ -439,7 +447,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             Collection<Property> properties = schema.getReadableProperties().values();
 
-            if ( "*".equals( fieldKey ) )
+            if ( "*" .equals( fieldKey ) )
             {
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) )
@@ -447,7 +455,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                 cleanupFields.add( fieldKey );
             }
-            else if ( ":persisted".equals( fieldKey ) )
+            else if ( ":persisted" .equals( fieldKey ) )
             {
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
@@ -455,7 +463,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                 cleanupFields.add( fieldKey );
             }
-            else if ( ":owner".equals( fieldKey ) )
+            else if ( ":owner" .equals( fieldKey ) )
             {
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
@@ -609,7 +617,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private ComplexNode createBaseIdentifiableObjectIdNode( @Nonnull Property currentProperty, @Nonnull Object object )
     {
         return new ComplexNode( currentProperty, new SimpleNode(
-            "id", baseIdentifiableIdProperty, ( (BaseIdentifiableObject) object ).getUid() ) );
+            "id", baseIdentifiableIdProperty, ((BaseIdentifiableObject) object).getUid() ) );
     }
 
     private boolean isProperIdObject( Class<?> klass )

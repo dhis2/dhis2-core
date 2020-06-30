@@ -40,5 +40,5 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 public @interface PropertyTransformer
 {
-    Class<?> value();
+    Class<? extends org.hisp.dhis.schema.PropertyTransformer> value();
 }
