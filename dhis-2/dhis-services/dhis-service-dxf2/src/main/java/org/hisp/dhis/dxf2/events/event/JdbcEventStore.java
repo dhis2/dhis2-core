@@ -78,6 +78,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
@@ -85,6 +86,8 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcEventStore
     implements EventStore
 {
+    private static final String DOT_NAME = ".name)";
+
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
@@ -777,9 +780,14 @@ public class JdbcEventStore
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
+                    else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                    {
+                        sql += "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
                     else
                     {
-                        sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                        sql += "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
@@ -980,7 +988,7 @@ public class JdbcEventStore
                     }
                     else
                     {
-                        sql += "and lower( " + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                        sql += "and lower( " + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                 }
