@@ -85,6 +85,10 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcEventStore
     implements EventStore
 {
+    private static final String PSI_STATUS_EQ = " psi.status = '";
+
+    private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= '";
+
     private static final String DOT_NAME = ".name)";
 
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
@@ -836,7 +840,7 @@ public class JdbcEventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            sqlBuilder.append( hlp.whereAnd() + " psi.lastupdated >= '" + skipChangedBefore + "' " );
+            sqlBuilder.append( hlp.whereAnd() + PSI_LASTUPDATED_GT + skipChangedBefore + "' " );
         }
 
         if ( params.getCategoryOptionCombo() != null )
@@ -873,7 +877,7 @@ public class JdbcEventStore
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                sqlBuilder.append( hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
+                sqlBuilder.append( hlp.whereAnd() + PSI_STATUS_EQ + EventStatus.ACTIVE.name()
                     + "' and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
@@ -883,7 +887,7 @@ public class JdbcEventStore
             }
             else
             {
-                sqlBuilder.append( hlp.whereAnd() + " psi.status = '" + params.getEventStatus().name() + "' " );
+                sqlBuilder.append( hlp.whereAnd() + PSI_STATUS_EQ + params.getEventStatus().name() + "' " );
             }
         }
 
@@ -1042,7 +1046,7 @@ public class JdbcEventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            sqlBuilder.append( hlp.whereAnd() + " psi.lastupdated >= '" + skipChangedBefore + "' " );
+            sqlBuilder.append( hlp.whereAnd() + PSI_LASTUPDATED_GT + skipChangedBefore + "' " );
         }
 
         if ( params.getDueDateStart() != null )
@@ -1066,7 +1070,7 @@ public class JdbcEventStore
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                sqlBuilder.append( hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
+                sqlBuilder.append( hlp.whereAnd() + PSI_STATUS_EQ + EventStatus.ACTIVE.name()
                     + "' and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
@@ -1076,7 +1080,7 @@ public class JdbcEventStore
             }
             else
             {
-                sqlBuilder.append( hlp.whereAnd() + " psi.status = '" + params.getEventStatus().name() + "' " );
+                sqlBuilder.append( hlp.whereAnd() + PSI_STATUS_EQ + params.getEventStatus().name() + "' " );
             }
         }
 
@@ -1109,14 +1113,14 @@ public class JdbcEventStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            sqlBuilder.append( hlp.whereAnd() + " psi.lastupdated >= '"
+            sqlBuilder.append( hlp.whereAnd() + PSI_LASTUPDATED_GT
                 + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' " );
         }
         else
         {
             if ( params.hasLastUpdatedStartDate() )
             {
-                sqlBuilder.append( hlp.whereAnd() + " psi.lastupdated >= '"
+                sqlBuilder.append( hlp.whereAnd() + PSI_LASTUPDATED_GT
                     + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' " );
             }
 
