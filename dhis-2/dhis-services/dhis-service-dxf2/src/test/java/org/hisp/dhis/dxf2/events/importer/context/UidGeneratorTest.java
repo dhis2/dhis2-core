@@ -32,8 +32,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.UidGenerator;
 import org.junit.Before;
@@ -67,6 +72,7 @@ public class UidGeneratorTest
 
         assertThat( events, hasSize( 4 ) );
         events.forEach( e -> assertNotNull( e.getUid() ) );
+        assertThat( events.stream().collect( Collectors.toMap( Event::getUid, Function.identity() ) ).keySet(),
+            hasSize( 4 ) );
     }
-
 }
