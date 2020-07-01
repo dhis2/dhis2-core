@@ -119,6 +119,6 @@ public class EventCountValidationHook
     
     private boolean hasProgramInstance( Event event, TrackerImportValidationContext ctx )
     {
-        return ctx.getProgramInstance( event.getUid() ) != null;
+        return event.getEnrollment() != null && ctx.getProgramInstance( event.getEnrollment() ) != null;
     }
 }
