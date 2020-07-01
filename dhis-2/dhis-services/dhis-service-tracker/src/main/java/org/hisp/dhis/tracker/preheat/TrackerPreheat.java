@@ -134,7 +134,9 @@ public class TrackerPreheat
      * Maps Event identifiers to a List of {@see ProgramInstance}. The Event
      * identifiers in this map are linked to incoming Events that have no
      * "enrollment" field populated or the "enrollment" value does not exist on the
-     * database
+     * database.
+     * The value of this Map is a List (so, there may be potentially multiple ProgramInstance for each event),
+     * but this would imply data corruption. If the List contains more than one PI, it will be detected during validation.
      */
     private Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = new HashMap<>();
 

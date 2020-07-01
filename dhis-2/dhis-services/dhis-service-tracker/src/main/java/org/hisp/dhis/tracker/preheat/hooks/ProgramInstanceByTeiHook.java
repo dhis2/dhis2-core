@@ -51,9 +51,14 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 
 /**
- * This pre-heater hook is responsible for creating an associative Map of Event UID -> {@see ProgramInstance}
- * The map
+ * This pre-heater hook is responsible for creating an associative Map of Event
+ * UID -> List of {@see ProgramInstance}. The map is created by extracting all
+ * the incoming Events without an enrollment (or pointing to a non-existing
+ * enrollments) and resolving the Program Instance by querying the DB for
+ * Program Instances that match the Event program + Event Tracked Entity
+ * Instance.
  *
+ * @author Luciano Fiandesio
  */
 @Component
 public class ProgramInstanceByTeiHook implements TrackerPreheatHook
@@ -77,7 +82,7 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
         // invalid PI
         List<Event> eventWithoutPI = getEventsWithoutProgramInstance( params,
             enrollments.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
-        
+
         if ( isNotEmpty( eventWithoutPI ) )
         {
             // Assign the map of event uid -> List Program Instance to the Preheat context
@@ -94,8 +99,8 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
     }
 
     /**
-     * Fetches Program Instances by Event Program and Event Tei.
-     * The resulting Map has the Event UID as key and a List of Program Instances as value.
+     * Fetches Program Instances by Event Program and Event Tei. The resulting Map
+     * has the Event UID as key and a List of Program Instances as value.
      *
      */
     private Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei( TrackerPreheat preheat,
