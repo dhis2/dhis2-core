@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,48 +26,65 @@ package org.hisp.dhis.sms.listener;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.smscompression.SmsResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public class SMSProcessingException
-    extends
-    RuntimeException
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
+public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 353425388316643481L;
+    private final KeyJsonValueStore keyJsonValueStore;
 
-    private SmsResponse resp;
+    private final ObjectMapper jsonMapper;
 
-    private Throwable err;
-
-    public SMSProcessingException( SmsResponse resp )
+    public DefaultMetadataKeyJsonService(
+        KeyJsonValueStore keyJsonValueStore,
+        ObjectMapper jsonMapper )
     {
-        this.resp = resp;
-    }
+        this.jsonMapper = jsonMapper;
+        checkNotNull( keyJsonValueStore );
 
-    public SMSProcessingException( SmsResponse resp, Throwable err )
-    {
-        this.resp = resp;
-        this.err = err;
+        this.keyJsonValueStore = keyJsonValueStore;
     }
 
     @Override
-    public String getMessage()
+    @Transactional( readOnly = true )
+    public KeyJsonValue getMetaDataVersion( String key )
     {
-        return resp.getDescription();
+        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
     }
 
-    public SmsResponse getResp()
+    @Override
+    @Transactional
+    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        return resp;
+        keyJsonValueStore.delete( keyJsonValue );
     }
 
-    public Throwable getErr()
+    @Override
+    @Transactional
+    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        return err;
+        keyJsonValueStore.save( keyJsonValue );
+
+        return keyJsonValue.getId();
+    }
+
+    @Override
+    public List<String> getAllVersions()
+    {
+        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
     }
 }

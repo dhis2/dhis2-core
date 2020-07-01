@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,48 +26,38 @@ package org.hisp.dhis.sms.listener;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.smscompression.SmsResponse;
+import java.util.List;
 
-public class SMSProcessingException
-    extends
-    RuntimeException
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public interface MetadataKeyJsonService
 {
+    /**
+     * Retrieves a KeyJsonValue based on a namespace and key.
+     *
+     * @param key       the key referencing the value.
+     * @return the KeyJsonValue matching the key and namespace.
+     */
+    KeyJsonValue getMetaDataVersion( String key );
 
     /**
-     * 
+     * Deletes a keyJsonValue.
+     *
+     * @param keyJsonValue the KeyJsonValue to be deleted.
      */
-    private static final long serialVersionUID = 353425388316643481L;
+    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
 
-    private SmsResponse resp;
+    /**
+     * Adds a new KeyJsonValue.
+     *
+     * @param keyJsonValue the KeyJsonValue to be stored.
+     * @return the id of the KeyJsonValue stored.
+     */
+    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
 
-    private Throwable err;
-
-    public SMSProcessingException( SmsResponse resp )
-    {
-        this.resp = resp;
-    }
-
-    public SMSProcessingException( SmsResponse resp, Throwable err )
-    {
-        this.resp = resp;
-        this.err = err;
-    }
-
-    @Override
-    public String getMessage()
-    {
-        return resp.getDescription();
-    }
-
-    public SmsResponse getResp()
-    {
-        return resp;
-    }
-
-    public Throwable getErr()
-    {
-        return err;
-    }
+    List<String> getAllVersions();
 }

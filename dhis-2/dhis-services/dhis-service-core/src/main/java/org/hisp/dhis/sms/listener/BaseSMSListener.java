@@ -37,7 +37,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.hisp.dhis.smscompression.SMSResponse;
+import org.hisp.dhis.smscompression.SmsResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
@@ -87,7 +87,7 @@ public abstract class BaseSMSListener
         LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
     }
 
-    protected void sendSMSResponse( SMSResponse resp, IncomingSms sms, int messageID )
+    protected void sendSMSResponse( SmsResponse resp, IncomingSms sms, int messageID )
     {
         // A response code < 100 is either success or just a warning
         SmsMessageStatus status = resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;

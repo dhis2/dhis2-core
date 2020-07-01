@@ -201,7 +201,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
     public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
         throws IOException
     {
@@ -219,7 +219,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
         Map<String, LinkedList<Notification>> notifications = new HashMap<>();
@@ -258,7 +258,7 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -275,7 +275,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
