@@ -950,7 +950,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE, max = Double.MAX_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -963,7 +963,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE, max = Double.MAX_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -988,7 +988,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE, max = Double.MAX_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -1001,7 +1001,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE, max = Double.MAX_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
