@@ -131,7 +131,10 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     *
+     * Maps Event identifiers to a List of {@see ProgramInstance}. The Event
+     * identifiers in this map are linked to incoming Events that have no
+     * "enrollment" field populated or the "enrollment" value does not exist on the
+     * database
      */
     private Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = new HashMap<>();
 
