@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer.update.validation;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.validation;
-
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
@@ -41,9 +41,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 /**
  * @author maikel arabori
  */
-public class ProgramStageInstanceBasicCheck
-    implements
-    Checker
+public class ProgramStageInstanceBasicCheck implements Checker
 {
     @Override
     public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )

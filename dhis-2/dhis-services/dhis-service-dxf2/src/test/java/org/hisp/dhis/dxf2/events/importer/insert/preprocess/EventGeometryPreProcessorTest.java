@@ -77,5 +77,4 @@ public class EventGeometryPreProcessorTest
         assertThat( event.getGeometry().getCoordinate().x, is( 20.0 ) );
         assertThat( event.getGeometry().getCoordinate().y, is( 22.0 ) );
     }
-
 }

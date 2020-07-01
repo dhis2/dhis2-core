@@ -60,7 +60,7 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
     public Map<String, User> get( ImportOptions importOptions, List<Event> events )
     {
         // @formatter:off
-        // Collect all the org unit uids to pass as SQL query argument
+        // Collect all the "assigned user" uids to pass as SQL query argument
         Set<String> userUids = events.stream()
                 .filter( e -> StringUtils.isNotEmpty(e.getAssignedUser()))
                 .map( Event::getAssignedUser )

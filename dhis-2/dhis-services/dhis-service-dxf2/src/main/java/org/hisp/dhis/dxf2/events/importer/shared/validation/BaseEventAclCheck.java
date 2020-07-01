@@ -62,7 +62,6 @@ public abstract class BaseEventAclCheck implements Checker
         if ( !errors.isEmpty() )
         {
             errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( event.getUid(), error ) ) );
-
             importSummary.incrementIgnored();
             importSummary.setStatus( ImportStatus.ERROR );
         }

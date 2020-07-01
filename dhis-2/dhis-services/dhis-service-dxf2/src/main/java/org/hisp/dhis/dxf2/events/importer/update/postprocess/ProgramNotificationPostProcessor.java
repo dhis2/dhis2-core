@@ -42,18 +42,16 @@ import org.springframework.context.ApplicationEventPublisher;
 /**
  * @author maikel arabori
  */
-public class ProgramNotificationPostProcessor
-    implements
-    Processor
+public class ProgramNotificationPostProcessor implements Processor
 {
-
     @Override
     public void process( final Event event, final WorkContext ctx )
     {
         if ( !ctx.getImportOptions().isSkipNotifications() )
         {
             final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-            final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator().getApplicationEventPublisher();
+            final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator()
+                .getApplicationEventPublisher();
 
             if ( programStageInstance.isCompleted() )
             {

@@ -43,6 +43,7 @@ public class IdSchemeUtils
         throws SQLException
     {
         Object id = rs.getObject( getColumnNameByScheme( scheme ) );
+
         if ( id instanceof Long )
         {
             return Long.toString( (Long) id );

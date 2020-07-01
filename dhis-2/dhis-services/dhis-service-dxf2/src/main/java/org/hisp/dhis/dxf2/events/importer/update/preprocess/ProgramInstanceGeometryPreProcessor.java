@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer.update.preprocess;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
-
 import static org.hisp.dhis.organisationunit.FeatureType.NONE;
 import static org.hisp.dhis.system.util.GeoUtils.SRID;
 import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
@@ -43,9 +43,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 /**
  * @author maikel arabori
  */
-public class ProgramInstanceGeometryPreProcessor
-    implements
-    Processor
+public class ProgramInstanceGeometryPreProcessor implements Processor
 {
     @Override
     public void process( final Event event, final WorkContext ctx )

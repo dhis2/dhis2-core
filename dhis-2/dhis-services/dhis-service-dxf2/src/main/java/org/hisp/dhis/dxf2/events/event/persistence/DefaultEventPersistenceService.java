@@ -162,22 +162,6 @@ public class  DefaultEventPersistenceService
         }
     }
 
-    private void updateTrackedEntityInstance( final TrackedEntityInstance tei, final User user )
-    {
-        final TrackedEntityInstance loadedTei = manager.get( TrackedEntityInstance.class, tei.getUid() );
-
-        loadedTei.setCreatedAtClient( tei.getCreatedAtClient() );
-        loadedTei.setLastUpdatedAtClient( tei.getLastUpdatedAtClient() );
-        loadedTei.setInactive( tei.isInactive() );
-        loadedTei.setLastSynchronized( tei.getLastSynchronized() );
-        loadedTei.setCreated( tei.getCreated() );
-        loadedTei.setLastUpdated( tei.getLastUpdated() );
-        loadedTei.setUser( tei.getUser() );
-        loadedTei.setLastUpdatedBy( tei.getLastUpdatedBy() );
-
-        manager.update( loadedTei, user );
-    }
-
     private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
         List<Event> events )
     {

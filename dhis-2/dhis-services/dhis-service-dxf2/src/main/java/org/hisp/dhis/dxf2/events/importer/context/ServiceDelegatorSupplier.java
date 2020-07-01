@@ -79,16 +79,14 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
     @Override
     public ServiceDelegator get()
     {
-        // @formatter:off
         return ServiceDelegator.builder()
-                .programInstanceStore( this.programInstanceStore )
-                .trackerAccessManager( this.trackerAccessManager )
-                .applicationEventPublisher( this.applicationEventPublisher )
-                .programRuleVariableService( this.programRuleVariableService )
-                .currentUserService( this.currentUserService )
-                .jsonMapper(jsonMapper)
-                .jdbcTemplate( this.jdbcTemplate )
-                .build();
-        // @formatter:on
+            .programInstanceStore( this.programInstanceStore )
+            .trackerAccessManager( this.trackerAccessManager )
+            .applicationEventPublisher( this.applicationEventPublisher )
+            .programRuleVariableService( this.programRuleVariableService )
+            .currentUserService( this.currentUserService )
+            .jsonMapper( jsonMapper )
+            .jdbcTemplate( this.jdbcTemplate )
+            .build();
     }
 }

@@ -68,9 +68,7 @@ public class EventBaseCheck
                 .addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
             importSummary.incrementIgnored();
 
-            return importSummary;
         }
-
         return importSummary;
     }
 

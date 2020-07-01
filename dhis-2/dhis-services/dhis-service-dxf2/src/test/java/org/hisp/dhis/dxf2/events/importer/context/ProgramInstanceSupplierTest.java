@@ -115,5 +115,4 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         assertThat( programInstance.getProgram(), is( notNullValue() ) );
         assertThat( programInstance.getProgram().getUid(), is( "prabcde" ) );
     }
-
 }

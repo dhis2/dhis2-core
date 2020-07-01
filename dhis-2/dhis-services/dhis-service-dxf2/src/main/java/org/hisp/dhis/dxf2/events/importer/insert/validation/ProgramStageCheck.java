@@ -55,7 +55,6 @@ public class ProgramStageCheck implements Checker
         // from the WorkContext
         final String programStageId = StringUtils.isEmpty( event.getProgramStage() ) ? "-" : event.getProgramStage();
 
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, programStageId );
 
         if ( programStage == null )

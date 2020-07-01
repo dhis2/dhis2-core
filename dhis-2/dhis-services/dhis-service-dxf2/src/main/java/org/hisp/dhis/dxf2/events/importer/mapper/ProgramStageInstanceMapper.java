@@ -58,6 +58,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         noteMapper = new ProgramStageInstanceNoteMapper( ctx );
     }
 
+    @Override
     public ProgramStageInstance map( Event event )
     {
         ImportOptions importOptions = workContext.getImportOptions();

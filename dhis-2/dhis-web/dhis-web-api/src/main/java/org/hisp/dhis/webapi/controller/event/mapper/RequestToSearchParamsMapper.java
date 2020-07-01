@@ -96,6 +96,7 @@ public class RequestToSearchParamsMapper
         checkNotNull( aclService );
         checkNotNull( entityInstanceService );
         checkNotNull( dataElementService );
+
         this.currentUserService = currentUserService;
         this.programService = programService;
         this.organisationUnitService = organisationUnitService;

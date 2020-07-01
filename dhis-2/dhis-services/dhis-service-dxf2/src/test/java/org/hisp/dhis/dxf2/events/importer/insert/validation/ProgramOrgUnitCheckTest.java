@@ -1,28 +1,5 @@
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.RandomUtils;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.junit.Before;
-import org.junit.Test;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -51,6 +28,32 @@ import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.RandomUtils;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.junit.Before;
+import org.junit.Test;
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+
+/**
+ * @author Luciano Fiandesio
+ */
 public class ProgramOrgUnitCheckTest extends BaseValidationTest
 {
     private ProgramOrgUnitCheck rule;

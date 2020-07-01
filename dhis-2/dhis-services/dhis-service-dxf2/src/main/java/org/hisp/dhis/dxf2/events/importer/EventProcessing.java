@@ -43,7 +43,7 @@ import static org.apache.commons.logging.LogFactory.getLog;
  */
 public interface EventProcessing
 {
-    void process( final WorkContext workContext, final List<Event> events );
+    void process( WorkContext workContext, List<Event> events );
 
     Log log = getLog( EventProcessing.class );
 
