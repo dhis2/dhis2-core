@@ -81,7 +81,6 @@ import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -950,7 +949,6 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -963,7 +961,6 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -988,7 +985,6 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -1001,7 +997,6 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
