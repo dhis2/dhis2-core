@@ -306,9 +306,7 @@
       "hideLegend": false,
       "itemOrganisationUnitGroups": [ ],
       "lastUpdated": "2016-03-17T01:56:51.847+0000",
-      "userOrganisationUnitGrandChildren": false,
-      "rangeAxisMinValue": -10,
-      "rangeAxisMaxValue": 20
+      "userOrganisationUnitGrandChildren": false
     },
     {
       "organisationUnits": [
@@ -415,9 +413,7 @@
       "userOrganisationUnitGrandChildren": false,
       "lastUpdated": "2016-03-17T01:57:13.118+0000",
       "periods": [ ],
-      "created": "2016-03-17T01:57:13.118+0000",
-      "rangeAxisMinValue": -10,
-      "rangeAxisMaxValue": 20
+      "created": "2016-03-17T01:57:13.118+0000"
     },
     {
       "aggregationType": "SUM",
@@ -524,9 +520,7 @@
       "userOrganisationUnitChildren": false,
       "organisationUnitGroups": [ ],
       "name": "ChartC",
-      "organisationUnitLevels": [ ],
-      "rangeAxisMinValue": -10,
-      "rangeAxisMaxValue": 20
+      "organisationUnitLevels": [ ]
     }
   ],
   "categoryCombos": [
