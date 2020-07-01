@@ -40,6 +40,11 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
+/**
+ * Simple interface that provides checking capabilities on events.
+ *
+ * @author maikel arabori
+ */
 public interface EventChecking
 {
     List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
@@ -52,7 +57,7 @@ public interface EventChecking
 
         private final List<Event> events;
 
-        public ValidationRunner( final WorkContext workContext, final List<Event> events )
+        public ValidationRunner( WorkContext workContext, List<Event> events )
         {
             this.workContext = workContext;
             this.events = events;

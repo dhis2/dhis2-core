@@ -42,7 +42,6 @@ import org.hisp.dhis.dxf2.events.event.Note;
 /**
  * UID generator for Tracker entities.
  *
- *
  * @author Luciano Fiandesio
  */
 public class UidGenerator

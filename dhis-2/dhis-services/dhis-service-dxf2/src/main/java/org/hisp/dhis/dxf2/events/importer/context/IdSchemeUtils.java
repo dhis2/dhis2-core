@@ -34,6 +34,9 @@ import java.sql.SQLException;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableProperty;
 
+/**
+ * @author Luciano Fiandesio
+ */
 public class IdSchemeUtils
 {
     public static String getKey( IdScheme scheme, ResultSet rs )

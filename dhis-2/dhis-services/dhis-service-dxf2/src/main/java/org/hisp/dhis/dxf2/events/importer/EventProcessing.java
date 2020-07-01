@@ -36,6 +36,11 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 
 import static org.apache.commons.logging.LogFactory.getLog;
 
+/**
+ * Simple interface that provides processing capabilities on events.
+ *
+ * @author maikel arabori
+ */
 public interface EventProcessing
 {
     void process( final WorkContext workContext, final List<Event> events );
@@ -48,7 +53,7 @@ public interface EventProcessing
 
         private final List<Event> events;
 
-        public ProcessorRunner( final WorkContext workContext, final List<Event> events )
+        public ProcessorRunner( WorkContext workContext, List<Event> events )
         {
             this.workContext = workContext;
             this.events = events;

@@ -39,6 +39,9 @@ import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
 import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
+/**
+ * @author maikel arabori
+ */
 public class ProgramNotificationPostProcessor
     implements
     Processor

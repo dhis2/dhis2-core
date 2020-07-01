@@ -30,6 +30,9 @@ package org.hisp.dhis.dxf2.events.importer;
 
 import org.hisp.dhis.importexport.ImportStrategy;
 
+/**
+ * @author Luciano Fiandesio
+ */
 public class ImportStrategyUtils
 {
     public static boolean isUpdate( ImportStrategy importStrategy )

@@ -49,8 +49,13 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service responsible for wrapping the event importing process, pre-processing
+ * the input data.
+ *
+ * @author maikel arabori
+ */
 @Service
 public class EventServiceFacade
 {

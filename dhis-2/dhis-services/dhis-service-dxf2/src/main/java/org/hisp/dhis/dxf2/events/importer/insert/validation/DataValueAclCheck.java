@@ -43,6 +43,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
+/**
+ * @author Luciano Fiandesio
+ */
 public class DataValueAclCheck implements Checker
 {
     @Override

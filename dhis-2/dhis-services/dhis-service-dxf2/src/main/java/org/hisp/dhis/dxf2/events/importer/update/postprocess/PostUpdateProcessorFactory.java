@@ -41,6 +41,9 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author maikel arabori
+ */
 @Component( "eventsPostUpdateProcessorFactory" )
 public class PostUpdateProcessorFactory implements EventProcessing
 {

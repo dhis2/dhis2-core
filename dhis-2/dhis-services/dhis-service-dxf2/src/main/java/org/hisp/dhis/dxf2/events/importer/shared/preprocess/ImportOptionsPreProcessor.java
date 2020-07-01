@@ -34,6 +34,9 @@ import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 
+/**
+ * @author Luciano Fiandesio
+ */
 public class ImportOptionsPreProcessor
     implements
     Processor

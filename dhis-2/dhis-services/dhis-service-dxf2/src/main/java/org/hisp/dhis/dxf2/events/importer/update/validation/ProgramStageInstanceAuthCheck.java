@@ -39,6 +39,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.UserCredentials;
 
+/**
+ * @author maikel arabori
+ */
 public class ProgramStageInstanceAuthCheck
     implements
     Checker

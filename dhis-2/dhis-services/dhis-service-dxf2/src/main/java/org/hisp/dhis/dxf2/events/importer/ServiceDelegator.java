@@ -39,6 +39,12 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+/**
+ * Centralizes a collection of services and components that can be accessed by
+ * the consumer.
+ *
+ * @author maikel arabori
+ */
 @Getter
 @Builder
 public class ServiceDelegator

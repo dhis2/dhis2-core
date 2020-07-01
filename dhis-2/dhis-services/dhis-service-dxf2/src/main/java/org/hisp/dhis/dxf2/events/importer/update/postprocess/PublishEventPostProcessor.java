@@ -35,6 +35,9 @@ import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 
+/**
+ * @author maikel arabori
+ */
 public class PublishEventPostProcessor
     implements
     Processor

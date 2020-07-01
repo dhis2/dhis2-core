@@ -40,11 +40,13 @@ import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 
+/**
+ * @author maikel arabori
+ */
 public class ProgramInstanceGeometryPreProcessor
     implements
     Processor
 {
-
     @Override
     public void process( final Event event, final WorkContext ctx )
     {

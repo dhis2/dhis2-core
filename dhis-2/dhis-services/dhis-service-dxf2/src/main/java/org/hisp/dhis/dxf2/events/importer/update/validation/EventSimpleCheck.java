@@ -37,6 +37,9 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
+/**
+ * @author maikel arabori
+ */
 public class EventSimpleCheck
     implements
     Checker

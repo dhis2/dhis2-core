@@ -44,7 +44,6 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-
 public class ImmutableEvent
 {
     private Event event;

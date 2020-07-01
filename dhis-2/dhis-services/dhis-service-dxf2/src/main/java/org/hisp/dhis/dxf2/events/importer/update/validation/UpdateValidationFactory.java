@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isInsert;
 import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isUpdate;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
@@ -43,9 +42,11 @@ import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author maikel arabori
+ */
 @Component( "eventsUpdateValidationFactory" )
 public class UpdateValidationFactory implements EventChecking
 {

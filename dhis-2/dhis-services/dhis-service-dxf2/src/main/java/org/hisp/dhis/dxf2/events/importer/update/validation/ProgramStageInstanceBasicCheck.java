@@ -38,6 +38,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 
+/**
+ * @author maikel arabori
+ */
 public class ProgramStageInstanceBasicCheck
     implements
     Checker

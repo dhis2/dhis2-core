@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.GeoUtils;
 
-
 /**
  * @author Luciano Fiandesio
  */

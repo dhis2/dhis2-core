@@ -44,6 +44,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author maikel arabori
+ */
 @Component( "eventsDeleteValidationFactory" )
 public class DeleteValidationFactory implements EventChecking
 {
