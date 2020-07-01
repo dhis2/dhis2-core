@@ -45,9 +45,9 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.models.AggregateDatasetSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -154,7 +154,7 @@ public class AggregateDataSetSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new AggregateDataSetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -220,7 +220,7 @@ public class AggregateDataSetSMSListenerTest
     }
 
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         organisationUnit = createOrganisationUnit( 'O' );
         user = createUser( 'U' );
@@ -233,25 +233,26 @@ public class AggregateDataSetSMSListenerTest
 
         incomingSmsAggregate = createSMSFromSubmission( createAggregateDatasetSubmission() );
 
-        AggregateDatasetSMSSubmission subm = createAggregateDatasetSubmission();
+        AggregateDatasetSmsSubmission subm = createAggregateDatasetSubmission();
+
         subm.setValues( null );
         incomingSmsAggregateNoValues = createSMSFromSubmission( subm );
     }
 
-    private AggregateDatasetSMSSubmission createAggregateDatasetSubmission()
+    private AggregateDatasetSmsSubmission createAggregateDatasetSubmission()
     {
-        AggregateDatasetSMSSubmission subm = new AggregateDatasetSMSSubmission();
+        AggregateDatasetSmsSubmission subm = new AggregateDatasetSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setDataSet( dataSet.getUid() );
         subm.setComplete( true );
         subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
         subm.setPeriod( "2019W16" );
-        ArrayList<SMSDataValue> values = new ArrayList<>();
-        values.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "12345678" ) );
+        ArrayList<SmsDataValue> values = new ArrayList<>();
+        values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "12345678" ) );
         subm.setValues( values );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }
