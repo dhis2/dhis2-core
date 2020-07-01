@@ -340,10 +340,6 @@ public class KeyJsonValueController
     private boolean currentUserIsAdmin()
     {
         User currentUser = currentUserService.getCurrentUser();
-        if ( currentUser != null )
-        {
-            return currentUser.getUserCredentials().isSuper();
-        }
-        return false;
+        return currentUser != null && currentUser.getUserCredentials().isSuper();
     }
 }

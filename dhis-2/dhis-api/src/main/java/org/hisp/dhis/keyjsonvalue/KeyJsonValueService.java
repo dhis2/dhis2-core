@@ -43,14 +43,6 @@ public interface KeyJsonValueService
      */
     List<String> getNamespaces( boolean isAdmin );
 
-//    /**
-//     * Retrieves a list of keys from a namespace.
-//     *
-//     * @param namespace the namespace to retrieve keys from.
-//     * @return a list of strings representing the keys from the namespace.
-//     */
-//    List<String> getKeysInNamespace( String namespace, boolean isAdmin );
-
     /**
      * Retrieves list of KeyJsonValue objects belonging to the specified namespace.
      *
@@ -133,6 +125,4 @@ public interface KeyJsonValueService
      * @param value     the value object to update.
      */
     <T> void updateValue( String namespace, String key, T value );
-
-
 }

@@ -74,18 +74,6 @@ public class DefaultKeyJsonValueService
         return namespaces;
     }
 
-//    @Override
-//    @Transactional( readOnly = true )
-//    public List<String> getKeysInNamespace( String namespace, boolean isAdmin )
-//    {
-//        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
-//        {
-//            return Collections.emptyList();
-//        }
-//
-//        return keyJsonValueStore.getKeysInNamespace( namespace );
-//    }
-
     @Override
     @Transactional( readOnly = true )
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin )
