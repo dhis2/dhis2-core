@@ -52,9 +52,7 @@ public class DefaultKeyJsonValueService
 
     private final ObjectMapper jsonMapper;
 
-    public DefaultKeyJsonValueService(
-        KeyJsonValueStore keyJsonValueStore,
-        ObjectMapper jsonMapper )
+    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore, ObjectMapper jsonMapper )
     {
         this.jsonMapper = jsonMapper;
         checkNotNull( keyJsonValueStore );
@@ -68,7 +66,7 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getNamespaces()
+    public List<String> getNamespaces( boolean isAdmin )
     {
         List<String> namespaces = keyJsonValueStore.getNamespaces();
         namespaces.remove( MetadataVersionService.METADATASTORE );
@@ -76,21 +74,21 @@ public class DefaultKeyJsonValueService
         return namespaces;
     }
 
+//    @Override
+//    @Transactional( readOnly = true )
+//    public List<String> getKeysInNamespace( String namespace, boolean isAdmin )
+//    {
+//        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+//        {
+//            return Collections.emptyList();
+//        }
+//
+//        return keyJsonValueStore.getKeysInNamespace( namespace );
+//    }
+
     @Override
     @Transactional( readOnly = true )
-    public List<String> getKeysInNamespace( String namespace )
-    {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return Collections.emptyList();
-        }
-
-        return keyJsonValueStore.getKeysInNamespace( namespace );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin )
     {
         if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
@@ -101,20 +99,8 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
-    @Transactional
-    public void deleteNamespace( String namespace )
-    {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return;
-        }
-
-        keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
-    }
-
-    @Override
     @Transactional( readOnly = true )
-    public KeyJsonValue getKeyJsonValue( String namespace, String key )
+    public KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin )
     {
         if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
@@ -126,7 +112,7 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
+    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin )
     {
         if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
@@ -164,6 +150,18 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional
+    public void deleteNamespace( String namespace )
+    {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return;
+        }
+
+        keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
+    }
+
+    @Override
+    @Transactional
     public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
@@ -178,16 +176,16 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public <T> T getValue( String namespace, String key, Class<T> clazz )
     {
-        KeyJsonValue value = getKeyJsonValue( namespace, key );
+        KeyJsonValue keyJsonValue = keyJsonValueStore.getKeyJsonValue( namespace, key );
 
-        if ( value == null || value.getJbPlainValue() == null )
+        if ( keyJsonValue == null || keyJsonValue.getJbPlainValue() == null )
         {
             return null;
         }
 
         try
         {
-            return jsonMapper.readValue( value.getJbPlainValue(), clazz );
+            return jsonMapper.readValue( keyJsonValue.getJbPlainValue(), clazz );
         }
         catch ( JsonProcessingException ex )
         {
@@ -220,7 +218,7 @@ public class DefaultKeyJsonValueService
     @Transactional
     public <T> void updateValue( String namespace, String key, T object )
     {
-        KeyJsonValue keyJsonValue = getKeyJsonValue( namespace, key );
+        KeyJsonValue keyJsonValue = keyJsonValueStore.getKeyJsonValue( namespace, key );
 
         if ( keyJsonValue == null )
         {
