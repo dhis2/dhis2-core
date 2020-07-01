@@ -28,8 +28,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -39,10 +42,9 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import java.util.ArrayList;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -51,12 +53,12 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventCountValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Autowired
-    protected ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
 
-    public EventCountValidationHook()
+    public EventCountValidationHook( ProgramInstanceService programInstanceService )
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        this.programInstanceService = programInstanceService;
     }
 
     @Override
@@ -69,34 +71,35 @@ public class EventCountValidationHook
 
         if ( program.isRegistration() )
         {
-            TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
-            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-            params.setProgram( program );
-            params.setTrackedEntityInstance( tei );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setUser( user );
-
-            int count = programInstanceService.countProgramInstances( params );
-
-            if ( count == 0 )
+            if ( !hasProgramInstance( event, validationContext ) )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1037 )
-                    .addArg( tei )
-                    .addArg( program ) );
-            }
-            else if ( count > 1 )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1038 )
-                    .addArg( tei )
-                    .addArg( program ) );
+                TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
+                int count = validationContext.getEventToProgramInstancesMap()
+                    .getOrDefault( event.getUid(), new ArrayList<>() ).size();
+
+                if ( count == 0 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1037 )
+                        .addArg( tei )
+                        .addArg( program ) );
+                }
+                else if ( count > 1 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1038 )
+                        .addArg( tei )
+                        .addArg( program ) );
+                }
             }
         }
         else
         {
-            //TODO: I don't understand the purpose of this here. This could be moved to preheater?
+            // TODO: I don't understand the purpose of this here. This could be moved to
+            // preheater?
             // possibly...(Stian-1.4.20)
-            // For isRegistraion=false, there can only exist a single tei and program instance across the entire program.
-            // Both these counts could potentially be preheated, and then just make sure we just have 1 program instance.?
+            // For isRegistraion=false, there can only exist a single tei and program
+            // instance across the entire program.
+            // Both these counts could potentially be preheated, and then just make sure we
+            // just have 1 program instance.?
             ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
             params.setProgram( program );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -106,10 +109,16 @@ public class EventCountValidationHook
 
             if ( count > 1 )
             {
-                //TODO: Can't get this to work/happen, the preheater? inserts a program instance.
+                // TODO: Can't get this to work/happen, the preheater? inserts a program
+                // instance.
                 reporter.addError( newReport( TrackerErrorCode.E1040 )
                     .addArg( program ) );
             }
         }
+    }
+    
+    private boolean hasProgramInstance( Event event, TrackerImportValidationContext ctx )
+    {
+        return ctx.getProgramInstance( event.getUid() ) != null;
     }
 }

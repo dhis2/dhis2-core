@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,7 +60,6 @@ import java.util.Optional;
 @Data
 public class TrackerImportValidationContext
 {
-
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
     private Map<String, String> eventCocCacheMap = new HashMap<>();
@@ -193,4 +193,9 @@ public class TrackerImportValidationContext
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
     }
+    
+    public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
+    {
+        return bundle.getPreheat().getProgramInstancesByProgramAndTei();
+    } 
 }

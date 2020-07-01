@@ -322,7 +322,6 @@ public class DefaultTrackerPreheatService
             return manager.get( User.class, user.getUid() );
         }
 
-        User currentUser = currentUserService.getCurrentUser();
-        return currentUser;
+        return currentUserService.getCurrentUser();
     }
 }

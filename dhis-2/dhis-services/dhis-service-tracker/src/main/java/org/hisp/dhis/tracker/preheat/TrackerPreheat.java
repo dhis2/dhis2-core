@@ -131,6 +131,11 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
+     *
+     */
+    private Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = new HashMap<>();
+
+    /**
      * Identifier map
      */
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
@@ -629,6 +634,16 @@ public class TrackerPreheat
     public void setIdentifiers( TrackerIdentifierParams identifiers )
     {
         this.identifiers = identifiers;
+    }
+
+    public Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei()
+    {
+        return programInstancesByProgramAndTei;
+    }
+
+    public void setProgramInstancesByProgramAndTei( Map<String, List<ProgramInstance>> programInstancesByProgramAndTei )
+    {
+        this.programInstancesByProgramAndTei = programInstancesByProgramAndTei;
     }
 
     @Override

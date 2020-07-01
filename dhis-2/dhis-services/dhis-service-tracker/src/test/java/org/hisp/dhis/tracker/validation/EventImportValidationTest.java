@@ -37,8 +37,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -82,12 +80,6 @@ public class EventImportValidationTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private ProgramStageService programStageService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageServiceInstance;
 
     protected void setUpTest()
         throws IOException
