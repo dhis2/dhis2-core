@@ -1,3 +1,5 @@
+package org.hisp.dhis.utils;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.utils;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
@@ -38,6 +38,7 @@ import org.hisp.dhis.Constants;
 public class JsonObjectBuilder
 {
     private JsonObject jsonObject;
+
     public JsonObjectBuilder() {
         jsonObject = new JsonObject();
     }
