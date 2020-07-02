@@ -92,12 +92,6 @@ public class MockCurrentUserService
     }
 
     @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        return Sets.newHashSet( currentUser.getUserCredentials().getAllAuthorities() );
-    }
-    
-    @Override
     public User getCurrentUser()
     {
         return currentUser;
