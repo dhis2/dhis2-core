@@ -70,7 +70,10 @@ public class DefaultKeyJsonValueService
     public List<String> getNamespaces( boolean isAdmin )
     {
         List<String> namespaces = keyJsonValueStore.getNamespaces();
-        namespaces.remove( MetadataVersionService.METADATASTORE );
+        if ( !isAdmin )
+        {
+            namespaces.remove( MetadataVersionService.METADATASTORE );
+        }
 
         return namespaces;
     }
@@ -79,7 +82,7 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
             return Collections.emptyList();
         }
@@ -91,7 +94,7 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
             return null;
         }
@@ -103,7 +106,7 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
             return Collections.emptyList();
         }
@@ -186,11 +189,6 @@ public class DefaultKeyJsonValueService
     @Transactional
     public <T> void addValue( String namespace, String key, T object )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return;
-        }
-
         try
         {
             String value = jsonMapper.writeValueAsString( object );
