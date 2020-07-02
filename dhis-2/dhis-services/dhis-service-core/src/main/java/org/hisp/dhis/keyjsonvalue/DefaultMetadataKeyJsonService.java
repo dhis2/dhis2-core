@@ -1,4 +1,4 @@
-package org.hisp.dhis.color;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,46 +26,65 @@ package org.hisp.dhis.color;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Service( "org.hisp.dhis.color.ColorService" )
-public class DefaultColorService
-    implements ColorService
+@Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
+public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
-    private final IdentifiableObjectStore<ColorSet> colorSetStore;
 
-    public DefaultColorService(
-        @Qualifier( "org.hisp.dhis.color.ColorSetStore" ) IdentifiableObjectStore<ColorSet> colorSetStore )
+    private final KeyJsonValueStore keyJsonValueStore;
+
+    private final ObjectMapper jsonMapper;
+
+    public DefaultMetadataKeyJsonService(
+        KeyJsonValueStore keyJsonValueStore,
+        ObjectMapper jsonMapper )
     {
-        checkNotNull( colorSetStore );
+        this.jsonMapper = jsonMapper;
+        checkNotNull( keyJsonValueStore );
 
-        this.colorSetStore = colorSetStore;
+        this.keyJsonValueStore = keyJsonValueStore;
     }
 
-    // -------------------------------------------------------------------------
-    // ColorService implementation
-    // -------------------------------------------------------------------------
+    @Override
+    @Transactional( readOnly = true )
+    public KeyJsonValue getMetaDataVersion( String key )
+    {
+        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
+    }
+
     @Override
     @Transactional
-    public long addColorSet( ColorSet colorSet )
+    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        colorSetStore.save( colorSet );
-        return colorSet.getId();
+        keyJsonValueStore.delete( keyJsonValue );
     }
+
     @Override
-    @Transactional(readOnly = true)
-    public ColorSet getColorSet( String uid )
+    @Transactional
+    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        return colorSetStore.getByUid( uid );
+        keyJsonValueStore.save( keyJsonValue );
+
+        return keyJsonValue.getId();
+    }
+
+    @Override
+    public List<String> getAllVersions()
+    {
+        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.dto;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,17 +28,17 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.schema.descriptors.ColorSetSchemaDescriptor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-/**
- * @author Lars Helge Overland
- */
-@Controller
-@RequestMapping( value = ColorSetSchemaDescriptor.API_ENDPOINT )
-public class ColorSetController
-    extends AbstractCrudController<ColorSet>
+public class UserGroup
 {
+    private String id;
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
 }

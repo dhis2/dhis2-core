@@ -142,7 +142,7 @@ public class MappingServiceTest
     @Test
     public void testImportMapCreateAndUpdate() throws IOException {
         java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-                new ClassPathResource("create_map.json").getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "create_map.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -158,7 +158,7 @@ public class MappingServiceTest
         assertEquals( 1, maps.get(0).getMapViews().size() );
 
         metadata = renderService.fromMetadata(
-                new ClassPathResource("update_map.json").getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "update_map.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -171,5 +171,10 @@ public class MappingServiceTest
         Map map = mappingService.getMap( "LTNgXfzTFTv" );
         assertNotNull( map );
         assertEquals( 1, map.getMapViews().size() );
+
+        MapView mapView = map.getMapViews().get( 0 );
+        assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
     }
 }

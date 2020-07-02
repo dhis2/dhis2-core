@@ -28,7 +28,7 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.smscompression.SMSResponse;
+import org.hisp.dhis.smscompression.SmsResponse;
 
 public class SMSProcessingException
     extends
@@ -40,16 +40,16 @@ public class SMSProcessingException
      */
     private static final long serialVersionUID = 353425388316643481L;
 
-    private SMSResponse resp;
+    private SmsResponse resp;
 
     private Throwable err;
 
-    public SMSProcessingException( SMSResponse resp )
+    public SMSProcessingException( SmsResponse resp )
     {
         this.resp = resp;
     }
 
-    public SMSProcessingException( SMSResponse resp, Throwable err )
+    public SMSProcessingException( SmsResponse resp, Throwable err )
     {
         this.resp = resp;
         this.err = err;
@@ -61,7 +61,7 @@ public class SMSProcessingException
         return resp.getDescription();
     }
 
-    public SMSResponse getResp()
+    public SmsResponse getResp()
     {
         return resp;
     }

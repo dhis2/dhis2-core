@@ -6,6 +6,7 @@
   >
 
 <hibernate-mapping>
+  <typedef class="org.hibernate.type.PostgresUUIDType" name="pg-uuid" />
   <class name="org.hisp.dhis.user.UserGroup" table="usergroup">
 
     <cache usage="read-write" />
@@ -14,6 +15,8 @@
       <generator class="native" />
     </id>
     &identifiableProperties;
+
+    <property name="uuid" column="uuid" type="pg-uuid" not-null="false" unique="true" />
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 

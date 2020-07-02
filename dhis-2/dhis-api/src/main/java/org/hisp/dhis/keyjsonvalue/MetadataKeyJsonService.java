@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,26 +26,38 @@ package org.hisp.dhis.schema.descriptors;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ColorSchemaDescriptor implements SchemaDescriptor
+public interface MetadataKeyJsonService
 {
-    public static final String SINGULAR = "color";
+    /**
+     * Retrieves a KeyJsonValue based on a namespace and key.
+     *
+     * @param key       the key referencing the value.
+     * @return the KeyJsonValue matching the key and namespace.
+     */
+    KeyJsonValue getMetaDataVersion( String key );
 
-    public static final String PLURAL = "colors";
+    /**
+     * Deletes a keyJsonValue.
+     *
+     * @param keyJsonValue the KeyJsonValue to be deleted.
+     */
+    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    /**
+     * Adds a new KeyJsonValue.
+     *
+     * @param keyJsonValue the KeyJsonValue to be stored.
+     * @return the id of the KeyJsonValue stored.
+     */
+    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( Color.class, SINGULAR, PLURAL );
-    }
+    List<String> getAllVersions();
 }

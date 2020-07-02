@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.documentation.controller.color;
+package org.hisp.dhis.dto;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,14 +28,55 @@ package org.hisp.dhis.webapi.documentation.controller.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
+import java.util.List;
 
-/**
- * @author Viet Nguyen <viet@dhis.org>
- */
-public class ColorSetDocumentation
-    extends AbstractWebApiTest<ColorSet>
+public class Me
 {
-}
+    private List<UserGroup> userGroups;
 
+    private List<OrgUnit> teiSearchOrganisationUnits;
+
+    private List<OrgUnit> organisationUnits;
+
+    private List<String> authorities;
+
+    public List<UserGroup> getUserGroups()
+    {
+        return userGroups;
+    }
+
+    public void setUserGroups( List<UserGroup> userGroups )
+    {
+        this.userGroups = userGroups;
+    }
+
+    public List<OrgUnit> getTeiSearchOrganisationUnits()
+    {
+        return teiSearchOrganisationUnits;
+    }
+
+    public void setTeiSearchOrganisationUnits( List<OrgUnit> teiSearchOrganisationUnits )
+    {
+        this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
+    }
+
+    public List<OrgUnit> getOrganisationUnits()
+    {
+        return organisationUnits;
+    }
+
+    public void setOrganisationUnits( List<OrgUnit> organisationUnits )
+    {
+        this.organisationUnits = organisationUnits;
+    }
+
+    public List<String> getAuthorities()
+    {
+        return authorities;
+    }
+
+    public void setAuthorities( List<String> authorities )
+    {
+        this.authorities = authorities;
+    }
+}

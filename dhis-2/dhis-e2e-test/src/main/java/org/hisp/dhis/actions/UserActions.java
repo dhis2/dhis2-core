@@ -135,4 +135,14 @@ public class UserActions
     {
         return addUser( "johnny", "bravo", userName, password );
     }
+
+    public void updateUserPassword( String userId, String password )
+    {
+        new LoginActions().loginAsSuperUser();
+        JsonObject user = this.get( userId ).getBody();
+        user.getAsJsonObject( "userCredentials" )
+            .addProperty( "password", password );
+
+        this.update( userId, user );
+    }
 }

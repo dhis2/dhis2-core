@@ -1,5 +1,3 @@
-package org.hisp.dhis.color;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,57 +26,83 @@ package org.hisp.dhis.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.visualization;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 /**
+ * Class representing a series item in a chart.
+ *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "colorSet", namespace = DxfNamespaces.DXF_2_0 )
-public class ColorSet
-    extends BaseIdentifiableObject implements MetadataObject
+@JacksonXmlRootElement( localName = "seriesItem", namespace = DXF_2_0 )
+public class Series
+    implements Serializable
 {
-    private List<Color> colors = new ArrayList<>();
+    /**
+     * Refers to a {@link DimensionalItemObject#getDimensionItem()}.
+     */
+    private String dimensionItem;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    /**
+     * The series axis. 0 represents the primary axis, 1 represents
+     * the secondary axis.
+     */
+    private Integer axis;
 
-    public ColorSet()
+    /**
+     * Visualization type for the series. Will override the type
+     * specified by {@link Visualization#getType()}.
+     */
+    private VisualizationType type;
+
+    public Series()
     {
     }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void removeAllColors()
-    {
-        colors.clear();
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "colors", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Color> getColors()
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public String getDimensionItem()
     {
-        return colors;
+        return dimensionItem;
     }
 
-    public void setColors( List<Color> colors )
+    public void setDimensionItem( String dimensionItem )
     {
-        this.colors = colors;
+        this.dimensionItem = dimensionItem;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = 0 )
+    public Integer getAxis()
+    {
+        return axis;
+    }
+
+    public void setAxis( Integer axis )
+    {
+        this.axis = axis;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public VisualizationType getType()
+    {
+        return type;
+    }
+
+    public void setType( VisualizationType type )
+    {
+        this.type = type;
     }
 }
