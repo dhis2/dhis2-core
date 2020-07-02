@@ -30,9 +30,9 @@ package org.hisp.dhis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AggregationType;
@@ -1820,7 +1820,7 @@ public abstract class DhisConvenienceTest
     public static FileResource createFileResource( char uniqueChar, byte[] content )
     {
         String filename = "filename" + uniqueChar;
-        String contentMd5 = Hashing.md5().hashBytes( content ).toString();
+        String contentMd5 = DigestUtils.md5( content ).toString();
         String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
         FileResource fileResource = new FileResource( filename, contentType, content.length, contentMd5, FileResourceDomain.DATA_VALUE );
