@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -73,10 +72,6 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
     @Autowired
     private TrackerBundleService trackerBundleService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
-
 
     @Override
     protected void setUpTest() throws IOException
