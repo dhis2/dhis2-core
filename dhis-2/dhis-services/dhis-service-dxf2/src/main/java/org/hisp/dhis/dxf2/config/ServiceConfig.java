@@ -100,6 +100,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @Configuration( "dxf2ServiceConfig" )
+@SuppressWarnings( "unchecked" )
 public class ServiceConfig
 {
     @Autowired
@@ -135,31 +136,63 @@ public class ServiceConfig
         return retryTemplate;
     }
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
+            // @formatter:off
+            DuplicateIdsCheck.class,
+            ValidationHooksCheck.class,
+            SecurityCheck.class,
+            SchemaCheck.class,
+            UniquenessCheck.class,
+            MandatoryAttributesCheck.class,
+            UniqueAttributesCheck.class,
+            ReferencesCheck.class
+            // @formatter:on
+    );
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
+            // @formatter:off
+            DuplicateIdsCheck.class,
+            ValidationHooksCheck.class,
+            SecurityCheck.class,
+            CreationCheck.class,
+            SchemaCheck.class,
+            UniquenessCheck.class,
+            MandatoryAttributesCheck.class,
+            UniqueAttributesCheck.class,
+            ReferencesCheck.class
+            // @formatter:on
+    );
 
-    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
+            // @formatter:off
+            DuplicateIdsCheck.class,
+            ValidationHooksCheck.class,
+            SecurityCheck.class,
+            UpdateCheck.class,
+            SchemaCheck.class,
+            UniquenessCheck.class,
+            MandatoryAttributesCheck.class,
+            UniqueAttributesCheck.class,
+            ReferencesCheck.class
+            // @formatter:on
+    );
 
-    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
-            DeletionCheck.class );
+    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
+            // @formatter:off
+            SecurityCheck.class,
+            DeletionCheck.class
+            // @formatter:on
+    );
 
-    
     @Bean( "validatorMap" )
     public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
     {
         // @formatter:off
         return ImmutableMap.of(
-            ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
-            CREATE, CREATE_CHECKS,
-            ImportStrategy.UPDATE, UPDATE_CHECKS,
-            ImportStrategy.DELETE, DELETE_CHECKS );
+                ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
+                CREATE, CREATE_CHECKS,
+                ImportStrategy.UPDATE, UPDATE_CHECKS,
+                ImportStrategy.DELETE, DELETE_CHECKS );
         // @formatter:on
     }
 
@@ -188,7 +221,7 @@ public class ServiceConfig
             AttributeOptionComboAclCheck.class,
             DataValueCheck.class,
             DataValueAclCheck.class
-            )
+                )
         );
         // @formatter:on
     }

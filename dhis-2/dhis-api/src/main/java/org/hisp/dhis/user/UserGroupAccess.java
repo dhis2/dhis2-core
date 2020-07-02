@@ -128,20 +128,19 @@ public class UserGroupAccess
     }
 
     /**
-     * Check if the given {@see User} is contained in the {@see UserGroup}
-     * 
-     * @param user a {@see User}
-     * @return true, if the {@see User} is part of this UserGroup's members list
+     * Check if the given {@link User} is contained in the {@link UserGroup}.
+     *
+     * @param user a {@link User}.
+     * @return true if the {@link User} is part of this UserGroup members list.
      */
     public boolean userGroupContainsUser( User user )
     {
-
         if ( userGroup != null )
         {
             return userGroup.getMembers().stream().anyMatch( u -> u.getId() == user.getId() );
         }
-        return false;
 
+        return false;
     }
 
     @JsonProperty

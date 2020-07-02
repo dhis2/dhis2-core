@@ -98,9 +98,6 @@ public class ProgramStageInstanceServiceTest
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
 
-//    @Autowired
-//    private EventDataValueService eventDataValueService;
-
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
 
@@ -498,11 +495,6 @@ public class ProgramStageInstanceServiceTest
         assertEquals( "13", eventDataValueCValue );
     }
 
-    private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
-    {
-        return dataElementMap.getAll().stream().collect( Collectors.toMap( DataElement::getUid, d -> d ) );
-    }
-
     @Test
     public void testEventDataValuesSingleValueUpdate()
     {
@@ -546,6 +538,12 @@ public class ProgramStageInstanceServiceTest
             .getValue();
 
         assertEquals( "3", eventDataValueCValue );
+    }
+
+    private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
+    {
+        return dataElementMap.getAll().stream()
+            .collect( Collectors.toMap( DataElement::getUid, d -> d ) );
     }
 
     private void addInitialEventDataValues()
