@@ -130,7 +130,6 @@ public class EventDateValidationHook
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        //TODO: Cant find any reference outside validation code... is this still in use?
         PeriodType periodType = program.getExpiryPeriodType();
 
         if ( periodType == null || program.getExpiryDays() == 0 )

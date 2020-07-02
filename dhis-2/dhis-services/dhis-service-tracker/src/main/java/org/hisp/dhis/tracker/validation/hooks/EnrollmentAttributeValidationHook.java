@@ -158,6 +158,7 @@ public class EnrollmentAttributeValidationHook
 
             // TODO: This is quite ugly and should be considered to be solved differently,
             //  e.i. authorization should be handled in one common place.
+            // NB: ! This authority MUST only be used in SYNC mode! This needs to be added to the check
             boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
                 .getUser()
                 .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );

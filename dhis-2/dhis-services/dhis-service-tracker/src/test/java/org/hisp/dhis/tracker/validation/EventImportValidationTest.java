@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderFormat;
@@ -638,33 +639,33 @@ public class EventImportValidationTest
 //    }
 
     //TODO: Delete not working yet
-//    @Test
-//    public void testEventAlreadyDeleted()
-//        throws IOException
-//    {
-//        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
-//
-//        User user = userService.getUser( ADMIN_USER_UID );
-//        params.setUser( user );
-//
-//        ValidateAndCommit createAndUpdate = doValidateAndCommit( params,
-//            TrackerImportStrategy.CREATE_AND_UPDATE );
-//        assertEquals( 0, createAndUpdate.getValidationReport().getErrorReports().size() );
-//
-//        ValidateAndCommit delete = doValidateAndCommit( params,
-//            TrackerImportStrategy.DELETE );
-//        assertEquals( 0, delete.getValidationReport().getErrorReports().size() );
-//
-//        ValidateAndCommit deleteAgain = doValidateAndCommit( params,
-//            TrackerImportStrategy.DELETE );
-//           assertEquals( 1, deleteAgain.getValidationReport().getErrorReports().size() );
-//
-//        assertThat( deleteAgain.getValidationReport().getErrorReports(),
-//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1030 ) ) ) );
-//
-//        // All should be removed
-//        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//    }
+    @Test
+    public void testEventAlreadyDeleted()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        params.setUser( user );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params,
+            TrackerImportStrategy.CREATE_AND_UPDATE );
+        assertEquals( 0, createAndUpdate.getValidationReport().getErrorReports().size() );
+
+        ValidateAndCommitTestUnit delete = validateAndCommit( params,
+            TrackerImportStrategy.DELETE );
+        assertEquals( 0, delete.getValidationReport().getErrorReports().size() );
+
+        ValidateAndCommitTestUnit deleteAgain = validateAndCommit( params,
+            TrackerImportStrategy.DELETE );
+           assertEquals( 1, deleteAgain.getValidationReport().getErrorReports().size() );
+
+        assertThat( deleteAgain.getValidationReport().getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1030 ) ) ) );
+
+        // All should be removed
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+    }
 
     // TODO: See comments on error codes, seems to not be in use....
 //    @Test
@@ -690,14 +691,12 @@ public class EventImportValidationTest
 //            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1042 ) ) ) );
 //    }
 
-//    //TODO: Needs clarification, can't test this error: E1082.
-//    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
+    //TODO: Needs clarification, can't test this error: E1082.
+    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
 //    @Test
 //    public void testProgramStageDeleted()
 //        throws IOException
 //    {
-//
-//
 //        TrackerBundleParams trackerBundleParams = renderService
 //            .fromJson(
 //                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
@@ -724,7 +723,8 @@ public class EventImportValidationTest
 //        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 //        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
 //        report = trackerValidationService.validate( trackerBundle );
-//        printErrors( report );
+//
+//        printReport( report );
 //
 //        assertEquals( 1, report.getErrorReports().size() );
 //

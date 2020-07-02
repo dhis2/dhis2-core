@@ -78,7 +78,6 @@ public class EnrollmentDateValidationHook
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
-        // NOTE: getEnrollmentDate is always mandatory?
         if ( !isValidDateStringAndNotNull( enrollment.getEnrolledAt() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1025 )
