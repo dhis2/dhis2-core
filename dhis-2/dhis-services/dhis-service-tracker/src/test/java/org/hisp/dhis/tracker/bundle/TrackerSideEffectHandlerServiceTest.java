@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -57,7 +57,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Zubair Asghar
  */
-public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
+public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -76,6 +76,7 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
 
     @Override
     protected void setUpTest() throws IOException
@@ -120,5 +121,11 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
         TrackerBundleReport report = trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         assertEquals( report.getStatus(), TrackerStatus.OK );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }
