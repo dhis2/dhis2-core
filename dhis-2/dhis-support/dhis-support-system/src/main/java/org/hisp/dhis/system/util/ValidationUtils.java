@@ -31,6 +31,7 @@ package org.hisp.dhis.system.util;
 import java.awt.geom.Point2D;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -175,6 +176,25 @@ public class ValidationUtils
     public static boolean urlIsValid( String url )
     {
         return new UrlValidator().isValid( url );
+    }
+
+    /**
+     * Validates whether a UUID is valid.
+     *
+     * @param uuid the UUID as string.
+     * @return true if the UUID is valid, false otherwise.
+     */
+    public static boolean uuidIsValid( String uuid )
+    {
+        try
+        {
+            UUID.fromString( uuid );
+            return true;
+        }
+        catch ( IllegalArgumentException ex )
+        {
+            return false;
+        }
     }
 
     /**
