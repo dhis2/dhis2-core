@@ -76,7 +76,7 @@ import java.util.Map;
 public abstract class AbstractPropertyIntrospectorService
     implements PropertyIntrospectorService
 {
-    // simple alias map for our concrete implementations of the core interfaces.
+    // Simple alias map for our concrete implementations of the core interfaces
     private static final ImmutableMap<Class<?>, Class<?>> BASE_ALIAS_MAP = ImmutableMap.<Class<?>, Class<?>>builder()
         .put( IdentifiableObject.class, BaseIdentifiableObject.class )
         .put( NameableObject.class, BaseNameableObject.class )
@@ -204,7 +204,7 @@ public abstract class AbstractPropertyIntrospectorService
         }
         catch ( MappingException ex )
         {
-            // class is not persisted with hibernate
+            // Class is not persisted with Hibernate
             return new HashMap<>();
         }
 
@@ -272,33 +272,33 @@ public abstract class AbstractPropertyIntrospectorService
                 property.setMax( (double) column.getLength() );
                 property.setLength( column.getLength() );
 
-                if (type instanceof TextType)
+                if ( type instanceof TextType )
                 {
                     property.setMin( 0d );
                     property.setMax( (double) Integer.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
-                else if (type instanceof IntegerType)
+                else if ( type instanceof IntegerType )
                 {
                     property.setMin( (double) Integer.MIN_VALUE );
                     property.setMax( (double) Integer.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
-                else if (type instanceof LongType)
+                else if ( type instanceof LongType )
                 {
                     property.setMin( (double) Long.MIN_VALUE );
                     property.setMax( (double) Long.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
-                else if (type instanceof DoubleType)
+                else if ( type instanceof DoubleType )
                 {
-                    property.setMin( Double.MIN_VALUE );
+                    property.setMin( -Double.MAX_VALUE );
                     property.setMax( Double.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
             }
 
-            if (type instanceof ManyToOneType)
+            if ( type instanceof ManyToOneType )
             {
                 property.setManyToOne( true );
                 property.setRequired( property.isRequired() && !property.isCollection() );
@@ -312,7 +312,7 @@ public abstract class AbstractPropertyIntrospectorService
                     property.setInverseRole( klass.getName() + "." + property.getName() );
                 }
             }
-            else if (type instanceof OneToOneType)
+            else if ( type instanceof OneToOneType )
             {
                 property.setOneToOne( true );
             }

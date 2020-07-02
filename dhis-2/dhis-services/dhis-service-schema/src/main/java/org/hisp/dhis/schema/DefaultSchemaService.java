@@ -214,7 +214,7 @@ public class DefaultSchemaService
             }
             catch ( MappingException e )
             {
-                // class is not persisted with Hibernate
+                // Class is not persisted with Hibernate
                 schema.setPersisted( false );
             }
 
