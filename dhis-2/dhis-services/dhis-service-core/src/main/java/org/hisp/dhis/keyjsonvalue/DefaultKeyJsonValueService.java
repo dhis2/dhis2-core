@@ -125,7 +125,7 @@ public class DefaultKeyJsonValueService
 
         keyJsonValueStore.save( keyJsonValue );
 
-        return keyJsonValue.getId();
+        return Long.valueOf( keyJsonValue.getId() );
     }
 
     @Override
