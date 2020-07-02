@@ -122,15 +122,6 @@ public class EventImportTests
             .map( ImportSummary::getReference )
             .collect( toList() ) );
 
-        for (ImportSummary is : importSummaries) {
-
-            String status = is.getStatus();
-            if (status.equals("ERROR")) {
-
-                System.out.println(is.getDescription());
-            }
-        }
-
         assertThat( importSummaries, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "SUCCESS" ) ) ) );
     }
 
