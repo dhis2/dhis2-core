@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Chau Thu Tran
@@ -78,6 +79,14 @@ public interface UserService
      * @return the User.
      */
     User getUser( String uid );
+
+    /**
+     * Retrieves the User with the given UUID.
+     *
+     * @param uid the UUID of the User to retrieve.
+     * @return the User.
+     */
+    User getUserByUuid( UUID uuid );
 
     /**
      * Retrieves a collection of User with the given unique identifiers.

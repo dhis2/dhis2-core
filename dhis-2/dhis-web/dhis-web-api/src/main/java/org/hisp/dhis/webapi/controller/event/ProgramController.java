@@ -28,8 +28,6 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -37,7 +35,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -67,9 +64,6 @@ public class ProgramController
 {
     @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private  ProgramInstanceService programInstanceService;
 
     @Override
     @SuppressWarnings( "unchecked" )
