@@ -1,7 +1,6 @@
 package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.Arrays;
@@ -13,7 +12,6 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -76,7 +74,8 @@ public class TrackedEntityCriteriaMapper
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
         final Date programEnrollmentStartDate = ObjectUtils.firstNonNull( criteria.getProgramEnrollmentStartDate(),
-            criteria.getProgramEndDate() );
+            criteria.getProgramStartDate() );
+
         final Date programEnrollmentEndDate = ObjectUtils.firstNonNull( criteria.getProgramEnrollmentEndDate(),
             criteria.getProgramEndDate() );
 
