@@ -34,6 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import java.io.Serializable;
 
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -58,6 +60,8 @@ public class FontStyle
     private Boolean underline;
 
     private String textColor;
+
+    private TextAlign textAlign;
 
     public FontStyle()
     {
@@ -124,12 +128,24 @@ public class FontStyle
         this.underline = underline;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public TextAlign getTextAlign()
+    {
+        return textAlign;
+    }
+
+    public void setTextAlign( TextAlign textAlign )
+    {
+        this.textAlign = textAlign;
+    }
+
     /**
      * Text color in hexadecimal notation, specified with {@code #RRGGBB}.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = 7, max = 7 )
+    @Property( value = PropertyType.COLOR )
     public String getTextColor()
     {
         return textColor;
@@ -139,4 +155,6 @@ public class FontStyle
     {
         this.textColor = textColor;
     }
+
+
 }
