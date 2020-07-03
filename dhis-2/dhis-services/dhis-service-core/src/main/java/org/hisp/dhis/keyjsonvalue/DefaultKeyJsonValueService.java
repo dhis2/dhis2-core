@@ -1,7 +1,7 @@
 package org.hisp.dhis.keyjsonvalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,14 @@ package org.hisp.dhis.keyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.hisp.dhis.system.util.JacksonUtils;
-import java.util.List;
+
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -57,51 +60,63 @@ public class DefaultKeyJsonValueService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
-    public List<String> getNamespaces()
+    @Transactional( readOnly = true )
+    public List<String> getNamespaces( boolean isAdmin )
     {
-        return keyJsonValueStore.getNamespaces();
+        List<String> namespaces = keyJsonValueStore.getNamespaces();
+        if ( !isAdmin )
+        {
+            namespaces.remove( MetadataVersionService.METADATASTORE );
+        }
+
+        return namespaces;
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<String> getKeysInNamespace( String namespace )
+    @Transactional( readOnly = true )
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin )
     {
-        return keyJsonValueStore.getKeysInNamespace( namespace );
-    }
+        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return Collections.emptyList();
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
-    {
         return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
     }
 
     @Override
-    @Transactional
-    public void deleteNamespace( String namespace )
+    @Transactional( readOnly = true )
+    public KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin )
     {
-        keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
+        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return null;
+        }
+
+        return keyJsonValueStore.getKeyJsonValue( namespace, key );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public KeyJsonValue getKeyJsonValue( String namespace, String key )
+    @Transactional( readOnly = true )
+    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin )
     {
-        return keyJsonValueStore.getKeyJsonValue( namespace, key );
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
-    {
+        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return Collections.emptyList();
+        }
+
         return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
     }
-   
+
     @Override
     @Transactional
-    public long addKeyJsonValue( KeyJsonValue keyJsonValue )
+    public Long addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        {
+            return null;
+        }
+
         keyJsonValueStore.save( keyJsonValue );
 
         return keyJsonValue.getId();
@@ -111,27 +126,49 @@ public class DefaultKeyJsonValueService
     @Transactional
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        {
+            return;
+        }
+
         keyJsonValueStore.update( keyJsonValue );
+    }
+
+    @Override
+    @Transactional
+    public void deleteNamespace( String namespace )
+    {
+        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
+        {
+            return;
+        }
+
+        keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
     }
 
     @Override
     @Transactional
     public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
     {
+        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        {
+            return;
+        }
+
         keyJsonValueStore.delete( keyJsonValue );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public <T> T getValue( String namespace, String key, Class<T> clazz )
     {
-        KeyJsonValue value = getKeyJsonValue( namespace, key );
+        KeyJsonValue value = keyJsonValueStore.getKeyJsonValue( namespace, key );
 
         if ( value == null || value.getJbPlainValue() == null )
         {
             return null;
         }
-        
+
         return JacksonUtils.fromJson( value.getJbPlainValue(), clazz );
     }
 
@@ -140,9 +177,9 @@ public class DefaultKeyJsonValueService
     public <T> void addValue( String namespace, String key, T object )
     {
         String value = JacksonUtils.toJson( object );
-        
+
         KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
-        
+
         keyJsonValueStore.save( keyJsonValue );
     }
 
@@ -150,18 +187,18 @@ public class DefaultKeyJsonValueService
     @Transactional
     public <T> void updateValue( String namespace, String key, T object )
     {
-        KeyJsonValue keyJsonValue = getKeyJsonValue( namespace, key );
-        
+        KeyJsonValue keyJsonValue = keyJsonValueStore.getKeyJsonValue( namespace, key );
+
         if ( keyJsonValue == null )
         {
-            throw new IllegalStateException( String.format( 
+            throw new IllegalStateException( String.format(
                 "No object found for namespace '%s' and key '%s'", namespace, key ) );
         }
 
         String value = JacksonUtils.toJson( object );
-        
+
         keyJsonValue.setValue( value );
-        
+
         keyJsonValueStore.update( keyJsonValue );
     }
 }
