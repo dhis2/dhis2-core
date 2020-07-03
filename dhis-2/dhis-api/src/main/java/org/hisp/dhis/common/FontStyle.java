@@ -128,18 +128,6 @@ public class FontStyle
         this.underline = underline;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public TextAlign getTextAlign()
-    {
-        return textAlign;
-    }
-
-    public void setTextAlign( TextAlign textAlign )
-    {
-        this.textAlign = textAlign;
-    }
-
     /**
      * Text color in hexadecimal notation, specified with {@code #RRGGBB}.
      */
@@ -156,5 +144,15 @@ public class FontStyle
         this.textColor = textColor;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public TextAlign getTextAlign()
+    {
+        return textAlign;
+    }
 
+    public void setTextAlign( TextAlign textAlign )
+    {
+        this.textAlign = textAlign;
+    }
 }
