@@ -56,7 +56,7 @@ public class UserLookupController
     @Autowired
     private UserService userService;
 
-    @GetMapping( value = "/{id}", produces = "application/json" )
+    @GetMapping( value = "/{id}" )
     public UserLookup lookUpUser( @PathVariable String id )
     {
         User user = userService.getUserByIdentifier( id );
@@ -64,7 +64,7 @@ public class UserLookupController
         return user != null ? UserLookup.fromUser( user ) : null;
     }
 
-    @GetMapping( produces = "application/json" )
+    @GetMapping
     public List<UserLookup> lookUpUsers( @RequestParam String query )
     {
         UserQueryParams params = new UserQueryParams()
