@@ -10,6 +10,7 @@ import org.hisp.dhis.webapi.webdomain.user.UserLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -33,11 +34,12 @@ public class UserLookupController
         return user != null ? UserLookup.fromUser( user ) : null;
     }
 
-    @GetMapping( value = "", produces = "application/json" )
-    public List<UserLookup> lookUpUsers( String name )
+    @GetMapping( produces = "application/json" )
+    public List<UserLookup> lookUpUsers( @RequestParam String query )
     {
-        //TODO Add name to params
-        UserQueryParams params = new UserQueryParams();
+        UserQueryParams params = new UserQueryParams()
+            .setQuery( query )
+            .setMax( 25 );
 
         return userService.getUsers( params ).stream()
             .map( user -> UserLookup.fromUser( user ) )
