@@ -37,8 +37,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Stian Sandvold
  */
@@ -46,12 +44,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
-    private final KeyJsonValueStore keyJsonValueStore;
+    private KeyJsonValueStore keyJsonValueStore;
 
-    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore )
+    public KeyJsonValueStore getKeyJsonValueStore()
     {
-        checkNotNull( keyJsonValueStore );
+        return keyJsonValueStore;
+    }
 
+    public void setKeyJsonValueStore( KeyJsonValueStore keyJsonValueStore )
+    {
         this.keyJsonValueStore = keyJsonValueStore;
     }
 
