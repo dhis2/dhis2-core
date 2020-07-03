@@ -36,6 +36,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -58,7 +61,7 @@ public class UserLookup
         String displayName = String.format( "%s %s", user.getFirstName(), user.getSurname() );
 
         UserLookup lookup = new UserLookup();
-        lookup.setId( user.getUid() ); // Will be changed to uuid
+        lookup.setId( user.getUid() ); // Will be changed to UUID later
         lookup.setFirstName( user.getFirstName() );
         lookup.setSurname( user.getSurname() );
         lookup.setDisplayName( displayName );
