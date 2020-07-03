@@ -47,10 +47,10 @@ public class DeflatedDataValueRowMapper
     {
         final DeflatedDataValue value = new DeflatedDataValue();
         
-        value.setDataElementId( resultSet.getInt( "dataelementid" ) );
-        value.setPeriodId( resultSet.getInt( "periodid" ) );
-        value.setSourceId( resultSet.getInt( "sourceid" ) );
-        value.setCategoryOptionComboId( resultSet.getInt( "categoryoptioncomboid" ) );
+        value.setDataElementId( resultSet.getLong( "dataelementid" ) );
+        value.setPeriodId( resultSet.getLong( "periodid" ) );
+        value.setSourceId( resultSet.getLong( "sourceid" ) );
+        value.setCategoryOptionComboId( resultSet.getLong( "categoryoptioncomboid" ) );
         value.setValue( resultSet.getString( "value" ) );
         value.setStoredBy( resultSet.getString( "storedby" ) );
         value.setCreated( resultSet.getTimestamp( "created" ) );
