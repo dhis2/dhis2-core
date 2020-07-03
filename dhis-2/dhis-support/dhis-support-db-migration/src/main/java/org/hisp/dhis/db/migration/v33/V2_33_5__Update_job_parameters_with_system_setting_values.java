@@ -126,11 +126,15 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
                 {
                     while ( rs.next())
                     {
-                        TrackerProgramsDataSynchronizationJobParameters jobparams = reader
-                            .readValue( rs.getString( "jsonbjobparameters" ) );
-                        jobparams.setPageSize( trackerPageSize );
+                        String jsonbJobParams = rs.getString( "jsonbjobparameters" );
+                        if ( jsonbJobParams != null )
+                        {
+                            TrackerProgramsDataSynchronizationJobParameters jobparams = reader
+                                    .readValue( jsonbJobParams );
+                            jobparams.setPageSize( trackerPageSize );
 
-                        updatedJobParameters.put( rs.getInt( "jobconfigurationid" ), jobparams );
+                            updatedJobParameters.put( rs.getInt( "jobconfigurationid" ), jobparams );
+                        }
                     }
                 }
             }
@@ -144,11 +148,15 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
                 {
                     while ( rs.next())
                     {
-                        EventProgramsDataSynchronizationJobParameters jobparams = reader
-                            .readValue( rs.getString( "jsonbjobparameters" ) );
-                        jobparams.setPageSize( eventPageSize );
+                        String jsonbJobParams = rs.getString( "jsonbjobparameters" );
+                        if ( jsonbJobParams != null )
+                        {
+                            EventProgramsDataSynchronizationJobParameters jobparams = reader
+                                    .readValue( jsonbJobParams );
+                            jobparams.setPageSize( eventPageSize );
 
-                        updatedJobParameters.put( rs.getInt( "jobconfigurationid" ), jobparams );
+                            updatedJobParameters.put( rs.getInt( "jobconfigurationid" ), jobparams );
+                        }
                     }
                 }
             }
@@ -160,25 +168,29 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             {
                 while ( rs.next())
                 {
-                    MetadataSyncJobParameters jobparams = reader
-                        .readValue( rs.getString( "jsonbjobparameters" ) );
-
-                    if ( trackerPageSize > 0 )
+                    String jsonbJobParams = rs.getString( "jsonbjobparameters" );
+                    if ( jsonbJobParams != null )
                     {
-                        jobparams.setTrackerProgramPageSize( trackerPageSize );
-                    }
+                        MetadataSyncJobParameters jobparams = reader
+                                .readValue( jsonbJobParams );
 
-                    if ( eventPageSize > 0 )
-                    {
-                        jobparams.setEventProgramPageSize( eventPageSize );
-                    }
+                        if ( trackerPageSize > 0 )
+                        {
+                            jobparams.setTrackerProgramPageSize( trackerPageSize );
+                        }
 
-                    if ( dataValuesPageSize > 0 )
-                    {
-                        jobparams.setDataValuesPageSize( dataValuesPageSize );
-                    }
+                        if ( eventPageSize > 0 )
+                        {
+                            jobparams.setEventProgramPageSize( eventPageSize );
+                        }
 
-                    updatedJobParameters.put( rs.getInt( "jobconfigurationid" ), jobparams );
+                        if ( dataValuesPageSize > 0 )
+                        {
+                            jobparams.setDataValuesPageSize( dataValuesPageSize );
+                        }
+
+                        updatedJobParameters.put( rs.getInt( "jobconfigurationid" ), jobparams );
+                    }
                 }
             }
 
