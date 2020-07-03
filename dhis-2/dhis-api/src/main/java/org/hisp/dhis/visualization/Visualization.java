@@ -58,7 +58,6 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.chart.Series;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
