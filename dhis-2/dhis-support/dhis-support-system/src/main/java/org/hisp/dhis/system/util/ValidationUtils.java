@@ -47,6 +47,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableSet;
@@ -195,6 +196,17 @@ public class ValidationUtils
         {
             return false;
         }
+    }
+
+    /**
+     * Validates whether a username is valid.
+     *
+     * @param username the username.
+     * @return true if the username is valid, false otherwise.
+     */
+    public static boolean usernameIsValid( String username )
+    {
+        return username != null && username.length() <= UserCredentials.USERNAME_MAX_LENGTH;
     }
 
     /**

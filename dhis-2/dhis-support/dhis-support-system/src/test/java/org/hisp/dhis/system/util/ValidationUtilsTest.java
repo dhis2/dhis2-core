@@ -40,6 +40,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +48,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
@@ -145,6 +147,17 @@ public class ValidationUtilsTest
         assertFalse( uuidIsValid( "Jjg3j3-412-1435-342-jajg8234f" ) );
         assertFalse( uuidIsValid( "6cafdc73_2ca4_4c52-8a0a-d38adec33b24" ) );
         assertFalse( uuidIsValid( "e1809673dbf3482d8f84e493c65f74d9" ) );
+    }
+
+    @Test
+    public void testUsernameIsValid()
+    {
+        assertTrue( usernameIsValid( "johnmichaeldoe" ) );
+        assertTrue( usernameIsValid( "ted@johnson.com" ) );
+        assertTrue( usernameIsValid( "harry@gmail.com" ) );
+
+        assertFalse( usernameIsValid( null ) );
+        assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ) ) );
     }
 
     @Test
