@@ -28,14 +28,11 @@ package org.hisp.dhis.keyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -51,11 +48,8 @@ public class DefaultKeyJsonValueService
 {
     private final KeyJsonValueStore keyJsonValueStore;
 
-    private final ObjectMapper jsonMapper;
-
-    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore, ObjectMapper jsonMapper )
+    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore )
     {
-        this.jsonMapper = jsonMapper;
         checkNotNull( keyJsonValueStore );
 
         this.keyJsonValueStore = keyJsonValueStore;
@@ -168,37 +162,25 @@ public class DefaultKeyJsonValueService
     @Transactional( readOnly = true )
     public <T> T getValue( String namespace, String key, Class<T> clazz )
     {
-        KeyJsonValue keyJsonValue = keyJsonValueStore.getKeyJsonValue( namespace, key );
+        KeyJsonValue value = keyJsonValueStore.getKeyJsonValue( namespace, key );
 
-        if ( keyJsonValue == null || keyJsonValue.getJbPlainValue() == null )
+        if ( value == null || value.getJbPlainValue() == null )
         {
             return null;
         }
 
-        try
-        {
-            return jsonMapper.readValue( keyJsonValue.getJbPlainValue(), clazz );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        return JacksonUtils.fromJson( value.getJbPlainValue(), clazz );
     }
 
     @Override
     @Transactional
     public <T> void addValue( String namespace, String key, T object )
     {
-        try
-        {
-            String value = jsonMapper.writeValueAsString( object );
-            KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
-            keyJsonValueStore.save( keyJsonValue );
-        }
-        catch ( JsonProcessingException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        String value = JacksonUtils.toJson( object );
+
+        KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
+
+        keyJsonValueStore.save( keyJsonValue );
     }
 
     @Override
@@ -213,15 +195,10 @@ public class DefaultKeyJsonValueService
                 "No object found for namespace '%s' and key '%s'", namespace, key ) );
         }
 
-        try
-        {
-            String value = jsonMapper.writeValueAsString( object );
-            keyJsonValue.setValue( value );
-            keyJsonValueStore.update( keyJsonValue );
-        }
-        catch ( JsonProcessingException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        String value = JacksonUtils.toJson( object );
+
+        keyJsonValue.setValue( value );
+
+        keyJsonValueStore.update( keyJsonValue );
     }
 }
