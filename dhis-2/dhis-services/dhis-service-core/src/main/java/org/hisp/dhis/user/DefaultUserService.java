@@ -56,6 +56,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -171,6 +172,15 @@ public class DefaultUserService
     public User getUser( String uid )
     {
         return userStore.getByUid( uid );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByUuid( UUID uuid )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUuid( uuid );
+
+        return userCredentials != null ? userCredentials.getUser() : null;
     }
 
     @Override
