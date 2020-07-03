@@ -11,6 +11,7 @@ import java.util.HashSet;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.event.EventStatus;
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -67,9 +69,13 @@ public class TrackedEntityCriteriaMapperTest
     private OrganisationUnit organisationUnit;
 
     private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
     private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+
     private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+
     private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
 
     @Rule
@@ -104,12 +110,12 @@ public class TrackedEntityCriteriaMapperTest
     }
 
     @Test
-    public void testGetFromUrl()
+    public void verifyCriteriaMapping()
     {
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setQuery("query-test");
-        criteria.setAttribute(newHashSet( attrD.getUid(), attrE.getUid() ));
-        criteria.setFilter(newHashSet( filtF.getUid(), filtG.getUid() ));
+        criteria.setQuery( "query-test" );
+        criteria.setAttribute( newHashSet( attrD.getUid(), attrE.getUid() ) );
+        criteria.setFilter( newHashSet( filtF.getUid(), filtG.getUid() ) );
         criteria.setOu( organisationUnit.getUid() );
         criteria.setOuMode( OrganisationUnitSelectionMode.DESCENDANTS );
         criteria.setProgram( programA.getUid() );
@@ -127,7 +133,7 @@ public class TrackedEntityCriteriaMapperTest
         criteria.setEventStartDate( getDate( 2019, 7, 7 ) );
         criteria.setEventEndDate( getDate( 2020, 7, 7 ) );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
-        criteria.setAssignedUser(  "user-1;user-2"  );
+        criteria.setAssignedUser( "user-1;user-2" );
         criteria.setSkipMeta( true );
         criteria.setPage( 1 );
         criteria.setPageSize( 50 );
@@ -148,9 +154,9 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.getOrganisationUnits().iterator().next(), is( organisationUnit ) );
         assertThat( queryParams.getAttributes(), hasSize( 2 ) );
         assertTrue(
-                queryParams.getAttributes().stream().anyMatch( a -> a.getItem().getUid().equals( attrD.getUid() ) ) );
+            queryParams.getAttributes().stream().anyMatch( a -> a.getItem().getUid().equals( attrD.getUid() ) ) );
         assertTrue(
-                queryParams.getAttributes().stream().anyMatch( a -> a.getItem().getUid().equals( attrE.getUid() ) ) );
+            queryParams.getAttributes().stream().anyMatch( a -> a.getItem().getUid().equals( attrE.getUid() ) ) );
 
         assertThat( queryParams.getFilters(), hasSize( 2 ) );
         assertTrue( queryParams.getFilters().stream().anyMatch( a -> a.getItem().getUid().equals( filtF.getUid() ) ) );
@@ -172,7 +178,8 @@ public class TrackedEntityCriteriaMapperTest
             is( DateUtils.addDays( criteria.getProgramEnrollmentEndDate(), 1 ) ) );
 
         assertThat( queryParams.getProgramIncidentStartDate(), is( criteria.getProgramIncidentStartDate() ) );
-        assertThat( queryParams.getProgramIncidentEndDate(), is( DateUtils.addDays(criteria.getProgramIncidentEndDate(), 1 ) ) );
+        assertThat( queryParams.getProgramIncidentEndDate(),
+            is( DateUtils.addDays( criteria.getProgramIncidentEndDate(), 1 ) ) );
 
         assertThat( queryParams.getEventStatus(), is( EventStatus.COMPLETED ) );
         assertThat( queryParams.getEventStartDate(), is( criteria.getEventStartDate() ) );
@@ -185,5 +192,93 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
 
         assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "order-1" ) ) );
+    }
+
+    @Test
+    public void verifyCriteriaMappingFailOnMissingAttribute()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Attribute does not exist: missing" );
+
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setAttribute( newHashSet( attrD.getUid(), attrE.getUid(), "missing" ) );
+
+        trackedEntityCriteriaMapper.map( criteria );
+    }
+
+    @Test
+    public void verifyCriteriaMappingFailOnMissingFilter()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Attribute does not exist: missing" );
+
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setFilter( newHashSet( filtF.getUid(), filtG.getUid(), "missing" ) );
+
+        trackedEntityCriteriaMapper.map( criteria );
+    }
+
+    @Test
+    public void verifyCriteriaMappingFailOnMissingProgram()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Program does not exist: " + programA.getUid() + "A" );
+
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setProgram( programA.getUid() + 'A' );
+
+        trackedEntityCriteriaMapper.map( criteria );
+    }
+
+    @Test
+    public void verifyCriteriaMappingFailOnMissingTrackerEntityType()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Tracked entity type does not exist: " + trackedEntityTypeA.getUid() + "A" );
+
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setTrackedEntityType( trackedEntityTypeA.getUid() + "A" );
+
+        trackedEntityCriteriaMapper.map( criteria );
+    }
+
+    @Test
+    public void verifyCriteriaMappingFailOnMissingOrgUnit()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Organisation unit does not exist: " + organisationUnit.getUid() + "A" );
+
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setOu( organisationUnit.getUid() + "A" );
+
+        trackedEntityCriteriaMapper.map( criteria );
+    }
+
+    @Test
+    public void verifyCriteriaMappingFailOnUserNonInOuHierarchy()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Organisation unit is not part of the search scope: " + organisationUnit.getUid() );
+
+        // Force Current User Service to return a User without search org unit
+        ReflectionTestUtils.setField( trackedEntityCriteriaMapper, "currentUserService",
+            new MockCurrentUserService( createUser( "testUser2" ) ) );
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setOu( organisationUnit.getUid() );
+
+        trackedEntityCriteriaMapper.map( criteria );
+    }
+
+    @Test
+    public void testGetFromUrlFailOnNonProvidedAndAssignedUsers()
+    {
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setAssignedUser( "user-1;user-2" );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
+
+        trackedEntityCriteriaMapper.map( criteria );
     }
 }

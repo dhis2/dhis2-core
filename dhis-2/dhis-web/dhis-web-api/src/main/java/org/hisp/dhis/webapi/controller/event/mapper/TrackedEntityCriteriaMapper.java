@@ -2,15 +2,18 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -237,8 +240,16 @@ public class TrackedEntityCriteriaMapper
 
     private Program validateProgram( TrackedEntityInstanceCriteria criteria )
     {
-        Program program = programService.getProgram( criteria.getProgram() );
-        if ( isEmpty( criteria.getProgram() ) || program == null )
+        Function<String, Program> getProgram = uid -> {
+            if ( isNotEmpty( uid ) )
+            {
+                return programService.getProgram( uid );
+            }
+            return null;
+        };
+        
+        final Program program = getProgram.apply( criteria.getProgram() );
+        if ( isNotEmpty( criteria.getProgram() ) && program == null )
         {
             throw new IllegalQueryException( "Program does not exist: " + criteria.getProgram() );
         }
@@ -247,10 +258,17 @@ public class TrackedEntityCriteriaMapper
 
     private TrackedEntityType validateTrackedEntityType( TrackedEntityInstanceCriteria criteria )
     {
-        final TrackedEntityType trackedEntityType = trackedEntityTypeService
-            .getTrackedEntityType( criteria.getTrackedEntityType() );
-        if ( isEmpty( criteria.getTrackedEntityType() )
-            || trackedEntityTypeService.getTrackedEntityType( criteria.getTrackedEntityType() ) == null )
+        Function<String, TrackedEntityType> getTeiType = uid -> {
+            if ( isNotEmpty( uid ) )
+            {
+                return trackedEntityTypeService.getTrackedEntityType( uid );
+            }
+            return null;
+        };
+
+        final TrackedEntityType trackedEntityType = getTeiType.apply( criteria.getTrackedEntityType() );
+
+        if ( isNotEmpty( criteria.getTrackedEntityType() ) && trackedEntityType == null )
         {
             throw new IllegalQueryException( "Tracked entity type does not exist: " + criteria.getTrackedEntityType() );
         }
