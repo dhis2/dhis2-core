@@ -324,7 +324,11 @@
           "underline": false,
           "textColor": "#2a2a2a"
         }
-      }
+      },
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     },
     {
       "organisationUnits": [
@@ -449,7 +453,11 @@
           "underline": false,
           "textColor": "#2a2a2a"
         }
-      }
+      },
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     },
     {
       "aggregationType": "SUM",
@@ -574,7 +582,11 @@
           "underline": false,
           "textColor": "#2a2a2a"
         }
-      }
+      },
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
     }
   ],
   "categoryCombos": [

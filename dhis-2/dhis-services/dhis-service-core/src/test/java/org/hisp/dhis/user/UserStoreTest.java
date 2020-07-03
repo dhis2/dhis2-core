@@ -57,25 +57,25 @@ public class UserStoreTest
     @Override
     public void setUpTest()
         throws Exception
-    { 
+    {
         unit1 = createOrganisationUnit( 'A' );
         unit2 = createOrganisationUnit( 'B' );
 
         organisationUnitService.addOrganisationUnit( unit1 );
-        organisationUnitService.addOrganisationUnit( unit2 );        
+        organisationUnitService.addOrganisationUnit( unit2 );
     }
 
     @Test
     public void testAddGetUser()
-    {        
+    {
         Set<OrganisationUnit> units = new HashSet<>();
-        
+
         units.add( unit1 );
         units.add( unit2 );
 
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-        
+
         userA.setOrganisationUnits( units );
         userB.setOrganisationUnits( units );
 
@@ -86,7 +86,7 @@ public class UserStoreTest
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
-        
+
         assertEquals( units, userStore.get( idA ).getOrganisationUnits() );
         assertEquals( units, userStore.get( idB ).getOrganisationUnits() );
     }
@@ -104,14 +104,14 @@ public class UserStoreTest
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
-        
+
         userA.setSurname( "UpdatedSurnameA" );
-        
+
         userStore.update( userA );
-        
+
         assertEquals( userStore.get( idA ).getSurname(), "UpdatedSurnameA" );
     }
-    
+
     @Test
     public void testDeleteUser()
     {
@@ -125,9 +125,9 @@ public class UserStoreTest
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
-        
+
         userStore.delete( userA );
-        
+
         assertNull( userStore.get( idA ) );
         assertNotNull( userStore.get( idB ) );
     }

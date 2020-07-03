@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.user;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,49 +26,65 @@ package org.hisp.dhis.webapi.webdomain.user;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.common.DxfNamespaces;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
-public class Dashboard
+@Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
+public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
-    private long unreadMessageConversation;
 
-    private long unreadInterpretations;
+    private final KeyJsonValueStore keyJsonValueStore;
 
-    public Dashboard()
+    private final ObjectMapper jsonMapper;
+
+    public DefaultMetadataKeyJsonService(
+        KeyJsonValueStore keyJsonValueStore,
+        ObjectMapper jsonMapper )
     {
+        this.jsonMapper = jsonMapper;
+        checkNotNull( keyJsonValueStore );
+
+        this.keyJsonValueStore = keyJsonValueStore;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadMessageConversations()
+    @Override
+    @Transactional( readOnly = true )
+    public KeyJsonValue getMetaDataVersion( String key )
     {
-        return unreadMessageConversation;
+        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
     }
 
-    public void setUnreadMessageConversations( long unreadMessageConversation )
+    @Override
+    @Transactional
+    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        this.unreadMessageConversation = unreadMessageConversation;
+        keyJsonValueStore.delete( keyJsonValue );
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadInterpretations()
+    @Override
+    @Transactional
+    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        return unreadInterpretations;
+        keyJsonValueStore.save( keyJsonValue );
+
+        return keyJsonValue.getId();
     }
 
-    public void setUnreadInterpretations( long unreadInterpretations )
+    @Override
+    public List<String> getAllVersions()
     {
-        this.unreadInterpretations = unreadInterpretations;
+        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
     }
 }

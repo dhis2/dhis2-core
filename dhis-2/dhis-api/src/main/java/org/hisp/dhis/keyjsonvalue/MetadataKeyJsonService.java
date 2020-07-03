@@ -1,6 +1,4 @@
-package org.hisp.dhis.user;
-
-import java.util.UUID;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +26,38 @@ import java.util.UUID;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.common.GenericStore;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface UserCredentialsStore
-    extends GenericStore<UserCredentials>
+public interface MetadataKeyJsonService
 {
-    String ID = UserCredentialsStore.class.getName();
+    /**
+     * Retrieves a KeyJsonValue based on a namespace and key.
+     *
+     * @param key       the key referencing the value.
+     * @return the KeyJsonValue matching the key and namespace.
+     */
+    KeyJsonValue getMetaDataVersion( String key );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * name.
+     * Deletes a keyJsonValue.
      *
-     * @param username the name of the User.
-     * @return the UserCredentials.
+     * @param keyJsonValue the KeyJsonValue to be deleted.
      */
-    UserCredentials getUserCredentialsByUsername( String username );
+    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * open ID.
+     * Adds a new KeyJsonValue.
      *
-     * @param openId open ID.
-     * @return the UserCredentials.
+     * @param keyJsonValue the KeyJsonValue to be stored.
+     * @return the id of the KeyJsonValue stored.
      */
-    UserCredentials getUserCredentialsByOpenId( String openId );
+    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
 
-    /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * LDAP ID.
-     *
-     * @param ldapId LDAP ID.
-     * @return the UserCredentials.
-     */
-    UserCredentials getUserCredentialsByLdapId( String ldapId );
-
-    /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * UUID.
-     *
-     * @param uid UUID.
-     * @return the UserCredentials.
-     */
-    UserCredentials getUserCredentialsByUuid( UUID uuid );
+    List<String> getAllVersions();
 }
