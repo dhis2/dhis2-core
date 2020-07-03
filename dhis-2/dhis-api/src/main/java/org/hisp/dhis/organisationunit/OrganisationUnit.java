@@ -431,7 +431,7 @@ public class OrganisationUnit
         {
             return false;
         }
-        List<String> ancestorsUid = ancestors.stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() );
+        Set<String> ancestorsUid = ancestors.stream().map( OrganisationUnit::getUid ).collect( Collectors.toSet() );
 
         OrganisationUnit unit = this;
 
