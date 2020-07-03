@@ -35,21 +35,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
 public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
+    private KeyJsonValueStore keyJsonValueStore;
 
-    private final KeyJsonValueStore keyJsonValueStore;
-
-    public DefaultMetadataKeyJsonService( KeyJsonValueStore keyJsonValueStore )
+    public KeyJsonValueStore getKeyJsonValueStore()
     {
-        checkNotNull( keyJsonValueStore );
+        return keyJsonValueStore;
+    }
 
+    public void setKeyJsonValueStore( KeyJsonValueStore keyJsonValueStore )
+    {
         this.keyJsonValueStore = keyJsonValueStore;
     }
 
