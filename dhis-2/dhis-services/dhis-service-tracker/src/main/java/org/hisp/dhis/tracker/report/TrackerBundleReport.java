@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,38 +29,43 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackerBundleReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerBundleReport
 {
+    @JsonProperty
     private TrackerBundleParams bundleParams;
 
+    @JsonProperty
+    @Builder.Default
     private TrackerStatus status = TrackerStatus.OK;
 
+    @JsonProperty
+    @Builder.Default
     private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
 
-    public TrackerBundleReport()
+    @JsonProperty
+    public TrackerStats getStats()
     {
+        TrackerStats stats = new TrackerStats();
+        typeReportMap.values().forEach( tr -> stats.merge( tr.getStats() ) );
 
-    }
-
-    public TrackerBundleReport( TrackerBundleParams bundleParams )
-    {
-        this.bundleParams = bundleParams;
+        return stats;
     }
 
     //-----------------------------------------------------------------------------------
@@ -75,56 +80,5 @@ public class TrackerBundleReport
     public boolean isEmpty()
     {
         return typeReportMap.keySet().stream().allMatch( k -> typeReportMap.get( k ).isEmpty() );
-    }
-
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleParams getBundleParams()
-    {
-        return bundleParams;
-    }
-
-    public void setBundleParams( TrackerBundleParams bundleParams )
-    {
-        this.bundleParams = bundleParams;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStatus getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus( TrackerStatus status )
-    {
-        this.status = status;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStats getStats()
-    {
-        TrackerStats stats = new TrackerStats();
-        typeReportMap.values().forEach( tr -> stats.merge( tr.getStats() ) );
-
-        return stats;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerTypeReport> getTypeReports()
-    {
-        return new ArrayList<>( typeReportMap.values() );
-    }
-
-    public Map<TrackerType, TrackerTypeReport> getTypeReportMap()
-    {
-        return typeReportMap;
     }
 }

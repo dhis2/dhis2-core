@@ -1,7 +1,7 @@
 package org.hisp.dhis.cache;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,7 @@ package org.hisp.dhis.cache;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
@@ -41,10 +40,9 @@ import org.apache.commons.logging.LogFactory;
  *
  * @param <V> The Value type to be stored in cache
  */
+@Slf4j
 public class SimpleCacheBuilder<V> implements CacheBuilder<V>
 {
-    private static final Log log = LogFactory.getLog( SimpleCacheBuilder.class );
-
     private long maximumSize;
     
     private int initialCapacity;

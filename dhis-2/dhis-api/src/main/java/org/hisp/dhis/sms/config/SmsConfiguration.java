@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlElements;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * Serializable configuration object for Sms.
@@ -69,11 +67,7 @@ public class SmsConfiguration
     // Getter && Setter
     // -------------------------------------------------------------------------
 
-    @JsonProperty( value = "gateways" )
-    @XmlElementWrapper( name = "gateways" )
-    @XmlElements( { @XmlElement( name = "bulksms", type = BulkSmsGatewayConfig.class ),
-        @XmlElement( name = "clickatell", type = ClickatellGatewayConfig.class ),
-        @XmlElement( name = "http", type = GenericHttpGatewayConfig.class ) })
+    @JsonView( SmsConfigurationViews.Public.class )
     public List<SmsGatewayConfig> getGateways()
     {
         return gateways;

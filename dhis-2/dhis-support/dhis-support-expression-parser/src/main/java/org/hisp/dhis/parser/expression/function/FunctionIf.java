@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,45 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression function If
+ * Function if
+ * <pre>
+ *
+ * In-memory Logic:
+ *
+ *     arg0   returns
+ *     ----   -------
+ *     true   arg1
+ *     false  arg2
+ *     null   null
+ *
+ * SQL logic (CASE WHEN arg0 THEN arg1 ELSE arg2 END):
+ *
+ *     arg0   returns
+ *     ----   -------
+ *     true   arg1
+ *     false  arg2
+ *     null   arg2
+ * </pre>
  *
  * @author Jim Grace
  */
 public class FunctionIf
-    implements ExprFunction
+    implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.castBooleanVisit( ctx.expr( 0 ) )
+        Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
+
+        return arg0 == null
+            ? null
+            : arg0
             ? visitor.visit( ctx.expr( 1 ) )
             : visitor.visit( ctx.expr( 2 ) );
     }
@@ -62,7 +84,7 @@ public class FunctionIf
             castClass( arg1.getClass(), arg2 );
         }
 
-        return arg0 ? arg1 : arg2;
+        return arg0 != null && arg0 ? arg1 : arg2;
     }
 
     @Override

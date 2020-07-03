@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.resolver;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,10 +28,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.resolver;
-
 /**
- * A component that can analyze and resolve analytics expressions so that they
+ * A component that can analyze analytics expressions so that each expression
+ * can be resolved to its final "shape".
  *
  * @author Luciano Fiandesio
  */

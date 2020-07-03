@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,18 @@ public class SqlViewUtilsTest
         String expected = "select * from datavalue where level=${level}";
 
         String actual = SqlViewUtils.substituteSqlVariables( sql, variables );
+
+        assertEquals( expected, actual );
+    }
+
+    @Test
+    public void testSubsituteSqlVariable()
+    {
+        String sql = "select * from datavalue where level=${level} and id='${id}'";
+
+        String expected = "select * from datavalue where level=4 and id='${id}'";
+
+        String actual = SqlViewUtils.substituteSqlVariable( sql, "level", "4" );
 
         assertEquals( expected, actual );
     }

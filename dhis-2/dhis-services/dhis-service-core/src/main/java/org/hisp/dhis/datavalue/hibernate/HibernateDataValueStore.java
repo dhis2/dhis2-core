@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,8 +40,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -65,19 +59,20 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
-import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 @Repository( "org.hisp.dhis.datavalue.DataValueStore" )
 public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -242,8 +237,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         // Query parameters
         // ---------------------------------------------------------------------
 
-        Query<DataValue> query = getSession()
-            .createQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameterList( "dataElements", getIdentifiers( dataElements ) );
 
         if ( params.hasPeriods() )
@@ -316,7 +310,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
         }
 
-        Query query = getQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameter( "dataElements", dataElements )
             .setParameter( "period", storedPeriod );
 
@@ -342,7 +336,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         String sql = "select dv.dataelementid, dv.periodid, " + orgUnitId +
             ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
-            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup" +
+            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted" +
             " from datavalue dv";
 
         String where = "";
@@ -470,10 +464,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             Date lastUpdated = rowSet.getDate( 9 );
             String comment = rowSet.getString( 10 );
             boolean followup = rowSet.getBoolean( 11 );
+            boolean deleted = rowSet.getBoolean( 12 );
 
             result.add( new DeflatedDataValue( dataElementId, periodId,
                 organisationUnitId, categoryOptionComboId, attributeOptionComboId,
-                value, storedBy, created, lastUpdated, comment, followup ) );
+                value, storedBy, created, lastUpdated, comment, followup, deleted ) );
         }
 
         log.debug( result.size() + " DeflatedDataValues returned from: " + sql );

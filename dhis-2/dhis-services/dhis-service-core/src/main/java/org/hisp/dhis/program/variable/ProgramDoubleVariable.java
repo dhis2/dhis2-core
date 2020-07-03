@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.variable;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,7 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator double variable (uses default double for validity checking)
@@ -39,10 +36,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramDoubleVariable
-    extends ProgramVariable
+    implements ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return DEFAULT_DOUBLE_VALUE;
     }

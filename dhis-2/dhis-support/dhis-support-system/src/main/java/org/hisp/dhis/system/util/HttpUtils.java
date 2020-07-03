@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,25 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -57,44 +57,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class has the utility methods to invoke rest endpoints for various
- * Verbs. It uses Apache's HttpClient for the same.
+ * This class has the utility methods to invoke REST endpoints for various HTTP methods.
  *
  * @author vanyas
  */
+@Slf4j
 public class HttpUtils
 {
-    private static final Log log = LogFactory.getLog( HttpUtils.class );
-
     private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Method to make an http GET call to a given URL with/without authentication.
+     * Method to make an HTTP GET call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param authorize
-     * @param username
-     * @param password
-     * @param headers
-     * @param timeout
-     * @return
      * @throws Exception </pre>
      */
     public static DhisHttpResponse httpGET( String requestURL, boolean authorize, String username, String password,
         Map<String, String> headers, int timeout, boolean processResponse ) throws Exception
     {
-        DefaultHttpClient httpclient = null;
-        DhisHttpResponse dhisHttpResponse = null;
-        HttpParams params = new BasicHttpParams();
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout( timeout )
+            .setSocketTimeout( timeout )
+            .build();
+
+        DhisHttpResponse dhisHttpResponse;
 
         try
         {
-            HttpConnectionParams.setConnectionTimeout( params, timeout );
-            HttpConnectionParams.setSoTimeout( params, timeout );
-            httpclient = new DefaultHttpClient( params );
             HttpGet httpGet = new HttpGet( requestURL );
+            httpGet.setConfig( requestConfig );
 
             if ( headers instanceof Map )
             {
@@ -109,7 +101,7 @@ public class HttpUtils
                 httpGet.setHeader( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
             }
 
-            HttpResponse response = httpclient.execute( httpGet );
+            HttpResponse response = httpClient.execute( httpGet );
 
             if ( processResponse )
             {
@@ -124,13 +116,12 @@ public class HttpUtils
         {
             log.error( "Exception occurred in the httpGET call with username " + username, e );
             throw e;
-
         }
         finally
         {
-            if ( httpclient != null )
+            if ( httpClient != null )
             {
-                httpclient.getConnectionManager().shutdown();
+                httpClient.close();
             }
         }
 
@@ -138,33 +129,26 @@ public class HttpUtils
     }
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Method to make an http POST call to a given URL with/without authentication.
+     * Method to make an HTTP POST call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param body
-     * @param authorize
-     * @param username
-     * @param password
-     * @param contentType
-     * @param timeout
-     * @return </pre>
      */
     public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username, String password,
         String contentType, int timeout ) throws Exception
     {
-        DefaultHttpClient httpclient = null;
-        HttpParams params = new BasicHttpParams();
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout( timeout )
+            .setSocketTimeout( timeout )
+            .build();
+
         List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-        DhisHttpResponse dhisHttpResponse = null;
+        DhisHttpResponse dhisHttpResponse;
 
         try
         {
-            HttpConnectionParams.setConnectionTimeout( params, timeout );
-            HttpConnectionParams.setSoTimeout( params, timeout );
-            httpclient = new DefaultHttpClient( params );
             HttpPost httpPost = new HttpPost( requestURL );
+            httpPost.setConfig( requestConfig );
 
             if ( body instanceof Map )
             {
@@ -185,14 +169,16 @@ public class HttpUtils
             }
 
             if ( !StringUtils.isNotEmpty( contentType ) )
+            {
                 httpPost.setHeader( "Content-Type", contentType );
+            }
 
             if ( authorize )
             {
                 httpPost.setHeader( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
             }
 
-            HttpResponse response = httpclient.execute( httpPost );
+            HttpResponse response = httpClient.execute( httpPost );
             log.info( "Successfully got response from http POST." );
             dhisHttpResponse = processResponse( requestURL, username, response );
         }
@@ -204,9 +190,9 @@ public class HttpUtils
         }
         finally
         {
-            if ( httpclient != null )
+            if ( httpClient != null )
             {
-                httpclient.getConnectionManager().shutdown();
+                httpClient.close();
             }
         }
 
@@ -214,34 +200,26 @@ public class HttpUtils
     }
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Method to make an http DELETE call to a given URL with/without authentication.
+     * Method to make an HTTP DELETE call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param authorize
-     * @param username
-     * @param password
-     * @param headers
-     * @param timeout
-     * @return
      * @throws Exception </pre>
      */
     public static DhisHttpResponse httpDELETE( String requestURL, boolean authorize, String username, String password,
         Map<String, String> headers, int timeout ) throws Exception
     {
-        DefaultHttpClient httpclient = null;
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout( timeout )
+            .setSocketTimeout( timeout )
+            .build();
+
         DhisHttpResponse dhisHttpResponse = null;
+
         try
         {
-            HttpParams params = new BasicHttpParams();
-
-            HttpConnectionParams.setConnectionTimeout( params, timeout );
-            HttpConnectionParams.setSoTimeout( params, timeout );
-
-            httpclient = new DefaultHttpClient( params );
-
             HttpDelete httpDelete = new HttpDelete( requestURL );
+            httpDelete.setConfig( requestConfig );
 
             if ( headers instanceof Map )
             {
@@ -256,7 +234,7 @@ public class HttpUtils
                 httpDelete.setHeader( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
             }
 
-            HttpResponse response = httpclient.execute( httpDelete );
+            HttpResponse response = httpClient.execute( httpDelete );
             dhisHttpResponse = processResponse( requestURL, username, response );
 
             return dhisHttpResponse;
@@ -268,31 +246,25 @@ public class HttpUtils
         }
         finally
         {
-            if ( httpclient != null )
+            if ( httpClient != null )
             {
-                httpclient.getConnectionManager().shutdown();
+                httpClient.close();
             }
         }
     }
 
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Processes the HttpResponse to create a DHisHttpResponse object
+     * Processes the HttpResponse to create a DHisHttpResponse object.
      *
-     * @param requestURL
-     * @param username
-     * @param response
-     * @return
      * @throws IOException </pre>
      */
     private static DhisHttpResponse processResponse( String requestURL, String username, HttpResponse response )
         throws Exception
     {
-        DhisHttpResponse dhisHttpResponse = null;
-        String output = null;
-        int statusCode = 0;
+        DhisHttpResponse dhisHttpResponse;
+        String output;
+        int statusCode;
         if ( response != null )
         {
             HttpEntity responseEntity = response.getEntity();

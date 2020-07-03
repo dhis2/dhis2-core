@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,9 +117,12 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.OK );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
-        Mockito.verifyZeroInteractions( currentUserService );
+        Mockito.verifyNoInteractions( currentUserService );
         Mockito.verify( userGroupService ).updateUserGroups( Mockito.same( user ),
             (Collection<String>) argThat( Matchers.containsInAnyOrder( "abc1", "abc2" ) ),
             Mockito.same( currentUser ) );
@@ -133,11 +136,14 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.ERROR );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
-        Mockito.verifyZeroInteractions( currentUserService );
-        Mockito.verifyZeroInteractions( userService );
-        Mockito.verifyZeroInteractions( userGroupService );
+        Mockito.verifyNoInteractions( currentUserService );
+        Mockito.verifyNoInteractions( userService );
+        Mockito.verifyNoInteractions( userGroupService );
     }
 
     @Test
@@ -148,11 +154,14 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.OK );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
-        Mockito.verifyZeroInteractions( currentUserService );
-        Mockito.verifyZeroInteractions( userService );
-        Mockito.verifyZeroInteractions( userGroupService );
+        Mockito.verifyNoInteractions( currentUserService );
+        Mockito.verifyNoInteractions( userService );
+        Mockito.verifyNoInteractions( userGroupService );
     }
 
     @Test
@@ -174,7 +183,10 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.OK );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
         Mockito.verify( currentUserService ).getCurrentUser();
         Mockito.verifyNoMoreInteractions( currentUserService );

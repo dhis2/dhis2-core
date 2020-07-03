@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,16 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.GoogleAccessToken;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
@@ -36,33 +46,22 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.GoogleAccessToken;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Slf4j
 public class H2DhisConfigurationProvider
     implements DhisConfigurationProvider
 {
-    private static final Log log = LogFactory.getLog( H2DhisConfigurationProvider.class );
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
 
-    public H2DhisConfigurationProvider() {
+    public H2DhisConfigurationProvider()
+    {
         this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
     }
 
-    public H2DhisConfigurationProvider(String configurationFileName )
+    public H2DhisConfigurationProvider( String configurationFileName )
     {
         this.properties = getPropertiesFromFile( configurationFileName );
     }
@@ -123,19 +122,6 @@ public class H2DhisConfigurationProvider
 
     @Override
     public boolean isReadOnlyMode()
-    {
-        return false;
-    }
-
-
-    @Override
-    public long getAnalyticsCacheExpiration()
-    {
-        return 0;
-    }
-
-    @Override
-    public boolean isAnalyticsCacheEnabled()
     {
         return false;
     }

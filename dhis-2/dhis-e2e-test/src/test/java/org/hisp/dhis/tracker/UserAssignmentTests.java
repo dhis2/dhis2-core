@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -43,6 +44,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -53,6 +55,8 @@ public class UserAssignmentTests
     extends ApiTest
 {
     private MetadataActions metadataActions;
+
+    private LoginActions loginActions;
 
     private ProgramActions programActions;
 
@@ -66,37 +70,44 @@ public class UserAssignmentTests
         metadataActions = new MetadataActions();
         programActions = new ProgramActions();
         eventActions = new EventActions();
+        loginActions = new LoginActions();
 
-        new LoginActions().loginAsSuperUser();
-
+        loginActions.loginAsSuperUser();
         metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest
     @ValueSource( strings = { "WITHOUT_REGISTRATION", "WITH_REGISTRATION" } )
-    public void userAssignmentShouldBeEnabledOnProgramStage( String programType )
+    public void shouldBeEnabledOnProgramStage( String programType )
     {
+        // arrange
         String programId = programActions.get( "?filter=programStages:ge:1&filter=programType:eq:" + programType )
             .extractString( "programs.id[0]" );
+
         String programStageId = programActions.get( programId ).extractString( "programStages.id[0]" );
 
-        // test enabling of user assignment
+        // act - enabling user assignment
         ApiResponse response = enableUserAssignmentOnProgramStage( programStageId, true );
 
+        // assert
         ResponseValidationHelper.validateObjectUpdate( response, 200 );
 
         response = programActions.programStageActions.get( programStageId );
-        response.validate().statusCode( 200 );
-        assertEquals( true, response.getBody().get( userAssignmentProperty ).getAsBoolean(), "User assignment was not enabled" );
 
-        //test disabling of user assignment
+        response.validate()
+            .statusCode( 200 )
+            .body( userAssignmentProperty, equalTo( true ) );
+
+        // act - disabling user assignment
         response = enableUserAssignmentOnProgramStage( programStageId, false );
 
+        // assert
         ResponseValidationHelper.validateObjectUpdate( response, 200 );
 
         response = programActions.programStageActions.get( programStageId );
-        response.validate().statusCode( 200 );
-        assertEquals( false, response.getBody().get( userAssignmentProperty ).getAsBoolean() );
+
+        response.validate().statusCode( 200 )
+            .body( userAssignmentProperty, equalTo( false ) );
     }
 
     @ParameterizedTest
@@ -106,7 +117,7 @@ public class UserAssignmentTests
     {
         String programStageId = "l8oDIfJJhtg";
         String programId = "BJ42SUrAvHo";
-        String loggedInUser = new LoginActions().getLoggedInUserInfo().extractString( "id" );
+        String loggedInUser = loginActions.getLoggedInUserId();
 
         enableUserAssignmentOnProgramStage( programStageId, Boolean.valueOf( userAssignmentEnabled ) );
 
@@ -132,7 +143,7 @@ public class UserAssignmentTests
         // arrange
         String programStageId = "l8oDIfJJhtg";
         String programId = "BJ42SUrAvHo";
-        String loggedInUser = new LoginActions().getLoggedInUserInfo().extractString( "id" );
+        String loggedInUser = loginActions.getLoggedInUserId();
 
         enableUserAssignmentOnProgramStage( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );

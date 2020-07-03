@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.security.web.DefaultRedirectStrategy;
@@ -45,11 +46,10 @@ import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_AUT
 /**
  * @author mortenoh
  */
+@Slf4j
 public class MappedRedirectStrategy
     extends DefaultRedirectStrategy
 {
-    private static final Log log = LogFactory.getLog( MappedRedirectStrategy.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -98,7 +98,7 @@ public class MappedRedirectStrategy
 
         for ( String key : redirectMap.keySet() )
         {
-            if ( url.indexOf( key ) != -1 )
+            if ( url.contains(key) )
             {
                 url = url.replaceFirst( key, redirectMap.get( key ) );
             }

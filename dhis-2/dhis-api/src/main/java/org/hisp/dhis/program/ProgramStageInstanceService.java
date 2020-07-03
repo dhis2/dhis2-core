@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -55,12 +56,13 @@ public interface ProgramStageInstanceService
     long addProgramStageInstance( ProgramStageInstance programStageInstance );
 
     /**
-     * Deletes a {@link ProgramStageInstance}.
+     * Adds a {@link ProgramStageInstance}
      *
-     * @param programStageInstance the ProgramStageInstance to delete.
-     * @param forceDelete          false if PSI should be soft deleted.
+     * @param programStageInstance The ProgramStageInstance to add.
+     * @param user the current user.
+     * @return A generated unique id of the added {@link ProgramStageInstance}.
      */
-    void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete );
+    long addProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
      * Soft deletes a {@link ProgramStageInstance}.
@@ -75,6 +77,14 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance to update.
      */
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
+
+    /**
+     * Updates a {@link ProgramStageInstance}.
+     *
+     * @param programStageInstance the ProgramStageInstance to update.
+     * @param user the current user.
+     */
+    void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
      * Updates a last sync timestamp on specified ProgramStageInstances
@@ -99,6 +109,14 @@ public interface ProgramStageInstanceService
      * @param uid the identifier.
      */
     boolean programStageInstanceExistsIncludingDeleted( String uid );
+
+    /**
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
+    List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
 
     /**
      * Returns a {@link ProgramStageInstance}.

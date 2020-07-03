@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,8 @@ package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -40,17 +41,22 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private String key;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private String value;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private boolean header;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private boolean encode;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private boolean confidential;
 
-    @JsonProperty( value = "key" )
+    @JsonView( SmsConfigurationViews.Public.class )
     public String getKey()
     {
         return key;
@@ -61,13 +67,12 @@ public class GenericGatewayParameter
         this.key = key;
     }
 
-    @JsonProperty( value = "value" )
     public String getValue()
     {
         return confidential ? "" : value;
     }
 
-    public String getValueForKey()
+    public String getDisplayValue()
     {
         return value;
     }
@@ -77,7 +82,6 @@ public class GenericGatewayParameter
         this.value = value;
     }
 
-    @JsonProperty( value = "confidential" )
     public boolean isConfidential()
     {
         return confidential;
@@ -88,7 +92,6 @@ public class GenericGatewayParameter
         this.confidential = confidential;
     }
 
-    @JsonProperty
     public boolean isHeader()
     {
         return header;
@@ -99,7 +102,6 @@ public class GenericGatewayParameter
         this.header = header;
     }
 
-    @JsonProperty
     public boolean isEncode()
     {
         return encode;

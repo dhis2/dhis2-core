@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset.streaming;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.dataset.streaming;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.apache.commons.compress.utils.IOUtils;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
-import org.hisp.dhis.render.DefaultRenderService;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,7 +52,7 @@ public class StreamingJsonCompleteDataSetRegistrations
     {
         try
         {
-            jsonGenerator = DefaultRenderService.getJsonMapper().getFactory().createGenerator( out );
+            jsonGenerator = JacksonObjectMapperConfig.staticJsonMapper().getFactory().createGenerator( out );
         }
         catch ( IOException e )
         {

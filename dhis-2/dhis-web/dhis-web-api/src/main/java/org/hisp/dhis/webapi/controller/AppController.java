@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,9 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -50,9 +39,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -72,21 +59,28 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @RequestMapping( AppController.RESOURCE_PATH )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
     public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
 
-    private static final Log log = LogFactory.getLog( AppController.class );
-    
     @Autowired
     private AppManager appManager;
 
@@ -98,6 +92,9 @@ public class AppController
 
     @Autowired
     private ContextService contextService;
+
+    @Autowired
+    private ObjectMapper jsonMapper;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -134,7 +131,7 @@ public class AppController
             apps = appManager.getApps( contextPath );
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), apps );
     }
 
@@ -181,7 +178,7 @@ public class AppController
         {
             throw new ReadAccessDeniedException( "You don't have access to application " + app + "." );
         }
-        
+
         if ( application.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
@@ -189,7 +186,7 @@ public class AppController
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
-        
+
         log.debug( String.format( "App page name: '%s'", pageName ) );
 
         // Handling of 'manifest.webapp'
@@ -199,14 +196,13 @@ public class AppController
             if ( "*".equals( application.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
-                
+
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
 
                 application.getActivities().getDhis().setHref( contextPath );
             }
 
-            DefaultRenderService.getJsonMapper()
-                .writeValue( response.getOutputStream(), application );
+            jsonMapper.writeValue( response.getOutputStream(), application );
         }
         // Any other page
         else
@@ -220,9 +216,9 @@ public class AppController
                 return;
             }
 
-            String filename = resource.getFilename();            
+            String filename = resource.getFilename();
             log.debug( String.format( "App filename: '%s'", filename ) );
-            
+
             if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
             {
                 response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
@@ -257,9 +253,9 @@ public class AppController
         if ( appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "App is already being deleted: " + app ) );
-        } 
+        }
 
-        appManager.markAppToDelete( appToDelete ); 
+        appManager.markAppToDelete( appToDelete );
         appManager.deleteApp( appToDelete, deleteAppData );
     }
 

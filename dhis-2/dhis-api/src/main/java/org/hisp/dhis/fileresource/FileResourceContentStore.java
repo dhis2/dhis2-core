@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,13 @@ public interface FileResourceContentStore
      * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
      */
     InputStream getFileResourceContent( String key );
+    
+    /**
+     * Get the content length of a FileResource from the file store.
+     * @param key the key.
+     * @return the content length
+     */
+    long getFileResourceContentLength( String key );
 
     /**
      * Save the contents of the byte array to the file store.

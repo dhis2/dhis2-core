@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,16 +82,33 @@ public interface AnalyticsSecurityManager
     DataQueryParams withDataApprovalConstraints( DataQueryParams params );
 
     /**
-     * Returns a query with dimension constraints. Dimension constraints with
-     * all accessible dimension items will be added as filters to this query.
-     * If current user has no dimension constraints, no action is taken. If the
-     * constraint dimensions are already specified with accessible items in the
-     * query, no action is taken. If the current user does not have accessible
+     * Returns a query with two constraints applied:
+     * <p>
+     * Organisation unit constraints will be added as filters to this query based
+     * on the "data view" organisation units associated with the current user. If
+     * organisation units are already specified with accessible items in the query,
+     * no action is taken.
+     * <p>
+     * Dimension constraints with all accessible dimension items will be added as
+     * filters to this query. If current user has no dimension constraints, no action
+     * is taken. If the constraint dimensions are already specified with accessible
+     * items in the query, no action is taken. If the current user does not have accessible
      * items in any dimension constraint, an IllegalQueryException is thrown.
      *
      * @param params the data query parameters.
      * @return a data query parameters.
-     * @throws IllegalQueryException is the specified approval level does not exist.
+     * @throws IllegalQueryException if user has dimension constraints specified
+     *          but no access to any items in those dimensions.
      */
-    DataQueryParams withDimensionConstraints( DataQueryParams params );
+    DataQueryParams withUserConstraints( DataQueryParams params );
+
+    /**
+     * See {@link AnalyticsSecurityManager#withUserConstraints(DataQueryParams)}.
+     *
+     * @param params the event query parameters.
+     * @return an event query parameters.
+     * @throws IllegalQueryException if user has dimension constraints specified
+     *          but no access to any items in those dimensions.
+     */
+    EventQueryParams withUserConstraints( EventQueryParams params );
 }

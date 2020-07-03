@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.sms;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,17 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -45,12 +46,11 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,7 +58,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -75,30 +74,38 @@ import java.util.stream.Collectors;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsController
 {
-    @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
+    private final MessageSender smsSender;
+    private final WebMessageService webMessageService;
+    private final IncomingSmsService incomingSMSService;
+    private final RenderService renderService;
+    private final SMSCommandService smsCommandService;
+    private final UserService userService;
+    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+    private final ProgramMessageService programMessageService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private WebMessageService webMessageService;
-
-    @Autowired
-    private IncomingSmsService incomingSMSService;
-
-    @Autowired
-    private RenderService renderService;
-
-    @Autowired
-    private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-    private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
-
-    @Autowired
-    private ProgramMessageService programMessageService;
+    public SmsController(
+            @Qualifier( "smsMessageSender" ) MessageSender smsSender,
+            WebMessageService webMessageService,
+            IncomingSmsService incomingSMSService,
+            RenderService renderService,
+            SMSCommandService smsCommandService,
+            UserService userService,
+            @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
+            IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore,
+            ProgramMessageService programMessageService,
+            CurrentUserService currentUserService )
+    {
+        this.smsSender = smsSender;
+        this.webMessageService = webMessageService;
+        this.incomingSMSService = incomingSMSService;
+        this.renderService = renderService;
+        this.smsCommandService = smsCommandService;
+        this.userService = userService;
+        this.programNotificationInstanceStore = programNotificationInstanceStore;
+        this.programMessageService = programMessageService;
+        this.currentUserService = currentUserService;
+    }
 
     // -------------------------------------------------------------------------
     // GET
@@ -131,6 +138,7 @@ public class SmsController
     {
         ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
             null, page, pageSize, afterDate, null );
+
 
         List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
 
@@ -244,14 +252,23 @@ public class SmsController
 
         List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
 
-        if ( users == null || users.isEmpty() )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
         {
-            if ( unregisteredParser != null )
+            if ( users == null || users.isEmpty() )
             {
-                return null;
+                if ( unregisteredParser != null )
+                {
+                    return null;
+                }
+
+                // No user belong to this phone number
+                throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
             }
 
-            throw new WebMessageException( WebMessageUtils.conflict( "User not registered in the system" ) );
+            // current user does not belong to this number
+            throw new WebMessageException( WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
         }
 
         return users.iterator().next();

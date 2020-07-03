@@ -1,7 +1,7 @@
 package org.hisp.dhis.condition;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import org.springframework.context.annotation.ConfigurationCondition;
 /**
  * Loads the DHIS2 configuration provider within the context of a Spring
  * Configuration condition. This is required, since the
- * {@see DefaultDhisConfigurationProvider} is not available as Spring Bean when
+ * {@link DefaultDhisConfigurationProvider} is not available as Spring Bean when
  * the condition is evaluated.
  *
  * @author Luciano Fiandesio
@@ -62,6 +62,11 @@ public abstract class PropertiesAwareConfigurationCondition
     protected boolean isTestRun( ConditionContext context )
     {
         return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
+    }
+
+    protected boolean isAuditTest( ConditionContext context )
+    {
+        return SystemUtils.isAuditTest( context.getEnvironment().getActiveProfiles() );
     }
 
     protected boolean getBooleanValue( ConfigurationKey key )

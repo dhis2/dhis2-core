@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
@@ -94,9 +94,9 @@ public class DimensionalObjectUtils
      * DimensionalObjects.
      *
      * @param dimensions the list of DimensionalObjects.
-     * @return list of dimension identifiers.
+     * @return collection of dimension identifiers.
      */
-    public static List<String> getDimensions( List<DimensionalObject> dimensions )
+    public static List<String> getDimensions( Collection<DimensionalObject> dimensions )
     {
         List<String> dims = new ArrayList<>();
 

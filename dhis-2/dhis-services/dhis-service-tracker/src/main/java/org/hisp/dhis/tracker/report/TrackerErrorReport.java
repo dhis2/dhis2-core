@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,32 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
 import org.hisp.dhis.tracker.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerErrorMessage;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
 public class TrackerErrorReport
 {
-    protected final TrackerErrorMessage message;
+    @JsonProperty
+    private final Class<?> mainKlass;
 
-    protected final Class<?> mainKlass;
+    private final TrackerErrorMessage message;
 
-    protected String mainId;
+    @JsonProperty
+    private String mainId;
 
-    protected Class<?> errorKlass;
+    @JsonProperty
+    private Class<?> errorKlass;
 
-    protected String errorProperty;
+    @JsonProperty
+    private String errorProperty;
 
-    protected Object value;
+    @JsonProperty
+    private Object value;
 
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
     {
@@ -67,87 +69,14 @@ public class TrackerErrorReport
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerErrorCode getErrorCode()
     {
         return message.getErrorCode();
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getMessage()
     {
         return message.getMessage();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getMainKlass()
-    {
-        return mainKlass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMainId()
-    {
-        return mainId;
-    }
-
-    public TrackerErrorReport setMainId( String mainId )
-    {
-        this.mainId = mainId;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getErrorKlass()
-    {
-        return errorKlass;
-    }
-
-    public TrackerErrorReport setErrorKlass( Class<?> errorKlass )
-    {
-        this.errorKlass = errorKlass;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getErrorProperty()
-    {
-        return errorProperty;
-    }
-
-    public TrackerErrorReport setErrorProperty( String errorProperty )
-    {
-        this.errorProperty = errorProperty;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Object getValue()
-    {
-        return value;
-    }
-
-    public TrackerErrorReport setValue( Object value )
-    {
-        this.value = value;
-        return this;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "message", getMessage() )
-            .add( "errorCode", message.getErrorCode() )
-            .add( "mainKlass", mainKlass )
-            .add( "errorKlass", errorKlass )
-            .add( "value", value )
-            .toString();
     }
 }

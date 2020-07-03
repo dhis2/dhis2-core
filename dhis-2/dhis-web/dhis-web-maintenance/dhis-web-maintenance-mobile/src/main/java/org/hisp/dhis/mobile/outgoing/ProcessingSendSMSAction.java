@@ -240,8 +240,8 @@ public class ProcessingSendSMSAction
 
         SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters,
-            false, true, true );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND,
+            null, jobParameters, true, true );
         notifier.clear( processingSendSmsJobConfiguration );
 
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
@@ -251,7 +251,7 @@ public class ProcessingSendSMSAction
             message = i18n.getString( message );
             return ERROR;
         }
-        
+
         if ( message == null ) {
             message = "An inter error occurs, please contact your administration";
             return ERROR;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,8 @@ public class UserQueryParams
 
     private boolean includeOrgUnitChildren;
     
+    private boolean prefetchUserGroups;
+    
     private Boolean disabled;
 
     // -------------------------------------------------------------------------
@@ -115,6 +117,7 @@ public class UserQueryParams
             .add( "first", first )
             .add( "max", max )
             .add( "includeOrgUnitChildren", includeOrgUnitChildren )
+            .add( "prefetchUserGroups", prefetchUserGroups )
             .add( "disabled", disabled ).toString();
     }
 
@@ -321,6 +324,17 @@ public class UserQueryParams
     public UserQueryParams setIncludeOrgUnitChildren( boolean includeOrgUnitChildren )
     {
         this.includeOrgUnitChildren = includeOrgUnitChildren;
+        return this;
+    }
+
+    public boolean isPrefetchUserGroups()
+    {
+        return prefetchUserGroups;
+    }
+
+    public UserQueryParams setPrefetchUserGroups( boolean prefetchUserGroups )
+    {
+        this.prefetchUserGroups = prefetchUserGroups;
         return this;
     }
 

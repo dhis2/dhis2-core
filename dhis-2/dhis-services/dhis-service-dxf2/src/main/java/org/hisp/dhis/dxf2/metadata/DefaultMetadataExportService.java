@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,10 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.*;
+
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
@@ -75,18 +74,9 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.report.Report;
@@ -98,24 +88,23 @@ import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    private static final Log log = LogFactory.getLog( DefaultMetadataExportService.class );
-
     @Autowired
     private SchemaService schemaService;
 
@@ -419,7 +408,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataElementOperand( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementOperand dataElementOperand )
     {
         if ( dataElementOperand == null ) return metadata;
-
         handleCategoryOptionCombo( metadata, dataElementOperand.getCategoryOptionCombo() );
         handleLegendSet( metadata, dataElementOperand.getLegendSets() );
         handleDataElement( metadata, dataElementOperand.getDataElement() );
@@ -744,7 +732,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventChart( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, EventChart eventChart )
     {
         if ( eventChart == null ) return metadata;
@@ -788,6 +775,15 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( reportTable == null ) return metadata;
         metadata.putValue( ReportTable.class, reportTable );
         handleAttributes( metadata, reportTable );
+
+        return metadata;
+    }
+
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleVisualization( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Visualization visualization )
+    {
+        if ( visualization == null ) return metadata;
+        metadata.putValue( Visualization.class, visualization );
+        handleAttributes( metadata, visualization );
 
         return metadata;
     }
@@ -836,6 +832,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( dashboardItem == null ) return metadata;
         handleAttributes( metadata, dashboardItem );
 
+        handleVisualization( metadata, dashboardItem.getVisualization() );
         handleChart( metadata, dashboardItem.getChart() );
         handleEventChart( metadata, dashboardItem.getEventChart() );
         handleEventReport( metadata, dashboardItem.getEventReport() );

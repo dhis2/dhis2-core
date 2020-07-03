@@ -58,6 +58,17 @@
       <artifactId>opencsv</artifactId>
       <version>4.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.aeonbits.owner</groupId>
+      <artifactId>owner</artifactId>
+      <version>1.0.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

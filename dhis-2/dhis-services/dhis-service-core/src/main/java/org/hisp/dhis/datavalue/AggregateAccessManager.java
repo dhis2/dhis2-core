@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,36 +42,36 @@ public interface AggregateAccessManager
 {
     /**
      * Check if given User has DATA_READ access for given DataValue
-     * 
-     * @param user a {@see User} to check permission for
-     * @param dataValue a {@see DataValue} object
+     *
+     * @param user a {@link User} to check permission for
+     * @param dataValue a {@link DataValue} object
      * @return List of errors
      */
     List<String> canRead( User user, DataValue dataValue );
 
     /**
      * Check if given user has DATA_WRITE
-     * 
-     * @param user a {@see User} to check permission for
-     * @param dataSet a {@see DataSet} object
+     *
+     * @param user a {@link User} to check permission for
+     * @param dataSet a {@link DataSet} object
      * @return List of errors
      */
     List<String> canWrite( User user, DataSet dataSet );
 
     /**
      * Check if given User has DATA_READ access for given DataSet
-     * 
-     * @param user a {@see User} to check permission for
-     * @param dataSet a {@see DataValue} object
+     *
+     * @param user a {@link User} to check permission for
+     * @param dataSet a {@link DataValue} object
      * @return List of errors
      */
     List<String> canRead( User user, DataSet dataSet );
 
     /**
      * Check if given User has DATA_WRITE access for given CategoryOptionCombo
-     * 
-     * @param user a {@see User} to check permission for
-     * @param categoryOption a {@see CategoryOptionCombo} object
+     *
+     * @param user a {@link User} to check permission for
+     * @param categoryOption a {@link CategoryOptionCombo} object
      * @return List of errors
      */
     List<String> canWrite( User user, CategoryOptionCombo categoryOption );
@@ -80,26 +80,26 @@ public interface AggregateAccessManager
      * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
      * result is cached.
      *
-     * @param user a {@see User} to check permission for
-     * @param categoryOptionCombo a {@see CategoryOptionCombo} object
+     * @param user a {@link User} to check permission for
+     * @param categoryOptionCombo a {@link CategoryOptionCombo} object
      * @return List of errors
      */
     List<String> canWriteCached( User user, CategoryOptionCombo categoryOptionCombo );
 
     /**
      * Check if given User has DATA_READ access for given CategoryOptionCombo
-     * 
-     * @param user a {@see User} to check permission for
-     * @param categoryOption a {@see CategoryOptionCombo} object
+     *
+     * @param user a {@link User} to check permission for
+     * @param categoryOption a {@link CategoryOptionCombo} object
      * @return List of errors
      */
     List<String> canRead( User user, CategoryOptionCombo categoryOption );
 
     /**
      * Check if given User has DATA_WRITE access for give DataElementOperand
-     * 
-     * @param user a {@see User} to check permission for
-     * @param dataElementOperand a {@see DataElementOperand} object
+     *
+     * @param user a {@link User} to check permission for
+     * @param dataElementOperand a {@link DataElementOperand} object
      * @return List of errors
      */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );

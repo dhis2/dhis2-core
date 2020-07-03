@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,9 @@ public class ProgramInstanceServiceTest
     @Autowired
     private ProgramStageService programStageService;
 
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
     private Date incidenDate;
 
     private Date enrollmentDate;
@@ -85,6 +88,8 @@ public class ProgramInstanceServiceTest
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
+
+    private ProgramStageInstance programStageInstanceA;
 
     private ProgramInstance programInstanceA;
 
@@ -154,6 +159,10 @@ public class ProgramInstanceServiceTest
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnitA );
 
+        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
+        programStageInstanceA.setUid( "UID-PSI-A" );
+        programStageInstanceA.setOrganisationUnit( organisationUnitA );
+
         programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
         programInstanceB.setStatus( ProgramStatus.CANCELLED );
@@ -197,6 +206,25 @@ public class ProgramInstanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programInstanceService.getProgramInstance( idB ) );
+    }
+
+    @Test
+    public void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
+    {
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+
+        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        programInstanceService.updateProgramInstance( programInstanceA );
+
+        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+        assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
+        programInstanceService.deleteProgramInstance( programInstanceA );
+
+        assertNull( programInstanceService.getProgramInstance( idA ) );
+        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
     }
 
     @Test
@@ -328,10 +356,10 @@ public class ProgramInstanceServiceTest
     {
         programInstanceA.setStatus( ProgramStatus.COMPLETED );
         programInstanceD.setStatus( ProgramStatus.COMPLETED );
-        
+
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idD = programInstanceService.addProgramInstance( programInstanceD );
-        
+
         programInstanceService.incompleteProgramInstanceStatus( programInstanceA );
         programInstanceService.incompleteProgramInstanceStatus( programInstanceD );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.notification.logging;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +26,17 @@ package org.hisp.dhis.notification.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.notification.logging;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
@@ -48,11 +47,10 @@ public class HibernateNotificationLoggingStore
     implements NotificationLoggingStore
 {
     public HibernateNotificationLoggingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, ExternalNotificationLogEntry.class, currentUserService,
-            deletedObjectService, aclService, true );
+            aclService, true );
     }
 
     @Override

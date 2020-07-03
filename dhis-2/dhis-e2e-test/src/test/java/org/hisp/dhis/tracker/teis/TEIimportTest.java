@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker.teis;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.teis;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
@@ -52,13 +53,13 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 public class TEIimportTest
     extends ApiTest
 {
+    JsonObject object;
+
     private TEIActions teiActions;
 
     private EventActions eventActions;
 
     private RestApiActions enrollmentActions;
-
-    JsonObject object;
 
     @BeforeAll
     public void before()
@@ -95,10 +96,11 @@ public class TEIimportTest
 
         // act
         ApiResponse response = teiActions.post( object, new QueryParamsBuilder().addAll( "strategy=SYNC" ) );
-        response.validate().statusCode( 200 );
 
         // assert
         String eventId = response.validate()
+            .statusCode( 200 )
+            .body( "response", notNullValue() )
             .rootPath( "response" )
             .body( "updated", Matchers.greaterThanOrEqualTo( 2 ) )
             .appendRootPath( "importSummaries[0]" )
@@ -106,7 +108,7 @@ public class TEIimportTest
             .appendRootPath( "enrollments.importSummaries[0].events.importSummaries[0]" )
             .body(
                 "status", Matchers.equalTo( "SUCCESS" ),
-                "reference", Matchers.notNullValue(),
+                "reference", notNullValue(),
                 "importCount.deleted", Matchers.equalTo( 1 ),
                 "description", Matchers.stringContainsInOrder( "Deletion of event", "was successful" )
             )
@@ -116,7 +118,7 @@ public class TEIimportTest
             .rootPath( "response.importSummaries[1].enrollments.importSummaries[0]" )
             .body(
                 "status", Matchers.equalTo( "SUCCESS" ),
-                "reference", Matchers.notNullValue(),
+                "reference", notNullValue(),
                 "importCount.updated", Matchers.equalTo( 1 )
             ).extract().path( "response.importSummaries[1].enrollments.importSummaries[0].reference" );
 

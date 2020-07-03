@@ -1,5 +1,7 @@
+package org.hisp.dhis.random;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,10 +28,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.random;
-
 import org.apache.commons.lang3.RandomUtils;
-import org.hisp.dhis.common.CodeGenerator;
 
 import io.github.benas.randombeans.api.Randomizer;
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,14 +68,16 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
-            "organisationunitid integer not null, " +
+            "organisationunitid bigint not null, " +
             "organisationunitname varchar(230), " +
             "startdate date, ";
 
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

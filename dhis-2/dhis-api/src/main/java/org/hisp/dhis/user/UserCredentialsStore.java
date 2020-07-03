@@ -1,7 +1,9 @@
 package org.hisp.dhis.user;
 
+import java.util.UUID;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,4 +66,13 @@ public interface UserCredentialsStore
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByLdapId( String ldapId );
+
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * UUID.
+     *
+     * @param uid UUID.
+     * @return the UserCredentials.
+     */
+    UserCredentials getUserCredentialsByUuid( UUID uuid );
 }

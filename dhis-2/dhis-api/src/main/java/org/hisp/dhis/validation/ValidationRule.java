@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -271,6 +271,7 @@ public class ValidationRule
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
     public Expression getLeftSide()
     {
         return leftSide;
@@ -283,6 +284,7 @@ public class ValidationRule
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
     public Expression getRightSide()
     {
         return rightSide;

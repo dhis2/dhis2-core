@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -305,7 +306,21 @@ public class DefaultTrackedEntityAttributeService
             .collect( Collectors.toList() );
     }
 
-    private String validateImage( String uid )
+    @Override
+    @Transactional( readOnly = true )
+    public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
+    {
+        return this.trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
+    {
+        return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
+    }
+
+    private String validateImage(String uid )
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
 

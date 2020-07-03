@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,19 @@ import org.hisp.dhis.common.IllegalQueryException;
 public interface EventDataQueryService
 {
     /**
-     * Used for aggregate query.
-     * @param request the request wrapper containing the url params.
+     * Creates an {@link EventQueryParams} based on the given request.
+     *
+     * @param request the {@link EventDataQueryRequest} containing the URL parameters.
+     * @return an {@link EventQueryParams}.
      */
     EventQueryParams getFromRequest( EventDataQueryRequest request );
 
+    /**
+     * Creates an {@link EventQueryParams} based on the given event analytical object.
+     *
+     * @param request the {@link EventAnalyticalObject}.
+     * @return an {@link EventQueryParams}.
+     */
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 
     /**

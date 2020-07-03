@@ -1,7 +1,7 @@
 package org.hisp.dhis.interceptor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,15 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 import ognl.NoSuchPropertyException;
 import ognl.Ognl;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -70,6 +75,21 @@ public class I18nInterceptor
     {
         this.localeManager = localeManager;
     }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    private UserSettingService userSettingService;
+
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
+    }
+
 
     // -------------------------------------------------------------------------
     // AroundInterceptor implementation
@@ -135,6 +155,16 @@ public class I18nInterceptor
         catch ( NoSuchPropertyException ignored )
         {
         }
+
+        // ---------------------------------------------------------------------
+        // Set the current User DB Locale in UserContext
+        // ---------------------------------------------------------------------
+
+        User currentUser = currentUserService.getCurrentUser();
+        Locale dbLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE, currentUser );
+
+        UserContext.setUser( currentUser );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
 
         return invocation.invoke();
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitydatavalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,19 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,13 +54,19 @@ public class DefaultTrackedEntityDataValueAuditService
     // -------------------------------------------------------------------------
 
     private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+    private Predicate<TrackedEntityDataValueAudit> aclFilter;
 
-    public DefaultTrackedEntityDataValueAuditService(
-        TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore )
+    public DefaultTrackedEntityDataValueAuditService( TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
+        TrackerAccessManager trackerAccessManager, CurrentUserService currentUserService )
     {
         checkNotNull( trackedEntityDataValueAuditStore );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( currentUserService );
 
         this.trackedEntityDataValueAuditStore = trackedEntityDataValueAuditStore;
+
+        aclFilter = ( audit ) -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
+            audit.getProgramStageInstance(), audit.getDataElement(), false ).isEmpty();
     }
 
     // -------------------------------------------------------------------------
@@ -71,25 +81,31 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
-        return trackedEntityDataValueAuditStore.getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );
+        return trackedEntityDataValueAuditStore
+            .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType ).stream()
+            .filter(aclFilter).collect( Collectors.toList() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
     {
-        return trackedEntityDataValueAuditStore.getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType, first, max );
+        return trackedEntityDataValueAuditStore
+            .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType, first, max ).stream()
+            .filter(aclFilter).collect( Collectors.toList() );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType )
+    @Transactional( readOnly = true )
+    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
+        List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
-        return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );
+        return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances,
+            auditType );
     }
 }

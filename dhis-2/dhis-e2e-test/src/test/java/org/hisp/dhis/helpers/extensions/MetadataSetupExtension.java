@@ -1,5 +1,7 @@
+package org.hisp.dhis.helpers.extensions;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.extensions;
 
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -64,43 +65,53 @@ public class MetadataSetupExtension
         {
             started = true;
             logger.info( "Importing metadata for tests" );
+
+            // The following line registers a callback hook when the root test context is shut down
+            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
+
             MetadataActions metadataActions = new MetadataActions();
 
             new LoginActions().loginAsDefaultUser();
 
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/userGroups.json" ), "async=false" );
+            String[] files = {
+                "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/users.json"
+            };
 
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/metadata.json" ), "async=false" );
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/metadata.json" ), "async=false" );
+            String queryParams = "async=false";
+            for ( String fileName : files )
+            {
+                metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
 
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/users.json" ), "async=false" );
+                createdData.putAll( TestRunStorage.getCreatedEntities() );
 
+                iterateCreatedData( id -> {
+                    TestRunStorage.removeEntity( createdData.get( id ), id );
+                } );
 
-            createdData = TestRunStorage.getCreatedEntities();
-
-            iterateCreatedData( id -> {
-                TestRunStorage.removeEntity( createdData.get( id ), id );
-            } );
+            }
 
             setupSuperuser();
 
-            // The following line registers a callback hook when the root test context is shut down
-            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
         }
     }
 
-    private void setupSuperuser( ) {
+    private void setupSuperuser()
+    {
         logger.info( "Setting up super user" );
         UserActions userActions = new UserActions();
         String userRoleId = "yrB6vc5Ip7r";
-        String userGroupId= "OPVIvvXzNTw";
+        String userGroupId = "OPVIvvXzNTw";
 
-        String userId = userActions.get( "?username=" + ConfigurationHelper.SUPER_USER_USERNAME ).extractString("users.id[0]");
+        String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
+            .extractString( "users.id[0]" );
 
-        userActions.addUserToUserGroup( userId , userGroupId);
+        userActions.addUserToUserGroup( userId, userGroupId );
         userActions.addURoleToUser( userId, userRoleId );
 
-        TestRunStorage.removeEntity( "/users", userId);
+        TestRunStorage.removeEntity( "/users", userId );
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.mock;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Adrian Quintana
@@ -74,6 +75,12 @@ public class MockUserService implements UserService
 
     @Override
     public User getUser( String uid )
+    {
+        return null;
+    }
+
+    @Override
+    public User getUserByUuid( UUID uuid )
     {
         return null;
     }
@@ -174,6 +181,21 @@ public class MockUserService implements UserService
             if ( user.getUsername().equals( username ) )
             {
                 return user.getUserCredentials();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    {
+        for ( User user : users )
+        {
+            if ( user.getUsername().equals( username ) )
+            {
+                UserCredentials userCredentials = user.getUserCredentials();
+                userCredentials.getAllAuthorities();
+                return userCredentials;
             }
         }
         return null;
@@ -313,6 +335,11 @@ public class MockUserService implements UserService
 
     @Override
     public void set2FA( User user, Boolean twoFA )
+    {
+    }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
     {
     }
 }

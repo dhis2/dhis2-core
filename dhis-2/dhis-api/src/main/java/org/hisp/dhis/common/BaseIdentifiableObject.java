@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -38,6 +37,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -63,8 +64,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0 )
 public class BaseIdentifiableObject
-    extends BaseLinkableObject
-    implements IdentifiableObject
+    extends BaseLinkableObject implements IdentifiableObject
 {
     /**
      * The database internal identifier for this Object.
@@ -74,11 +74,13 @@ public class BaseIdentifiableObject
     /**
      * The Unique Identifier for this Object.
      */
+    @AuditAttribute
     protected String uid;
 
     /**
      * The unique code for this Object.
      */
+    @AuditAttribute
     protected String code;
 
     /**
@@ -99,6 +101,7 @@ public class BaseIdentifiableObject
     /**
      * Set of the dynamic attributes values that belong to this data element.
      */
+    @AuditAttribute
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
@@ -157,7 +160,7 @@ public class BaseIdentifiableObject
     /**
      * Last user updated this object.
      */
-    private User lastUpdatedBy;
+    protected User lastUpdatedBy;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -304,12 +307,11 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( using = CustomLastUpdatedUserSerializer.class )
-    @JsonDeserialize
     public User getLastUpdatedBy()
     {
-        return  lastUpdatedBy;
+        return lastUpdatedBy;
     }
 
     public void setLastUpdatedBy( User lastUpdatedBy )
@@ -341,6 +343,7 @@ public class BaseIdentifiableObject
         return attributeValues;
     }
 
+    @Override
     public void setAttributeValues( Set<AttributeValue> attributeValues )
     {
         cacheAttributeValues.clear();
@@ -431,7 +434,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {

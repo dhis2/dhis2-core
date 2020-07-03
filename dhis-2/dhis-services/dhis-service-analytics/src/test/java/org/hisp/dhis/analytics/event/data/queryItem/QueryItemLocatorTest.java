@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event.data.queryItem;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.analytics.event.data.queryItem;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -124,7 +124,6 @@ public class QueryItemLocatorTest
     @Test
     public void verifyExceptionOnEmptyProgram()
     {
-
         exception.expect( NullPointerException.class );
         exception.expectMessage( "Program can not be null" );
 
@@ -158,7 +157,7 @@ public class QueryItemLocatorTest
     public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
         exception.expect( IllegalQueryException.class );
-        exception.expectMessage("For enrollment analytics queries,program stage is mandatory for data element dimensions: " + dimension);
+        exception.expectMessage( "Program stage is mandatory for data element dimensions in enrollment analytics queries" );
 
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -172,7 +171,6 @@ public class QueryItemLocatorTest
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
 
         subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
-
     }
 
     @Test
@@ -245,7 +243,7 @@ public class QueryItemLocatorTest
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
         when( legendSetService.getLegendSet( legendSetUid ) ).thenReturn( legendSetA );
         when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
-        
+
         // programStageUid.dimensionUid-legendSetUid
         QueryItem queryItem = subject.getQueryItemFromDimension(
             programStageUid + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA, EventOutputType.ENROLLMENT );
@@ -255,11 +253,11 @@ public class QueryItemLocatorTest
         assertThat( queryItem.getProgram(), is( programA ) );
         assertThat( queryItem.getProgramStage(), is( programStageA ) );
         assertThat( queryItem.getLegendSet(), is( legendSetA ) );
-        
+
         verifyNoMoreInteractions( attributeService );
         verifyNoMoreInteractions( programIndicatorService );
     }
-    
+
     @Test
     public void verifyDimensionReturnsTrackedEntityAttribute()
     {
@@ -341,9 +339,7 @@ public class QueryItemLocatorTest
         exception.expectMessage(
                 "Item identifier does not reference any data element, attribute or indicator part of the program" );
 
-        subject.getQueryItemFromDimension(
-                dimension, programA, EventOutputType.ENROLLMENT );
-
+        subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
     }
 
     @Test
@@ -354,10 +350,10 @@ public class QueryItemLocatorTest
 
         RelationshipType relationshipType = createRelationshipType();
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-                .thenReturn( programIndicatorA );
+            .thenReturn( programIndicatorA );
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
         QueryItem queryItem = subject.getQueryItemFromDimension(
-                relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( programIndicatorA ) );
@@ -366,7 +362,7 @@ public class QueryItemLocatorTest
         assertThat( queryItem.getLegendSet(), is( nullValue() ) );
         assertThat( queryItem.getRelationshipType(), is( relationshipType ) );
     }
-    
+
     private RelationshipType createRelationshipType()
     {
         RelationshipType relationshipType = new RelationshipType();

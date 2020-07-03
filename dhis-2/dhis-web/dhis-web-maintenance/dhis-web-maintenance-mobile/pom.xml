@@ -5,7 +5,7 @@
    <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web-maintenance</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>  
 
   <artifactId>dhis-web-maintenance-mobile</artifactId>
@@ -38,12 +38,13 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-mobile</artifactId>
-    </dependency>    
-    
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <properties>

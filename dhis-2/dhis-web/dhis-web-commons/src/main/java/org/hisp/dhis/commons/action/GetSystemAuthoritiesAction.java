@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.action;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,12 +40,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+import static org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor.F_CHART_EXTERNAL;
+import static org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor.F_CHART_PUBLIC_ADD;
+import static org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor.F_REPORTTABLE_EXTERNAL;
+import static org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor.F_REPORTTABLE_PUBLIC_ADD;
+
 /**
  * @author mortenoh
  */
 public class GetSystemAuthoritiesAction
     extends ActionPagingSupport<String>
 {
+
+    @Deprecated
+    private static final List<String> DEPRECATED_SCHEMAS = asList( F_REPORTTABLE_EXTERNAL, F_REPORTTABLE_PUBLIC_ADD,
+        F_CHART_EXTERNAL, F_CHART_PUBLIC_ADD );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -100,7 +111,10 @@ public class GetSystemAuthoritiesAction
         listAuthorities.forEach( auth -> {
             String name = getAuthName( auth );
 
-            authNodes.add( mapper.createObjectNode().put( "id", auth ).put( "name", name ) );
+            if ( isNotDeprecated( auth ) )
+            {
+                authNodes.add( mapper.createObjectNode().put( "id", auth ).put( "name", name ) );
+            }
         } );
 
         root.set( "systemAuthorities", authNodes );
@@ -121,5 +135,18 @@ public class GetSystemAuthoritiesAction
         }
 
         return auth;
+    }
+
+    /**
+     * This checking is required in order to "temporally" remove the deprecated schemas.
+     * Created and used during the transition from Chart/ReportTable to Visualization.
+     *
+     * @param authId to be filtered out if the same is deprecated.
+     * @return true if the authId is NOT deprecated, false otherwise.
+     */
+    @Deprecated
+    private boolean isNotDeprecated( final String authId )
+    {
+        return !DEPRECATED_SCHEMAS.contains( authId );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,18 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Geometry;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
@@ -59,25 +62,26 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends BaseDimensionalItemObject
-    implements MetadataObject, CoordinateObject
+    extends
+    BaseDimensionalItemObject
+    implements
+    MetadataObject,
+    CoordinateObject
 {
     private static final String PATH_SEP = "/";
 
@@ -302,8 +306,9 @@ public class OrganisationUnit
     {
         List<OrganisationUnit> sortedChildren = new ArrayList<>( children );
 
-        Comparator<OrganisationUnit> comparator = SortProperty.SHORT_NAME == sortBy ?
-            OrganisationUnitDisplayShortNameComparator.INSTANCE : OrganisationUnitDisplayNameComparator.INSTANCE;
+        Comparator<OrganisationUnit> comparator = SortProperty.SHORT_NAME == sortBy
+            ? OrganisationUnitDisplayShortNameComparator.INSTANCE
+            : OrganisationUnitDisplayNameComparator.INSTANCE;
 
         Collections.sort( sortedChildren, comparator );
         return sortedChildren;
@@ -337,7 +342,8 @@ public class OrganisationUnit
         return getSortedGrandChildren( units, SortProperty.NAME );
     }
 
-    public static List<OrganisationUnit> getSortedGrandChildren( Collection<OrganisationUnit> units, SortProperty sortBy )
+    public static List<OrganisationUnit> getSortedGrandChildren( Collection<OrganisationUnit> units,
+        SortProperty sortBy )
     {
         List<OrganisationUnit> children = new ArrayList<>();
 
@@ -532,8 +538,8 @@ public class OrganisationUnit
 
     /**
      * Returns the list of ancestor organisation units up to any of the given roots
-     * for this organisation unit. Does not include itself. The list is ordered
-     * by root first.
+     * for this organisation unit. Does not include itself. The list is ordered by
+     * root first.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -592,9 +598,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation unit UIDs up to any of the given roots
-     * for this organisation unit. Does not include itself. The list is ordered by
-     * root first.
+     * Returns the list of ancestor organisation unit UIDs up to any of the given
+     * roots for this organisation unit. Does not include itself. The list is
+     * ordered by root first.
      *
      * @param rootUids the root organisation units, if null using real roots.
      */
@@ -680,7 +686,7 @@ public class OrganisationUnit
      * Returns a string representing the graph of ancestors. The string is delimited
      * by "/". The ancestors are ordered by root first and represented by names.
      *
-     * @param roots       the root organisation units, if null using real roots.
+     * @param roots the root organisation units, if null using real roots.
      * @param includeThis whether to include this organisation unit in the graph.
      */
     public String getParentNameGraph( Collection<OrganisationUnit> roots, boolean includeThis )
@@ -743,8 +749,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Indicates whether this organisation unit is associated with the given
-     * data element through its data set associations.
+     * Indicates whether this organisation unit is associated with the given data
+     * element through its data set associations.
      */
     public boolean hasDataElement( DataElement dataElement )
     {
@@ -760,8 +766,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Indicates whether this organisation unit has at least one associated
-     * category option.
+     * Indicates whether this organisation unit has at least one associated category
+     * option.
      */
     public boolean hasCategoryOptions()
     {
@@ -831,7 +837,8 @@ public class OrganisationUnit
 
     /**
      * Used by persistence layer. Purpose is to have a column for use in database
-     * queries. For application use see {@link OrganisationUnit#getLevel()} which has better performance.
+     * queries. For application use see {@link OrganisationUnit#getLevel()} which
+     * has better performance.
      */
     public Integer getHierarchyLevel()
     {
@@ -1068,7 +1075,7 @@ public class OrganisationUnit
     @Override
     public FeatureType getFeatureType()
     {
-        return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
+        return geometry != null ? FeatureType.getTypeFromName( this.geometry.getGeometryType() ) : null;
     }
 
     @Override
@@ -1148,9 +1155,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Set the Geometry field using a GeoJSON (https://en.wikipedia.org/wiki/GeoJSON) String,
-     * like
-     * {"type":"Point", "coordinates":[....]}
+     * Set the Geometry field using a GeoJSON
+     * (https://en.wikipedia.org/wiki/GeoJSON) String, like {"type":"Point",
+     * "coordinates":[....]}
      *
      * @param geometryAsJsonString String containing a GeoJSON JSON payload
      * @throws IOException an error occurs parsing the payload
@@ -1168,5 +1175,11 @@ public class OrganisationUnit
 
             this.geometry = geometry;
         }
+    }
+
+    public void removeProgram( Program program )
+    {
+        program.getOrganisationUnits().remove( this );
+        this.programs.remove( program );
     }
 }

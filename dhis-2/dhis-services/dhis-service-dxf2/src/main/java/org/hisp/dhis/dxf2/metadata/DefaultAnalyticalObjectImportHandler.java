@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,6 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
             if ( dataDimensionItem.getDataElementOperand() != null )
             {
                 preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                session.save( dataDimensionItem.getDataElementOperand() );
             }
 
             if ( dataDimensionItem.getReportingRate() != null )

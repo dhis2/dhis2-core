@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,23 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.Map;
+
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import com.google.common.base.Strings;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class AuditProducerSupplier
 {
-    private static final Log log = LogFactory.getLog( AuditProducerSupplier.class );
-
     private final MessageManager messageManager;
     private final Map<AuditScope, String> auditScopeDestinationMap;
 
@@ -62,15 +62,16 @@ public class AuditProducerSupplier
 
         if ( !Strings.isNullOrEmpty( topic ) )
         {
-            log.debug( "sending auditing message to topic: [" + topic + "] with content: "
-                + audit.toString() );
-
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( "sending auditing message to topic: [" + topic + "] with content: " + audit.toLog() );
+            }
             this.messageManager.send( topic, audit );
         }
         else
         {
             log.error( String.format( "Unable to map AuditScope [%s] to a topic name. Sending aborted",
-                audit ) );
+                audit.getAuditScope() ) );
         }
     }
 

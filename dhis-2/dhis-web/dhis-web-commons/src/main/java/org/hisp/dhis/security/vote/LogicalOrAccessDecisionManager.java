@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.vote;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.security.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,11 +51,10 @@ import java.util.List;
  * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 @Primary
+@Slf4j
 public class LogicalOrAccessDecisionManager
     implements AccessDecisionManager
 {
-    private static final Log LOG = LogFactory.getLog( LogicalOrAccessDecisionManager.class );
-
     private List<AccessDecisionManager> accessDecisionManagers = Collections.emptyList();
 
     public void setAccessDecisionManagers( List<AccessDecisionManager> accessDecisionManagers )
@@ -85,7 +83,7 @@ public class LogicalOrAccessDecisionManager
                 {
                     accessDecisionManager.decide( authentication, object, configAttributes );
 
-                    LOG.debug( "ACCESS GRANTED [" + object.toString() + "]" );
+                    log.debug( "ACCESS GRANTED [" + object.toString() + "]" );
 
                     return;
                 }
@@ -100,7 +98,7 @@ public class LogicalOrAccessDecisionManager
             }
         }
 
-        LOG.debug( "ACCESS DENIED [" + object.toString() + "]" );
+        log.debug( "ACCESS DENIED [" + object.toString() + "]" );
 
         if ( ade != null )
         {

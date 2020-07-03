@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -47,13 +49,13 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
     extends IdentifiableObjectStore<T>
 {
     List<T> getAnalyticalObjects( Indicator indicator );
-    
+
     List<T> getAnalyticalObjects( DataElement dataElement );
-    
+
     List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement );
-    
+
     List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute );
-    
+
     List<T> getAnalyticalObjects( DataSet dataSet );
 
     List<T> getAnalyticalObjects( ProgramIndicator programIndicator );
@@ -62,21 +64,25 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
 
     List<T> getAnalyticalObjects( OrganisationUnit organisationUnit );
 
+    List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup );
+
+    List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet );
+
     List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
-    
+
     List<T> getAnalyticalObjects( LegendSet legendSet );
-    
-    int countAnalyticalObjects( Indicator indicator );
 
-    int countAnalyticalObjects( DataElement dataElement );
+    long countAnalyticalObjects( Indicator indicator );
 
-    int countAnalyticalObjects( DataSet dataSet );
+    long countAnalyticalObjects( DataElement dataElement );
 
-    int countAnalyticalObjects( ProgramIndicator programIndicator );
-    
-    int countAnalyticalObjects( Period period );
-    
-    int countAnalyticalObjects( OrganisationUnit organisationUnit );
-    
-    int countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
+    long countAnalyticalObjects( DataSet dataSet );
+
+    long countAnalyticalObjects( ProgramIndicator programIndicator );
+
+    long countAnalyticalObjects( Period period );
+
+    long countAnalyticalObjects( OrganisationUnit organisationUnit );
+
+    long countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
 }

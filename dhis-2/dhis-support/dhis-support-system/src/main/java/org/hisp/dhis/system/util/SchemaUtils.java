@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,16 +109,17 @@ public final class SchemaUtils
                     }
                 }
 
-                if ( property.is( PropertyType.COLLECTION ) )
+                if ( property.is( PropertyType.COLLECTION ) && min < 0 )
                 {
                     min = 0d;
                 }
 
-                //Max will be applied from PropertyRange annotation only if it is more restrictive than hibernate max.
-                if ( property.getMax() == null || max < property.getMax() )
+                //Max will be applied from PropertyRange annotation only if it is more restrictive than hibernate max (or its a collection)
+                if ( property.getMax() == null || max < property.getMax() || property.is( PropertyType.COLLECTION ) )
                 {
                     property.setMax( max );
                 }
+
                 //Min is not set by hibernate (always 0) hence the min from PropertyRange will always be applied.
                 property.setMin( min );
             }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,19 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.system.util.MathUtils.roundSignificant;
+import static org.hisp.dhis.system.util.MathUtils.zeroIfNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.persistence.PersistenceException;
+
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -55,19 +63,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.PersistenceException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.system.util.MathUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Runs a validation task on a thread within a multi-threaded validation run.
@@ -76,13 +75,12 @@ import static org.hisp.dhis.system.util.MathUtils.*;
  *
  * @author Jim Grace
  */
+@Slf4j
 @Component( "validationTask" )
 @Scope( "prototype" )
 public class DataValidationTask
     implements ValidationTask
 {
-    private static final Log log = LogFactory.getLog( DataValidationTask.class );
-
     public static final String NAME = "validationTask";
 
     public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
@@ -225,17 +223,11 @@ public class DataValidationTask
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
-        if ( attributeOptionCombos.isEmpty() )
-        {
-            attributeOptionCombos = Sets.newHashSet( context.getDefaultAttributeCombo().getUid() );
-        }
-
-        loop:
         for ( String optionCombo : attributeOptionCombos )
         {
             if ( context.isAnalysisComplete() )
             {
-                break loop;
+                break;
             }
 
             if ( NON_AOC.compareTo( optionCombo ) == 0 )
@@ -321,7 +313,10 @@ public class DataValidationTask
             }
         }
 
-        return !expressionIsTrue( leftSide, ruleX.getRule().getOperator(), rightSide );
+        String test = leftSide
+            + ruleX.getRule().getOperator().getMathematicalOperator()
+            + rightSide;
+        return ! (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
     }
 
     /**
@@ -488,8 +483,8 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue(
-                expression.getExpression(), values, context.getConstantMap(), null,
+            Double value = expressionService.getExpressionValue( expression.getExpression(),
+                VALIDATION_RULE_EXPRESSION, values, context.getConstantMap(), null,
                 period.getDaysInPeriod(), expression.getMissingValueStrategy() );
 
             if ( MathUtils.isValidDouble( value ) )
@@ -700,7 +695,7 @@ public class DataValidationTask
             String dx = (String) row.get( dxInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
             String ou = (String) row.get( ouInx );
-            Double vl = (Double) row.get( vlInx );
+            Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
 
             OrganisationUnit orgUnit = ouLookup.get( ou );
             DimensionalItemObject analyticsItem = dxLookup.get( dx );

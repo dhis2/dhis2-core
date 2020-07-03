@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.planner;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ public class QueryPlan
 
     private final Query nonPersistedQuery;
 
-    public QueryPlan( Query persistedQuery, Query nonPersistedQuery )
+    private QueryPlan( Query persistedQuery, Query nonPersistedQuery )
     {
         this.persistedQuery = persistedQuery;
         this.nonPersistedQuery = nonPersistedQuery;
@@ -95,6 +95,39 @@ public class QueryPlan
         if ( nonPersistedQuery != null )
         {
             nonPersistedQuery.setUser( user );
+        }
+    }
+
+    public static final class QueryPlanBuilder
+    {
+        private Query persistedQuery;
+
+        private Query nonPersistedQuery;
+
+        private QueryPlanBuilder()
+        {
+        }
+
+        public static QueryPlanBuilder newBuilder()
+        {
+            return new QueryPlanBuilder();
+        }
+
+        public QueryPlanBuilder persistedQuery( Query persistedQuery )
+        {
+            this.persistedQuery = persistedQuery;
+            return this;
+        }
+
+        public QueryPlanBuilder nonPersistedQuery( Query nonPersistedQuery )
+        {
+            this.nonPersistedQuery = nonPersistedQuery;
+            return this;
+        }
+
+        public QueryPlan build()
+        {
+            return new QueryPlan( persistedQuery, nonPersistedQuery );
         }
     }
 }

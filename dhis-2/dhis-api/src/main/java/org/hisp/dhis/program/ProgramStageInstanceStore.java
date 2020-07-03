@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -97,6 +97,14 @@ public interface ProgramStageInstanceStore
      * @return true/false depending on result
      */
     boolean existsIncludingDeleted( String uid );
+
+    /**
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
+    List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
      * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.

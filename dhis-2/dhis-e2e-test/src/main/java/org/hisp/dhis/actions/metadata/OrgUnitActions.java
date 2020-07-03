@@ -1,60 +1,32 @@
-/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.hisp.dhis.actions.metadata;
+
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
@@ -80,7 +52,7 @@ public class OrgUnitActions
      * @param orgUnit
      * @return
      */
-    public ApiResponse sendCreateRequest( final OrgUnit orgUnit )
+    public ApiResponse post( final OrgUnit orgUnit )
     {
         JsonObject object = JsonParserUtils.toJsonObject( orgUnit );
         if ( orgUnit.getParent() != null )
@@ -97,26 +69,21 @@ public class OrgUnitActions
      * Generates dummy org unit and sends POST request to create it.
      * @return
      */
-    public ApiResponse sendCreateRequest()
+    public ApiResponse postDummyOrgUnit()
     {
-        return sendCreateRequest( generateDummyOrgUnit() );
+        return post( generateDummy() );
     }
 
-    public String createOrgUnit( final OrgUnit orgUnit )
+    public String create( final OrgUnit orgUnit )
     {
-        ApiResponse response = sendCreateRequest( orgUnit );
+        ApiResponse response = post( orgUnit );
 
         response.validate().statusCode( 201 );
 
         return response.extractString( "response.uid" );
     }
 
-    public ApiResponse updateOrgUnit( final String uid, final OrgUnit orgUnit )
-    {
-        return update( uid, orgUnit );
-    }
-
-    public OrgUnit generateDummyOrgUnit()
+    public OrgUnit generateDummy()
     {
         String randomString = DataGenerator.randomString();
 
@@ -130,15 +97,32 @@ public class OrgUnitActions
 
     public String createOrgUnit()
     {
-        return createOrgUnit( generateDummyOrgUnit() );
+        return create( generateDummy() );
     }
 
-    public String createOrgUnitWithParent( String parent )
+    public String createOrgUnit( int level )
     {
-        OrgUnit orgUnit = generateDummyOrgUnit();
+        OrgUnit orgUnit = generateDummy();
+        orgUnit.setLevel( level );
 
-        orgUnit.setParent( parent );
+        return create( orgUnit );
+    }
 
-        return createOrgUnit( orgUnit );
+    public String createOrgUnitWithParent( String parentId )
+    {
+        OrgUnit orgUnit = generateDummy();
+
+        orgUnit.setParent( parentId );
+
+        return create( orgUnit );
+    }
+
+    public String createOrgUnitWithParent( String parentId, int level )
+    {
+        OrgUnit orgUnit = generateDummy();
+        orgUnit.setLevel( level );
+        orgUnit.setParent( parentId );
+
+        return create( orgUnit );
     }
 }

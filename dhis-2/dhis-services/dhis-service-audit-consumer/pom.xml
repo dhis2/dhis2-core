@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>
   
   <artifactId>dhis-service-audit-consumer</artifactId>
@@ -27,11 +27,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-schema</artifactId>
+      <artifactId>dhis-support-audit</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-artemis</artifactId>
+      <artifactId>dhis-service-schema</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -40,6 +40,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>compile</scope>
     </dependency>
 
   </dependencies>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.objectmapper;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,10 +57,10 @@ public class DataValueRowMapper
         dataValue.setSource( new OrganisationUnit() );
         dataValue.setPeriod( new Period() );
 
-        dataValue.getDataElement().setId( resultSet.getInt( "dataelementid" ) );
-        dataValue.getPeriod().setId( resultSet.getInt( "periodid" ) );
-        dataValue.getSource().setId( resultSet.getInt( "sourceid" ) );
-        dataValue.getCategoryOptionCombo().setId( resultSet.getInt( "categoryoptioncomboid" ) );
+        dataValue.getDataElement().setId( resultSet.getLong( "dataelementid" ) );
+        dataValue.getPeriod().setId( resultSet.getLong( "periodid" ) );
+        dataValue.getSource().setId( resultSet.getLong( "sourceid" ) );
+        dataValue.getCategoryOptionCombo().setId( resultSet.getLong( "categoryoptioncomboid" ) );
         dataValue.setValue( resultSet.getString( "value" ) );
         dataValue.setStoredBy( resultSet.getString( "storedby" ) );
         dataValue.setCreated( resultSet.getDate( "created" ) );

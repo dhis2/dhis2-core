@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -43,9 +43,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Every.everyItem;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -92,7 +94,7 @@ public class UserAssignmentFilterTests
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
         userActions.addURoleToUser( userId, "yrB6vc5Ip7r" );
-        
+
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }
 
@@ -110,9 +112,9 @@ public class UserAssignmentFilterTests
         loginActions.loginAsSuperUser();
         ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId );
 
-        response.validate().statusCode( 200 );
-        assertEquals( 4, response.extractList( "events" ).size() );
-        assertThat( response.extractList( "events.assignedUser" ), everyItem( Matchers.equalTo( userId ) ) );
+        response.validate().statusCode( 200 )
+            .body( "events", hasSize( 4 ) )
+            .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
     @Test
@@ -122,13 +124,12 @@ public class UserAssignmentFilterTests
         loginActions.loginAsUser( userUsername, userPassword );
 
         // act
-        ApiResponse response = eventActions.get( "?orgUnit=" +orgUnit + "&assignedUserMode=CURRENT" );
+        ApiResponse response = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" );
 
         // assert
-        response.validate().statusCode( 200 );
-
-        assertEquals( 4, response.extractList( "events" ).size() );
-        assertThat( response.extractList( "events.assignedUser" ), everyItem( Matchers.equalTo( userId ) ) );
+        response.validate().statusCode( 200 )
+            .body( "events", hasSize( 4 ) )
+            .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
     @Test
@@ -139,8 +140,8 @@ public class UserAssignmentFilterTests
 
         String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
             .extractString( "events.event[0]" );
-        assertNotNull( eventId, "Event was not found" );
 
+        assertNotNull( eventId, "Event was not found" );
         unassignEvent( eventId );
 
         // act
@@ -148,15 +149,14 @@ public class UserAssignmentFilterTests
         ApiResponse unassignedEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=NONE" );
 
         // assert
-        currentUserEvents.validate().statusCode( 200 );
-        assertThat( currentUserEvents.extractList( "events.event" ), Matchers.not(  Matchers.hasItem( eventId ) ));
+        currentUserEvents.validate().statusCode( 200 )
+            .body( "events", notNullValue() )
+            .body( "events.event", not( hasItem( eventId ) ) );
 
-        unassignedEvents.validate().statusCode( 200 );
-
-        assertThat( unassignedEvents.extractList( "events.event" ),  Matchers.hasItem( eventId ) ) ;
-        assertThat( unassignedEvents.extractList( "events.assignedUser" ), everyItem( Matchers.isEmptyOrNullString(  ) ) );
-
-
+        unassignedEvents.validate().statusCode( 200 )
+            .body( "events", notNullValue() )
+            .body( "events.event", hasItem( eventId ) )
+            .body( "events.assignedUser", everyItem( isEmptyOrNullString() ) );
     }
 
     @Test
@@ -164,6 +164,7 @@ public class UserAssignmentFilterTests
     {
         // arrange
         loginActions.loginAsUser( userUsername, userPassword );
+
         String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
             .extractString( "events.event[0]" );
         assertNotNull( eventId, "Event was not found" );
@@ -176,16 +177,15 @@ public class UserAssignmentFilterTests
         ApiResponse activeEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=ACTIVE" );
 
         // assert
-        filteredEvents.validate().statusCode( 200 );
-        assertEquals( 1, filteredEvents.extractList( "events" ).size() );
-        assertThat( filteredEvents.extractList( "events.assignedUser" ), everyItem( Matchers.equalTo( userId ) ) );
-        assertThat( filteredEvents.extractList( "events.status" ), everyItem( Matchers.equalTo( status ) ) );
+        filteredEvents.validate().statusCode( 200 )
+            .body( "events", hasSize( 1 ) )
+            .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
+            .body( "events.status", everyItem( equalTo( status ) ) );
 
-        activeEvents.validate().statusCode( 200 );
-        assertEquals( 3, activeEvents.extractList( "events" ).size() );
-        assertThat( activeEvents.extractList( "events.assignedUser" ), everyItem( Matchers.equalTo( userId ) ) );
-        assertThat( activeEvents.extractList( "events.status" ), everyItem( Matchers.equalTo( "ACTIVE" ) ) );
-
+        activeEvents.validate().statusCode( 200 )
+            .body( "events", hasSize( 3 ) )
+            .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
+            .body( "events.status", everyItem( equalTo( "ACTIVE" ) ) );
     }
 
     private ApiResponse createEvents( Object body )

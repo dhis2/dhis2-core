@@ -1,7 +1,7 @@
 package org.hisp.dhis.translation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,11 @@ public enum TranslationProperty
     NAME ( "name" ),
     SHORT_NAME ( "shortName" ),
     DESCRIPTION ("description" ),
-    FORM_NAME ( "formName" );
+    FORM_NAME ( "formName" ),
+    NUMERATOR_DESCRIPTION ( "numeratorDescription" ),
+    DENOMINATOR_DESCRIPTION ( "denominatorDescription" ),
+    RELATIONSHIP_FROM_TO_NAME ("fromToName" ),
+    RELATIONSHIP_TO_FROM_NAME ("toFromName" );
 
     private String name;
 
@@ -49,7 +53,7 @@ public enum TranslationProperty
     {
         for ( TranslationProperty type : TranslationProperty.values() )
         {
-            if ( type.name().equalsIgnoreCase( value ) )
+            if ( type.getName().equalsIgnoreCase( value ) )
             {
                 return type;
             }

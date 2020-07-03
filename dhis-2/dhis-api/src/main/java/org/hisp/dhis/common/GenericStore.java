@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,8 @@ public interface GenericStore<T>
      */
     T get( long id );
 
+    long countAllValuesByAttributes( List<Attribute> attributes );
+
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
     /**
@@ -104,4 +106,7 @@ public interface GenericStore<T>
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
 
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
+
+    List<T> getAllByAttributeAndValues( Attribute attribute, List<String> values );
+
 }

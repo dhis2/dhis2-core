@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,20 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.MapViewRenderingStrategy;
 import org.hisp.dhis.mapping.MapViewStore;
+import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStatus;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -64,7 +69,8 @@ public class AnalyticalObjectStoreTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Resource( name = "org.hisp.dhis.mapping.MapViewStore" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.mapping.MapViewStore" )
     private MapViewStore mapViewStore;
 
     @Override
@@ -86,9 +92,9 @@ public class AnalyticalObjectStoreTest
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
 
-        mvA = new MapView( MapView.LAYER_THEMATIC1 );
-        mvB = new MapView( MapView.LAYER_THEMATIC1 );
-        mvC = new MapView( MapView.LAYER_THEMATIC1 );
+        mvA = createMapView( MapView.LAYER_THEMATIC1 );
+        mvB = createMapView( MapView.LAYER_THEMATIC2 );
+        mvC = createMapView( MapView.LAYER_THEMATIC3 );
 
         mvA.addDataDimensionItem( inA );
         mvA.getOrganisationUnits().add( ouA );
@@ -122,5 +128,19 @@ public class AnalyticalObjectStoreTest
 
         assertTrue( actual.contains( mvA ) );
         assertTrue( actual.contains( mvB ) );
+    }
+
+    @Test
+    public void testAssertProperties()
+    {
+        MapView mapView = mapViewStore.getByUid( mvA.getUid() );
+
+        assertEquals( AggregationType.SUM, mapView.getAggregationType() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
+        assertEquals( ProgramStatus.COMPLETED, mapView.getProgramStatus() );
+        assertEquals( OrganisationUnitSelectionMode.DESCENDANTS, mapView.getOrganisationUnitSelectionMode() );
+        assertEquals( MapViewRenderingStrategy.SINGLE, mapView.getRenderingStrategy() );
+        assertEquals( UserOrgUnitType.DATA_CAPTURE, mapView.getUserOrgUnitType() );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
     }
 }

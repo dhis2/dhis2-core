@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,8 +195,8 @@ public class ReportController
             throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
         }
 
-        if ( organisationUnitUid == null && report.hasReportTable() && report.getReportTable().hasReportParams()
-            && report.getReportTable().getReportParams().isOrganisationUnitSet() )
+        if ( organisationUnitUid == null && report.hasVisualization() && report.getVisualization().hasReportingParams()
+            && report.getVisualization().getReportingParams().isOrganisationUnitSet() )
         {
             List<OrganisationUnit> rootUnits = organisationUnitService.getRootOrganisationUnits();
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.message.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +26,18 @@ package org.hisp.dhis.message.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.message.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -45,12 +50,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -67,11 +66,10 @@ public class HibernateMessageConversationStore
     private StatementBuilder statementBuilder;
 
     public HibernateMessageConversationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
         StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService, false );
 
         checkNotNull( statementBuilder );
 
@@ -149,10 +147,10 @@ public class HibernateMessageConversationStore
 
         String hql = "select count(*) from MessageConversation m join m.userMessages u where u.user = :user and u.read = false";
 
-        Query query = getQuery( hql );
+        Query<Long> query = getTypedQuery( hql );
         query.setParameter( "user", user );
 
-        return (Long) query.uniqueResult();
+        return query.uniqueResult();
     }
 
     @Override
@@ -167,9 +165,9 @@ public class HibernateMessageConversationStore
 
         String hql = "delete Message m where m.sender = :sender";
 
-        Query query = getQuery( hql );
-        query.setParameter( "sender", sender );
-        return query.executeUpdate();
+        return getQuery( hql )
+            .setParameter( "sender", sender )
+            .executeUpdate();
     }
 
     @Override
@@ -184,9 +182,9 @@ public class HibernateMessageConversationStore
 
         String hql = "delete UserMessage u where u.user = :user";
 
-        Query query = getQuery( hql );
-        query.setParameter( "user", user );
-        return query.executeUpdate();
+        return getQuery( hql )
+            .setParameter( "user", user )
+            .executeUpdate();
     }
 
     @Override
@@ -196,9 +194,9 @@ public class HibernateMessageConversationStore
 
         String hql = "update MessageConversation m set m.lastSender = null where m.lastSender = :lastSender";
 
-        Query query = getQuery( hql );
-        query.setParameter( "lastSender", lastSender );
-        return query.executeUpdate();
+        return getQuery( hql )
+            .setParameter( "lastSender", lastSender )
+            .executeUpdate();
     }
 
     @Override

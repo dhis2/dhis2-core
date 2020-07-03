@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapgeneration;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -346,7 +346,7 @@ public class GeoToolsMapGenerationService
                 int valueIndex = row.size() - 1;
 
                 String ou = (String) row.get( ouIndex );
-                Double value = (Double) row.get( ( valueIndex ) );
+                Double value = ( (Number) row.get( valueIndex ) ).doubleValue();
 
                 mapValues.add( new MapValue( ou, value ) );
             }

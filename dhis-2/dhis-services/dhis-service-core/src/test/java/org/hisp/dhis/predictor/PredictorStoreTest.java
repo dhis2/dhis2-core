@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -58,18 +57,15 @@ public class PredictorStoreTest
 
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private ExpressionService expressionService;
-
     private OrganisationUnitLevel orgUnitLevel1;
-    
+
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -88,8 +84,12 @@ public class PredictorStoreTest
 
     private Expression expressionB;
 
+    private Expression expressionC;
+
+    private Expression expressionD;
+
     private PeriodType periodType;
-    
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -99,9 +99,9 @@ public class PredictorStoreTest
         throws Exception
     {
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
-        
+
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
-        
+
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );
@@ -122,9 +122,9 @@ public class PredictorStoreTest
 
         expressionA = new Expression( "expressionA", "descriptionA" );
         expressionB = new Expression( "expressionB", "descriptionB" );
+        expressionC = new Expression( "expressionC", "descriptionC" );
+        expressionD = new Expression( "expressionD", "descriptionD" );
 
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionA );
 
         periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
     }
@@ -137,7 +137,8 @@ public class PredictorStoreTest
     public void testSavePredictor()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
+            orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         long idA = predictorA.getId();
@@ -217,7 +218,8 @@ public class PredictorStoreTest
     public void testDeletePredictor()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
+            orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         long idA = predictorA.getId();
@@ -246,7 +248,8 @@ public class PredictorStoreTest
     public void testGetAllPredictors()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
+            orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         predictorStore.save( predictorB );
@@ -262,7 +265,8 @@ public class PredictorStoreTest
     public void testGetPredictorByName()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
+            orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         long id = predictorA.getId();
@@ -289,17 +293,13 @@ public class PredictorStoreTest
         dataElementsD.addAll( dataElementsA );
         dataElementsD.addAll( dataElementsB );
 
-        Expression expression1 = new Expression( "Expression1", "Expression1" );
-        Expression expression2 = new Expression( "Expression2", "Expression2" );
-        Expression expression3 = new Expression( "Expression3", "Expression3" );
-
-        expressionService.addExpression( expression1 );
-        expressionService.addExpression( expression2 );
-        expressionService.addExpression( expression3 );
-
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorC = createPredictor( dataElementX, defaultCombo, "C", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
+            orgUnitLevel1, 6, 1, 0 );
+        Expression generator = new Expression( "expressionE", "expressionE" );
+        Expression skipTest = new Expression( "expressionF", "expressionF" );
+        Predictor predictorC = createPredictor( dataElementX, defaultCombo, "C",
+            generator, skipTest, periodType, orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         predictorStore.save( predictorB );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,8 +75,6 @@ public class DefaultSchemaService
         add( new CategoryOptionSchemaDescriptor() ).
         add( new CategorySchemaDescriptor() ).
         add( new ChartSchemaDescriptor() ).
-        add( new ColorSchemaDescriptor() ).
-        add( new ColorSetSchemaDescriptor() ).
         add( new ConstantSchemaDescriptor() ).
         add( new DashboardItemSchemaDescriptor() ).
         add( new DashboardSchemaDescriptor() ).
@@ -93,6 +91,7 @@ public class DefaultSchemaService
         add( new DocumentSchemaDescriptor() ).
         add( new EventChartSchemaDescriptor() ).
         add( new EventReportSchemaDescriptor() ).
+        add( new ExpressionSchemaDescriptor() ).
         add( new FileResourceSchemaDescriptor() ).
         add( new IconSchemaDescriptor() ).
         add( new IndicatorGroupSchemaDescriptor() ).
@@ -173,6 +172,7 @@ public class DefaultSchemaService
         add( new ProgramStageInstanceSchemaDescriptor() ).
         add( new ProgramInstanceSchemaDescriptor() ).
         add( new ProgramStageInstanceFilterSchemaDescriptor() ).
+        add( new VisualizationSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -214,7 +214,7 @@ public class DefaultSchemaService
             }
             catch ( MappingException e )
             {
-                // class is not persisted with Hibernate
+                // Class is not persisted with Hibernate
                 schema.setPersisted( false );
             }
 

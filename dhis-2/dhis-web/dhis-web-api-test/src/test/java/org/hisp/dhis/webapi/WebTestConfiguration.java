@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,21 +56,23 @@ import org.springframework.stereotype.Service;
 
 }, excludeFilters = @Filter(Configuration.class))
 @Import( {
-        JdbcConfig.class,
-        HibernateConfig.class,
-        FlywayConfig.class,
-        EncryptionConfig.class,
-        ServiceConfig.class,
-        StoreConfig.class,
-        LeaderElectionConfiguration.class,
-        org.hisp.dhis.setting.config.ServiceConfig.class,
-        org.hisp.dhis.external.config.ServiceConfig.class,
-        org.hisp.dhis.dxf2.config.ServiceConfig.class,
-        org.hisp.dhis.support.config.ServiceConfig.class,
-        org.hisp.dhis.validation.config.ServiceConfig.class,
-        org.hisp.dhis.validation.config.StoreConfig.class,
-        org.hisp.dhis.reporting.config.StoreConfig.class,
-        org.hisp.dhis.analytics.config.ServiceConfig.class} )
+    JdbcConfig.class,
+    HibernateConfig.class,
+    FlywayConfig.class,
+    EncryptionConfig.class,
+    ServiceConfig.class,
+    StoreConfig.class,
+    LeaderElectionConfiguration.class,
+    org.hisp.dhis.setting.config.ServiceConfig.class,
+    org.hisp.dhis.external.config.ServiceConfig.class,
+    org.hisp.dhis.dxf2.config.ServiceConfig.class,
+    org.hisp.dhis.support.config.ServiceConfig.class,
+    org.hisp.dhis.validation.config.ServiceConfig.class,
+    org.hisp.dhis.validation.config.StoreConfig.class,
+    org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
+    org.hisp.dhis.reporting.config.StoreConfig.class,
+    org.hisp.dhis.analytics.config.ServiceConfig.class,
+    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class } )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )

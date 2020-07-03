@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ public class JsonJobParametersType extends JsonBinaryType
 
     static
     {
-        MAPPER.enableDefaultTyping();
+        MAPPER.enableDefaultTyping(); //TODO remove?
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 

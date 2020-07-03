@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,8 +70,8 @@ public class DataSetOrganisationUnitCategoryResourceTable
     public String getCreateTempTableStatement()
     {
         return "create table " + getTempTableName() + " " +
-            "(datasetid integer not null, organisationunitid integer not null, " +
-            "attributeoptioncomboid integer not null, costartdate date, coenddate date)";
+            "(datasetid bigint not null, organisationunitid bigint not null, " +
+            "attributeoptioncomboid bigint not null, costartdate date, coenddate date)";
     }
 
     @Override

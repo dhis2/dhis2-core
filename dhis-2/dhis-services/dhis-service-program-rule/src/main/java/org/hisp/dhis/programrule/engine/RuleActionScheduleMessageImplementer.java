@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -45,32 +46,28 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair Asghar.
  */
+@Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
-    private static final Log log = LogFactory.getLog( RuleActionScheduleMessageImplementer.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final NotificationLoggingService notificationLoggingService;
-
     private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
 
-    public RuleActionScheduleMessageImplementer( NotificationLoggingService notificationLoggingService,
-        @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" ) IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
+    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService,
+         @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
     {
-
-        checkNotNull( notificationLoggingService );
-        checkNotNull( programNotificationInstanceStore );
-
-        this.notificationLoggingService = notificationLoggingService;
+        super(programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService);
         this.programNotificationInstanceStore = programNotificationInstanceStore;
     }
 
@@ -144,6 +141,22 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         notificationLoggingService.save( entry );
 
     }
+
+    @Override
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
 
     private boolean isDateValid( String date )
     {

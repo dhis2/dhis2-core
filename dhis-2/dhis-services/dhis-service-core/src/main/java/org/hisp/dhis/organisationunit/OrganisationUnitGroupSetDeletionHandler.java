@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,19 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
 @Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" )
 public class OrganisationUnitGroupSetDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
@@ -58,7 +59,7 @@ public class OrganisationUnitGroupSetDeletionHandler
     {
         return OrganisationUnitGroupSet.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {

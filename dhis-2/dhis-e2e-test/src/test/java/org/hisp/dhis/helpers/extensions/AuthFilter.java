@@ -1,5 +1,7 @@
+package org.hisp.dhis.helpers.extensions;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers.extensions;
-
 import io.restassured.authentication.NoAuthScheme;
 import io.restassured.authentication.PreemptiveBasicAuthScheme;
 import io.restassured.filter.FilterContext;
@@ -42,6 +42,7 @@ public class AuthFilter
     implements io.restassured.spi.AuthFilter
 {
     private String lastLoggedInUser = "";
+    private String lastLoggedInUserPsw= "";
 
     @Override
     public Response filter( FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec,
@@ -55,10 +56,12 @@ public class AuthFilter
             }
 
             lastLoggedInUser = "";
+            lastLoggedInUserPsw = "";
         }
 
-        if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme &&
-            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser )
+        if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme && (
+            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser ||
+            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword() != lastLoggedInUserPsw ) )
         {
             if ( hasSessionCookie( requestSpec ) )
             {
@@ -66,6 +69,7 @@ public class AuthFilter
             }
 
             lastLoggedInUser = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName();
+            lastLoggedInUserPsw = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword();
         }
 
         final Response response = ctx.next( requestSpec, responseSpec );

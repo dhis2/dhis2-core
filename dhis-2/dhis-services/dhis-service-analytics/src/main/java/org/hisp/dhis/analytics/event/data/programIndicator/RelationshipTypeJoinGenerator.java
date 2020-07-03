@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event.data.programIndicator;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,10 +28,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.event.data.programIndicator;
-
 import org.hisp.dhis.program.AnalyticsType;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 
@@ -48,7 +51,7 @@ public class RelationshipTypeJoinGenerator
     /**
      * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related entities, based
      * on the selected relationship type
-     * 
+     *
      * @param alias the table alias to use for the main analytics table
      * @param relationshipType the type of relationship to fetch data for
      * @param programIndicatorType the type or Program Indicator that is used for
@@ -84,7 +87,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
         default:
-            throw new IllegalQueryException( "Non valid Relationship Entity type: " + relationshipEntity.getName() );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
         }
     }
 
@@ -99,7 +102,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return (programIndicatorType.equals( AnalyticsType.EVENT ) ? getEvent( alias ) : getEnrollment( alias ));
         }
-        throw new IllegalQueryException( "Non valid Relationship Entity type: " + relationshipEntity.getName() );
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
     }
 
     private static String getTei( String alias )
@@ -120,13 +123,15 @@ public class RelationshipTypeJoinGenerator
             + " LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid ";
     }
 
-    private static String addRelationshipWhereClause( Long relationshipTypeId, RelationshipEntity toRelationshipEntity )
+    private static String addRelationshipWhereClause( Long relationshipTypeId, RelationshipEntity relationshipEntity )
     {
-        String sql = new org.apache.commons.text.StrSubstitutor(
+        String sql = new StringSubstitutor(
             ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipTypeId ).build() )
                 .replace( RELATIONSHIP_JOIN );
+
         sql += " AND ";
-        switch ( toRelationshipEntity )
+
+        switch ( relationshipEntity )
         {
         case TRACKED_ENTITY_INSTANCE:
             return sql + "tei.uid = ax.tei ";
@@ -135,7 +140,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return sql + "pi.uid = ax.pi ";
         default:
-            throw new IllegalQueryException( "Non valid Relationship Entity type: " + toRelationshipEntity.getName() );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
         }
     }
 }

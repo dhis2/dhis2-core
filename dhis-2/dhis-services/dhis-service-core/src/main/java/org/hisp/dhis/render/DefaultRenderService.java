@@ -1,7 +1,7 @@
 package org.hisp.dhis.render;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,20 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
-import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -63,7 +49,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -76,22 +61,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.render.RenderService" )
 public class DefaultRenderService
     implements RenderService
 {
-    private static final Log log = LogFactory.getLog( RenderService.class );
+    private final ObjectMapper jsonMapper;
 
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
-
-    private static final XmlMapper xmlMapper = new XmlMapper();
+    private final ObjectMapper xmlMapper;
 
     private SchemaService schemaService;
 
-    public DefaultRenderService( SchemaService schemaService )
+    public DefaultRenderService(
+        @Qualifier( "jsonMapper" ) ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper,
+        SchemaService schemaService )
     {
+        checkNotNull( jsonMapper );
+        checkNotNull( xmlMapper );
         checkNotNull( schemaService );
 
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
         this.schemaService = schemaService;
     }
 
@@ -287,54 +278,5 @@ public class DefaultRenderService
         }
 
         return metadataVersions;
-    }
-
-    //--------------------------------------------------------------------------
-    // Helpers
-    //--------------------------------------------------------------------------
-
-    public static ObjectMapper getJsonMapper()
-    {
-        return jsonMapper;
-    }
-
-    public static XmlMapper getXmlMapper()
-    {
-        return xmlMapper;
-    }
-
-    static
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        ObjectMapper[] objectMappers = new ObjectMapper[]{ jsonMapper, xmlMapper };
-
-        for ( ObjectMapper objectMapper : objectMappers )
-        {
-            objectMapper.registerModules( module, new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ) );
-
-            objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-            objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-            objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
-            objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
-            objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
-
-            objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-            objectMapper.disable( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY );
-            objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
-            objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
-
-            objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
-            objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
-            objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
-            objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
-            objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-        }
-
-        jsonMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
-        xmlMapper.enable( ToXmlGenerator.Feature.WRITE_XML_DECLARATION );
     }
 }

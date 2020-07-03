@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.dimension;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,16 +98,14 @@ public class DefaultAnalyticsDimensionService
                 .flatMap( c -> c.stream() )
                 .filter( Category::isDataDimension )
                 .collect( Collectors.toSet() ) );
-
-            //TODO data set elements
         }
 
         dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
 
-        //TODO filter org unit group sets
+        //TODO Filter org unit group sets
 
         return dimensions.stream()
-            .filter( d -> aclService.canDataRead( user, d ) )
+            .filter( d -> aclService.canDataOrMetadataRead( user, d ) )
             .sorted()
             .collect( Collectors.toList() );
     }

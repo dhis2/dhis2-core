@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -481,8 +482,8 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.expressionIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
-            .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
+            .thenThrow( new ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
 
@@ -502,8 +503,8 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
-            .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
+            .thenThrow( new ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 
@@ -525,7 +526,7 @@ public class DataIntegrityServiceTest
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 
-        verify( expressionService, times( 0 ) ).getIndicatorExpressionDescription( anyString() );
+        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), any() );
         assertNotNull( invalidExpressions );
         assertTrue( invalidExpressions.isEmpty() );
     }

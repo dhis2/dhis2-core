@@ -1,7 +1,7 @@
 package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,8 @@ package org.hisp.dhis.system;
  */
 
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
@@ -58,7 +57,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -66,12 +64,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.system.SystemService" )
 public class DefaultSystemService
     implements SystemService, InitializingBean
 {
-    private static final Log log = LogFactory.getLog( DefaultSystemService.class );
-
     private final LocationManager locationManager;
 
     private final DatabaseInfo databaseInfo;
@@ -145,6 +142,8 @@ public class DefaultSystemService
 
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        Date lastAnalyticsTablePartitionSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        String lastAnalyticsTablePartitionRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME );
         Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = dhisConfig.getServerBaseUrl();
@@ -154,10 +153,17 @@ public class DefaultSystemService
         info.setCalendar( calendarService.getSystemCalendar().name() );
         info.setDateFormat( calendarService.getSystemDateFormat().getJs() );
         info.setServerDate( new Date() );
+
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
-        info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
+
+        info.setLastAnalyticsTablePartitionSuccess( lastAnalyticsTablePartitionSuccess );
+        info.setIntervalSinceLastAnalyticsTablePartitionSuccess( DateUtils.getPrettyInterval( lastAnalyticsTablePartitionSuccess, now ) );
+        info.setLastAnalyticsTablePartitionRuntime( lastAnalyticsTablePartitionRuntime );
+
+        info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
+
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
         info.setEmailConfigured( systemSettingManager.emailConfigured() );
@@ -226,7 +232,7 @@ public class DefaultSystemService
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
         info.setSystemId( config.getSystemId() );
         info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
-        info.setRedisEnabled( Boolean.valueOf( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
+        info.setRedisEnabled( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
 
         if ( info.isRedisEnabled() )
         {
@@ -239,15 +245,6 @@ public class DefaultSystemService
 
         info.setDatabaseInfo( databaseInfo.instance() );
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
-
-        // ---------------------------------------------------------------------
-        // Metadata Audit
-        // ---------------------------------------------------------------------
-
-        info.setMetadataAudit( new MetadataAudit(
-            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" ),
-            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
-        ) );
 
         // ---------------------------------------------------------------------
         // System env variables and properties

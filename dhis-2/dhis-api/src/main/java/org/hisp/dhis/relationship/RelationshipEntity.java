@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,9 @@ import static java.util.stream.Collectors.toMap;
 
 public enum RelationshipEntity
 {
-    TRACKED_ENTITY_INSTANCE( "tracked_entity" ), PROGRAM_INSTANCE( "enrollment" ), PROGRAM_STAGE_INSTANCE( "event" );
+    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
+    PROGRAM_INSTANCE( "enrollment" ),
+    PROGRAM_STAGE_INSTANCE( "event" );
 
     private String name;
 

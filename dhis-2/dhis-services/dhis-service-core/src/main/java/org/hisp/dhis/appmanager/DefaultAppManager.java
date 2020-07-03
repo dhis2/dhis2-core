@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,38 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
-import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Saptarshi Purkayastha
  */
+@Slf4j
 @Component( "org.hisp.dhis.appmanager.AppManager" )
 public class DefaultAppManager
     implements AppManager
 {
-    private static final Log log = LogFactory.getLog( DefaultAppManager.class );
-
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
     private final CurrentUserService currentUserService;
@@ -77,8 +73,8 @@ public class DefaultAppManager
     private final CacheProvider cacheProvider;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
-                             LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
-                             KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+        LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
+        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
@@ -277,9 +273,15 @@ public class DefaultAppManager
     }
 
     @Override
-    public String getAppStoreUrl()
+    public String getAppHubUrl()
     {
-        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
+        String baseUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
+        String apiUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
+
+        return "{" +
+                "\"baseUrl\": \"" + baseUrl + "\", " +
+                "\"apiUrl\": \"" + apiUrl + "\"" +
+                "}";
     }
 
     /**
@@ -329,14 +331,6 @@ public class DefaultAppManager
         throws IOException
     {
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
-    }
-
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        appCache.invalidateAll();
-        log.info( "App cache cleared" );
     }
 
     // -------------------------------------------------------------------------

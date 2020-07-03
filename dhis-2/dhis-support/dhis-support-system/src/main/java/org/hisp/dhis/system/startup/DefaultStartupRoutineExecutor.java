@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.startup;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ package org.hisp.dhis.system.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,12 +46,11 @@ import java.util.List;
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
+@Slf4j
 @Component( "org.hisp.dhis.system.startup.StartupRoutineExecutor" )
 public class DefaultStartupRoutineExecutor
     implements StartupRoutineExecutor
 {
-    private static final Log log = LogFactory.getLog( DefaultStartupRoutineExecutor.class );
-
     private static final String TRUE = "true";
     private static final String SKIP_PROP = "dhis.skip.startup";
 

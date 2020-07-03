@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 
@@ -136,6 +137,12 @@ public class MapView
 
     private LegendSet legendSet;
 
+    /**
+     * Color in hex format to use for features with no corresponding
+     * data. Must be exactly 7 characters.
+     */
+    private String noDataColor;
+
     private Integer radiusLow;
 
     private Integer radiusHigh;
@@ -167,6 +174,8 @@ public class MapView
     private int eventPointRadius;
 
     private MapViewRenderingStrategy renderingStrategy;
+
+    private ThematicMapType thematicMapType;
 
     /**
      * General configuration property for JSON values used to store information
@@ -524,6 +533,20 @@ public class MapView
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 7, max = 7 )
+    public String getNoDataColor()
+    {
+        return noDataColor;
+    }
+
+    public void setNoDataColor( String noDataColor )
+    {
+        this.noDataColor = noDataColor;
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Integer getRadiusLow()
     {
@@ -714,6 +737,18 @@ public class MapView
     public void setRenderingStrategy( MapViewRenderingStrategy renderingStrategy )
     {
         this.renderingStrategy = renderingStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ThematicMapType getThematicMapType()
+    {
+        return thematicMapType;
+    }
+
+    public void setThematicMapType( ThematicMapType thematicMapType )
+    {
+        this.thematicMapType = thematicMapType;
     }
 
     @JsonProperty

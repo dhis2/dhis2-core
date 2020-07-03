@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.domain;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,96 +29,26 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Stian Sandvold
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RelationshipItem
 {
-    private TrackedEntity trackedEntity;
-
-    private Enrollment enrollment;
-
-    private Event event;
-
-    public RelationshipItem()
-    {
-
-    }
+    @JsonProperty
+    private String trackedEntity;
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
-    {
-        return trackedEntity;
-    }
-
-    public void setTrackedEntity( TrackedEntity trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
+    private String enrollment;
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Enrollment getEnrollment()
-    {
-        return enrollment;
-    }
-
-    public void setEnrollment( Enrollment enrollment )
-    {
-        this.enrollment = enrollment;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Event getEvent()
-    {
-        return event;
-    }
-
-    public void setEvent( Event event )
-    {
-        this.event = event;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "RelationshipItem{" +
-            "trackedEntityInstance=" + trackedEntity.getTrackedEntity() +
-            ", enrollment=" + enrollment.getEnrollment() +
-            ", event=" + event.getEvent() +
-            '}';
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        RelationshipItem that = (RelationshipItem) o;
-
-        return (trackedEntity != null && that.trackedEntity != null &&
-            Objects.equals( trackedEntity.getTrackedEntity(),
-                that.trackedEntity.getTrackedEntity() )) ||
-            (enrollment != null && that.enrollment != null &&
-                Objects.equals( enrollment.getEnrollment(), that.enrollment.getEnrollment() )) ||
-            (event != null && that.event != null &&
-                Objects.equals( event.getEvent(), that.event.getEvent() ));
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( trackedEntity, enrollment, event );
-    }
+    private String event;
 }

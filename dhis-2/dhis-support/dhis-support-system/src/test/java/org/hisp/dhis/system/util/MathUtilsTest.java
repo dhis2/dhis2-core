@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,6 @@ package org.hisp.dhis.system.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.expression.Operator.greater_than;
-import static org.hisp.dhis.expression.Operator.greater_than_or_equal_to;
-import static org.hisp.dhis.expression.Operator.less_than;
-import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
-import static org.hisp.dhis.expression.Operator.not_equal_to;
-import static org.hisp.dhis.system.util.MathUtils.expressionIsTrue;
 
 import java.util.Arrays;
 
@@ -50,30 +43,6 @@ import org.junit.Test;
 public class MathUtilsTest
 {
     private static final double DELTA = 0.0001;
-    
-    @Test
-    public void testExpressionIsTrueLeftRight()
-    {
-        assertFalse( expressionIsTrue( 20.0, equal_to, 10.0 ) );
-        assertTrue( expressionIsTrue( 20.0, not_equal_to, 10.0 ) );
-        assertTrue( expressionIsTrue( 20.0, greater_than, 10.0 ) );
-        assertTrue( expressionIsTrue( 20.0, greater_than_or_equal_to, 20.0 ) );
-        assertFalse( expressionIsTrue( 30.0, less_than, 15.0 ) );
-        assertTrue( expressionIsTrue( 40.0, less_than_or_equal_to, 50.0 ) );
-        assertFalse( expressionIsTrue( 0.0, greater_than_or_equal_to, 20.0 ) );
-    }
-
-    @Test
-    public void testExpressionIsTrue()
-    {
-        assertFalse( expressionIsTrue( "20.1 < 10.0" ) );
-        assertFalse( expressionIsTrue( "1 == 0" ) );
-        assertFalse( expressionIsTrue( "5 > 6" ) );
-
-        assertTrue( expressionIsTrue( "20.1 > 10.0" ) );
-        assertTrue( expressionIsTrue( "2 == 2" ) );
-        assertTrue( expressionIsTrue( "5 < 6" ) );
-    }
     
     @Test
     public void testGetMin()
@@ -377,23 +346,5 @@ public class MathUtilsTest
         assertEquals( -1.4, MathUtils.roundFraction( -1.357, 2 ), DELTA );
         assertEquals( -14.0, MathUtils.roundFraction( -13.57, 2 ), DELTA );
         assertEquals( -136.0, MathUtils.roundFraction( -135.7, 2 ), DELTA );
-    }
-
-    @Test
-    public void testFunctionExpression()
-    {
-        assertEquals( 3d, MathUtils.calculateExpression( "1+2" ), DELTA );
-        assertEquals( 3d, MathUtils.calculateExpression( "abs(3)" ), DELTA );
-        assertEquals( 3d, MathUtils.calculateExpression( "abs(-3)" ), DELTA );
-        assertEquals( 3d, MathUtils.calculateExpression( "abs(3-6)" ), DELTA );
-        assertEquals( 5d, MathUtils.calculateExpression( "sqrt(25)" ), DELTA );
-        assertEquals( 1d, MathUtils.calculateExpression( "mod(7,2)" ), DELTA );
-    }
-    
-    @Test
-    public void testCalculateExpression()
-    {
-        assertEquals( 84d, MathUtils.calculateExpression( "70/1000*12*100" ), DELTA );
-        assertEquals( 1158d, MathUtils.calculateExpression( "70+1000-12+100" ), DELTA );        
     }
 }

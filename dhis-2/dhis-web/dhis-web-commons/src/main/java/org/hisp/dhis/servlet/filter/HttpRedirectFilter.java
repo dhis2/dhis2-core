@@ -1,7 +1,7 @@
 package org.hisp.dhis.servlet.filter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,30 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: HttpRedirectFilter.java 2869 2007-02-20 14:26:09Z andegje $
  */
+@Slf4j
 public class HttpRedirectFilter
     implements Filter
 {
-    public static final String REDIRECT_PATH_KEY = "redirectPath";
+    private static final String REDIRECT_PATH_KEY = "redirectPath";
 
-    private static final Log log = LogFactory.getLog( HttpRedirectFilter.class );
-    
     private String redirectPath;
 
     // -------------------------------------------------------------------------
@@ -60,15 +60,13 @@ public class HttpRedirectFilter
 
     @Override
     public void init( FilterConfig config )
-        throws ServletException
     {
         redirectPath = config.getInitParameter( REDIRECT_PATH_KEY );
     }
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
-        throws IOException, ServletException
-    {
+        throws IOException {
         log.debug( "Redirecting to: " + redirectPath );
         
         HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -87,7 +85,6 @@ public class HttpRedirectFilter
 
         httpResponse.sendRedirect( redirectPath );
 
-        return;
     }
 
     @Override

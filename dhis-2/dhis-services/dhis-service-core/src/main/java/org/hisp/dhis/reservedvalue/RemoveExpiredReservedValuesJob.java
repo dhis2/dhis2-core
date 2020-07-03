@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Henning Håkonsen
  */
-@Component
+@Component( "removeExpiredReservedValuesJob" )
 public class RemoveExpiredReservedValuesJob
     extends AbstractJob
 {
@@ -59,7 +59,6 @@ public class RemoveExpiredReservedValuesJob
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
-        throws Exception
     {
         reservedValueService.removeExpiredReservations();
     }

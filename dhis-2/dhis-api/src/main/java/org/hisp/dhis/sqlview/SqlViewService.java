@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.sqlview;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.user.CurrentUserService;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,8 @@ public interface SqlViewService
     String ID = SqlViewService.class.getName();
     String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
     Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
+
+    void setCurrentUserService( CurrentUserService currentUserService );
 
     // -------------------------------------------------------------------------
     // CRUD

@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,17 @@ package org.hisp.dhis.artemis;
  */
 
 /**
+ * Constants representing actual queue names.
+ * <P>All members of this class are immutable.
+ *
  * @author Luciano Fiandesio
  */
-public interface Topics
+public final class Topics
 {
-    String METADATA_TOPIC_NAME = "dhis2.topic.metadata";
-
-    String AGGREGATE_TOPIC_NAME = "dhis2.topic.aggregate";
-
-    String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
+    public static final String METADATA_TOPIC_NAME = "dhis2.topic.metadata";
+    public static final String AGGREGATE_TOPIC_NAME = "dhis2.topic.aggregate";
+    public static final String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
+    public static final String TRACKER_IMPORT_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
+    public static final String TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME = "dhis2.jobs.tracker.notifications";
+    public static final String TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME = "dhis2.jobs.tracker.rule.engine";
 }

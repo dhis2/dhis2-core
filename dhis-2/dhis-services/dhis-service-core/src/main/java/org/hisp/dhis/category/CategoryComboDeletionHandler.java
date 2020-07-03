@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,11 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -39,18 +40,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Component( "org.hisp.dhis.category.CategoryComboDeletionHandler" )
 public class CategoryComboDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private final IdentifiableObjectManager idObjectManager;
 
     private final CategoryService categoryService;
 
-    public CategoryComboDeletionHandler( CategoryService categoryService )
+    public CategoryComboDeletionHandler( CategoryService categoryService, IdentifiableObjectManager idObjectManager )
     {
         checkNotNull( categoryService );
+        checkNotNull( idObjectManager );
         this.categoryService = categoryService;
+        this.idObjectManager = idObjectManager;
     }
 
     // -------------------------------------------------------------------------
@@ -62,18 +67,28 @@ public class CategoryComboDeletionHandler
     {
         return CategoryCombo.class.getSimpleName();
     }
-    
+
     @Override
     public String allowDeleteCategory( Category category )
     {
-        for ( CategoryOptionCombo categoryOptionCombo : categoryService.getAllCategoryOptionCombos() )
+        for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
         {
-            if ( categoryOptionCombo.getCategoryCombo().getCategories().contains( category ) )
+            if ( categoryCombo.getCategories().contains( category ) )
             {
-                return categoryOptionCombo.getCategoryCombo().getName();
+                return categoryCombo.getName();
             }
         }
-        
+
         return null;
+    }
+
+    @Override
+    public void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    {
+        for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
+        {
+            categoryCombo.getOptionCombos().remove( categoryOptionCombo );
+            idObjectManager.updateNoAcl( categoryCombo );
+        }
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
@@ -46,19 +46,18 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.springframework.stereotype.Service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Performs the meta data sync related tasks in service layer.
  *
  * @author vanyas
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" )
 public class DefaultMetadataSyncService
     implements MetadataSyncService
 {
-    private static final Log log = LogFactory.getLog( DefaultMetadataSyncService.class );
-
     private MetadataVersionDelegate metadataVersionDelegate;
 
     private MetadataVersionService metadataVersionService;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,11 +74,11 @@ public class OrganisationUnitStructureResourceTable
         StringBuilder sql = new StringBuilder();
 
         sql.append( "create table " ).append( getTempTableName() ).
-            append( " (organisationunitid integer not null primary key, organisationunituid character(11), level integer" );
+            append( " (organisationunitid bigint not null primary key, organisationunituid character(11), level integer" );
 
         for ( int k = 1 ; k <= organisationUnitLevels; k++ )
         {
-            sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" integer, " )
+            sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" bigint, " )
                 .append( quote( "uidlevel" + k ) ).append( " character(11), " )
                 .append( quote( "namelevel" + k ) ).append( " text" );
         }

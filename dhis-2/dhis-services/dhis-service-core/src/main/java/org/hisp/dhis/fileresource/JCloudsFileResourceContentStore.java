@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,28 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import org.apache.commons.lang3.StringUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobRequestSigner;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.ContainerNotFoundException;
-import org.jclouds.blobstore.LocalBlobRequestSigner;
+import org.jclouds.blobstore.*;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
 import org.jclouds.domain.Credentials;
@@ -58,32 +64,19 @@ import org.jclouds.s3.reference.S3Constants;
 import org.joda.time.Minutes;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Properties;
-import java.util.regex.Pattern;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.fileresource.FileResourceContentStore" )
 public class JCloudsFileResourceContentStore
     implements FileResourceContentStore
 {
-    private static final Log log = LogFactory.getLog( JCloudsFileResourceContentStore.class );
-
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern
         .compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
 
@@ -215,6 +208,19 @@ public class JCloudsFileResourceContentStore
             return null;
         }
     }
+    
+    @Override
+    public long getFileResourceContentLength( String key )
+    {
+        final Blob blob = getBlob( key );
+
+        if ( blob == null )
+        {
+            return 0;
+        }
+
+        return blob.getMetadata().getContentMetadata().getContentLength();
+    }
 
     @Override
     public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
@@ -244,7 +250,7 @@ public class JCloudsFileResourceContentStore
     @Override
     public String saveFileResourceContent( FileResource fileResource, File file )
     {
-        Blob blob = createBlob( fileResource, StringUtils.EMPTY, file );
+        Blob blob = createBlob( fileResource, StringUtils.EMPTY, file, fileResource.getContentMd5() );
 
         if ( blob == null )
         {
@@ -281,8 +287,6 @@ public class JCloudsFileResourceContentStore
         {
             File file = entry.getValue();
 
-            fileResource.setContentLength( file.length() );
-
             String contentMd5;
 
             try
@@ -296,8 +300,7 @@ public class JCloudsFileResourceContentStore
                 return null;
             }
 
-            fileResource.setContentMd5( contentMd5 );
-            blob = createBlob( fileResource, entry.getKey().getDimension(), file );
+            blob = createBlob( fileResource, entry.getKey().getDimension(), file, contentMd5 );
 
             if ( blob != null )
             {
@@ -371,11 +374,12 @@ public class JCloudsFileResourceContentStore
             throw new NoSuchElementException( "key '" + key + "' not found." );
         }
 
-        try ( InputStream in = getBlob( key ).getPayload().openStream() )
+        Blob blob = getBlob( key );
+
+        try ( InputStream in = blob.getPayload().openStream() )
         {
             IOUtils.copy( in, output );
         }
-
     }
 
     // -------------------------------------------------------------------------
@@ -401,19 +405,19 @@ public class JCloudsFileResourceContentStore
     {
         return blobStore.blobBuilder( fileResource.getStorageKey() )
             .payload( bytes )
-            .contentLength( fileResource.getContentLength() )
+            .contentLength( bytes.length )
             .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
             .contentType( fileResource.getContentType() )
             .contentDisposition( "filename=" + fileResource.getName() )
             .build();
     }
 
-    private Blob createBlob( FileResource fileResource, String fileDimension, File file )
+    private Blob createBlob( FileResource fileResource, String fileDimension, File file, String contentMd5 )
     {
         return blobStore.blobBuilder( StringUtils.join( fileResource.getStorageKey(), fileDimension ) )
             .payload( file )
-            .contentLength( fileResource.getContentLength() )
-            .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
+            .contentLength( file.length() )
+            .contentMD5( HashCode.fromString( contentMd5 ) )
             .contentType( fileResource.getContentType() )
             .contentDisposition( "filename=" + fileResource.getName() + fileDimension )
             .build();

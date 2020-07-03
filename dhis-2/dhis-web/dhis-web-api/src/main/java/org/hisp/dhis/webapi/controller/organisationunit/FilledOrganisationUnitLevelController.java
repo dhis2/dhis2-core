@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,15 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -58,8 +57,17 @@ import java.util.List;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FilledOrganisationUnitLevelController
 {
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final ObjectMapper jsonMapper;
+
+    private final OrganisationUnitService organisationUnitService;
+
+    public FilledOrganisationUnitLevelController(
+        ObjectMapper jsonMapper,
+        OrganisationUnitService organisationUnitService )
+    {
+        this.jsonMapper = jsonMapper;
+        this.organisationUnitService = organisationUnitService;
+    }
 
     @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody List<OrganisationUnitLevel> getList()
@@ -72,7 +80,7 @@ public class FilledOrganisationUnitLevelController
     public void setList( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Metadata metadata = DefaultRenderService.getJsonMapper().readValue( request.getInputStream(), Metadata.class );
+        Metadata metadata = jsonMapper.readValue( request.getInputStream(), Metadata.class );
 
         List<OrganisationUnitLevel> levels = metadata.getOrganisationUnitLevels();
 

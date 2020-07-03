@@ -1,7 +1,7 @@
 package org.hisp.dhis.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,7 @@ public class HibernateConfig
         dataSource.setUser( (String) getConnectionProperty( "hibernate.connection.username" ) );
         dataSource.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
         dataSource.setMinPoolSize( 5 );
-        dataSource.setMaxPoolSize( Integer.parseInt((String)getConnectionProperty( "hibernate.c3p0.max_size" )) );
+        dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
         dataSource.setInitialPoolSize( 5 );
         dataSource.setAcquireIncrement( 5 );
         dataSource.setMaxIdleTime( 7200 );

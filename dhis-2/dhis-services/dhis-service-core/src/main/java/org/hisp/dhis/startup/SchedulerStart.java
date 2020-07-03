@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,16 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobType.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -39,15 +47,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
-import static org.hisp.dhis.scheduling.JobType.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Reschedule old jobs and execute jobs which were scheduled when the server was
@@ -55,10 +55,9 @@ import static org.hisp.dhis.scheduling.JobType.*;
  *
  * @author Henning Håkonsen
  */
+@Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( SchedulerStart.class );
-
     private final String CRON_HOURLY = "0 0 * ? * *";
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
@@ -129,7 +128,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED
-                    || (!jobConfig.isContinuousExecution() && oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
+                    || (oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
                 {
                     unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
                         + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
@@ -160,7 +159,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_FILE_RESOURCE_CLEANUP, jobConfigurations ) )
         {
             JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
-                FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, false, true );
+                FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null );
             fileResourceCleanUp.setUid( DEFAULT_FILE_RESOURCE_CLEANUP_UID );
             fileResourceCleanUp.setLeaderOnlyJob( true );
             addAndScheduleJob( fileResourceCleanUp );
@@ -169,7 +168,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_DATA_STATISTICS, jobConfigurations ) )
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
-                CRON_DAILY_2AM, null, false, true );
+                CRON_DAILY_2AM, null );
             portJob( systemSettingManager, dataStatistics, SettingKey.LAST_SUCCESSFUL_DATA_STATISTICS );
             dataStatistics.setLeaderOnlyJob( true );
             dataStatistics.setUid( DEFAULT_DATA_STATISTICS_UID );
@@ -179,7 +178,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, jobConfigurations ) )
         {
             JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
-                VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
+                VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null );
             validationResultNotification.setLeaderOnlyJob( true );
             validationResultNotification.setUid( DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID );
             addAndScheduleJob( validationResultNotification );
@@ -188,7 +187,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_CREDENTIALS_EXPIRY_ALERT, jobConfigurations ) )
         {
             JobConfiguration credentialsExpiryAlert = new JobConfiguration( DEFAULT_CREDENTIALS_EXPIRY_ALERT,
-                CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, false, true );
+                CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null );
             credentialsExpiryAlert.setLeaderOnlyJob( true );
             credentialsExpiryAlert.setUid( DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID );
             addAndScheduleJob( credentialsExpiryAlert );
@@ -197,7 +196,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_DATA_SET_NOTIFICATION, jobConfigurations ) )
         {
             JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
-                DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null, false, true );
+                DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null );
             dataSetNotification.setLeaderOnlyJob( true );
             dataSetNotification.setUid( DEFAULT_DATA_SET_NOTIFICATION_UID );
             addAndScheduleJob( dataSetNotification );
@@ -206,7 +205,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES, jobConfigurations ) )
         {
             JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
-                REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
+                REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
             removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
@@ -215,7 +214,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_LEADER_ELECTION, jobConfigurations ) && "true".equalsIgnoreCase( redisEnabled ) )
         {
             JobConfiguration leaderElectionJobConfiguration = new JobConfiguration( DEFAULT_LEADER_ELECTION,
-                LEADER_ELECTION, String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ), null, false, true );
+                LEADER_ELECTION, String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ), null );
             leaderElectionJobConfiguration.setLeaderOnlyJob( false );
             leaderElectionJobConfiguration.setUid( DEFAULT_LEADER_ELECTION_UID );
             addAndScheduleJob( leaderElectionJobConfiguration );
@@ -224,7 +223,6 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             checkLeaderElectionJobConfiguration( jobConfigurations );
         }
-
     }
 
     private void checkLeaderElectionJobConfiguration( List<JobConfiguration> jobConfigurations )

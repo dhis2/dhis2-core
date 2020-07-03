@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,6 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
-import org.hibernate.event.spi.PostDeleteEventListener;
-import org.hibernate.event.spi.PostLoadEventListener;
-import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -60,15 +57,15 @@ public class HibernateListenerConfigurer
     private EntityManagerFactory emf;
 
     private final PostInsertAuditListener postInsertAuditListener;
-    private final PostUpdateEventListener postUpdateEventListener;
-    private final PostDeleteEventListener postDeleteEventListener;
-    private final PostLoadEventListener postLoadEventListener;
+    private final PostUpdateAuditListener postUpdateEventListener;
+    private final PostDeleteAuditListener postDeleteEventListener;
+    private final PostLoadAuditListener postLoadEventListener;
 
     public HibernateListenerConfigurer(
         PostInsertAuditListener postInsertAuditListener,
-        PostUpdateEventListener postUpdateEventListener,
-        PostDeleteEventListener postDeleteEventListener,
-        PostLoadEventListener postLoadEventListener )
+        PostUpdateAuditListener postUpdateEventListener,
+        PostDeleteAuditListener postDeleteEventListener,
+        PostLoadAuditListener postLoadEventListener )
     {
         checkNotNull( postDeleteEventListener );
         checkNotNull( postUpdateEventListener );
@@ -88,11 +85,11 @@ public class HibernateListenerConfigurer
 
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
 
-        registry.getEventListenerGroup( EventType.POST_INSERT ).appendListener( postInsertAuditListener );
+        registry.getEventListenerGroup( EventType.POST_COMMIT_INSERT ).appendListener( postInsertAuditListener );
 
-        registry.getEventListenerGroup( EventType.POST_UPDATE ).appendListener( postUpdateEventListener );
+        registry.getEventListenerGroup( EventType.POST_COMMIT_UPDATE ).appendListener( postUpdateEventListener );
 
-        registry.getEventListenerGroup( EventType.POST_DELETE ).appendListener( postDeleteEventListener );
+        registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( postDeleteEventListener );
 
         registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -77,7 +78,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -264,10 +264,6 @@ public class AnalyticsValidationServiceTest
         expressionDSliding.setSlidingWindow( true );
         expressionISliding.setSlidingWindow( true );
 
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionI );
-
         validationRuleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly ); // A - ProgramTrackedEntityAttribute
         validationRuleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly ); // D - ProgramDataElement
         validationRuleI = createValidationRule( "I", not_equal_to, expressionI, expressionI, periodTypeMonthly ); // I - ProgramIndicator
@@ -417,8 +413,11 @@ public class AnalyticsValidationServiceTest
 
         for ( ValidationResult result : results )
         {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
+            String test = result.getLeftsideValue()
+                + result.getValidationRule().getOperator().getMathematicalOperator()
+                + result.getRightsideValue();
+
+            assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
         }
     }
 

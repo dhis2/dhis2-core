@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -69,6 +66,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
+import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
@@ -109,7 +107,6 @@ import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
@@ -131,6 +128,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.version.Version;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * A DeletionHandler should override methods for objects that, when deleted,
@@ -172,15 +170,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteAttributeValue( AttributeValue attributeValue )
-    {
-        return null;
-    }
-
-    public void deleteChart( Chart chart )
-    {
-    }
-
-    public String allowDeleteChart( Chart chart )
     {
         return null;
     }
@@ -428,16 +417,20 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public String allowDeleteValidationResult( ValidationResult validationResult )
-    {
-        return null;
-    }
-
     public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
     }
 
     public String allowDeleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    {
+        return null;
+    }
+
+    public void deleteValidationResult( ValidationResult validationResult )
+    {
+    }
+
+    public String allowDeleteValidationResult( ValidationResult validationResult )
     {
         return null;
     }
@@ -501,15 +494,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteReport( Report report )
-    {
-        return null;
-    }
-
-    public void deleteReportTable( ReportTable reportTable )
-    {
-    }
-
-    public String allowDeleteReportTable( ReportTable reportTable )
     {
         return null;
     }
@@ -954,24 +938,6 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteColorSet( ColorSet colorSet )
-    {
-    }
-
-    public String allowDeleteColorSet( ColorSet colorSet )
-    {
-        return null;
-    }
-
-    public void deleteColor( Color color )
-    {
-    }
-
-    public String allowDeleteColor( Color color )
-    {
-        return null;
-    }
-
     public void deleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
     {
     }
@@ -1090,5 +1056,22 @@ public abstract class DeletionHandler
     public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
     }
-}
 
+    public String allowDeleteVisualization( Visualization visualization )
+    {
+        return null;
+    }
+
+    public void deleteVisualization( Visualization visualization )
+    {
+    }
+
+    public String allowDeleteInterpretationComment( InterpretationComment comment )
+    {
+        return null;
+    }
+
+    public void deleteInterpretationComment ( InterpretationComment comment )
+    {
+    }
+}

@@ -1,7 +1,7 @@
 package org.hisp.dhis.interceptor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,13 @@ package org.hisp.dhis.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 import com.opensymphony.xwork2.interceptor.PreResultListener;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The intention of this class is to stop execution of the pre result listener
@@ -42,11 +43,10 @@ import com.opensymphony.xwork2.interceptor.PreResultListener;
  * @author Torgeir Lorange Ostby
  * @version $Id: AbstractPreResultListener.java 2869 2007-02-20 14:26:09Z andegje $
  */
+@Slf4j
 public abstract class AbstractPreResultListener
     implements Interceptor, PreResultListener
 {
-    private static final Log LOG = LogFactory.getLog( AbstractPreResultListener.class );
-
     private boolean executePreResultListener;
 
     // -------------------------------------------------------------------------
@@ -96,7 +96,7 @@ public abstract class AbstractPreResultListener
             }
             catch ( Exception e )
             {
-                LOG.error( "Error while executing PreResultListener", e );
+                log.error( "Error while executing PreResultListener", e );
             }
         }
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.converter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,17 @@ package org.hisp.dhis.tracker.converter;
  */
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,14 +56,10 @@ public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
     private final TrackerPreheatService trackerPreheatService;
-    private final IdentifiableObjectManager manager;
 
-    public EnrollmentTrackerConverterService(
-        TrackerPreheatService trackerPreheatService,
-        IdentifiableObjectManager manager )
+    public EnrollmentTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.manager = manager;
     }
 
     @Override
@@ -131,10 +127,10 @@ public class EnrollmentTrackerConverterService
         List<ProgramInstance> programInstances = new ArrayList<>();
 
         enrollments.forEach( enrollment -> {
-            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdentifier.UID, enrollment.getEnrollment() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
-            Program program = preheat.get( TrackerIdentifier.UID, Program.class, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntityInstance() );
+            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
             if ( programInstance == null )
             {
@@ -153,12 +149,12 @@ public class EnrollmentTrackerConverterService
                 programInstance.setUid( CodeGenerator.generateUid() );
             }
 
-            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
-            programInstance.setIncidentDate( enrollment.getIncidentDate() );
+            programInstance.setEnrollmentDate( DateUtils.parseDate( enrollment.getEnrolledAt() ) );
+            programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getOccurredAt() ) );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.getFollowup() );
+            programInstance.setFollowup( enrollment.isFollowUp() );
             programInstance.setGeometry( enrollment.getGeometry() );
 
             if ( enrollment.getStatus() == null )
@@ -177,8 +173,9 @@ public class EnrollmentTrackerConverterService
 
     private TrackerPreheat preheat( List<Enrollment> enrollments )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setEnrollments( enrollments );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .enrollments( enrollments )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

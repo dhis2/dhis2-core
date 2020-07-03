@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +26,15 @@ package org.hisp.dhis.sqlview.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.sqlview.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -50,22 +49,21 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import com.google.common.collect.ImmutableMap;
 import org.springframework.stereotype.Repository;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Dang Duy Hieu
  */
+@Slf4j
 @Repository( "org.hisp.dhis.sqlview.SqlViewStore" )
 public class HibernateSqlViewStore
     extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore
 {
-    private static final Log log = LogFactory.getLog( HibernateSqlViewStore.class );
-
     private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP =
         ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
@@ -79,11 +77,11 @@ public class HibernateSqlViewStore
     private final SystemSettingManager systemSettingManager;
 
     public HibernateSqlViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate, SystemSettingManager systemSettingManager )
     {
-        super( sessionFactory, jdbcTemplate, publisher, SqlView.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, SqlView.class, currentUserService, aclService, false );
 
         checkNotNull( statementBuilder );
         checkNotNull( readOnlyJdbcTemplate );

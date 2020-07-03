@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -84,11 +83,10 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping( value = SharingController.RESOURCE_PATH, method = RequestMethod.GET )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SharingController
 {
-    private static final Log log = LogFactory.getLog( SharingController.class );
-
     public static final String RESOURCE_PATH = "/sharing";
 
     @Autowired
@@ -128,6 +126,8 @@ public class SharingController
     @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
     public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response ) throws IOException, WebMessageException
     {
+        type = getSharingType( type );
+
         if ( !aclService.isShareable( type ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Type " + type + " is not supported." ) );
@@ -209,7 +209,7 @@ public class SharingController
 
         sharing.getObject().getUserGroupAccesses().sort( SharingUserGroupAccessNameComparator.INSTANCE );
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), sharing );
     }
@@ -217,6 +217,8 @@ public class SharingController
     @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT }, consumes = MediaType.APPLICATION_JSON_VALUE )
     public void setSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
     {
+        type = getSharingType( type );
+
         Class<? extends IdentifiableObject> sharingClass = aclService.classForType( type );
 
         if ( sharingClass == null || !aclService.isShareable( sharingClass ) )
@@ -393,7 +395,7 @@ public class SharingController
         output.put( "userGroups", userGroupAccesses );
         output.put( "users", userAccesses );
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), output );
     }
@@ -491,5 +493,22 @@ public class SharingController
 
         programStage.setUser( program.getUser() );
         manager.update( programStage );
+    }
+
+    /**
+     * This method is being used only during the deprecation process of the
+     * Pivot/ReportTable API. It must be removed once the process is complete.
+     * 
+     * @return "visualization" if the given type is equals to "reportTable" or
+     *         "chart", otherwise it returns the given type itself.
+     */
+    @Deprecated
+    private String getSharingType( final String type )
+    {
+        if ( "reportTable".equalsIgnoreCase( type ) || "chart".equalsIgnoreCase( type ) )
+        {
+            return "visualization";
+        }
+        return type;
     }
 }

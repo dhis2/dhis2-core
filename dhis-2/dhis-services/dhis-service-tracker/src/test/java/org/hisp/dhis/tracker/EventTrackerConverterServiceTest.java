@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class EventTrackerConverterServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     @Qualifier( "eventTrackerConverterService" )
@@ -79,7 +79,8 @@ public class EventTrackerConverterServiceTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -99,8 +100,15 @@ public class EventTrackerConverterServiceTest
         objectBundleService.commit( objectBundle );
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Test
-    public void testToProgramStageInstance() throws IOException
+    public void testToProgramStageInstance()
+        throws IOException
     {
         Event event = new Event();
         event.setProgram( "BFcipDERJne" );

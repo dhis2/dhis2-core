@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.service;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.service;
  */
 
 import javassist.util.proxy.ProxyFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.schema.Property;
@@ -56,10 +57,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Slf4j
 public class DefaultLinkService implements LinkService
 {
-    private static final Log log = LogFactory.getLog( DefaultLinkService.class );
-
     /**
      * The default URL encoding that is used for query parameter values.
      */

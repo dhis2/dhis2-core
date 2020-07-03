@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,4 +129,12 @@ public interface CompleteDataSetRegistrationExchangeService
      */
     ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
         JobConfiguration jobId );
+
+    /**
+     * Validates the given {@link ExportParams}.
+     *
+     * @param params the export parameters.
+     * @throws IllegalQueryException if validation failed.
+     */
+    void validate( ExportParams params );
 }

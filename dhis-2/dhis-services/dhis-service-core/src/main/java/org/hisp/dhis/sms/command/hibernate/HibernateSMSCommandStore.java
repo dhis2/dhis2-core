@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.command.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +26,16 @@ package org.hisp.dhis.sms.command.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.sms.command.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -42,18 +45,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-
 @Repository( "org.hisp.dhis.sms.command.hibernate.SMSCommandStore" )
 public class HibernateSMSCommandStore
     extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
 {
     public HibernateSMSCommandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, SMSCommand.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, SMSCommand.class, currentUserService, aclService, true );
     }
 
     @Override

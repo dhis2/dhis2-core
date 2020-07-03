@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,21 +73,6 @@ public abstract class AbstractSpringSecurityCurrentUserService
         return userDetails.getUsername();
     }
 
-    @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        UserDetails userDetails = getCurrentUserDetails();
-
-        if ( userDetails == null )
-        {
-            return new HashSet<>();
-        }
-
-        return userDetails.getAuthorities().stream()
-            .map( GrantedAuthority::getAuthority )
-            .collect( Collectors.toSet() );
-    }
-
     /**
      * Returns the current UserDetails, or null of there is no
      * current user or if principal is not of type UserDetails.
@@ -103,11 +88,5 @@ public abstract class AbstractSpringSecurityCurrentUserService
         }
 
         return (UserDetails) authentication.getPrincipal();
-    }
-
-    @Override
-    public void clearCurrentUser()
-    {
-        SecurityContextHolder.clearContext();
     }
 }

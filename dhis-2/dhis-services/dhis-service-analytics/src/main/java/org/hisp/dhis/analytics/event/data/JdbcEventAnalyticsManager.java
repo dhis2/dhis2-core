@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,14 +48,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -65,11 +63,12 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -88,26 +87,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * TODO could use row_number() and filtering for paging.
+ * TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.analytics.event.EventAnalyticsManager" )
 public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EventAnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
-
-    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                     ProgramIndicatorService programIndicatorService,
-                                     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+        ProgramIndicatorService programIndicatorService, ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
-
-    //TODO introduce dedicated "year" partition column
 
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
@@ -117,6 +115,13 @@ public class JdbcEventAnalyticsManager
         return grid;
     }
 
+    /**
+     * Adds event to the given grid based on the given parameters and SQL statement.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @param grid the {@link Grid}.
+     * @param sql the SQL statement used to retrieve events.
+     */
     private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
@@ -213,8 +218,8 @@ public class JdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
 
         return count;
@@ -258,6 +263,7 @@ public class JdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
+    @Override
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
@@ -400,10 +406,12 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
+        // Apply pre-authorized dimensions filtering
         for ( DimensionalObject dim : dynamicDimensions )
         {
             String col = quoteAlias( dim.getDimensionName() );
-            sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + col + " in ("
+                + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -524,8 +532,10 @@ public class JdbcEventAnalyticsManager
      * ranked by the execution date, latest first. The events are partitioned by
      * org unit and attribute option combo. A column {@code pe_rank} defines the rank.
      * Only data for the last 10 years relative to the period end date is included.
+     *
+     * @param the {@link EventQueryParams}.
      */
-    private String getFirstOrLastValueSubquerySql(EventQueryParams params )
+    private String getFirstOrLastValueSubquerySql( EventQueryParams params )
     {
         Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
 
@@ -560,8 +570,10 @@ public class JdbcEventAnalyticsManager
      * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
      * The period dimension is replaced by the name of the single period in the given
      * query.
+     *
+     * @param the {@link EventQueryParams}.
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
@@ -590,6 +602,7 @@ public class JdbcEventAnalyticsManager
         return cols;
     }
 
+    @Override
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.EVENT;

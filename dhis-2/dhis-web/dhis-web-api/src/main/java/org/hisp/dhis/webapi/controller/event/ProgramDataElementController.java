@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,9 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -49,6 +51,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.ProgramDataElementDimensionItemSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
@@ -57,8 +60,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -104,7 +106,8 @@ public class ProgramDataElementController
         WebMetadata metadata = new WebMetadata();
 
         List<ProgramDataElementDimensionItem> programDataElements;
-        Query query = queryService.getQueryFromUrl( ProgramDataElementDimensionItem.class, filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( ProgramDataElementDimensionItem.class, filters, orders,
+            PaginationUtils.getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
 
         if ( options.contains( "program" ) )

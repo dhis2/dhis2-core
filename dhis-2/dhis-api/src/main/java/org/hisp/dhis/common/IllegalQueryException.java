@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +26,60 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.common;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+
 /**
+ * Exception representing an illegal query.
+ *
  * @author Lars Helge Overland
  */
 public class IllegalQueryException
     extends RuntimeException
 {
+    private ErrorCode errorCode;
+
+    /**
+     * Constructor.
+     *
+     * @param message the exception message.
+     */
     public IllegalQueryException( String message )
     {
         super( message );
     }
-    
-    public IllegalQueryException( String message, Throwable throwable ) 
+
+    /**
+     * Constructor. Sets the message based on the error code message.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public IllegalQueryException( ErrorCode errorCode )
     {
-        super( message, throwable );
+        super( errorCode.getMessage() );
+        this.errorCode = errorCode;
+    }
+
+    /**
+     * Constructor. Sets the message and error code based on the error message.
+     *
+     * @param errorMessage the {@link ErrorMessage}.
+     */
+    public IllegalQueryException( ErrorMessage errorMessage )
+    {
+        super( errorMessage.getMessage() );
+        this.errorCode = errorMessage.getErrorCode();
+    }
+
+    /**
+     * Returns the {@link ErrorCode} of the exception.
+     *
+     * @return the {@link ErrorCode} of the exception.
+     */
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 }

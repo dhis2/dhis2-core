@@ -1,7 +1,7 @@
 package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,12 @@ public class SystemInfo
     private String lastAnalyticsTableRuntime;
 
     private Date lastSystemMonitoringSuccess;
+
+    private Date lastAnalyticsTablePartitionSuccess;
+
+    private String intervalSinceLastAnalyticsTablePartitionSuccess;
+
+    private String lastAnalyticsTablePartitionRuntime;
 
     // -------------------------------------------------------------------------
     // Stable properties
@@ -137,8 +143,6 @@ public class SystemInfo
 
     private boolean isMetadataSyncEnabled;
 
-    private MetadataAudit metadataAudit;
-
     public SystemInfo instance()
     {
         SystemInfo info = new SystemInfo();
@@ -168,7 +172,6 @@ public class SystemInfo
         this.memoryInfo = null;
         this.cpuCores = null;
         this.systemMonitoringUrl = null;
-        this.metadataAudit = null;
 
         if ( this.databaseInfo != null )
         {
@@ -274,6 +277,42 @@ public class SystemInfo
     public void setLastAnalyticsTableRuntime( String lastAnalyticsTableRuntime )
     {
         this.lastAnalyticsTableRuntime = lastAnalyticsTableRuntime;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastAnalyticsTablePartitionSuccess()
+    {
+        return lastAnalyticsTablePartitionSuccess;
+    }
+
+    public void setLastAnalyticsTablePartitionSuccess( Date lastAnalyticsTablePartitionSuccess )
+    {
+        this.lastAnalyticsTablePartitionSuccess = lastAnalyticsTablePartitionSuccess;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIntervalSinceLastAnalyticsTablePartitionSuccess()
+    {
+        return intervalSinceLastAnalyticsTablePartitionSuccess;
+    }
+
+    public void setIntervalSinceLastAnalyticsTablePartitionSuccess( String intervalSinceLastAnalyticsTablePartitionSuccess )
+    {
+        this.intervalSinceLastAnalyticsTablePartitionSuccess = intervalSinceLastAnalyticsTablePartitionSuccess;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLastAnalyticsTablePartitionRuntime()
+    {
+        return lastAnalyticsTablePartitionRuntime;
+    }
+
+    public void setLastAnalyticsTablePartitionRuntime( String lastAnalyticsTablePartitionRuntime )
+    {
+        this.lastAnalyticsTablePartitionRuntime = lastAnalyticsTablePartitionRuntime;
     }
 
     @JsonProperty
@@ -670,17 +709,5 @@ public class SystemInfo
     public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
     {
         this.isMetadataSyncEnabled = isMetadataSyncEnabled;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MetadataAudit getMetadataAudit()
-    {
-        return metadataAudit;
-    }
-
-    public void setMetadataAudit( MetadataAudit metadataAudit )
-    {
-        this.metadataAudit = metadataAudit;
     }
 }

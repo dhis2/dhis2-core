@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import java.util.NoSuchElementException;
 public interface FileResourceService
 {
     FileResource getFileResource( String uid );
-
+    
     List<FileResource> getFileResources( List<String> uids );
 
     List<FileResource> getOrphanedFileResources();
@@ -57,6 +57,14 @@ public interface FileResourceService
 
     InputStream getFileResourceContent( FileResource fileResource );
 
+    /**
+     * Copy fileResource content to outputStream and Return File content length
+     * @param fileResource
+     * @param outputStream
+     * @return
+     * @throws IOException
+     * @throws NoSuchElementException
+     */
     void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException;
 
@@ -71,4 +79,6 @@ public interface FileResourceService
     List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
 
     List<FileResource> getAllUnProcessedImagesFiles();
+    
+    long getFileResourceContentLength( FileResource fileResource );
 }

@@ -18,7 +18,8 @@
     <property name="description" type="text" />
 
     <many-to-one name="generator" column="generatorexpressionid" class="org.hisp.dhis.expression.Expression"
-      cascade="all" foreign-key="fk_predictor_generatorexpressionid" not-null="true" />
+                 cascade="all-delete-orphan" foreign-key="fk_predictor_generatorexpressionid" not-null="false"
+                 unique="true"/>
 
     <many-to-one name="output" column="generatoroutput" class="org.hisp.dhis.dataelement.DataElement"
       foreign-key="fk_predictor_outputdataelementid" not-null="true" />
@@ -27,7 +28,7 @@
       foreign-key="fk_predictor_outputcomboid" />
 
     <many-to-one name="sampleSkipTest" column="skiptestexpressionid" class="org.hisp.dhis.expression.Expression"
-      cascade="all" foreign-key="fk_validationrule_skiptestexpressionid" />
+                 cascade="all-delete-orphan" foreign-key="fk_validationrule_skiptestexpressionid" unique="true"/>
 
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />

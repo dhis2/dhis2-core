@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.objectmapper;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ public class OrganisationUnitRelationshipRowMapper
     public OrganisationUnitRelationship mapRow( ResultSet resultSet )
         throws SQLException
     {
-        return new OrganisationUnitRelationship( resultSet.getInt( "parentid" ), resultSet.getInt( "organisationunitid" ) );
+        return new OrganisationUnitRelationship( resultSet.getLong( "parentid" ), resultSet.getLong( "organisationunitid" ) );
     }
     
     @Override

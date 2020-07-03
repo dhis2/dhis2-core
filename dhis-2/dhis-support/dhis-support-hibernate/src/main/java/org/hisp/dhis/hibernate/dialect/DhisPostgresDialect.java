@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.dialect;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public class DhisPostgresDialect
     {
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( "jsonb_extract_path", new StandardSQLFunction("jsonb_extract_path", StandardBasicTypes.STRING ));
-        registerFunction( "jsonb_extract_path_text", new StandardSQLFunction("jsonb_extract_path_text", StandardBasicTypes.STRING ));
+        registerFunction( "jsonb_extract_path", new StandardSQLFunction( "jsonb_extract_path", StandardBasicTypes.STRING ) );
+        registerFunction( "jsonb_extract_path_text", new StandardSQLFunction( "jsonb_extract_path_text", StandardBasicTypes.STRING ) );
     }
 }

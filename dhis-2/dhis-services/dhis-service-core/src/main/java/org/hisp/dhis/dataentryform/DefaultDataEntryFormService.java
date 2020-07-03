@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,23 @@ package org.hisp.dhis.dataentryform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -48,25 +56,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Bharath Kumar
  */
+@Slf4j
 @Service( "org.hisp.dhis.dataentryform.DataEntryFormService" )
 public class DefaultDataEntryFormService
     implements DataEntryFormService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataEntryFormService.class );
-
     private static final String EMPTY_VALUE_TAG = "value=\"\"";
     private static final String EMPTY_TITLE_TAG = "title=\"\"";
     private static final String TAG_CLOSE = "/>";

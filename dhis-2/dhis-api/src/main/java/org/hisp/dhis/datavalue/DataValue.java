@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,14 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -42,6 +48,7 @@ import java.util.regex.Pattern;
  * @author Kristian Nordal
  * @version $Id: DataValue.java 4638 2008-02-25 10:06:47Z larshelg $
  */
+@Auditable( scope = AuditScope.AGGREGATE )
 public class DataValue
     implements Serializable
 {
@@ -59,16 +66,22 @@ public class DataValue
     // Persistent properties
     // -------------------------------------------------------------------------
 
+    @AuditAttribute
     private DataElement dataElement;
 
+    @AuditAttribute
     private Period period;
 
+    @AuditAttribute
     private OrganisationUnit source;
 
+    @AuditAttribute
     private CategoryOptionCombo categoryOptionCombo;
 
+    @AuditAttribute
     private CategoryOptionCombo attributeOptionCombo;
 
+    @AuditAttribute
     private String value;
 
     private String storedBy;
@@ -293,6 +306,8 @@ public class DataValue
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     public DataElement getDataElement()
     {
         return dataElement;
@@ -303,6 +318,7 @@ public class DataValue
         this.dataElement = dataElement;
     }
 
+    @JsonProperty
     public Period getPeriod()
     {
         return period;
@@ -313,6 +329,8 @@ public class DataValue
         this.period = period;
     }
 
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     public OrganisationUnit getSource()
     {
         return source;
@@ -323,6 +341,8 @@ public class DataValue
         this.source = source;
     }
 
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     public CategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
@@ -333,6 +353,7 @@ public class DataValue
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
+    @JsonProperty
     public String getValue()
     {
         return value;

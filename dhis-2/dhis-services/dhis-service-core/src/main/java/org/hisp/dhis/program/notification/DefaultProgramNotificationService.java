@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -74,12 +73,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.program.notification.ProgramNotificationService" )
 public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
-    private static final Log log = LogFactory.getLog( DefaultProgramNotificationService.class );
-
     private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
         Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
             pnt.getScheduledAt() != null && DateUtils.isToday( pnt.getScheduledAt() );

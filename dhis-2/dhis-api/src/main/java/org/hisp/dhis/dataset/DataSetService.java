@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,12 +119,6 @@ public interface DataSetService
      * @return a list of DataSets.
      */
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
-
-    /**
-     * Returns all DataSets that can be collected through mobile (one
-     * organisation unit).
-     */
-    List<DataSet> getDataSetsForMobile( OrganisationUnit source );
 
     /**
      * Returns the data sets which current user have READ access. If the current

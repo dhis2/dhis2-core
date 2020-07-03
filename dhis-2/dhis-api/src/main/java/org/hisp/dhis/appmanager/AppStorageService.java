@@ -1,6 +1,6 @@
 package org.hisp.dhis.appmanager;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ public interface AppStorageService
     App installApp( File file, String filename, Cache<App> appCache );
 
     /**
-     * Deletes an app from the AppStoreService.
+     * Deletes an app from the AppHubService.
      * 
      * @param app the app to delete
      * @return true if app is deleted, false if something fails

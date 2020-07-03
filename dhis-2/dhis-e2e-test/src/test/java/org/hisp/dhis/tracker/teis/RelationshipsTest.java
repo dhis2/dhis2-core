@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker.teis;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.teis;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
@@ -41,6 +42,7 @@ import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,8 +51,13 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -58,11 +65,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class RelationshipsTest
     extends ApiTest
 {
-    private RestApiActions trackedEntityInstanceActions;
-
     private static List<String> teis;
 
     private static List<String> events;
+
+    private RestApiActions trackedEntityInstanceActions;
 
     private MetadataActions metadataActions;
 
@@ -107,6 +114,34 @@ public class RelationshipsTest
         events = eventActions.post( eventObject ).extractUids();
     }
 
+    @Test
+    public void duplicateRelationshipsShouldNotBeAdded()
+    {
+        // create a relationship
+        JsonObject object = relationshipActions
+            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
+                teis.get( 1 ) );
+
+        ApiResponse response = relationshipActions.post( object );
+
+        response.validate().statusCode( 200 );
+        createdRelationship = response.extractUid();
+        assertNotNull( createdRelationship, "First relationship was not created." );
+
+        // create a second relationship
+        response = relationshipActions.post( object );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "response.status", equalTo( "ERROR" ) )
+            .body( "response.ignored", equalTo( 1 ) )
+            .body( "response.total", equalTo( 1 ) )
+            .rootPath( "response.importSummaries[0]" )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "description", Matchers.stringContainsInOrder( "Relationship", "already exist" ) )
+            .body( "importCount.ignored", equalTo( 1 ) );
+    }
+
     @MethodSource( "provideRelationshipData" )
     @ParameterizedTest( name = "{index} {1} to {3}" )
     public void bidirectionalRelationshipFromTrackedEntityInstanceToEventCanBeAdded( String relationshipType, String fromInstance,
@@ -122,6 +157,7 @@ public class RelationshipsTest
 
         createdRelationship = response.extractUid();
 
+        assertNotNull( createdRelationship, "Relationship id was not returned" );
         assertEquals( 1, response.getSuccessfulImportSummaries().size(), "Relationship import was not successful" );
 
         // validate created on both sides
@@ -158,11 +194,11 @@ public class RelationshipsTest
     {
         response.validate()
             .statusCode( 200 )
-            .body( "relationships", Matchers.hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
-            .body( "relationships.relationshipType", Matchers.hasItem( relationshipTypeId ) )
+            .body( "relationships", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "relationships.relationshipType", hasItem( relationshipTypeId ) )
             .body( String.format( "relationships.from.%s.%s", fromInstance, fromInstance ),
                 hasItem( Matchers.equalTo( fromInstanceId ) ) )
-            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ), hasItem( Matchers.equalTo( toInstanceId ) ) );
+            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ), hasItem( equalTo( toInstanceId ) ) );
     }
 
     @AfterEach

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -72,9 +71,6 @@ public class ValidationRuleServiceTest
     private CategoryService categoryService;
 
     @Autowired
-    private ExpressionService expressionService;
-
-    @Autowired
     private DataSetService dataSetService;
 
     @Autowired
@@ -93,6 +89,8 @@ public class ValidationRuleServiceTest
     private Expression expressionA;
     private Expression expressionB;
     private Expression expressionC;
+
+    private Expression expressionD;
 
     private DataSet dataSetWeekly;
 
@@ -154,11 +152,9 @@ public class ValidationRuleServiceTest
             "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA" );
         expressionB = new Expression(
             "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB" );
-        expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC" );
-        
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionC );
+        expressionC = new Expression(
+            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionC" );
+        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionD" );
 
         dataSetWeekly = createDataSet( 'W', periodTypeWeekly );
         dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
@@ -231,7 +227,8 @@ public class ValidationRuleServiceTest
         dataElementService.updateDataElement( dataElementE );
 
         validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly, true ); // deA + deB = deC - deD
-        validationRuleB = createValidationRule( "B", greater_than, expressionB, expressionC, periodTypeMonthly ); // deC - deD > deB * 2
+        validationRuleB = createValidationRule( "B", greater_than, expressionC, expressionD,
+            periodTypeMonthly ); // deC - deD > deB * 2
     }
 
     // -------------------------------------------------------------------------
@@ -374,7 +371,7 @@ public class ValidationRuleServiceTest
     public void testUpdateValidationRuleGroup()
     {
         ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionC, expressionD, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -410,7 +407,7 @@ public class ValidationRuleServiceTest
     public void testDeleteValidationRuleGroup()
     {
         ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionC, expressionD, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -447,7 +444,7 @@ public class ValidationRuleServiceTest
     public void testGetAllValidationRuleGroup()
     {
         ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionC, expressionD, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -477,7 +474,7 @@ public class ValidationRuleServiceTest
     public void testGetValidationRuleGroupByName()
     {
         ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionC, expressionD, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );

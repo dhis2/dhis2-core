@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.startup;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@ import java.util.Enumeration;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -48,11 +48,10 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
+@Slf4j
 public class StartupListener
     implements ServletContextListener
 {
-    private static final Log log = LogFactory.getLog( StartupListener.class );
-
     // -------------------------------------------------------------------------
     // ServletContextListener implementation
     // -------------------------------------------------------------------------

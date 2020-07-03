@@ -1,7 +1,7 @@
 package org.hisp.dhis.maintenance.jdbc;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,6 +162,7 @@ public class JdbcMaintenanceStore
             "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityattributevalueaudit where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityprogramowner where trackedentityinstanceid in " + teiSelect,
+            "delete from programownershiphistory where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityinstance where deleted is true" };
 
         return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];

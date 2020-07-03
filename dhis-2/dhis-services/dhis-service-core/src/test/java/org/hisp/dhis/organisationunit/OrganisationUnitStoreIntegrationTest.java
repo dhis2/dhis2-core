@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -48,7 +47,6 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-@Category( IntegrationTest.class )
 public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
 {
     private final static long _150KM = 150_000;
@@ -59,6 +57,9 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
 
     @Autowired
     private OrganisationUnitStore organisationUnitStore;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -82,11 +83,10 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
 
         Geometry point = GeoUtils.getGeometryFromCoordinatesAndType( POINT, "[27.83935546875, 21.207458730482642]" );
 
-        organisationUnitStore.save( ouA );
-        organisationUnitStore.save( ouB );
-        organisationUnitStore.save( ouC );
-        organisationUnitStore.save( ouD );
-
+        manager.save( ouA );
+        manager.save( ouB );
+        manager.save( ouC );
+        manager.save( ouD );
         List<OrganisationUnit> ous = getOUsFromPointToDistance(point, _150KM);
         assertContainsOnly(ous, ouA);
 

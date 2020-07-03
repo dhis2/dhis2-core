@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -47,8 +57,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SqlViewServiceTest
     extends DhisSpringTest
 {
+    @Mock
+    private CurrentUserService currentUserService;
+
     @Autowired
     private SqlViewService sqlViewService;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     private String sqlA = "SELECT   *  FROM     _categorystructure;;  ; ;;;  ;; ; ";
 
@@ -63,7 +82,7 @@ public class SqlViewServiceTest
         + "AND dv.periodid=p.periodid LIMIT 10";
 
     private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; " ;
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -171,111 +190,131 @@ public class SqlViewServiceTest
     public void testValidateIllegalKeywords()
     {
         SqlView sqlView = new SqlView( "Name", "delete * from dataelement", SqlViewType.QUERY );
-        
+
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test (expected = IllegalQueryException.class)
+    @Test
     public void testValidateIllegalKeywordsCTE()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+
         SqlView sqlView = new SqlView( "Name", "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test (expected = IllegalQueryException.class)
+    @Test
     public void testValidateIllegalKeywordsAtEnd()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+
         SqlView sqlView = new SqlView( "Name", "WITH foo as (SELECT * FROM organisationunit) commit", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
+    public void testValidateIllegalKeywordsAfterSemicolon()
+    {
+        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+
+        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test
     public void testValidateProtectedTables()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+
         SqlView sqlView = new SqlView( "Name", "select * from userinfo where userinfoid=1", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateProtectedTables2()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+
         SqlView sqlView = new SqlView( "Name", "select * from \"userinfo\" where userinfoid=1", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateProtectedTables3()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+
         SqlView sqlView = new SqlView( "Name", "select users.username \n FROM \"public\".users;", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateMissingVariables()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4307 );
+
         SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'", SqlViewType.QUERY );
-        
+
         Map<String, String> variables = new HashMap<>();
         variables.put( "valueType", "int" );
-        
+
         sqlViewService.validateSqlView( sqlView, null, variables );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void testValidateIllegalSemiColon()
-    {
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
-        
-        sqlViewService.validateSqlView( sqlView, null, null );
-    }
-
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateNotSelectQuery()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4301 );
+
         SqlView sqlView = new SqlView( "Name", "* from dataelement", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateTableList()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+
         SqlView sqlView = new SqlView( "Name", "select username,password from users,dataapprovallevel", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetGridValidationFailure()
     {
+        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+
         SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
-        
+
         sqlViewService.saveSqlView( sqlView );
-        
+
         sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
     }
-    
+
     @Test
     public void testValidateSuccessA()
     {
         SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}'", SqlViewType.QUERY );
-        
+
         Map<String, String> variables = new HashMap<>();
         variables.put( "valueType", "int" );
-        
+
         sqlViewService.validateSqlView( sqlView, null, variables );
     }
-    
+
     @Test
     public void testValidateSuccessB()
     {
         SqlView sqlView = new SqlView( "Name", "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'", SqlViewType.QUERY );
-        
+
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
@@ -293,5 +332,51 @@ public class SqlViewServiceTest
         SqlView sqlView = new SqlView( "Name", "SELECT name, created, lastupdated FROM dataelement", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test
+    public void testValidateSuccessE()
+    {
+        SqlView sqlView = new SqlView( "Name", "select * from datavalue where storedby = '${_current_username}'", SqlViewType.QUERY );
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test
+    public void testValidateSuccessF()
+    {
+        SqlView sqlView = new SqlView( "Name", "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}", SqlViewType.QUERY );
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put( "timelyDays", "15" );
+
+        sqlViewService.validateSqlView( sqlView, null, variables );
+    }
+
+    @Test
+    public void testGetSqlViewGrid()
+    {
+        UserCredentials currentUserCredentials = new UserCredentials();
+        currentUserCredentials.setUsername( "Mary" );
+
+        User currentUser = new User();
+        currentUser.setUserCredentials( currentUserCredentials );
+        currentUser.setId( 47 );
+
+        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+
+        sqlViewService.setCurrentUserService( currentUserService );
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put( "ten", "10" );
+
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}", SqlViewType.QUERY );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
+
+        assertEquals( grid.toString(), "[\n" +
+            "['Mary', 47, 10]\n" +
+            "[Mary, 47, 10]\n" +
+            "]" );
     }
 }

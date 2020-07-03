@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.serializers;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,8 @@ package org.hisp.dhis.node.serializers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.node.AbstractNodeSerializer;
@@ -59,17 +57,14 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
 
     public static final String JSONP_CALLBACK = "org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer.callback";
 
-    private final static ObjectMapper objectMapper = new ObjectMapper();
-
-    static
-    {
-        objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
-        objectMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
-        objectMapper.registerModule( new JtsModule(  ) );
-    }
+    private final ObjectMapper jsonMapper;
 
     private JsonGenerator generator = null;
+
+    public Jackson2JsonNodeSerializer( ObjectMapper jsonMapper )
+    {
+        this.jsonMapper = jsonMapper;
+    }
 
     @Override
     public List<String> contentTypes()
@@ -86,7 +81,7 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     @Override
     protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
     {
-        generator = objectMapper.getFactory().createGenerator( outputStream );
+        generator = jsonMapper.getFactory().createGenerator( outputStream );
     }
 
     @Override
@@ -124,7 +119,7 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
         if ( Geometry.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
         {
             generator.writeFieldName( simpleNode.getName() );
-            generator.writeRawValue( objectMapper.writeValueAsString( value ) );
+            generator.writeRawValue( jsonMapper.writeValueAsString( value ) );
             return;
         }
 

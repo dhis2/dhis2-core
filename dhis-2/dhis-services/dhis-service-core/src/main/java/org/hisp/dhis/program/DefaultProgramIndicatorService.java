@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,33 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-
-import java.util.*;
-
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.antlr.Parser;
+import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.parser.expression.*;
-import org.hisp.dhis.parser.expression.item.ItemConstant;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.function.VectorAvg;
+import org.hisp.dhis.parser.expression.function.VectorCount;
+import org.hisp.dhis.parser.expression.function.VectorMax;
+import org.hisp.dhis.parser.expression.function.VectorMin;
+import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
+import org.hisp.dhis.parser.expression.function.VectorSum;
+import org.hisp.dhis.parser.expression.function.VectorVariance;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
 import org.hisp.dhis.program.function.*;
-import org.hisp.dhis.program.item.ProgramItemAttribute;
-import org.hisp.dhis.program.item.ProgramItemStageElement;
+import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 import org.hisp.dhis.program.variable.*;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -56,11 +62,29 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+
 /**
  * @author Chau Thu Tran
  */
 @Service( "org.hisp.dhis.program.ProgramIndicatorService" )
-public class  DefaultProgramIndicatorService
+public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
     // -------------------------------------------------------------------------
@@ -84,6 +108,12 @@ public class  DefaultProgramIndicatorService
     private I18nManager i18nManager;
 
     private RelationshipTypeService relationshipTypeService;
+
+    private static Cache<String> ANALYTICS_SQL_CACHE = new SimpleCacheBuilder<String>().forRegion( "analyticsSql" )
+        .expireAfterAccess( 10, TimeUnit.HOURS )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
@@ -112,72 +142,53 @@ public class  DefaultProgramIndicatorService
         this.relationshipTypeService = relationshipTypeService;
     }
 
-    public final static ImmutableMap<Integer, ExprFunction> PROGRAM_INDICATOR_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
+    public final static ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExpressionItem>builder()
 
         // Common functions
 
-        .putAll( COMMON_EXPRESSION_FUNCTIONS )
-
-        // Program variables
-
-        .put( V_ANALYTICS_PERIOD_END, new vAnalyticsPeriodEnd() )
-        .put( V_ANALYTICS_PERIOD_START, new vAnalyticsPeriodStart() )
-        .put( V_CREATION_DATE, new vCreationDate() )
-        .put( V_CURRENT_DATE, new vCurrentDate() )
-        .put( V_DUE_DATE, new vDueDate() )
-        .put( V_ENROLLMENT_COUNT, new vEnrollmentCount() )
-        .put( V_ENROLLMENT_DATE, new vEnrolmentDate() )
-        .put( V_ENROLLMENT_STATUS, new vEnrollmentStatus() )
-        .put( V_EVENT_COUNT, new vEventCount() )
-        .put( V_EXECUTION_DATE, new vEventDate() ) // Same as event date
-        .put( V_EVENT_DATE, new vEventDate() )
-        .put( V_INCIDENT_DATE, new vIncidentDate() )
-        .put( V_ORG_UNIT_COUNT, new vOrgUnitCount() )
-        .put( V_PROGRAM_STAGE_ID, new vProgramStageId() )
-        .put( V_PROGRAM_STAGE_NAME, new vProgramStageName() )
-        .put( V_SYNC_DATE, new vSyncDate() )
-        .put( V_TEI_COUNT, new vTeiCount() )
-        .put( V_VALUE_COUNT, new vValueCount() )
-        .put( V_ZERO_POS_VALUE_COUNT, new vZeroPosValueCount() )
+        .putAll( COMMON_EXPRESSION_ITEMS )
 
         // Program functions
 
-        .put( D2_CONDITION, new d2Condition() )
-        .put( D2_COUNT, new d2Count() )
-        .put( D2_COUNT_IF_CONDITION, new d2CountIfCondition() )
-        .put( D2_COUNT_IF_VALUE, new d2CountIfValue() )
-        .put( D2_DAYS_BETWEEN, new d2DaysBetween() )
-        .put( D2_HAS_VALUE, new d2HasValue() )
-        .put( D2_MAX_VALUE, new d2MaxValue() )
-        .put( D2_MINUTES_BETWEEN, new d2MinutesBetween() )
-        .put( D2_MIN_VALUE, new d2MinValue() )
-        .put( D2_MONTHS_BETWEEN, new d2MonthsBetween() )
-        .put( D2_OIZP, new d2Oizp() )
-        .put( D2_RELATIONSHIP_COUNT, new d2RelationshipCount() )
-        .put( D2_WEEKS_BETWEEN, new d2WeeksBetween() )
-        .put( D2_YEARS_BETWEEN, new d2YearsBetween() )
-        .put( D2_ZING, new d2Zing() )
-        .put( D2_ZPVC, new d2Zpvc() )
+        .put( D2_CONDITION, new D2Condition() )
+        .put( D2_COUNT, new D2Count() )
+        .put( D2_COUNT_IF_CONDITION, new D2CountIfCondition() )
+        .put( D2_COUNT_IF_VALUE, new D2CountIfValue() )
+        .put( D2_DAYS_BETWEEN, new D2DaysBetween() )
+        .put( D2_HAS_VALUE, new D2HasValue() )
+        .put( D2_MAX_VALUE, new D2MaxValue() )
+        .put( D2_MINUTES_BETWEEN, new D2MinutesBetween() )
+        .put( D2_MIN_VALUE, new D2MinValue() )
+        .put( D2_MONTHS_BETWEEN, new D2MonthsBetween() )
+        .put( D2_OIZP, new D2Oizp() )
+        .put( D2_RELATIONSHIP_COUNT, new D2RelationshipCount() )
+        .put( D2_WEEKS_BETWEEN, new D2WeeksBetween() )
+        .put( D2_YEARS_BETWEEN, new D2YearsBetween() )
+        .put( D2_ZING, new D2Zing() )
+        .put( D2_ZPVC, new D2Zpvc() )
 
         // Program functions for custom aggregation
 
-        .put( AVG, new aggAvg() )
-        .put( COUNT, new aggCount() )
-        .put( MAX, new aggMax() )
-        .put( MIN, new aggMin() )
-        .put( STDDEV, new aggStddev() )
-        .put( SUM, new aggSum() )
-        .put( VARIANCE, new aggVariance() )
+        .put( AVG, new VectorAvg() )
+        .put( COUNT, new VectorCount() )
+        .put( MAX, new VectorMax() )
+        .put( MIN, new VectorMin() )
+        .put( STDDEV, new VectorStddevSamp() )
+        .put( SUM, new VectorSum() )
+        .put( VARIANCE, new VectorVariance() )
 
-        .build();
+        // Data items
 
-    public final static ImmutableMap<Integer, ExprItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
-
-        .put( C_BRACE, new ItemConstant() )
         .put( HASH_BRACE, new ProgramItemStageElement() )
         .put( A_BRACE, new ProgramItemAttribute() )
+        .put( PS_EVENTDATE, new ProgramItemPsEventdate() )
+
+        // Program variables
+
+        .put( V_BRACE, new ProgramVariableItem() )
 
         .build();
+
     // -------------------------------------------------------------------------
     // ProgramIndicator CRUD
     // -------------------------------------------------------------------------
@@ -282,7 +293,7 @@ public class  DefaultProgramIndicatorService
     @Transactional(readOnly = true)
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS );
 
         castClass( clazz, Parser.visit( expression, visitor ) );
 
@@ -293,7 +304,7 @@ public class  DefaultProgramIndicatorService
     @Transactional( readOnly = true )
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
-        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, null );
+        return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, null );
     }
 
     @Override
@@ -301,19 +312,35 @@ public class  DefaultProgramIndicatorService
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
         String tableAlias )
     {
-        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias );
+        return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, tableAlias );
     }
-    
-    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+
+    private String getAnalyticsSqlCached( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         if ( expression == null )
         {
             return null;
         }
 
+        String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
+
+        return ANALYTICS_SQL_CACHE.get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) ).orElse( null );
+    }
+
+    private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+    {
+        return expression
+            + "|" + programIndicator.getUid()
+            + "|" + startDate.getTime()
+            + "|" + endDate.getTime()
+            + "|" + ( tableAlias == null ? "" : tableAlias );
+    }
+
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+    {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_SQL );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
         visitor.setProgramIndicator( programIndicator );
@@ -409,14 +436,12 @@ public class  DefaultProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod )
     {
         return CommonExpressionVisitor.newBuilder()
-            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( this )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )
@@ -424,6 +449,7 @@ public class  DefaultProgramIndicatorService
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( i18nManager.getI18n() )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
     }
 

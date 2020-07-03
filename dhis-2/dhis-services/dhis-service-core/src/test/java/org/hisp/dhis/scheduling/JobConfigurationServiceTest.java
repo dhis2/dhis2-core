@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Henning Håkonsen
@@ -45,6 +46,8 @@ import static org.junit.Assert.assertNull;
 public class JobConfigurationServiceTest
     extends DhisSpringTest
 {
+    private static final String CRON_EVERY_MIN = "0 * * ? * *";
+
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -56,13 +59,28 @@ public class JobConfigurationServiceTest
     protected void setUpTest()
         throws Exception
     {
-        String CRON_EVERY_MIN = "0 * * ? * *";
-        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ), false,
-            true );
-        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, false, true );
+        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ) );
+        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
+    }
+
+    @Test
+    public void testGetJobTypeInfo()
+    {
+        List<JobTypeInfo> jobTypes = jobConfigurationService.getJobTypeInfo();
+
+        assertNotNull( jobTypes );
+        assertFalse( jobTypes.isEmpty() );
+
+        JobTypeInfo jobType = jobTypes.stream()
+            .filter( j -> j.getJobType() == JobType.CONTINUOUS_ANALYTICS_TABLE )
+            .findFirst().get();
+
+        assertNotNull( jobType );
+        assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType() );
+        assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getKey(), jobType.getKey() );
     }
 
     @Test
@@ -100,5 +118,4 @@ public class JobConfigurationServiceTest
 
         assertNull( jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ) );
     }
-
 }

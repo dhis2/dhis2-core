@@ -1,7 +1,7 @@
 package org.hisp.dhis.cache;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,19 @@ public interface Cache<V>
      * @throws IllegalArgumentException if the specified value is null
      */
     void put( String key, V value );
+
+    /**
+     * Associates the {@code value} with the {@code key} in this cache. If the
+     * cache previously contained a value associated with the {@code key}, the
+     * old value is replaced by the new {@code value}. It also sets a custom
+     * time to live for the given key, which overrides the cache's default.
+     *
+     * @param key the key for the value
+     * @param value value to be mapped to the key
+     * @param ttlInSeconds the time to live for the key, in seconds
+     * @throws IllegalArgumentException if the specified value is null
+     */
+    void put( String key, V value, long ttlInSeconds );
 
     /**
      * Discards any cached value for the {@code key}. The behavior of this

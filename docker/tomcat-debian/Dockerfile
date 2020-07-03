@@ -4,13 +4,12 @@ FROM $TOMCAT_IMAGE
 ARG IDENTIFIER=unknown
 LABEL identifier=${IDENTIFIER}
 
-ENV DHIS2_HOME=/DHIS2_home
+ENV WAIT_FOR_DB_CONTAINER=""
 
-COPY ./tomcat-debian/docker-entrypoint.sh /usr/local/bin/
+ENV DHIS2_HOME=/DHIS2_home
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
-    chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     mkdir $DHIS2_HOME && \
     adduser --system --disabled-password --group tomcat && \
     echo 'tomcat' >> /etc/cron.deny && \
@@ -21,6 +20,12 @@ RUN apt-get update && \
         util-linux \
         bash \
         unzip
+
+COPY ./shared/wait-for-it.sh /usr/local/bin/
+COPY ./tomcat-debian/docker-entrypoint.sh /usr/local/bin/
+
+RUN chmod +rx /usr/local/bin/docker-entrypoint.sh && \
+    chmod +rx /usr/local/bin/wait-for-it.sh
 
 COPY ./shared/server.xml /usr/local/tomcat/conf
 COPY ./artifacts/dhis.war /usr/local/tomcat/webapps/ROOT.war

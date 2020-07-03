@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-schema</artifactId>
@@ -34,10 +34,6 @@
       <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
     </dependency>
@@ -45,6 +41,19 @@
       <groupId>org.apache.qpid</groupId>
       <artifactId>qpid-jms-client</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    
+    <!-- Test -->    
+    
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+    </dependency>
+    
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

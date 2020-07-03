@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -68,7 +69,19 @@ public class CategoryDeletionHandler
 
         for ( Category category : categories )
         {
-            category.removeCategoryOption( categoryOption );
+            category.getCategoryOptions().remove( categoryOption );
+            idObjectManager.updateNoAcl( category );
+        }
+    }
+
+    @Override
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        List<Category> categories = categoryCombo.getCategories();
+
+        for ( Category category : categories )
+        {
+            category.getCategoryCombos().remove( categoryCombo );
             idObjectManager.updateNoAcl( category );
         }
     }

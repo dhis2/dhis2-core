@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Schema;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,7 +64,7 @@ public abstract class Criteria
 
     public Criteria add( Criterion criterion )
     {
-        if ( !Restriction.class.isInstance( criterion ) )
+        if ( !(criterion instanceof Restriction) )
         {
             this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
             return this;

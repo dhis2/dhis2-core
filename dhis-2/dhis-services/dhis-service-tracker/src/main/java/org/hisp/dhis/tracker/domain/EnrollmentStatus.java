@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.domain;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.tracker.domain;
 import org.hisp.dhis.program.ProgramStatus;
 
 /**
- * FIXME we should probably remove this, and replace it with program status
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum EnrollmentStatus

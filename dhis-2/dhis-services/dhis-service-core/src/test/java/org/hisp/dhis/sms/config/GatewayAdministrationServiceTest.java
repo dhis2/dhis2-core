@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -40,7 +41,7 @@ import static org.junit.Assert.*;
 
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class GatewayAdministrationServiceTest
 {
@@ -68,6 +69,7 @@ public class GatewayAdministrationServiceTest
     @Before
     public void setUp()
     {
+
         subject = new DefaultGatewayAdministrationService( smsConfigurationManager );
 
         spyConfiguration = new SmsConfiguration();
@@ -81,13 +83,7 @@ public class GatewayAdministrationServiceTest
         genericHttpGatewayConfig.setName( GENERIC_GATEWAY );
         genericHttpGatewayConfig.setContentType( ContentType.from( "application/json" ).get() );
 
-        when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
-
-        doAnswer( invocationOnMock ->
-        {
-            spyConfiguration = (SmsConfiguration) invocationOnMock.getArguments()[0];
-            return spyConfiguration;
-        }).when( smsConfigurationManager ).updateSmsConfiguration( any( SmsConfiguration.class ) );
+        Mockito.lenient().when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
     }
 
     @Test
@@ -188,12 +184,6 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testReturnFalseIfConfigIsNull()
-    {
-        assertFalse( subject.addGateway( null ) );
-    }
-
-    @Test
     public void testWhenNoDefaultGateway()
     {
         assertNull( subject.getDefaultGateway() );
@@ -285,5 +275,11 @@ public class GatewayAdministrationServiceTest
 
         assertNull( subject.getGatewayType( clickatellConfig ) );
         assertNull( subject.getGatewayType( null ) );
+    }
+
+    @Test
+    public void testReturnFalseIfConfigIsNull()
+    {
+        assertFalse( subject.addGateway( null ) );
     }
 }

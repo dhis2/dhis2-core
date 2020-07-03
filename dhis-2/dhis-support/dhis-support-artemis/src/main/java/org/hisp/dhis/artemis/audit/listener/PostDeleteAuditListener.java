@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,53 +28,68 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostDeleteEventListener
+    extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
     public PostDeleteAuditListener(
         AuditManager auditManager,
-        AuditLegacyObjectFactory auditLegacyObjectFactory,
+        AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
     @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    AuditType getAuditType()
     {
-        return false;
+        return AuditType.DELETE;
     }
 
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
         Object entity = postDeleteEvent.getEntity();
-
-        getAuditable( entity, "delete" ).ifPresent( auditable -> {
+        getAuditable( entity, "delete" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.DELETE )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.DELETE, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .auditType( getAuditType() )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() ) );
     }
+
+    @Override
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    {
+        return true;
+    }
+
+    @Override
+    public void onPostDeleteCommitFailed( PostDeleteEvent event )
+    {
+        log.warn( "onPostDeleteCommitFailed: " + event );
+    }
+
+
 }

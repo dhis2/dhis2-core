@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event.data.programIndicator;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.event.data.programIndicator;
-
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
@@ -38,6 +38,8 @@ import org.junit.Test;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.*;
 import static org.junit.Assert.*;
+
+import org.apache.commons.text.StringSubstitutor;
 
 /**
  * @author Luciano Fiandesio
@@ -177,7 +179,7 @@ public class RelationshipTypeJoinGeneratorTest
 
     private String addWhere( RelationshipType relationshipType )
     {
-        return new org.apache.commons.text.StrSubstitutor(
+        return new StringSubstitutor(
             ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipType.getId() ).build() )
                 .replace( RelationshipTypeJoinGenerator.RELATIONSHIP_JOIN );
     }

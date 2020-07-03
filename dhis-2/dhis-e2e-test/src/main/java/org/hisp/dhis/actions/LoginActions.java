@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +28,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
-
-import io.restassured.RestAssured;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ConfigurationHelper;
-
 import static io.restassured.RestAssured.oauth2;
 import static org.hamcrest.CoreMatchers.equalTo;
+
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.config.TestConfiguration;
+
+import io.restassured.RestAssured;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -52,8 +53,8 @@ public class LoginActions
         ApiResponse loggedInUser = getLoggedInUserInfo();
 
         if ( loggedInUser.getContentType().contains( "json" ) &&
-             loggedInUser.extract( "userCredentials.username" ) != null &&
-             loggedInUser.extract( "userCredentials.username" ).equals( username ) )
+            loggedInUser.extract( "userCredentials.username" ) != null &&
+            loggedInUser.extract( "userCredentials.username" ).equals( username ) )
         {
             return;
         }
@@ -69,7 +70,7 @@ public class LoginActions
      */
     public void loginAsSuperUser()
     {
-        loginAsUser( ConfigurationHelper.SUPER_USER_USERNAME, ConfigurationHelper.SUPER_USER_PASS );
+        loginAsUser( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
     }
 
     /**
@@ -78,7 +79,7 @@ public class LoginActions
      */
     public void loginAsDefaultUser()
     {
-        loginAsUser( "admin", "district" );
+        loginAsUser( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
     }
 
     public ApiResponse getLoggedInUserInfo()
@@ -86,6 +87,11 @@ public class LoginActions
         ApiResponse response = new RestApiActions( "/me" ).get();
 
         return response;
+    }
+
+    public String getLoggedInUserId()
+    {
+        return getLoggedInUserInfo().extractString( "id" );
     }
 
     /**
@@ -97,6 +103,14 @@ public class LoginActions
     public void addAuthenticationHeader( final String username, final String password )
     {
         RestAssured.authentication = RestAssured.preemptive().basic( username, password );
+    }
+
+    /**
+     * Removes authentication header
+     */
+    public void removeAuthenticationHeader()
+    {
+        RestAssured.authentication = RestAssured.DEFAULT_AUTH;
     }
 
     /**

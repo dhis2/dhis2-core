@@ -1,7 +1,7 @@
 package org.hisp.dhis.mock.batchhandler;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,11 @@ package org.hisp.dhis.mock.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.JdbcConfiguration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -72,6 +72,12 @@ public class MockBatchHandler<T>
     public boolean addObject( T object )
     {
         return inserts.add( object );
+    }
+
+    @Override
+    public boolean insertObject( T object )
+    {
+        return true;
     }
 
     @Override

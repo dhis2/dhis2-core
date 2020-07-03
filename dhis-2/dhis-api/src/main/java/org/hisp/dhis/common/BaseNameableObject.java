@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,10 @@ public class BaseNameableObject
      * The i18n variant of the description. Should not be persisted.
      */
     protected transient String displayDescription;
+
+    protected String formName;
+
+    protected transient String displayFormName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -248,5 +252,33 @@ public class BaseNameableObject
     public void setDisplayDescription( String displayDescription )
     {
         this.displayDescription = displayDescription;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
+    {
+        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
+        return displayFormName != null ? displayFormName : getFormNameFallback();
+    }
+
+    /**
+     * Returns the form name, or the name if it does not exist.
+     */
+    public String getFormNameFallback()
+    {
+        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
     }
 }

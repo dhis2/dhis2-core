@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroupSet;
@@ -41,6 +42,8 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -54,6 +57,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -66,8 +71,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -76,13 +79,9 @@ import org.mockito.junit.MockitoRule;
  */
 public class QueryValidatorTest
 {
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @InjectMocks
     private DefaultQueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
@@ -116,6 +115,8 @@ public class QueryValidatorTest
     @Before
     public void setUp()
     {
+        queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ),
+            mock( NestedIndicatorCyclicDependencyInspector.class ) );
         PeriodType pt = new MonthlyPeriodType();
 
         itA = createIndicatorType( 'A' );
@@ -149,7 +150,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesA()
+    public void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -160,7 +161,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesB()
+    public void validateSuccessB()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB, pdeA, pdeB ) ) )
@@ -171,7 +172,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesSingleIndicatorFilter()
+    public void validateSuccessSingleIndicatorFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -191,6 +192,18 @@ public class QueryValidatorTest
         queryValidator.validate( params );
     }
 
+    @Test
+    public void validateErrorSingleIndicatorAsFilter()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7108, error.getErrorCode() );
+    }
+
     @Test( expected = IllegalQueryException.class )
     public void validateFailureMultipleIndicatorsFilter()
     {
@@ -202,6 +215,19 @@ public class QueryValidatorTest
         queryValidator.validate( params );
     }
 
+    @Test
+    public void validateErrorMultipleIndicatorsFilter()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7108, error.getErrorCode() );
+    }
+
     @Test( expected = IllegalQueryException.class )
     public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
     {
@@ -211,6 +237,19 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
 
         queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateErrorReportingRatesAndDataElementGroupSetAsDimensions()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
+            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7112, error.getErrorCode() );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -275,7 +314,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesWithSkipDataDimensionCheck()
+    public void validateSuccessWithSkipDataDimensionCheck()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
                 .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )

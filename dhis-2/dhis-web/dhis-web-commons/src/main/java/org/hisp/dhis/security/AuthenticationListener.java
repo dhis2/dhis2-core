@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,30 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Objects;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
  */
+@Slf4j
 @Component
 public class AuthenticationListener
 {
-    private static final Logger log = LoggerFactory.getLogger( AuthenticationListener.class );
-
     @Autowired
     private SecurityService securityService;
 
@@ -63,7 +62,7 @@ public class AuthenticationListener
     private DhisConfigurationProvider config;
 
     @EventListener
-    public void handleAuthenticationFailure( AuthenticationFailureBadCredentialsEvent event )
+    public void handleAuthenticationFailure( AbstractAuthenticationFailureEvent event )
     {
         Authentication auth = event.getAuthentication();
 

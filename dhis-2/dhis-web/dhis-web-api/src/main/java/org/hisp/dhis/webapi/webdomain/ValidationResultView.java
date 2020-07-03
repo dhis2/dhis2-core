@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.webdomain;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,17 @@ public class ValidationResultView
 
     private String organisationUnitDisplayName;
 
+    private String organisationUnitPath;
+
+    private String organisationUnitAncestorNames;
+
     private String periodId;
 
     private String periodDisplayName;
+
+    private String attributeOptionComboId;
+
+    private String attributeOptionComboDisplayName;
 
     private String importance;
 
@@ -99,6 +107,28 @@ public class ValidationResultView
     }
 
     @JsonProperty
+    public String getOrganisationUnitPath()
+    {
+        return organisationUnitPath;
+    }
+
+    public void setOrganisationUnitPath( String organisationUnitPath )
+    {
+        this.organisationUnitPath = organisationUnitPath;
+    }
+
+    @JsonProperty
+    public String getOrganisationUnitAncestorNames()
+    {
+        return organisationUnitAncestorNames;
+    }
+
+    public void setOrganisationUnitAncestorNames( String organisationUnitAncestorNames )
+    {
+        this.organisationUnitAncestorNames = organisationUnitAncestorNames;
+    }
+
+    @JsonProperty
     public String getPeriodId()
     {
         return periodId;
@@ -118,6 +148,28 @@ public class ValidationResultView
     public void setPeriodDisplayName( String periodDisplayName )
     {
         this.periodDisplayName = periodDisplayName;
+    }
+
+    @JsonProperty
+    public String getAttributeOptionComboId()
+    {
+        return attributeOptionComboId;
+    }
+
+    public void setAttributeOptionComboId( String attributeOptionComboId )
+    {
+        this.attributeOptionComboId = attributeOptionComboId;
+    }
+
+    @JsonProperty
+    public String getAttributeOptionComboDisplayName()
+    {
+        return attributeOptionComboDisplayName;
+    }
+
+    public void setAttributeOptionComboDisplayName( String attributeOptionComboDisplayName )
+    {
+        this.attributeOptionComboDisplayName = attributeOptionComboDisplayName;
     }
 
     @JsonProperty

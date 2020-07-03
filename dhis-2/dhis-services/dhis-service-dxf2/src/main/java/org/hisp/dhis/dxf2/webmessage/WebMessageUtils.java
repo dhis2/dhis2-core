@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.webmessage;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
@@ -54,6 +55,15 @@ public final class WebMessageUtils
     public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus )
     {
         WebMessage webMessage = new WebMessage( status, httpStatus );
+        webMessage.setMessage( message );
+
+        return webMessage;
+    }
+
+    public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus, ErrorCode errorCode )
+    {
+        WebMessage webMessage = new WebMessage( status, httpStatus );
+        webMessage.setErrorCode( errorCode );
         webMessage.setMessage( message );
 
         return webMessage;
@@ -107,6 +117,11 @@ public final class WebMessageUtils
     public static WebMessage conflict( String message )
     {
         return createWebMessage( message, Status.ERROR, HttpStatus.CONFLICT );
+    }
+
+    public static WebMessage conflict( String message, ErrorCode errorCode )
+    {
+        return createWebMessage( message, Status.ERROR, HttpStatus.CONFLICT, errorCode );
     }
 
     public static WebMessage conflict( String message, String devMessage )

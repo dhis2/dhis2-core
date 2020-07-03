@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -56,16 +55,17 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import static org.hisp.dhis.expression.ParseType.*;
+
 /**
  * @author Ken Haase (ken@dhis2.org)
  */
 @Controller
+@Slf4j
 @RequestMapping( value = PredictorSchemaDescriptor.API_ENDPOINT )
 public class PredictorController
     extends AbstractCrudController<Predictor>
 {
-    private static final Log log = LogFactory.getLog( PredictorController.class );
-
     @Autowired
     private PredictorService predictorService;
 
@@ -149,7 +149,7 @@ public class PredictorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        ExpressionValidationOutcome result = expressionService.predictorExpressionIsValid( expression );
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_EXPRESSION );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
@@ -157,7 +157,27 @@ public class PredictorController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getExpressionDescriptionRegEx( expression ) );
+            message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) );
+        }
+
+        webMessageService.sendJson( message, response );
+    }
+
+    @RequestMapping( value = "/skipTest/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    public void getSkipTestDescription( @RequestBody String expression, HttpServletResponse response )
+        throws IOException
+    {
+        I18n i18n = i18nManager.getI18n();
+
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_SKIP_TEST );
+
+        DescriptiveWebMessage message = new DescriptiveWebMessage();
+        message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
+        message.setMessage( i18n.getString( result.getKey() ) );
+
+        if ( result.isValid() )
+        {
+            message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_SKIP_TEST ) );
         }
 
         webMessageService.sendJson( message, response );

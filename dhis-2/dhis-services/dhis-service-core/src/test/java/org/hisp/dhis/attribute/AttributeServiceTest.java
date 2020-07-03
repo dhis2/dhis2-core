@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,25 +57,6 @@ public class AttributeServiceTest
         assertNotNull( attribute );
         assertEquals( ValueType.TEXT, attribute.getValueType() );
         assertEquals( "attribute1", attribute.getName() );
-    }
-
-    @Test
-    public void testUpdateAttribute()
-    {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
-
-        attributeService.addAttribute( attribute );
-
-        attribute.setValueType( ValueType.INTEGER );
-        attribute.setName( "attribute2" );
-
-        attributeService.updateAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
-
-        assertEquals( ValueType.INTEGER, attribute.getValueType() );
-        assertEquals( "attribute2", attribute.getName() );
     }
 
     @Test

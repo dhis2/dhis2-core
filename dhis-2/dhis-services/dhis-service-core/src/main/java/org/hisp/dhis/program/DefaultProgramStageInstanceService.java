@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,7 +104,15 @@ public class DefaultProgramStageInstanceService
     {
         programStageInstance.setAutoFields();
         programStageInstanceStore.save( programStageInstance );
+        return programStageInstance.getId();
+    }
 
+    @Override
+    @Transactional
+    public long addProgramStageInstance( ProgramStageInstance programStageInstance, User user )
+    {
+        programStageInstance.setAutoFields();
+        programStageInstanceStore.save( programStageInstance, user );
         return programStageInstance.getId();
     }
 
@@ -111,24 +120,7 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        deleteProgramStageInstance( programStageInstance, false );
-    }
-
-    @Override
-    @Transactional
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete )
-    {
-        if ( forceDelete )
-        {
-            programStageInstanceStore.delete( programStageInstance );
-        }
-        else
-        {
-            // Soft delete
-            programStageInstance.setDeleted( true );
-            programStageInstanceStore.save( programStageInstance );
-        }
-
+        programStageInstanceStore.delete( programStageInstance );
     }
 
     @Override
@@ -162,6 +154,14 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
+    public void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user )
+    {
+        programStageInstance.setAutoFields();
+        programStageInstanceStore.update( programStageInstance, user );
+    }
+
+    @Override
+    @Transactional
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
     {
         programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs,
@@ -180,6 +180,13 @@ public class DefaultProgramStageInstanceService
     public boolean programStageInstanceExistsIncludingDeleted( String uid )
     {
         return programStageInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids )
+    {
+        return programStageInstanceStore.getUidsIncludingDeleted( uids );
     }
 
     @Override
@@ -376,7 +383,7 @@ public class DefaultProgramStageInstanceService
     }
 
     // ---- Audit ----
-    
+
     private void auditDataValuesChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
         Set<EventDataValue> removedDataValues, Cache<DataElement> dataElementsCache,
         ProgramStageInstance programStageInstance )

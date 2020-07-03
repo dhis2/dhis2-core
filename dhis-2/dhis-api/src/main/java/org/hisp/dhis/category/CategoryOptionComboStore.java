@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,19 +40,19 @@ public interface CategoryOptionComboStore
     extends IdentifiableObjectStore<CategoryOptionCombo>
 {
     CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
-    
+
     void updateNames();
 
     void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 
     /**
-     * Fetch all {@see CategoryOptionCombo} from a given {@see CategoryOptionGroup} uid.
+     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
      *
-     * A {@see CategoryOptionGroup} is a collection of {@see CategoryOption}. Therefore, this method finds all
-     * {@see CategoryOptionCombo} for all the members of the given {@see CategoryOptionGroup}
+     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
+     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
      *
-     * @param groupId a {@see CategoryOptionGroup} uid
-     * @return a List of {@see CategoryOptionCombo} or empty List
+     * @param groupId a {@link CategoryOptionGroup} uid
+     * @return a List of {@link CategoryOptionCombo} or empty List
      */
     List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -101,6 +102,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.analytics.AnalyticsTableManager" )
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
@@ -117,7 +119,7 @@ public class JdbcAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ),
         new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" )
             .withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ),

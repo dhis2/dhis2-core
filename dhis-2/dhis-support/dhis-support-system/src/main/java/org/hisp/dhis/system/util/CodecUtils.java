@@ -1,9 +1,7 @@
 package org.hisp.dhis.system.util;
 
-import java.util.Base64;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,11 @@ import java.util.Base64;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Utility class for encoding and decoding operations.
@@ -74,5 +77,22 @@ public class CodecUtils
         String string = username + ":" + password;
         
         return "Basic " + Base64.getEncoder().encodeToString( string.getBytes() );
-    }    
+    }
+
+    /**
+     * Encode the given string using URLEncoder and UTF-8 scheme
+     * @param string
+     * @return encoded string
+     */
+    public static String utf8UrlEncode( String string )
+    {
+        try
+        {
+            return URLEncoder.encode( string, StandardCharsets.UTF_8.name() );
+        }
+        catch ( UnsupportedEncodingException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
 }

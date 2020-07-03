@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,6 +104,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
+    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
+
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
@@ -161,6 +163,8 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue );
 
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value );
+
+    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass, Attribute attribute, List<String> values );
 
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 

@@ -85,12 +85,23 @@
     <filter-name>springSessionRepositoryFilter</filter-name>
 	<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
   </filter>
+
   <filter-mapping>
 	<filter-name>springSessionRepositoryFilter</filter-name>
 	<url-pattern>/*</url-pattern>
 	<dispatcher>REQUEST</dispatcher>
 	<dispatcher>ERROR</dispatcher>
   </filter-mapping>
+
+  <filter>
+    <filter-name>requestIdentifierFilter</filter-name>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    <init-param>
+      <param-name>targetBeanName</param-name>
+      <param-value>requestIdentifierFilter</param-value>
+    </init-param>
+  </filter>
+
   <filter>
     <filter-name>webMetricsFilter</filter-name>
     <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
@@ -148,6 +159,11 @@
     <filter-name>appCacheFilter</filter-name>
     <url-pattern>*.appcache</url-pattern>
   </filter-mapping>
+  <filter-mapping>
+    <filter-name>requestIdentifierFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
   <filter-mapping>
     <filter-name>webMetricsFilter</filter-name>
     <url-pattern>/api/*</url-pattern>

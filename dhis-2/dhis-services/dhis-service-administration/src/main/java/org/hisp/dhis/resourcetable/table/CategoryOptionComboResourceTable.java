@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,9 +57,9 @@ public class CategoryOptionComboResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "CREATE TABLE " + getTempTableName() + " (" +
-            "dataelementid INTEGER NOT NULL, " +
+            "dataelementid BIGINT NOT NULL, " +
             "dataelementuid VARCHAR(11) NOT NULL, " +
-            "categoryoptioncomboid INTEGER NOT NULL, " +
+            "categoryoptioncomboid BIGINT NOT NULL, " +
             "categoryoptioncombouid VARCHAR(11) NOT NULL)";
 
         return sql;

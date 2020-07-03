@@ -1,7 +1,5 @@
-package org.hisp.dhis.deduplication.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +26,11 @@ package org.hisp.dhis.deduplication.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.deduplication.hibernate;
+
+import java.math.BigInteger;
+import java.util.List;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -35,15 +38,11 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import java.math.BigInteger;
-import java.util.List;
 
 @Repository( "org.hisp.dhis.deduplication.PotentialDuplicateStore" )
 public class HibernatePotentialDuplicateStore
@@ -51,10 +50,9 @@ public class HibernatePotentialDuplicateStore
     implements PotentialDuplicateStore
 {
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
     }
 
@@ -79,7 +77,8 @@ public class HibernatePotentialDuplicateStore
     {
         if ( query.getTeis() != null && query.getTeis().size() > 0 )
         {
-            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
+                "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
             hibernateQuery.setParameterList( "uids", query.getTeis() );
             return hibernateQuery.getResultList();
         }
@@ -90,6 +89,7 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         NativeQuery<BigInteger> query;

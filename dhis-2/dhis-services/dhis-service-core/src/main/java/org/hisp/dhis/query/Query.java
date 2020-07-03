@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,17 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

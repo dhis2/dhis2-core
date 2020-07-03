@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,5 +36,21 @@ import org.hisp.dhis.common.GenericStore;
 public interface SystemSettingStore
     extends GenericStore<SystemSetting>
 {
+    /**
+     * Returns the {@link SystemSetting} with the given name.
+     * <p>
+     * Note: This method invocation will occur within a transaction.
+     *
+     * @param name the system setting name.
+     * @return a system setting.
+     */
+    SystemSetting getByNameTx( String name );
+
+    /**
+     * Returns the {@link SystemSetting} with the given name.
+     *
+     * @param name the system setting name.
+     * @return a system setting.
+     */
     SystemSetting getByName( String name );
 }

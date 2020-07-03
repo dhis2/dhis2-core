@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,12 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -101,7 +98,7 @@ public class DefaultProgramRuleService
     {
         return programRuleStore.getByName( name, program );
     }
-    
+
     @Override
     public List<ProgramRule> getAllProgramRule()
     {
@@ -119,7 +116,7 @@ public class DefaultProgramRuleService
     {
         return programRuleStore.get( program );
     }
-    
+
     @Override
     public List<ProgramRule> getProgramRules( Program program, String key )
     {

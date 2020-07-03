@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -651,12 +651,10 @@ public class DefaultAclService implements AclService
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            /*
-             * Is the user allowed to read this object through group access?
-             *
-             */
+            // Check if user is allowed to read this object through group access
+
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+                    && userGroupAccess.getUserGroup().getMembers().contains( user ) )
             {
                 return true;
             }
@@ -664,12 +662,10 @@ public class DefaultAclService implements AclService
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
-            /*
-             * Is the user allowed to read to this object through user access?
-             *
-             */
+            // Check if user is allowed to read to this object through user access
+
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                && user.equals( userAccess.getUser() ) )
+                    && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -256,14 +256,14 @@ public class BaseDimensionalObject
     {
         QueryKey key = new QueryKey();
 
-        key.add( getDimension() );
-        getItems().forEach( e -> key.add( e.getDimensionItem() ) );
+        key.add( "dimension", getDimension() );
+        getItems().forEach( e -> key.add( "item", e.getDimensionItem() ) );
 
         return key
-            .add( allItems )
-            .addIgnoreNull( legendSet )
-            .addIgnoreNull( aggregationType )
-            .addIgnoreNull( filter ).asPlainKey();
+            .add( "allItems", allItems )
+            .addIgnoreNull( "legendSet", legendSet )
+            .addIgnoreNull( "aggregationType", aggregationType )
+            .addIgnoreNull( "filter", filter ).asPlainKey();
     }
 
     //--------------------------------------------------------------------------

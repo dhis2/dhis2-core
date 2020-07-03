@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.operator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,60 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorLogicalOr;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression logical operator: Or
+ * Logical operator: Or
+ * <pre>
+ *
+ * Truth table (same as for SQL):
+ *
+ *       A      B    A or B
+ *     -----  -----  ------
+ *     null   null    null
+ *     null   false   null
+ *     null   true    true
+ *
+ *     false  null    null
+ *     false  false   false
+ *     false  true    true
+ *
+ *     true   null    true
+ *     true   false   true
+ *     true   true    true
+ * </pre>
  *
  * @author Jim Grace
  */
 public class OperatorLogicalOr
-    implements ExprFunction
+    extends AntlrOperatorLogicalOr
+    implements ExpressionItem
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.castBooleanVisit( ctx.expr( 0 ) )
-            || visitor.castBooleanVisit( ctx.expr( 1 ) );
-    }
-
     @Override
     public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
-        Boolean arg1 = visitor.castBooleanVisit( ctx.expr( 1 ) );
+        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
+        Boolean value1 = visitor.castBooleanVisit( ctx.expr( 1 ) );
 
-        return arg0 || arg1;
+        if ( value == null )
+        {
+            value = value1;
+
+            if ( value != null && !value )
+            {
+                value = null;
+            }
+        }
+        else if ( !value )
+        {
+            value = value1;
+        }
+
+        return value;
     }
 
     @Override

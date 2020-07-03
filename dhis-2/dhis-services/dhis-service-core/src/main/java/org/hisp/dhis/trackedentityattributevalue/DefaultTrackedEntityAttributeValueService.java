@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -59,7 +60,7 @@ public class DefaultTrackedEntityAttributeValueService
     // -------------------------------------------------------------------------
 
     private final TrackedEntityAttributeValueStore attributeValueStore;
-    
+
     private final FileResourceService fileResourceService;
 
     private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
@@ -109,7 +110,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
         TrackedEntityAttribute attribute )
     {
@@ -117,28 +118,28 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance )
     {
         return attributeValueStore.get( instance );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.get( attribute );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.getCountOfAssignedTEAValues( attribute );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
         Collection<TrackedEntityInstance> instances )
     {
@@ -197,6 +198,13 @@ public class DefaultTrackedEntityAttributeValueService
     @Transactional
     public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
+        updateTrackedEntityAttributeValue( attributeValue, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    @Transactional
+    public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue, User user )
+    {
         if ( attributeValue != null && StringUtils.isEmpty( attributeValue.getValue() ) )
         {
             deleteFileValue( attributeValue );
@@ -220,11 +228,9 @@ public class DefaultTrackedEntityAttributeValueService
             }
 
             TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
-                attributeValue,
-                attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
+                attributeValue, attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
 
-            trackedEntityAttributeValueAuditService
-                .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             attributeValueStore.update( attributeValue );
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )

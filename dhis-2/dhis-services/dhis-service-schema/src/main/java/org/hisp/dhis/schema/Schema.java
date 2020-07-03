@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -701,6 +701,17 @@ public class Schema implements Ordered, Klass
         this.order = order;
     }
 
+    /**
+     * Gets a list of properties marked as unique for this schema
+     *
+      * @return a List of {@see Property}
+     */
+    public List<Property> getUniqueProperties()
+    {
+        return this.getProperties().stream()
+            .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
+            .collect( Collectors.toList() );
+    }
 
     @Override
     public int hashCode()

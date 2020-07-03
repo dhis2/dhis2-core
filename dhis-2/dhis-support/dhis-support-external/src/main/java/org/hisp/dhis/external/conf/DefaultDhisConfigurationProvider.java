@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,16 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.text.StrSubstitutor;
+
+
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -67,11 +70,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Profile("!test")
 @Component( "dhisConfigurationProvider" )
-public class DefaultDhisConfigurationProvider
+@Slf4j
+public class DefaultDhisConfigurationProvider extends LogOnceLogger
     implements DhisConfigurationProvider
 {
-    private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
-
     private static final String CONF_FILENAME = "dhis.conf";
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
@@ -117,17 +119,17 @@ public class DefaultDhisConfigurationProvider
 
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
-            Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
+            HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
 
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
         catch ( LocationManagerException ex )
         {
-            log.info( "Could not find dhis-google-auth.json" );
+            log( log, Level.INFO, "Could not find dhis-google-auth.json" );
         }
         catch ( IOException ex )
         {
-            log.warn( "Could not load credential from dhis-google-auth.json", ex );
+            warn( log, "Could not load credential from dhis-google-auth.json", ex );
         }
 
         // ---------------------------------------------------------------------
@@ -142,15 +144,15 @@ public class DefaultDhisConfigurationProvider
 
             this.googleCredential = Optional.of( credential );
 
-            log.info( "Loaded dhis-google-auth.json authentication file" );
+            log( log, Level.INFO, "Loaded dhis-google-auth.json authentication file" );
         }
         catch ( LocationManagerException ex )
         {
-            log.info( "Could not find dhis-google-auth.json" );
+            log( log, Level.INFO, "Could not find dhis-google-auth.json" );
         }
         catch ( IOException ex )
         {
-            log.warn( "Could not load credential from dhis-google-auth.json", ex );
+            warn( log, "Could not load credential from dhis-google-auth.json", ex );
         }
     }
 
@@ -238,18 +240,6 @@ public class DefaultDhisConfigurationProvider
     public boolean isReadOnlyMode()
     {
         return isEnabled( ConfigurationKey.SYSTEM_READ_ONLY_MODE );
-    }
-
-    @Override
-    public long getAnalyticsCacheExpiration()
-    {
-        return Long.parseLong( getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
-    }
-
-    @Override
-    public boolean isAnalyticsCacheEnabled()
-    {
-        return getAnalyticsCacheExpiration() > 0;
     }
 
     @Override
@@ -344,7 +334,7 @@ public class DefaultDhisConfigurationProvider
 
     private void substituteEnvironmentVariables( Properties properties )
     {
-        final StrSubstitutor substitutor = new StrSubstitutor( System.getenv() ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() ); // Matches on ${...}
 
         properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
     }

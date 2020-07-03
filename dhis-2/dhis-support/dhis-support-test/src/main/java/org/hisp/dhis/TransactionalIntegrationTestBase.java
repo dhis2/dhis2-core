@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @Category( IntegrationTest.class )
-@ActiveProfiles(profiles = {"test-postgres"})
+@ActiveProfiles( profiles = {"test-postgres"} )
 @Transactional
 public abstract class TransactionalIntegrationTestBase
     extends DhisConvenienceTest

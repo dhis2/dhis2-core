@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ public class DefaultMergeService implements MergeService
                 }
             }
 
-            // passwords should only be merged manually
+            // Passwords should only be merged manually
             if ( property.is( PropertyType.PASSWORD ) )
             {
                 continue;
@@ -133,7 +133,8 @@ public class DefaultMergeService implements MergeService
 
         try
         {
-            return merge( new MergeParams<>( source, (T) source.getClass().newInstance() ).setMergeMode( MergeMode.REPLACE ) );
+            return merge( new MergeParams<>( source, (T) source.getClass().newInstance() )
+                .setMergeMode( MergeMode.REPLACE ) );
         }
         catch ( InstantiationException | IllegalAccessException ignored )
         {

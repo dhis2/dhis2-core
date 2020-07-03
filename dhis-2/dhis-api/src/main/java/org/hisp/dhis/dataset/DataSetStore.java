@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 
 /**
@@ -49,16 +48,11 @@ public interface DataSetStore
 
     /**
      * Gets all DataSets associated with the given PeriodType.
-     * 
+     *
      * @param periodType the PeriodType.
      * @return a list of DataSets.
      */
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
-
-    /**
-     * Returns all DataSets that can be collected through mobile.
-     */
-    List<DataSet> getDataSetsForMobile( OrganisationUnit source );
 
     /**
      * Gets all DataSets associated with the given DataEntryForm.

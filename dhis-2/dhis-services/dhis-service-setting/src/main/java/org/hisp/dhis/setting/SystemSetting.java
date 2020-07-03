@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,37 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
- * TODO make IdentifiableObject
- * 
  * @author Stian Strandli
  */
+@Slf4j
 public class SystemSetting
     implements Serializable
 {
+    private static final ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
     private long id;
 
     private String name;
 
-    private Serializable value;
+    private String value;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+    private transient Serializable displayValue;
 
-    public SystemSetting()
-    {
-    }
+    protected Map<String, String> translations = new HashMap<>();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -85,14 +93,98 @@ public class SystemSetting
         this.name = name;
     }
 
-    public Serializable getValue()
+    /**
+     * Should be used only by Spring/Hibernate.
+     */
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
+
+    /**
+     * Should be used only by Spring/Hibernate.
+     */
+    public String getValue()
     {
         return value;
     }
 
-    public void setValue( Serializable value )
+    public void setDisplayValue( Serializable displayValue )
     {
-        this.value = value;
+        this.displayValue = displayValue;
+        try
+        {
+            this.value = objectMapper.writeValueAsString( displayValue );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.error( String.format( "An error occurred while serializing system setting: '%s'", name ), e );
+        }
+    }
+
+    public Serializable getDisplayValue()
+    {
+        if ( displayValue == null )
+        {
+            displayValue = convertValueToSerializable();
+        }
+
+        return displayValue;
+    }
+
+    private Serializable convertValueToSerializable()
+    {
+        Serializable valueAsSerializable = null;
+        if ( hasValue() )
+        {
+            Optional<SettingKey> settingKey = SettingKey.getByName( name );
+
+            try
+            {
+                if ( settingKey.isPresent() )
+                {
+                    Object valueAsObject = objectMapper.readValue( value, settingKey.get().getClazz() );
+                    valueAsSerializable = (Serializable) valueAsObject;
+                }
+                else
+                {
+                    valueAsSerializable = StringEscapeUtils.unescapeJava( value );
+                }
+            }
+            catch ( MismatchedInputException ex )
+            {
+                log.warn( "Content could not be de-serialized by Jackson", ex );
+                valueAsSerializable = StringEscapeUtils.unescapeJava( value );
+            }
+            catch ( JsonProcessingException ex )
+            {
+                log.error( String.format( "An error occurred while de-serializing system setting: '%s'", name ), ex );
+            }
+        }
+
+        return valueAsSerializable;
+    }
+
+    public Map<String, String> getTranslations()
+    {
+        return translations;
+    }
+
+    public void setTranslations( Map<String, String> translations )
+    {
+        if ( translations != null )
+        {
+            this.translations = new HashMap<>( translations );
+        }
+        else
+        {
+            this.translations.clear();
+        }
+    }
+
+    public Optional<String> getTranslation( String locale )
+    {
+        return Optional.ofNullable( translations.get( locale ) );
     }
 
     // -------------------------------------------------------------------------
@@ -131,5 +223,16 @@ public class SystemSetting
         result = result * prime + name.hashCode();
 
         return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return new StringJoiner( ", ", SystemSetting.class.getSimpleName() + "[", "]" )
+            .add( "id=" + id )
+            .add( "name='" + name + "'" )
+            .add( "value='" + value + "'" )
+            .add( "displayValue=" + displayValue )
+            .add( "translations=" + translations ).toString();
     }
 }

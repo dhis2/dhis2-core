@@ -1,60 +1,32 @@
-/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.hisp.dhis.metadata;
+
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -63,10 +35,12 @@ import org.hisp.dhis.actions.metadata.OptionActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -74,83 +48,128 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class OptionSetTests
     extends ApiTest
 {
-    private OptionActions actions;
+    private OptionActions optionActions;
 
     private LoginActions loginActions;
 
-    @BeforeEach
-    public void beforeEach()
+    private String createdOptionSet;
+
+    @BeforeAll
+    public void beforeAll()
     {
-        actions = new OptionActions();
+
+        optionActions = new OptionActions();
+
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
     }
 
+    @BeforeEach
+    public void beforeEach()
+    {
+        createdOptionSet = createOptionSet();
+    }
+
     @Test
     public void shouldNotBeRemovedWithAssociatedData()
     {
-        String optionSetId = createOptionSet();
-        createOption( optionSetId );
+        // arrange
+        createOption( createdOptionSet );
 
-        ApiResponse response = actions.optionSetActions.delete( optionSetId );
+        // act
+        ApiResponse response = optionActions.optionSetActions.delete( createdOptionSet );
 
+        // assert
         ResponseValidationHelper.validateObjectRemoval( response, "Option set was not deleted" );
 
-        response = actions.optionSetActions.get( optionSetId );
-        response.validate().statusCode( 404 );
+        optionActions.optionSetActions.get( createdOptionSet )
+            .validate()
+            .statusCode( 404 );
     }
 
     @Test
     public void shouldBeAbleToReferenceWithOption()
     {
-        String id = createOptionSet();
-        String optionId = createOption( id );
+        // arrange
+        String optionId = createOption( createdOptionSet );
 
-        ApiResponse response = actions.optionSetActions.get( id );
+        // act
+        ApiResponse response = optionActions.optionSetActions.get( createdOptionSet );
 
-        response.validate().statusCode( 200 );
-        assertEquals( optionId, response.extractString( "options.id[0]" ), "Option reference was not found in option set" );
+        // assert
+        response.validate()
+            .statusCode( 200 )
+            .body( "options.id[0]", equalTo( optionId ) );
     }
 
     @Test
     public void shouldAddOptions()
     {
-        String option1 = createOption( null );
-        String option2 = createOption( null );
+        String option1 = createOption( createdOptionSet );
+        String option2 = createOption( createdOptionSet );
 
-        String optionSetId = createOptionSet( option1, option2 );
+        ApiResponse response = optionActions.optionSetActions.get( createdOptionSet );
 
-        ApiResponse response = actions.optionSetActions.get( optionSetId );
-
-        response.validate().statusCode( 200 );
-        assertEquals( option1, response.extractString( "options.id[0]" ) );
-        assertEquals( option2, response.extractString( "options.id[1]" ) );
+        response.validate().statusCode( 200 )
+            .body( "options", not( emptyArray() ) )
+            .body( "options.id", not( emptyArray() ) )
+            .rootPath( "options" )
+            .body( "id[0]", equalTo( option1 ) )
+            .body( "id[1]", equalTo( option2 ) );
     }
 
     @Test
     public void shouldRemoveOptions()
     {
-        String option1 = createOption( null );
-        String optionSetId = createOptionSet( option1 );
+        // arrange
+        createOption( createdOptionSet );
+        ApiResponse response = optionActions.optionSetActions.get( createdOptionSet );
 
-        ApiResponse response = actions.optionSetActions.get( optionSetId );
         JsonObject object = response.getBody();
         object.remove( "options" );
 
-        response = actions.optionSetActions.update( optionSetId, object );
-        assertEquals( 200, response.statusCode() );
+        // act
+        response = optionActions.optionSetActions.update( createdOptionSet, object );
+        response.validate()
+            .statusCode( 200 );
 
-        response = actions.optionSetActions.get( optionSetId );
+        // assert
+        response = optionActions.optionSetActions.get( createdOptionSet );
+        response.validate()
+            .statusCode( 200 )
+            .body( "options", hasSize( 0 ) );
+    }
 
-        response.validate().statusCode( 200 );
-        assertEquals( 0, response.extractList( "options" ).size(), "Option was not removed" );
+    @Test
+    public void shouldRemoveOptionFromCollection()
+    {
+        // arrange
+        String optionId = createOption( createdOptionSet );
+
+        optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
+            .validate()
+            .statusCode( 200 );
+
+        // act
+        optionActions.optionSetActions.delete( createdOptionSet + "/options/" + optionId )
+            .validate()
+            .statusCode( 204 );
+
+        // assert
+        optionActions.optionSetActions.get( createdOptionSet )
+            .validate()
+            .statusCode( 200 );
+
+        optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
+            .validate()
+            .statusCode( 404 );
     }
 
     private String createOptionSet( String... optionIds )
     {
         String random = DataGenerator.randomString();
-        return actions.createOptionSet( "AutoTest option set " + random, "TEXT", optionIds );
+        return optionActions.createOptionSet( "AutoTest option set " + random, "TEXT", optionIds );
     }
 
     /**
@@ -161,6 +180,8 @@ public class OptionSetTests
      */
     private String createOption( String optionSetId )
     {
-        return actions.createOption( "Option name auto", "Option code auto", optionSetId );
+        return optionActions
+            .createOption( "Option name auto" + DataGenerator.randomString(), "Option code auto" + DataGenerator.randomString(),
+                optionSetId );
     }
 }

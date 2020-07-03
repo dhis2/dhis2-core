@@ -1,10 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +28,9 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -38,18 +38,28 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-@Transactional
 public class ProgramStageObjectBundleHook
     extends AbstractObjectBundleHook
 {
+    private final AclService aclService;
+
+    public ProgramStageObjectBundleHook( AclService aclService )
+    {
+        checkNotNull( aclService );
+        this.aclService = aclService;
+    }
+
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -74,6 +84,8 @@ public class ProgramStageObjectBundleHook
                     programStage.getNextScheduleDate().getUid() ) );
             }
         }
+
+        errors.addAll( validateProgramStageDataElementsAcl( programStage, bundle ) );
 
         return errors;
     }
@@ -102,9 +114,36 @@ public class ProgramStageObjectBundleHook
 
         programStage.getProgramStageSections().stream().forEach( pss -> {
             if ( pss.getProgramStage() == null )
+            {
                 pss.setProgramStage( programStage );
+            }
         } );
 
         session.update( programStage );
+    }
+
+    private List<ErrorReport> validateProgramStageDataElementsAcl( ProgramStage programStage, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( programStage.getDataElements().isEmpty() )
+        {
+            return errors;
+        }
+
+        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+        programStage.getDataElements().forEach( de -> {
+
+            DataElement dataElement = bundle.getPreheat().get( identifier, de );
+
+            if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
+            {
+                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                    identifier.getIdentifiersWithName( de ) ) );
+            }
+        } );
+
+        return errors;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -144,6 +145,7 @@ public class DataElement extends BaseDimensionalItemObject
     /**
      * The option set for data values linked to this data element, can be null.
      */
+    @AuditAttribute
     private OptionSet optionSet;
 
     /**
@@ -757,42 +759,5 @@ public class DataElement extends BaseDimensionalItemObject
     public void setFieldMask( String fieldMask )
     {
         this.fieldMask = fieldMask;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        if ( !super.equals( o ) )
-        {
-            return false;
-        }
-
-        DataElement that = (DataElement) o;
-        return zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
-            && Objects.equals( uid, that.uid )
-            && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
-            && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
-            && Objects.equals( url, that.url )
-            && Objects.equals( aggregationLevels, that.aggregationLevels )
-            && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
-            && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( super.hashCode(), uid, valueType, formName, displayFormName, domainType, categoryCombo, url,
-            aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
-            fieldMask );
     }
 }

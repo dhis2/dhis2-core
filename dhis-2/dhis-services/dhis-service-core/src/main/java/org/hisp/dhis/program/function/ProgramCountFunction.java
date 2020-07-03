@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,12 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 
 import java.util.Date;
 
@@ -43,20 +45,21 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramCountFunction
-    extends AbstractExpressionFunction
+    extends ProgramExpressionItem
 {
-
     @Override
     public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        validateCountFunctionArgs( ctx );
+
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
 
         Date startDate = visitor.getReportingStartDate();
         Date endDate = visitor.getReportingEndDate();
 
-        String programStage = ctx.stageDataElement().uid0.getText();
-        String dataElement = ctx.stageDataElement().uid1.getText();
+        String programStage = ctx.uid0.getText();
+        String dataElement = ctx.uid1.getText();
 
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
         String columnName = "\"" + dataElement + "\"";
@@ -76,6 +79,21 @@ public abstract class ProgramCountFunction
     }
 
     /**
+     * Get the description for the first arg #{programStageUid.dataElementUid}
+     * and return a value with its data type.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return a dummy value for the item (of the right type, for type checking)
+     */
+    protected Object getProgramStageElementDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        validateCountFunctionArgs( ctx );
+
+        return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
+    }
+
+    /**
      * Generate the conditional part of the SQL for a d2 count function
      *
      * @param ctx the expression context
@@ -83,4 +101,16 @@ public abstract class ProgramCountFunction
      * @return the conditional part of the SQL
      */
     public abstract String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor );
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void validateCountFunctionArgs( ExprContext ctx )
+    {
+        if ( ! ( getProgramArgType( ctx ) instanceof ProgramItemStageElement ) )
+        {
+            throw new ParserExceptionWithoutContext( "First argument not supported for d2:count... functions: " + ctx.getText() );
+        }
+    }
 }

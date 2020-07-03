@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -120,9 +121,20 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
-            .addOrder( root -> builder.desc( root.get( "created" ) ) ) );
+        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements,
+            periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+
+        if ( !predicates.isEmpty() )
+        {
+            return getList( builder, newJpaParameters()
+                .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
+                    Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
+                .addOrder( root -> builder.desc( root.get( "created" ) ) ) );
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
     }
 
     @Override
@@ -131,11 +143,21 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
-            .addOrder( root -> builder.desc( root.get( "created" ) ) )
-            .setFirstResult( first )
-            .setMaxResults( max ) );
+        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+
+        if ( !predicates.isEmpty() )
+        {
+            return getList( builder, newJpaParameters()
+                .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
+                    Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
+                .addOrder( root -> builder.desc( root.get( "created" ) ) )
+                .setFirstResult( first )
+                .setMaxResults( max ) );
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
     }
 
     @Override
@@ -144,12 +166,36 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        return getCount( builder, newJpaParameters()
-            .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
-            .count( root -> builder.countDistinct( root.get( "id" ) ) )).intValue();
+        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+
+        if ( !predicates.isEmpty() )
+        {
+            return getCount( builder, newJpaParameters()
+                .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
+                    Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
+                .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
+
+        }
+        else
+        {
+            return 0;
+        }
     }
 
-    private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder, List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+    /**
+     * Returns a list of Predicates generated from given parameters. Returns an empty list if given Period does not
+     * exist in database.
+     *
+     * @param builder the {@link CriteriaBuilder}.
+     * @param dataElements the list of data elements.
+     * @param periods the list of periods.
+     * @param organisationUnits the list of organisation units.
+     * @param categoryOptionCombo the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param auditType the audit type.
+     */
+    private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder,
+        List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         List<Period> storedPeriods = new ArrayList<>();
@@ -169,14 +215,18 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
         List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
 
+        if ( !storedPeriods.isEmpty() )
+        {
+            predicates.add( root -> root.get( "period" ).in( storedPeriods ) );
+        }
+        else if ( periods != null && !periods.isEmpty() )
+        {
+            return predicates;
+        }
+
         if ( dataElements != null && !dataElements.isEmpty() )
         {
             predicates.add( root -> root.get( "dataElement" ).in( dataElements ) );
-        }
-
-        if ( storedPeriods != null && !storedPeriods.isEmpty() )
-        {
-            predicates.add( root -> root.get( "period" ).in( storedPeriods ) );
         }
 
         if ( organisationUnits != null && !organisationUnits.isEmpty() )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -54,6 +55,15 @@ public interface ProgramInstanceService
     long addProgramInstance( ProgramInstance programInstance );
 
     /**
+     * Adds an {@link ProgramInstance}
+     *
+     * @param programInstance The to ProgramInstance add.
+     * @param user            the current user.
+     * @return A generated unique id of the added {@link ProgramInstance}.
+     */
+    long addProgramInstance( ProgramInstance programInstance, User user );
+
+    /**
      * Soft deletes a {@link ProgramInstance}.
      *
      * @param programInstance the ProgramInstance to delete.
@@ -61,13 +71,11 @@ public interface ProgramInstanceService
     void deleteProgramInstance( ProgramInstance programInstance );
 
     /**
-     * Deletes a program instance. Based on the forceDelete parameter, the program instance is
-     * either soft deleted (false) or hard deleted (true)
+     * Hard deletes a {@link ProgramInstance}.
      *
-     * @param programInstance to delete
-     * @param forceDelete     soft delete or hard delete
+     * @param programInstance the ProgramInstance to delete.
      */
-    void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
+    void hardDeleteProgramInstance( ProgramInstance programInstance );
 
     /**
      * Updates an {@link ProgramInstance}.
@@ -75,6 +83,8 @@ public interface ProgramInstanceService
      * @param programInstance the ProgramInstance to update.
      */
     void updateProgramInstance( ProgramInstance programInstance );
+
+    void updateProgramInstance( ProgramInstance programInstance, User user );
 
     /**
      * Returns a {@link ProgramInstance}.

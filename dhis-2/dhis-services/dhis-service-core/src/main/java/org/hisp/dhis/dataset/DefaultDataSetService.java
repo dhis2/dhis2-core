@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,8 +74,8 @@ public class DefaultDataSetService
 
     private CurrentUserService currentUserService;
 
-    public DefaultDataSetService(DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
-                                 @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
+    public DefaultDataSetService( DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
+        @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
     {
         checkNotNull( dataSetStore );
         checkNotNull( lockExceptionStore );
@@ -154,13 +154,6 @@ public class DefaultDataSetService
     public List<DataSet> getDataSetsByPeriodType( PeriodType periodType )
     {
         return dataSetStore.getDataSetsByPeriodType( periodType );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
-    {
-        return dataSetStore.getDataSetsForMobile( source );
     }
 
     @Override

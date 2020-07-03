@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,85 +27,121 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.Clock;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.CodecUtils;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestTemplate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
-public class CompleteDataSetRegistrationSynchronization
+public class CompleteDataSetRegistrationSynchronization extends DataSynchronizationWithoutPaging
 {
-    private static final Log log = LogFactory.getLog( CompleteDataSetRegistrationSynchronization.class );
-
-    private final SynchronizationManager synchronizationManager;
-
     private final SystemSettingManager systemSettingManager;
-
     private final RestTemplate restTemplate;
+    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+    private final CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
 
-    public CompleteDataSetRegistrationSynchronization( SynchronizationManager synchronizationManager,
-        SystemSettingManager systemSettingManager, RestTemplate restTemplate )
+    private Date lastUpdatedAfter;
+
+    public CompleteDataSetRegistrationSynchronization( SystemSettingManager systemSettingManager,
+        RestTemplate restTemplate, CompleteDataSetRegistrationService completeDataSetRegistrationService,
+        CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService )
     {
-        checkNotNull( synchronizationManager );
         checkNotNull( systemSettingManager );
         checkNotNull( restTemplate );
+        checkNotNull( completeDataSetRegistrationService );
+        checkNotNull( completeDataSetRegistrationExchangeService );
 
-        this.synchronizationManager = synchronizationManager;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;
+        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
+        this.completeDataSetRegistrationExchangeService = completeDataSetRegistrationExchangeService;
     }
 
-    public SynchronizationResult syncCompleteDataSetRegistrationData()
+    @Override
+    public SynchronizationResult synchronizeData()
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
             return SynchronizationResult.newFailureResultWithMessage(
-                "Complete data set registration synchronization failed. Remote " +
-                    "server is unavailable." );
+                "Complete data set registration synchronization failed. Remote server is unavailable." );
         }
-        final Clock clock = new Clock( log ).startClock()
-            .logTime( "Starting Complete data set registration synchronization job." );
 
-        // ---------------------------------------------------------------------
-        // Set time for last success to start of process to make data saved
-        // subsequently part of next synch process without being ignored
-        // ---------------------------------------------------------------------
-        ImportSummary importSummary;
-        try
-        {
-            importSummary = synchronizationManager.executeCompleteDataSetRegistrationPush();
-            if ( SyncUtils
-                .checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) )
-            {
-                String resultMsg = "Complete data set registration synchronization job is done. It took ";
-                clock.logTime( "SUCCESS! " + resultMsg );
-                SyncUtils.setLastSyncSuccess( systemSettingManager,
-                    SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
-                    new Date( clock.getStartTime() ) );
-                return SynchronizationResult
-                    .newSuccessResultWithMessage( resultMsg + clock.getTime() + " ms." );
-            }
+        initializeSyncVariables();
 
-        }
-        catch ( Exception ex )
+        if ( objectsToSynchronize == 0 )
         {
-            log.error(
-                "Exception happened while trying complete data set registration push " + ex.getMessage(),
-                ex );
+            SyncUtils.setLastSyncSuccess( systemSettingManager,
+                SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, new Date( clock.getStartTime() ) );
+            log.info( "Skipping completeness synchronization, no new or updated data" );
+            return SynchronizationResult.newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
         }
+
+        if ( sendSyncRequest() )
+        {
+            String resultMsg = "Complete data set registration synchronization is done. It took ";
+            clock.logTime( "SUCCESS! " + resultMsg );
+            SyncUtils.setLastSyncSuccess( systemSettingManager,
+                SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
+                new Date( clock.getStartTime() ) );
+
+            return SynchronizationResult.newSuccessResultWithMessage( resultMsg + clock.getTime() + " ms." );
+        }
+
         return SynchronizationResult
             .newFailureResultWithMessage( "Complete data set registration synchronization failed." );
+    }
+
+    private void initializeSyncVariables()
+    {
+        clock = new Clock( log ).startClock().logTime( "Starting Complete data set registration synchronization job." );
+
+        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
+            SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        objectsToSynchronize = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
+
+        log.info(
+            "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
+
+        if ( objectsToSynchronize != 0 )
+        {
+            instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
+                SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
+
+            log.info( objectsToSynchronize + " completed data set registrations to synchronize were found." );
+            log.info( "Remote server URL for completeness POST synchronization: " + instance.getUrl() );
+        }
+    }
+
+    private boolean sendSyncRequest()
+    {
+        final RequestCallback requestCallback = request -> {
+            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
+            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
+                CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+
+            completeDataSetRegistrationExchangeService
+                .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
+        };
+
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
     }
 }

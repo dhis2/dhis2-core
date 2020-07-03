@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,8 @@ public interface TrackedEntityInstanceService
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
+
+    TrackedEntityInstance getTrackedEntityInstance( String uid, User user );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params );
 

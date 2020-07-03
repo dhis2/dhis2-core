@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,6 @@ public class CustomExceptionMappingAuthenticationFailureHandler
     extends ExceptionMappingAuthenticationFailureHandler
 {
     @Autowired
-    private SecurityService securityService;
-
-    @Autowired
     private I18nManager i18nManager;
 
     @Override
@@ -59,8 +56,6 @@ public class CustomExceptionMappingAuthenticationFailureHandler
         final String username = request.getParameter( "j_username" );
 
         request.getSession().setAttribute( "username", username );
-
-        securityService.registerFailedLogin( username );
 
         I18n i18n = i18nManager.getI18n();
 

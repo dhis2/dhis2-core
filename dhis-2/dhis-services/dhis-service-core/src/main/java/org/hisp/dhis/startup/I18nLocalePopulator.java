@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,27 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Locale;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 import com.google.common.collect.ImmutableSet;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Populates default I18nLocales if none exists.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class I18nLocalePopulator
     extends TransactionContextStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( I18nLocalePopulator.class );
-
     private final I18nLocaleService localeService;
 
     public I18nLocalePopulator( I18nLocaleService localeService )

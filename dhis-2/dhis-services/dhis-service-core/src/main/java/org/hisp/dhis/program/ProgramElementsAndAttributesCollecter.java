@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.Set;
 
@@ -70,8 +69,13 @@ public class ProgramElementsAndAttributesCollecter
     // -------------------------------------------------------------------------
 
     @Override
-    public void enterItem( ExpressionParser.ItemContext ctx )
+    public void enterExpr( ExprContext ctx )
     {
+        if ( ctx.it == null )
+        {
+            return;
+        }
+
         switch ( ctx.it.getType() )
         {
             case HASH_BRACE:

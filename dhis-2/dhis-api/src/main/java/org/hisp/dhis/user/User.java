@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-
-import org.apache.commons.collections.CollectionUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -41,13 +44,12 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Nguyen Hong Duc
@@ -412,11 +414,6 @@ public class User
         return false;
     }
 
-    public static String getSafeUsername( String username )
-    {
-        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
-    }
-
     public boolean hasEmail()
     {
         return email != null && !email.isEmpty();
@@ -690,7 +687,6 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-
     public String getWhatsApp()
     {
         return whatsApp;
@@ -713,7 +709,6 @@ public class User
         this.facebookMessenger = facebookMessenger;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSkype()
@@ -726,7 +721,6 @@ public class User
         this.skype = skype;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTelegram()
@@ -738,7 +732,6 @@ public class User
     {
         this.telegram = telegram;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -762,6 +755,16 @@ public class User
     public void setAvatar( FileResource avatar )
     {
         this.avatar = avatar;
+    }
+
+    public static String username( User user )
+    {
+        return username( user, "system-process" );
+    }
+
+    public static String username( User user, String defaultValue )
+    {
+        return user != null ? user.getUsername() : defaultValue;
     }
 
     @Override

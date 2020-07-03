@@ -1,7 +1,7 @@
 package org.hisp.dhis.indicator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,10 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 /**
  * @author Lars Helge Overland
@@ -132,14 +134,14 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<DataElement> daels = expressionService.getDataElementsInExpression( indicator.getNumerator() );
+            Set<DataElement> daels = expressionService.getExpressionDataElements( indicator.getNumerator(), INDICATOR_EXPRESSION );
 
             if ( daels != null && daels.contains( dataElement ) )
             {
                 return indicator.getName();
             }
 
-            daels = expressionService.getDataElementsInExpression( indicator.getDenominator() );
+            daels = expressionService.getExpressionDataElements( indicator.getDenominator(), INDICATOR_EXPRESSION );
 
             if ( daels != null && daels.contains( dataElement ) )
             {
@@ -153,21 +155,25 @@ public class IndicatorDeletionHandler
     @Override
     public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
+        Set<String> optionComboIds = categoryCombo.getOptionCombos().stream()
+            .map( CategoryOptionCombo::getUid ).collect( Collectors.toSet() );
+
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<CategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( indicator
-                .getNumerator() );
-            optionCombos.retainAll( categoryCombo.getOptionCombos() );
+            Set<String> comboIds = expressionService.getExpressionOptionComboIds(
+                indicator.getNumerator(), INDICATOR_EXPRESSION );
+            comboIds.retainAll( optionComboIds );
 
-            if ( !optionCombos.isEmpty() )
+            if ( !comboIds.isEmpty() )
             {
                 return indicator.getName();
             }
 
-            optionCombos = expressionService.getOptionCombosInExpression( indicator.getDenominator() );
-            optionCombos.retainAll( categoryCombo.getOptionCombos() );
+            comboIds = expressionService.getExpressionOptionComboIds(
+                indicator.getDenominator(), INDICATOR_EXPRESSION );
+            comboIds.retainAll( optionComboIds );
 
-            if ( !optionCombos.isEmpty() )
+            if ( !comboIds.isEmpty() )
             {
                 return indicator.getName();
             }

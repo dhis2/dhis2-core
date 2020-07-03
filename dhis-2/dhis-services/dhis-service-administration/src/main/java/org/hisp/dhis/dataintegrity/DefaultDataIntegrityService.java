@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,15 @@ package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -61,12 +62,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -74,16 +70,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
 @Transactional
 public class DefaultDataIntegrityService
     implements DataIntegrityService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataIntegrityService.class );
-
     private static final String FORMULA_SEPARATOR = "#";
 
     // -------------------------------------------------------------------------
@@ -269,12 +266,12 @@ public class DefaultDataIntegrityService
 
         return map;
     }
-    
+
     @Override
     public List<CategoryCombo> getInvalidCategoryCombos()
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
-        
+
         return categoryCombos.stream().filter( c -> !c.isValid() ).collect( Collectors.toList() );
     }
 
@@ -347,7 +344,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getNumerator() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator(), INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -366,7 +363,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getDenominator() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator(), INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -480,7 +477,7 @@ public class DefaultDataIntegrityService
     public List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
         List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
-        
+
         return units.stream().filter( ou -> ou.getParent() == null && ( ou.getChildren() == null || ou.getChildren().size() == 0 ) ).collect( Collectors.toList() );
     }
 
@@ -516,7 +513,7 @@ public class DefaultDataIntegrityService
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
         Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
-        
+
         return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
     }
 
@@ -528,7 +525,7 @@ public class DefaultDataIntegrityService
     public List<ValidationRule> getValidationRulesWithoutGroups()
     {
         Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
-        
+
         return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() ).collect( Collectors.toList() );
     }
 
@@ -540,7 +537,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -559,7 +556,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -574,7 +571,7 @@ public class DefaultDataIntegrityService
     public DataIntegrityReport getDataIntegrityReport()
     {
         DataIntegrityReport report = new DataIntegrityReport();
-        
+
         report.setDataElementsWithoutDataSet( new ArrayList<>( getDataElementsWithoutDataSet() ) );
         report.setDataElementsWithoutGroups( new ArrayList<>( getDataElementsWithoutGroups() ) );
         report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes( getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
@@ -784,9 +781,9 @@ public class DefaultDataIntegrityService
     {
         try
         {
-            expressionService.getIndicatorExpressionDescription( expression );
+            expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION );
         }
-        catch ( org.hisp.dhis.parser.expression.ParserException e )
+        catch ( ParserException e )
         {
            return e.getMessage();
         }

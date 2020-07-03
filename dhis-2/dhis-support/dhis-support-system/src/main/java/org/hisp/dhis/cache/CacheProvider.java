@@ -1,7 +1,7 @@
 package org.hisp.dhis.cache;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,11 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Map;
+
 /**
  * Provides cache builder to build instances.
- * 
+ *
  * @author Ameen Mohamed
  */
 public interface CacheProvider
@@ -38,12 +40,20 @@ public interface CacheProvider
     /**
      * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
      * stores the valueType specified.
-     * 
-     * 
+     *
      * @param valueType The class type of values to be stored in cache.
      * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}
+     *          {@link ExtendedCacheBuilder}.
      */
-    <V> CacheBuilder<V> newCacheBuilder(Class<V> valueType);
-    
+    <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
+
+    /**
+     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
+     * stores the Map of keyType and valueType specified.
+     *
+     * @param valueType The class type of values to be stored in cache.
+     * @return A cache builder instance for the specified value type. Returns a
+     *          {@link ExtendedCacheBuilder}.
+     */
+    <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
 }

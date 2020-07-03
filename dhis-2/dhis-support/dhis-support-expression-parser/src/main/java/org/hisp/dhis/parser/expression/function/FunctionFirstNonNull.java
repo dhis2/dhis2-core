@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,27 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression function firstNonNull
+ * Function firstNonNull
  *
  * @author Jim Grace
  */
 public class FunctionFirstNonNull
-    implements ExprFunction
+    implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        for ( ExpressionParser.ItemNumStringLiteralContext c : ctx.itemNumStringLiteral() )
+        for ( ExprContext c : ctx.expr() )
         {
-            Object value = visitor.getItemNumStringLiteral( c );
+            Object value = visitor.visitAllowingNulls( c );
 
             if ( value != null )
             {
@@ -64,8 +62,8 @@ public class FunctionFirstNonNull
     @Override
     public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        List<Object> values = ctx.itemNumStringLiteral().stream()
-            .map( c -> visitor.getItemNumStringLiteral( c ) )
+        List<Object> values = ctx.expr().stream()
+            .map( c -> visitor.visitAllowingNulls( c ) )
             .collect( Collectors.toList() );
 
         for ( Object value : values )
@@ -81,6 +79,10 @@ public class FunctionFirstNonNull
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return castString( visitor.getItemNumStringLiteral( ctx.itemNumStringLiteral( 0 ) ) ) + " is null";
+        String args = ctx.expr().stream()
+            .map( c -> visitor.castStringVisit( c ) )
+            .collect( Collectors.joining( "," ) );
+
+        return "coalesce(" + args + ")";
     }
 }

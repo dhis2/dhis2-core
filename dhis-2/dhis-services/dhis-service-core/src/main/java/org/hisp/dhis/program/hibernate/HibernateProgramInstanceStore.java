@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +26,31 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+package org.hisp.dhis.program.hibernate;
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -53,18 +67,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -72,7 +76,7 @@ import static org.hisp.dhis.util.DateUtils.*;
  */
 @Repository( "org.hisp.dhis.program.ProgramInstanceStore" )
 public class HibernateProgramInstanceStore
-    extends HibernateIdentifiableObjectStore<ProgramInstance>
+    extends SoftDeleteHibernateObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
     private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
@@ -82,10 +86,9 @@ public class HibernateProgramInstanceStore
         );
 
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -104,12 +107,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
 
-        Query query = getQuery( hql );
+        Query<ProgramInstance> query = getQuery( hql );
 
         if ( params.isPaging() )
         {
@@ -232,15 +234,31 @@ public class HibernateProgramInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(0) from programinstance where uid=? and deleted is false", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programinstance where uid=? and deleted is false)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(0) from programinstance where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programinstance where uid=?)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override
@@ -293,15 +311,21 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> getByType( ProgramType type )
     {
         String hql = "from ProgramInstance pi where pi.program.programType = :type";
 
-        Query query = getQuery( hql );
+        Query<ProgramInstance> query = getQuery( hql );
         query.setParameter( "type", type );
 
         return query.list();
+    }
+
+    @Override
+    public void hardDelete( ProgramInstance programInstance )
+    {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( programInstance ) );
+        getSession().delete( programInstance );
     }
 
     private String toDateProperty( NotificationTrigger trigger )

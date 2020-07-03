@@ -16,7 +16,9 @@
       <column name="name" not-null="true" unique="true" />
     </property>
 
-    <property name="value" type="serializable" length="65535" />
+    <property name="value" column="value" type="text" />
+
+    <property name="translations" type="jbObject"/>
 
   </class>
 </hibernate-mapping>

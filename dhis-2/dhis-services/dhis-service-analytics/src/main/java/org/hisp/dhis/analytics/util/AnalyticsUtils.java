@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,8 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
@@ -106,7 +108,6 @@ public class AnalyticsUtils
     private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
 
     public static final String ERR_MSG_TABLE_NOT_EXISTING = "Query failed, likely because the requested analytics table does not exist";
-    public static final String ERR_MSG_QUERY_TIMEOUT = "Query failed, likely because the query timed out";
 
     /**
      * Returns an SQL statement for retrieving raw data values for
@@ -128,7 +129,7 @@ public class AnalyticsUtils
 
         if ( dataElements.isEmpty() || periods.isEmpty() || orgUnits.isEmpty() )
         {
-            throw new IllegalQueryException( "Query must contain at least one data element, one period and one organisation unit" );
+            throw new IllegalQueryException( ErrorCode.E7400 );
         }
 
         String sql =
@@ -196,17 +197,18 @@ public class AnalyticsUtils
 
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
-     * returned unchanged. If the given number of decimals is specified, the
-     * value is rounded to the given decimals. If skip rounding is specified
-     * in the given data query parameters, 10 decimals is used. Otherwise,
-     * default rounding is used.
+     * rounded to {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the
+     * given number of decimals is specified, the value is rounded to the given
+     * decimals. Otherwise, default rounding is used. If 0 decimals is explicitly
+     * specified, this method returns a long value. Otherwise, a double value is
+     * returned.
      *
      * @param params the query parameters.
      * @param decimals the number of decimals.
      * @param value the value.
      * @return a double.
      */
-    public static Double getRoundedValue( DataQueryParams params, Integer decimals, Double value )
+    public static Number getRoundedValue( DataQueryParams params, Integer decimals, Double value )
     {
         if ( value == null )
         {
@@ -219,6 +221,10 @@ public class AnalyticsUtils
         else if ( decimals != null && decimals > 0 )
         {
             return Precision.round( value, decimals );
+        }
+        else if ( decimals != null && decimals == 0 )
+        {
+            return Math.round( value );
         }
         else
         {
@@ -624,7 +630,7 @@ public class AnalyticsUtils
 
         Calendar calendar = PeriodType.getCalendar();
 
-        Boolean includeMetadataDetails = params.isIncludeMetadataDetails();
+        boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
         for ( DimensionalObject dimension : dimensions )
         {
@@ -855,5 +861,16 @@ public class AnalyticsUtils
         }
 
         return 0D;
+    }
+
+    /**
+     * Throws an {@link IllegalQueryException} using the given {@link ErrorCode}.
+     *
+     * @param errorCode the error code.
+     * @param args the arguments to provide to the error message.
+     */
+    public static void throwIllegalQueryEx( ErrorCode errorCode, Object... args )
+    {
+        throw new IllegalQueryException( new ErrorMessage( errorCode, args ) );
     }
 }

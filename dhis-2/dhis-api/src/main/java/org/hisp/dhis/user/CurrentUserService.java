@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,15 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Set;
 
 /**
  * This interface defined methods for getting access to the currently logged in
  * user and clearing the logged in state. If no user is logged in or the auto
  * access admin is active, all user access methods will return null.
- * 
+ *
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
@@ -49,43 +49,31 @@ public interface CurrentUserService
      *          logged in or the auto access admin is active, null is returned.
      */
     String getCurrentUsername();
-    
-    /**
-     * @return the set of authorities granted to the currently logged in user.
-     *          If no current user exists, an empty set is returned.
-     */
-    Set<String> getCurrentUserAuthorities();
 
     /**
      * @return the currently logged in user. If no user is logged in or the auto
      *          access admin is active, null is returned.
      */
     User getCurrentUser();
-    
+
     /**
-     * @return the user info for the currently logged in user. If no user is 
+     * @return the user info for the currently logged in user. If no user is
      *          logged in or the auto access admin is active, null is returned.
      */
     UserInfo getCurrentUserInfo();
-    
+
     /**
      * @return the data capture organisation units of the current user, empty set
      *          if no current user.
      */
     Set<OrganisationUnit> getCurrentUserOrganisationUnits();
-    
+
     /**
      * @return true if the current logged in user has the ALL privileges set, false
      *          otherwise.
      */
     boolean currentUserIsSuper();
 
-    /**
-     * Clears the current logged in state, which means that the currently logged
-     * in user is logged out.
-     */
-    void clearCurrentUser();
-    
     /**
      * Indicates whether the current user has been granted the given authority.
      */
@@ -95,4 +83,11 @@ public interface CurrentUserService
      * Expire all the sessions associated with current user.
      */
     void expireUserSessions();
+
+    /**
+     * Return UserCredentials of current User
+     *
+     * @return UserCredentials of current User
+     */
+    UserCredentials getCurrentUserCredentials();
 }

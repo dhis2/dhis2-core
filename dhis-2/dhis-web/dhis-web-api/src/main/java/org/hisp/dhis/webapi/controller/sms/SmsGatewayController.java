@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.sms;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,8 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -36,8 +37,9 @@ import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
-import org.hisp.dhis.sms.config.SMPPGatewayConfig;
+import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -46,7 +48,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -62,13 +63,6 @@ import java.io.IOException;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsGatewayController
 {
-    private static final ImmutableMap<String, Class<? extends SmsGatewayConfig>> TYPE_MAPPER = new
-        ImmutableMap.Builder<String, Class<? extends SmsGatewayConfig>>()
-        .put( "http", GenericHttpGatewayConfig.class  )
-        .put( "bulksms", BulkSmsGatewayConfig.class  )
-        .put( "clickatell", ClickatellGatewayConfig.class  )
-        .put( "smpp", SMPPGatewayConfig.class  )
-        .build();
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -82,37 +76,23 @@ public class SmsGatewayController
     @Autowired
     private GatewayAdministrationService gatewayAdminService;
 
+    @Autowired
+    private SmsConfigurationManager smsConfigurationManager;
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
-    public void getGateways( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    public void getGateways( HttpServletResponse response ) throws IOException
     {
-        renderService.toJson( response.getOutputStream(), gatewayAdminService.getGatewayConfigurationMap() );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/default", method = RequestMethod.GET )
-    public void getDefault( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
-    {
-        SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
-
-        if ( defaultGateway == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "No default gateway found" ) );
-        }
-
-        renderService.toJson( response.getOutputStream(), defaultGateway );
+        generateOutput( response, smsConfigurationManager.getSmsConfiguration() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
-    public void getGatewayConfiguration( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
+    public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException, IOException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
@@ -122,7 +102,7 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        renderService.toJson( response.getOutputStream(), gateway );
+        generateOutput( response, gateway );
     }
 
     // -------------------------------------------------------------------------
@@ -168,10 +148,10 @@ public class SmsGatewayController
     public void addOrUpdateGenericConfiguration( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        GenericHttpGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
-            GenericHttpGatewayConfig.class );
+        SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
+                GenericHttpGatewayConfig.class );
 
-        if ( gatewayAdminService.addOrUpdateGateway( payLoad, GenericHttpGatewayConfig.class ) )
+        if ( gatewayAdminService.addGateway( payLoad ) )
         {
             webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
         }
@@ -210,9 +190,7 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        Class<? extends SmsGatewayConfig> gatewayType = gatewayAdminService.getGatewayType( config );
-
-        SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), gatewayType );
+        SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
 
         if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() )
         {
@@ -226,20 +204,17 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.POST )
-    public void addGateway( @RequestParam String type, HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
+    public void addGateway( HttpServletRequest request, HttpServletResponse response )
+            throws IOException, WebMessageException
     {
-        Class<? extends SmsGatewayConfig> gatewayType = TYPE_MAPPER.getOrDefault( type, null );
+        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(),  SmsGatewayConfig.class );
 
-        if ( gatewayType == null )
+        if ( config == null )
         {
-            throw new WebMessageException(WebMessageUtils.notFound( String.format( "No gateway of type: %s is supported ", type ) ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Cannot de-serialize SMS configurations" ) );
         }
 
-        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(),  gatewayType );
-
         gatewayAdminService.addGateway( config );
-
         webMessageService.send( WebMessageUtils.ok( "Gateway configuration added" ), response, request );
     }
 
@@ -262,5 +237,13 @@ public class SmsGatewayController
         gatewayAdminService.removeGatewayByUid( uid );
 
         webMessageService.send( WebMessageUtils.ok( "Gateway removed successfully" ), response, request );
+    }
+
+    private void generateOutput( HttpServletResponse response, Object value ) throws IOException
+    {
+        ObjectMapper jsonMapper = new ObjectMapper();
+        jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
+        jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
+                .writeValue( response.getOutputStream(), value );
     }
 }

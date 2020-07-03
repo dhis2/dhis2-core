@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,8 @@ public interface PreheatService
      * @param objects Objects to scan
      * @return Klass -> Property.name -> Value -> UID
      */
-    Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
+    Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness(
+        PreheatIdentifier identifier, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
 
     /**
      * Connects id object references on a given object using a given identifier + a preheated Preheat cache.

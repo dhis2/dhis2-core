@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,8 @@ package org.hisp.dhis.user;
  */
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -46,6 +45,8 @@ import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,13 +64,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Chau Thu Tran
  */
+@Slf4j
 @Lazy
 @Service( "org.hisp.dhis.user.UserService" )
 public class DefaultUserService
     implements UserService
 {
-    private static final Log log = LogFactory.getLog( DefaultUserService.class );
-
     private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
@@ -89,10 +90,12 @@ public class DefaultUserService
 
     private final PasswordManager passwordManager;
 
+    private final SessionRegistry sessionRegistry;
+
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
-        @Lazy PasswordManager passwordManager )
+        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -100,7 +103,8 @@ public class DefaultUserService
         checkNotNull( userAuthorityGroupStore );
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
-        
+        checkNotNull( sessionRegistry );
+
         this.userStore = userStore;
         this.userGroupService = userGroupService;
         this.userCredentialsStore = userCredentialsStore;
@@ -108,6 +112,7 @@ public class DefaultUserService
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
+        this.sessionRegistry = sessionRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -167,6 +172,15 @@ public class DefaultUserService
     public User getUser( String uid )
     {
         return userStore.getByUid( uid );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByUuid( UUID uuid )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUuid( uuid );
+
+        return userCredentials != null ? userCredentials.getUser() : null;
     }
 
     @Override
@@ -541,6 +555,20 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
+
+        if ( userCredentials != null )
+        {
+            userCredentials.getAllAuthorities();
+        }
+
+        return userCredentials;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
@@ -684,5 +712,13 @@ public class DefaultUserService
         user.getUserCredentials().setTwoFA( twoFa );
 
         updateUser( user );
+    }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
+    {
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions( credentials, false );
+
+        sessions.forEach( SessionInformation::expireNow );
     }
 }

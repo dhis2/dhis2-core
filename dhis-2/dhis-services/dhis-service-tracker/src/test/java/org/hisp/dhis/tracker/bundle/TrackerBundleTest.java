@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,12 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,12 +50,13 @@ public class TrackerBundleTest
     @Test
     public void testBasicSetup1()
     {
-        TrackerBundle trackerBundle = new TrackerBundle()
-            .setAtomicMode( AtomicMode.ALL )
-            .setValidationMode( ValidationMode.SKIP )
-            .addTrackedEntity( new TrackedEntity() )
-            .addEnrollment( new Enrollment() )
-            .addEvent( new Event() );
+        TrackerBundle trackerBundle = TrackerBundle.builder()
+            .atomicMode( AtomicMode.ALL )
+            .validationMode( ValidationMode.SKIP )
+            .trackedEntities( Collections.singletonList( new TrackedEntity() ) )
+            .enrollments( Collections.singletonList( new Enrollment() ) )
+            .events( Collections.singletonList( new Event() ) )
+            .build();
 
         assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
         assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
@@ -62,12 +68,13 @@ public class TrackerBundleTest
     @Test
     public void testBasicSetup2()
     {
-        TrackerBundle trackerBundle = new TrackerBundle()
-            .setAtomicMode( AtomicMode.ALL )
-            .setValidationMode( ValidationMode.SKIP )
-            .addTrackedEntity( new TrackedEntity(), new TrackedEntity() )
-            .addEnrollment( new Enrollment(), new Enrollment() )
-            .addEvent( new Event(), new Event() );
+        TrackerBundle trackerBundle = TrackerBundle.builder()
+            .atomicMode( AtomicMode.ALL )
+            .validationMode( ValidationMode.SKIP )
+            .trackedEntities( Arrays.asList( new TrackedEntity(), new TrackedEntity() ) )
+            .enrollments( Arrays.asList( new Enrollment(), new Enrollment() ) )
+            .events( Arrays.asList( new Event(), new Event() ) )
+            .build();
 
         assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
         assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );

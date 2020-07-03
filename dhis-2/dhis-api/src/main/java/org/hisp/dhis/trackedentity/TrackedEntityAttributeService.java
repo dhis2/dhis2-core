@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,6 +42,12 @@ import java.util.Set;
 public interface TrackedEntityAttributeService
 {
     String ID = TrackedEntityAttributeService.class.getName();
+
+    /**
+     * The max length of a value. This is also naturally constrained by the database table, due to the
+     * data type: varchar(1200).
+     */
+    int TEA_VALUE_MAX_LENGTH = 1200;
 
     /**
      * Adds an {@link TrackedEntityAttribute}
@@ -141,9 +148,9 @@ public interface TrackedEntityAttributeService
      * if attribute is non-unique.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
-     * @param value                  Value
-     * @param trackedEntityInstance  TrackedEntityInstance - required if updating TEI
-     * @param organisationUnit       OrganisationUnit - only required if org unit scoped
+     * @param value Value
+     * @param trackedEntityInstance TrackedEntityInstance - required if updating TEI
+     * @param organisationUnit OrganisationUnit - only required if org unit scoped
      * @return null if valid, a message if not
      */
     String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
@@ -153,8 +160,24 @@ public interface TrackedEntityAttributeService
      * Validate value against tracked entity attribute value type.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
-     * @param value                  Value
+     * @param value Value
      * @return null if valid, a message if not
      */
     String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value );
+
+    /**
+     * Get all {@link TrackedEntityAttribute} linked to all
+     * {@link TrackedEntityType} present in the system
+     *
+     * @return a Set of {@link TrackedEntityAttribute}
+     */
+    Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
+
+    /**
+     * Get all {@link TrackedEntityAttribute} grouped by {@link Program}
+     *
+     * @return a Map, where the key is the {@link Program} and the values is a Set of {@link TrackedEntityAttribute} associated
+     * to the {@link Program} in the key
+     */
+    Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
 }

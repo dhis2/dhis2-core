@@ -29,9 +29,9 @@ package org.hisp.dhis.mobile.action;
  */
 
 import java.util.Iterator;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
@@ -46,11 +46,10 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Dang Duy Hieu
  */
+@Slf4j
 public class RemoveGatewayConfigAction
     implements Action
 {
-
-    private static final Log log = LogFactory.getLog( RemoveGatewayConfigAction.class );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -79,7 +78,6 @@ public class RemoveGatewayConfigAction
 
     @Override
     public String execute()
-        throws Exception
     {
         SmsConfiguration smsConfig = smsConfigurationManager.getSmsConfiguration();
 

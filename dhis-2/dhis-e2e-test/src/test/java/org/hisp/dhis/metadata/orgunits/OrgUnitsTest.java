@@ -1,61 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +39,10 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -120,7 +67,7 @@ public class OrgUnitsTest
     }
 
     @Test
-    public void shouldNotAddWithoutPermissions()
+    public void shouldNotCreateWithoutPermissions()
     {
         String userName = DataGenerator.randomString();
         String psw = "!XPTOqwerty1";
@@ -128,41 +75,43 @@ public class OrgUnitsTest
         userActions.addUser( userName, psw );
         loginActions.loginAsUser( userName, psw );
 
-        ApiResponse response = orgUnitActions.sendCreateRequest();
+        ApiResponse response = orgUnitActions.postDummyOrgUnit();
 
-        assertEquals( 403, response.statusCode(), "Wrong status code when creating org unit without permissions" );
-        assertEquals( response.extract( "message" ), "You don't have the proper permissions to create this object." );
+        response.validate()
+            .statusCode( 403 )
+            .body( "message", equalTo( "You don't have the proper permissions to create this object." ) );
     }
 
-    // todo add tests for creation with level.
     @Test
     public void shouldAddWithoutLevel()
     {
-        OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
+        OrgUnit orgUnit = orgUnitActions.generateDummy();
+        orgUnit.setLevel( null );
 
-        ApiResponse response = orgUnitActions.sendCreateRequest( orgUnit );
+        ApiResponse response = orgUnitActions.post( orgUnit );
         ResponseValidationHelper.validateObjectCreation( response );
 
         String uid = response.extractUid();
-        assertNotNull( uid );
+        assertNotNull( uid, "Org unit id was not returned." );
 
         response = orgUnitActions.get( uid );
 
-        // todo validate OPEN API 3 schema when it´s ready
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.extractString( "shortName" ), orgUnit.getShortName() );
-        assertEquals( response.extractString( "name" ), orgUnit.getName() );
-        assertEquals( response.extractString( "openingDate" ), orgUnit.getOpeningDate() );
+        // todo create validation helper to check the similarity.
+        response.validate().statusCode( 200 )
+            .body( "shortName", equalTo( orgUnit.getShortName() ) )
+            .body( "name", equalTo( orgUnit.getName() ) )
+            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) );
     }
 
     @Test
     public void shouldUpdate()
     {
-        OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
+        OrgUnit orgUnit = orgUnitActions.generateDummy();
 
         // create
-        ApiResponse response = orgUnitActions.sendCreateRequest( orgUnit );
+        ApiResponse response = orgUnitActions.post( orgUnit );
         String uid = response.extractUid();
+        assertNotNull( uid, "Org unit uid was not returned" );
 
         response = orgUnitActions.get( uid );
         String lastUpdatedDate = response.extractString( "lastUpdated" );
@@ -173,16 +122,17 @@ public class OrgUnitsTest
         orgUnit.setShortName( orgUnit.getShortName() + " updated" );
         orgUnit.setOpeningDate( "2017-09-10T00:00:00.000" );
 
-        response = orgUnitActions.updateOrgUnit( uid, orgUnit );
+        response = orgUnitActions.update( uid, orgUnit );
         assertEquals( 200, response.statusCode(), "Org unit wasn't updated" );
 
         // validate
         response = orgUnitActions.get( uid );
 
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.extractString( "shortName" ), orgUnit.getShortName() );
-        assertEquals( response.extractString( "name" ), orgUnit.getName() );
-        assertEquals( response.extractString( "openingDate" ), orgUnit.getOpeningDate() );
-        assertNotEquals( response.extractString( "lastUpdated" ), lastUpdatedDate );
+        response.validate().statusCode( 200 )
+            .body( "shortName", equalTo( orgUnit.getShortName() ) )
+            .body( "name", equalTo( orgUnit.getName() ) )
+            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) )
+            .body( "lastUpdated", not( equalTo( lastUpdatedDate ) ) );
+
     }
 }

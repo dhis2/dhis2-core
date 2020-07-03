@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,14 +43,6 @@ public interface SynchronizationManager
      * @return an {@link ImportSummary}.
      */
     ImportSummary executeDataValuePush() throws WebMessageParseException;
-
-    /**
-     * Executes CompleteDataSetRegistration data push to remote server.
-     *
-     * @return an {@link ImportSummary}
-     * @throws WebMessageParseException
-     */
-    ImportSummary executeCompleteDataSetRegistrationPush() throws WebMessageParseException;
 
     /**
      * Executes a meta data pull operation from remote server.

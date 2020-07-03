@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,10 @@ package org.hisp.dhis.system.util;
 import org.apache.commons.math3.util.Precision;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.IntegerValidator;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
-import org.hisp.dhis.expression.Operator;
-import org.hisp.dhis.system.jep.CustomFunctions;
-import org.nfunk.jep.JEP;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -48,16 +42,6 @@ import java.util.regex.Pattern;
  */
 public class MathUtils
 {
-    /**
-     * Cache for JEP expression evaluation.
-     */
-    private static Cache<Double> EXPR_EVAL_CACHE = new SimpleCacheBuilder<Double>()
-        .forRegion( "exprEvalCache" )
-        .expireAfterAccess( 1, TimeUnit.HOURS )
-        .withInitialCapacity( 200 )
-        .withMaximumSize( 5000 )
-        .build();
-
     public static final Double ZERO = new Double( 0 );
 
     private static final Locale LOCALE = new Locale( "en" );
@@ -80,70 +64,6 @@ public class MathUtils
     private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
 
     /**
-     * Evaluates whether an expression is true or false.
-     *
-     * @param leftSide  The left side of the expression.
-     * @param operator  The expression operator.
-     * @param rightSide The right side of the expression.
-     * @return True if the expression is true, false otherwise.
-     */
-    public static boolean expressionIsTrue( double leftSide, Operator operator, double rightSide )
-    {
-        final String expression = leftSide + operator.getMathematicalOperator() + rightSide;
-
-        return expressionIsTrue( expression );
-    }
-
-    /**
-     * Evaluates whether an expression is true or false.
-     *
-     * @param expression the expression to evaluate.
-     * @return True if the expression is true, false otherwise.
-     */
-    public static boolean expressionIsTrue( String expression )
-    {
-        final JEP parser = getJep( true );
-        parser.parseExpression( expression );
-
-        return isEqual( parser.getValue(), 1.0 );
-    }
-
-    /**
-     * Calculates a regular mathematical expression.
-     *
-     * @param expression The expression to calculate.
-     * @return The result of the operation.
-     */
-    public static double calculateExpression( String expression )
-    {
-        return EXPR_EVAL_CACHE.get( expression, c -> calculateExpressionInternal( expression ) ).get();
-    }
-
-    /**
-     * Calculates a regular mathematical expression.
-     *
-     * @param expression The expression to calculate.
-     * @return The result of the operation.
-     */
-    public static Object calculateGenericExpression( String expression )
-    {
-        final JEP parser = getJep( true );
-        parser.parseExpression( expression );
-
-        Object result = parser.getValueAsObject();
-
-        return result;
-    }
-
-    private static double calculateExpressionInternal( String expression )
-    {
-        final JEP parser = getJep( true );
-        parser.parseExpression( expression );
-
-        return parser.getValue();
-    }
-
-    /**
      * Indicates whether the given double valid, implying it is not null, not
      * infinite and not NaN.
      *
@@ -153,50 +73,6 @@ public class MathUtils
     public static boolean isValidDouble( Double d )
     {
         return d != null && !Double.isInfinite( d ) && !Double.isNaN( d );
-    }
-
-    /**
-     * Investigates whether the expression is valid or has errors.
-     *
-     * @param expression The expression to validate.
-     * @param customFunctions whether to include custom functions.
-     * @return True if the expression has errors, false otherwise.
-     */
-    public static boolean expressionHasErrors( String expression, boolean customFunctions )
-    {
-        final JEP parser = getJep( customFunctions );
-        parser.parseExpression( expression.toUpperCase() );
-
-        return parser.hasError();
-    }
-
-    /**
-     * Returns the error information for an invalid expression.
-     *
-     * @param expression The expression to validate.
-     * @return The error information for an invalid expression, null if
-     * the expression is valid.
-     */
-    public static String getExpressionErrorInfo( String expression )
-    {
-        final JEP parser = getJep( true );
-        parser.parseExpression( expression );
-
-        return parser.getErrorInfo();
-    }
-
-    /**
-     * Returns an JEP parser instance.
-     */
-    private static JEP getJep( boolean customFunctions )
-    {
-        final JEP parser = new JEP();
-        parser.addStandardFunctions();
-        if ( customFunctions )
-        {
-            CustomFunctions.addFunctions( parser );
-        }
-        return parser;
     }
 
     /**

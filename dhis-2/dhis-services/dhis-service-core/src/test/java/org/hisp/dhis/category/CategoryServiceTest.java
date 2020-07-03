@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.category;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -147,6 +148,40 @@ public class CategoryServiceTest
         assertNull( categoryService.getCategory( idA ) );
         assertNull( categoryService.getCategory( idB ) );
         assertNotNull( categoryService.getCategory( idC ) );
+    }
+
+    @Test
+    public void testDeleteCategoryOption()
+    {
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
+
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+
+        long optionIdA = categoryOptionA.getId();
+        long optionIdB = categoryOptionB.getId();
+
+        categoryOptionA.setCategories( Sets.newHashSet( categoryA, categoryB ) );
+        categoryOptionB.setCategories( Sets.newHashSet( categoryA, categoryB ) );
+
+        categoryService.updateCategoryOption( categoryOptionA );
+        categoryService.updateCategoryOption( categoryOptionB );
+
+        assertNotNull( categoryService.getCategory( idA ) );
+        assertNotNull( categoryService.getCategory( idB ) );
+
+        categoryService.deleteCategory( categoryA );
+        categoryService.deleteCategoryOption( categoryOptionB );
+
+        assertNull( categoryService.getCategory( idA ) );
+        assertNotNull( categoryService.getCategory( idB ) );
+        assertNotNull( categoryService.getCategoryOption( optionIdA ) );
+        assertNull( categoryService.getCategoryOption( optionIdB ) );
+        assertTrue( categoryService.getCategory( idB ).getCategoryOptions().contains( categoryOptionA ) );
+        assertFalse( categoryService.getCategory( idB ).getCategoryOptions().contains( categoryOptionB ) );
+        assertFalse( categoryService.getCategoryOption( optionIdA ).getCategories().contains( categoryA ) );
+        assertTrue( categoryService.getCategoryOption( optionIdA ).getCategories().contains( categoryB ) );
     }
 
     @Test

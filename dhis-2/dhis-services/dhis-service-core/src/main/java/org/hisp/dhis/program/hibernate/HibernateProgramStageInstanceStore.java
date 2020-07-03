@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +26,23 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+package org.hisp.dhis.program.hibernate;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -49,21 +57,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
  */
 @Repository( "org.hisp.dhis.program.ProgramStageInstanceStore" )
 public class HibernateProgramStageInstanceStore
-    extends HibernateIdentifiableObjectStore<ProgramStageInstance>
+    extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
@@ -73,9 +75,9 @@ public class HibernateProgramStageInstanceStore
         );
 
     public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService,
             aclService, false );
     }
 
@@ -126,26 +128,60 @@ public class HibernateProgramStageInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programstageinstance where uid=? and deleted is false)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programstageinstance where uid=?)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
+    }
+
+    @Override
+    public List<String> getUidsIncludingDeleted( List<String> uids )
+    {
+        String hql = "select psi.uid from ProgramStageInstance as psi where psi.uid in (:uids)";
+        List<String> resultUids = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return resultUids;
     }
 
     @Override
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
     {
         String hql = "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
-        Query query = getQuery( hql );
-        query.setParameter( "lastSynchronized", lastSynchronized );
-        query.setParameter( "programStageInstances", programStageInstanceUIDs );
 
-        query.executeUpdate();
+        getQuery( hql )
+            .setParameter( "lastSynchronized", lastSynchronized )
+            .setParameter( "programStageInstances", programStageInstanceUIDs )
+            .executeUpdate();
     }
 
     @Override

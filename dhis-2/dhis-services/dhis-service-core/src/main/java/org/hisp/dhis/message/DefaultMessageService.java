@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,17 +31,10 @@ package org.hisp.dhis.message;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -53,25 +46,22 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.message.MessageService")
 public class DefaultMessageService
     implements MessageService
 {
-    private static final Log log = LogFactory.getLog( DefaultMessageService.class );
-
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
     private static final String COMPLETE_TEMPLATE = "completeness_message";
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
@@ -110,13 +100,6 @@ public class DefaultMessageService
         checkNotNull( systemSettingManager );
         checkNotNull( configurationProvider );
         checkNotNull( messageSenders );
-
-        StringBuilder sb = new StringBuilder( "Found the following message senders:\n" );
-        for ( MessageSender messageSender : messageSenders )
-        {
-            sb.append( messageSender.getClass().getSimpleName() ).append( "\n" );
-        }
-        log.info( sb.toString() );
 
         this.messageConversationStore = messageConversationStore;
         this.currentUserService = currentUserService;

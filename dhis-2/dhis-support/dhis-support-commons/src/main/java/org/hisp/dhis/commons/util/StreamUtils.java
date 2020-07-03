@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -268,6 +268,26 @@ public class StreamUtils
         catch ( Exception ex )
         {
             throw new RuntimeException( "Failed to finish the content of the ZipOutputStream", ex );
+        }
+    }
+
+    /**
+     * Closes an {@link InputStream} unconditionally without throwing exceptions.
+     *
+     * @param input the input stream.
+     */
+    public static void closeQuietly( InputStream input )
+    {
+        try
+        {
+            if ( input != null )
+            {
+                input.close();
+            }
+        }
+        catch ( final IOException ioe )
+        {
+            // Ignore
         }
     }
 }

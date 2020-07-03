@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
@@ -100,7 +100,19 @@ public class CrudControllerAdvice
         } );
     }
 
-    @ExceptionHandler( { IllegalQueryException.class, QueryTimeoutException.class, DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
+    @ExceptionHandler( IllegalQueryException.class )
+    public void illegalQueryExceptionHandler( IllegalQueryException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( QueryRuntimeException.class )
+    public void queryRuntimeExceptionHandler( QueryRuntimeException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( { DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
     public void conflictsExceptionHandler( Exception ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
@@ -130,13 +142,13 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
     }
 
-    @ExceptionHandler( { NotAuthenticatedException.class } )
+    @ExceptionHandler( NotAuthenticatedException.class )
     public void notAuthenticatedExceptionHandler( NotAuthenticatedException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.unathorized( ex.getMessage() ), response, request );
     }
 
-    @ExceptionHandler( { NotFoundException.class } )
+    @ExceptionHandler( NotFoundException.class )
     public void notFoundExceptionHandler( NotFoundException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.notFound( ex.getMessage() ), response, request );

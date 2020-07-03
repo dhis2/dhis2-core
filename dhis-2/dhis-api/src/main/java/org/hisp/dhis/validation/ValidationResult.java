@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -49,7 +50,7 @@ import java.util.Date;
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationResult
-    implements Comparable<ValidationResult>
+    implements Comparable<ValidationResult>, Serializable
 {
     private long id;
 
@@ -89,7 +90,7 @@ public class ValidationResult
 
     // -------------------------------------------------------------------------
     // Constructors
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public ValidationResult()
     {
@@ -270,7 +271,7 @@ public class ValidationResult
 
     // -------------------------------------------------------------------------
     // Set and get methods
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

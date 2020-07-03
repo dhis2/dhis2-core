@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -60,8 +61,6 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -77,12 +76,12 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -100,18 +99,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * This class is responsible for producing aggregated data values. It reads data
  * from the analytics table.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.analytics.AnalyticsManager" )
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
-
     private static final String COL_APPROVALLEVEL = "approvallevel";
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
@@ -193,8 +193,8 @@ public class JdbcAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
         catch ( RuntimeException ex )
         {
@@ -665,9 +665,11 @@ public class JdbcAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( maxLimit > 0 && ++counter > maxLimit )
+            boolean exceedsMaxLimit = maxLimit > 0 && ++counter > maxLimit;
+
+            if ( exceedsMaxLimit )
             {
-                throw new IllegalQueryException( "Query result set exceeds max limit: " + maxLimit );
+                throwIllegalQueryEx( ErrorCode.E7128, maxLimit );
             }
 
             StringBuilder key = new StringBuilder();

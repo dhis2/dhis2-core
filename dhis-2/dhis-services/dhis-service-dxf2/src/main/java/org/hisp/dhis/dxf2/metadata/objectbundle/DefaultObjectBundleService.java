@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,16 +30,20 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
@@ -47,7 +51,6 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
@@ -57,15 +60,16 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
-    private static final Log log = LogFactory.getLog( DefaultObjectBundleService.class );
-
     private final CurrentUserService currentUserService;
 
     private final PreheatService preheatService;
@@ -84,17 +88,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     private final MergeService mergeService;
 
-    private final DeletedObjectService deletedObjectService;
-
-    private final RenderService renderService;
-
     private List<ObjectBundleHook> objectBundleHooks;
 
     public DefaultObjectBundleService( CurrentUserService currentUserService, PreheatService preheatService,
         SchemaService schemaService, SessionFactory sessionFactory, IdentifiableObjectManager manager,
         DbmsManager dbmsManager, HibernateCacheManager cacheManager, Notifier notifier, MergeService mergeService,
-        DeletedObjectService deletedObjectService, RenderService renderService,
-        List<ObjectBundleHook> objectBundleHooks )
+        DeletedObjectService deletedObjectService, List<ObjectBundleHook> objectBundleHooks )
     {
         checkNotNull( currentUserService );
         checkNotNull( preheatService );
@@ -106,7 +105,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         checkNotNull( notifier );
         checkNotNull( mergeService );
         checkNotNull( deletedObjectService );
-        checkNotNull( renderService );
 
         this.objectBundleHooks = (objectBundleHooks != null) ? objectBundleHooks : new ArrayList<>();
 
@@ -119,8 +117,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         this.cacheManager = cacheManager;
         this.notifier = notifier;
         this.mergeService = mergeService;
-        this.deletedObjectService = deletedObjectService;
-        this.renderService = renderService;
     }
 
     @Override
@@ -190,7 +186,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
-            if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.AUTO == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
         }
 
         if ( !bundle.getImportMode().isDelete() )
@@ -261,7 +260,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -335,7 +336,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -378,11 +381,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
-            if (object instanceof MetadataObject)
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
             if ( log.isDebugEnabled() )
@@ -393,7 +391,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         return typeReport;

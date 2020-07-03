@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -21,7 +19,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,8 +55,6 @@ public class TrackedEntityAttribute
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
     private String description;
-
-    private String formName;
 
     private ValueType valueType;
 
@@ -180,7 +176,7 @@ public class TrackedEntityAttribute
 
         for ( Option option : getOptionSet().getOptions() )
         {
-            if ( value.equals( option.getCode() ) )
+            if ( option != null && value.equals( option.getCode() ) )
             {
                 return true;
             }
@@ -422,6 +418,7 @@ public class TrackedEntityAttribute
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -429,6 +426,7 @@ public class TrackedEntityAttribute
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

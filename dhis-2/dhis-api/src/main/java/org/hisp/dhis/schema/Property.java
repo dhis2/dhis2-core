@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -710,19 +710,7 @@ public class Property implements Ordered, Klass
             return null;
         }
 
-        switch ( name )
-        {
-            case "name":
-                return TranslationProperty.NAME;
-            case "shortName":
-                return TranslationProperty.SHORT_NAME;
-            case "description":
-                return TranslationProperty.DESCRIPTION;
-            case "formName":
-                return TranslationProperty.FORM_NAME;
-        }
-
-        return null;
+        return TranslationProperty.fromValue( name );
     }
 
     @JsonProperty

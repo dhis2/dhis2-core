@@ -1,0 +1,30 @@
+{
+  "relationships": [
+    {
+      "relationshipType": "dDrh5UyCyvQ",
+      "relationship": "Nva3Xj2j75W",
+      "bidirectional": false,
+      "from": {
+        "trackedEntity": "Ea0rRdBPAIp"
+      },
+      "to": {
+        "trackedEntity": "G1afLIEKt8A"
+      },
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163"
+    },
+    {
+      "relationshipType": "tBeOL0DL026",
+      "relationship": "HiXiipNGsxT",
+      "bidirectional": false,
+      "from": {
+        "trackedEntity": "G1afLIEKt8A"
+      },
+      "to": {
+        "trackedEntity": "Ea0rRdBPAIp"
+      },
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163"
+    }
+  ]
+}

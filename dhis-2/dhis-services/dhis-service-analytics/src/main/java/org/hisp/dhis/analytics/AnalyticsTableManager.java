@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,7 +171,8 @@ public interface AnalyticsTableManager
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */
-    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel );
+    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
+        Collection<String> dataElements, int aggregationLevel );
 
     /**
      * Performs vacuum or optimization of the given table. The type of operation
@@ -183,9 +184,9 @@ public interface AnalyticsTableManager
     Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
 
     /**
-     * Returns a list of non-dynamic {@see AnalyticsTableColumn}
+     * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
      *
-     * @return a List of {@see AnalyticsTableColumn}
+     * @return a List of {@link AnalyticsTableColumn}.
      */
     List<AnalyticsTableColumn> getFixedColumns();
 }

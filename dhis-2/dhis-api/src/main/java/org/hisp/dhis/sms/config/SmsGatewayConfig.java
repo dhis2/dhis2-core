@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,14 @@ package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * Super class for gateway configurations
@@ -42,24 +45,38 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
+@JsonInclude( JsonInclude.Include.NON_NULL )
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
+@JsonSubTypes( { @JsonSubTypes.Type( value = BulkSmsGatewayConfig.class, name = "bulksms" ),
+                 @JsonSubTypes.Type( value = GenericHttpGatewayConfig.class, name = "http" ),
+                 @JsonSubTypes.Type( value = ClickatellGatewayConfig.class, name = "clickatell" ),
+                 @JsonSubTypes.Type( value = SMPPGatewayConfig.class, name = "smpp" ) } )
 public abstract class SmsGatewayConfig
     implements Serializable
 {
     private static final long serialVersionUID = -4288220735161151632L;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private String uid;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private String name;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private String username;
 
+    @JsonView( SmsConfigurationViews.Internal.class )
     private String password;
 
+    @JsonView( SmsConfigurationViews.Public.class )
     private boolean isDefault;
 
+    @JsonView( SmsConfigurationViews.Public.class )
+    private boolean sendUrlParameters;
+
+    @JsonView( SmsConfigurationViews.Public.class )
     private String urlTemplate;
 
-    @JsonProperty
     public String getUrlTemplate()
     {
         return urlTemplate;
@@ -70,7 +87,6 @@ public abstract class SmsGatewayConfig
         this.urlTemplate = urlTemplate;
     }
 
-    @JsonProperty
     public String getName()
     {
         return name;
@@ -81,7 +97,6 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
-    @JsonProperty( value = "isDefault" )
     public boolean isDefault()
     {
         return isDefault;
@@ -92,7 +107,6 @@ public abstract class SmsGatewayConfig
         this.isDefault = isDefault;
     }
 
-    @JsonProperty
     public String getUid()
     {
         return uid;
@@ -103,19 +117,16 @@ public abstract class SmsGatewayConfig
         this.uid = uid;
     }
 
-    @JsonIgnore
     public String getPassword()
     {
         return password;
     }
 
-    @JsonProperty
     public void setPassword( String password )
     {
         this.password = password;
     }
 
-    @JsonProperty
     public String getUsername()
     {
         return username;
@@ -124,6 +135,16 @@ public abstract class SmsGatewayConfig
     public void setUsername( String username )
     {
         this.username = username;
+    }
+
+    public boolean isSendUrlParameters()
+    {
+        return sendUrlParameters;
+    }
+
+    public void setSendUrlParameters( boolean sendUrlParameters )
+    {
+        this.sendUrlParameters = sendUrlParameters;
     }
 
     @Override

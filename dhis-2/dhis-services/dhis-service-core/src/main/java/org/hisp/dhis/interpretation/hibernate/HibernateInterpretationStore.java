@@ -1,7 +1,5 @@
-package org.hisp.dhis.interpretation.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +26,20 @@ package org.hisp.dhis.interpretation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.interpretation.hibernate;
+
 import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,32 +54,29 @@ public class HibernateInterpretationStore
 {
     @Autowired
     public HibernateInterpretationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, aclService, false );
     }
 
-    @SuppressWarnings("unchecked")
     public List<Interpretation> getInterpretations( User user )
     {
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql )
+        Query<Interpretation> query = getQuery( hql )
             .setParameter( "user", user )
             .setCacheable( cacheable );
 
         return query.list();
     }
 
-    @SuppressWarnings("unchecked")
     public List<Interpretation> getInterpretations( User user, int first, int max )
     {
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql )
+        Query<Interpretation> query = getQuery( hql )
             .setParameter( "user", user )
             .setMaxResults( first )
             .setMaxResults( max )
@@ -91,43 +86,28 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" )
-            .setParameter( "map", map )
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
+        query.setParameter( "map", map );
+        return query.uniqueResult();
+    }
+
+    @Override
+    public long countVisualizationInterpretations( Visualization visualization )
+    {
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
+            .setParameter( "visualization", visualization )
             .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public Interpretation getByVisualizationId( long id )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" )
-            .setParameter( "chart", chart )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
-    }
-
-    @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
-    {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" )
-            .setParameter( "reportTable", reportTable )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
-    }
-
-    @Override
-    public Interpretation getByChartId( long id )
-    {
-        String hql = "from Interpretation i where i.chart.id = " + id;
-
-        Query query = getSession().createQuery( hql )
-            .setCacheable( cacheable );
-
-        return (Interpretation) query.uniqueResult();
+        String hql = "from Interpretation i where i.visualization.id = " + id;
+        Query<Interpretation> query = getQuery( hql );
+        return query.uniqueResult();
     }
 }

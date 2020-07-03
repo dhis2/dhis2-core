@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -52,6 +51,8 @@ import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
@@ -59,6 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.join;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 /**
  * @author Lars Helge Overland
@@ -106,8 +108,6 @@ public abstract class BaseChart
     protected LegendSet legendSet;
 
     protected LegendDisplayStrategy legendDisplayStrategy;
-
-    protected ColorSet colorSet;
 
     private List<String> yearlySeries = new ArrayList<>();
 
@@ -286,6 +286,8 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = TRUE, value = PropertyType.CONSTANT )
+    @PropertyRange( min = 1, max = 40)
     public ChartType getType()
     {
         return type;
@@ -500,19 +502,6 @@ public abstract class BaseChart
     public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
     {
         this.legendDisplayStrategy = legendDisplayStrategy;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ColorSet getColorSet()
-    {
-        return colorSet;
-    }
-
-    public void setColorSet( ColorSet colorSet )
-    {
-        this.colorSet = colorSet;
     }
 
     @JsonProperty

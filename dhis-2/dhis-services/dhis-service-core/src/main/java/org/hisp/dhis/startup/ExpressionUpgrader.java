@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,17 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
+
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -44,12 +49,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
-import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Upgrades indicator formulas, expressions (for validation rules) and custom
@@ -57,6 +57,7 @@ import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class ExpressionUpgrader
     extends TransactionContextStartupRoutine
 {
@@ -65,8 +66,6 @@ public class ExpressionUpgrader
 
     private static final Pattern OLD_OPERAND_PATTERN = Pattern.compile( OLD_OPERAND_EXPRESSION );
     private static final Pattern OLD_CONSTANT_PATTERN = Pattern.compile( OLD_CONSTANT_EXPRESSION );
-
-    private static final Log log = LogFactory.getLog( ExpressionUpgrader.class );
 
     private final DataEntryFormService dataEntryFormService;
 
@@ -200,8 +199,7 @@ public class ExpressionUpgrader
         }
         catch ( Exception ex )
         {
-            log.error( "Failed to upgrade expression: " + expression );
-            log.error( ex ); // Log and continue
+            log.error( "Failed to upgrade expression: " + expression, ex );
         }
 
         if ( changes )
@@ -285,8 +283,7 @@ public class ExpressionUpgrader
                 }
                 catch ( Exception ex )
                 {
-                    log.error( "Upgrading custom data entry form failed: " + form.getName() );
-                    log.error( ex ); // Log and continue
+                    log.error( "Upgrading custom data entry form failed: " + form.getName(), ex );
                 }
             }
         }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -183,7 +183,7 @@ public interface TrackedEntityInstanceService
      * considered valid if no exception are thrown and the method returns
      * normally.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params       the TrackedEntityInstanceQueryParams.
      * @param isGridSearch specifies whether search is made for a Grid response
      * @throws IllegalQueryException if the given params is invalid.
      */
@@ -223,6 +223,8 @@ public interface TrackedEntityInstanceService
      */
     void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
+    void updateTrackedEntityInstance( TrackedEntityInstance instance, User user );
+
     /**
      * Updates a last sync timestamp on specified TrackedEntityInstances
      *
@@ -249,6 +251,16 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
     /**
+     * Returns the {@link TrackedEntityAttribute} with the given UID.
+     *
+     * @param uid  the UID.
+     * @param user User
+     * @return the TrackedEntityInstanceAttribute with the given UID, or null if
+     * no match.
+     */
+    TrackedEntityInstance getTrackedEntityInstance( String trackedEntityInstance, User user );
+
+    /**
      * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
@@ -264,13 +276,19 @@ public interface TrackedEntityInstanceService
      */
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
 
+    /**
+     * Returns UIDs of existing TrackedEntityInstances (including deleted) from the provided UIDs
+     *
+     * @param uids TEI UIDs to check
+     * @return Set containing UIDs of existing TEIs (including deleted)
+     */
     List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids );
 
     /**
      * Register a new entityInstance
      *
-     * @param entityInstance     TrackedEntityInstance
-     * @param attributeValues    Set of attribute values
+     * @param entityInstance  TrackedEntityInstance
+     * @param attributeValues Set of attribute values
      * @return The error code after registering entityInstance
      */
     long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );

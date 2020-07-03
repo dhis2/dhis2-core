@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.notification;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,11 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -76,13 +75,12 @@ import com.google.common.collect.Sets;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.validation.notification.ValidationNotificationService" )
 @Transactional
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
-    private static final Log log = LogFactory.getLog( DefaultValidationNotificationService.class );
-
     private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr ->
         Objects.nonNull( vr ) &&
             Objects.nonNull( vr.getValidationRule() ) &&
@@ -315,10 +313,7 @@ public class DefaultValidationNotificationService
         Map<User, SortedSet<MessagePair>> singleUserToMessagePairs = getMessagePairsPerSingleUser( messagePairs );
 
         // Group each distinct SortedSet of MessagePair for the distinct Set of recipient Users
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = groupRecipientsForMessagePairs(
-            singleUserToMessagePairs );
-
-        return groupedByRecipients;
+        return groupRecipientsForMessagePairs( singleUserToMessagePairs );
     }
 
     private static Map<User, SortedSet<MessagePair>> getMessagePairsPerSingleUser( SortedSet<MessagePair> messagePairs )

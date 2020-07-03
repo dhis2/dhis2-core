@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.PushAnalysisJobParametersDeserializer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -50,7 +52,7 @@ public class PushAnalysisJobParameters
 {
     private static final long serialVersionUID = -1848833906375595488L;
 
-    private String pushAnalysis;
+    private List<String> pushAnalysis = new ArrayList<>();
 
     public PushAnalysisJobParameters()
     {
@@ -58,17 +60,22 @@ public class PushAnalysisJobParameters
 
     public PushAnalysisJobParameters( String pushAnalysis )
     {
+        this.pushAnalysis.add( pushAnalysis );
+    }
+
+    public PushAnalysisJobParameters( List<String> pushAnalysis )
+    {
         this.pushAnalysis = pushAnalysis;
     }
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPushAnalysis()
+    public List<String> getPushAnalysis()
     {
         return pushAnalysis;
     }
 
-    public void setPushAnalysis( String pushAnalysis )
+    public void setPushAnalysis( List<String> pushAnalysis )
     {
         this.pushAnalysis = pushAnalysis;
     }
@@ -76,12 +83,11 @@ public class PushAnalysisJobParameters
     @Override
     public Optional<ErrorReport> validate()
     {
-        if ( pushAnalysis == null )
+        if ( pushAnalysis == null || pushAnalysis.isEmpty() )
         {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ));
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ) );
         }
 
         return Optional.empty();
     }
-
 }

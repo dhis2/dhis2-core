@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,24 +53,24 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener
     public void onEnrollment( EnrollmentEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEnrollment( event.getProgramInstance() );
+        programRuleEngineService.evaluateEnrollmentAndRunEffects( event.getProgramInstance() );
     }
 
     @TransactionalEventListener
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener
     public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener
     public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 }

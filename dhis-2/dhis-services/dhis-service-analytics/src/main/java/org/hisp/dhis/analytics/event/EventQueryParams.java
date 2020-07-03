@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,37 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.common.*;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -39,15 +67,15 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import com.google.common.base.MoreObjects;
 
 /**
  * Class representing query parameters for retrieving event data from the
@@ -327,33 +355,33 @@ public class EventQueryParams
         QueryKey key = new QueryKey()
             .add( super.getKey() );
 
-        items.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        itemFilters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        itemProgramIndicators.forEach( e -> key.add( e.getUid() ) );
+        items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
+        itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
+        itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
 
         return key
-            .addIgnoreNull( value, () -> value.getUid() )
-            .addIgnoreNull( programIndicator, () -> programIndicator.getUid() )
-            .addIgnoreNull( organisationUnitMode )
-            .addIgnoreNull( page )
-            .addIgnoreNull( pageSize )
-            .addIgnoreNull( sortOrder )
-            .addIgnoreNull( limit )
-            .addIgnoreNull( outputType )
-            .addIgnoreNull( eventStatus )
-            .addIgnoreNull( collapseDataDimensions )
-            .addIgnoreNull( coordinatesOnly )
-            .addIgnoreNull( geometryOnly )
-            .addIgnoreNull( aggregateData )
-            .addIgnoreNull( clusterSize )
-            .addIgnoreNull( coordinateField )
-            .addIgnoreNull( bbox )
-            .addIgnoreNull( includeClusterPoints )
-            .addIgnoreNull( programStatus )
-            .addIgnoreNull( includeMetadataDetails )
-            .addIgnoreNull( dataIdScheme )
+            .addIgnoreNull( "value", value, () -> value.getUid() )
+            .addIgnoreNull( "programIndicator", programIndicator, () -> programIndicator.getUid() )
+            .addIgnoreNull( "organisationUnitMode", organisationUnitMode )
+            .addIgnoreNull( "page", page )
+            .addIgnoreNull( "pageSize", pageSize )
+            .addIgnoreNull( "sortOrder", sortOrder )
+            .addIgnoreNull( "limit", limit )
+            .addIgnoreNull( "outputType", outputType )
+            .addIgnoreNull( "eventStatus", eventStatus )
+            .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
+            .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
+            .addIgnoreNull( "geometryOnly", geometryOnly )
+            .addIgnoreNull( "aggregateData", aggregateData )
+            .addIgnoreNull( "clusterSize", clusterSize )
+            .addIgnoreNull( "coordinateField", coordinateField )
+            .addIgnoreNull( "bbox", bbox )
+            .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
+            .addIgnoreNull( "programStatus", programStatus )
+            .addIgnoreNull( "includeMetadataDetails", includeMetadataDetails )
+            .addIgnoreNull( "dataIdScheme", dataIdScheme )
             .build();
     }
 
@@ -499,6 +527,24 @@ public class EventQueryParams
         {
             return true;
         }
+
+        if ( program != null )
+        {
+            return validateProgramHasOrgUnitField( program );
+        }
+
+        if ( !itemProgramIndicators.isEmpty() )
+        {
+            // Fail validation if at least one program indicator is invalid
+
+            return !itemProgramIndicators.stream().anyMatch( pi -> !validateProgramHasOrgUnitField( pi.getProgram() ) );
+        }
+
+        return false;
+    }
+
+    private boolean validateProgramHasOrgUnitField( Program program )
+    {
 
         if ( program.getTrackedEntityAttributes().stream()
             .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
@@ -912,6 +958,7 @@ public class EventQueryParams
      * Builder for {@link DataQueryParams} instances.
      */
     public static class Builder
+        implements QueryParamsBuilder
     {
         private EventQueryParams params;
 
@@ -972,6 +1019,13 @@ public class EventQueryParams
         public Builder removeDimension( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
+            return this;
+        }
+
+        public Builder removeDimensionOrFilter( String dimension )
+        {
+            this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
+            this.params.filters.remove( new BaseDimensionalObject( dimension ) );
             return this;
         }
 

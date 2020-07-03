@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.domain;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,109 +29,29 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Objects;
-
-@JacksonXmlRootElement( localName = "note", namespace = DxfNamespaces.DXF_2_0 )
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Note
 {
+    @JsonProperty
     private String note;
 
-    private String value;
+    @JsonProperty
+    private String storedAt;
 
+    @JsonProperty
     private String storedBy;
 
-    private String storedDate;
-
-    public Note()
-    {
-    }
-
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getNote()
-    {
-        return note;
-    }
-
-    public void setNote( String note )
-    {
-        this.note = note;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStoredDate()
-    {
-        return storedDate;
-    }
-
-    public void setStoredDate( String storedDate )
-    {
-        this.storedDate = storedDate;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        Note that = (Note) o;
-        return Objects.equals( note, that.note ) &&
-            Objects.equals( storedDate, that.storedDate ) &&
-            Objects.equals( storedBy, that.storedBy ) &&
-            Objects.equals( value, that.value );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( note, storedDate, storedBy, value );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Note{" +
-            "note='" + note + '\'' +
-            ", value='" + value + '\'' +
-            ", storedBy='" + storedBy + '\'' +
-            ", storedDate='" + storedDate + '\'' +
-            '}';
-    }
+    private String value;
 }

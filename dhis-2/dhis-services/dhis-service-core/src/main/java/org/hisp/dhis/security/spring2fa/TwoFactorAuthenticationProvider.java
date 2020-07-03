@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.spring2fa;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,14 +43,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Henning Håkonsen
  */
+@Slf4j
 public class TwoFactorAuthenticationProvider
     extends DaoAuthenticationProvider
 {
-    private static final Logger log = LoggerFactory.getLogger( TwoFactorAuthenticationProvider.class );
-
     private UserService userService;
 
     public void setUserService( UserService userService )
@@ -75,7 +74,7 @@ public class TwoFactorAuthenticationProvider
 
         String username = auth.getName();
 
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+        UserCredentials userCredentials = userService.getUserCredentialsWithEagerFetchAuthorities( username );
 
         if ( userCredentials == null )
         {
@@ -108,7 +107,7 @@ public class TwoFactorAuthenticationProvider
             String ip = authDetails.getIp();
             String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
-            if ( securityService.isLocked( ip ) )
+            if ( securityService.isLocked( username ) )
             {
                 log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
 
@@ -129,7 +128,7 @@ public class TwoFactorAuthenticationProvider
 
         Authentication result = super.authenticate( auth );
 
-        // Put detached state of the user credentials into the session as user 
+        // Put detached state of the user credentials into the session as user
         // credentials must not be updated during session execution
 
         userCredentials = SerializationUtils.clone( userCredentials );

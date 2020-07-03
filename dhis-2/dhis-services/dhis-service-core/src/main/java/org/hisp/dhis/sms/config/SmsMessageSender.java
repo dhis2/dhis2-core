@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.*;
@@ -51,23 +49,24 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Nguyen Kim Lai
  */
+@Slf4j
 @Component( "smsMessageSender" )
 @Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class SmsMessageSender
     implements MessageSender
 {
-    private static final Log log = LogFactory.getLog( SmsMessageSender.class );
-
     private static final String NO_CONFIG = "No default gateway configured";
 
     private static final String BATCH_ABORTED = "Aborted sending message batch";

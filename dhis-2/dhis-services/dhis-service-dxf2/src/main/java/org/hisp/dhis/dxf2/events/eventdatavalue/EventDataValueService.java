@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.events.eventdatavalue;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import java.util.Map;
 
 /**
  * @author David Katuscak
@@ -51,6 +50,6 @@ public interface EventDataValueService
      * @param importSummary ImportSummary
      * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
      */
-    void processDataValues(ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-                           ImportOptions importOptions, ImportSummary importSummary, Cache<DataElement> dataElementsCache);
+    void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
+        ImportOptions importOptions, ImportSummary importSummary, Cache<DataElement> dataElementsCache );
 }

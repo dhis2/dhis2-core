@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.operator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,21 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorMathMinus;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression math operator: Minus
+ * Math operator: Minus
  *
  * @author Jim Grace
  */
 public class OperatorMathMinus
-    extends AbstractExpressionFunction
+    extends AntlrOperatorMathMinus
+    implements ExpressionItem
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( ctx.expr().size() == 1 ) // Unary minus operator
-        {
-            return - visitor.castDoubleVisit( ctx.expr( 0 ) );
-        }
-        else // Subtraction operator
-        {
-            return visitor.castDoubleVisit( ctx.expr( 0 ) )
-                - visitor.castDoubleVisit( ctx.expr( 1 ) );
-        }
-    }
-
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {

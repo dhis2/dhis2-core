@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 public interface SchedulingManager
 {
     /**
-     * Check if this jobconfiguration is currently running
+     * Check if this job configuration is currently running
      *
      * @param jobConfiguration the job to check
      * @return true/false
@@ -70,15 +70,36 @@ public interface SchedulingManager
     /**
      * Set up default behavior for a finished job.
      * <p>
-     * A special case is if a job is disabled when running, but the job does not stop. The job wil run normally one last time and
-     * try to set finished status. Since the job is disabled we manually set these parameters in this method so that the
-     * job is not automatically rescheduled.
+     * A special case is if a job is disabled when running, but the job does not stop. The job will run normally one last
+     * time and try to set finished status. Since the job is disabled we manually set these parameters in this method so
+     * that the job is not automatically rescheduled.
      * <p>
-     * Also we dont want to update a job configuration of the job is deleted.
+     * Also we don't want to update a job configuration if the job is deleted.
      *
      * @param jobConfiguration the job which started
      */
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
+
+    /**
+     * Schedules a job with the given job configuration. The job will be scheduled
+     * based on the {@link JobConfiguration#cronExpression} property.
+     *
+     * @param jobConfiguration the job to schedule.
+     */
+    void scheduleJob( JobConfiguration jobConfiguration );
+
+    /**
+     * Schedule a job with the given start time.
+     *
+     * @param jobConfiguration The jobConfiguration with job details to be scheduled
+     * @param startTime The time at which the job should start
+     */
+    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
+
+    /**
+     * Stops one job.
+     */
+    void stopJob( JobConfiguration jobConfiguration );
 
     /**
      * Get a job based on the job type.
@@ -87,18 +108,6 @@ public interface SchedulingManager
      * @return the job
      */
     Job getJob( JobType jobType );
-
-    /**
-     * Schedules a job with the given job configuration.
-     *
-     * @param jobConfiguration the job to schedule.
-     */
-    void scheduleJob( JobConfiguration jobConfiguration );
-
-    /**
-     * Stops one job.
-     */
-    void stopJob( JobConfiguration jobConfiguration );
 
     /**
      * Execute the job.
@@ -113,20 +122,12 @@ public interface SchedulingManager
      * @param job The job to be executed
      */
     void executeJob( Runnable job );
-    
-    /**
-     * Schedule a job with a start time.
-     * 
-     * @param jobConfiguration The jobConfiguration with job details to be scheduled
-     * @param startTime The time at which the job should start
-     */
-    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
 
     /**
      * Execute the given job immediately and return a ListenableFuture.
      *
      * @param callable the job to execute.
-     * @param <T>      return type of the supplied callable.
+     * @param <T> return type of the supplied {@link Callable}.
      * @return a ListenableFuture representing the result of the job.
      */
     <T> ListenableFuture<T> executeJob( Callable<T> callable );

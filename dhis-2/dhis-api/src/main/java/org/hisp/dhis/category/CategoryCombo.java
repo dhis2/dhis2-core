@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -156,6 +156,7 @@ public class CategoryCombo
     public List<List<CategoryOption>> getCategoryOptionsAsLists()
     {
         return categories.stream()
+            .filter( ca -> !ca.getCategoryOptions().isEmpty() )
             .map( ca -> ca.getCategoryOptions() )
             .collect( Collectors.toList() );
     }

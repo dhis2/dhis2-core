@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Nguyen Hong Duc
@@ -68,6 +69,11 @@ public class UserCredentials
     implements UserDetails
 {
     public static final int USERNAME_MAX_LENGTH = 255;
+
+    /**
+     * Globally unique identifier for User.
+     */
+    private UUID uuid;
 
     /**
      * Required and unique.
@@ -191,6 +197,17 @@ public class UserCredentials
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
         this.setSecret();
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        if ( uuid == null )
+        {
+            uuid = UUID.randomUUID();
+        }
+
+        super.setAutoFields();
     }
 
     // -------------------------------------------------------------------------
@@ -389,7 +406,7 @@ public class UserCredentials
     @Override
     public String getName()
     {
-        return userInfo!= null ? userInfo.getName() : username;
+        return userInfo != null ? userInfo.getName() : username;
     }
 
     /**
@@ -516,6 +533,21 @@ public class UserCredentials
     // -------------------------------------------------------------------------
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UUID getUuid()
+    {
+        return uuid;
+    }
+
+    public void setUuid( UUID uuid )
+    {
+        this.uuid = uuid;
+    }
+
+    /**
+     * Refers to the user associated with this user credentials.
+     */
+    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUserInfo()
@@ -529,7 +561,7 @@ public class UserCredentials
     }
 
     @Override
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
     @PropertyRange( min = 8, max = 60 )

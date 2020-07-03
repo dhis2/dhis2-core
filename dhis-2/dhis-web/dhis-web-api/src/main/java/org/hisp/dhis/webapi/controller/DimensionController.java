@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ public class DimensionController
         throws QueryParserException
     {
         List<DimensionalObject> dimensionalObjects;
-        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, getPaginationData(options), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( dimensionService.getAllDimensions() );

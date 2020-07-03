@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,10 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.artemis.ProducerConfiguration;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.AuditProducerConfiguration;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,30 +39,55 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Component
 public class AuditManager
 {
-    private static final Log log = LogFactory.getLog( AuditManager.class );
-
     private final AuditProducerSupplier auditProducerSupplier;
-    private final ProducerConfiguration config;
+    private final AuditProducerConfiguration config;
     private final AuditScheduler auditScheduler;
+    private final AuditMatrix auditMatrix;
+
+    private final AuditObjectFactory objectFactory;
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
-        ProducerConfiguration config )
+        AuditProducerConfiguration config,
+        AuditMatrix auditMatrix,
+        AuditObjectFactory auditObjectFactory )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
+        checkNotNull( auditMatrix );
+        checkNotNull( auditObjectFactory );
 
         this.auditProducerSupplier = auditProducerSupplier;
         this.config = config;
         this.auditScheduler = auditScheduler;
+        this.auditMatrix = auditMatrix;
+        this.objectFactory = auditObjectFactory;
     }
 
     public void send( Audit audit )
     {
+        if ( !auditMatrix.isEnabled( audit ) || audit.getAuditableEntity() == null )
+        {
+            log.debug( "Audit message ignored:\n" + audit.toLog() );
+            return;
+        }
+
+        if ( audit.getData() == null )
+        {
+            audit.setData( this.objectFactory.create(
+                audit.getAuditScope(),
+                audit.getAuditType(),
+                audit.getAuditableEntity().getEntity(),
+                audit.getCreatedBy() ) );
+        }
+
+        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
+
         if ( config.isUseQueue() )
         {
             auditScheduler.addAuditItem( audit );
@@ -71,4 +97,5 @@ public class AuditManager
             auditProducerSupplier.publish( audit );
         }
     }
+
 }

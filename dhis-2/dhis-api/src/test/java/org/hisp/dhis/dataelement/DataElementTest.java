@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,8 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataset.DataSet;
@@ -38,7 +39,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland

@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling.parameters;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,28 +40,19 @@ import org.hisp.dhis.scheduling.parameters.jackson.TrackerProgramsDataSynchroniz
 import java.util.Optional;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = TrackerProgramsDataSynchronizationJobParametersDeserializer.class )
-public class TrackerProgramsDataSynchronizationJobParameters implements JobParameters
+public class TrackerProgramsDataSynchronizationJobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 368325562301563469L;
 
-    static final int TRACKER_PAGE_SIZE_MIN = 5;
-    static final int TRACKER_PAGE_SIZE_MAX = 100;
+    static final int PAGE_SIZE_MIN = 5;
+    static final int PAGE_SIZE_MAX = 100;
 
     private int pageSize = 20;
-
-    public TrackerProgramsDataSynchronizationJobParameters()
-    {
-
-    }
-
-    public TrackerProgramsDataSynchronizationJobParameters( final int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -78,9 +69,17 @@ public class TrackerProgramsDataSynchronizationJobParameters implements JobParam
     @Override
     public Optional<ErrorReport> validate()
     {
-        if ( pageSize < TRACKER_PAGE_SIZE_MIN || pageSize > TRACKER_PAGE_SIZE_MAX )
+        if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
         {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4008, "pageSize", TRACKER_PAGE_SIZE_MIN, TRACKER_PAGE_SIZE_MAX, pageSize  ) );
+            return Optional.of(
+                new ErrorReport(
+                    this.getClass(),
+                    ErrorCode.E4008,
+                    "pageSize",
+                    PAGE_SIZE_MIN,
+                    PAGE_SIZE_MAX,
+                    pageSize  )
+            );
         }
 
         return Optional.empty();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Lars Helge Overland
  */
 @Repository( "CompleteDataSetRegistrationStore" )
-public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericStore<CompleteDataSetRegistration>
-    implements CompleteDataSetRegistrationStore
+public class HibernateCompleteDataSetRegistrationStore
+    extends HibernateGenericStore<CompleteDataSetRegistration>
+        implements CompleteDataSetRegistrationStore
 {
     private final PeriodStore periodStore;
 

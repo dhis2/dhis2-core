@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,16 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.hisp.dhis.audit.AuditAttribute;
+
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -66,6 +72,42 @@ public class AnnotationUtils
         }
 
         return methods;
+    }
+
+    /**
+     * Returns Map of fields and their getter methods on the given class and its parents (if any)
+     * which are annotated with the annotation of the given annotationType.
+     * The annotation can be applied to either field or getter method.
+     *
+     * @param klass
+     * @param annotationType
+     * @return Map<Field, Method>
+     */
+    public static Map<Field, Method> getAnnotatedFields( Class<?> klass, Class<? extends Annotation> annotationType )
+    {
+        final Map<Field, Method> mapFields = new HashMap<>();
+
+        if ( klass == null || annotationType == null )
+        {
+            return mapFields;
+        }
+
+        FieldUtils.getAllFieldsList( klass ).forEach( field -> {
+
+            Method getter = ReflectionUtils.findGetterMethod( field.getName(), klass );
+
+            if ( getter == null )
+            {
+                return;
+            }
+
+            if ( field.isAnnotationPresent( AuditAttribute.class )  || getter.isAnnotationPresent( AuditAttribute.class ) )
+            {
+                mapFields.put( field, getter );
+            }
+        } );
+
+        return mapFields;
     }
 
     /**

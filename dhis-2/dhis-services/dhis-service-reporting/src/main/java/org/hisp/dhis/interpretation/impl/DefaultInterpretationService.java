@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.impl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,14 @@ package org.hisp.dhis.interpretation.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -50,7 +51,6 @@ import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -59,12 +59,11 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -83,17 +82,17 @@ public class DefaultInterpretationService
     private final InterpretationStore interpretationStore;
 
     private CurrentUserService currentUserService;
-    
+
     private UserService userService;
-    
+
     private final PeriodService periodService;
 
     private final MessageService messageService;
 
     private final AclService aclService;
-    
+
     private final I18nManager i18nManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
     public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
@@ -150,22 +149,19 @@ public class DefaultInterpretationService
 
         Set<User> users = new HashSet<>();
 
-        if ( interpretation != null )
+        if ( user != null )
         {
-            if ( user != null )
-            {
-                interpretation.setUser( user );
-            }
-
-            if ( interpretation.getPeriod() != null )
-            {
-                interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
-            }
-
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-            interpretation.setMentionsFromUsers( users );
-            updateSharingForMentions( interpretation, users );
+            interpretation.setUser( user );
         }
+
+        if ( interpretation.getPeriod() != null )
+        {
+            interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
+        }
+
+        users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        interpretation.setMentionsFromUsers( users );
+        updateSharingForMentions( interpretation, users );
 
         interpretationStore.save( interpretation );
         notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_CREATE );
@@ -192,8 +188,11 @@ public class DefaultInterpretationService
     {
         Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
         comment.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
-        interpretationStore.update( interpretation );
+        comment.setLastUpdated( new Date() );
+        if ( updateSharingForMentions( interpretation, users ) )
+        {
+            interpretationStore.update( interpretation );
+        }
         notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
         sendMentionNotifications( interpretation, comment, users );
     }
@@ -347,17 +346,21 @@ public class DefaultInterpretationService
             path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
+        case VISUALIZATION:
+            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid() + "/interpretation/"
+                    + interpretation.getUid();
+            break;
         case REPORT_TABLE:
             path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
         case CHART:
             path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getChart().getUid() + "/interpretation/"
-                    + interpretation.getUid();
+                + interpretation.getUid();
             break;
         case EVENT_REPORT:
-            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid() + "&interpretationid="
-                + interpretation.getUid();
+            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
+                + "&interpretationid=" + interpretation.getUid();
             break;
         case EVENT_CHART:
             path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
@@ -371,15 +374,22 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public void updateSharingForMentions( Interpretation interpretation, Set<User> users )
+    public boolean updateSharingForMentions( Interpretation interpretation, Set<User> users )
     {
+        boolean modified = false;
+        IdentifiableObject interpretationObject = interpretation.getObject();
+        Set<UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
+
         for ( User user : users )
         {
-            if ( !aclService.canRead( user, interpretation.getObject() ) )
+            if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationUserAccesses.add( new UserAccess( user, AccessStringHelper.READ ) );
+                modified = true;
             }
         }
+
+        return modified;
     }
 
     @Override
@@ -485,26 +495,20 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
         return interpretationStore.countMapInterpretations( map );
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public long countVisualizationInterpretations( Visualization visualization )
     {
-        return interpretationStore.countChartInterpretations( chart );
+        return interpretationStore.countVisualizationInterpretations( visualization );
     }
 
     @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
+    public Interpretation getInterpretationByVisualization( long id )
     {
-        return interpretationStore.countReportTableInterpretations( reportTable );
-    }
-
-    @Override
-    public Interpretation getInterpretationByChart( long id )
-    {
-        return interpretationStore.getByChartId( id );
+        return interpretationStore.getByVisualizationId( id );
     }
 }

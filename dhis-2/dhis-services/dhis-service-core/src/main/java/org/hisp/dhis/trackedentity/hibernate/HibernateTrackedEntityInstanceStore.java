@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity.hibernate;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +26,46 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+package org.hisp.dhis.trackedentity.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
@@ -39,9 +73,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,6 +83,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -58,36 +92,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
+import com.google.common.collect.Lists;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-import static org.hisp.dhis.util.DateUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Slf4j
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
 public class HibernateTrackedEntityInstanceStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityInstance>
+    extends SoftDeleteHibernateObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
-    private static final Log log = LogFactory.getLog( HibernateTrackedEntityInstanceStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -98,11 +115,9 @@ public class HibernateTrackedEntityInstanceStore
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService,
-        OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
+        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService, false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
@@ -125,7 +140,6 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         String hql = buildTrackedEntityInstanceHql( params );
@@ -136,7 +150,7 @@ public class HibernateTrackedEntityInstanceStore
             hql = hql.replaceFirst( "select tei from", "select distinct tei from" );
         }
 
-        Query query = getQuery( hql );
+        Query<TrackedEntityInstance> query = getQuery( hql );
 
         if ( params.isPaging() )
         {
@@ -280,9 +294,10 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
+        params.handleOrganisationUnits();
+
         if ( params.hasOrganisationUnits() )
         {
-            params.handleOrganisationUnits();
 
             if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
             {
@@ -585,7 +600,15 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntityType() )
+        if ( !params.hasTrackedEntityType() )
+        {
+            sql += hlp.whereAnd() + " tei.trackedentitytypeid in (" + params.getTrackedEntityTypes().stream()
+                .filter( Objects::nonNull )
+                .map( TrackedEntityType::getId )
+                .map( String::valueOf )
+                .collect( Collectors.joining(", ") ) + ") ";
+        }
+        else
         {
             sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }
@@ -826,15 +849,21 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=? and deleted is false", Integer.class, uid );
-        return result != null && result > 0;
+        Query query = getSession().createNativeQuery( "select count(*) from trackedentityinstance where uid=? and deleted is false" );
+        query.setParameter( 1, uid );
+        int count = ( (Number) query.getSingleResult() ).intValue();
+
+        return count > 0;
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        Query query = getSession().createNativeQuery( "select count(*) from trackedentityinstance where uid=?" );
+        query.setParameter( 1, uid );
+        int count = ( (Number) query.getSingleResult() ).intValue();
+
+        return count > 0;
     }
 
     @Override
@@ -859,14 +888,15 @@ public class HibernateTrackedEntityInstanceStore
     public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
         String hql = "update TrackedEntityInstance set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
-        Query query = getQuery( hql );
-        query.setParameter( "lastSynchronized", lastSynchronized );
-        query.setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs );
 
-        query.executeUpdate();
+        getQuery( hql )
+            .setParameter( "lastSynchronized", lastSynchronized )
+            .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
+            .executeUpdate();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         return getSharingCriteria( user )

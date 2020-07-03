@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.34-SNAPSHOT</version>
+  <version>2.35-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
   <url>http://dhis2.org</url>
@@ -70,10 +70,15 @@
     <repository>
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
-      <url>http://download.osgeo.org/webdav/geotools/</url>
+      <url>https://repo.osgeo.org/repository/release/</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
+    </repository>
+    <repository>
+      <id>jvnet-nexus-staging</id>
+      <url>https://maven.java.net/content/repositories/staging/</url>
+      <layout>default</layout>
     </repository>
   </repositories>
 
@@ -93,6 +98,7 @@
       <subscribe>https://launchpad.net/~dhis2-devs</subscribe>
     </mailingList>
   </mailingLists>
+
   <reporting>
     <plugins>
       <plugin>
@@ -115,6 +121,37 @@
 
   <profiles>
     <profile>
+      <id>jdk9+</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.21.0</version>
+            <configuration>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>-Xmx1024m</argLine>
+              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>6.2</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
       <id>default</id>
       <activation>
         <activeByDefault>true</activeByDefault>
@@ -130,6 +167,13 @@
               <argLine>-Xmx1024m</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>6.2</version>
+              </dependency>
+            </dependencies>
           </plugin>
         </plugins>
       </build>
@@ -147,6 +191,13 @@
               <argLine>-Xmx1024m</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>6.2</version>
+              </dependency>
+            </dependencies>
           </plugin>
         </plugins>
       </build>
@@ -211,23 +262,41 @@
   <build>
     <pluginManagement>
       <plugins>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
+          <version>3.8.1</version>
           <configuration>
             <source>1.8</source>
             <target>1.8</target>
+            <encoding>${project.build.sourceEncoding}</encoding>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm</artifactId>
+              <version>6.2</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.1.0</version>
+          <configuration>
             <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>2.5</version>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.22.2</version>
           <configuration>
+            <argLine>
+              --illegal-access=permit
+            </argLine>
             <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
         </plugin>
@@ -346,9 +415,68 @@
             </execution>
           </executions>
         </plugin>
+
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>1.18.10.0</version>
+        </plugin>
+
+        <plugin>
+          <groupId>io.committed</groupId>
+          <artifactId>speedy-spotless-maven-plugin</artifactId>
+          <version>0.1.0</version>
+          <executions>
+            <execution>
+              <id>install-formatter-hook</id>
+              <goals>
+                <goal>install-hooks</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <java>
+              <eclipse>
+                <file>${rootDir}/DHISFormatter.xml</file>
+                <version>4.9.0</version>
+              </eclipse>
+              <trimTrailingWhitespace/>
+              <removeUnusedImports/>
+              <importOrder>
+                <order>
+                  java,javax,org,com
+                </order>
+              </importOrder>
+            </java>
+            <lineEndings>UNIX</lineEndings>
+          </configuration>
+        </plugin>
       </plugins>
 
     </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.4.1</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.0.5</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
   <dependencyManagement>
@@ -407,11 +535,6 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-service-mobile</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-administration</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -452,6 +575,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.hisp.dhis.parser</groupId>
+        <artifactId>dhis-antlr-expression-parser</artifactId>
+        <version>1.0.6-SNAPSHOT</version>
+      </dependency>
+      <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-test</artifactId>
         <version>${project.version}</version>
@@ -483,9 +611,14 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-audit</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
-        <version>1.0.5.1-SNAPSHOT</version>
+        <version>2.0.2-SNAPSHOT</version>
       </dependency>
 
       <!-- Spring -->
@@ -557,12 +690,12 @@
       <dependency>
         <groupId>org.springframework.hateoas</groupId>
         <artifactId>spring-hateoas</artifactId>
-        <version>0.23.0.RELEASE</version>
+        <version>1.0.1.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.retry</groupId>
         <artifactId>spring-retry</artifactId>
-        <version>1.2.1.RELEASE</version>
+        <version>1.2.4.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>cglib</groupId>
@@ -572,7 +705,7 @@
       <dependency>
         <groupId>com.alibaba.spring</groupId>
         <artifactId>spring-webmvc-velocity</artifactId>
-        <version>1.4.3.18.RELEASE</version>
+        <version>4.3.18.RELEASE</version>
       </dependency>
       <!--Spring Security -->
       <dependency>
@@ -640,6 +773,12 @@
         <groupId>com.google.api-client</groupId>
         <artifactId>google-api-client</artifactId>
         <version>1.22.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-jdk5</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Spring Mobile -->
@@ -656,8 +795,8 @@
         <version>${spring-session-data-redis.version}</version>
       </dependency>
       <dependency>
-        <groupId>biz.paluch.redis</groupId>
-        <artifactId>lettuce</artifactId>
+        <groupId>io.lettuce</groupId>
+        <artifactId>lettuce-core</artifactId>
         <version>${lettuce.version}</version>
         <exclusions>
           <exclusion>
@@ -684,7 +823,7 @@
       <dependency>
         <groupId>org.jasypt</groupId>
         <artifactId>jasypt</artifactId>
-        <version>1.9.2</version>
+        <version>1.9.3</version>
       </dependency>
 
       <!-- Image Processing -->
@@ -719,6 +858,12 @@
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity</artifactId>
         <version>1.7</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.velocity</groupId>
@@ -741,27 +886,31 @@
             <groupId>org.apache.struts</groupId>
             <artifactId>struts-taglib</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
-        <version>3.17</version>
+        <version>4.1.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi-ooxml</artifactId>
-        <version>3.17</version>
+        <version>4.1.1</version>
       </dependency>
       <dependency>
         <groupId>org.hisp</groupId>
         <artifactId>quick</artifactId>
-        <version>1.3.3</version>
+        <version>1.3.5</version>
       </dependency>
       <dependency>
         <groupId>org.hisp</groupId>
         <artifactId>staxwax</artifactId>
-        <version>1.2</version>
+        <version>1.4</version>
       </dependency>
       <dependency>
         <groupId>com.lowagie</groupId>
@@ -792,7 +941,7 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-compress</artifactId>
-        <version>1.4</version>
+        <version>1.5</version>
       </dependency>
       <dependency>
         <groupId>javax.interceptor</groupId>
@@ -809,42 +958,53 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-collections4</artifactId>
-        <version>4.1</version>
+        <version>4.4</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>3.6</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-text</artifactId>
-        <version>1.1</version>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>3.2.2</version>
       </dependency>
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.9.3</version>
+        <version>1.9.4</version>
       </dependency>
       <dependency>
-        <groupId>commons-digester</groupId>
-        <artifactId>commons-digester</artifactId>
-        <version>2.1</version>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-digester3</artifactId>
+        <version>3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.9</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>1.8</version>
       </dependency>
       <dependency>
         <groupId>commons-fileupload</groupId>
         <artifactId>commons-fileupload</artifactId>
-        <version>1.3.3</version>
+        <version>1.4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-math3</artifactId>
-        <version>3.4.1</version>
+        <version>3.6.1</version>
       </dependency>
       <dependency>
         <groupId>commons-validator</groupId>
         <artifactId>commons-validator</artifactId>
         <version>1.6</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -854,7 +1014,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.11</version>
+        <version>1.13</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -864,23 +1024,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-email</artifactId>
-        <version>1.3.3</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-logging</groupId>
-        <artifactId>commons-logging</artifactId>
-        <version>1.2</version>
-        <scope>compile</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>avalon-framework</groupId>
-            <artifactId>avalon-framework</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>logkit</groupId>
-            <artifactId>logkit</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>1.5</version>
       </dependency>
 
       <!--DBMS -->
@@ -898,6 +1042,12 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-core</artifactId>
         <version>${hibernate.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>classmate</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -908,6 +1058,12 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-validator</artifactId>
         <version>${hibernate-validator.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>classmate</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -920,20 +1076,26 @@
         <artifactId>javassist</artifactId>
         <version>${javassist.version}</version>
       </dependency>
+      <!-- logging -->
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>1.2.17</version>
       </dependency>
       <dependency>
         <groupId>org.apache.geronimo.specs</groupId>
@@ -943,7 +1105,7 @@
       <dependency>
         <groupId>com.mchange</groupId>
         <artifactId>c3p0</artifactId>
-        <version>0.9.5.3</version>
+        <version>0.9.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>
@@ -1017,35 +1179,13 @@
       <dependency>
         <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
-        <version>1.0.19</version>
+        <version>1.5.0</version>
         <exclusions>
           <exclusion>
             <groupId>gnujaxp</groupId>
             <artifactId>gnujaxp</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.jfree</groupId>
-        <artifactId>jcommon</artifactId>
-        <version>1.0.23</version>
-        <exclusions>
-          <exclusion>
-            <groupId>gnujaxp</groupId>
-            <artifactId>gnujaxp</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>net.sourceforge.jexcelapi</groupId>
-        <artifactId>jxl</artifactId>
-        <version>2.6.12</version>
-      </dependency>
-      <dependency>
-        <groupId>xpp3</groupId>
-        <artifactId>xpp3</artifactId>
-        <version>1.1.3.4.O</version>
-        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>org.htmlparser</groupId>
@@ -1062,7 +1202,7 @@
       <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>batik-transcoder</artifactId>
-        <version>1.7</version>
+        <version>1.11</version>
         <exclusions>
           <exclusion>
             <groupId>xalan</groupId>
@@ -1073,7 +1213,12 @@
       <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>batik-codec</artifactId>
-        <version>1.7</version>
+        <version>1.11</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>fop</artifactId>
+        <version>2.3</version>
       </dependency>
 
       <!-- Jackson JSON Mapper -->
@@ -1111,6 +1256,21 @@
         <groupId>com.fasterxml.jackson.datatype</groupId>
         <artifactId>jackson-datatype-jsr310</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml</groupId>
+        <artifactId>classmate</artifactId>
+        <version>1.3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>com.bedatadriven</groupId>
+        <artifactId>jackson-datatype-jts</artifactId>
+        <version>2.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-hibernate5</artifactId>
+        <version>2.9.2</version>
       </dependency>
 
       <!-- GeoTools -->
@@ -1155,22 +1315,44 @@
         <artifactId>gt-geojson</artifactId>
         <version>${geotools.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.vividsolutions</groupId>
-        <artifactId>jts</artifactId>
-        <version>1.13</version>
-      </dependency>
 
       <!-- JAXB -->
       <dependency>
         <groupId>javax.xml.bind</groupId>
         <artifactId>jaxb-api</artifactId>
-        <version>2.2.6</version>
+        <version>2.4.0-b180830.0359</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
-        <version>2.2.6</version>
+        <version>2.4.0-b180830.0438</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.xml.ws</groupId>
+        <artifactId>jaxws-api</artifactId>
+        <version>2.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-osgi</artifactId>
+        <version>2.4.0-b180830.0438</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.ws</groupId>
+        <artifactId>jaxws-ri</artifactId>
+        <version>2.3.2</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+          </exclusion>
+        </exclusions>
+        <type>pom</type>
       </dependency>
 
       <!-- AMQP -->
@@ -1231,7 +1413,7 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.1.24.Final</version>
+        <version>4.1.42.Final</version>
       </dependency>
 
       <dependency>
@@ -1296,7 +1478,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>19.0</version>
+        <version>29.0-jre</version>
       </dependency>
       <dependency>
         <groupId>org.cache2k</groupId>
@@ -1304,9 +1486,9 @@
         <version>1.2.4.Final</version>
       </dependency>
       <dependency>
-       <groupId>org.cache2k</groupId>
-       <artifactId>cache2k-core</artifactId>
-       <version>1.2.4.Final</version>
+        <groupId>org.cache2k</groupId>
+        <artifactId>cache2k-core</artifactId>
+        <version>1.2.4.Final</version>
       </dependency>
       <dependency>
         <groupId>com.googlecode.jsmpp</groupId>
@@ -1325,19 +1507,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>xml-apis</groupId>
-        <artifactId>xml-apis</artifactId>
-        <version>1.4.01</version>
-      </dependency>
-      <dependency>
-        <groupId>com.jcraft</groupId>
-        <artifactId>jzlib</artifactId>
-        <version>1.0.7</version>
-      </dependency>
-      <dependency>
         <groupId>org.jboss.logging</groupId>
         <artifactId>jboss-logging</artifactId>
-        <version>3.3.0.Final</version>
+        <version>3.4.1.Final</version>
       </dependency>
       <dependency>
         <groupId>dom4j</groupId>
@@ -1355,18 +1527,17 @@
         <artifactId>jts-io</artifactId>
         <version>1.14.0</version>
       </dependency>
+
       <!-- Test -->
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
         <version>1.3</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-library</artifactId>
         <version>1.3</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -1376,7 +1547,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>2.23.4</version>
+        <version>3.2.4</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -1398,22 +1569,40 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>4.0.2</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency> <!-- can't be test scope, because we have separate library dhis-support-test -->
         <groupId>io.github.benas</groupId>
         <artifactId>random-beans</artifactId>
         <version>3.7.0</version>
       </dependency>
+      <dependency>
+        <groupId>com.scalified</groupId>
+        <artifactId>tree</artifactId>
+        <version>0.2.5</version>
+      </dependency>
 
-      <!-- application monitoring -->
+      <!-- Lombok -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.10</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Monitoring -->
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-spring-legacy</artifactId>
-        <version>1.2.0</version>
+        <version>1.3.5</version>
       </dependency>
-
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
-        <version>1.2.0</version>
+        <version>1.3.5</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -1421,28 +1610,32 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>5.1.9.RELEASE</spring.version>
-    <spring-security.version>5.1.6.RELEASE</spring-security.version>
-    <spring-security-oauth2.version>2.3.6.RELEASE</spring-security-oauth2.version>
-    <spring-session-data-redis.version>1.3.5.RELEASE</spring-session-data-redis.version>
-    <lettuce.version>4.5.0.Final</lettuce.version>
-    <spring-data-redis.version>1.8.22.RELEASE</spring-data-redis.version>
-    <struts.version>2.3.36</struts.version>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <spring.version>5.2.4.RELEASE</spring.version>
+    <spring-security.version>5.2.2.RELEASE</spring-security.version>
+    <spring-security-oauth2.version>2.4.0.RELEASE</spring-security-oauth2.version>
+    <spring-session-data-redis.version>2.2.0.RELEASE</spring-session-data-redis.version>
+    <lettuce.version>5.2.0.RELEASE</lettuce.version>
+    <spring-data-redis.version>2.2.0.RELEASE</spring-data-redis.version>
+    <struts.version>2.3.37</struts.version>
     <hibernate.version>5.2.17.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
-    <jclouds.version>2.0.3</jclouds.version>
+    <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
     <!-- Keep in sync with Hibernate -->
-    <javassist.version>3.20.0-GA</javassist.version>
+    <javassist.version>3.23.1-GA</javassist.version>
     <!-- unit test dependencies-->
-    <powermock.version>2.0.0</powermock.version>
-    <jackson.version>2.9.8</jackson.version>
-    <slf4j.version>1.7.5</slf4j.version>
+    <powermock.version>2.0.4</powermock.version>
+    <jackson.version>2.10.3</jackson.version>
+    <log4j.version>2.13.0</log4j.version>
+    <slf4j.version>1.7.25</slf4j.version>
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <jacoco.version>0.8.2</jacoco.version>
     <artemis.version>2.6.4</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+    <sonar.organization>dhis2</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
 </project>

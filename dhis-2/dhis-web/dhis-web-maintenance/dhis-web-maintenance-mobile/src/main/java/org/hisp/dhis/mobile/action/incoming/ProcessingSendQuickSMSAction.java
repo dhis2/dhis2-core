@@ -247,8 +247,8 @@ public class ProcessingSendQuickSMSAction
 
         SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendQuickSmsAction", JobType.SMS_SEND, null, jobParameters,
-            false, true, true );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendQuickSmsAction",
+            JobType.SMS_SEND, null, jobParameters, true, true );
 
         notifier.clear( processingSendSmsJobConfiguration );
 

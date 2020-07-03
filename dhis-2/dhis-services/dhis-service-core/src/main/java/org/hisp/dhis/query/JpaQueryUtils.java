@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,17 +61,18 @@ public class JpaQueryUtils
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example:  JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     * Example: JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
      *
      * @param builder CriteriaBuilder
-     * @param path Property Path for query
-     * @param attrValue Value to check
+     * @param expressionPath Property Path for query
+     * @param objectValue Value to check
      * @param searchMode JpaQueryUtils.StringSearchMode
-     * @return
+     * @return a {@link Predicate}.
      */
-    public static Predicate stringPredicateCaseSensitive( CriteriaBuilder builder, Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
+    public static Predicate stringPredicateCaseSensitive( CriteriaBuilder builder,
+        Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
     {
-        return  stringPredicate(  builder,  expressionPath, objectValue, searchMode, true );
+        return stringPredicate(  builder,  expressionPath, objectValue, searchMode, true );
     }
 
     /**
@@ -80,29 +81,31 @@ public class JpaQueryUtils
      * Example:  JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
      *
      * @param builder CriteriaBuilder
-     * @param path Property Path for query
-     * @param attrValue Value to check
+     * @param expressionPath Property Path for query
+     * @param objectValue Value to check
      * @param searchMode JpaQueryUtils.StringSearchMode
-     * @return
+     * @return a {@link Predicate}.
      */
-    public static Predicate stringPredicateIgnoreCase( CriteriaBuilder builder, Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
+    public static Predicate stringPredicateIgnoreCase( CriteriaBuilder builder,
+        Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
     {
-        return  stringPredicate(  builder,  expressionPath, objectValue, searchMode, false );
+        return stringPredicate(  builder,  expressionPath, objectValue, searchMode, false );
     }
 
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example:  JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE, false ) )
+     * Example: JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE, false ) )
      *
      * @param builder CriteriaBuilder
-     * @param path Property Path for query
-     * @param attrValue Value to check
+     * @param expressionPath Property Path for query
+     * @param objectValue Value to check
      * @param searchMode JpaQueryUtils.StringSearchMode
      * @param caseSesnitive is case sensitive
-     * @return
+     * @return a {@link Predicate}.
      */
-    private static Predicate stringPredicate( CriteriaBuilder builder, Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode, boolean caseSesnitive )
+    private static Predicate stringPredicate( CriteriaBuilder builder,
+        Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode, boolean caseSesnitive )
     {
         Expression<String> path = expressionPath;
         Object attrValue = objectValue;
@@ -171,7 +174,7 @@ public class JpaQueryUtils
     /**
      * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
      */
-    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path path, String operator, String value )
+    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path<?> path, String operator, String value )
     {
         switch ( operator )
         {

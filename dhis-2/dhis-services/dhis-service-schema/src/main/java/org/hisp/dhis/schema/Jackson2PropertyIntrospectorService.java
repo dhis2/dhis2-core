@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,17 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.primitives.Primitives;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -48,17 +47,15 @@ import org.hisp.dhis.system.util.SchemaUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.primitives.Primitives;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default PropertyIntrospectorService implementation that uses Reflection and Jackson annotations
@@ -66,12 +63,11 @@ import java.util.stream.Collectors;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.schema.PropertyIntrospectorService" )
 public class Jackson2PropertyIntrospectorService
     extends AbstractPropertyIntrospectorService
 {
-    private static final Log log = LogFactory.getLog( AbstractPropertyIntrospectorService.class );
-
     @Override
     protected Map<String, Property> scanClass( Class<?> clazz )
     {

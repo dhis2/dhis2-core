@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,17 @@ package org.hisp.dhis.system.deletion;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Slf4j
 public class DummyDeletionHandler
     extends DeletionHandler
 {
-    Log log = LogFactory.getLog( DummyDeletionHandler.class );
-    
     @Override
     public String getClassName()
     {

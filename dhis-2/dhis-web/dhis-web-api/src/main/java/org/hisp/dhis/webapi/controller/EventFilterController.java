@@ -1,6 +1,6 @@
 package org.hisp.dhis.webapi.controller;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,15 +40,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
 @RestController
 @RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
 public class EventFilterController extends AbstractCrudController<ProgramStageInstanceFilter>
 {
-
-    
     private final ProgramStageInstanceFilterService psiFilterService;
 
     public EventFilterController( ProgramStageInstanceFilterService psiFilterService )
@@ -65,7 +62,7 @@ public class EventFilterController extends AbstractCrudController<ProgramStageIn
             throw new IllegalQueryException( errors.toString() );
         }
     }
-    
+
     @Override
     public void preUpdateEntity( ProgramStageInstanceFilter oldEventFilter , ProgramStageInstanceFilter newEventFilter )
     {

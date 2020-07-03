@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,8 @@ public class TrackedEntityInstance
     private String coordinates;
 
     private Geometry geometry;
+
+    private String storedBy;
 
     public TrackedEntityInstance()
     {
@@ -304,6 +306,18 @@ public class TrackedEntityInstance
     public void setGeometry( Geometry geometry )
     {
         this.geometry = geometry;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 
     @Override

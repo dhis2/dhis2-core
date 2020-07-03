@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
+import org.joda.time.DateTime;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class PeriodResourceTable
     extends ResourceTable<Period>
 {
@@ -67,7 +71,7 @@ public class PeriodResourceTable
     {
         String sql =
             "create table " + getTempTableName() +
-            " (periodid integer not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
+            " (periodid bigint not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
@@ -99,7 +103,8 @@ public class PeriodResourceTable
             if ( period != null && period.isValid() )
             {
                 final String isoDate = period.getIsoDate();
-                final int year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+
+                final int year = resolveYearFromPeriod( period );
 
                 if ( !uniqueIsoDates.add( isoDate ) )
                 {
@@ -137,5 +142,28 @@ public class PeriodResourceTable
         String sql = "create unique index " + name + " on " + getTempTableName() + "(iso)";
 
         return Lists.newArrayList( sql );
+    }
+
+    /**
+     * Resolves the year from the given period.
+     * <p>
+     * Weekly period types are treated differently from other period types. A week is considered
+     * to belong to the year for which 4 days or more fall inside. In this logic, 3 days are added
+     * to the week start day and the year of the modified start date is used as reference year for
+     * the period.
+     *
+     * @param period the {@link Period}.
+     * @return the year.
+     */
+    private int resolveYearFromPeriod( Period period )
+    {
+        if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
+        {
+            return new DateTime( period.getStartDate().getTime() ).plusDays( 3 ).getYear();
+        }
+        else
+        {
+            return PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+        }
     }
 }

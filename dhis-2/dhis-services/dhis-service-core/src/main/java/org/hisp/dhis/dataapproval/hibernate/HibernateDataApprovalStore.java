@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,17 @@ package org.hisp.dhis.dataapproval.hibernate;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dataapproval.DataApprovalState.ACCEPTED_HERE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVABLE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
+import static org.hisp.dhis.dataapproval.DataApprovalState.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -60,12 +48,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.dataapproval.DataApproval;
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalState;
-import org.hisp.dhis.dataapproval.DataApprovalStatus;
-import org.hisp.dhis.dataapproval.DataApprovalStore;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.dataapproval.*;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -82,16 +65,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Jim Grace
  */
+@Slf4j
 @Repository( "org.hisp.dhis.dataapproval.DataApprovalStore" )
 public class HibernateDataApprovalStore
     extends HibernateGenericStore<DataApproval>
     implements DataApprovalStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataApprovalStore.class );
-
     private static final int MAX_APPROVAL_LEVEL = 100000000;
 
     private static final String SQL_CONCAT = "-";

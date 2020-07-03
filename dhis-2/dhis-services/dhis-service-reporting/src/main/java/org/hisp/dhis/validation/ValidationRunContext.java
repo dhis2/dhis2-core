@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.context.annotation.Scope;
@@ -65,7 +66,7 @@ public class ValidationRunContext
 
     private List<PeriodTypeExtended> periodTypeXs;
 
-    private Map<String, Double> constantMap;
+    private Map<String, Constant> constantMap;
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
@@ -131,7 +132,7 @@ public class ValidationRunContext
         return periodTypeXs;
     }
 
-    public Map<String, Double> getConstantMap()
+    public Map<String, Constant> getConstantMap()
     {
         return constantMap;
     }
@@ -275,7 +276,7 @@ public class ValidationRunContext
             return this;
         }
 
-        public Builder withConstantMap( Map<String, Double> constantMap )
+        public Builder withConstantMap( Map<String, Constant> constantMap )
         {
             this.context.constantMap = constantMap;
             return this;

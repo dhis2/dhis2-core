@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event.data.programIndicator;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.event.data.programIndicator;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
@@ -45,8 +45,7 @@ import com.google.common.base.Strings;
 
 @Component
 public class DefaultProgramIndicatorSubqueryBuilder
-    implements
-    ProgramIndicatorSubqueryBuilder
+    implements ProgramIndicatorSubqueryBuilder
 {
     private final static String ANALYTICS_TABLE_NAME = "analytics";
 
