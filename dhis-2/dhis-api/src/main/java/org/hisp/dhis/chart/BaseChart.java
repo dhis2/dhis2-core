@@ -137,9 +137,9 @@ public abstract class BaseChart
     // Abstract methods
     // -------------------------------------------------------------------------
 
-    public abstract List<DimensionalItemObject> series();
+    public abstract List<DimensionalItemObject> seriesItems();
 
-    public abstract List<DimensionalItemObject> category();
+    public abstract List<DimensionalItemObject> categoryItems();
 
     public abstract AnalyticsType getAnalyticsType();
 
