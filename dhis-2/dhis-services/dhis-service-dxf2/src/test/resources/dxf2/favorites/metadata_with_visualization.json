@@ -454,7 +454,7 @@
           "bold": false,
           "italic": true,
           "underline": false,
-          "textColor": "#2a2a2a"
+          "textColor": "#2a2a2a",
           "textAlign": "CENTER"
         }
       },
