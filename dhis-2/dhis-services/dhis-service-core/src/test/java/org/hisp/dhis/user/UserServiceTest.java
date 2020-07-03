@@ -378,6 +378,28 @@ public class UserServiceTest
     }
 
     @Test
+    public void testGetByIdentifier()
+    {
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+        User userC = createUser( 'C' );
+
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        UserCredentials credentialsC = createUserCredentials( 'C', userC );
+
+        userService.addUser( userA );
+        userService.addUser( userB );
+        userService.addUser( userC );
+
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+        userService.addUserCredentials( credentialsC );
+
+        //TODO Add tests
+    }
+
+    @Test
     public void testGetOrdered()
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
