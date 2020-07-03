@@ -1354,7 +1354,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService" class="org.hisp.dhis.keyjsonvalue.DefaultMetadataKeyJsonService">
-    <property name="userKeyJsonValueStore" ref="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore" />
+    <property name="keyJsonValueStore" ref="org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" />
   </bean>
 
   <!-- SMS services -->
