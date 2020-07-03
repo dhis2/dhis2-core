@@ -44,7 +44,7 @@ public class OrganisationUnitRelationshipRowMapper
     public OrganisationUnitRelationship mapRow( ResultSet resultSet )
         throws SQLException
     {
-        return new OrganisationUnitRelationship( resultSet.getInt( "parentid" ), resultSet.getInt( "organisationunitid" ) );
+        return new OrganisationUnitRelationship( resultSet.getLong( "parentid" ), resultSet.getLong( "organisationunitid" ) );
     }
     
     @Override
