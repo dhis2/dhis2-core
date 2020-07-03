@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.user;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
