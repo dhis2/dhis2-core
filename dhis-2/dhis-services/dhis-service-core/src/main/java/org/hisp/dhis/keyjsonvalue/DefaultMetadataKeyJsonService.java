@@ -29,7 +29,6 @@ package org.hisp.dhis.keyjsonvalue;
  *
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,13 +46,8 @@ public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 
     private final KeyJsonValueStore keyJsonValueStore;
 
-    private final ObjectMapper jsonMapper;
-
-    public DefaultMetadataKeyJsonService(
-        KeyJsonValueStore keyJsonValueStore,
-        ObjectMapper jsonMapper )
+    public DefaultMetadataKeyJsonService( KeyJsonValueStore keyJsonValueStore )
     {
-        this.jsonMapper = jsonMapper;
         checkNotNull( keyJsonValueStore );
 
         this.keyJsonValueStore = keyJsonValueStore;
