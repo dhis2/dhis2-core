@@ -818,8 +818,8 @@ public class DefaultChartService
 
         valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
-        List<NameableObject> seriez = new ArrayList<>( chart.seriesItems() );
-        List<NameableObject> categories = new ArrayList<>( defaultIfNull( chart.categoryItems(), emptyList() ) );
+        List<NameableObject> seriez = new ArrayList<>( chart.series() );
+        List<NameableObject> categories = new ArrayList<>( defaultIfNull( chart.category(), emptyList() ) );
 
         if ( chart.hasSortOrder() )
         {
@@ -852,7 +852,7 @@ public class DefaultChartService
             {
                 categoryIndex = 0;
 
-                for ( NameableObject category : chart.categoryItems() )
+                for ( NameableObject category : chart.category() )
                 {
                     final double value = regression.predict( categoryIndex++ );
 
@@ -892,7 +892,7 @@ public class DefaultChartService
      */
     private List<NameableObject> getSortedCategories( List<NameableObject> categories, BaseChart chart, Map<String, Object> valueMap )
     {
-        NameableObject series = chart.seriesItems().get( 0 );
+        NameableObject series = chart.series().get( 0 );
 
         int sortOrder = chart.getSortOrder();
 

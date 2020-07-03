@@ -1,7 +1,5 @@
 package org.hisp.dhis.eventchart;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -188,8 +186,7 @@ public class EventChart
     }
 
     @Override
-    @JsonIgnore
-    public List<DimensionalItemObject> seriesItems()
+    public List<DimensionalItemObject> series()
     {
         String series = columnDimensions.get( 0 );
 
@@ -202,8 +199,7 @@ public class EventChart
     }
 
     @Override
-    @JsonIgnore
-    public List<DimensionalItemObject> categoryItems()
+    public List<DimensionalItemObject> category()
     {
         String category = rowDimensions.get( 0 );
 

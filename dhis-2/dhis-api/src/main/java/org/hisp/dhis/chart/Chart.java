@@ -1,7 +1,5 @@
 package org.hisp.dhis.chart;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -103,8 +101,7 @@ public class Chart
     // -------------------------------------------------------------------------
 
     @Override
-    @JsonIgnore
-    public List<DimensionalItemObject> seriesItems()
+    public List<DimensionalItemObject> series()
     {
         if ( series == null )
         {
@@ -118,8 +115,7 @@ public class Chart
     }
 
     @Override
-    @JsonIgnore
-    public List<DimensionalItemObject> categoryItems()
+    public List<DimensionalItemObject> category()
     {
         if ( category == null )
         {
