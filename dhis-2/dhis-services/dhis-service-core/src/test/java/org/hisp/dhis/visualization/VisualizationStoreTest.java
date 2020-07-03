@@ -31,6 +31,7 @@ package org.hisp.dhis.visualization;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Font;
 import org.hisp.dhis.common.FontStyle;
+import org.hisp.dhis.common.TextAlign;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,6 +59,7 @@ public class VisualizationStoreTest
         visualizationTitle.setItalic( false );
         visualizationTitle.setUnderline( false );
         visualizationTitle.setTextColor( "#3a3a3a" );
+        visualizationTitle.setTextAlign( TextAlign.LEFT );
 
         FontStyle horizontalAxisTitle = new FontStyle();
         horizontalAxisTitle.setFont( Font.ARIAL );
@@ -66,6 +68,7 @@ public class VisualizationStoreTest
         horizontalAxisTitle.setItalic( true );
         horizontalAxisTitle.setUnderline( false );
         horizontalAxisTitle.setTextColor( "#2b2b2b" );
+        visualizationTitle.setTextAlign( TextAlign.CENTER );
 
         VisualizationFontStyle fontStyle = new VisualizationFontStyle();
         fontStyle.setVisualizationTitle( visualizationTitle );
