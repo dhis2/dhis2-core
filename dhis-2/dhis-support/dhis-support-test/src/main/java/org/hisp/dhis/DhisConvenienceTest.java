@@ -1265,12 +1265,12 @@ public abstract class DhisConvenienceTest
         return legendSet;
     }
 
-    public static Visualization createVisualization( final String name )
+    public static Visualization createVisualization( char uniqueCharacter )
     {
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
         visualization.setAutoFields();
-        visualization.setName( name );
-        visualization.setType(PIVOT_TABLE);
+        visualization.setName( "Visualization" + uniqueCharacter );
+        visualization.setType( PIVOT_TABLE );
 
         return visualization;
     }

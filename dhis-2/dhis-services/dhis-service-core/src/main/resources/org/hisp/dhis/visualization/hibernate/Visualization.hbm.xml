@@ -214,6 +214,8 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
+    <property name="fontStyle" type="jbVisualizationFontStyle"/>
+
     <property name="percentStackedValues"/>
 
     <property name="rangeAxisMaxValue"/>
