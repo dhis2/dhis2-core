@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -198,10 +200,19 @@ public class MessageConversationController
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
         }
+        
+
+        int count = messageConversations.size();
+
+        if ( options.hasPaging() )
+        {
+            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+            metadata.setPager( pager );
+        }
 
         return messageConversations;
     }
-
+    
     //--------------------------------------------------------------------------
     // POST for new MessageConversation
     //--------------------------------------------------------------------------
