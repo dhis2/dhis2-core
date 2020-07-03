@@ -314,7 +314,8 @@
           "bold": true,
           "italic": false,
           "underline": false,
-          "textColor": "#3a3a3a"
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
         },
         "horizontalAxisTitle": {
           "font": "ROBOTO",
@@ -322,7 +323,8 @@
           "bold": false,
           "italic": true,
           "underline": false,
-          "textColor": "#2a2a2a"
+          "textColor": "#2a2a2a",
+          "textAlign": "CENTER"
         }
       },
       "rangeAxisMinValue": -10,
@@ -443,7 +445,8 @@
           "bold": true,
           "italic": false,
           "underline": false,
-          "textColor": "#3a3a3a"
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
         },
         "horizontalAxisTitle": {
           "font": "ROBOTO",
@@ -452,6 +455,7 @@
           "italic": true,
           "underline": false,
           "textColor": "#2a2a2a"
+          "textAlign": "CENTER"
         }
       },
       "rangeAxisMinValue": -10,
@@ -572,7 +576,8 @@
           "bold": true,
           "italic": false,
           "underline": false,
-          "textColor": "#3a3a3a"
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
         },
         "horizontalAxisTitle": {
           "font": "ROBOTO",
@@ -580,7 +585,8 @@
           "bold": false,
           "italic": true,
           "underline": false,
-          "textColor": "#2a2a2a"
+          "textColor": "#2a2a2a",          
+          "textAlign": "CENTER"
         }
       },
       "rangeAxisMinValue": -10,
