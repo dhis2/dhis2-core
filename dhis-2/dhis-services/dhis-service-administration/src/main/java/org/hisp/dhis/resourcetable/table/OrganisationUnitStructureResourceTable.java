@@ -78,7 +78,7 @@ public class OrganisationUnitStructureResourceTable
 
         for ( int k = 1 ; k <= organisationUnitLevels; k++ )
         {
-            sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" integer, " )
+            sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" bigint, " )
                 .append( quote( "uidlevel" + k ) ).append( " character(11), " )
                 .append( quote( "namelevel" + k ) ).append( " text" );
         }
