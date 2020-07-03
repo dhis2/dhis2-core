@@ -57,10 +57,10 @@ public class DataValueRowMapper
         dataValue.setSource( new OrganisationUnit() );
         dataValue.setPeriod( new Period() );
 
-        dataValue.getDataElement().setId( resultSet.getInt( "dataelementid" ) );
-        dataValue.getPeriod().setId( resultSet.getInt( "periodid" ) );
-        dataValue.getSource().setId( resultSet.getInt( "sourceid" ) );
-        dataValue.getCategoryOptionCombo().setId( resultSet.getInt( "categoryoptioncomboid" ) );
+        dataValue.getDataElement().setId( resultSet.getLong( "dataelementid" ) );
+        dataValue.getPeriod().setId( resultSet.getLong( "periodid" ) );
+        dataValue.getSource().setId( resultSet.getLong( "sourceid" ) );
+        dataValue.getCategoryOptionCombo().setId( resultSet.getLong( "categoryoptioncomboid" ) );
         dataValue.setValue( resultSet.getString( "value" ) );
         dataValue.setStoredBy( resultSet.getString( "storedby" ) );
         dataValue.setCreated( resultSet.getDate( "created" ) );
