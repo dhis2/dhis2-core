@@ -68,7 +68,7 @@ public class VisualizationStoreTest
         horizontalAxisTitle.setItalic( true );
         horizontalAxisTitle.setUnderline( false );
         horizontalAxisTitle.setTextColor( "#2b2b2b" );
-        visualizationTitle.setTextAlign( TextAlign.CENTER );
+        horizontalAxisTitle.setTextAlign( TextAlign.CENTER );
 
         VisualizationFontStyle fontStyle = new VisualizationFontStyle();
         fontStyle.setVisualizationTitle( visualizationTitle );

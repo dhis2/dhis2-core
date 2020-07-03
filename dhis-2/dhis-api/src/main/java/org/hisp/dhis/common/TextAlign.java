@@ -28,12 +28,15 @@
 
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
+
 /**
  * Enum representing text aligment.
  *
  * @author Lars Helge Overland
  */
 public enum TextAlign
+    implements Serializable
 {
     LEFT,
     CENTER,

@@ -28,12 +28,15 @@
 
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
+
 /**
  * Enum representing text fonts.
  *
  * @author Lars Helge Overland
  */
 public enum Font
+    implements Serializable
 {
     ARIAL,
     SANS_SERIF,
