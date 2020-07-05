@@ -304,24 +304,9 @@ public abstract class AbstractTrackerDtoValidationHook
     {
         for ( Note note : notes )
         {
-            boolean validUid = CodeGenerator.isValidUid( note.getNote() );
-            if ( !validUid )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1118 )
-                    .addArg( note.toString() ) );
-            }
+            validateUid( reporter, note );
 
-            if ( strategy.isCreate() )
-            {
-                //TODO: This looks like a potential performance killer, existence check on every note...
-                //TODO: Note persistence not impl. yet.
-                boolean alreadyExists = commentService.trackedEntityCommentExists( note.getNote() );
-                if ( alreadyExists )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1120 )
-                        .addArg( note.toString() ) );
-                }
-            }
+            validateUniqueness( reporter, strategy, note );
 
             boolean emptyValue = StringUtils.isEmpty( note.getValue() );
             if ( emptyValue )
@@ -330,23 +315,53 @@ public abstract class AbstractTrackerDtoValidationHook
                     .addArg( note.toString() ) );
             }
 
-            Date stored = null;
-            Exception error = null;
-            try
+            validateStoredDate( reporter, note );
+        }
+    }
+
+    private void validateStoredDate( ValidationErrorReporter reporter, Note note )
+    {
+        Date stored = null;
+        Exception error = null;
+        try
+        {
+            stored = DateUtils.parseDate( note.getStoredAt() );
+        }
+        catch ( Exception e )
+        {
+            error = e;
+        }
+        if ( stored == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1121 )
+                .addArg( note.toString() )
+                .addArg( error != null ? error.getMessage() : "" )
+            );
+        }
+    }
+
+    private void validateUniqueness( ValidationErrorReporter reporter, TrackerImportStrategy strategy, Note note )
+    {
+        if ( strategy.isCreate() )
+        {
+            //TODO: This looks like a potential performance killer, existence check on every note...
+            //TODO: Note persistence not impl. yet.
+            boolean alreadyExists = commentService.trackedEntityCommentExists( note.getNote() );
+            if ( alreadyExists )
             {
-                stored = DateUtils.parseDate( note.getStoredAt() );
+                reporter.addError( newReport( TrackerErrorCode.E1120 )
+                    .addArg( note.toString() ) );
             }
-            catch ( Exception e )
-            {
-                error = e;
-            }
-            if ( stored == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1121 )
-                    .addArg( note.toString() )
-                    .addArg( error != null ? error.getMessage() : "" )
-                );
-            }
+        }
+    }
+
+    private void validateUid( ValidationErrorReporter reporter, Note note )
+    {
+        boolean validUid = CodeGenerator.isValidUid( note.getNote() );
+        if ( !validUid )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1118 )
+                .addArg( note.toString() ) );
         }
     }
 

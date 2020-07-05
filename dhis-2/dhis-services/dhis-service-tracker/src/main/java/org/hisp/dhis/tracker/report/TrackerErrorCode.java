@@ -66,7 +66,7 @@ public enum TrackerErrorCode
     E1063( "TrackedEntityInstance: `{0}`, does not exist." ),
     E1005( "Could not find TrackedEntityType: `{0}`." ),
     E1006( "Attribute: `{0}`, does not exist." ),
-    E1011( "Could not find OrganisationUnit with this uid: `{0}`." ),
+    E1011( "Could not find OrganisationUnit: `{0}`, linked to Event." ),
     E1012( "Geometry does not conform to FeatureType: `{0}`." ),
     E1014( "Provided Program: `{0}`, is a Program without registration. " +
         "An Enrollment cannot be created into Program without registration." ),
@@ -106,7 +106,7 @@ public enum TrackerErrorCode
     E1099( "User: `{0}`, has no write access to CategoryOption: `{1}`." ),
     E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
     E1048( "Object: `{0}`, uid: `{1}`, has an invalid uid format." ),
-
+    E1049( "Could not find OrganisationUnit: `{0}`, linked to Tracked Entity." ),
     // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted." ),
     E1113( "Enrollment: `{0}`, is already deleted." ),

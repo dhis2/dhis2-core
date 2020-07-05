@@ -62,7 +62,7 @@ public class PreCheckMetaValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1011 )
+            reporter.addError( newReport( TrackerErrorCode.E1049 )
                 .addArg( reporter ) );
         }
 
@@ -123,7 +123,6 @@ public class PreCheckMetaValidationHook
         TrackerBundle bundle = context.getBundle();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-
         if ( organisationUnit == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1011 )
@@ -132,6 +131,14 @@ public class PreCheckMetaValidationHook
 
         Program program = context.getProgram( event.getProgram() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
+        validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
+    }
+
+    private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,
+        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
+        ProgramStage programStage )
+    {
 
         if ( program == null && programStage == null )
         {
