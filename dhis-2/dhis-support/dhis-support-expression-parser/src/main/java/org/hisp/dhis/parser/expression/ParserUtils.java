@@ -45,6 +45,7 @@ import org.hisp.dhis.parser.expression.operator.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
@@ -117,8 +118,8 @@ public class ParserUtils
      * Used for syntax checking when we don't have a list of actual periods for
      * collecting samples.
      */
-    public final static List<Period> DEFAULT_SAMPLE_PERIODS = Lists
-        .newArrayList( PeriodType.getPeriodFromIsoString( "20010101" ) );
+    public final static List<Period> DEFAULT_SAMPLE_PERIODS = ImmutableList.of(
+        PeriodType.getPeriodFromIsoString( "20010101" ) );
 
     /**
      * Assume that an item of the form #{...} has a syntax that could be used in a
