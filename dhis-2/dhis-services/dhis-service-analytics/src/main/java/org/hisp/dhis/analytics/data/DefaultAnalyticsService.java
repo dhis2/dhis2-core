@@ -1381,7 +1381,7 @@ public class DefaultAnalyticsService
             return result;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex ) 
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex )
                 -> index == -1 ? defaultIndex : index;
 
         final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
@@ -1402,7 +1402,7 @@ public class DefaultAnalyticsService
 
                 final DimensionalItemObject dimensionalItemObject = AnalyticsUtils.findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
                 DimensionalItemObject clone = dimensionalItemObject;
-                // 
+
                 if ( dimensionalItemObject.getPeriodOffset() != 0 )
                 {
                     List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
@@ -1413,7 +1413,8 @@ public class DefaultAnalyticsService
                             new DimensionItemObjectValue( dimensionalItemObject,
                                 (Double) periodOffsetRow.get( valueIndex ) ) );
 
-                    } // TODO throw exception?
+                    }
+
                     clone = SerializationUtils.clone( dimensionalItemObject );
                 }
 
@@ -1421,7 +1422,7 @@ public class DefaultAnalyticsService
                     new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
             }
         }
-        
+
         return result;
     }
 

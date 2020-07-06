@@ -878,7 +878,7 @@ public class AnalyticsUtils
     /**
      * Checks of the given Period string (iso) matches at least one Periods in the
      * given list
-     * 
+     *
      * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
      * @param periods a List of DimensionalItemObject of type Period
      * @return true, if the Period is found in the list
@@ -900,7 +900,8 @@ public class AnalyticsUtils
      */
     public static List<DimensionalItemObject> findDimensionalItems( String uid, List<DimensionalItemObject> items )
     {
-        return items.stream().filter( dio -> dio.getUid() != null && dio.getUid().equals( uid ) )
+        return items.stream()
+            .filter( dio -> dio.getUid() != null && dio.getUid().equals( uid ) )
             .collect( Collectors.toList() );
     }
 }

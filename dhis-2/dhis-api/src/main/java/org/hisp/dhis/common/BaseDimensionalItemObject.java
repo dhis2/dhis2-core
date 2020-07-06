@@ -109,7 +109,7 @@ public class BaseDimensionalItemObject
     {
         return getPropertyValue( idScheme );
     }
-    
+
     @Override
     public TotalAggregationType getTotalAggregationType()
     {
@@ -175,7 +175,7 @@ public class BaseDimensionalItemObject
     {
         return periodOffset;
     }
-    
+
     public void setPeriodOffset( int periodOffset )
     {
         this.periodOffset = periodOffset;
@@ -185,11 +185,19 @@ public class BaseDimensionalItemObject
     public boolean equals( Object o )
     {
         if ( this == o )
+        {
             return true;
+        }
+
         if ( o == null || getClass() != o.getClass() )
+        {
             return false;
+        }
+
         if ( !super.equals( o ) )
+        {
             return false;
+        }
 
         final BaseDimensionalItemObject that = (BaseDimensionalItemObject) o;
 
