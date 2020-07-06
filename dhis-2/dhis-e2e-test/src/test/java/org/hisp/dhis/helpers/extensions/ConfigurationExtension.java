@@ -57,7 +57,6 @@ public class ConfigurationExtension
         RestAssured.config = RestAssuredConfig.config()
             .jsonConfig( new JsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL ) );
 
-        //RestAssured.config().getJsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL );
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();
     }
