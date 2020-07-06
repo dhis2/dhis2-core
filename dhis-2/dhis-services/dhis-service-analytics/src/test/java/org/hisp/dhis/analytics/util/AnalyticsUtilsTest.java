@@ -33,7 +33,6 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
@@ -605,5 +604,37 @@ public class AnalyticsUtilsTest
         assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
         assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType() ), 0 ) ;
         assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
+    }
+    
+    @Test
+    public void testIsPeriodInPeriods()
+    {
+        Period p1 = PeriodType.getPeriodFromIsoString( "202001" );
+        Period p2 = PeriodType.getPeriodFromIsoString( "202002" );
+        Period p3 = PeriodType.getPeriodFromIsoString( "202003" );
+
+        List<DimensionalItemObject> periods = Lists.newArrayList( p1, p2, p3 );
+
+        assertTrue( AnalyticsUtils.isPeriodInPeriods( "202001", periods ) );
+        assertFalse( AnalyticsUtils.isPeriodInPeriods( "202005", periods ) );
+    }
+    
+    @Test
+    public void testFindDimensionalItems()
+    {
+        ProgramIndicator pi1 = new ProgramIndicator();
+        pi1.setUid( CodeGenerator.generateUid() );
+        ProgramIndicator pi2 = new ProgramIndicator();
+        pi2.setUid( CodeGenerator.generateUid() );
+        ProgramIndicator pi3 = new ProgramIndicator();
+        pi3.setUid( CodeGenerator.generateUid() );
+        ProgramIndicator pi4 = new ProgramIndicator();
+        pi4.setUid( pi1.getUid() );
+
+        List<DimensionalItemObject> dimensionalItems = AnalyticsUtils.findDimensionalItems( pi1.getUid(),
+            Lists.newArrayList( pi1, pi2, pi3, pi4 ) );
+
+        assertEquals( dimensionalItems.size(), 2);
+        
     }
 }

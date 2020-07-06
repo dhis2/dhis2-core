@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -872,5 +873,35 @@ public class AnalyticsUtils
     public static void throwIllegalQueryEx( ErrorCode errorCode, Object... args )
     {
         throw new IllegalQueryException( new ErrorMessage( errorCode, args ) );
+    }
+
+    /**
+     * Checks of the given Period string (iso) matches at least one Periods in the
+     * given list
+     *
+     * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
+     * @param periods a List of DimensionalItemObject of type Period
+     * @return true, if the Period is found in the list
+     */
+    public static boolean isPeriodInPeriods( String period, List<DimensionalItemObject> periods )
+    {
+        return periods.stream().map( d -> (Period) d ).map( Period::getIsoDate )
+            .anyMatch( date -> date.equals( period ) );
+    }
+
+    /**
+     * Filters a List by Dimensional Item Object UID and returns one ore more
+     * {@see DimensionalItemObject} matching the given UID
+     *
+     * @param uid a uid to filter {@see DimensionalItemObject} on
+     * @param items the filtered List
+     * @return a List only containing the {@see DimensionalItemObject} matching the
+     *         uid
+     */
+    public static List<DimensionalItemObject> findDimensionalItems( String uid, List<DimensionalItemObject> items )
+    {
+        return items.stream()
+            .filter( dio -> dio.getUid() != null && dio.getUid().equals( uid ) )
+            .collect( Collectors.toList() );
     }
 }
