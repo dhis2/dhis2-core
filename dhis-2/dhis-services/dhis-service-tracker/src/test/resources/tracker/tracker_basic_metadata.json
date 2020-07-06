@@ -49,7 +49,14 @@
       "blockEntryForm": false,
       "programStageSections": [],
       "notificationTemplates": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "displayName": "UGB",
+          "access": "rwrw----",
+          "userGroupUid": "jCDKJBruqjc",
+          "id": "jCDKJBruqjc"
+        }
+      ],
       "id": "Qmqxq907VNz",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"

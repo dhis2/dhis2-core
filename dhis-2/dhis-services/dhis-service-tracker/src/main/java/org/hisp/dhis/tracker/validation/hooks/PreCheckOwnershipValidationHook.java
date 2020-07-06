@@ -134,12 +134,12 @@ public class PreCheckOwnershipValidationHook
         if ( strategy.isDelete() )
         {
             ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
+
             checkNotNull( pi, PROGRAM_INSTANCE_CANT_BE_NULL );
 
-            boolean b1 = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
-            boolean b2 = !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
-            if ( b1
-                && b2 )
+            boolean hasNonDeletedEvents = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
+            boolean hasNotCascadeDeleteAuthority = !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+            if ( hasNonDeletedEvents && hasNotCascadeDeleteAuthority )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1103 )
                     .addArg( user )

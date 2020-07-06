@@ -101,16 +101,6 @@ public class DefaultTrackerValidationService
             validationReport.add( e.getErrors() );
         }
 
-        printReport( validationReport );
-
         return validationReport;
-    }
-
-    protected void printReport( TrackerValidationReport report )
-    {
-        for ( TrackerErrorReport errorReport : report.getErrorReports() )
-        {
-            log.error( errorReport.toString() );
-        }
     }
 }

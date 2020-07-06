@@ -33,6 +33,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -64,39 +65,42 @@ public class EventDateValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        if ( EventStatus.ACTIVE == event.getStatus() && event.getOccurredAt() == null )
+        if ( event.getOccurredAt() == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
                 .addArg( event ) );
             return;
         }
 
-        ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
         Program program = context.getProgram( event.getProgram() );
 
         validateDateFormat( reporter, event );
-        validateExpiryDays( reporter, event, program, programStageInstance, context.getBundle().getUser() );
-        validatePeriodType( reporter, event, program, programStageInstance );
+        validateExpiryDays( reporter, event, program );
+        validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program,
-        ProgramStageInstance programStageInstance, User actingUser )
+    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program )
     {
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        User actingUser = context.getBundle().getUser();
+        TrackerImportStrategy eventStrategy = context.getStrategy( event );
+
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())
-            || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
+        if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus()) )
         {
             //TODO: Should we make an error here? Feels like this is out of place, should be moved to the auth layer.
-//            if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-//            {
-//                return;
-//            }
+            if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+            {
+                return;
+            }
 
             Date completedDate = null;
 
+            // TODO: This feels like inefficient and very hard to read way of checking update/create logic.
+            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
             if ( programStageInstance != null )
             {
                 completedDate = programStageInstance.getCompletedDate();
@@ -124,8 +128,7 @@ public class EventDateValidationHook
         }
     }
 
-    private void validatePeriodType( ValidationErrorReporter reporter, Event event,
-        Program program, ProgramStageInstance programStageInstance )
+    private void validatePeriodType( ValidationErrorReporter reporter, Event event, Program program )
     {
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
@@ -138,39 +141,19 @@ public class EventDateValidationHook
             return;
         }
 
-        if ( programStageInstance != null )
+        String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
+        if ( referenceDate == null )
         {
-            if ( programStageInstance.getExecutionDate() == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1044 )
-                    .addArg( event ) );
-            }
-
-            Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
-
-            if ( (new Date()).after(
-                DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1045 )
-                    .addArg( program ) );
-            }
+            reporter.addError( newReport( TrackerErrorCode.E1046 )
+                .addArg( event ) );
         }
-        else
+
+        Period period = periodType.createPeriod( new Date() );
+
+        if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
         {
-            String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
-            if ( referenceDate == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1046 )
-                    .addArg( event ) );
-            }
-
-            Period period = periodType.createPeriod( new Date() );
-
-            if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1047 )
-                    .addArg( event ) );
-            }
+            reporter.addError( newReport( TrackerErrorCode.E1047 )
+                .addArg( event ) );
         }
     }
 
@@ -189,17 +172,5 @@ public class EventDateValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1052 )
                 .addArg( event.getOccurredAt() ) );
         }
-
-//        if ( event.getCreatedAtClient() != null && isNotValidDateString( event.getCreatedAtClient() ) )
-//        {
-//            reporter.addError( newReport( TrackerErrorCode.E1053 )
-//                .addArg( event.getCreatedAtClient() ) );
-//        }
-//
-//        if ( event.getLastUpdatedAtClient() != null && isNotValidDateString( event.getLastUpdatedAtClient() ) )
-//        {
-//            reporter.addError( newReport( TrackerErrorCode.E1054 )
-//                .addArg( event.getLastUpdatedAtClient() ) );
-//        }
     }
 }

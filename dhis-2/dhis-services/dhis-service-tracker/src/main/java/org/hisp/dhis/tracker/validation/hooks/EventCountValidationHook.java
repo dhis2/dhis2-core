@@ -67,14 +67,15 @@ public class EventCountValidationHook
 
         Program program = validationContext.getProgram( event.getProgram() );
 
+        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        params.setProgram( program );
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        params.setUser( user );
+
         if ( program.isRegistration() )
         {
             TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
-            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-            params.setProgram( program );
             params.setTrackedEntityInstance( tei );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setUser( user );
 
             int count = programInstanceService.countProgramInstances( params );
 
@@ -97,10 +98,7 @@ public class EventCountValidationHook
             // possibly...(Stian-1.4.20)
             // For isRegistraion=false, there can only exist a single tei and program instance across the entire program.
             // Both these counts could potentially be preheated, and then just make sure we just have 1 program instance.?
-            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-            params.setProgram( program );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setUser( user );
+            params.setTrackedEntityInstance( null );
 
             int count = programInstanceService.countProgramInstances( params );
 
