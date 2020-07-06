@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -104,6 +105,8 @@ public class DefaultTrackerBundleService
 
     private final ReservedValueService reservedValueService;
 
+    private final TrackerSideEffectConverterService sideEffectConverterService;
+
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
@@ -131,7 +134,8 @@ public class DefaultTrackerBundleService
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
         TrackerProgramRuleService trackerProgramRuleService,
-        ReservedValueService reservedValueService )
+        ReservedValueService reservedValueService,
+        TrackerSideEffectConverterService sideEffectConverterService )
 
     {
         this.trackerPreheatService = trackerPreheatService;
@@ -146,6 +150,7 @@ public class DefaultTrackerBundleService
         this.dbmsManager = dbmsManager;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.reservedValueService = reservedValueService;
+        this.sideEffectConverterService = sideEffectConverterService;
     }
 
     @Override
@@ -294,8 +299,8 @@ public class DefaultTrackerBundleService
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
-                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
-                .eventRuleEffects( bundle.getEventRuleEffects() )
+                .enrollmentRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEnrollmentRuleEffects() ) )
+                .eventRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEventRuleEffects() ) )
                 .object( programInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
@@ -351,8 +356,8 @@ public class DefaultTrackerBundleService
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramStageInstance.class )
-                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
-                .eventRuleEffects( bundle.getEventRuleEffects() )
+                .enrollmentRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEnrollmentRuleEffects() ) )
+                .eventRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEventRuleEffects() ) )
                 .object( programStageInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )

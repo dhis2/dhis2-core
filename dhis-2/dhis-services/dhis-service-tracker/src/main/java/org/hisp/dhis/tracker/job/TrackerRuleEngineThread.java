@@ -32,6 +32,7 @@ import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -52,13 +53,18 @@ import java.util.Map;
 public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
     private final List<RuleActionImplementer> ruleActionImplementers;
+
+    private final TrackerSideEffectConverterService trackerSideEffectConverterService;
+
     private final Notifier notifier;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier )
+    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier,
+        TrackerSideEffectConverterService trackerSideEffectConverterService )
     {
         this.ruleActionImplementers = ruleActionImplementers;
+        this.trackerSideEffectConverterService = trackerSideEffectConverterService;
         this.notifier = notifier;
     }
 
@@ -70,8 +76,8 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
             return;
         }
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = sideEffectDataBundle.getEnrollmentRuleEffects();
-        Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService.toRuleEffects( sideEffectDataBundle.getEnrollmentRuleEffects() );
+        Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService.toRuleEffects( sideEffectDataBundle.getEventRuleEffects() );
 
         for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
         {

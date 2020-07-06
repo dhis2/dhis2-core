@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -37,6 +38,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -49,8 +51,11 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -72,6 +77,9 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
     @Autowired
     private TrackerBundleService trackerBundleService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void setUpTest() throws IOException
@@ -116,6 +124,14 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
         TrackerBundleReport report = trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         assertEquals( report.getStatus(), TrackerStatus.OK );
+
+        await().atMost( 10, TimeUnit.SECONDS ).until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
+
+        List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
+
+        assertFalse( instances.isEmpty() );
+        ProgramNotificationInstance instance = instances.get( 0 );
+        assertEquals( instance.getProgramNotificationTemplate().getUid(), "FdIeUL4gyoB" );
     }
 
     @Override
