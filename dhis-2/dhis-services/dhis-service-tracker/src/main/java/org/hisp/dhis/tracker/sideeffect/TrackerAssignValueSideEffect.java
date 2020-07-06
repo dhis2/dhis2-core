@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
@@ -42,10 +43,13 @@ import lombok.Data;
 @JsonDeserialize( builder = TrackerAssignValueSideEffect.TrackerAssignValueSideEffectBuilder.class )
 public class TrackerAssignValueSideEffect implements TrackerSideEffect
 {
+    @JsonProperty
     private String data;
 
+    @JsonProperty
     private String content;
 
+    @JsonProperty
     private String field;
 
     @Override

@@ -53,8 +53,8 @@ import java.util.function.Function;
 @Service
 public class DefaultTrackerSideEffectConverterService implements TrackerSideEffectConverterService
 {
-    private final ImmutableMap<Class<? extends RuleAction>, Function<RuleEffect, TrackerSideEffect>> TO_SIDE_EFFECT = new
-        ImmutableMap.Builder<Class<? extends RuleAction>, Function<RuleEffect, TrackerSideEffect>>()
+    private final ImmutableMap<Class<?>, Function<RuleEffect, TrackerSideEffect>> TO_SIDE_EFFECT = new
+        ImmutableMap.Builder<Class<?>, Function<RuleEffect, TrackerSideEffect>>()
         .put( RuleActionSendMessage.class, this::toTrackerSendMessageSideEffect )
         .put( RuleActionScheduleMessage.class, this::toTrackerScheduleMessageSideEffect )
         .put( RuleActionAssign.class, this::toTrackerAssignSideEffect )
@@ -113,7 +113,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
             {
                 RuleAction action = ruleEffect.ruleAction();
 
-                trackerSideEffects.add( TO_SIDE_EFFECT.get( action.getClass() ).apply( ruleEffect ) );
+                trackerSideEffects.add( TO_SIDE_EFFECT.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
             }
         }
 
