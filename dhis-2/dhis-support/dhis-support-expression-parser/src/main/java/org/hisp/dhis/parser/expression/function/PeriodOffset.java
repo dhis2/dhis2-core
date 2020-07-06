@@ -1,4 +1,4 @@
-package org.hisp.dhis.expression.dataitem;
+package org.hisp.dhis.parser.expression.function;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,39 +28,23 @@ package org.hisp.dhis.expression.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionItemType.*;
-import static org.hisp.dhis.parser.expression.ParserUtils.assumeExpressionProgramAttribute;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
- * Expression item ProgramAttribute
+ * Function least
  *
- * @author Jim Grace
+ * @author Enrico Colasante
  */
-public class DimItemProgramAttribute
-    extends DimensionalItem
+public class PeriodOffset
+    extends FunctionGreatestOrLeast
 {
     @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        assumeExpressionProgramAttribute( ctx );
+        int offset = ctx.period != null ? Integer.valueOf( ctx.period.getText() ) : 0;
 
-        return new DimensionalItemId( PROGRAM_ATTRIBUTE,
-            ctx.uid0.getText(),
-            ctx.uid1.getText() );
-    }
-
-    @Override
-    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        assumeExpressionProgramAttribute( ctx );
-
-        return ctx.uid0.getText() + "." +
-            ctx.uid1.getText() +
-            (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
+        return visitor.visitWithOffset( ctx.expr( 0 ), offset );
     }
 }
