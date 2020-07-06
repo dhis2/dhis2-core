@@ -211,6 +211,8 @@ public class Visualization
 
     private LegendDisplayStrategy legendDisplayStrategy;
 
+    private VisualizationFontStyle fontStyle;
+
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
@@ -934,6 +936,18 @@ public class Visualization
     public void setHideEmptyRowItems( HideEmptyItemStrategy hideEmptyRowItems )
     {
         this.hideEmptyRowItems = hideEmptyRowItems;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public VisualizationFontStyle getFontStyle()
+    {
+        return fontStyle;
+    }
+
+    public void setFontStyle( VisualizationFontStyle fontStyle )
+    {
+        this.fontStyle = fontStyle;
     }
 
     @JsonProperty

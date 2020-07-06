@@ -307,6 +307,26 @@
       "itemOrganisationUnitGroups": [ ],
       "lastUpdated": "2016-03-17T01:56:51.847+0000",
       "userOrganisationUnitGrandChildren": false,
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",
+          "textAlign": "CENTER"
+        }
+      },
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
@@ -418,6 +438,26 @@
       "lastUpdated": "2016-03-17T01:57:13.118+0000",
       "periods": [ ],
       "created": "2016-03-17T01:57:13.118+0000",
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",
+          "textAlign": "CENTER"
+        }
+      },
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
@@ -529,6 +569,26 @@
       "organisationUnitGroups": [ ],
       "name": "ChartC",
       "organisationUnitLevels": [ ],
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",          
+          "textAlign": "CENTER"
+        }
+      },
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,

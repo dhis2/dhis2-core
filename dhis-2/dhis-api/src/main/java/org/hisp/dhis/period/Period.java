@@ -75,6 +75,12 @@ public class Period
      */
     private transient String isoPeriod;
 
+    /**
+     * Transient boolean. If true, this Period has been created as a consequence of
+     * a Dimensional Item Object having an Offset Period value higher/lower than 0
+     */
+    private transient boolean shifted = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -403,5 +409,15 @@ public class Period
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
+    }
+
+    public boolean isShifted()
+    {
+        return shifted;
+    }
+
+    public void setShifted( boolean shifted )
+    {
+        this.shifted = shifted;
     }
 }
