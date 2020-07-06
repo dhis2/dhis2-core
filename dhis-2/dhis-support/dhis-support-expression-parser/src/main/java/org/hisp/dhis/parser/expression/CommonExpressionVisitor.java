@@ -28,6 +28,19 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
@@ -51,22 +64,9 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 /**
- * Common traversal of the ANTLR4 expression parse tree using the
- * visitor pattern.
+ * Common traversal of the ANTLR4 expression parse tree using the visitor
+ * pattern.
  *
  * @author Jim Grace
  */
@@ -105,6 +105,11 @@ public class CommonExpressionVisitor
      * By default, replace nulls with 0 or ''.
      */
     private boolean replaceNulls = true;
+
+    /**
+     * By default, the offset is not set.
+     */
+    private int periodOffset = 0;
 
     /**
      * Used to collect the string replacements to build a description.
@@ -147,8 +152,8 @@ public class CommonExpressionVisitor
     private Map<String, Double> itemValueMap;
 
     /**
-     * Dimensional item values by period for aggregating in evaluating
-     * an expression.
+     * Dimensional item values by period for aggregating in evaluating an
+     * expression.
      */
     private MapMap<Period, String, Double> periodItemValueMap;
 
@@ -263,8 +268,8 @@ public class CommonExpressionVisitor
     // -------------------------------------------------------------------------
 
     /**
-     * Visits a context while allowing null values (not replacing them
-     * with 0 or ''), even if we would otherwise be replacing them.
+     * Visits a context while allowing null values (not replacing them with 0 or
+     * ''), even if we would otherwise be replacing them.
      *
      * @param ctx any context
      * @return the value while allowing nulls
@@ -283,15 +288,34 @@ public class CommonExpressionVisitor
     }
 
     /**
+     * Visits a context using a period offset.
+     *
+     * @param ctx any context
+     * @return the value with the applied offset
+     */
+    public Object visitWithOffset( ParserRuleContext ctx, int offset )
+    {
+        int savedPeriodOffset = periodOffset;
+
+        periodOffset = offset;
+
+        Object result = visit( ctx );
+
+        periodOffset = savedPeriodOffset;
+
+        return result;
+    }
+
+    /**
      * Handles nulls and missing values.
      * <p/>
-     * If we should replace nulls with the default value, then do so, and
-     * remember how many items found, and how many of them had values, for
-     * subsequent MissingValueStrategy analysis.
+     * If we should replace nulls with the default value, then do so, and remember
+     * how many items found, and how many of them had values, for subsequent
+     * MissingValueStrategy analysis.
      * <p/>
-     * If we should not replace nulls with the default value, then don't,
-     * as this is likely for some function that is testing for nulls, and
-     * a missing value should not count towards the MissingValueStrategy.
+     * If we should not replace nulls with the default value, then don't, as this is
+     * likely for some function that is testing for nulls, and a missing value
+     * should not count towards the MissingValueStrategy.
      *
      * @param value the (possibly null) value
      * @return the value we should return.
@@ -318,7 +342,8 @@ public class CommonExpressionVisitor
     /**
      * Validates a program stage id / data element id pair
      *
-     * @param text expression text containing both program stage id and data element id
+     * @param text expression text containing both program stage id and data element
+     *        id
      * @param programStageId the program stage id
      * @param dataElementId the data element id
      * @return the ValueType of the data element
@@ -339,7 +364,8 @@ public class CommonExpressionVisitor
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID + dataElement.getDisplayName();
+        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
+            + dataElement.getDisplayName();
 
         itemDescriptions.put( text, description );
 
@@ -347,8 +373,8 @@ public class CommonExpressionVisitor
     }
 
     /**
-     * Regenerates an expression by visiting all the children of the
-     * expression node (including any terminal nodes).
+     * Regenerates an expression by visiting all the children of the expression node
+     * (including any terminal nodes).
      *
      * @param ctx the expression context
      * @return the regenerated expression (as a String)
@@ -470,12 +496,22 @@ public class CommonExpressionVisitor
         this.replaceNulls = replaceNulls;
     }
 
+    public int getPeriodOffset()
+    {
+        return periodOffset;
+    }
+
+    public void setPeriodOffset( int periodOffset )
+    {
+        this.periodOffset = periodOffset;
+    }
+
     public Set<DimensionalItemId> getItemIds()
     {
         return itemIds;
     }
 
-    public void setItemIds(Set<DimensionalItemId> itemIds )
+    public void setItemIds( Set<DimensionalItemId> itemIds )
     {
         this.itemIds = itemIds;
     }
@@ -485,7 +521,7 @@ public class CommonExpressionVisitor
         return sampleItemIds;
     }
 
-    public void setSampleItemIds(Set<DimensionalItemId> sampleItemIds )
+    public void setSampleItemIds( Set<DimensionalItemId> sampleItemIds )
     {
         this.sampleItemIds = sampleItemIds;
     }
@@ -668,19 +704,22 @@ public class CommonExpressionVisitor
         public CommonExpressionVisitor buildForExpressions()
         {
             Validate.notNull( this.visitor.dimensionService, "Missing required property 'dimensionService'" );
-            Validate.notNull( this.visitor.organisationUnitGroupService,"Missing required property 'organisationUnitGroupService'" );
-            Validate.notNull( this.visitor.missingValueStrategy,"Missing required property 'missingValueStrategy'" );
+            Validate.notNull( this.visitor.organisationUnitGroupService,
+                "Missing required property 'organisationUnitGroupService'" );
+            Validate.notNull( this.visitor.missingValueStrategy, "Missing required property 'missingValueStrategy'" );
 
             return validateCommonProperties();
         }
 
         public CommonExpressionVisitor buildForProgramIndicatorExpressions()
         {
-            Validate.notNull( this.visitor.programIndicatorService, "Missing required property 'programIndicatorService'" );
+            Validate.notNull( this.visitor.programIndicatorService,
+                "Missing required property 'programIndicatorService'" );
             Validate.notNull( this.visitor.programStageService, "Missing required property 'programStageService'" );
             Validate.notNull( this.visitor.dataElementService, "Missing required property 'dataElementService'" );
             Validate.notNull( this.visitor.attributeService, "Missing required property 'attributeService'" );
-            Validate.notNull( this.visitor.relationshipTypeService, "Missing required property 'relationshipTypeService'" );
+            Validate.notNull( this.visitor.relationshipTypeService,
+                "Missing required property 'relationshipTypeService'" );
             Validate.notNull( this.visitor.statementBuilder, "Missing required property 'statementBuilder'" );
             Validate.notNull( this.visitor.i18n, "Missing required property 'i18n'" );
 

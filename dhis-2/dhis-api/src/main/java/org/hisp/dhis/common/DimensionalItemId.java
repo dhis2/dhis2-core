@@ -68,6 +68,11 @@ public class DimensionalItemId
      */
     private String id2;
 
+    /**
+     * The period offset
+     */
+    private Integer periodOffset = 0;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -76,6 +81,13 @@ public class DimensionalItemId
     {
         this.dimensionItemType = dimensionItemType;
         this.id0 = id0;
+    }
+
+    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, Integer periodOffset )
+    {
+        this.dimensionItemType = dimensionItemType;
+        this.id0 = id0;
+        this.periodOffset = periodOffset;
     }
 
     public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1 )
@@ -91,6 +103,16 @@ public class DimensionalItemId
         this.id0 = id0;
         this.id1 = id1;
         this.id2 = id2;
+    }
+
+    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2,
+        int periodOffset )
+    {
+        this.dimensionItemType = dimensionItemType;
+        this.id0 = id0;
+        this.id1 = id1;
+        this.id2 = id2;
+        this.periodOffset = periodOffset;
     }
 
     // -------------------------------------------------------------------------
@@ -150,7 +172,8 @@ public class DimensionalItemId
         return Objects.equals( this.dimensionItemType, that.dimensionItemType )
             && Objects.equals( this.id0, that.id0 )
             && Objects.equals( this.id1, that.id1 )
-            && Objects.equals( this.id2, that.id2 );
+            && Objects.equals( this.id2, that.id2 )
+            && this.periodOffset.equals( that.periodOffset );
     }
 
     @Override
@@ -158,9 +181,10 @@ public class DimensionalItemId
     {
         int result = dimensionItemType.hashCode();
 
-        result = 31 * result + ( id0 == null ? 0 : id0.hashCode() );
-        result = 31 * result + ( id1 == null ? 0 : id1.hashCode() );
-        result = 31 * result + ( id2 == null ? 0 : id2.hashCode() );
+        result = 31 * result + (id0 == null ? 0 : id0.hashCode());
+        result = 31 * result + (id1 == null ? 0 : id1.hashCode());
+        result = 31 * result + (id2 == null ? 0 : id2.hashCode());
+        result = 31 * result + periodOffset;
 
         return result;
     }
@@ -173,6 +197,7 @@ public class DimensionalItemId
             .add( "id0", id0 )
             .add( "id1", id1 )
             .add( "id2", id2 )
+            .add( "periodOffset", periodOffset )
             .toString();
     }
 
@@ -198,5 +223,10 @@ public class DimensionalItemId
     public String getId2()
     {
         return id2;
+    }
+
+    public Integer getPeriodOffset()
+    {
+        return periodOffset;
     }
 }

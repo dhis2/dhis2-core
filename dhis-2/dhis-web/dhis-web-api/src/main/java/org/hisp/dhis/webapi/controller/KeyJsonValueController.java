@@ -39,6 +39,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,7 +97,7 @@ public class KeyJsonValueController
     {
         setNoStore( response );
 
-        return keyJsonValueService.getNamespaces();
+        return keyJsonValueService.getNamespaces( currentUserIsAdmin() );
     }
 
     /**
@@ -104,8 +105,8 @@ public class KeyJsonValueController
      */
     @RequestMapping( value = "/{namespace}", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody
-    List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
-        @PathVariable String namespace, HttpServletResponse response )
+    List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated, @PathVariable String namespace,
+        HttpServletResponse response )
         throws IOException, WebMessageException
     {
         validateAccess( namespace );
@@ -114,7 +115,7 @@ public class KeyJsonValueController
 
         setNoStore( response );
 
-        return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
+        return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated, currentUserIsAdmin() );
     }
 
     /**
@@ -128,7 +129,8 @@ public class KeyJsonValueController
 
         getNameS( namespace );
 
-        List<KeyJsonValue> keys = keyJsonValueService.getKeyJsonValuesInNamespace( namespace ).stream()
+        List<KeyJsonValue> keys = keyJsonValueService.getKeyJsonValuesInNamespace( namespace, currentUserIsAdmin() )
+            .stream()
             .filter( keyJsonValue -> !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
             .collect( Collectors.toList() );
 
@@ -149,8 +151,7 @@ public class KeyJsonValueController
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody
-    String getKeyJsonValue(
-        @PathVariable String namespace, @PathVariable String key, HttpServletResponse response )
+    String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key, HttpServletResponse response )
         throws IOException, WebMessageException
     {
         KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
@@ -171,8 +172,8 @@ public class KeyJsonValueController
      */
     @RequestMapping( value = "/{namespace}/{key}/metaData", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody
-    KeyJsonValue getKeyJsonValueMetaData(
-        @PathVariable String namespace, @PathVariable String key, HttpServletResponse response )
+    KeyJsonValue getKeyJsonValueMetaData( @PathVariable String namespace, @PathVariable String key,
+        HttpServletResponse response )
         throws Exception
     {
         KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
@@ -196,14 +197,13 @@ public class KeyJsonValueController
      * Creates a new KeyJsonValue Object on the given namespace with the key and value supplied.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
-    public void addKeyJsonValue(
-        @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
+    public void addKeyJsonValue( @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
         @RequestParam( defaultValue = "false" ) boolean encrypt, HttpServletResponse response )
         throws IOException, WebMessageException
     {
         validateAccess( namespace );
 
-        if ( keyJsonValueService.getKeyJsonValue( namespace, key ) != null )
+        if ( keyJsonValueService.getKeyJsonValue( namespace, key, currentUserIsAdmin() ) != null )
         {
             throw new WebMessageException( WebMessageUtils
                 .conflict( "The key '" + key + "' already exists on the namespace '" + namespace + "'." ) );
@@ -262,8 +262,8 @@ public class KeyJsonValueController
      * Delete a key from the given namespace.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.DELETE, produces = "application/json" )
-    public void deleteKeyJsonValue(
-        @PathVariable String namespace, @PathVariable String key, HttpServletResponse response )
+    public void deleteKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
+        HttpServletResponse response )
         throws WebMessageException
     {
         KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
@@ -286,17 +286,16 @@ public class KeyJsonValueController
      * Validates access and looks up the value, thrown an exception if there is no such key/value pair in the given namespace
      *
      * @param namespace Namespace to use when looking up the value
-     * @param key Key of the key/value pair
+     * @param key       Key of the key/value pair
      * @return
      * @throws WebMessageException
      */
-    protected KeyJsonValue validateAndGetValue( @PathVariable String namespace,
-        @PathVariable String key )
+    protected KeyJsonValue validateAndGetValue( @PathVariable String namespace, @PathVariable String key )
         throws WebMessageException
     {
         validateAccess( namespace );
 
-        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( namespace, key );
+        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( namespace, key, currentUserIsAdmin() );
 
         if ( keyJsonValue == null )
         {
@@ -331,10 +330,16 @@ public class KeyJsonValueController
     protected void getNameS( @PathVariable String namespace )
         throws WebMessageException
     {
-        if ( !keyJsonValueService.getNamespaces().contains( namespace ) )
+        if ( !keyJsonValueService.getNamespaces( currentUserIsAdmin() ).contains( namespace ) )
         {
             throw new WebMessageException(
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
+    }
+
+    private boolean currentUserIsAdmin()
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        return currentUser != null && currentUser.getUserCredentials().isSuper();
     }
 }

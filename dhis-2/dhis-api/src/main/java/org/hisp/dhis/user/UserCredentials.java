@@ -71,7 +71,7 @@ public class UserCredentials
     public static final int USERNAME_MAX_LENGTH = 255;
 
     /**
-     * Global unique identifier for User (to be used for sharing etc)
+     * Globally unique identifier for User.
      */
     private UUID uuid;
 
