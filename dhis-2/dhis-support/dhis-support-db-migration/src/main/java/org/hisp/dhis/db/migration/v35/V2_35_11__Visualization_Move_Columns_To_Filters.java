@@ -90,10 +90,12 @@ public class V2_35_11__Visualization_Move_Columns_To_Filters extends BaseJavaMig
         try (final PreparedStatement ps = context.getConnection().prepareStatement( sql ))
         {
             ps.setLong( 1, visualizationId );
-            final ResultSet rs = ps.executeQuery();
 
-            rs.next();
-            return rs.getInt( "greater_sort_order" );
+            try (final ResultSet rs = ps.executeQuery())
+            {
+                rs.next();
+                return rs.getInt( "greater_sort_order" );
+            }
         }
     }
 
@@ -108,10 +110,11 @@ public class V2_35_11__Visualization_Move_Columns_To_Filters extends BaseJavaMig
             ps.setLong( 1, visualizationId );
             ps.setString( 2, dimension );
 
-            final ResultSet rs = ps.executeQuery();
-
-            rs.next();
-            return rs.getInt( "vis_counter" ) > 0;
+            try (final ResultSet rs = ps.executeQuery())
+            {
+                rs.next();
+                return rs.getInt( "vis_counter" ) > 0;
+            }
         }
     }
 
