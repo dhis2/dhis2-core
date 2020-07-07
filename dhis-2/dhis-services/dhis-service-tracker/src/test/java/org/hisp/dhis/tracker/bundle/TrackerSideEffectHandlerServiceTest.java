@@ -41,6 +41,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -105,10 +107,15 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
         assertEquals( 3, trackerBundle.getEvents().size() );
         assertEquals( 1, trackerBundle.getTrackedEntities().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundleParams params = TrackerBundleParams.builder()
             .events( trackerBundle.getEvents() )
             .enrollments( trackerBundle.getEnrollments() )
-            .trackedEntities( trackerBundle.getTrackedEntities()).build() );
+            .trackedEntities( trackerBundle.getTrackedEntities() ).build();
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        params.setUser( user );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( params );
 
         assertEquals( 1, trackerBundles.size() );
         assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
