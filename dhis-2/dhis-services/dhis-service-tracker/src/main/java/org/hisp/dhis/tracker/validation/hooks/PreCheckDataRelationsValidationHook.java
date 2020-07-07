@@ -144,47 +144,73 @@ public class PreCheckDataRelationsValidationHook
         TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
 
         // if event has "attribute option combo" set only, fetch the aoc directly
-        boolean aocEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
-        boolean acoEmpty = StringUtils.isEmpty( event.getAttributeCategoryOptions() );
+        boolean optionComboIsEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
+        boolean categoryOptionsIsEmpty = StringUtils.isEmpty( event.getAttributeCategoryOptions() );
 
         CategoryOptionCombo categoryOptionCombo = null;
 
-        if ( !aocEmpty && acoEmpty )
+        if ( !optionComboIsEmpty && categoryOptionsIsEmpty )
         {
             categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
-        else if ( !aocEmpty && program.getCategoryCombo() != null )
+        else if ( !optionComboIsEmpty && program.getCategoryCombo() != null )
         {
-            String attributeCategoryOptions = event.getAttributeCategoryOptions();
-            CategoryCombo categoryCombo = program.getCategoryCombo();
-            String cacheKey = attributeCategoryOptions + categoryCombo.getUid();
-
-            Optional<String> cachedEventAOCProgramCC = reporter.getValidationContext()
-                .getCachedEventAOCProgramCC( cacheKey );
-
-            if ( cachedEventAOCProgramCC.isPresent() )
-            {
-                categoryOptionCombo = context.getCategoryOptionCombo( cachedEventAOCProgramCC.get() );
-            }
-            else
-            {
-                Set<String> categoryOptions = TextUtils
-                    .splitToArray( attributeCategoryOptions, TextUtils.SEMICOLON );
-
-                categoryOptionCombo = resolveCategoryOptionCombo( reporter,
-                    categoryCombo, categoryOptions );
-
-                reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
-                    categoryOptionCombo != null ? categoryOptionCombo.getUid() : null );
-            }
+            categoryOptionCombo = resolveCategoryOptions( reporter, event, program, context );
         }
 
-        CategoryOptionCombo defaultCategoryCombo = (CategoryOptionCombo) preheat.getDefaults()
-            .get( CategoryOptionCombo.class );
+        categoryOptionCombo = getDefault( event, preheat, optionComboIsEmpty, categoryOptionCombo );
+
         if ( categoryOptionCombo == null )
         {
+            reporter.addError( newReport( TrackerErrorCode.E1115 )
+                .addArg( event.getAttributeOptionCombo() ) );
+        }
+        else
+        {
+            reporter.getValidationContext()
+                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
 
-            if ( defaultCategoryCombo != null && !aocEmpty )
+        }
+    }
+
+    private CategoryOptionCombo resolveCategoryOptions( ValidationErrorReporter reporter, Event event, Program program,
+        TrackerImportValidationContext context )
+    {
+        CategoryOptionCombo categoryOptionCombo;
+        String attributeCategoryOptions = event.getAttributeCategoryOptions();
+        CategoryCombo categoryCombo = program.getCategoryCombo();
+        String cacheKey = attributeCategoryOptions + categoryCombo.getUid();
+
+        Optional<String> cachedEventAOCProgramCC = reporter.getValidationContext()
+            .getCachedEventAOCProgramCC( cacheKey );
+
+        if ( cachedEventAOCProgramCC.isPresent() )
+        {
+            categoryOptionCombo = context.getCategoryOptionCombo( cachedEventAOCProgramCC.get() );
+        }
+        else
+        {
+            Set<String> categoryOptions = TextUtils
+                .splitToArray( attributeCategoryOptions, TextUtils.SEMICOLON );
+
+            categoryOptionCombo = resolveCategoryOptionCombo( reporter,
+                categoryCombo, categoryOptions );
+
+            reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
+                categoryOptionCombo != null ? categoryOptionCombo.getUid() : null );
+        }
+        return categoryOptionCombo;
+    }
+
+    private CategoryOptionCombo getDefault( Event event, TrackerPreheat preheat, boolean aocIsEmpty,
+        CategoryOptionCombo categoryOptionCombo )
+    {
+        if ( categoryOptionCombo == null )
+        {
+            CategoryOptionCombo defaultCategoryCombo = (CategoryOptionCombo) preheat.getDefaults()
+                .get( CategoryOptionCombo.class );
+
+            if ( defaultCategoryCombo != null && !aocIsEmpty )
             {
                 String uid = defaultCategoryCombo.getUid();
                 if ( uid.equals( event.getAttributeOptionCombo() ) )
@@ -198,17 +224,7 @@ public class PreCheckDataRelationsValidationHook
             }
         }
 
-        if ( categoryOptionCombo == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1115 )
-                .addArg( event.getAttributeOptionCombo() ) );
-        }
-        else
-        {
-            reporter.getValidationContext()
-                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
-
-        }
+        return categoryOptionCombo;
     }
 
     private CategoryOptionCombo resolveCategoryOptionCombo( ValidationErrorReporter reporter,

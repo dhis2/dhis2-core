@@ -139,7 +139,6 @@ public class PreCheckMetaValidationHook
         TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
         ProgramStage programStage )
     {
-
         if ( program == null && programStage == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1088 )
@@ -150,13 +149,7 @@ public class PreCheckMetaValidationHook
 
         if ( program == null && programStage != null )
         {
-            // We use a little trick here to put a program into the event and bundle
-            // if program is missing from event but exists on the program stage.
-            // TODO: This trick mutates the data, try to avoid this...
-            program = programStage.getProgram();
-            TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getProgramIdScheme();
-            bundle.getPreheat().put( identifier, program );
-            event.setProgram( identifier.getIdentifier( program ) );
+            program = fetchProgramFromProgramStage( event, bundle, programStage );
         }
 
         if ( program != null && programStage == null && program.isRegistration() )
@@ -188,15 +181,33 @@ public class PreCheckMetaValidationHook
 
         if ( strategy.isUpdate() )
         {
-            ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
-            Program existingProgram = psi.getProgramStage().getProgram();
-
-            if ( !existingProgram.equals( program ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1110 )
-                    .addArg( psi )
-                    .addArg( existingProgram ) );
-            }
+            validateNotChangingProgram( reporter, event, context, program );
         }
+    }
+
+    private void validateNotChangingProgram( ValidationErrorReporter reporter, Event event,
+        TrackerImportValidationContext context, Program program )
+    {
+        ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
+        Program existingProgram = psi.getProgramStage().getProgram();
+
+        if ( !existingProgram.equals( program ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1110 )
+                .addArg( psi )
+                .addArg( existingProgram ) );
+        }
+    }
+
+    private Program fetchProgramFromProgramStage( Event event, TrackerBundle bundle, ProgramStage programStage )
+    {
+        Program program;// We use a little trick here to put a program into the event and bundle
+        // if program is missing from event but exists on the program stage.
+        // TODO: This trick mutates the data, try to avoid this...
+        program = programStage.getProgram();
+        TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getProgramIdScheme();
+        bundle.getPreheat().put( identifier, program );
+        event.setProgram( identifier.getIdentifier( program ) );
+        return program;
     }
 }
