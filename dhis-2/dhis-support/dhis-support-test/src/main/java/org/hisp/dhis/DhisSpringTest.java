@@ -28,10 +28,6 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.user.User;
 import org.junit.After;
@@ -50,6 +46,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Trygve Laugstoel
@@ -136,6 +136,7 @@ public abstract class DhisSpringTest
         }
     }
 
+    @SuppressWarnings( "all" )
     protected void preCreateInjectAdminUserWithoutPersistence()
     {
         List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
@@ -150,9 +151,10 @@ public abstract class DhisSpringTest
         SecurityContextHolder.setContext( context );
     }
 
-    protected User preCreateInjectAdminUser(  )
+    @SuppressWarnings( "all" )
+    protected User preCreateInjectAdminUser()
     {
-        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority("ALL") );
+        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
 
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
             "admin", "district", grantedAuthorities );
