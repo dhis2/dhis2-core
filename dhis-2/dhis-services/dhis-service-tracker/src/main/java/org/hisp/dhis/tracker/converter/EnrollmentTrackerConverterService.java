@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,7 +65,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public Enrollment to( ProgramInstance programInstance )
     {
         List<Enrollment> enrollments = to( Collections.singletonList( programInstance ) );
@@ -80,7 +78,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Enrollment> to( List<ProgramInstance> enrollments )
     {
         return _to( enrollments );
@@ -98,7 +95,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public ProgramInstance from( Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( Collections.singletonList( enrollment ) );
@@ -112,7 +108,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
@@ -126,7 +121,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<ProgramInstance> from( List<Enrollment> enrollments )
     {
         return from( preheat( enrollments ), enrollments );

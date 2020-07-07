@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -73,7 +72,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public Event to( ProgramStageInstance programStageInstance )
     {
         List<Event> events = to( Collections.singletonList( programStageInstance ) );
@@ -87,7 +85,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         return _to( programStageInstances );
@@ -159,7 +156,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public ProgramStageInstance from( Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
@@ -173,7 +169,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
@@ -187,7 +182,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<ProgramStageInstance> from( List<Event> events )
     {
         return from( preheat( events ), events );

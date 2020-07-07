@@ -138,7 +138,8 @@ public class PreCheckOwnershipValidationHook
             checkNotNull( pi, PROGRAM_INSTANCE_CANT_BE_NULL );
 
             boolean hasNonDeletedEvents = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
-            boolean hasNotCascadeDeleteAuthority = !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+            boolean hasNotCascadeDeleteAuthority = !user
+                .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
             if ( hasNonDeletedEvents && hasNotCascadeDeleteAuthority )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1103 )

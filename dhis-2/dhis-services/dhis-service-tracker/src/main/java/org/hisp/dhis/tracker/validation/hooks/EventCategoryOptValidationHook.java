@@ -79,7 +79,6 @@ public class EventCategoryOptValidationHook
         CategoryOptionCombo categoryOptionCombo = reporter.getValidationContext()
             .getCachedEventCategoryOptionCombo( event.getUid() );
 
-
         checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         if ( categoryOptionCombo.isDefault()

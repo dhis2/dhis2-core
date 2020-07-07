@@ -37,7 +37,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +63,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public Relationship to( org.hisp.dhis.relationship.Relationship relationship )
     {
         List<Relationship> relationships = to( Collections.singletonList( relationship ) );
@@ -78,7 +76,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Relationship> to( List<org.hisp.dhis.relationship.Relationship> relationships )
     {
         return _to( relationships );
@@ -116,7 +113,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public org.hisp.dhis.relationship.Relationship from( Relationship relationship )
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = from( Collections.singletonList( relationship ) );
@@ -130,7 +126,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
@@ -145,7 +140,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<org.hisp.dhis.relationship.Relationship> from( List<Relationship> relationships )
     {
         return from( preheat( relationships ), relationships );
