@@ -46,9 +46,9 @@ public class SchemaProperty
 
     private String relativeApiEndpoint;
 
-    private double min;
+    public Double min;
 
-    private double max;
+    public Double max;
 
     private long length;
 
@@ -94,14 +94,15 @@ public class SchemaProperty
         this.relativeApiEndpoint = relativeApiEndpoint;
     }
 
-    public double getMin()
+    public Double getMin()
     {
         return min;
     }
 
-    public void setMin( double min )
+    public void setMin( Double o )
     {
-        this.min = min;
+
+        this.min = o;
     }
 
     public PropertyType getPropertyType()
@@ -114,12 +115,12 @@ public class SchemaProperty
         this.propertyType = propertyType;
     }
 
-    public double getMax()
+    public Double getMax()
     {
         return max;
     }
 
-    public void setMax( double max )
+    public void setMax( Double max )
     {
         this.max = max;
     }
