@@ -46,11 +46,11 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.SMSResponse;
-import org.hisp.dhis.smscompression.models.RelationshipSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.smscompression.models.UID;
+import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -101,20 +101,20 @@ public class RelationshipSMSListener
     }
 
     @Override
-    protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
         throws SMSProcessingException
     {
-        RelationshipSMSSubmission subm = (RelationshipSMSSubmission) submission;
+        RelationshipSmsSubmission subm = (RelationshipSmsSubmission) submission;
 
-        UID fromid = subm.getFrom();
-        UID toid = subm.getTo();
-        UID typeid = subm.getRelationshipType();
+        Uid fromid = subm.getFrom();
+        Uid toid = subm.getTo();
+        Uid typeid = subm.getRelationshipType();
 
-        RelationshipType relType = relationshipTypeService.getRelationshipType( typeid.getUID() );
+        RelationshipType relType = relationshipTypeService.getRelationshipType( typeid.getUid() );
 
         if ( relType == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_RELTYPE.set( typeid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_RELTYPE.set( typeid ) );
         }
 
         RelationshipItem fromItem = createRelationshipItem( relType, RelationshipDir.FROM, fromid );
@@ -122,11 +122,11 @@ public class RelationshipSMSListener
 
         Relationship rel = new Relationship();
 
-        // If we aren't given a UID for the relationship, it will be
+        // If we aren't given a Uid for the relationship, it will be
         // auto-generated
         if ( subm.getRelationship() != null )
         {
-            rel.setUid( subm.getRelationship().getUID() );
+            rel.setUid( subm.getRelationship().getUid() );
         }
 
         rel.setRelationshipType( relType );
@@ -139,10 +139,10 @@ public class RelationshipSMSListener
 
         relationshipService.addRelationship( rel );
 
-        return SMSResponse.SUCCESS;
+        return SmsResponse.SUCCESS;
     }
 
-    private RelationshipItem createRelationshipItem( RelationshipType relType, RelationshipDir dir, UID objId )
+    private RelationshipItem createRelationshipItem( RelationshipType relType, RelationshipDir dir, Uid objId )
     {
         RelationshipItem relItem = new RelationshipItem();
         RelationshipEntity fromEnt = relType.getFromConstraint().getRelationshipEntity();
@@ -152,28 +152,28 @@ public class RelationshipSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUID() );
+            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUid() );
             if ( tei == null )
             {
-                throw new SMSProcessingException( SMSResponse.INVALID_TEI.set( objId ) );
+                throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
             }
             relItem.setTrackedEntityInstance( tei );
             break;
 
         case PROGRAM_INSTANCE:
-            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUID() );
+            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUid() );
             if ( progInst == null )
             {
-                throw new SMSProcessingException( SMSResponse.INVALID_ENROLL.set( objId ) );
+                throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
             }
             relItem.setProgramInstance( progInst );
             break;
 
         case PROGRAM_STAGE_INSTANCE:
-            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUID() );
+            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUid() );
             if ( stageInst == null )
             {
-                throw new SMSProcessingException( SMSResponse.INVALID_EVENT.set( objId ) );
+                throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
             }
             relItem.setProgramStageInstance( stageInst );
             break;

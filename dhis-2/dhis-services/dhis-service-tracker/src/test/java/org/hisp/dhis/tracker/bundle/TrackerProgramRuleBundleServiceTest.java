@@ -136,6 +136,5 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
         assertEquals( 1, trackerBundles.size() );
         assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
-
     }
 }

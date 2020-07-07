@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.webdomain.user;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,54 +26,83 @@ package org.hisp.dhis.webapi.webdomain.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.visualization;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.message.MessageConversation;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Class representing a series item in a chart.
+ *
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "inbox", namespace = DxfNamespaces.DXF_2_0 )
-public class Inbox
+@JacksonXmlRootElement( localName = "seriesItem", namespace = DXF_2_0 )
+public class Series
+    implements Serializable
 {
-    private List<MessageConversation> messageConversations = new ArrayList<>();
+    /**
+     * Refers to a {@link DimensionalItemObject#getDimensionItem()}.
+     */
+    private String dimensionItem;
 
-    private List<Interpretation> interpretations = new ArrayList<>();
+    /**
+     * The series axis. 0 represents the primary axis, 1 represents
+     * the secondary axis.
+     */
+    private Integer axis;
 
-    public Inbox()
+    /**
+     * Visualization type for the series. Will override the type
+     * specified by {@link Visualization#getType()}.
+     */
+    private VisualizationType type;
+
+    public Series()
     {
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<MessageConversation> getMessageConversations()
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public String getDimensionItem()
     {
-        return messageConversations;
+        return dimensionItem;
     }
 
-    public void setMessageConversations( List<MessageConversation> messageConversations )
+    public void setDimensionItem( String dimensionItem )
     {
-        this.messageConversations = messageConversations;
+        this.dimensionItem = dimensionItem;
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Interpretation> getInterpretations()
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = 0 )
+    public Integer getAxis()
     {
-        return interpretations;
+        return axis;
     }
 
-    public void setInterpretations( List<Interpretation> interpretations )
+    public void setAxis( Integer axis )
     {
-        this.interpretations = interpretations;
+        this.axis = axis;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public VisualizationType getType()
+    {
+        return type;
+    }
+
+    public void setType( VisualizationType type )
+    {
+        this.type = type;
     }
 }

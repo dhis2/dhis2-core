@@ -58,7 +58,7 @@ public class DataGenerator
         return RandomStringUtils.randomAlphabetic( 6 );
     }
 
-    public static String randomString( int count ) 
+    public static String randomString( int count )
     {
         return RandomStringUtils.randomAlphabetic( count );
     }
@@ -81,7 +81,7 @@ public class DataGenerator
         {
         case STRING:
             jsonElement = new JsonPrimitive(
-                generateStringByFieldName( property.getName(), (int) property.getMin(), (int) property.getMax() ) );
+                generateStringByFieldName( property.getName(), property.getMin().intValue(), property.getMax().intValue() ) );
             break;
 
         case DATE:
@@ -105,7 +105,8 @@ public class DataGenerator
             break;
 
         case NUMBER:
-            jsonElement = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
+            jsonElement = new JsonPrimitive(
+                faker.number().numberBetween( property.getMin().intValue(), property.getMax().intValue() ) );
             break;
 
         default:

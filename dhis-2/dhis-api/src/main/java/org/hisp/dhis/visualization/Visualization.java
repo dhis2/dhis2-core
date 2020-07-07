@@ -89,6 +89,7 @@ import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -175,6 +176,12 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items in the
+     * first dimension of the "columns" list by dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -204,6 +211,8 @@ public class Visualization
     private LegendSet legendSet;
 
     private LegendDisplayStrategy legendDisplayStrategy;
+
+    private VisualizationFontStyle fontStyle;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
@@ -823,6 +832,19 @@ public class Visualization
         this.regressionType = regressionType;
     }
 
+    @JsonProperty( "series" )
+    @JacksonXmlElementWrapper( localName = "series", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DXF_2_0 )
+    public List<Series> getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( List<Series> series )
+    {
+        this.series = series;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
@@ -921,6 +943,18 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    public VisualizationFontStyle getFontStyle()
+    {
+        return fontStyle;
+    }
+
+    public void setFontStyle( VisualizationFontStyle fontStyle )
+    {
+        this.fontStyle = fontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isShowData()
     {
         return showData;
@@ -933,6 +967,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -945,6 +980,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -969,6 +1005,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -981,6 +1018,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;

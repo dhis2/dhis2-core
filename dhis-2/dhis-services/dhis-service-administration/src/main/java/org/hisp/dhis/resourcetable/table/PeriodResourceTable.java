@@ -103,6 +103,7 @@ public class PeriodResourceTable
             if ( period != null && period.isValid() )
             {
                 final String isoDate = period.getIsoDate();
+
                 final int year = resolveYearFromPeriod( period );
 
                 if ( !uniqueIsoDates.add( isoDate ) )
@@ -142,13 +143,20 @@ public class PeriodResourceTable
 
         return Lists.newArrayList( sql );
     }
-    
+
+    /**
+     * Resolves the year from the given period.
+     * <p>
+     * Weekly period types are treated differently from other period types. A week is considered
+     * to belong to the year for which 4 days or more fall inside. In this logic, 3 days are added
+     * to the week start day and the year of the modified start date is used as reference year for
+     * the period.
+     *
+     * @param period the {@link Period}.
+     * @return the year.
+     */
     private int resolveYearFromPeriod( Period period )
     {
-        // Weekly type has to be treated separately from other Period types.
-        // In order to handle all weekly types uniformly, 3 days are added to the week start day and
-        // the year of the modified start date is used as reference year for the Period
-
         if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
         {
             return new DateTime( period.getStartDate().getTime() ).plusDays( 3 ).getYear();

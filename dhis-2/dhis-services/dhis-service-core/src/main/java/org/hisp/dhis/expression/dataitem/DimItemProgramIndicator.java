@@ -28,10 +28,11 @@ package org.hisp.dhis.expression.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DimensionalItemId;
-
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
  * Expression item ProgramIndicator
@@ -42,15 +43,17 @@ public class DimItemProgramIndicator
     extends DimensionalItem
 {
     @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx )
+    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
+        CommonExpressionVisitor visitor )
     {
         return new DimensionalItemId( PROGRAM_INDICATOR,
             ctx.uid0.getText() );
     }
 
     @Override
-    public String getId( ExprContext ctx )
+    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return ctx.uid0.getText();
+        return ctx.uid0.getText() +
+            (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
     }
 }

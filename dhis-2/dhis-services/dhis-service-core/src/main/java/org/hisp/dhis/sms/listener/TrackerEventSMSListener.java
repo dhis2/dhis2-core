@@ -43,11 +43,11 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.SMSResponse;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.smscompression.models.TrackerEventSMSSubmission;
-import org.hisp.dhis.smscompression.models.UID;
+import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -86,51 +86,54 @@ public class TrackerEventSMSListener
     }
 
     @Override
-    protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
         throws SMSProcessingException
     {
-        TrackerEventSMSSubmission subm = (TrackerEventSMSSubmission) submission;
+        TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
 
-        UID ouid = subm.getOrgUnit();
-        UID stageid = subm.getProgramStage();
-        UID enrolmentid = subm.getEnrollment();
-        UID aocid = subm.getAttributeOptionCombo();
+        Uid ouid = subm.getOrgUnit();
+        Uid stageid = subm.getProgramStage();
+        Uid enrolmentid = subm.getEnrollment();
+        Uid aocid = subm.getAttributeOptionCombo();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUID() );
-        User user = userService.getUser( subm.getUserID().getUID() );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
+        User user = userService.getUser( subm.getUserId().getUid() );
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUID() );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUid() );
+
         if ( programInstance == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_ENROLL.set( enrolmentid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( enrolmentid ) );
         }
 
-        ProgramStage programStage = programStageService.getProgramStage( stageid.getUID() );
+        ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
+
         if ( programStage == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUID() );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+
         if ( aoc == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
+            throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUID(), orgUnit, programStage, programInstance, sms,
+        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
             aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
         if ( !errorUIDs.isEmpty() )
         {
-            return SMSResponse.WARN_DVERR.setList( errorUIDs );
+            return SmsResponse.WARN_DVERR.setList( errorUIDs );
         }
         else if ( subm.getValues() == null || subm.getValues().isEmpty() )
         {
             // TODO: Should we save the event if there are no data values?
-            return SMSResponse.WARN_DVEMPTY;
+            return SmsResponse.WARN_DVEMPTY;
         }
 
-        return SMSResponse.SUCCESS;
+        return SmsResponse.SUCCESS;
     }
 
     @Override

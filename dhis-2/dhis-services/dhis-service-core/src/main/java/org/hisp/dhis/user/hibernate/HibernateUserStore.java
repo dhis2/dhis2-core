@@ -119,6 +119,7 @@ public class HibernateUserStore
         {
             return Collections.emptyList();
         }
+
         final List<User> users = new ArrayList<>( result.size() );
         for ( Object o : result )
         {
@@ -369,7 +370,7 @@ public class HibernateUserStore
     @Override
     public User getUser( long id )
     {
-        return sessionFactory.getCurrentSession().get( User.class, id );
+        return getSession().get( User.class, id );
     }
 
     @Override
