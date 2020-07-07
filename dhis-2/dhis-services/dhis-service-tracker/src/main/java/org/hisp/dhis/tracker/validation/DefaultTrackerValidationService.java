@@ -57,7 +57,7 @@ public class DefaultTrackerValidationService
     {
         this.validationHooks = validationHooks;
 
-        TrackerImportValidationConfig.validateAndSortHooks( validationHooks );
+        TrackerImportValidationConfig.sortHooks( validationHooks );
     }
 
     @Override

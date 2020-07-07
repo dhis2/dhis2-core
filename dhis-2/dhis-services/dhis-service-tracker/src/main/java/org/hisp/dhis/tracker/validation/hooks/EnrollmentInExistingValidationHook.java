@@ -215,9 +215,7 @@ public class EnrollmentInExistingValidationHook
         }
 
         enrollment.setCreatedAt( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
-//        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
         enrollment.setUpdatedAt( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
-//        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
         enrollment.setEnrolledAt( getIso8601( programInstance.getEnrollmentDate() ) );
