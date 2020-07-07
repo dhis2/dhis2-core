@@ -28,8 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -38,17 +37,11 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -61,9 +54,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
+public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -80,21 +73,14 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
     @Autowired
     private TrackerBundleService trackerBundleService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
-
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
-
     @Override
-    protected void setUpTest()
-        throws IOException
+    protected void setUpTest() throws IOException
     {
         renderService = _renderService;
         userService = _userService;
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+                new ClassPathResource( "tracker/event_metadata_with_program_rules.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -106,36 +92,35 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
-
-        ProgramRule programRule = createProgramRule( 'A',
-            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" ) );
-        programRuleService.addProgramRule( programRule );
-
-        ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleActionService.addProgramRuleAction( programRuleAction );
-
-        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
-        programRuleService.updateProgramRule( programRule );
-
     }
 
     @Test
-    @Ignore // NEED TO FIX PROGRAM RULE ISSUES FIRST
-    public void testRunRuleEngineForEventOnBundleCreate()
-        throws IOException
+    public void testRuleEngineSideEffectHandlerService() throws IOException
     {
         TrackerBundle trackerBundle = renderService
-            .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
+            .fromJson( new ClassPathResource( "tracker/event_data_with_program_rule_side_effects.json" ).getInputStream(),
                 TrackerBundleParams.class )
             .toTrackerBundle();
 
-        assertEquals( 8, trackerBundle.getEvents().size() );
+        assertEquals( 3, trackerBundle.getEvents().size() );
+        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() ).build() );
+            .events( trackerBundle.getEvents() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .trackedEntities( trackerBundle.getTrackedEntities()).build() );
 
         assertEquals( 1, trackerBundles.size() );
         assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
+
+        TrackerBundleReport report = trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        assertEquals( report.getStatus(), TrackerStatus.OK );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

@@ -138,6 +138,9 @@ public class ObjectBundleServiceFavoritesTest
         assertEquals( 4, dataElements.size() );
         assertEquals( 3, visualizations.size() );
 
+        assertNotNull( visualizations.get( 0 ).getFontSize() );
+        assertNotNull( visualizations.get( 1 ).getFontSize() );
+        assertNotNull( visualizations.get( 2 ).getFontSize() );
         assertNotNull( visualizations.get( 0 ).getSeries() );
         assertNotNull( visualizations.get( 1 ).getSeries() );
         assertNotNull( visualizations.get( 2 ).getSeries() );

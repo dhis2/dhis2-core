@@ -1,5 +1,3 @@
-package org.hisp.dhis.expression.dataitem;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,39 +26,17 @@ package org.hisp.dhis.expression.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionItemType.*;
-import static org.hisp.dhis.parser.expression.ParserUtils.assumeExpressionProgramAttribute;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+package org.hisp.dhis.common;
 
 /**
- * Expression item ProgramAttribute
+ * Enum representing text fonts.
  *
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-public class DimItemProgramAttribute
-    extends DimensionalItem
+public enum Font
 {
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        assumeExpressionProgramAttribute( ctx );
-
-        return new DimensionalItemId( PROGRAM_ATTRIBUTE,
-            ctx.uid0.getText(),
-            ctx.uid1.getText() );
-    }
-
-    @Override
-    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        assumeExpressionProgramAttribute( ctx );
-
-        return ctx.uid0.getText() + "." +
-            ctx.uid1.getText() +
-            (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
-    }
+    ARIAL,
+    SANS_SERIF,
+    VERDANA,
+    ROBOTO;
 }

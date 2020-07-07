@@ -34,6 +34,7 @@ import org.hisp.dhis.period.BiWeeklyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 
+import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
@@ -45,7 +46,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DateUnitPeriodTypeParser implements PeriodTypeParser
+public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
 {
     private final Map<String, Pattern> compileCache = Maps.newHashMap();
 

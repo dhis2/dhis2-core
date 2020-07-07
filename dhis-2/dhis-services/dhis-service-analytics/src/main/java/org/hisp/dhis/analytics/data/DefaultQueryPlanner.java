@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -248,7 +249,7 @@ public class DefaultQueryPlanner
      * with one filter for each period type. Sets the dimension names and filter
      * names respectively.
      *
-     * @param the {@link DataQueryParams}.
+     * @param params the {@link DataQueryParams} object.
      * @return a list of {@link DataQueryParams}.
      */
     @Override
@@ -262,7 +263,7 @@ public class DefaultQueryPlanner
         }
         else if ( !params.getPeriods().isEmpty() )
         {
-            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils.getPeriodTypePeriodMap( params.getPeriods() );
+            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PeriodOffsetUtils.getPeriodTypePeriodMap( params );
 
             for ( String periodType : periodTypePeriodMap.keySet() )
             {
@@ -270,7 +271,7 @@ public class DefaultQueryPlanner
                     .addOrSetDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), periodTypePeriodMap.get( periodType ) )
                     .withPeriodType( periodType ).build();
 
-                queries.add( query );
+                queries.add( PeriodOffsetUtils.removeOffsetPeriodsIfNotNeeded( query ) );
             }
         }
         else if ( !params.getFilterPeriods().isEmpty() )
