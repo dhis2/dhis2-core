@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -44,15 +45,17 @@ import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar.
  */
 @Slf4j
-@Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
+@Service
+@Transactional
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -169,6 +172,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         }
 
         log.error( "Invalid date: " + date );
+
         return false;
     }
 }

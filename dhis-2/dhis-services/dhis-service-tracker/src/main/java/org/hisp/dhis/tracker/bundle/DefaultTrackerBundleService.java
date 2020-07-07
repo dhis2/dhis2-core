@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.bundle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
@@ -251,14 +253,15 @@ public class DefaultTrackerBundleService
         }
 
         session.flush();
-        trackedEntities
-            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
     }
 
     private TrackerTypeReport handleEnrollments( Session session, TrackerBundle bundle )
     {
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+
         List<Enrollment> enrollments = bundle.getEnrollments();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
 
@@ -300,23 +303,27 @@ public class DefaultTrackerBundleService
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
                 .enrollmentRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEnrollmentRuleEffects() ) )
-                .eventRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEventRuleEffects() ) )
-                .object( programInstance )
+                .eventRuleEffects( new HashMap<>() )
+                .object( programInstance.getUid() )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
                 .build();
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+            sideEffectDataBundles.add( sideEffectDataBundle );
         }
 
         session.flush();
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Enrollment.class, o, bundle ) ) );
+
+        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( sideEffectDataBundles ) );
 
         return typeReport;
     }
 
     private TrackerTypeReport handleEvents( Session session, TrackerBundle bundle )
     {
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+
         List<Event> events = bundle.getEvents();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
 
@@ -356,18 +363,20 @@ public class DefaultTrackerBundleService
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramStageInstance.class )
-                .enrollmentRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEnrollmentRuleEffects() ) )
+                .enrollmentRuleEffects( new HashMap<>() )
                 .eventRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEventRuleEffects() ) )
-                .object( programStageInstance )
+                .object( programStageInstance.getUid() )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
                 .build();
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+            sideEffectDataBundles.add( sideEffectDataBundle );
         }
 
         session.flush();
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
+
+        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( sideEffectDataBundles ) );
 
         return typeReport;
     }

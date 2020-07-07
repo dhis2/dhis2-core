@@ -60,7 +60,7 @@ public class TrackerSideEffectDataBundle implements Message
     private Class<? extends BaseIdentifiableObject> klass;
 
     @JsonProperty
-    private BaseIdentifiableObject object;
+    private String object;
 
     @JsonProperty
     private JobConfiguration jobConfiguration;

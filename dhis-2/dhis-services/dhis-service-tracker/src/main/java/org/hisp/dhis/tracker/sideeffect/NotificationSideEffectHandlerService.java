@@ -32,6 +32,8 @@ import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author Zubair Asghar
  */
@@ -50,5 +52,11 @@ public class NotificationSideEffectHandlerService implements SideEffectHandlerSe
     public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
         notificationMessageManager.addJob( sideEffectDataBundle );
+    }
+
+    @Override
+    public void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles )
+    {
+        sideEffectDataBundles.forEach( this::handleSideEffect );
     }
 }

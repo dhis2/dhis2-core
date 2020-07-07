@@ -60,16 +60,17 @@ public class TrackerSideEffectDataBundleTest
         enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
 
         ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setAutoFields();
 
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
             .enrollmentRuleEffects( enrollmentRuleEffects )
             .accessedBy( "testUser" )
             .importStrategy( TrackerImportStrategy.CREATE )
-            .object( programInstance )
+            .object( programInstance.getUid() )
             .klass( ProgramInstance.class )
             .build();
 
-        assertEquals( programInstance, bundle.getObject() );
+        assertEquals( programInstance.getUid(), bundle.getObject() );
         assertEquals( ProgramInstance.class, bundle.getKlass() );
         assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
         assertTrue( bundle.getEventRuleEffects().isEmpty() );
@@ -87,14 +88,15 @@ public class TrackerSideEffectDataBundleTest
         eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setAutoFields();
 
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
             .eventRuleEffects( eventRuleEffects )
-            .object( programStageInstance )
+            .object( programStageInstance.getUid() )
             .klass( ProgramStageInstance.class )
             .build();
 
-        assertEquals( programStageInstance, bundle.getObject() );
+        assertEquals( programStageInstance.getUid(), bundle.getObject() );
         assertEquals( ProgramStageInstance.class, bundle.getKlass() );
         assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );
         assertTrue( bundle.getEnrollmentRuleEffects().isEmpty() );

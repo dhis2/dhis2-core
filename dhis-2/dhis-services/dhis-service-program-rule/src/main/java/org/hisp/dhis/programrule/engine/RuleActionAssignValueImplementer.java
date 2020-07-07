@@ -44,12 +44,14 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @Author Zubair Asghar.
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
+@Transactional
 public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
     private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*";

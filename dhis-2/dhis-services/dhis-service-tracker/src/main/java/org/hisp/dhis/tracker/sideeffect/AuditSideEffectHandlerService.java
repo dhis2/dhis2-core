@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Zubair Asghar
@@ -76,5 +77,11 @@ public class AuditSideEffectHandlerService implements SideEffectHandlerService
             .build();
 
         auditManager.send( audit );
+    }
+
+    @Override
+    public void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles )
+    {
+        sideEffectDataBundles.forEach( this::handleSideEffect );
     }
 }

@@ -45,11 +45,15 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar.
  */
 @Slf4j
+@Service
+@Transactional
 abstract class NotificationRuleActionImplementer implements RuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -122,8 +126,10 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
     protected boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        if ( ruleEffect == null )
+        if ( ruleEffect == null || programInstance == null )
         {
+            log.warn( "RuleEffect and ProgramInstance cannot be null" );
+
             return false;
         }
 
@@ -131,7 +137,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
         if ( template == null )
         {
-            log.info( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
+            log.warn( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
 
             return false;
         }
