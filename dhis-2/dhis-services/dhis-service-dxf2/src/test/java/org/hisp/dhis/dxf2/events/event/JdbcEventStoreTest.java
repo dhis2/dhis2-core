@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -69,17 +68,13 @@ public class JdbcEventStoreTest
     @Mock
     protected SqlRowSet rowSet;
 
-    @Mock
-    private SessionFactory sessionFactory;
-
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Before
     public void setUp()
     {
-        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, currentUserService, manager,
-            sessionFactory );
+        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, currentUserService, manager );
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }
 

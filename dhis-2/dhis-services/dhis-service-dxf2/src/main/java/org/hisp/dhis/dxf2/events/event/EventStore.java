@@ -44,7 +44,7 @@ public interface EventStore
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-    
+
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );

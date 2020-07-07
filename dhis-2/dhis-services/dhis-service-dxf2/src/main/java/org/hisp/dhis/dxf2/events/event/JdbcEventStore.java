@@ -120,24 +120,19 @@ public class JdbcEventStore
 
     private final IdentifiableObjectManager manager;
 
-    private final SessionFactory sessionFactory;
-
     public JdbcEventStore( StatementBuilder statementBuilder,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager,
-        SessionFactory sessionFactory )
+        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( identifiableObjectManager );
-        checkNotNull( sessionFactory );
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
         this.currentUserService = currentUserService;
         this.manager = identifiableObjectManager;
-        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
