@@ -271,10 +271,7 @@ public class TrackerPreheatServiceTest
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( ProgramStage.class ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( CategoryOptionCombo.class ) );
 
-        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "HllvX50cXC0" ) );
         assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "XXXvX50cXC0" ) );
-
-        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "xYerKDKCefk" ) );
         assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "XXXrKDKCefk" ) );
     }
 }
