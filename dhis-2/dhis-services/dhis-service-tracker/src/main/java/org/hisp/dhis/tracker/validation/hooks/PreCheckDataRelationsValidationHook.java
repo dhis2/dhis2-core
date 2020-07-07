@@ -136,17 +136,18 @@ public class PreCheckDataRelationsValidationHook
         validateEventCategoryCombo( reporter, event, program );
     }
 
+    //TODO: This method needs some love and care, the logic here is very hard to read.
     protected void validateEventCategoryCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
 
         // if event has "attribute option combo" set only, fetch the aoc directly
         boolean aocEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
         boolean acoEmpty = StringUtils.isEmpty( event.getAttributeCategoryOptions() );
 
-        CategoryOptionCombo categoryOptionCombo = (CategoryOptionCombo) reporter.getValidationContext().getBundle()
-            .getPreheat().getDefaults().get( CategoryOptionCombo.class );
+        CategoryOptionCombo categoryOptionCombo = null;
 
         if ( !aocEmpty && acoEmpty )
         {
@@ -178,6 +179,25 @@ public class PreCheckDataRelationsValidationHook
             }
         }
 
+        CategoryOptionCombo defaultCategoryCombo = (CategoryOptionCombo) preheat.getDefaults()
+            .get( CategoryOptionCombo.class );
+        if ( categoryOptionCombo == null )
+        {
+
+            if ( defaultCategoryCombo != null && !aocEmpty )
+            {
+                String uid = defaultCategoryCombo.getUid();
+                if ( uid.equals( event.getAttributeOptionCombo() ) )
+                {
+                    categoryOptionCombo = defaultCategoryCombo;
+                }
+            }
+            else if ( defaultCategoryCombo != null )
+            {
+                categoryOptionCombo = defaultCategoryCombo;
+            }
+        }
+
         if ( categoryOptionCombo == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1115 )
@@ -186,7 +206,8 @@ public class PreCheckDataRelationsValidationHook
         else
         {
             reporter.getValidationContext()
-                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo.getUid() );
+                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
+
         }
     }
 

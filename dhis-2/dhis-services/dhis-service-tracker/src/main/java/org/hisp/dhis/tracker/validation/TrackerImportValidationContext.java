@@ -62,7 +62,7 @@ public class TrackerImportValidationContext
 
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
-    private Map<String, String> eventCocCacheMap = new HashMap<>();
+    private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
 
     private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
 
@@ -110,21 +110,20 @@ public class TrackerImportValidationContext
         return getResolvedStrategyMap().get( TrackedEntity.class ).put( trackedEntity.getTrackedEntity(), strategy );
     }
 
-    public void cacheEventCategoryOptionCombo( String key, String cocUid )
+    public void cacheEventCategoryOptionCombo( String key, CategoryOptionCombo categoryOptionCombo )
     {
         Preconditions.checkArgument( !StringUtils.isEmpty( key ),
             "Event Category Option Combo cache key 'event uid', can't be null or empty" );
 
-        Preconditions.checkArgument( !StringUtils.isEmpty( cocUid ),
-            "Event Category Option Combo cache key 'category uid', can't be null or empty" );
+        Preconditions.checkNotNull( categoryOptionCombo, "Event Category Option Combo can't be null or empty" );
 
         if ( !eventCocCacheMap.containsKey( key ) )
         {
-            eventCocCacheMap.put( key, cocUid );
+            eventCocCacheMap.put( key, categoryOptionCombo );
         }
     }
 
-    public String getCachedEventCategoryOptionCombo( String key )
+    public CategoryOptionCombo getCachedEventCategoryOptionCombo( String key )
     {
         return eventCocCacheMap.get( key );
     }

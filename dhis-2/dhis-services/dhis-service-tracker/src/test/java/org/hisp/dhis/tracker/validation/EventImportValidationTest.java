@@ -540,7 +540,7 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1116 ) ) ) );
