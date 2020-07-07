@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.webdomain.user;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,47 +26,16 @@ package org.hisp.dhis.webapi.webdomain.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.common;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Enum representing text aligment.
+ *
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
-public class Dashboard
+public enum TextAlign
 {
-    private long unreadMessageConversation;
-
-    private long unreadInterpretations;
-
-    public Dashboard()
-    {
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadMessageConversations()
-    {
-        return unreadMessageConversation;
-    }
-
-    public void setUnreadMessageConversations( long unreadMessageConversation )
-    {
-        this.unreadMessageConversation = unreadMessageConversation;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadInterpretations()
-    {
-        return unreadInterpretations;
-    }
-
-    public void setUnreadInterpretations( long unreadInterpretations )
-    {
-        this.unreadInterpretations = unreadInterpretations;
-    }
+    LEFT,
+    CENTER,
+    RIGHT;
 }

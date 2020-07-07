@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.user;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,54 +28,47 @@ package org.hisp.dhis.webapi.webdomain.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.message.MessageConversation;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "inbox", namespace = DxfNamespaces.DXF_2_0 )
-public class Inbox
+@JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
+public class Dashboard
 {
-    private List<MessageConversation> messageConversations = new ArrayList<>();
+    private long unreadMessageConversation;
 
-    private List<Interpretation> interpretations = new ArrayList<>();
+    private long unreadInterpretations;
 
-    public Inbox()
+    public Dashboard()
     {
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<MessageConversation> getMessageConversations()
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public long getUnreadMessageConversations()
     {
-        return messageConversations;
+        return unreadMessageConversation;
     }
 
-    public void setMessageConversations( List<MessageConversation> messageConversations )
+    public void setUnreadMessageConversations( long unreadMessageConversation )
     {
-        this.messageConversations = messageConversations;
+        this.unreadMessageConversation = unreadMessageConversation;
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Interpretation> getInterpretations()
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public long getUnreadInterpretations()
     {
-        return interpretations;
+        return unreadInterpretations;
     }
 
-    public void setInterpretations( List<Interpretation> interpretations )
+    public void setUnreadInterpretations( long unreadInterpretations )
     {
-        this.interpretations = interpretations;
+        this.unreadInterpretations = unreadInterpretations;
     }
 }

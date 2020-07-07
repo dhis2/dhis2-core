@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Adrian Quintana
@@ -74,6 +75,12 @@ public class MockUserService implements UserService
 
     @Override
     public User getUser( String uid )
+    {
+        return null;
+    }
+
+    @Override
+    public User getUserByUuid( UUID uuid )
     {
         return null;
     }
