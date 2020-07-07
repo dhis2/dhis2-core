@@ -28,13 +28,12 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.SQLException;
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
