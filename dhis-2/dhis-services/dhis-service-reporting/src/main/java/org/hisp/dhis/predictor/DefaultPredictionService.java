@@ -537,7 +537,7 @@ public class DefaultPredictionService
             {
                 MapMap<String, DimensionalItemObject, Double> periodData = dataMap.get( period );
 
-                for ( String aoc : periodData.keySet() )
+                for ( String aoc : new ArrayList<String>( periodData.keySet() ) )
                 {
                     Double testValue = expressionService.getExpressionValueRegEx( skipTest, periodData.get( aoc ),
                         constantMap, null, period.getDaysInPeriod() );
