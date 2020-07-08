@@ -83,7 +83,6 @@ public class EventDateValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         User actingUser = context.getBundle().getUser();
-        TrackerImportStrategy eventStrategy = context.getStrategy( event );
 
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );

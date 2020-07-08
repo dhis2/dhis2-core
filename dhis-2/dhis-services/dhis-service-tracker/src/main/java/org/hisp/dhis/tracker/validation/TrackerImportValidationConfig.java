@@ -64,6 +64,10 @@ import static java.util.stream.Collectors.toMap;
  */
 public class TrackerImportValidationConfig
 {
+    private TrackerImportValidationConfig()
+    {
+    }
+
     protected final static List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(
 
         PreCheckValidateAndGenerateUidHook.class,

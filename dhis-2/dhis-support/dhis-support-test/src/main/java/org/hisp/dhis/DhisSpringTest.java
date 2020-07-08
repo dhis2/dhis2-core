@@ -168,6 +168,7 @@ public abstract class DhisSpringTest
         return createAndInjectAdminUser( "ALL" );
     }
 
+    @Override
     protected User createAndInjectAdminUser( String... authorities )
     {
         User user = createAdminUser( authorities );
@@ -180,9 +181,9 @@ public abstract class DhisSpringTest
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
 
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication( authentication );
+        SecurityContextHolder.setContext( securityContext );
 
         return user;
     }

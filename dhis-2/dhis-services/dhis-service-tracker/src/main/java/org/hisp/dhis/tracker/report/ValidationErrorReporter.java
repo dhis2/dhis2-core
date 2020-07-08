@@ -105,7 +105,7 @@ public class ValidationErrorReporter
         }
     }
 
-    public <T extends TrackerDto> ValidationErrorReporter fork()
+    public ValidationErrorReporter fork()
     {
         return fork( null );
     }

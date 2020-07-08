@@ -201,7 +201,7 @@ public abstract class AbstractTrackerDtoValidationHook
         return reporter.getReportList();
     }
 
-    private <T extends TrackerDto> void validateTrackerDTOs( ValidationErrorReporter reporter,
+    private void validateTrackerDTOs( ValidationErrorReporter reporter,
         Pair<ValidationFunction<TrackerDto>, List<? extends TrackerDto>> pair )
     {
         Iterator<? extends TrackerDto> iterator = pair.getRight().iterator();
