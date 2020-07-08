@@ -93,7 +93,7 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-                new ClassPathResource( "tracker/event_metadata_with_program_rules.json" ).getInputStream(), RenderFormat.JSON );
+                new ClassPathResource("tracker/tracker_metadata_with_program_rules.json").getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
