@@ -52,8 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar.
  */
 @Slf4j
-@Service
-@Transactional
+@Service( "org.hisp.dhis.programrule.engine.NotificationRuleActionImplementer" )
 abstract class NotificationRuleActionImplementer implements RuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -90,6 +89,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return entry;
     }
 
+    @Transactional
     protected ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
         String uid = "";
@@ -124,6 +124,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return notificationInstance;
     }
 
+    @Transactional
     protected boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( ruleEffect == null || programInstance == null )

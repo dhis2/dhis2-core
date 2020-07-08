@@ -54,8 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar.
  */
 @Slf4j
-@Service
-@Transactional
+@Service( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -81,6 +80,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( !validate( ruleEffect, programInstance ) )
@@ -113,6 +113,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
