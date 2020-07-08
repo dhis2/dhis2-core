@@ -40,7 +40,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
@@ -209,7 +208,13 @@ public class DefaultTrackerBundleService
         return bundleReport;
     }
 
-    private TrackerTypeReport handleTrackedEntities( Session session, TrackerBundle bundle )
+    @Override
+    public void handleTrackerSideEffects( List<TrackerSideEffectDataBundle> bundles )
+    {
+        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
+    }
+
+    private TrackerTypeReport handleTrackedEntities(Session session, TrackerBundle bundle )
     {
         List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
@@ -315,7 +320,7 @@ public class DefaultTrackerBundleService
         session.flush();
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Enrollment.class, o, bundle ) ) );
 
-        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( sideEffectDataBundles ) );
+        typeReport.getSideEffectDataBundles().addAll( sideEffectDataBundles );
 
         return typeReport;
     }
@@ -376,7 +381,7 @@ public class DefaultTrackerBundleService
         session.flush();
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
 
-        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( sideEffectDataBundles ) );
+        typeReport.getSideEffectDataBundles().addAll( sideEffectDataBundles );
 
         return typeReport;
     }

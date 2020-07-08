@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.system.notification.Notifier;
@@ -40,17 +41,21 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +76,14 @@ public class DefaultTrackerImportService
     private final IdentifiableObjectManager manager;
 
     private final Notifier notifier;
+
+    private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
+
+    @Autowired( required = false )
+    public void setSideEffectHandlers( List<SideEffectHandlerService> sideEffectHandlers )
+    {
+        this.sideEffectHandlers = sideEffectHandlers;
+    }
 
     public DefaultTrackerImportService(
         TrackerBundleService trackerBundleService,
@@ -125,6 +138,13 @@ public class DefaultTrackerImportService
 
             trackerBundles.forEach( tb -> {
                 TrackerBundleReport bundleReport = trackerBundleService.commit( tb );
+
+                List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
+                  bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
+                  bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
+
+                trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+
                 importReport.getBundleReports().add( bundleReport );
             } );
 

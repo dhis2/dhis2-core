@@ -37,7 +37,23 @@
       "id": "lmgRJ5WF2x8"
     },
     "evaluationEnvironments": ["ANDROID", "WEB"]
-  }],
+  },
+    {
+      "created": "2020-05-31T09:04:26.175",
+      "lastUpdated": "2020-05-31T11:58:16.304",
+      "id": "VzMCAo8Hrp1",
+      "programRuleActionType": "SCHEDULEMESSAGE",
+      "data": "'2020-06-20'",
+      "templateUid": "FdIeUL4gyoC",
+      "evaluationTime": "ALWAYS",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "programRule": {
+        "id": "lmgRJ5WF2x9"
+      },
+      "evaluationEnvironments": ["ANDROID", "WEB"]
+    }],
   "dataElements": [{
     "lastUpdated": "2020-05-31T11:41:22.404",
     "id": "MMPRJBTw2FR",
@@ -267,6 +283,7 @@
     "created": "2020-05-31T08:56:15.922",
     "lastUpdated": "2020-05-31T11:41:22.384",
     "name": "test-orgunit",
+    "code": "orgunit1",
     "id": "h4w96yEMlzO",
     "shortName": "test-orgunit",
     "description": "test-orgunit",
@@ -285,6 +302,7 @@
     "created": "2020-05-31T09:05:34.570",
     "lastUpdated": "2020-05-31T11:41:22.385",
     "name": "test-orgunit-2",
+    "code": "orgunit2",
     "id": "uoNW0E3xXUy",
     "shortName": "test-program-rule",
     "path": "/h4w96yEMlzO/uoNW0E3xXUy",
@@ -402,7 +420,25 @@
     "programRuleActions": [{
       "id": "VzMCAo8HrpO"
     }]
-  }],
+  },
+    {
+      "created": "2020-05-31T09:04:26.184",
+      "lastUpdated": "2020-05-31T11:58:16.310",
+      "name": "test-program-rule",
+      "id": "lmgRJ5WF2x9",
+      "description": "test-program-rule",
+      "condition": "false",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "program": {
+        "id": "GUah56CfX8E"
+      },
+      "translations": [],
+      "programRuleActions": [{
+        "id": "VzMCAo8Hrp1"
+      }]
+    }],
   "programRuleVariables": [{
     "created": "2020-05-31T11:57:55.362",
     "lastUpdated": "2020-05-31T11:57:55.362",
@@ -503,5 +539,39 @@
     "deliveryChannels": [],
     "attributeValues": [],
     "userAccesses": []
-  }]
+  },
+    {
+      "lastUpdated": "2020-05-31T11:35:18.355",
+      "id": "FdIeUL4gyoC",
+      "href": "http://localhost:8081/api/programNotificationTemplates/FdIeUL4gyoC",
+      "created": "2020-05-31T11:35:18.355",
+      "name": "test-program-notification2",
+      "displayName": "test-program-notification2",
+      "externalAccess": false,
+      "notificationTrigger": "PROGRAM_RULE",
+      "subjectTemplate": "test subject",
+      "notificationRecipient": "USER_GROUP",
+      "favorite": false,
+      "messageTemplate": "test message ",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "recipientUserGroup": {
+        "id": "xfHoY6IZSWI"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "deliveryChannels": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }]
 }

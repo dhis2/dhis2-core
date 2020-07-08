@@ -28,7 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -92,7 +92,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         String key = generateKey( template, programInstance );
 
-        String date = ruleEffect.data();
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
@@ -124,9 +124,9 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        String date = ruleEffect.data();
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
-        if ( !isDateValid( date ) )
+        if ( !isDateValid( date) )
         {
             return;
         }

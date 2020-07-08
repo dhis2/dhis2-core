@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.bundle;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,35 +28,46 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceStore;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 
 import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public interface TrackerBundleService
+public class ProgramNotificationInstanceDeletionHandler
+    extends DeletionHandler
 {
-    /**
-     * Creates and prepares tracker bundle.
-     *
-     * @param params Params object for this bundle.
-     * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
-     */
-    List<TrackerBundle> create( TrackerBundleParams params );
+    private final ProgramNotificationInstanceStore programNotificationInstanceStore;
 
-    /**
-     * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
-     *
-     * @param bundle TrackerBundle to commit.
-     */
-    TrackerBundleReport commit( TrackerBundle bundle );
+    public ProgramNotificationInstanceDeletionHandler( ProgramNotificationInstanceStore programNotificationInstanceStore )
+    {
+        this.programNotificationInstanceStore = programNotificationInstanceStore;
+    }
 
-    /**
-     * Carry out side effect for TrackerImporter i.e audits, notifications and program rule actions.
-     *
-     * @param bundles {@link TrackerSideEffectDataBundle} to hold data for side effects.
-     */
-    void handleTrackerSideEffects( List<TrackerSideEffectDataBundle> bundles );
+    @Override
+    protected String getClassName()
+    {
+        return ProgramNotificationInstance.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteProgramInstance( ProgramInstance programInstance )
+    {
+        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceStore.
+            getProgramNotificationInstances( programInstance );
+
+        notificationInstances.forEach( programNotificationInstanceStore::delete );
+    }
+
+    @Override
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceStore.
+                getProgramNotificationInstances( programStageInstance );
+
+        notificationInstances.forEach( programNotificationInstanceStore::delete );
+    }
 }

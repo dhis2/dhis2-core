@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.bundle;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -42,6 +43,8 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.UserService;
@@ -108,11 +111,11 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
     public void testRuleEngineSideEffectHandlerService() throws IOException
     {
         TrackerBundle trackerBundle = renderService
-            .fromJson( new ClassPathResource( "tracker/event_data_with_program_rule_side_effects.json" ).getInputStream(),
+            .fromJson( new ClassPathResource( "tracker/enrollment_data_with_program_rule_side_effects.json" ).getInputStream(),
                 TrackerBundleParams.class )
             .toTrackerBundle();
 
-        assertEquals( 3, trackerBundle.getEvents().size() );
+        assertEquals( 0, trackerBundle.getEvents().size() );
         assertEquals( 1, trackerBundle.getTrackedEntities().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
@@ -124,6 +127,12 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
         assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
 
         TrackerBundleReport report = trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
+            report.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
+            report.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
+
+        trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
 
         assertEquals( report.getStatus(), TrackerStatus.OK );
 

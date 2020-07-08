@@ -99,6 +99,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -1073,5 +1074,15 @@ public abstract class DeletionHandler
 
     public void deleteInterpretationComment ( InterpretationComment comment )
     {
+    }
+
+    public void deleteProgramNotificationInstance( ProgramNotificationInstance programNotificationInstance )
+    {
+
+    }
+
+    public String allowProgramNotificationInstance( ProgramNotificationInstance programNotificationInstance )
+    {
+        return null;
     }
 }
