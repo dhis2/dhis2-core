@@ -35,7 +35,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
@@ -47,7 +47,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author sultanm
@@ -59,7 +62,7 @@ public class DefaultMetadataVersionServiceTest
     private MetadataVersionService versionService;
 
     @Autowired
-    private KeyJsonValueService keyJsonValueService;
+    private MetadataKeyJsonService metaDataKeyJsonService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -209,7 +212,7 @@ public class DefaultMetadataVersionServiceTest
 
         //testing if correct version is saved in keyjsonvalue table
         List<String> versions = null;
-        versions = keyJsonValueService.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        versions = metaDataKeyJsonService.getAllVersions();
 
         assertEquals( 1, versions.size() );
         assertEquals( "Version_2", versions.get( 0 ) );
@@ -219,8 +222,8 @@ public class DefaultMetadataVersionServiceTest
         sleepFor( 100 );
 
         versionService.saveVersion( VersionType.BEST_EFFORT );
-        KeyJsonValue expectedJson = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_3" );
-        List<String> allVersions = keyJsonValueService.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        KeyJsonValue expectedJson = metaDataKeyJsonService.getMetaDataVersion( "Version_3" );
+        List<String> allVersions = metaDataKeyJsonService.getAllVersions( );
 
         assertEquals( 2, allVersions.size() );
         assertEquals( "Version_3", allVersions.get( 1 ) );
@@ -240,7 +243,7 @@ public class DefaultMetadataVersionServiceTest
         sleepFor( 100 );
         versionService.saveVersion( VersionType.BEST_EFFORT );
 
-        KeyJsonValue expectedJson = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_3" );
+        KeyJsonValue expectedJson = metaDataKeyJsonService.getMetaDataVersion( "Version_3" );
 
         assertEquals( false, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
         assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementB" ) );

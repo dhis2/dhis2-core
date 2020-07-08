@@ -1344,6 +1344,10 @@
     <property name="keyJsonValueStore" ref="org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService" class="org.hisp.dhis.keyjsonvalue.DefaultMetadataKeyJsonService">
+    <property name="keyJsonValueStore" ref="org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" />
+  </bean>
+
   <bean id="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueService" class="org.hisp.dhis.userkeyjsonvalue.DefaultUserKeyJsonValueService">
     <property name="userKeyJsonValueStore" ref="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore" />
   </bean>
