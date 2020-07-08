@@ -1453,4 +1453,34 @@ public class PredictionServiceTest
         assertEquals( "22", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
         assertEquals( "33", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
     }
+
+    @Test
+    public void testPredictWithSkipTest()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 1 ), sourceA, defaultCombo, 1 );
+        useDataValue( dataElementA, makeMonth( 2010, 2 ), sourceA, defaultCombo, 2 );
+        useDataValue( dataElementA, makeMonth( 2010, 3 ), sourceA, defaultCombo, 3 );
+        useDataValue( dataElementA, makeMonth( 2010, 4 ), sourceA, defaultCombo, 4 );
+        useDataValue( dataElementA, makeMonth( 2010, 5 ), sourceA, defaultCombo, 4 );
+        useDataValue( dataElementA, makeMonth( 2010, 6 ), sourceA, defaultCombo, 5 );
+        useDataValue( dataElementA, makeMonth( 2010, 7 ), sourceA, defaultCombo, 6 );
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, defaultCombo, 7 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "sum(#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "})",
+            "description", MissingValueStrategy.NEVER_SKIP );
+
+        Expression skipTest = new Expression( "#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "} == 4",
+            "skipTest", MissingValueStrategy.NEVER_SKIP );
+
+        Predictor predictor = createPredictor( dataElementZ, defaultCombo, "A", expression, skipTest,
+            periodTypeMonthly, orgUnitLevel1, 8, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 9 ), monthStart( 2010, 10 ), summary );
+
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "24", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
+    }
 }
