@@ -36,7 +36,7 @@ import org.junit.Test;
 /**
  * @author Lars Helge Overland
  */
-public class FileResourceBlacklistTest
+public class FileResourceBlocklistTest
 {
     @Test
     public void testValid()
@@ -45,9 +45,9 @@ public class FileResourceBlacklistTest
         FileResource frB = new FileResource( "Evaluation.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 541, "", FileResourceDomain.MESSAGE_ATTACHMENT );
         FileResource frC = new FileResource( "FinancialReport.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 143, "", FileResourceDomain.DATA_VALUE );
 
-        assertTrue( FileResourceBlacklist.isValid( frA ) );
-        assertTrue( FileResourceBlacklist.isValid( frB ) );
-        assertTrue( FileResourceBlacklist.isValid( frC ) );
+        assertTrue( FileResourceBlocklist.isValid( frA ) );
+        assertTrue( FileResourceBlocklist.isValid( frB ) );
+        assertTrue( FileResourceBlocklist.isValid( frC ) );
     }
 
     @Test
@@ -58,10 +58,10 @@ public class FileResourceBlacklistTest
         FileResource frC = new FileResource( "cookie_stealer", "text/javascript", 631, "", FileResourceDomain.USER_AVATAR ); // No file extension
         FileResource frD = new FileResource( "malicious_software.msi", null, 235, "", FileResourceDomain.USER_AVATAR ); // No content type
 
-        assertFalse( FileResourceBlacklist.isValid( frA ) );
-        assertFalse( FileResourceBlacklist.isValid( frB ) );
-        assertFalse( FileResourceBlacklist.isValid( frC ) );
-        assertFalse( FileResourceBlacklist.isValid( frD ) );
-        assertFalse( FileResourceBlacklist.isValid( null ) );
+        assertFalse( FileResourceBlocklist.isValid( frA ) );
+        assertFalse( FileResourceBlocklist.isValid( frB ) );
+        assertFalse( FileResourceBlocklist.isValid( frC ) );
+        assertFalse( FileResourceBlocklist.isValid( frD ) );
+        assertFalse( FileResourceBlocklist.isValid( null ) );
     }
 }

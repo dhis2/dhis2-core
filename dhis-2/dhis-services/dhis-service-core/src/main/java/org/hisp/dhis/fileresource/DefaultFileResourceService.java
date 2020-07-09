@@ -289,7 +289,7 @@ public class DefaultFileResourceService
             throw new IllegalQueryException( ErrorCode.E6100 );
         }
 
-        if ( !FileResourceBlacklist.isValid( fileResource ) )
+        if ( !FileResourceBlocklist.isValid( fileResource ) )
         {
             throw new IllegalQueryException( ErrorCode.E6101 );
         }

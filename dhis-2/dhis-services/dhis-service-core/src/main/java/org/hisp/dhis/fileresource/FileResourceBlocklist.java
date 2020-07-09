@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * @author Lars Helge Overland
  */
-public class FileResourceBlacklist
+public class FileResourceBlocklist
 {
     private static final ImmutableSet<String> CONTENT_TYPE_BLACKLIST = ImmutableSet.of(
         // Web
