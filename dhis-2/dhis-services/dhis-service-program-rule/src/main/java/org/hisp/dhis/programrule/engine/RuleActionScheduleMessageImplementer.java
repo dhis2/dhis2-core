@@ -47,14 +47,14 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar.
  */
 @Slf4j
-@Service( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
+@Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -147,12 +147,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
     {
         implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
     }
 
     @Override
+    @Transactional
     public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
     {
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );

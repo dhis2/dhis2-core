@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -154,9 +153,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
-
-    @Autowired
-    private RuleActionScheduleMessageImplementer ruleActionImplementers;
 
     @Autowired
     private ProgramRuleService programRuleService;
@@ -317,9 +313,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
             .ruleAction();
 
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
-
-        // duplicate enrollment/events will be ignored and validation will be failed.
-        assertFalse( ruleActionImplementers.validate( ruleEffects2.get( 0 ), programInstance ) );
     }
 
     @Test
