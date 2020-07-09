@@ -57,7 +57,10 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -582,6 +585,13 @@ public class DataElement extends BaseDimensionalItemObject
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @Override
+    @PropertyTransformer( UserPropertyTransformer.class )
+    public User getUser()
+    {
+        return super.getUser();
+    }
 
     @Override
     @JsonProperty

@@ -62,10 +62,20 @@ public class UserPropertyTransformer
     @Builder
     public static class UserDto
     {
-        @JsonProperty
         private String id;
 
-        @JsonProperty
         private String username;
+
+        @JsonProperty
+        public String getId()
+        {
+            return id;
+        }
+
+        @JsonProperty
+        public String getUsername()
+        {
+            return username;
+        }
     }
 }

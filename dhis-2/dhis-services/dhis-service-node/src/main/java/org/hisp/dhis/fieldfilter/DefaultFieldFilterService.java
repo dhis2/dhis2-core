@@ -48,6 +48,7 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyTransformer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -236,7 +237,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean shouldExclude( Object object, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
-            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default" .equals( ((IdentifiableObject) object).getName() );
+            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName, Defaults defaults )
@@ -285,7 +286,35 @@ public class DefaultFieldFilterService implements FieldFilterService
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
 
-            if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection() && property.getKlass().isInterface() && !property.isIdentifiableObject() )
+            if ( property.hasPropertyTransformer() )
+            {
+                PropertyTransformer propertyTransformer;
+
+                try
+                {
+                    propertyTransformer = property.getPropertyTransformer().newInstance();
+                }
+                catch ( InstantiationException | IllegalAccessException e )
+                {
+                    throw new RuntimeException( e );
+                }
+
+                returnValue = propertyTransformer.transform( returnValue );
+
+                if ( returnValue == null )
+                {
+                    continue;
+                }
+
+                propertyClass = returnValue.getClass();
+                propertySchema = schemaService.getDynamicSchema( propertyClass );
+            }
+
+            if ( returnValue != null
+                && propertySchema.getProperties().isEmpty()
+                && !property.isCollection()
+                && property.getKlass().isInterface()
+                && !property.isIdentifiableObject() )
             {
                 // try to retrieve schema from concrete class
                 propertyClass = returnValue.getClass();
@@ -347,13 +376,10 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        if ( collection != null )
+                        for ( Object collectionObject : collection )
                         {
-                            for ( Object collectionObject : collection )
-                            {
-                                SimpleNode simpleNode = child.addChild( new SimpleNode( property.getName(), collectionObject ) );
-                                simpleNode.setProperty( property );
-                            }
+                            SimpleNode simpleNode = child.addChild( new SimpleNode( property.getName(), collectionObject ) );
+                            simpleNode.setProperty( property );
                         }
                     }
                 }
@@ -447,7 +473,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             Collection<Property> properties = schema.getReadableProperties().values();
 
-            if ( "*" .equals( fieldKey ) )
+            if ( "*".equals( fieldKey ) )
             {
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) )
@@ -455,7 +481,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                 cleanupFields.add( fieldKey );
             }
-            else if ( ":persisted" .equals( fieldKey ) )
+            else if ( ":persisted".equals( fieldKey ) )
             {
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
@@ -463,7 +489,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                 cleanupFields.add( fieldKey );
             }
-            else if ( ":owner" .equals( fieldKey ) )
+            else if ( ":owner".equals( fieldKey ) )
             {
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
@@ -577,10 +603,13 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         Schema schema;
 
-        if ( currentProperty.isCollection() )
+        if ( currentProperty.hasPropertyTransformer() )
+        {
+            schema = schemaService.getDynamicSchema( object.getClass() );
+        }
+        else if ( currentProperty.isCollection() )
         {
             schema = schemaService.getDynamicSchema( currentProperty.getItemKlass() );
-
         }
         else
         {
@@ -622,6 +651,11 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        return !(UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+        if ( UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ) )
+        {
+            return false;
+        }
+
+        return IdentifiableObject.class.isAssignableFrom( klass );
     }
 }
