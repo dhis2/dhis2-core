@@ -33,8 +33,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -59,9 +61,10 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 public class EnrollmentAttributeValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EnrollmentAttributeValidationHook()
+    public EnrollmentAttributeValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
     @Override
@@ -78,23 +81,19 @@ public class EnrollmentAttributeValidationHook
         {
             validateRequiredProperties( reporter, attribute );
 
-            if ( attribute.getAttribute() == null || attribute.getValue() == null )
-            {
-                continue;
-            }
-
-            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
-
-            if ( teAttribute == null )
+            if ( attribute.getAttribute() == null || attribute.getValue() == null ||
+                context.getTrackedEntityAttribute( attribute.getAttribute() ) == null )
             {
                 continue;
             }
 
             attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
+            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+
             validateAttrValueType( reporter, attribute, teAttribute );
 
-            //NOTE: this is perf killing
+            // TODO: This is ripe for optimization
             validateAttributeUniqueness( reporter,
                 attribute.getValue(),
                 teAttribute,

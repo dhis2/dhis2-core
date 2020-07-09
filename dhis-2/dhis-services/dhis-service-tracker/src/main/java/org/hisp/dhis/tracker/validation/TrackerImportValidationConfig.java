@@ -66,9 +66,10 @@ public class TrackerImportValidationConfig
 {
     private TrackerImportValidationConfig()
     {
+        // EMPTY
     }
 
-    protected final static List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(
+    protected static final List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(
 
         PreCheckValidateAndGenerateUidHook.class,
         PreCheckExistenceValidationHook.class,
@@ -92,7 +93,11 @@ public class TrackerImportValidationConfig
         EventNoteValidationHook.class
     );
 
-    protected final static Map<Class<? extends TrackerValidationHook>, Integer> VALIDATION_ORDER_MAP = IntStream
+    /**
+     * Map structure to hold the index (int) of each element in the VALIDATION_ORDER as the value and the class as key.
+     * This map is used for sorting a list of TrackerValidationHooks classes.
+     */
+    protected static final Map<Class<? extends TrackerValidationHook>, Integer> VALIDATION_ORDER_MAP = IntStream
         .range( 0, VALIDATION_ORDER.size() )
         .boxed()
         .collect( toMap( VALIDATION_ORDER::get, Function.identity() ) );

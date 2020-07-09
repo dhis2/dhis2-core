@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -45,6 +47,12 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckValidateAndGenerateUidHook
     extends AbstractTrackerDtoValidationHook
 {
+    public PreCheckValidateAndGenerateUidHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
+    {
+        super( teAttrService, commentService );
+    }
+
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {

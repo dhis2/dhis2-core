@@ -32,8 +32,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -55,9 +56,10 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventDateValidationHook()
+    public EventDateValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
     @Override
@@ -90,7 +92,6 @@ public class EventDateValidationHook
 
         if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus()) )
         {
-            //TODO: Should we make an error here? Feels like this is out of place, should be moved to the auth layer.
             if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
             {
                 return;
@@ -98,14 +99,7 @@ public class EventDateValidationHook
 
             Date completedDate = null;
 
-            // TODO: This feels like inefficient and very hard to read way of checking update/create logic.
-            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
-            if ( programStageInstance != null )
-            {
-                completedDate = programStageInstance.getCompletedDate();
-            }
-
-            else if ( event.getCompletedAt() != null )
+            if ( event.getCompletedAt() != null )
             {
                 completedDate = DateUtils.parseDate( event.getCompletedAt() );
             }
@@ -116,8 +110,6 @@ public class EventDateValidationHook
                     .addArg( event ) );
             }
 
-            //TODO: This is troublesome, according to the error text this actually an auth check...
-            // This should probably we moved and merged with the auth check on isAuthorized F_EDIT_EXPIRED above
             if ( completedDate != null && (new Date())
                 .after( DateUtils.getDateAfterAddition( completedDate, program.getCompleteEventsExpiryDays() ) ) )
             {

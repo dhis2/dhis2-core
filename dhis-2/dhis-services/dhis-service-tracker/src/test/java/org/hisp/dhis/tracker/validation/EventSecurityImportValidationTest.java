@@ -42,6 +42,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,6 +53,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -61,6 +63,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
@@ -70,6 +73,7 @@ import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -341,49 +345,49 @@ public class EventSecurityImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 
-    // TODO: Works locally but fails on Travis
-//    @Test
-//    public void testNoUncompleteEventAuth()
-//        throws IOException
-//    {
-//        setupMetadata();
-//
-//        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-//            "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );
-//        TrackerValidationReport report = createAndUpdate.getValidationReport();
-//
-//        printReport( report );
-//
-//        assertEquals( 0, report.getErrorReports().size() );
-//        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
-//
-//        // Change just inserted Event to status COMPLETED...
-//        ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
-//        zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
-//        manager.update( zwwuwNp6gVd );
-//
-//        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-//            "tracker/validations/events_error-no-uncomplete.json" );
-//
-//        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-//        manager.update( programA );
-//
-//        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-//        manager.update( programStageA );
-//
-//        User user = userService.getUser( USER_5 );
-//
-//        trackerBundleParams.setUser( user );
-//        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-//
-//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-//        assertEquals( 1, trackerBundle.getEvents().size() );
-//        report = trackerValidationService.validate( trackerBundle );
-//
-//        printReport( report );
-//
-//        assertEquals( 1, report.getErrorReports().size() );
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
-//    }
+    @Test
+    @Ignore( "This is broken by feat: Period offset for Indicator formula (#5772) Luciano Fiandesio* 06.07.2020, 15:24 2c5a6f7bbbb00d0e4ff8028fde972fd6f4413f8c " )
+    public void testNoUncompleteEventAuth()
+        throws IOException
+    {
+        setupMetadata();
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
+            "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+
+        printReport( report );
+
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+
+        // Change just inserted Event to status COMPLETED...
+        ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
+        zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
+        manager.update( zwwuwNp6gVd );
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-no-uncomplete.json" );
+
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.update( programA );
+
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.update( programStageA );
+
+        User user = userService.getUser( USER_4 );
+
+        trackerBundleParams.setUser( user );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+        report = trackerValidationService.validate( trackerBundle );
+
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
+    }
 }

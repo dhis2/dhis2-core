@@ -157,7 +157,6 @@ public class DefaultTrackerPreheatService
 
         for ( Class<?> klass : identifierMap.keySet() )
         {
-            // TODO: Assume UID for now, will be done according to IdSchemes
             Set<String> identifiers = identifierMap.get( klass );
 
             List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), SPLIT_LIST_PARTITION_SIZE );
@@ -322,7 +321,6 @@ public class DefaultTrackerPreheatService
             return manager.get( User.class, user.getUid() );
         }
 
-        User currentUser = currentUserService.getCurrentUser();
-        return currentUser;
+        return currentUserService.getCurrentUser();
     }
 }

@@ -97,8 +97,7 @@ public class TrackerIdentifierCollector
                 trackedEntity.getOrgUnit() );
 
             collectEnrollments( map, params, trackedEntity.getEnrollments() );
-            // TODO: @Luciano Possible optimization: since, as far as I can see, this class is not using Hibernate,
-            //  we could collect the IDs of the various entities in parallel.
+
             collectTrackedEntityAttribute( map, params, trackedEntity.getAttributes() );
         } );
     }

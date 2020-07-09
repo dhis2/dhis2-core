@@ -74,11 +74,6 @@ public class TrackedEntityTrackerConverterService
     @Override
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
-        return _to( trackedEntityInstances );
-    }
-
-    private List<TrackedEntity> _to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
-    {
         return trackedEntityInstances.stream().map( tei -> {
             TrackedEntity trackedEntity = new TrackedEntity();
             trackedEntity.setTrackedEntity( tei.getUid() );

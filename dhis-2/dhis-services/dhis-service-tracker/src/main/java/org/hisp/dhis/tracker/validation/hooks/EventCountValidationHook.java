@@ -32,7 +32,9 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -54,9 +56,10 @@ public class EventCountValidationHook
     @Autowired
     protected ProgramInstanceService programInstanceService;
 
-    public EventCountValidationHook()
+    public EventCountValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
     @Override
@@ -94,19 +97,14 @@ public class EventCountValidationHook
         }
         else
         {
-            //TODO: I don't understand the purpose of this here. This could be moved to preheater?
-            // possibly...(Stian-1.4.20)
-            // For isRegistraion=false, there can only exist a single tei and program instance across the entire program.
-            // Both these counts could potentially be preheated, and then just make sure we just have 1 program instance.?
             params.setTrackedEntityInstance( null );
 
             int count = programInstanceService.countProgramInstances( params );
 
             if ( count > 1 )
             {
-                //TODO: Can't get this to work/happen, the preheater? inserts a program instance.
-                reporter.addError( newReport( TrackerErrorCode.E1040 )
-                    .addArg( program ) );
+                //TODO: Can't provoke this error on the new importer, the preheater? inserts a program instance.
+                reporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
             }
         }
     }

@@ -37,7 +37,9 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -47,13 +49,13 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -63,8 +65,18 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public PreCheckDataRelationsValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService,
+        CategoryService categoryService )
+    {
+        super( teAttrService, commentService );
+
+        checkNotNull( categoryService );
+
+        this.categoryService = categoryService;
+    }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,

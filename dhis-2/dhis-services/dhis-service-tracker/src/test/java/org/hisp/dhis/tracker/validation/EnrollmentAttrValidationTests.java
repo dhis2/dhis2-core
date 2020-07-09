@@ -42,6 +42,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -53,6 +54,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -178,28 +180,28 @@ public class EnrollmentAttrValidationTests
 
     //TODO: Fails with: (need to figure out how to force deletion here first)
     // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java [main])
-//    @Test
-//    public void testAttributesMissingTeA()
-//        throws IOException
-//    {
-//        TrackedEntityAttribute sTJvSLN7Kcb = trackedEntityAttributeService.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
-//        trackedEntityAttributeService.deleteTrackedEntityAttribute( sTJvSLN7Kcb );
-//
-//
-//        TrackerBundleParams params = createBundleFromJson(
-//            "tracker/validations/enrollments_te_attr-data.json" );
-//
-//        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
-//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//
-//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-//        printReport( validationReport );
-//
-//        assertEquals( 1, validationReport.getErrorReports().size() );
-//
-//        assertThat( validationReport.getErrorReports(),
-//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1017 ) ) ) );
-//    }
+    @Test
+    @Ignore( "Delete not impl." )
+    public void testAttributesMissingTeA()
+        throws IOException
+    {
+        TrackedEntityAttribute sTJvSLN7Kcb = trackedEntityAttributeService.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
+        trackedEntityAttributeService.deleteTrackedEntityAttribute( sTJvSLN7Kcb );
+
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_attr-data.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1017 ) ) ) );
+    }
 
     @Test
     public void testAttributesMissingMandatory()

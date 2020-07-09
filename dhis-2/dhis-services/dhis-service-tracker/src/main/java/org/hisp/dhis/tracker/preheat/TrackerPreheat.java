@@ -332,9 +332,6 @@ public class TrackerPreheat
             boolean isDefault = isDefault( object );
             if ( isDefault )
             {
-                //TODO: Investigate why we need to disable this, see Category combo tests, fails if ignore put idDefault
-                // This has to do with the fact of "unstable UID" on default metadata objects like CategoryComo etc.
-                // We therefor need to handle default objects separately and refer to them with name "default"
                 continue;
             }
 

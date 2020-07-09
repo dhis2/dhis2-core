@@ -413,8 +413,6 @@ public class EnrollmentSecurityImportValidationTest
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
-        // TODO: What is the difference here? Why does it fail when program has a tei type set,
-        //  this is the same tei type as the enrollment's tei is having...
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
 

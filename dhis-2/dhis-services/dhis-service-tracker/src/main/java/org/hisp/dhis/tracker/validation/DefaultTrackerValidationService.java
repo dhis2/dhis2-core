@@ -57,6 +57,7 @@ public class DefaultTrackerValidationService
     {
         this.validationHooks = validationHooks;
 
+        // This sorts the hooks according to the VALIDATION_ORDER list in TrackerImportValidationConfig
         TrackerImportValidationConfig.sortHooks( validationHooks );
     }
 

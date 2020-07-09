@@ -100,7 +100,7 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
     }
 
     //TODO: Needs to be fixed, got broken in last commit here
-    @Ignore
+    @Ignore( "Needs to be fixed, got broken in last commit here" )
     @Test
     public void testRuleEngineSideEffectHandlerService()
         throws IOException

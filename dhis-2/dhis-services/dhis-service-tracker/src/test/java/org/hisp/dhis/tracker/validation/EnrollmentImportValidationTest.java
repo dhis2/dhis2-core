@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -482,24 +483,25 @@ public class EnrollmentImportValidationTest
     // TODO: Empty json geo obj OR (missing field in obj) causes strange json mapping exception, should we capture this?
     // com.fasterxml.jackson.databind.JsonMappingException: (was java.lang.NullPointerException) (through reference chain:
     // org.hisp.dhis.tracker.bundle.TrackerBundleParams["enrollments"]->java.util.ArrayList[0]->org.hisp.dhis.tracker.domain.Enrollment["geometry"])
-//    @Test
-//    public void testBadGeoOnEnrollment()
-//        throws IOException
-//    {
-//        TrackerBundleParams params = createBundleFromJson(
-//            "tracker/validations/enrollments_bad-geo.json" );
-//
-//        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
-//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//
-//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-//        printReport( validationReport );
-//
-//        assertEquals( 0, validationReport.getErrorReports().size() );
-//
-////        assertThat( validationReport.getErrorReports(),
-////            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
-//    }
+    @Test
+    @Ignore( "Validation not possible yet exception surface before this validation" )
+    public void testBadGeoOnEnrollment()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson(
+            "tracker/validations/enrollments_bad-geo.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 0, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
+    }
 
     /* FAILS
     * ERROR 00:26:29,461 Value too long for column "GEOMETRY BINARY(255)": "X'aced000573720021636f6d2e7669766964736f6c7574696f6e732e6a74732e67656f6d2e506f696e7444077bad161cbb2a0200014c000b636f6f7264696e61... (1168)"; SQL statement:
@@ -572,30 +574,31 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
     }
 
     // TODO: E1093 can't reproduce
-//    @Test
-//    public void testEnrollmentNoAccessToCheck()
-//        throws IOException
-//    {
-//        ValidateAndCommit createAndUpdate = doValidateAndCommit(
-//            "tracker/validations/enrollments_no-access-check_part1.json", TrackerImportStrategy.CREATE );
-//        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-//        printReport( validationReport );
-//
-//        assertEquals( 0, validationReport.getErrorReports().size() );
-//
-//        createAndUpdate = doValidateAndCommit(
-//            "tracker/validations/enrollments_no-access-check_part2.json", TrackerImportStrategy.CREATE );
-//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//
-//        validationReport = createAndUpdate.getValidationReport();
-//        printReport( validationReport );
-//
-//        assertEquals( 1, validationReport.getErrorReports().size() );
-//
-//        assertThat( validationReport.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1093 ) ) ) );
-//    }
+    @Test
+    @Ignore( "Not possible to provoke, maybe be removed in the new importer" )
+    public void testEnrollmentNoAccessToCheck()
+        throws IOException
+    {
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
+            "tracker/validations/enrollments_no-access-check_part1.json", TrackerImportStrategy.CREATE );
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 0, validationReport.getErrorReports().size() );
+
+        createAndUpdate = validateAndCommit(
+            "tracker/validations/enrollments_no-access-check_part2.json", TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1093 ) ) ) );
+    }
 
     @Test
     public void testBadEnrollmentNoteNoValue()
@@ -655,26 +658,25 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
     }
 
     // TODO: Note persistence not impl yet...
-//    @Test
-//    public void testBadEnrollmentNoteUUIDExist()
-//        throws IOException
-//    {
-//
-//        ValidateAndCommit createAndUpdate = doValidateAndCommit(
-//            "tracker/validations/enrollments_bad-note-uuid-exists-part1.json", TrackerImportStrategy.CREATE );
-//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//        assertEquals( createAndUpdate.getCommitReport().getStatus(), TrackerStatus.OK );
-//
-//        createAndUpdate = doValidateAndCommit(
-//            "tracker/validations/enrollments_bad-note-uuid-exists-part2.json", TrackerImportStrategy.CREATE );
-////        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-//
-//        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-//        printReport( validationReport );
-//
-//        assertEquals( 1, validationReport.getErrorReports().size() );
-//
-//        assertThat( validationReport.getErrorReports(),
-//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1120 ) ) ) );
-//    }
+    @Test
+    @Ignore( "Not persistence not yet impl." )
+    public void testBadEnrollmentNoteUUIDExist()
+        throws IOException
+    {
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
+            "tracker/validations/enrollments_bad-note-uuid-exists-part1.json", TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+        assertEquals( createAndUpdate.getCommitReport().getStatus(), TrackerStatus.OK );
+
+        createAndUpdate = validateAndCommit(
+            "tracker/validations/enrollments_bad-note-uuid-exists-part2.json", TrackerImportStrategy.CREATE );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 1, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1120 ) ) ) );
+    }
 }

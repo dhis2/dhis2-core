@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 
 import java.util.Date;
@@ -89,27 +88,50 @@ public abstract class AbstractTrackerDtoValidationHook
         this.order = order;
     }
 
-    @Autowired
-    protected TrackedEntityAttributeService teAttrService;
+    private final TrackedEntityAttributeService teAttrService;
 
-    @Autowired
-    private TrackedEntityCommentService commentService;
+    private final TrackedEntityCommentService commentService;
 
     private final TrackerImportStrategy strategy;
 
+    /**
+     * Indicates that if an object fails a validation it will be removed
+     * from the input list and unavailable for more validations.
+     */
     private final boolean removeOnError;
 
     private final Class<?> dtoTypeClass;
 
-    public AbstractTrackerDtoValidationHook()
+    /**
+     * This constructor is used by the PreCheck* hooks
+     */
+    public AbstractTrackerDtoValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
+        checkNotNull( teAttrService );
+        checkNotNull( commentService );
+
+        this.teAttrService = teAttrService;
+        this.commentService = commentService;
+
         this.removeOnError = true;
         this.dtoTypeClass = null;
         this.strategy = null;
     }
 
-    public <T extends TrackerDto> AbstractTrackerDtoValidationHook( Class<T> dtoClass, TrackerImportStrategy strategy )
+    public <T extends TrackerDto> AbstractTrackerDtoValidationHook( Class<T> dtoClass, TrackerImportStrategy strategy,
+        TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
+        checkNotNull( teAttrService );
+        checkNotNull( commentService );
+
+        checkNotNull( dtoClass );
+        checkNotNull( strategy );
+
+        this.teAttrService = teAttrService;
+        this.commentService = commentService;
+
         this.removeOnError = false;
         this.dtoTypeClass = dtoClass;
         this.strategy = strategy;

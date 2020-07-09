@@ -33,9 +33,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -78,9 +80,10 @@ public class EnrollmentInExistingValidationHook
     @Autowired
     private TrackerImportAccessManager trackerImportAccessManager;
 
-    public EnrollmentInExistingValidationHook()
+    public EnrollmentInExistingValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
     @Override
@@ -167,7 +170,6 @@ public class EnrollmentInExistingValidationHook
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            // TODO: Move to ownership/security pre check hook if possible?
             if ( trackerOwnershipManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
@@ -175,6 +177,7 @@ public class EnrollmentInExistingValidationHook
                 // this is needed for thread safety in parallel mode.
                 ValidationErrorReporter reporterFork = reporter.fork();
 
+                // Validates the programInstance read access on a fork of the reporter
                 trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance );
 
                 if ( reporterFork.hasErrors() )

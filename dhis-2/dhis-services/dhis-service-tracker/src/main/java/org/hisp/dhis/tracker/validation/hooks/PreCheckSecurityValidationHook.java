@@ -27,10 +27,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -38,7 +39,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
@@ -55,8 +55,18 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 public class PreCheckSecurityValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Autowired
-    private TrackerImportAccessManager accessManager;
+    private final TrackerImportAccessManager accessManager;
+
+    public PreCheckSecurityValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService,
+        TrackerImportAccessManager accessManager )
+    {
+        super( teAttrService, commentService );
+
+        checkNotNull( accessManager );
+
+        this.accessManager = accessManager;
+    }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
@@ -76,12 +86,7 @@ public class PreCheckSecurityValidationHook
             accessManager.checkOrgUnitInCaptureScope( reporter, trackedEntityInstance.getOrganisationUnit() );
         }
 
-        // TODO: Added comment to make sure the reason for this not so intuitive reason,
-        // This should be better commented and documented somewhere
-        // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to trackedEntity in search scope 48a82e5f
-        // Why should we use search?
-        OrganisationUnit incomingOrgUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
-        accessManager.checkOrgUnitInCaptureScope( reporter, incomingOrgUnit );
+        accessManager.checkOrgUnitInCaptureScope( reporter, context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
     }
 
     @Override
@@ -100,8 +105,8 @@ public class PreCheckSecurityValidationHook
             accessManager.checkOrgUnitInCaptureScope( reporter, pi.getOrganisationUnit() );
         }
 
-        OrganisationUnit incomingOrgUnit = validationContext.getOrganisationUnit( enrollment.getOrgUnit() );
-        accessManager.checkOrgUnitInCaptureScope( reporter, incomingOrgUnit );
+        accessManager
+            .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit( enrollment.getOrgUnit() ) );
     }
 
     @Override
@@ -120,10 +125,7 @@ public class PreCheckSecurityValidationHook
             accessManager.checkOrgUnitInCaptureScope( reporter, psi.getOrganisationUnit() );
         }
 
-        // TODO: this check is also done in DefaultTrackerImportAccessManager,
-        //  one case is laxer and this check will possibly overrule in that case when programStageInstance.isCreatableInSearchScope == TRUE
-        //  Investigate....
-        OrganisationUnit incomingOrgUnit = validationContext.getOrganisationUnit( event.getOrgUnit() );
-        accessManager.checkOrgUnitInCaptureScope( reporter, incomingOrgUnit );
+        accessManager
+            .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit( event.getOrgUnit() ) );
     }
 }

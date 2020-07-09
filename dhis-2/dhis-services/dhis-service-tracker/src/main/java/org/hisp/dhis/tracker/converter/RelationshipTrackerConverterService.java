@@ -78,11 +78,6 @@ public class RelationshipTrackerConverterService
     @Override
     public List<Relationship> to( List<org.hisp.dhis.relationship.Relationship> relationships )
     {
-        return _to( relationships );
-    }
-
-    private List<Relationship> _to( List<org.hisp.dhis.relationship.Relationship> relationships )
-    {
         return relationships.stream().map( fromRelationship -> {
 
             Relationship toRelationship = new Relationship();
@@ -92,8 +87,6 @@ public class RelationshipTrackerConverterService
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
             toRelationship.setUpdatedAt( fromRelationship.getLastUpdated().toString() );
-            // TODO do we need this? this is not even the translated name..
-            // toRelationship.setRelationshipName( fromRelationship.getName() );
             toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
 
             return toRelationship;
@@ -172,8 +165,6 @@ public class RelationshipTrackerConverterService
                 toRelationship.setUid( CodeGenerator.generateUid() );
             }
 
-            // TODO do we need this? this is not even the translated name..
-            // toRelationship.setName( fromRelationship.getRelationshipName() );
             toRelationship.setRelationshipType( relationshipType );
 
             if ( fromRelationship.getRelationship() != null )

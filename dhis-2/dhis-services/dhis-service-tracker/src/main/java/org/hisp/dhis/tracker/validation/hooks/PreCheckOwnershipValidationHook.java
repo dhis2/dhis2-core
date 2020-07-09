@@ -36,8 +36,10 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -48,7 +50,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
@@ -69,8 +70,18 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 public class PreCheckOwnershipValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Autowired
-    private TrackerImportAccessManager trackerImportAccessManager;
+    private final TrackerImportAccessManager trackerImportAccessManager;
+
+    public PreCheckOwnershipValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService,
+        TrackerImportAccessManager trackerImportAccessManager )
+    {
+        super( teAttrService, commentService );
+
+        checkNotNull( trackerImportAccessManager );
+
+        this.trackerImportAccessManager = trackerImportAccessManager;
+    }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )

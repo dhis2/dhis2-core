@@ -87,11 +87,6 @@ public class EventTrackerConverterService
     @Override
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
-        return _to( programStageInstances );
-    }
-
-    private List<Event> _to( List<ProgramStageInstance> programStageInstances )
-    {
         List<Event> events = new ArrayList<>();
 
         programStageInstances.forEach( psi -> {
@@ -121,8 +116,6 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
-                // TODO do we need this? this is not even the translated name..
-                // event.setOrgUnitName( ou.getName() );
             }
 
             Program program = psi.getProgramInstance().getProgram();
@@ -212,7 +205,6 @@ public class EventTrackerConverterService
                     getProgramInstance( preheat, TrackerIdScheme.UID, e.getEnrollment(), programStage.getProgram() ) );
             }
 
-            //TODO: Should not this qualify for validation error?
             if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
             {
                 programStageInstance.setUid( CodeGenerator.generateUid() );

@@ -78,17 +78,12 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public List<Enrollment> to( List<ProgramInstance> enrollments )
-    {
-        return _to( enrollments );
-    }
-
-    private List<Enrollment> _to( List<ProgramInstance> programInstances )
+    public List<Enrollment> to( List<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
         programInstances.forEach( tei -> {
-
+            // TODO: Add implementation
         } );
 
         return enrollments;

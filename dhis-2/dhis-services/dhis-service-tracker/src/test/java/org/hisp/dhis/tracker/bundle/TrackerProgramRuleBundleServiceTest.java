@@ -120,8 +120,9 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
     }
 
+    // TODO: Fix this test
     @Test
-    @Ignore // NEED TO FIX PROGRAM RULE ISSUES FIRST
+    @Ignore( " NEED TO FIX PROGRAM RULE ISSUES FIRST" )
     public void testRunRuleEngineForEventOnBundleCreate()
         throws IOException
     {

@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -44,9 +46,10 @@ import org.springframework.stereotype.Component;
 public class EventGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventGeoValidationHook()
+    public EventGeoValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
     @Override

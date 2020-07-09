@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
@@ -43,9 +45,10 @@ import java.util.List;
 @Component
 public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
-    public EnrollmentNoteValidationHook()
+    public EnrollmentNoteValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
     @Override

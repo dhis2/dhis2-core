@@ -94,6 +94,7 @@ public class DefaultTrackerImportAccessManager
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
             //TODO: This state I can't reach, can't enroll in programs without registration...
+            // maybe remove in the new importer?
             reporter.addError( newReport( TrackerErrorCode.E1093 )
                 .addArg( user )
                 .addArg( orgUnit ) );
@@ -152,6 +153,7 @@ public class DefaultTrackerImportAccessManager
         else
         {
             //TODO: This state I can't reach, can't enroll in programs without registration...
+            // maybe remove in the new importer?
             checkOrgUnitInSearchScope( reporter, programInstance.getOrganisationUnit() );
         }
     }
