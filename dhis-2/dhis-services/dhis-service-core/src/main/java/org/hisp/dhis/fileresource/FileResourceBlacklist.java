@@ -29,7 +29,6 @@
 package org.hisp.dhis.fileresource;
 
 import org.apache.commons.io.FilenameUtils;
-
 import com.google.common.collect.ImmutableSet;
 
 /**
