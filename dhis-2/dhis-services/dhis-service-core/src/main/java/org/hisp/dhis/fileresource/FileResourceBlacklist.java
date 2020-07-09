@@ -90,7 +90,7 @@ public class FileResourceBlacklist
      */
     public static boolean isValid( FileResource fileResource )
     {
-        if ( fileResource.getContentType() == null || fileResource.getName() == null )
+        if ( fileResource == null || fileResource.getContentType() == null || fileResource.getName() == null )
         {
             return false;
         }
