@@ -127,7 +127,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
-        if ( !isDateValid( date) )
+        if ( !isDateValid( date ) )
         {
             return;
         }
