@@ -56,9 +56,12 @@ public class FileResourceBlacklistTest
         FileResource frA = new FileResource( "Click_Me.exe", "application/x-ms-dos-executable", 451, "", FileResourceDomain.DATA_VALUE );
         FileResource frB = new FileResource( "evil_script.sh", "application/pdf", 125, "", FileResourceDomain.MESSAGE_ATTACHMENT ); // Fake content type
         FileResource frC = new FileResource( "cookie_stealer", "text/javascript", 631, "", FileResourceDomain.USER_AVATAR ); // No file extension
+        FileResource frD = new FileResource( "malicious_software.msi", null, 235, "", FileResourceDomain.USER_AVATAR ); // No content type
 
         assertFalse( FileResourceBlacklist.isValid( frA ) );
         assertFalse( FileResourceBlacklist.isValid( frB ) );
         assertFalse( FileResourceBlacklist.isValid( frC ) );
+        assertFalse( FileResourceBlacklist.isValid( frD ) );
+        assertFalse( FileResourceBlacklist.isValid( null ) );
     }
 }

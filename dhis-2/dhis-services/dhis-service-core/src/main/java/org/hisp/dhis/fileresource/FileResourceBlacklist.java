@@ -78,7 +78,8 @@ public class FileResourceBlacklist
         "php",
         "bin",
         "sh",
-        "csh"
+        "csh",
+        "bat"
     );
 
     /**
