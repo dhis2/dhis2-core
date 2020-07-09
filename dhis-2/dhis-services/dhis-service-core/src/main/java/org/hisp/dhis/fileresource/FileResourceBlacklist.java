@@ -72,6 +72,7 @@ public class FileResourceBlacklist
         "jar",
         "jsp",
         "exe",
+        "msi",
         "mpkg",
         "xul",
         "php",
