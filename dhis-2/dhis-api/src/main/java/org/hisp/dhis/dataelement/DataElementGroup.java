@@ -41,6 +41,9 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
+import org.hisp.dhis.user.User;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -137,7 +140,7 @@ public class DataElementGroup
     {
         return hasMembers() ? members.iterator().next().getPeriodType() : null;
     }
-    
+
     /**
      * Indicates whether this group has a period type.
      */
@@ -153,7 +156,7 @@ public class DataElementGroup
     {
         return members != null && !members.isEmpty();
     }
-    
+
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
@@ -167,6 +170,13 @@ public class DataElementGroup
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @Override
+    @PropertyTransformer( UserPropertyTransformer.class )
+    public User getUser()
+    {
+        return super.getUser();
+    }
 
     @JsonProperty( "dataElements" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
