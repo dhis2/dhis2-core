@@ -227,6 +227,12 @@ public class DefaultTrackedEntityAttributeValueService
                 throw new IllegalQueryException( "Value is not valid:  " + result );
             }
 
+            if ( attributeValue.getAttribute().isConfidentialBool() &&
+                !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+            {
+                throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
+            }
+
             TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue,
                 attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
