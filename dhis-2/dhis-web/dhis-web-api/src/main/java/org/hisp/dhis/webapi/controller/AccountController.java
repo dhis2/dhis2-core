@@ -88,7 +88,7 @@ public class AccountController
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
+//    private final AuthenticationManager authenticationManager;
     private final ConfigurationService configurationService;
     private final PasswordManager passwordManager;
     private final SecurityService securityService;
@@ -99,7 +99,7 @@ public class AccountController
 
     public AccountController(
         UserService userService,
-        AuthenticationManager authenticationManager,
+//        AuthenticationManager authenticationManager,
         ConfigurationService configurationService,
         PasswordManager passwordManager,
         SecurityService securityService,
@@ -109,7 +109,7 @@ public class AccountController
         ObjectMapper jsonMapper )
     {
         this.userService = userService;
-        this.authenticationManager = authenticationManager;
+//        this.authenticationManager = authenticationManager;
         this.configurationService = configurationService;
         this.passwordManager = passwordManager;
         this.securityService = securityService;
@@ -571,9 +571,9 @@ public class AccountController
             new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
         token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
-        Authentication auth = authenticationManager.authenticate( token );
+//        Authentication auth = authenticationManager.authenticate( token );
 
-        SecurityContextHolder.getContext().setAuthentication( auth );
+//        SecurityContextHolder.getContext().setAuthentication( auth );
 
         HttpSession session = request.getSession();
 

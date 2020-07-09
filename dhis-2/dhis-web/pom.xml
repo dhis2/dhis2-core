@@ -12,15 +12,15 @@
   <description>This project is a web based GUI for the DHIS 2 system.</description>
 
   <modules>
-    <module>dhis-web-commons</module>
-    <module>dhis-web-commons-resources</module>
+<!--    <module>dhis-web-commons</module>-->
+<!--    <module>dhis-web-commons-resources</module>-->
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
     <module>dhis-web-uaa</module>
-    <module>dhis-web-maintenance</module>
-    <module>dhis-web-dataentry</module>
-    <module>dhis-web-approval</module>
-    <module>dhis-web-apps</module>
+<!--    <module>dhis-web-maintenance</module>-->
+<!--    <module>dhis-web-dataentry</module>-->
+<!--    <module>dhis-web-approval</module>-->
+<!--    <module>dhis-web-apps</module>-->
     <module>dhis-web-portal</module>
   </modules>
 
@@ -139,6 +139,7 @@
           </systemProperties>
           <webAppConfig>
             <contextPath>/</contextPath>
+            <allowDuplicateFragmentNames>true</allowDuplicateFragmentNames>
           </webAppConfig>
         </configuration>
       </plugin>

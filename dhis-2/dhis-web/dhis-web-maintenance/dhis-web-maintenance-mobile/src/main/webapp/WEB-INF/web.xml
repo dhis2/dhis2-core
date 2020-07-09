@@ -30,7 +30,7 @@
   </filter>
   <filter>
     <filter-name>shallowEtagHeaderFilter</filter-name>
-    <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+    <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>
     <async-supported>true</async-supported>
     <init-param>
       <param-name>excludeUriRegex</param-name>

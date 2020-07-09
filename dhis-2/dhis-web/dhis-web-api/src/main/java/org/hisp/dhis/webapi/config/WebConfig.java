@@ -78,54 +78,76 @@ public class WebConfig
         return new HandlerMappingIntrospector();
     }
 
+//    @Bean
+//    public CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy()
+//    {
+//        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+//            mediaTypeMap );
+//        customPathExtensionContentNegotiationStrategy.setUseJaf( false );
+//        return customPathExtensionContentNegotiationStrategy;
+//    }
+//
+//    @Bean
+//    public ParameterContentNegotiationStrategy parameterContentNegotiationStrategy()
+//    {
+//        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls","pdf", "csv"};
+//
+//        return new ParameterContentNegotiationStrategy( mediaTypeMap.entrySet().stream()
+//            .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
+//            .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
+//    }
+//
+//    @Bean
+//    public HeaderContentNegotiationStrategy headerContentNegotiationStrategy()
+//    {
+//        return new HeaderContentNegotiationStrategy();
+//    }
+//
+//    @Bean
+//    public FixedContentNegotiationStrategy fixedContentNegotiationStrategy()
+//    {
+//        return new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON );
+//    }
+//
+//    @Bean
+//    public ContentNegotiationManager contentNegotiationManager(
+//        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy,
+//        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy,
+//        HeaderContentNegotiationStrategy headerContentNegotiationStrategy,
+//        FixedContentNegotiationStrategy fixedContentNegotiationStrategy )
+//    {
+//        return new ContentNegotiationManager( Arrays.asList( customPathExtensionContentNegotiationStrategy,
+//            parameterContentNegotiationStrategy, headerContentNegotiationStrategy, fixedContentNegotiationStrategy ) );
+//    }
+
     @Bean
-    public CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy()
+    public CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping()
     {
+
         CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
         customPathExtensionContentNegotiationStrategy.setUseJaf( false );
-        return customPathExtensionContentNegotiationStrategy;
-    }
 
-    @Bean
-    public ParameterContentNegotiationStrategy parameterContentNegotiationStrategy()
-    {
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls","pdf", "csv"};
 
-        return new ParameterContentNegotiationStrategy( mediaTypeMap.entrySet().stream()
-            .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
-            .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
-    }
+        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
+            mediaTypeMap.entrySet().stream()
+                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
+                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
 
-    @Bean
-    public HeaderContentNegotiationStrategy headerContentNegotiationStrategy()
-    {
-        return new HeaderContentNegotiationStrategy();
-    }
+        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
 
-    @Bean
-    public FixedContentNegotiationStrategy fixedContentNegotiationStrategy()
-    {
-        return new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON );
-    }
+        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
+            MediaType.APPLICATION_JSON );
 
-    @Bean
-    public ContentNegotiationManager contentNegotiationManager(
-        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy,
-        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy,
-        HeaderContentNegotiationStrategy headerContentNegotiationStrategy,
-        FixedContentNegotiationStrategy fixedContentNegotiationStrategy )
-    {
-        return new ContentNegotiationManager( Arrays.asList( customPathExtensionContentNegotiationStrategy,
-            parameterContentNegotiationStrategy, headerContentNegotiationStrategy, fixedContentNegotiationStrategy ) );
-    }
+        ContentNegotiationManager contentNegotiationManager1 = new ContentNegotiationManager(
+            Arrays.asList( customPathExtensionContentNegotiationStrategy,
+                parameterContentNegotiationStrategy, headerContentNegotiationStrategy,
+                fixedContentNegotiationStrategy ) );
 
-    @Bean
-    public CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping(
-        ContentNegotiationManager contentNegotiationManager )
-    {
+
         CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping = new CustomRequestMappingHandlerMapping();
-        customRequestMappingHandlerMapping.setContentNegotiationManager( contentNegotiationManager );
+        customRequestMappingHandlerMapping.setContentNegotiationManager( contentNegotiationManager1 );
 
         return customRequestMappingHandlerMapping;
     }

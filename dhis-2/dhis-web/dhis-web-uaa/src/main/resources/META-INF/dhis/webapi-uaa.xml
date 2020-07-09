@@ -10,15 +10,15 @@
     http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
     http://www.springframework.org/schema/security/oauth2 https://www.springframework.org/schema/security/spring-security-oauth2.xsd">
 
-  <bean id="velocityConfig" class="org.springframework.web.servlet.view.velocity.VelocityConfigurer">
-    <property name="resourceLoaderPath" value="/WEB-INF/dhis-web-uaa/" />
-  </bean>
+<!--  <bean id="velocityConfig" class="org.springframework.web.servlet.view.velocity.VelocityConfigurer">-->
+<!--    <property name="resourceLoaderPath" value="/WEB-INF/dhis-web-uaa/" />-->
+<!--  </bean>-->
 
-  <bean id="viewResolver" class="org.springframework.web.servlet.view.velocity.VelocityViewResolver">
-    <property name="cache" value="true" />
-    <property name="prefix" value="" />
-    <property name="suffix" value=".vm" />
-  </bean>
+<!--  <bean id="viewResolver" class="org.springframework.web.servlet.view.velocity.VelocityViewResolver">-->
+<!--    <property name="cache" value="true" />-->
+<!--    <property name="prefix" value="" />-->
+<!--    <property name="suffix" value=".vm" />-->
+<!--  </bean>-->
 
   <context:annotation-config />
 

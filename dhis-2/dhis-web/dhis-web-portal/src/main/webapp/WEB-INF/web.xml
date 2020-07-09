@@ -16,32 +16,35 @@
 
   <!-- Filters -->
 
-  <filter>
-    <filter-name>RedirectFilter</filter-name>
-    <filter-class>org.hisp.dhis.servlet.filter.HttpRedirectFilter</filter-class>
-    <async-supported>true</async-supported>
-    <init-param>
-      <param-name>redirectPath</param-name>
-      <param-value>dhis-web-commons-about/redirect.action</param-value>
-    </init-param>
-  </filter>
+<!--  <filter>-->
+<!--    <filter-name>RedirectFilter</filter-name>-->
+<!--    <filter-class>org.hisp.dhis.servlet.filter.HttpRedirectFilter</filter-class>-->
+<!--    <async-supported>true</async-supported>-->
+<!--    <init-param>-->
+<!--      <param-name>redirectPath</param-name>-->
+<!--      <param-value>dhis-web-commons-about/redirect.action</param-value>-->
+<!--    </init-param>-->
+<!--  </filter>-->
+
   <filter>
     <filter-name>shallowEtagHeaderFilter</filter-name>
-    <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+    <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>
     <async-supported>true</async-supported>
     <init-param>
       <param-name>excludeUriRegex</param-name>
       <param-value>/api/(\d{2}/)?dataValueSets|/api/(\d{2}/)?dataValues|/api/(\d{2}/)?fileResources</param-value>
     </init-param>
   </filter>
-  <filter>
-    <filter-name>httpNoCacheFilter</filter-name>
-    <filter-class>org.hisp.dhis.servlet.filter.HttpNoCacheFilter</filter-class>
-    <init-param>
-      <param-name>urlPattern</param-name>
-      <param-value>index\.html|/$</param-value>
-    </init-param>
-  </filter>
+<!--  -->
+<!--  <filter>-->
+<!--    <filter-name>httpNoCacheFilter</filter-name>-->
+<!--    <filter-class>org.hisp.dhis.servlet.filter.HttpNoCacheFilter</filter-class>-->
+<!--    <init-param>-->
+<!--      <param-name>urlPattern</param-name>-->
+<!--      <param-value>index\.html|/$</param-value>-->
+<!--    </init-param>-->
+<!--  </filter>-->
+
   <filter>
     <filter-name>hiddenHttpMethodFilter</filter-name>
     <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
@@ -57,11 +60,13 @@
     <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     <async-supported>true</async-supported>
   </filter>
-  <filter>
-    <filter-name>Struts</filter-name>
-    <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
-    <async-supported>true</async-supported>
-  </filter>
+
+<!--  <filter>-->
+<!--    <filter-name>Struts</filter-name>-->
+<!--    <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>-->
+<!--    <async-supported>true</async-supported>-->
+<!--  </filter>-->
+
   <filter>
     <filter-name>encoding-filter</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -75,11 +80,12 @@
       <param-value>true</param-value>
     </init-param>
   </filter>
-  <filter>
-    <filter-name>appCacheFilter</filter-name>
-    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-    <async-supported>true</async-supported>
-  </filter>
+
+<!--  <filter>-->
+<!--    <filter-name>appCacheFilter</filter-name>-->
+<!--    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>-->
+<!--    <async-supported>true</async-supported>-->
+<!--  </filter>-->
 
   <filter>
     <filter-name>springSessionRepositoryFilter</filter-name>
@@ -115,30 +121,37 @@
     <filter-name>encoding-filter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  <filter-mapping>
-    <filter-name>RedirectFilter</filter-name>
-    <url-pattern>/</url-pattern>
-  </filter-mapping>
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>RedirectFilter</filter-name>-->
+<!--    <url-pattern>/</url-pattern>-->
+<!--  </filter-mapping>-->
+
   <filter-mapping>
     <filter-name>OpenSessionInViewFilter</filter-name>
     <url-pattern>*.action</url-pattern>
   </filter-mapping>
+
   <filter-mapping>
     <filter-name>OpenSessionInViewFilter</filter-name>
     <url-pattern>/api/*</url-pattern>
   </filter-mapping>
+
   <filter-mapping>
     <filter-name>shallowEtagHeaderFilter</filter-name>
     <url-pattern>/api/*</url-pattern>
   </filter-mapping>
-  <filter-mapping>
-    <filter-name>httpNoCacheFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>httpNoCacheFilter</filter-name>-->
+<!--    <url-pattern>/*</url-pattern>-->
+<!--  </filter-mapping>-->
+
   <filter-mapping>
     <filter-name>hiddenHttpMethodFilter</filter-name>
     <url-pattern>/uaa/*</url-pattern>
   </filter-mapping>
+
   <filter-mapping>
     <filter-name>OpenSessionInViewFilter</filter-name>
     <url-pattern>/uaa/*</url-pattern>
@@ -151,14 +164,16 @@
     <filter-name>springSecurityFilterChain</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  <filter-mapping>
-    <filter-name>Struts</filter-name>
-    <url-pattern>*.action</url-pattern>
-  </filter-mapping>
-  <filter-mapping>
-    <filter-name>appCacheFilter</filter-name>
-    <url-pattern>*.appcache</url-pattern>
-  </filter-mapping>
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>Struts</filter-name>-->
+<!--    <url-pattern>*.action</url-pattern>-->
+<!--  </filter-mapping>-->
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>appCacheFilter</filter-name>-->
+<!--    <url-pattern>*.appcache</url-pattern>-->
+<!--  </filter-mapping>-->
   <filter-mapping>
     <filter-name>requestIdentifierFilter</filter-name>
     <url-pattern>/*</url-pattern>

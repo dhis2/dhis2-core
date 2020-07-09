@@ -1,4 +1,4 @@
-package org.hisp.dhis.servlet.filter;
+package org.hisp.dhis.webapi.filter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -55,7 +55,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  * {@code
  * <filter>
  *     <filter-name>ShallowEtagHeaderFilter</filter-name>
- *     <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+ *     <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>
  *     <init-param>
  *         <param-name>excludeUriRegex</param-name>
  *         <param-value>/api/dataValues|/api/dataValues/files</param-value>

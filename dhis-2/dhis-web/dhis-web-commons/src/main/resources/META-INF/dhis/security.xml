@@ -59,7 +59,7 @@
 
   <bean id="corsFilter" class="org.hisp.dhis.security.filter.CorsFilter" />
 
-  <bean id="appCacheFilter" class="org.hisp.dhis.servlet.filter.AppCacheFilter" />
+  <bean id="appCacheFilter" class="org.hisp.dhis.webapi.filter.AppCacheFilter" />
 
   <sec:http access-decision-manager-ref="accessDecisionManager"
     authentication-manager-ref="authenticationManager" pattern="/dhis-web-commons/javascripts/**" security="none" />
@@ -129,6 +129,7 @@
 
     <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint"
       authentication-details-source-ref="httpBasicWebAuthenticationDetailsSource"/>
+
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />

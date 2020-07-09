@@ -7,9 +7,9 @@
     http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-  <sec:global-method-security pre-post-annotations="enabled">
-    <sec:expression-handler ref="methodSecurityExpressionHandler" />
-  </sec:global-method-security>
+  <!--  <sec:global-method-security pre-post-annotations="enabled">-->
+  <!--    <sec:expression-handler ref="methodSecurityExpressionHandler" />-->
+  <!--  </sec:global-method-security>-->
 
   <context:component-scan base-package="org.hisp.dhis.webapi" />
 
@@ -80,36 +80,36 @@
 
   <bean id="defaultHandlerExceptionResolver" class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
 
-  <bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver">
-    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
-    <property name="messageConverters">
-      <list>
-        <ref bean="jsonMessageConverter" />
-        <ref bean="jsonMessageConverterGZIP" />
-        <ref bean="jsonMessageConverterZIP" />
-        <ref bean="xmlMessageConverter" />
-        <ref bean="xmlMessageConverterGZIP" />
-        <ref bean="xmlMessageConverterZIP" />
-        <ref bean="jsonPMessageConverter" />
-        <ref bean="csvMessageConverter" />
-        <ref bean="csvMessageConverterGZIP" />
-        <ref bean="csvMessageConverterZIP" />
-        <ref bean="pdfMessageConverter" />
-        <ref bean="excelMessageConverter" />
-        <ref bean="stringHttpMessageConverter" />
-        <ref bean="byteArrayHttpMessageConverter" />
-        <ref bean="formHttpMessageConverter" />
-        <ref bean="renderServiceMessageConverter" />
-      </list>
-    </property>
-  </bean>
+<!--  <bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver">-->
+<!--    <property name="contentNegotiationManager" ref="contentNegotiationManager" />-->
+<!--    <property name="messageConverters">-->
+<!--      <list>-->
+<!--        <ref bean="jsonMessageConverter" />-->
+<!--        <ref bean="jsonMessageConverterGZIP" />-->
+<!--        <ref bean="jsonMessageConverterZIP" />-->
+<!--        <ref bean="xmlMessageConverter" />-->
+<!--        <ref bean="xmlMessageConverterGZIP" />-->
+<!--        <ref bean="xmlMessageConverterZIP" />-->
+<!--        <ref bean="jsonPMessageConverter" />-->
+<!--        <ref bean="csvMessageConverter" />-->
+<!--        <ref bean="csvMessageConverterGZIP" />-->
+<!--        <ref bean="csvMessageConverterZIP" />-->
+<!--        <ref bean="pdfMessageConverter" />-->
+<!--        <ref bean="excelMessageConverter" />-->
+<!--        <ref bean="stringHttpMessageConverter" />-->
+<!--        <ref bean="byteArrayHttpMessageConverter" />-->
+<!--        <ref bean="formHttpMessageConverter" />-->
+<!--        <ref bean="renderServiceMessageConverter" />-->
+<!--      </list>-->
+<!--    </property>-->
+<!--  </bean>-->
 
   <bean class="org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter" />
 
   <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />
 
   <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
-    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+<!--    <property name="contentNegotiationManager" ref="contentNegotiationManager" />-->
     <property name="webBindingInitializer">
       <bean class="org.springframework.web.bind.support.ConfigurableWebBindingInitializer">
         <property name="conversionService" ref="conversionService" />
@@ -178,18 +178,25 @@
     <bean class="org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor" />
   </mvc:interceptors>
 
-  <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
-    <property name="order" value="1" />
-    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+<!--  <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">-->
+<!--    <property name="order" value="1" />-->
+<!--    <property name="contentNegotiationManager" ref="contentNegotiationManager" />-->
 
-    <property name="defaultViews">
-      <list>
-        <bean class="org.hisp.dhis.webapi.view.PdfGridView" />
+<!--    <property name="defaultViews">-->
+<!--      <list>-->
+<!--        <bean class="org.hisp.dhis.webapi.view.PdfGridView" />-->
 
-        <bean class="org.hisp.dhis.webapi.view.ExcelGridView" />
+<!--        <bean class="org.hisp.dhis.webapi.view.ExcelGridView" />-->
 
-        <bean class="org.hisp.dhis.webapi.view.CsvGridView" />
-      </list>
-    </property>
+<!--        <bean class="org.hisp.dhis.webapi.view.CsvGridView" />-->
+<!--      </list>-->
+<!--    </property>-->
+<!--  </bean>-->
+
+
+  <bean id="methodSecurityExpressionHandler"
+        class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
+    <property name="defaultRolePrefix" value="" />
   </bean>
+
 </beans>

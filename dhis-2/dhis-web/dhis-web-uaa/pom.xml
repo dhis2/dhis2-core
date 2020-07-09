@@ -17,16 +17,16 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-commons</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-commons-resources</artifactId>
-      <type>war</type>
-      <optional>true</optional>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.hisp.dhis</groupId>-->
+<!--      <artifactId>dhis-web-commons</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.hisp.dhis</groupId>-->
+<!--      <artifactId>dhis-web-commons-resources</artifactId>-->
+<!--      <type>war</type>-->
+<!--      <optional>true</optional>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
