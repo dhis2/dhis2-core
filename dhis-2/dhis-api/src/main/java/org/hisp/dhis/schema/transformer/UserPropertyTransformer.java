@@ -29,17 +29,24 @@ package org.hisp.dhis.schema.transformer;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.schema.PropertyTransformer;
+import org.hisp.dhis.schema.AbstractPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class UserPropertyTransformer
-    implements PropertyTransformer
+    extends AbstractPropertyTransformer<User>
 {
     @Override
     public Object transform( Object o )
@@ -56,6 +63,28 @@ public class UserPropertyTransformer
             .id( userCredentials.getUuid().toString() )
             .username( userCredentials.getUsername() )
             .build();
+    }
+
+    @Override
+    public User deserialize( JsonParser jp, DeserializationContext ctxt ) throws IOException, JsonProcessingException
+    {
+        User user = new User();
+        UserCredentials userCredentials = new UserCredentials();
+        user.setUserCredentials( userCredentials );
+
+        JsonNode node = jp.getCodec().readTree( jp );
+
+        if ( node.has( "id" ) )
+        {
+            userCredentials.setUuid( UUID.fromString( node.get( "id" ).asText() ) );
+        }
+
+        if ( node.has( "username" ) )
+        {
+            userCredentials.setUsername( node.get( "username" ).asText() );
+        }
+
+        return user;
     }
 
     @Data

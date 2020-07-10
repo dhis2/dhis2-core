@@ -29,6 +29,7 @@ package org.hisp.dhis.dataelement;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -172,6 +173,7 @@ public class DataElementGroup
     // -------------------------------------------------------------------------
 
     @Override
+    @JsonDeserialize( using = UserPropertyTransformer.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     public User getUser()
     {
