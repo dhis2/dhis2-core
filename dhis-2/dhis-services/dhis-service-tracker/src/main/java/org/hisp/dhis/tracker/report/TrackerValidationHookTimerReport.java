@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.report;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,32 +26,26 @@ package org.hisp.dhis.tracker;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.text.MessageFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class is used for timing (performance) reports of the individual validation hook.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TrackerErrorMessage
+@Data
+@Builder
+public class TrackerValidationHookTimerReport
 {
-    private final TrackerErrorCode errorCode;
+    @JsonProperty
+    public String totalTime;
 
-    private final Object[] args;
+    @JsonProperty
+    public String name;
 
-    public TrackerErrorMessage( TrackerErrorCode errorCode, Object... args )
-    {
-        this.errorCode = errorCode;
-        this.args = args;
-    }
-
-    public TrackerErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
-
-    public String getMessage()
-    {
-        return MessageFormat.format( errorCode.getMessage(), args );
-    }
 }

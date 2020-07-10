@@ -53,6 +53,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Event
     extends BaseLinkableObject
+    implements TrackerDto
 {
     private String uid;
 
@@ -82,6 +83,7 @@ public class Event
     private String trackedEntity;
 
     @JsonProperty
+    @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
@@ -104,12 +106,6 @@ public class Event
 
     @JsonProperty
     private String updatedAt;
-
-    @JsonProperty
-    private String clientCreatedAt;
-
-    @JsonProperty
-    private String clientUpdatedAt;
 
     @JsonProperty
     private String attributeOptionCombo;
