@@ -90,7 +90,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     }
 
     @Transactional
-    protected ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
+    public ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
         String uid = "";
 
@@ -125,7 +125,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     }
 
     @Transactional
-    protected boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( ruleEffect == null || programInstance == null )
         {

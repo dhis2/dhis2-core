@@ -91,6 +91,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programInstance );
 
         publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
@@ -109,6 +114,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         }
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 

@@ -29,7 +29,6 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 

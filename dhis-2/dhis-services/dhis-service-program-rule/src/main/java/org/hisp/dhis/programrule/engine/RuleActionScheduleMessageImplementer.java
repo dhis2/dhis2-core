@@ -90,6 +90,11 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programInstance );
 
         String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
@@ -122,6 +127,11 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         }
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 

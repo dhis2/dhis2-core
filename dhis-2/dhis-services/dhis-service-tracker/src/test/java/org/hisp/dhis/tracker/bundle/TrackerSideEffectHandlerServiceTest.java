@@ -113,7 +113,7 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore
+    @Ignore( "Needs to be added once rule engine PR is merged" )
     public void testRuleEngineSideEffectHandlerService()
         throws IOException
     {
