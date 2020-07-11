@@ -37,7 +37,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +72,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         return trackedEntityInstances.stream().map( tei -> {
@@ -87,7 +85,8 @@ public class TrackedEntityTrackerConverterService
     @Override
     public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntity trackedEntityInstance )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( Collections.singletonList( trackedEntityInstance ) );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from(
+            Collections.singletonList( trackedEntityInstance ) );
 
         if ( trackedEntityInstances.isEmpty() )
         {
@@ -98,9 +97,11 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity trackedEntityInstance )
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat,
+        TrackedEntity trackedEntityInstance )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( preheat, Collections.singletonList( trackedEntityInstance ) );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( preheat,
+            Collections.singletonList( trackedEntityInstance ) );
 
         if ( trackedEntityInstances.isEmpty() )
         {
@@ -116,9 +117,7 @@ public class TrackedEntityTrackerConverterService
         return from( preheat( trackedEntityInstances ), trackedEntityInstances );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
+    private List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
@@ -126,8 +125,10 @@ public class TrackedEntityTrackerConverterService
         trackedEntityInstances.forEach( te -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity = preheat.getTrackedEntity(
                 TrackerIdScheme.UID, te.getTrackedEntity() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, te.getOrgUnit() );
-            TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, te.getTrackedEntityType() );
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, te.getOrgUnit() );
+            TrackedEntityType trackedEntityType = preheat
+                .get( TrackerIdScheme.UID, TrackedEntityType.class, te.getTrackedEntityType() );
 
             if ( trackedEntity == null )
             {

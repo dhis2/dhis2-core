@@ -50,10 +50,10 @@ public class AuditSideEffectHandlerService implements SideEffectHandlerService
 {
     private static final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER =
         new ImmutableMap.Builder<TrackerImportStrategy, AuditType>()
-        .put( TrackerImportStrategy.CREATE, AuditType.CREATE )
-        .put( TrackerImportStrategy.UPDATE, AuditType.UPDATE )
-        .put( TrackerImportStrategy.DELETE, AuditType.DELETE )
-        .build();
+            .put( TrackerImportStrategy.CREATE, AuditType.CREATE )
+            .put( TrackerImportStrategy.UPDATE, AuditType.UPDATE )
+            .put( TrackerImportStrategy.DELETE, AuditType.DELETE )
+            .build();
 
     private final AuditManager auditManager;
 

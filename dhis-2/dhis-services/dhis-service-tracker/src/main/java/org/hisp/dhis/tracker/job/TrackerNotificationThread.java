@@ -51,11 +51,12 @@ import java.util.function.Consumer;
 
 @Component
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
-public class TrackerNotificationThread   extends SecurityContextRunnable
+public class TrackerNotificationThread extends SecurityContextRunnable
 {
     private final Notifier notifier;
 
     private ProgramNotificationService programNotificationService;
+
     private TrackerSideEffectDataBundle sideEffectDataBundle;
     private IdentifiableObjectManager manager;
 

@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -59,7 +59,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityProgramAttributeTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -83,8 +83,11 @@ public class TrackedEntityProgramAttributeTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -103,17 +106,13 @@ public class TrackedEntityProgramAttributeTest
         objectBundleService.commit( bundle );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
-    public void testTrackedEntityProgramAttributeValue() throws IOException
+    public void testTrackedEntityProgramAttributeValue()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -130,17 +129,20 @@ public class TrackedEntityProgramAttributeTest
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
-            trackedEntityInstance );
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
+            .getTrackedEntityAttributeValues(
+                trackedEntityInstance );
 
         assertEquals( 4, attributeValues.size() );
     }
 
     @Test
-    public void testTrackedEntityProgramAttributeValueUpdate() throws IOException
+    public void testTrackedEntityProgramAttributeValueUpdate()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -157,15 +159,17 @@ public class TrackedEntityProgramAttributeTest
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
-            trackedEntityInstance );
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
+            .getTrackedEntityAttributeValues(
+                trackedEntityInstance );
 
         assertEquals( 4, attributeValues.size() );
 
         // update
 
-        trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -188,10 +192,12 @@ public class TrackedEntityProgramAttributeTest
     }
 
     @Test
-    public void testTrackedEntityProgramAttributeValueUpdateAndDelete() throws IOException
+    public void testTrackedEntityProgramAttributeValueUpdateAndDelete()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -208,15 +214,17 @@ public class TrackedEntityProgramAttributeTest
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
-            trackedEntityInstance );
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
+            .getTrackedEntityAttributeValues(
+                trackedEntityInstance );
 
         assertEquals( 4, attributeValues.size() );
 
         // update
 
-        trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -239,8 +247,9 @@ public class TrackedEntityProgramAttributeTest
 
         // delete
 
-        trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_delete_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/te_program_with_tea_delete_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
