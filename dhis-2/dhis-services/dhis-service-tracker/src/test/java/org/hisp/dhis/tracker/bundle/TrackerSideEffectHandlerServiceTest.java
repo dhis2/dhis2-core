@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -112,6 +113,7 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
     }
 
     @Test
+    @Ignore
     public void testRuleEngineSideEffectHandlerService()
         throws IOException
     {

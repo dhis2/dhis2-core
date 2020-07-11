@@ -168,12 +168,12 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-        trackerBundle.setEventRuleEffects( eventRuleEffects );
+//        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+//            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+//        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+//            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+//        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+//        trackerBundle.setEventRuleEffects( eventRuleEffects );
 
         return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
     }
