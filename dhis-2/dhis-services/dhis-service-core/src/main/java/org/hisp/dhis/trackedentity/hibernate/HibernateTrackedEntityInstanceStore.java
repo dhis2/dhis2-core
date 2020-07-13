@@ -150,6 +150,11 @@ public class HibernateTrackedEntityInstanceStore
             query.setMaxResults( params.getPageSizeWithDefault() );
         }
 
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            query.setParameter( "assignedUsers", params.getAssignedUsers() );
+        }
+
         return query.list();
     }
 
@@ -827,7 +832,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasAssignedUsers() )
         {
-            hql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
+            hql += " (au.uid in (:assignedUsers)) and ";
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )

@@ -156,7 +156,17 @@ public class JdbcEventStore
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        SqlRowSet rowSet;
+
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql, getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+        }
+        else
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql );
+        }
 
         log.debug( "Event query SQL: " + sql );
 
@@ -408,7 +418,17 @@ public class JdbcEventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        SqlRowSet rowSet;
+
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql, getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+        }
+        else
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql );
+        }
 
         log.debug( "Event query SQL: " + sql );
 
@@ -599,7 +619,14 @@ public class JdbcEventStore
 
         log.debug( "Event query count SQL: " + sql );
 
-        return jdbcTemplate.queryForObject( sql, Integer.class );
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            return jdbcTemplate.queryForObject( sql, new Object[] { params.getAssignedUsers() }, Integer.class );
+        }
+        else
+        {
+            return jdbcTemplate.queryForObject( sql, Integer.class );
+        }
     }
 
     private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
@@ -907,7 +934,7 @@ public class JdbcEventStore
 
         if ( params.hasAssignedUsers() )
         {
-            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+            sql += hlp.whereAnd() + " (au.uid in (?)) ";
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )
