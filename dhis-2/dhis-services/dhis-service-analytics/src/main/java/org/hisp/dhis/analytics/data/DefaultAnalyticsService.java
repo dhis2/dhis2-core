@@ -1348,11 +1348,12 @@ public class DefaultAnalyticsService
      * @param indicators the list of indicators.
      * @return a dimensional items to aggregate values map.
      */
-    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap(DataQueryParams params,
-                                                                                       List<Indicator> indicators )
+    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap( DataQueryParams params,
+        List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists
-                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
+            .newArrayList(
+                expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1361,7 +1362,8 @@ public class DefaultAnalyticsService
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 
-        DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
+        DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = DataQueryParams
             .newBuilder( params )
@@ -1381,8 +1383,8 @@ public class DefaultAnalyticsService
             return result;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex )
-                -> index == -1 ? defaultIndex : index;
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
+            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
 
         final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
         final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
@@ -1395,7 +1397,8 @@ public class DefaultAnalyticsService
             final List<DimensionalItemObject> dimensionalItems = AnalyticsUtils
                 .findDimensionalItems( (String) row.get( dataIndex ), items );
 
-            // Check if the current row's Period belongs to the list of periods from the original Analytics request
+            // Check if the current row's Period belongs to the list of periods from the
+            // original Analytics request
             // The row may not have a Period if Period is used as filter
             if ( hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
