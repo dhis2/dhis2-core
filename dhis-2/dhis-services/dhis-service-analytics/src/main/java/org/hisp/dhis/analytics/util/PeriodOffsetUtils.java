@@ -164,7 +164,7 @@ public class PeriodOffsetUtils
                 .collect( Collectors.toList() );
 
             return DataQueryParams.newBuilder( params )
-                .withPeriods( nonShiftedPeriods )
+                .withPeriods( params.getDimension( PERIOD_DIM_ID ).getDimensionName(), nonShiftedPeriods )
                 .build();
         }
         return params;

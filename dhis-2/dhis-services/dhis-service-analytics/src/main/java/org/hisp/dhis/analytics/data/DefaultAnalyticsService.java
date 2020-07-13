@@ -1392,41 +1392,49 @@ public class DefaultAnalyticsService
 
         for ( List<Object> row : grid.getRows() )
         {
-            // Check if the current row period belongs to the list of periods from the original request
-            if ( hasPeriod( row, periodIndex) &&  isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+            final List<DimensionalItemObject> dimensionalItems = AnalyticsUtils
+                .findDimensionalItems( (String) row.get( dataIndex ), items );
+
+            // Check if the current row's Period belongs to the list of periods from the original Analytics request
+            // The row may not have a Period if Period is used as filter
+            if ( hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
-                // Key is composed of [uid-period]
-                final String key = StringUtils.join(
-                    ArrayUtils.remove( row.toArray( new Object[0] ), valueIndex ),
-                    DimensionalObject.DIMENSION_SEP );
-
-                final DimensionalItemObject dimensionalItemObject = AnalyticsUtils.findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
-                DimensionalItemObject clone = dimensionalItemObject;
-
-                if ( dimensionalItemObject.getPeriodOffset() != 0 )
+                if ( dimensionalItems.size() == 1 )
                 {
-                    List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
-                        (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
-                    if ( periodOffsetRow != null )
-                    {
-                        result.put( key,
-                            new DimensionItemObjectValue( dimensionalItemObject,
-                                (Double) periodOffsetRow.get( valueIndex ) ) );
+                    // Key is composed of [uid-period]
+                    final String key = StringUtils.join(
+                        ArrayUtils.remove( row.toArray( new Object[0] ), valueIndex ),
+                        DimensionalObject.DIMENSION_SEP );
 
+                    final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
+                    DimensionalItemObject clone = dimensionalItemObject;
+
+                    if ( dimensionalItemObject.getPeriodOffset() != 0 )
+                    {
+                        List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
+                            (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
+
+                        if ( periodOffsetRow != null )
+                        {
+                            result.put( key,
+                                new DimensionItemObjectValue( dimensionalItemObject,
+                                    (Double) periodOffsetRow.get( valueIndex ) ) );
+                        }
+
+                        clone = SerializationUtils.clone( dimensionalItemObject );
                     }
 
-                    clone = SerializationUtils.clone( dimensionalItemObject );
+                    result.put( key,
+                        new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
                 }
-
-                result.put( key,
-                    new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
             }
             else
             {
-                final DimensionalItemObject dimensionalItemObject = AnalyticsUtils
-                    .findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
-                result.put( dimensionalItemObject.getUid(),
-                    new DimensionItemObjectValue( dimensionalItemObject, (Double) row.get( valueIndex ) ) );
+                if ( dimensionalItems.size() == 1 )
+                {
+                    result.put( dimensionalItems.get( 0 ).getDimensionItem(),
+                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                }
             }
         }
 
