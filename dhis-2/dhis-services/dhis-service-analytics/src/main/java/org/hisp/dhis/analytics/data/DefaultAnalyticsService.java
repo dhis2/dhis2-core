@@ -1400,7 +1400,7 @@ public class DefaultAnalyticsService
             // Check if the current row's Period belongs to the list of periods from the
             // original Analytics request
             // The row may not have a Period if Period is used as filter
-            if ( hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+            if ( AnalyticsUtils.hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
                 if ( dimensionalItems.size() == 1 )
                 {
@@ -1442,12 +1442,6 @@ public class DefaultAnalyticsService
         }
 
         return result;
-    }
-
-    private boolean hasPeriod( List<Object> row, int periodIndex )
-    {
-        return periodIndex <= row.size() && row.get( periodIndex ) instanceof String
-            && PeriodType.getPeriodFromIsoString( (String) row.get( periodIndex ) ) != null;
     }
 
     /**

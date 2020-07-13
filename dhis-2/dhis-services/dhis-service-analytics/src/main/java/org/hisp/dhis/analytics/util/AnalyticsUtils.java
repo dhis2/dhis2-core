@@ -906,4 +906,18 @@ public class AnalyticsUtils
             .filter( dio -> dio.getDimensionItem() != null && dio.getDimensionItem().equals( dimensionIdentifier ) )
             .collect( Collectors.toList() );
     }
+
+    /**
+     * Check if the given Grid's row contains a valid period iso string
+     * 
+     * @param row the row as List of Object
+     * @param periodIndex the index in which the period is located
+     * @return true, if the rows contains a valid period iso string at the given
+     *         index
+     */
+    public static boolean hasPeriod( List<Object> row, int periodIndex )
+    {
+        return periodIndex < row.size() && row.get( periodIndex ) instanceof String
+            && PeriodType.getPeriodFromIsoString( (String) row.get( periodIndex ) ) != null;
+    }
 }
