@@ -1187,6 +1187,56 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
     }
 
+    public List<Function<Root<T>, Predicate>> getJsonbSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    {
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        CriteriaQuery<T> criteria = builder.createQuery( getClazz() );
+
+        preProcessPredicates( builder, predicates );
+
+        if ( !sharingEnabled( user ) || user == null )
+        {
+            return predicates;
+        }
+
+        Function<Root<T>, Subquery<Integer>> userGroupPredicate = (( Root<T> root ) -> {
+            Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
+            Root<T> ugdc = userGroupSubQuery.from( getClazz() );
+            Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
+            userGroupSubQuery.select( uga.get( "id" ) );
+
+            return userGroupSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
+                    builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
+                    builder.like( uga.get( "access" ), access ) ) );
+        });
+
+        Function<Root<T>, Subquery<Integer>> userPredicate = (root -> {
+            Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
+            Root<T> udc = userSubQuery.from( getClazz() );
+            Join<T, UserAccess> ua = udc.join( "userAccesses" );
+            userSubQuery.select( ua.get( "id" ) );
+
+            return userSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), udc.get( "id" ) ),
+                    builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
+                    builder.like( ua.get( "access" ), access ) ) );
+        });
+
+        predicates.add( root -> builder.or(
+            builder.like( root.get( "publicAccess" ), access ),
+            builder.isNull( root.get( "publicAccess" ) ),
+            builder.isNull( root.get( "user" ) ),
+            builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
+            builder.exists( userGroupPredicate.apply( root ) ),
+            builder.exists( userPredicate.apply( root ) ) ) );
+
+        return predicates;
+    }
+
     /**
      * Get sharing predicates based on given UserInfo and Access String
      *
