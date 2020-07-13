@@ -13,6 +13,11 @@
       <property name="ignoreMissingMigrations" value="true" />
       <property name="ignoreFutureMigrations" value="false" />
       <property name="group" value="true" />
+      <property name="placeholders">
+        <map>
+          <entry value-ref="encryptionPassword" key="encryption.password"/>
+        </map>
+      </property>
       <property name="locations">
         <bean class="org.flywaydb.core.api.Location">
           <constructor-arg index="0"
