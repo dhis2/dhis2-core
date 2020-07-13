@@ -253,11 +253,11 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
-        {
-            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
-            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
-        }
+//        if ( analyticsCache.isEnabled() )
+//        {
+//            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
+//            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
+//        }
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -1393,7 +1393,7 @@ public class DefaultAnalyticsService
         for ( List<Object> row : grid.getRows() )
         {
             // Check if the current row period belongs to the list of periods from the original request
-            if ( isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+            if ( hasPeriod( row, periodIndex) &&  isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
                 // Key is composed of [uid-period]
                 final String key = StringUtils.join(
@@ -1421,9 +1421,22 @@ public class DefaultAnalyticsService
                 result.put( key,
                     new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
             }
+            else
+            {
+                final DimensionalItemObject dimensionalItemObject = AnalyticsUtils
+                    .findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
+                result.put( dimensionalItemObject.getUid(),
+                    new DimensionItemObjectValue( dimensionalItemObject, (Double) row.get( valueIndex ) ) );
+            }
         }
 
         return result;
+    }
+
+    private boolean hasPeriod( List<Object> row, int periodIndex )
+    {
+        return periodIndex <= row.size() && row.get( periodIndex ) instanceof String
+            && PeriodType.getPeriodFromIsoString( (String) row.get( periodIndex ) ) != null;
     }
 
     /**
