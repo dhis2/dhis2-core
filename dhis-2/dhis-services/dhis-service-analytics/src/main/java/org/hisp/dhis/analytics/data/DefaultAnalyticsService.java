@@ -253,11 +253,11 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-//        if ( analyticsCache.isEnabled() )
-//        {
-//            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
-//            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
-//        }
+        if ( analyticsCache.isEnabled() )
+        {
+            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
+            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
+        }
 
         return getAggregatedDataValueGridInternal( params );
     }
