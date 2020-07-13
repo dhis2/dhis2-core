@@ -760,7 +760,7 @@ public class DefaultTrackedEntityInstanceService
         {
             assignedUsers = assignedUsers.stream()
                 .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet());
+                .collect( Collectors.toSet() );
         }
 
         params.setQuery( queryFilter )

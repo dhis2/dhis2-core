@@ -1182,7 +1182,7 @@ public abstract class AbstractEventService
         {
             assignedUsers = assignedUsers.stream()
                 .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet());
+                .collect( Collectors.toSet() );
         }
 
         return params
