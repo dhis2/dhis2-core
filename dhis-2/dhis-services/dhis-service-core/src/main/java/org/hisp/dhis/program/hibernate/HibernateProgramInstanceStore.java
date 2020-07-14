@@ -348,18 +348,16 @@ public class HibernateProgramInstanceStore
 
         // Constructing list of parameters
         List<Predicate> predicates = new ArrayList<>();
-        // @formatter:off
 
-        // TODO we may have potentially thousands of events here, so, it's better to partition the list
-        for (Pair<Program, TrackedEntityInstance> pair : programTeiPair)
+        // TODO we may have potentially thousands of events here, so, it's better to
+        // partition the list
+        for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
         {
             predicates.add( cb.and(
-                    cb.equal( programInstance.get("program"), pair.getLeft() ),
-                    cb.equal( programInstance.get("entityInstance"), pair.getRight() ),
-                    cb.equal( programInstance.get("status"), programStatus )
-            ) );
+                cb.equal( programInstance.get( "program" ), pair.getLeft() ),
+                cb.equal( programInstance.get( "entityInstance" ), pair.getRight() ),
+                cb.equal( programInstance.get( "status" ), programStatus ) ) );
         }
-        // @formatter:on
 
         cr.select( programInstance )
             .where( cb.or( predicates.toArray( new Predicate[] {} ) ) );

@@ -78,21 +78,21 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
         // List of Events that have no 'enrollment' field or 'enrollment' points to an
         // invalid PI
         List<Event> eventWithoutPI = getEventsWithoutProgramInstance( params,
-                enrollments.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+            enrollments.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         if ( isNotEmpty( eventWithoutPI ) )
         {
             // Assign the map of event uid -> List Program Instance to the Preheat context
             preheat.setProgramInstancesByProgramAndTei( getProgramInstancesByProgramAndTei(
-                    preheat,
-                    eventWithoutPI ) );
+                preheat,
+                eventWithoutPI ) );
         }
     }
 
     private List<Event> getEventsWithoutProgramInstance( TrackerPreheatParams params, List<String> enrollmentsUid )
     {
         return params.getEvents().stream().filter( e -> !enrollmentsUid.contains( e.getEnrollment() ) )
-                .collect( Collectors.toList() );
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -101,22 +101,22 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
      *
      */
     private Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei( TrackerPreheat preheat,
-                                                                                   List<Event> events )
+        List<Event> events )
     {
         Map<String, List<ProgramInstance>> result = new HashMap<>();
 
         // Build a look-up map
         final Map<String, Event> idToEventMap = events.stream()
-                // filter out events without program or tei
-                .filter( e -> StringUtils.isNotEmpty( e.getProgram() ) && StringUtils.isNotEmpty( e.getTrackedEntity() ) )
-                .collect( Collectors.toMap( e -> e.getProgram() + KEY_SEPARATOR + e.getTrackedEntity(), e -> e ) );
+            // filter out events without program or tei
+            .filter( e -> StringUtils.isNotEmpty( e.getProgram() ) && StringUtils.isNotEmpty( e.getTrackedEntity() ) )
+            .collect( Collectors.toMap( e -> e.getProgram() + KEY_SEPARATOR + e.getTrackedEntity(), e -> e ) );
 
         // @formatter:off
         final List<ProgramInstance> resultList = programInstanceStore.getByProgramAndTrackedEntityInstance(
-                events.stream().map( e -> Pair.of(
-                        getProgram( preheat, e.getProgram() ),
-                        getTrackedEntityInstance( preheat, e.getTrackedEntity() ) ) )
-                        .collect( Collectors.toList() ), ProgramStatus.ACTIVE );
+            events.stream().map( e -> Pair.of(
+                getProgram( preheat, e.getProgram() ),
+                getTrackedEntityInstance( preheat, e.getTrackedEntity() ) ) )
+                .collect( Collectors.toList() ), ProgramStatus.ACTIVE );
         // @formatter:on
 
         for ( ProgramInstance pi : resultList )

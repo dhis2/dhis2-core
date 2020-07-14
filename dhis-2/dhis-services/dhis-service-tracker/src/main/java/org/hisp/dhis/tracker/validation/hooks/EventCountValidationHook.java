@@ -78,19 +78,19 @@ public class EventCountValidationHook
             {
                 TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
                 final int count = validationContext.getEventToProgramInstancesMap()
-                        .getOrDefault( event.getUid(), new ArrayList<>() ).size();
+                    .getOrDefault( event.getUid(), new ArrayList<>() ).size();
 
                 if ( count == 0 )
                 {
                     reporter.addError( newReport( TrackerErrorCode.E1037 )
-                            .addArg( tei )
-                            .addArg( program ) );
+                        .addArg( tei )
+                        .addArg( program ) );
                 }
                 else if ( count > 1 )
                 {
                     reporter.addError( newReport( TrackerErrorCode.E1038 )
-                            .addArg( tei )
-                            .addArg( program ) );
+                        .addArg( tei )
+                        .addArg( program ) );
                 }
             }
         }
@@ -109,7 +109,8 @@ public class EventCountValidationHook
 
             if ( count > 1 )
             {
-                //TODO: Can't provoke this error on the new importer, the preheater? inserts a program instance.
+                // TODO: Can't provoke this error on the new importer, the preheater? inserts a
+                // program instance.
                 reporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
             }
         }
