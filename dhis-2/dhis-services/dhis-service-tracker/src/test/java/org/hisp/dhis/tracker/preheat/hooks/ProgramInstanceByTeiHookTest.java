@@ -36,6 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityInstance;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -48,6 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Event;
@@ -124,7 +126,7 @@ public class ProgramInstanceByTeiHookTest
         p4.setProgram( program1 );
         p4.setEntityInstance( t4 );
 
-        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList() ) )
+        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq(ProgramStatus.ACTIVE) ) )
                 .thenReturn( Collections.singletonList( p4 ) );
 
         // When
@@ -183,7 +185,7 @@ public class ProgramInstanceByTeiHookTest
         p4.setProgram( program1 );
         p4.setEntityInstance( t4 );
 
-        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList()) )
+        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq( ProgramStatus.ACTIVE ) ) )
                 .thenReturn( Collections.singletonList( p4 ) );
 
         // When

@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.program.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -334,10 +335,13 @@ public class HibernateProgramInstanceStore
     public List<ProgramInstance> getByProgramAndTrackedEntityInstance(
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
     {
-        if ( programTeiPair == null || programTeiPair.isEmpty() )
+        checkNotNull( programTeiPair );
+
+        if ( programTeiPair.isEmpty() )
         {
             return new ArrayList<>();
         }
+
         CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<ProgramInstance> cr = cb.createQuery( ProgramInstance.class );
         Root<ProgramInstance> programInstance = cr.from( ProgramInstance.class );

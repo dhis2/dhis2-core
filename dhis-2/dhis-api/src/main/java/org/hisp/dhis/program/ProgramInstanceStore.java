@@ -154,8 +154,8 @@ public interface ProgramInstanceStore
      *         or (programid = 726 and trackedentityinstanceid = 17 and status = 'ACTIVE')
      * }</pre>
      *
-     * @param programTeiPair a List of Pair, where the left size is a {@see Program}
-     *        and the left side is a {@see TrackedEntityInstance}
+     * @param programTeiPair a List of Pair, where the left side is a {@see Program}
+     *        and the right side is a {@see TrackedEntityInstance}
      * @param programStatus filter on the status of all the Program
      * @return a List of {@see ProgramInstance}
      */
