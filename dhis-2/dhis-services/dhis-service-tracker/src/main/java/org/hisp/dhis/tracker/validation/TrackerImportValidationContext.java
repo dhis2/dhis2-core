@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -191,5 +192,10 @@ public class TrackerImportValidationContext
     public CategoryOption getCategoryOption( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
+    }
+
+    public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
+    {
+        return bundle.getPreheat().getProgramInstancesByProgramAndTei();
     }
 }

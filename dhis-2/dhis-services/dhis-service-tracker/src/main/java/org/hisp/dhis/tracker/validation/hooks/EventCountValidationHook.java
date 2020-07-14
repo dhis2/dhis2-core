@@ -41,9 +41,11 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -53,50 +55,54 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventCountValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Autowired
-    protected ProgramInstanceService programInstanceService;
+    protected final ProgramInstanceService programInstanceService;
 
     public EventCountValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+        TrackedEntityCommentService commentService, ProgramInstanceService programInstanceService )
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        checkNotNull( programInstanceService );
+        this.programInstanceService = programInstanceService;
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        User user = validationContext.getBundle().getUser();
 
         Program program = validationContext.getProgram( event.getProgram() );
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-        params.setProgram( program );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUser( user );
-
         if ( program.isRegistration() )
         {
-            TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
-            params.setTrackedEntityInstance( tei );
-
-            int count = programInstanceService.countProgramInstances( params );
-
-            if ( count == 0 )
+            if ( !hasProgramInstance( event, validationContext ) )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1037 )
-                    .addArg( tei )
-                    .addArg( program ) );
-            }
-            else if ( count > 1 )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1038 )
-                    .addArg( tei )
-                    .addArg( program ) );
+                TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
+                final int count = validationContext.getEventToProgramInstancesMap()
+                        .getOrDefault( event.getUid(), new ArrayList<>() ).size();
+
+                if ( count == 0 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1037 )
+                            .addArg( tei )
+                            .addArg( program ) );
+                }
+                else if ( count > 1 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1038 )
+                            .addArg( tei )
+                            .addArg( program ) );
+                }
             }
         }
         else
         {
+            User user = validationContext.getBundle().getUser();
+
+            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+            params.setProgram( program );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+            params.setUser( user );
+
             params.setTrackedEntityInstance( null );
 
             int count = programInstanceService.countProgramInstances( params );
@@ -107,5 +113,10 @@ public class EventCountValidationHook
                 reporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
             }
         }
+    }
+
+    private boolean hasProgramInstance( Event event, TrackerImportValidationContext ctx )
+    {
+        return ctx.getProgramInstance( event.getUid() ) != null;
     }
 }

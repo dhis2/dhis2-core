@@ -41,10 +41,12 @@ import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
@@ -326,6 +328,39 @@ public class HibernateProgramInstanceStore
     {
         publisher.publishEvent( new ObjectDeletionRequestedEvent( programInstance ) );
         getSession().delete( programInstance );
+    }
+
+    @Override
+    public List<ProgramInstance> getByProgramAndTrackedEntityInstance(
+        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
+    {
+        if ( programTeiPair == null || programTeiPair.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+        CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<ProgramInstance> cr = cb.createQuery( ProgramInstance.class );
+        Root<ProgramInstance> programInstance = cr.from( ProgramInstance.class );
+
+        // Constructing list of parameters
+        List<Predicate> predicates = new ArrayList<>();
+        // @formatter:off
+
+        // TODO we may have potentially thousands of events here, so, it's better to partition the list
+        for (Pair<Program, TrackedEntityInstance> pair : programTeiPair)
+        {
+            predicates.add( cb.and(
+                    cb.equal( programInstance.get("program"), pair.getLeft() ),
+                    cb.equal( programInstance.get("entityInstance"), pair.getRight() ),
+                    cb.equal( programInstance.get("status"), programStatus )
+            ) );
+        }
+        // @formatter:on
+
+        cr.select( programInstance )
+            .where( cb.or( predicates.toArray( new Predicate[] {} ) ) );
+
+        return sessionFactory.getCurrentSession().createQuery( cr ).getResultList();
     }
 
     private String toDateProperty( NotificationTrigger trigger )

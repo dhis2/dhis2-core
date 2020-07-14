@@ -84,13 +84,7 @@ public class EventImportValidationTest
     private RenderService _renderService;
 
     @Autowired
-    private UserGroupService userGroupService;
-
-    @Autowired
     private UserService _userService;
-
-    @Autowired
-    private ProgramStageService programStageService;
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
