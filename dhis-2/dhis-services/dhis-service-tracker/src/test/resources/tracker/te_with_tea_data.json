@@ -1,42 +1,43 @@
 {
   "trackedEntities": [
     {
-      "createdAt": "2020-02-10T10:56:07.570",
+      "created": "2020-02-10T10:56:07.570",
       "orgUnit": "cNEZTkdAvmg",
-      "clientCreatedAt": "2020-02-10T10:56:07.570",
+      "createdAtClient": "2020-02-10T10:56:07.570",
       "trackedEntity": "CLR1fvPj4ic",
-      "updatedAt": "2020-02-10T10:56:07.571",
+      "lastUpdated": "2020-02-10T10:56:07.571",
       "trackedEntityType": "KrYIdvLxkMb",
-      "clientUpdatedAt": "2020-02-10T10:56:07.570",
+      "lastUpdatedAtClient": "2020-02-10T10:56:07.570",
       "inactive": false,
       "deleted": false,
-      "programOwners": [ ],
-      "enrollments": [ ],
-      "relationships": [ ],
+      "featureType": "NONE",
+      "programOwners": [],
+      "enrollments": [],
+      "relationships": [],
       "attributes": [
         {
-          "updatedAt": "2020-02-10T10:56:07.591",
+          "lastUpdated": "2020-02-10T10:56:07.591",
           "storedBy": "admin",
           "displayName": "Attribute_Integer",
-          "createdAt": "2020-02-10T10:56:07.588",
+          "created": "2020-02-10T10:56:07.588",
           "valueType": "INTEGER",
           "attribute": "sYn3tkL3XKa",
           "value": "123"
         },
         {
-          "updatedAt": "2020-02-10T10:56:07.586",
+          "lastUpdated": "2020-02-10T10:56:07.586",
           "storedBy": "admin",
           "displayName": "Attribute_Text",
-          "createdAt": "2020-02-10T10:56:07.584",
+          "created": "2020-02-10T10:56:07.584",
           "valueType": "TEXT",
           "attribute": "TsfP85GKsU5",
           "value": "Test"
         },
         {
-          "updatedAt": "2020-02-10T10:56:07.587",
+          "lastUpdated": "2020-02-10T10:56:07.587",
           "storedBy": "admin",
           "displayName": "Attribute_Date",
-          "createdAt": "2020-02-10T10:56:07.587",
+          "created": "2020-02-10T10:56:07.587",
           "valueType": "DATE",
           "attribute": "sTGqP5JNy6E",
           "value": "2020-02-10"
