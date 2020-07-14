@@ -82,6 +82,8 @@ public class HibernateProgramInstanceStore
     extends SoftDeleteHibernateObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
+    private final static String STATUS = "status";
+
     private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
         Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
@@ -179,7 +181,7 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasProgramStatus() )
         {
-            hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
+            hql += hlp.whereAnd() + "pi." + STATUS + " = '" + params.getProgramStatus() + "'";
         }
 
         if ( params.hasFollowUp() )
@@ -220,7 +222,7 @@ public class HibernateProgramInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
+            .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
 
     @Override
@@ -231,7 +233,7 @@ public class HibernateProgramInstanceStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
+            .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
 
     @Override
@@ -356,7 +358,7 @@ public class HibernateProgramInstanceStore
             predicates.add( cb.and(
                 cb.equal( programInstance.get( "program" ), pair.getLeft() ),
                 cb.equal( programInstance.get( "entityInstance" ), pair.getRight() ),
-                cb.equal( programInstance.get( "status" ), programStatus ) ) );
+                cb.equal( programInstance.get( STATUS ), programStatus ) ) );
         }
 
         cr.select( programInstance )
