@@ -181,10 +181,9 @@ public class DefaultUserService
     @Transactional(readOnly = true)
     public User getUserByUuid( UUID uuid )
     {
-        System.out.println( "get by uuid " + uuid );
         UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUuid( uuid );
 
-        return userCredentials != null ? userCredentials.getUser() : null;
+        return userCredentials != null ? userCredentials.getUserInfo() : null;
     }
 
     @Override
@@ -193,7 +192,7 @@ public class DefaultUserService
     {
         UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
 
-        return userCredentials != null ? userCredentials.getUser() : null;
+        return userCredentials != null ? userCredentials.getUserInfo() : null;
     }
 
     @Override
@@ -206,12 +205,6 @@ public class DefaultUserService
         {
             return user;
         }
-
-        System.out.println( "--" );
-        System.out.println( id );
-        System.out.println( uuidIsValid( id ) );
-        if ( uuidIsValid( id ))
-            System.out.println( "from string " + UUID.fromString( id ) );
 
         if ( uuidIsValid( id ) && ( user = getUserByUuid( UUID.fromString( id ) ) ) != null )
         {

@@ -401,6 +401,7 @@ public class UserServiceTest
         assertEquals( userB, userService.getUserByUuid( userB.getUuid() ) );
     }
 
+    @Test
     public void testGetByIdentifier()
     {
         User userA = createUser( 'A' );
