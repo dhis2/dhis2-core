@@ -37,6 +37,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * DTO for a minimal and non-sensitive representation of a user.
+ *
  * @author Lars Helge Overland
  */
 @Getter

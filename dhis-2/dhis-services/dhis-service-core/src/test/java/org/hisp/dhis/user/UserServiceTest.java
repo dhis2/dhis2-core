@@ -383,6 +383,24 @@ public class UserServiceTest
     }
 
     @Test
+    public void testGetByUuid()
+    {
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+
+        userService.addUser( userA );
+        userService.addUser( userB );
+
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+
+        assertEquals( userA, userService.getUserByUuid( userA.getUuid() ) );
+        assertEquals( userB, userService.getUserByUuid( userB.getUuid() ) );
+    }
+
     public void testGetByIdentifier()
     {
         User userA = createUser( 'A' );
@@ -403,12 +421,12 @@ public class UserServiceTest
 
         // Match
 
-        assertEquals( userA, userService.getUserByIdentifier( userA.getUuid().toString() ) );
         assertEquals( userA, userService.getUserByIdentifier( userA.getUid() ) );
+        assertEquals( userA, userService.getUserByIdentifier( userA.getUuid().toString() ) );
         assertEquals( userA, userService.getUserByIdentifier( userA.getUsername() ) );
 
-        assertEquals( userB, userService.getUserByIdentifier( userB.getUuid().toString() ) );
         assertEquals( userB, userService.getUserByIdentifier( userB.getUid() ) );
+        assertEquals( userB, userService.getUserByIdentifier( userB.getUuid().toString() ) );
         assertEquals( userB, userService.getUserByIdentifier( userB.getUsername() ) );
 
         // No match
