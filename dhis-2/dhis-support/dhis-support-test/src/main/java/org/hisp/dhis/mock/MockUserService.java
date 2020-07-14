@@ -45,7 +45,8 @@ import java.util.UUID;
 /**
  * @author Adrian Quintana
  */
-public class MockUserService implements UserService
+public class MockUserService
+    implements UserService
 {
 
     private List<User> users;
@@ -341,5 +342,17 @@ public class MockUserService implements UserService
     @Override
     public void expireActiveSessions( UserCredentials credentials )
     {
+    }
+
+    @Override
+    public User getUserByUsername( String username )
+    {
+        return null;
+    }
+
+    @Override
+    public User getUserByIdentifier( String id )
+    {
+        return null;
     }
 }
