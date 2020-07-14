@@ -30,19 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -766,6 +754,13 @@ public class DefaultTrackedEntityInstanceService
             && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
         {
             throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
+
+        if ( assignedUsers != null )
+        {
+            assignedUsers = assignedUsers.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
         }
 
         params.setQuery( queryFilter )
