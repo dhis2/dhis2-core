@@ -42,6 +42,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Event;
@@ -115,7 +116,7 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
                 events.stream().map( e -> Pair.of(
                         getProgram( preheat, e.getProgram() ),
                         getTrackedEntityInstance( preheat, e.getTrackedEntity() ) ) )
-                        .collect( Collectors.toList() ) );
+                        .collect( Collectors.toList() ), ProgramStatus.ACTIVE );
         // @formatter:on
 
         for ( ProgramInstance pi : resultList )
