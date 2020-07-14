@@ -73,7 +73,7 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
     public void preheat( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollmentsMap = preheat.getEnrollments();
-        final Map<String, ProgramInstance> enrollments = enrollmentsMap.get( TrackerIdScheme.UID );
+        final Map<String, ProgramInstance> enrollments = enrollmentsMap.getOrDefault( TrackerIdScheme.UID, new HashMap<>() );
 
         // List of Events that have no 'enrollment' field or 'enrollment' points to an
         // invalid PI
