@@ -83,7 +83,7 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
         if ( isNotEmpty( eventWithoutPI ) )
         {
             // Assign the map of event uid -> List Program Instance to the Preheat context
-            preheat.setProgramInstancesByProgramAndTei( getProgramInstancesByProgramAndTei(
+            preheat.setProgramInstances( getProgramInstancesByProgramAndTei(
                 preheat,
                 eventWithoutPI ) );
         }

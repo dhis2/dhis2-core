@@ -196,6 +196,6 @@ public class TrackerImportValidationContext
 
     public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
     {
-        return bundle.getPreheat().getProgramInstancesByProgramAndTei();
+        return bundle.getPreheat().getProgramInstances();
     }
 }

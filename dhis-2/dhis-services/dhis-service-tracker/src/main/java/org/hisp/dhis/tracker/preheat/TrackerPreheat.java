@@ -131,10 +131,12 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     *
+     * A Map of event uid and preheated {@see ProgramInstance}. The key is a List,
+     * because the system may return multiple ProgramInstance, which will be
+     * detected by validation
      */
-    private Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = new HashMap<>();
-    
+    private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
+
     /**
      * Identifier map
      */
@@ -637,14 +639,14 @@ public class TrackerPreheat
         this.identifiers = identifiers;
     }
 
-    public Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei()
+    public Map<String, List<ProgramInstance>> getProgramInstances()
     {
-        return programInstancesByProgramAndTei;
+        return programInstances;
     }
 
-    public void setProgramInstancesByProgramAndTei( Map<String, List<ProgramInstance>> programInstancesByProgramAndTei )
+    public void setProgramInstances(Map<String, List<ProgramInstance>> programInstances)
     {
-        this.programInstancesByProgramAndTei = programInstancesByProgramAndTei;
+        this.programInstances = programInstances;
     }
     
     @Override

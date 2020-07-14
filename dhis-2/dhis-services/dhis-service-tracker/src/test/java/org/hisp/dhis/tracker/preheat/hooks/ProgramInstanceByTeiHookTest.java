@@ -134,7 +134,7 @@ public class ProgramInstanceByTeiHookTest
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
-                .getProgramInstancesByProgramAndTei();
+                .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ), hasSize( 1 ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ).get( 0 ), is( p4 ) );
@@ -193,7 +193,7 @@ public class ProgramInstanceByTeiHookTest
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
-                .getProgramInstancesByProgramAndTei();
+                .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.keySet(), hasSize( 0 ) );
     }
