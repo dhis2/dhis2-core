@@ -165,8 +165,6 @@ public class PreCheckDataRelationsValidationHook
             {
                 TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
 
-                Map<String, List<ProgramInstance>> eventToProgramInstancesMap = ctx.getEventToProgramInstancesMap();
-
                 List<ProgramInstance> programInstances = ctx.getEventToProgramInstancesMap()
                     .getOrDefault( event.getUid(), new ArrayList<>() );
 
@@ -186,8 +184,8 @@ public class PreCheckDataRelationsValidationHook
                 }
                 else
                 {
-                    //TODO: need to find the correct programInstance to link too here
-//                    event.setEnrollment( programInstances.get( 0 ).getUid() );
+                    // FIXME: we probably need to take in consideration the idScheme
+                    event.setEnrollment( programInstances.get( 0 ).getUid() );
                 }
             }
         }
