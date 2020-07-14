@@ -83,10 +83,33 @@ public interface UserService
     /**
      * Retrieves the User with the given UUID.
      *
-     * @param uid the UUID of the User to retrieve.
+     * @param uuid the UUID of the User to retrieve.
      * @return the User.
      */
     User getUserByUuid( UUID uuid );
+
+    /**
+     * Retrieves the User with the given username.
+     *
+     * @param username the username of the User to retrieve.
+     * @return the User.
+     */
+    User getUserByUsername( String username );
+
+    /**
+     * Retrieves the User by attempting to look up by various identifiers
+     * in the following order:
+     *
+     * <ul>
+     * <li>UID</li>
+     * <li>UUID</li>
+     * <li>Username</li>
+     * </ul>
+     *
+     * @param id the User identifier.
+     * @return the User, or null if not found.
+     */
+    User getUserByIdentifier( String id );
 
     /**
      * Retrieves a collection of User with the given unique identifiers.
