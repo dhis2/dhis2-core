@@ -1172,6 +1172,13 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
 
+        if ( assignedUsers != null )
+        {
+            assignedUsers = assignedUsers.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
+
         return params
             .setProgram( pr )
             .setProgramStage( ps )
