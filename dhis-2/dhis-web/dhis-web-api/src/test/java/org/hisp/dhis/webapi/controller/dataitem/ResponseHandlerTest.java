@@ -86,9 +86,6 @@ public class ResponseHandlerTest
     private FieldFilterService fieldFilterService;
 
     @Mock
-    private DataItemServiceFacade dataItemServiceFacade;
-
-    @Mock
     private Environment environment;
 
     @Mock
@@ -102,8 +99,8 @@ public class ResponseHandlerTest
     @Before
     public void setUp()
     {
-        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService,
-            dataItemServiceFacade, environment, cacheProvider );
+        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, environment,
+            cacheProvider );
     }
 
     @Test

@@ -47,6 +47,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -79,8 +80,6 @@ class ResponseHandler
 
     private final FieldFilterService fieldFilterService;
 
-    private final DataItemServiceFacade dataItemServiceFacade;
-
     private final Environment environment;
 
     private final CacheProvider cacheProvider;
@@ -88,29 +87,28 @@ class ResponseHandler
     private Cache<Integer> PAGE_COUNTING_CACHE;
 
     ResponseHandler( final QueryService queryService, final LinkService linkService,
-        final FieldFilterService fieldFilterService, final DataItemServiceFacade dataItemServiceFacade,
-        final Environment environment, final CacheProvider cacheProvider )
+        final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
     {
         checkNotNull( queryService );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
-        checkNotNull( dataItemServiceFacade );
         checkNotNull( environment );
         checkNotNull( cacheProvider );
 
         this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
-        this.dataItemServiceFacade = dataItemServiceFacade;
         this.environment = environment;
         this.cacheProvider = cacheProvider;
     }
 
-    void addResultsToNode( final RootNode rootNode, final List<BaseDimensionalItemObject> dimensionalItemsFound,
-        final List<String> fields )
+    void addResultsToNode( final RootNode rootNode,
+        final List<BaseDimensionalItemObject> dimensionalItemsFound, final List<String> fields )
     {
-        rootNode.addChild( fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
-            new FieldFilterParams( dimensionalItemsFound, fields ) ) );
+        final CollectionNode collectionNode = fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
+                new FieldFilterParams( dimensionalItemsFound, fields ) );
+        collectionNode.setName( "dataItems" );
+        rootNode.addChild( collectionNode );
     }
 
     /**

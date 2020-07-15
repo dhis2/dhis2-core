@@ -30,16 +30,13 @@ package org.hisp.dhis.dataitems;
 
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -85,9 +82,9 @@ public class DataItemQueryTests extends ApiTest
         // Then
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", isA( Object.class ) );
-        response.validate().body( "nameableObjects", isA( Object.class ) );
-        response.validate().body( "nameableObjects", is( not( empty() ) ) );
-        assertThat( hasMultipleDataItemTypes( response ), is( true ) );
+        response.validate().body( "dataItems", is( not( empty() ) ) );
+        response.validate().body( "dataItems.dimensionItemType", hasItem( "PROGRAM_INDICATOR" ) );
+        response.validate().body( "dataItems.dimensionItemType", hasItem( "DATA_ELEMENT" ) );
     }
 
     @Test
@@ -102,9 +99,9 @@ public class DataItemQueryTests extends ApiTest
         // Then
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", is( nullValue() ) );
-        response.validate().body( "nameableObjects", isA( Object.class ) );
-        response.validate().body( "nameableObjects", is( not( empty() ) ) );
-        assertThat( hasMultipleDataItemTypes( response ), is( true ) );
+        response.validate().body( "dataItems", is( not( empty() ) ) );
+        response.validate().body( "dataItems.dimensionItemType", hasItem( "PROGRAM_INDICATOR" ) );
+        response.validate().body( "dataItems.dimensionItemType", hasItem( "DATA_ELEMENT" ) );
     }
 
     @Test
@@ -116,9 +113,8 @@ public class DataItemQueryTests extends ApiTest
         // Then
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", isA( Object.class ) );
-        response.validate().body( "nameableObjects", isA( Object.class ) );
-        response.validate().body( "nameableObjects[0].dimensionItemType", isA( String.class ) );
-        response.validate().body( "nameableObjects[0].code", is( "AAAAAAA-1234" ) );
+        response.validate().body( "dataItems", is( not( empty() ) ) );
+        response.validate().body( "dataItems.code", hasItem( "AAAAAAA-1234" ) );
     }
 
     @Test
@@ -134,7 +130,8 @@ public class DataItemQueryTests extends ApiTest
         // Then
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", isA( Object.class ) );
-        response.validate().body( "nameableObjects[0].dimensionItemType", is( theDimensionType ) );
+        response.validate().body( "dataItems", is( not( empty() ) ) );
+        response.validate().body( "dataItems.dimensionItemType", everyItem( is( theDimensionType ) ) );
     }
 
     @Test
@@ -144,8 +141,7 @@ public class DataItemQueryTests extends ApiTest
         final String theDimensionType = "PROGRAM_INDICATOR";
         final String theProgramId = "BJ42SUrAvHo";
         final String aValidFilteringAttribute = "program.id";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute
-            + ":eq:%s&order=code:asc";
+        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute + ":eq:%s";
 
         // When
         final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType, theProgramId ) );
@@ -153,7 +149,8 @@ public class DataItemQueryTests extends ApiTest
         // Then
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", isA( Object.class ) );
-        response.validate().body( "nameableObjects[0].code", is( "AAAAAAA-1234" ) );
+        response.validate().body( "dataItems", is( not( empty() ) ) );
+        response.validate().body( "dataItems.code", hasItem( "AAAAAAA-1234" ) );
     }
 
     @Test
@@ -174,7 +171,8 @@ public class DataItemQueryTests extends ApiTest
         response.validate().body( "status", is( "ERROR" ) );
         response.validate().body( "errorCode", is( "E2016" ) );
         response.validate().body( "message", containsString(
-            "Unable to parse element `INVALID_TYPE` on filter `dimensionItemType`. The values available are:" ) );
+            "Unable to parse element `" + anyInvalidDimensionType
+                + "` on filter `dimensionItemType`. The values available are:" ) );
     }
 
     @Test
@@ -192,7 +190,7 @@ public class DataItemQueryTests extends ApiTest
 
         // Then
         response.validate().statusCode( is( NOT_FOUND ) );
-        response.validate().body( "nameableObjects", is( empty() ) );
+        response.validate().body( "dataItems", is( empty() ) );
     }
 
     @Test
@@ -256,38 +254,7 @@ public class DataItemQueryTests extends ApiTest
         // Then
         response.validate().statusCode( is( NOT_FOUND ) );
         response.validate().body( "pager", is( nullValue() ) );
-        response.validate().body( "nameableObjects", is( empty() ) );
-    }
-
-    @Test
-    public void testWhenFilteringByNonExistingDataItemTypeUsingDefaultPagination()
-    {
-        // Given
-        final String theDimensionType = "DATA_SET";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]";
-
-        // When
-        final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType ) );
-
-        // Then
-        response.validate().statusCode( is( NOT_FOUND ) );
-        response.validate().body( "pager", isA( Object.class ) );
-        response.validate().body( "nameableObjects", is( empty() ) );
-    }
-
-    private boolean hasMultipleDataItemTypes( final ApiResponse response )
-    {
-        final List<String> elements = response.extractList( "nameableObjects.dimensionItemType" );
-        final Set<String> dataItemsType = new HashSet<>();
-
-        for ( final String element : elements )
-        {
-            dataItemsType.add( element );
-        }
-
-        final boolean hasMultipleDataItemTypes = dataItemsType.size() > 1;
-
-        return hasMultipleDataItemTypes;
+        response.validate().body( "dataItems", is( empty() ) );
     }
 
     private void login()
