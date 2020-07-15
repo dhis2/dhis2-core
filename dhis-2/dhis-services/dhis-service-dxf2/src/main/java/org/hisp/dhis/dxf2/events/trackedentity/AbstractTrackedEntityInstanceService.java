@@ -216,7 +216,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                     attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
                         trackerOwnershipAccessManager.hasAccess( user, t, program ) );
                 }
-                dtoTeis.add( getTei( t, attributes, params, user ) );
+                dtoTeis.add( getTei( t, (attributes == null ? new HashSet<>() : attributes), params, user ) );
 
             } );
         }
