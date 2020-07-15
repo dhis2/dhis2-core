@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * Wrapper DTO for a list of UserLookups.
@@ -43,7 +42,6 @@ import lombok.Setter;
  * @author Lars Helge Overland
  */
 @Getter
-@Setter
 @NoArgsConstructor
 public class UserLookups
 {
