@@ -109,10 +109,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class
-AbstractTrackedEntityInstanceService
-    implements
-    TrackedEntityInstanceService
+public abstract class AbstractTrackedEntityInstanceService implements TrackedEntityInstanceService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -251,39 +248,42 @@ AbstractTrackedEntityInstanceService
     public List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
-        // TODO DHIS2-7336 here we should only get the TEI ids, since we don't need the TEI object
-        List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
+        if ( queryParams == null )
+        {
+            return new ArrayList<>();
+        }
 
-        List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
+        final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
 
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeStore
-            .getTrackedEntityAttributesByTrackedEntityTypes();
-
-        if ( queryParams != null && queryParams.isIncludeAllAttributes() )
+        if ( queryParams.isIncludeAllAttributes() )
         {
             return this.trackedEntityInstanceAggregate.find( ids, params );
         }
         else
         {
+            Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeStore
+                    .getTrackedEntityAttributesByTrackedEntityTypes();
+
+            final User user = currentUserService.getCurrentUser();
+            List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
+
             Set<TrackedEntityAttribute> attributes = new HashSet<>( trackedEntityTypeAttributes );
 
-            if ( queryParams != null && queryParams.hasProgram() )
+            if ( queryParams.hasProgram() )
             {
                 attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
             }
-
-            // for ( org.hisp.dhis.trackedentity.TrackedEntityInstance
-            // daoTrackedEntityInstance : daoTEIs )
-            // {
-            // if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance,
-            // queryParams.getProgram() ) )
-            // {
-            // dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-            // }
-            // }
+            // FIXME: luciano this logic assumes that the variable `daoTEIs` is populated with a TrackedEntityInstance object
+            // rather than an primary key
+//            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
+//            {
+//                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, queryParams.getProgram() ) )
+//                {
+//                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+//                }
+//            }
+            return dtoTeis;
         }
-
-        return dtoTeis;
     }
 
     @Override

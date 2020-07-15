@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
@@ -69,6 +70,11 @@ public class TrackedEntityInstanceAggregate
     public TrackedEntityInstanceAggregate( TrackedEntityInstanceStore trackedEntityInstanceStore,
         EnrollmentAggregate enrollmentAggregate, AclStore aclStore, CurrentUserService currentUserService )
     {
+        checkNotNull( trackedEntityInstanceStore );
+        checkNotNull( enrollmentAggregate );
+        checkNotNull( currentUserService );
+        checkNotNull( aclStore );
+        
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.enrollmentAggregate = enrollmentAggregate;
         this.currentUserService = currentUserService;
@@ -76,7 +82,8 @@ public class TrackedEntityInstanceAggregate
     }
 
     /**
-     *
+     * Fetches a List of {@see TrackedEntityInstance} based on the list of primary
+     * keys and search parameters
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
      * @param params an instance of {@see TrackedEntityInstanceParams}
@@ -91,12 +98,12 @@ public class TrackedEntityInstanceAggregate
            Create a context with information which will be used to fetch the entities
          */
         AggregateContext ctx = getSecurityContext( userId )
-                .toBuilder()
-                .userId( userId )
-                .superUser( currentUserService.getCurrentUser().isSuper() )
-                .includeRelationships( params.isIncludeRelationships() )
-                .includeEvents( params.isIncludeEvents() )
-                .build();
+            .toBuilder()
+            .userId( userId )
+            .superUser( currentUserService.getCurrentUser().isSuper() )
+            .includeRelationships( params.isIncludeRelationships() )
+            .includeEvents( params.isIncludeEvents() )
+            .build();
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id (only if
@@ -176,7 +183,6 @@ public class TrackedEntityInstanceAggregate
      */
     private AggregateContext getSecurityContext( Long userId )
     {
-
         final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
             () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userId ) );
 
