@@ -58,35 +58,34 @@ public class DefaultAclStore
         + "))";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
-        + "        WHERE " + PUBLIC_ACCESS_CONDITION
-        + "           OR trackedentitytypeid IN  (SELECT trackedentitytypeid "
-        + "               FROM trackedentitytypeuseraccesses WHERE useraccessid IN " + USERACCESS_CONDITION + ")"
-        + "           OR trackedentitytypeid IN (SELECT trackedentitytypeid "
-        + "               FROM trackedentitytypeusergroupaccesses WHERE usergroupaccessid IN "
+        + "WHERE " + PUBLIC_ACCESS_CONDITION
+        + "OR trackedentitytypeid IN  (SELECT trackedentitytypeid "
+        + "FROM trackedentitytypeuseraccesses WHERE useraccessid IN " + USERACCESS_CONDITION + ")"
+        + "OR trackedentitytypeid IN (SELECT trackedentitytypeid "
+        + "FROM trackedentitytypeusergroupaccesses WHERE usergroupaccessid IN "
         + USERGROUPACCESS_CONDITION + ")";
 
     final static String GET_PROGRAM_ACL = "SELECT p.programid FROM program p WHERE "
         + PUBLIC_ACCESS_CONDITION + " OR ( p.programid IN (SELECT programid "
-        + "               FROM programuseraccesses pua WHERE pua.useraccessid IN " + USERACCESS_CONDITION
+        + "FROM programuseraccesses pua WHERE pua.useraccessid IN " + USERACCESS_CONDITION
         + ") OR p.programid IN (SELECT programid FROM programusergroupaccesses puga "
-        + "               WHERE puga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
+        + "WHERE puga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
 
     final static String GET_PROGRAMSTAGE_ACL = "SELECT ps.programstageid FROM programstage ps "
-        + "        WHERE " + PUBLIC_ACCESS_CONDITION + " OR ( "
-        + "            ps.programstageid IN (SELECT psua.programstageid "
-        + "               FROM programstageuseraccesses psua WHERE psua.useraccessid IN " + USERACCESS_CONDITION + ")"
-        + "               OR ps.programid IN "
-        + "              (SELECT psuga.programid FROM programstageusergroupaccesses psuga "
-        + "               WHERE psuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
+        + "WHERE " + PUBLIC_ACCESS_CONDITION + " OR ( "
+        + "ps.programstageid IN (SELECT psua.programstageid "
+        + "FROM programstageuseraccesses psua WHERE psua.useraccessid IN " + USERACCESS_CONDITION + ")"
+        + "OR ps.programid IN "
+        + "(SELECT psuga.programid FROM programstageusergroupaccesses psuga "
+        + "WHERE psuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
 
     private final static String GET_RELATIONSHIPTYPE_ACL = "SELECT rs.relationshiptypeid "
-        + "        FROM relationshiptype rs WHERE " +
-            "" + PUBLIC_ACCESS_CONDITION + " OR ( "
-        + "            rs.relationshiptypeid IN (SELECT rtua.relationshiptypeid "
-        + "               FROM relationshiptypeuseraccesses rtua WHERE rtua.useraccessid IN " + USERACCESS_CONDITION
-        + ") " + "               OR rs.relationshiptypeid IN (SELECT rtuga.relationshiptypeid "
-        + "               FROM relationshiptypeusergroupaccesses rtuga "
-        + "               WHERE rtuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
+        + "FROM relationshiptype rs WHERE " + PUBLIC_ACCESS_CONDITION + " OR ( "
+        + "rs.relationshiptypeid IN (SELECT rtua.relationshiptypeid "
+        + "FROM relationshiptypeuseraccesses rtua WHERE rtua.useraccessid IN " + USERACCESS_CONDITION
+        + ") OR rs.relationshiptypeid IN (SELECT rtuga.relationshiptypeid "
+        + "FROM relationshiptypeusergroupaccesses rtuga "
+        + "WHERE rtuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
 
     public DefaultAclStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {

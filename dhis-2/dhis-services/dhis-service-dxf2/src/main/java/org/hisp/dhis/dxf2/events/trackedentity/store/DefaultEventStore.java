@@ -93,8 +93,8 @@ public class DefaultEventStore
         "from programstageinstance psi " +
         "where psi.programstageinstanceid in (:ids)";
 
-    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created "
-        +
+    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
+        "tec.creator, tec.created " +
         "from trackedentitycomment tec " +
         "join programstageinstancecomments psic " +
         "on tec.trackedentitycommentid = psic.trackedentitycommentid " +
