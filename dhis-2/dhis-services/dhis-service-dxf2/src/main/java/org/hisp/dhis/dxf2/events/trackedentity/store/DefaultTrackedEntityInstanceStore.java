@@ -50,31 +50,33 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultTrackedEntityInstanceStore extends AbstractStore implements TrackedEntityInstanceStore
 {
-    private final static String GET_TEIS_SQL = "SELECT tei.uid as teiuid,"
-        + "tei.created, tei.createdatclient, tei.lastupdated, tei.lastupdatedatclient, tei.inactive, "
-        //+ "tei.deleted, ST_AsBinary(tei.geometry) as geometry, tet.uid as type_uid, o.uid as ou_uid "
+    private final static String GET_TEIS_SQL = "SELECT tei.uid as teiuid," +
+        "tei.created, tei.createdatclient, tei.lastupdated, tei.lastupdatedatclient, tei.inactive, " +
+        // + "tei.deleted, ST_AsBinary(tei.geometry) as geometry, tet.uid as type_uid,
+        // o.uid as ou_uid "
         // FIXME luciano: ST_ASBINARY doesn't work in H2
-        + "tei.deleted, tei.geometry, tet.uid as type_uid, o.uid as ou_uid "
-        + "FROM trackedentityinstance tei "
-        + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
-        + "join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids)";
+        "tei.deleted, tei.geometry, tet.uid as type_uid, o.uid as ou_uid " +
+        "FROM trackedentityinstance tei " +
+        "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
+        "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
+        "where tei.trackedentityinstanceid in (:ids)";
 
-    private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid"
-        + ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, "
-        + "       teav.value, teav.storedby, t.name as att_name, "
-        + "       t.uid as att_uid, t.valuetype as att_val_type, "
-        + "       t.code as att_code, t.skipsynchronization as att_skip_sync "
-        + "from trackedentityattributevalue teav "
-        + "         join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where teav.trackedentityinstanceid in (:ids)";
+    private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid" +
+        ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, " +
+        "teav.value, teav.storedby, t.name as att_name, " +
+        "t.uid as att_uid, t.valuetype as att_val_type, " +
+        "t.code as att_code, t.skipsynchronization as att_skip_sync " +
+        "from trackedentityattributevalue teav " +
+        "join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid " +
+        "join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid " +
+        "where teav.trackedentityinstanceid in (:ids)";
 
-    private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid "
-        +
-            "from trackedentityprogramowner teop " +
-            "         join program p on teop.programid = p.programid " +
-            "         join organisationunit o on teop.organisationunitid = o.organisationunitid " +
-            "         join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid " +
-            "where teop.trackedentityinstanceid in (:ids)";
+    private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid " +
+        "from trackedentityprogramowner teop " +
+        "join program p on teop.programid = p.programid " +
+        "join organisationunit o on teop.organisationunitid = o.organisationunitid " +
+        "join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid " +
+        "where teop.trackedentityinstanceid in (:ids)";
 
     public DefaultTrackedEntityInstanceStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {

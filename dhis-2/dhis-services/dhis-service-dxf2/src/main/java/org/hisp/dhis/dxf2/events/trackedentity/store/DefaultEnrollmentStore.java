@@ -51,22 +51,23 @@ public class DefaultEnrollmentStore
     implements
     EnrollmentStore
 {
-    private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, "
-        + "pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, "
-        + "pi.enrollmentdate, pi.incidentdate, pi.followup, pi.enddate, pi.completedby, "
+    private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, " +
+        "pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, " +
+        "pi.enrollmentdate, pi.incidentdate, pi.followup, pi.enddate, pi.completedby, " +
         // FIXME luciano: ST_ASBINARY doesn't work in H2
         //+ "pi.storedby, pi.deleted, ST_AsBinary(pi.geometry) as geometry, p.uid as program_uid, "
-        + "pi.storedby, tei.geometry, pi.deleted, p.uid as program_uid, "
-        + "p.featuretype as program_feature_type from programinstance pi "
-        + "join program p on pi.programid = p.programid "
-        + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where pi.trackedentityinstanceid in (:ids) ";
+        "pi.storedby, tei.geometry, pi.deleted, p.uid as program_uid, " +
+        "p.featuretype as program_feature_type from programinstance pi " +
+        "join program p on pi.programid = p.programid " +
+        "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
+        "where pi.trackedentityinstanceid in (:ids) ";
 
-    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created "
-        + "from trackedentitycomment tec join programinstancecomments pic "
-        + "              on tec.trackedentitycommentid = pic.trackedentitycommentid "
-        + "         join programinstance pi on pic.programinstanceid = pi.programinstanceid "
-        + "where pic.programinstanceid in (:ids)";
+    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
+        "tec.creator, tec.created " +
+        "from trackedentitycomment tec join programinstancecomments pic " +
+        "on tec.trackedentitycommentid = pic.trackedentitycommentid " +
+        "join programinstance pi on pic.programinstanceid = pi.programinstanceid " +
+        "where pic.programinstanceid in (:ids)";
 
     public DefaultEnrollmentStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
