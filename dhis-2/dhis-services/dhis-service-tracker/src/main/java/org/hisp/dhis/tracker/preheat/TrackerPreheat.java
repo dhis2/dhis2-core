@@ -131,7 +131,7 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     * A Map of event uid and preheated {@see ProgramInstance}. The key is a List,
+     * A Map of event uid and preheated {@see ProgramInstance}. The value is a List,
      * because the system may return multiple ProgramInstance, which will be
      * detected by validation
      */
