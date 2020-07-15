@@ -252,6 +252,7 @@ public class DefaultTrackedEntityInstanceService
 
         List<Long> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
 
+        // FIXME: luciano - check if READ audit can be removed, since it is now based on Hibernate listeners..
 //        String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 //
 //        for ( TrackedEntityInstance tei : trackedEntityInstances )

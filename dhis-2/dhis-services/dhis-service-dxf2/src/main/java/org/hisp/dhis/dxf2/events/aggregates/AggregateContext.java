@@ -43,34 +43,34 @@ public class AggregateContext
     /**
      * returns true if user is Super User
      */
-    private boolean superUser;
+    boolean superUser;
 
     /**
      * The current user id
      */
-    private Long userId;
+    Long userId;
 
     /**
      * A List of Tracked Entity Types ID to which the user has READ ONLY access
      */
-    private List<Long> trackedEntityTypes;
+    List<Long> trackedEntityTypes;
 
     /**
      * A List of Programs ID to which the user has READ ONLY access
      */
-    private List<Long> programs;
+    List<Long> programs;
 
     /**
      * A List of Program Stages ID to which the user has READ ONLY access
      */
-    private List<Long> programStages;
+    List<Long> programStages;
 
     /**
      * A List of Relationship ID to which the user has READ ONLY access
      */
-    private List<Long> relationshipTypes;
+    List<Long> relationshipTypes;
 
-    private boolean includeRelationships;
+    boolean includeRelationships;
 
-    private boolean includeEvents;
+    boolean includeEvents;
 }

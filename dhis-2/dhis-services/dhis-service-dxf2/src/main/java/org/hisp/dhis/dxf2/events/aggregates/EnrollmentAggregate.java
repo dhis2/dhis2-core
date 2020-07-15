@@ -71,7 +71,7 @@ public class EnrollmentAggregate
      * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
      *         key a List of {@see Enrollment} objects
      */
-    Multimap<String, Enrollment> findByTrackedEntityInstanceIds(List<Long> ids, AggregateContext ctx)
+    Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx )
     {
         Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids, ctx );
 
@@ -86,8 +86,9 @@ public class EnrollmentAggregate
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ) );
 
-        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( ctx.isIncludeRelationships(),
-                () -> enrollmentStore.getRelationships( enrollmentIds ) );
+        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
+            ctx.isIncludeRelationships(),
+            () -> enrollmentStore.getRelationships( enrollmentIds ) );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ) );

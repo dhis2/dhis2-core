@@ -54,53 +54,56 @@ public class DefaultEventStore
     EventStore
 {
     private final static String GET_EVENTS_SQL = "select psi.programstageinstanceid, psi.uid, " +
-            "psi.status, " +
-            "psi.executiondate, " +
-            "psi.duedate, " +
-            "psi.storedby, " +
-            "psi.completedby, " +
-            "psi.completeddate, " +
-            "psi.created, " +
-            "psi.createdatclient, " +
-            "psi.lastupdated, " +
-            "psi.lastupdatedatclient, " +
-            "psi.deleted, " +
-            "ST_AsBinary(psi.geometry)    as geometry, " +
-            "pi.uid                       as enruid, " +
-            "pi.followup                  as enrfollowup, " +
-            "pi.status                    as enrstatus, " +
-            "p.uid                        as prguid, " +
-            "ps.uid                       as prgstguid, " +
-            "coc.uid                      as cocuid, " +
-            "array_to_string(array( " +
-            "   SELECT opt.uid " +
-            "   FROM dataelementcategoryoption opt " +
-            "   join categoryoptioncombos_categoryoptions ccc " +
-            "       on opt.categoryoptionid = ccc.categoryoptionid " +
-            "       WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid " +
-            "       ), ', ') AS catoptions " +
-            "from programstageinstance psi " +
-            "         join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-            "         join program p on pi.programid = p.programid " +
-            "         join programstage ps on psi.programstageid = ps.programstageid " +
-            "         join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
+        "psi.status, " +
+        "psi.executiondate, " +
+        "psi.duedate, " +
+        "psi.storedby, " +
+        "psi.completedby, " +
+        "psi.completeddate, " +
+        "psi.created, " +
+        "psi.createdatclient, " +
+        "psi.lastupdated, " +
+        "psi.lastupdatedatclient, " +
+        "psi.deleted, " +
+        // FIXME luciano: ST_ASBINARY doesn't work in H2
+        // "ST_AsBinary(psi.geometry) as geometry, " +
+        "psi.geometry    as geometry, " +
+        "pi.uid          as enruid, " +
+        "pi.followup     as enrfollowup, " +
+        "pi.status       as enrstatus, " +
+        "p.uid           as prguid, " +
+        "ps.uid          as prgstguid, " +
+        "coc.uid         as cocuid, " +
+        "( " +
+        "SELECT string_agg(opt.uid::text, ',') " +
+        "FROM dataelementcategoryoption opt " +
+        "join categoryoptioncombos_categoryoptions ccc " +
+        "on opt.categoryoptionid = ccc.categoryoptionid " +
+        "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid " +
+        ") AS catoptions " +
+        "from programstageinstance psi " +
+        "join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
+        "join program p on pi.programid = p.programid " +
+        "join programstage ps on psi.programstageid = ps.programstageid " +
+        "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
         "where pi.programinstanceid in (:ids)";
 
     private final static String GET_DATAVALUES_SQL = "select psi.uid as key, " +
-            "       psi.eventdatavalues " +
-            "from programstageinstance psi " +
-            "where psi.programstageinstanceid in (:ids)";
+        "psi.eventdatavalues " +
+        "from programstageinstance psi " +
+        "where psi.programstageinstanceid in (:ids)";
 
-    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created " +
-            "from trackedentitycomment tec " +
-            "         join programstageinstancecomments psic " +
-            "              on tec.trackedentitycommentid = psic.trackedentitycommentid " +
-            "         join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
-            "where psic.programstageinstanceid in (:ids)";
+    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created "
+        +
+        "from trackedentitycomment tec " +
+        "join programstageinstancecomments psic " +
+        "on tec.trackedentitycommentid = psic.trackedentitycommentid " +
+        "join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
+        "where psic.programstageinstanceid in (:ids)";
 
     private final static String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITHOUT_REGISTRATION' THEN " +
-            "psi.programstageid in (:programStageIds) and p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
-            "AND pi.programid IN (:programIds)";
+        "psi.programstageid in (:programStageIds) and p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
+        "AND pi.programid IN (:programIds)";
 
     public DefaultEventStore( JdbcTemplate jdbcTemplate )
     {
@@ -129,7 +132,7 @@ public class DefaultEventStore
     }
 
     @Override
-    public Map<String, List<DataValue>> getDataValues(List<Long> programStageInstanceId )
+    public Map<String, List<DataValue>> getDataValues( List<Long> programStageInstanceId )
     {
         EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
 
