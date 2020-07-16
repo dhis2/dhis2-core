@@ -153,7 +153,7 @@ public class UserController
             params.setCanManage( true );
             params.setAuthSubset( true );
         }
-        
+
         params.setPrefetchUserGroups( filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) ) );
 
         int count = userService.getUserCount( params );
@@ -166,11 +166,14 @@ public class UserController
             params.setMax( pager.getPageSize() );
         }
 
-        List<User> users = userService.getUsers( params,
-            ( orders == null ) ? null : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() ) );
+        List<String> ordersAsString = orders == null ? null :
+            orders.stream().map( Order::toOrderString ).collect( Collectors.toList() );
 
-        // keep the memory query on the result
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
+        List<User> users = userService.getUsers( params, ordersAsString );
+
+        // Keep the memory query on the result
+        Query query = queryService.getQueryFromUrl( getEntityClass(),
+            filters, orders, getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );

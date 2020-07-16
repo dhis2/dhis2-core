@@ -53,10 +53,10 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
 
     public TrackerRuleEngineMessageManager(
-            MessageManager messageManager,
-            SchedulingManager schedulingManager,
-            RenderService renderService,
-            ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
+        MessageManager messageManager,
+        SchedulingManager schedulingManager,
+        RenderService renderService,
+        ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
     {
         super( messageManager, schedulingManager, renderService );
         this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
@@ -69,7 +69,8 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message ) throws JMSException, IOException
+    public void consume( TextMessage message )
+        throws JMSException, IOException
     {
         TrackerSideEffectDataBundle bundle = toBundle( message );
 
@@ -78,7 +79,8 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
             return;
         }
 
-        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy(), true );
+        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB,
+            bundle.getAccessedBy(), true );
 
         bundle.setJobConfiguration( jobConfiguration );
 

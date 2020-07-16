@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class EventTrackerConverterServiceTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     @Qualifier( "eventTrackerConverterService" )
@@ -82,6 +82,8 @@ public class EventTrackerConverterServiceTest
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -98,12 +100,6 @@ public class EventTrackerConverterServiceTest
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( objectBundle );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Test
