@@ -66,10 +66,10 @@ public class TrackedEntityInstanceRowCallbackHandler
         tei.setTrackedEntityInstance( rs.getString( "teiuid" ) );
         tei.setOrgUnit( rs.getString( "ou_uid" ) );
         tei.setTrackedEntityType( rs.getString( "type_uid" ) );
-        tei.setCreated( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
-        tei.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "createdatclient" ) ) );
-        tei.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( "lastupdated" ) ) );
-        tei.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "lastupdatedatclient" ) ) );
+        tei.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( "created" ) ) );
+        tei.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "createdatclient" ) ) );
+        tei.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdated" ) ) );
+        tei.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdatedatclient" ) ) );
         tei.setInactive( rs.getBoolean( "inactive" ) );
         tei.setDeleted( rs.getBoolean( "deleted" ) );
 
