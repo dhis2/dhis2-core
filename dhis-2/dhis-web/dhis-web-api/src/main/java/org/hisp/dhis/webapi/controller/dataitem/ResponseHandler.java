@@ -102,6 +102,13 @@ class ResponseHandler
         this.cacheProvider = cacheProvider;
     }
 
+    /**
+     * Appends the given dimensionalItemsFound (the collection of results) and fields to the rootNode.
+     *
+     * @param rootNode the main response root node
+     * @param dimensionalItemsFound the collection of results
+     * @param fields the list of fields to be returned
+     */
     void addResultsToNode( final RootNode rootNode,
         final List<BaseDimensionalItemObject> dimensionalItemsFound, final List<String> fields )
     {
