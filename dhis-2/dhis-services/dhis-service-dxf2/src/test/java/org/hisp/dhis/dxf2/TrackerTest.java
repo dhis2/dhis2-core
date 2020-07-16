@@ -33,6 +33,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -55,6 +56,9 @@ public abstract class TrackerTest extends DhisSpringTest
 
     @Autowired
     private EnrollmentService enrollmentService;
+
+    @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
     protected UserService userService;
@@ -142,8 +146,8 @@ public abstract class TrackerTest extends DhisSpringTest
 
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
 
-        manager.save( entityInstance );
-
+        //manager.save( entityInstance );
+        trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
         return entityInstance;
     }
 

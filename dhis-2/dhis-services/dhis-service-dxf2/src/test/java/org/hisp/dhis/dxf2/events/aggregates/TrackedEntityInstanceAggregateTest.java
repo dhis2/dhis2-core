@@ -2,16 +2,21 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -121,7 +126,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEnrollments( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances2( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -151,7 +156,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances2( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -185,7 +190,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances2( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -200,6 +205,38 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( trackedEntityInstances.get( 3 ).getEnrollments().get( 0 ).getEvents(), hasSize( 0 ) );
     }
 
+    @Test
+    public void testMapping()
+    {
+        long time = System.currentTimeMillis();
+
+        doInTransaction( this::persistTrackedEntityInstanceWithEnrollmentAndEvents );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeEnrollments( true );
+        params.setIncludeEvents( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+
+        System.out.println( trackedEntityInstance );
+
+        assertThat( trackedEntityInstance.getTrackedEntityType(), is( trackedEntityTypeA.getUid() ) );
+        assertTrue( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) );
+        assertThat( trackedEntityInstance.getOrgUnit(), is( organisationUnitA.getUid() ) );
+        assertThat( trackedEntityInstance.isInactive(), is( false ) );
+        assertThat( trackedEntityInstance.isDeleted(), is( false ) );
+        assertThat( trackedEntityInstance.getFeatureType(), is( FeatureType.NONE ) );
+        assertThat( trackedEntityInstance.getStoredBy(), is( nullValue() ) );
+
+        //trackedEntityInstance.getCreated()
+    }
 
     private void makeUserSuper( User user )
     {
