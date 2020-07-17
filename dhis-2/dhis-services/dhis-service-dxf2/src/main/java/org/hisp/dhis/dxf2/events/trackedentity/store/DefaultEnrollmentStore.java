@@ -28,13 +28,23 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableMap;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.poi.ss.formula.functions.T;
+import org.checkerframework.checker.units.qual.C;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EnrollmentRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -47,20 +57,7 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore
 {
-    private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, " +
-        "pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, " +
-        "pi.enrollmentdate, pi.incidentdate, pi.followup, pi.enddate, pi.completedby, " +
-        // FIXME luciano: ST_ASBINARY doesn't work in H2
-        //+ "pi.storedby, pi.deleted, ST_AsBinary(pi.geometry) as geometry, p.uid as program_uid, "
-        "pi.storedby, tei.geometry, pi.deleted, p.uid as program_uid, " +
-        "p.featuretype as program_feature_type, tei.uid as tei_uid, tet.uid as type_uid, " +
-        "o.uid as ou_uid, o.name as ou_name " +
-        "from programinstance pi " +
-        "join program p on pi.programid = p.programid " +
-        "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
-        "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
-        "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
-        "where pi.trackedentityinstanceid in (:ids) ";
+    private final static String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
 
     private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
         "tec.creator, tec.created " +

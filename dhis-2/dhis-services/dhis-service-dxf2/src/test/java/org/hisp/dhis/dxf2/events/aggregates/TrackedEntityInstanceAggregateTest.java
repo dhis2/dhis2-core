@@ -241,9 +241,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         // Dates
 
-        checkDate( currentTime, trackedEntityInstance.getCreated(), 10L );
-        checkDate( currentTime, trackedEntityInstance.getCreatedAtClient(), 10L );
-        checkDate( currentTime, trackedEntityInstance.getLastUpdatedAtClient(), 10L );
+        checkDate( currentTime, trackedEntityInstance.getCreated(), 50L );
+        checkDate( currentTime, trackedEntityInstance.getCreatedAtClient(), 50L );
+        checkDate( currentTime, trackedEntityInstance.getLastUpdatedAtClient(), 50L );
         checkDate( currentTime, trackedEntityInstance.getLastUpdated(), 300L );
 
         // get stored by is always null
@@ -285,14 +285,16 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         // Dates
 
-        checkDate( currentTime, enrollment.getCreated(), 150L );
-        checkDate( currentTime, enrollment.getCreatedAtClient(), 150L );
-        checkDate( currentTime, enrollment.getLastUpdatedAtClient(), 150L );
+        checkDate( currentTime, enrollment.getCreated(), 200L );
+        checkDate( currentTime, enrollment.getCreatedAtClient(), 200L );
+        checkDate( currentTime, enrollment.getLastUpdatedAtClient(), 200L );
         checkDate( currentTime, enrollment.getLastUpdated(), 300L );
         checkDate( currentTime, enrollment.getEnrollmentDate(), 300L );
         checkDate( currentTime, enrollment.getIncidentDate(), 300L );
-        checkDate( currentTime, enrollment.getCompletedDate(), 150L );
+        checkDate( currentTime, enrollment.getCompletedDate(), 200L );
         assertThat( enrollment.getCompletedBy(), is( "hello-world" ) );
+
+        assertThat(enrollment.getId(), is(nullValue()));
     }
 
     private void checkDate( Date currentTime, String date, long milliseconds )

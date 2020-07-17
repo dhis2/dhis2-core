@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -156,5 +158,11 @@ public abstract class AbstractStore
     {
         jdbcTemplate.query( sql, createIdsParam( ids ), handler );
         return handler.getItems();
+    }
+
+    protected static String buildSelect( Map<String, TableColumn> columnMap )
+    {
+        return "SELECT "
+            + columnMap.values().stream().map( TableColumn::useInSelect ).collect( Collectors.joining( ", " ) ) + " ";
     }
 }
