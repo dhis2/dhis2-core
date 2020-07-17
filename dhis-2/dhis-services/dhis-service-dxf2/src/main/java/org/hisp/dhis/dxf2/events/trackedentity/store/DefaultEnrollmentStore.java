@@ -45,11 +45,7 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Repository
-public class DefaultEnrollmentStore
-    extends
-    AbstractStore
-    implements
-    EnrollmentStore
+public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore
 {
     private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, " +
         "pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, " +
