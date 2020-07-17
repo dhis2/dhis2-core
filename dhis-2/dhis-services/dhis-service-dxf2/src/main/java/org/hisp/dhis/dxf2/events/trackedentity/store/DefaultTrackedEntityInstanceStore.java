@@ -38,11 +38,14 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Multimap;
+
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getQuery;
 
 /**
  * @author Luciano Fiandesio
@@ -50,16 +53,7 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultTrackedEntityInstanceStore extends AbstractStore implements TrackedEntityInstanceStore
 {
-    private final static String GET_TEIS_SQL = "SELECT tei.uid as teiuid," +
-        "tei.created, tei.createdatclient, tei.lastupdated, tei.lastupdatedatclient, tei.inactive, " +
-        // + "tei.deleted, ST_AsBinary(tei.geometry) as geometry, tet.uid as type_uid,
-        // o.uid as ou_uid "
-        // FIXME luciano: ST_ASBINARY doesn't work in H2
-        "tei.deleted, tei.geometry, tet.uid as type_uid, o.uid as ou_uid " +
-        "FROM trackedentityinstance tei " +
-        "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
-        "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
-        "where tei.trackedentityinstanceid in (:ids)";
+    private final static String GET_TEIS_SQL = getQuery();
 
     private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid" +
         ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, " +

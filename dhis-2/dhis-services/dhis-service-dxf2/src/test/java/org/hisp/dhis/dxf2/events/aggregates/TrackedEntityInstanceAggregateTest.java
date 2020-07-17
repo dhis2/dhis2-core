@@ -3,6 +3,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
 import static org.junit.Assert.assertTrue;
@@ -248,7 +249,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         // get stored by is always null
         assertThat( trackedEntityInstance.getStoredBy(), is( nullValue() ) );
-
     }
 
     @Test
@@ -294,7 +294,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         checkDate( currentTime, enrollment.getCompletedDate(), 200L );
         assertThat( enrollment.getCompletedBy(), is( "hello-world" ) );
 
-        assertThat(enrollment.getId(), is(nullValue()));
+        // The Enrollment ID is not serialized to JSON
+        assertThat( enrollment.getId(), is( notNullValue() ) );
     }
 
     private void checkDate( Date currentTime, String date, long milliseconds )

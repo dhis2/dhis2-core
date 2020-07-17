@@ -74,8 +74,7 @@ public class EnrollmentQuery
 
     private static String getSelect()
     {
-        return "SELECT "
-            + columnMap.values().stream().map( TableColumn::useInSelect ).collect( Collectors.joining( ", " ) ) + " ";
+        return QueryUtils.getSelect( columnMap.values() );
     }
 
     public static String getColumnName( COLUMNS columns )
