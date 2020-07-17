@@ -24,6 +24,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
@@ -153,20 +154,20 @@ public abstract class TrackerTest extends DhisSpringTest
 
     public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollment()
     {
-        return _persistTrackedEntityInstanceWithEnrollment( 0 );
+        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 0 );
     }
 
     public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollmentAndEvents()
     {
-        return _persistTrackedEntityInstanceWithEnrollment( 5 );
+        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5 );
     }
 
-    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollment( int eventSize )
+    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents(int eventSize )
     {
         TrackedEntityInstance entityInstance = persistTrackedEntityInstance();
 
         final ImportSummary importSummary = enrollmentService.addEnrollment(
-                createEnrollment( this.programA, entityInstance, eventSize ),
+                createEnrollmentWithEvents( this.programA, entityInstance, eventSize ),
                 ImportOptions.getDefaultImportOptions() );
 
         assertThat( importSummary.getConflicts(), hasSize( 0 ) );
@@ -176,7 +177,7 @@ public abstract class TrackerTest extends DhisSpringTest
         return entityInstance;
     }
 
-    private Enrollment createEnrollment( Program program, TrackedEntityInstance trackedEntityInstance, int events )
+    private Enrollment createEnrollmentWithEvents(Program program, TrackedEntityInstance trackedEntityInstance, int events )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( CodeGenerator.generateUid() );
@@ -184,7 +185,10 @@ public abstract class TrackerTest extends DhisSpringTest
         enrollment.setProgram( program.getUid() );
         enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
         enrollment.setEnrollmentDate( new Date() );
+        enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setIncidentDate( new Date() );
+        enrollment.setCompletedDate( new Date() );
+        enrollment.setCompletedBy( "hello-world" );
 
         if ( events > 0 )
         {

@@ -57,9 +57,13 @@ public class DefaultEnrollmentStore
         // FIXME luciano: ST_ASBINARY doesn't work in H2
         //+ "pi.storedby, pi.deleted, ST_AsBinary(pi.geometry) as geometry, p.uid as program_uid, "
         "pi.storedby, tei.geometry, pi.deleted, p.uid as program_uid, " +
-        "p.featuretype as program_feature_type from programinstance pi " +
+        "p.featuretype as program_feature_type, tei.uid as tei_uid, tet.uid as type_uid, " +
+        "o.uid as ou_uid, o.name as ou_name " +
+        "from programinstance pi " +
         "join program p on pi.programid = p.programid " +
         "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
+        "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
+        "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
         "where pi.trackedentityinstanceid in (:ids) ";
 
     private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
