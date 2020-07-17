@@ -42,17 +42,39 @@ import java.util.List;
 @NoArgsConstructor
 public class TrackerImportReport
 {
+
     private TrackerStatus status = TrackerStatus.OK;
 
+    private TrackerTimingsStats timings = new TrackerTimingsStats();
+
     private List<TrackerBundleReport> bundleReports = new ArrayList<>();
+
+    private TrackerValidationReport trackerValidationReport;
 
     @JsonProperty
     public TrackerStats getStats()
     {
         TrackerStats stats = new TrackerStats();
         bundleReports.forEach( br -> stats.merge( br.getStats() ) );
-
         return stats;
+    }
+
+    @JsonProperty
+    public TrackerStatus getStatus()
+    {
+        return status;
+    }
+
+    @JsonProperty
+    public TrackerTimingsStats getTimings()
+    {
+        return timings;
+    }
+
+    @JsonProperty
+    public TrackerValidationReport getTrackerValidationReport()
+    {
+        return trackerValidationReport;
     }
 
     //-----------------------------------------------------------------------------------

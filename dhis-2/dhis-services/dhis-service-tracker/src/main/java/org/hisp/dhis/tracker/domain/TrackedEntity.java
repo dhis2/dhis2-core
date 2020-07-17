@@ -45,8 +45,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity
+public class TrackedEntity implements TrackerDto
 {
+    private String uid;
+
     @JsonProperty
     private String trackedEntity;
 
@@ -58,12 +60,6 @@ public class TrackedEntity
 
     @JsonProperty
     private String updatedAt;
-
-    @JsonProperty
-    private String clientCreatedAt;
-
-    @JsonProperty
-    private String clientUpdatedAt;
 
     @JsonProperty
     private String orgUnit;
