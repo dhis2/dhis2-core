@@ -34,14 +34,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.util.DateUtils;
-import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
+
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.DELETED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.GEOMETRY;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.INACTIVE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.ORGUNIT_UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.TYPE_UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getColumnName;
 
 /**
  * @author Luciano Fiandesio
@@ -63,17 +73,17 @@ public class TrackedEntityInstanceRowCallbackHandler
 
         TrackedEntityInstance tei = new TrackedEntityInstance();
 
-        tei.setTrackedEntityInstance( rs.getString( "teiuid" ) );
-        tei.setOrgUnit( rs.getString( "ou_uid" ) );
-        tei.setTrackedEntityType( rs.getString( "type_uid" ) );
-        tei.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( "created" ) ) );
-        tei.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "createdatclient" ) ) );
-        tei.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdated" ) ) );
-        tei.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdatedatclient" ) ) );
-        tei.setInactive( rs.getBoolean( "inactive" ) );
-        tei.setDeleted( rs.getBoolean( "deleted" ) );
+        tei.setTrackedEntityInstance( rs.getString( getColumnName( UID ) ) );
+        tei.setOrgUnit( rs.getString( getColumnName( ORGUNIT_UID ) ) );
+        tei.setTrackedEntityType( rs.getString( getColumnName( TYPE_UID ) ) );
+        tei.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
+        tei.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATEDCLIENT ) ) ) );
+        tei.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
+        tei.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATEDCLIENT ) ) ) );
+        tei.setInactive( rs.getBoolean( getColumnName( INACTIVE ) ) );
+        tei.setDeleted( rs.getBoolean( getColumnName( DELETED ) ) );
 
-        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( "geometry" ) );
+        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) );
         if ( geo.isPresent() )
         {
             tei.setGeometry( geo.get() );
@@ -88,7 +98,7 @@ public class TrackedEntityInstanceRowCallbackHandler
     public void processRow( ResultSet rs )
         throws SQLException
     {
-        this.items.put( rs.getString( "teiuid" ), getTei( rs ) );
+        this.items.put( rs.getString( "tei_uid" ), getTei( rs ) );
     }
 
     public Map<String, TrackedEntityInstance> getItems()

@@ -28,22 +28,8 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.Optional;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKTReader;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
-import org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.util.DateUtils;
-import org.postgresql.util.PGobject;
-
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.getColumnName;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETEDBY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.CREATED;
@@ -52,7 +38,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ENROLLMENTDATE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.FOLLOWUP;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.GEOMETRY;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.INCIDENTDATE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ORGUNIT_NAME;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ORGUNIT_UID;
@@ -64,7 +49,17 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.UPDATEDCLIENT;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.getColumnName;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.util.DateUtils;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio
@@ -118,7 +113,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         enrollment.setCompletedBy( rs.getString( getColumnName( COMPLETEDBY ) ) );
         enrollment.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );
         enrollment.setDeleted( rs.getBoolean( getColumnName( DELETED ) ) );
-
+        enrollment.setId( rs.getLong( getColumnName( ID ) ) );
         return enrollment;
     }
 }
