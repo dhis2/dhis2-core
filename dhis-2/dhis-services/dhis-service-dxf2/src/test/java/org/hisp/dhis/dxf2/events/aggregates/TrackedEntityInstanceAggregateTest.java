@@ -4,9 +4,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
@@ -21,6 +23,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
+
+    private final static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     @Override
     protected void mockCurrentUserService()
@@ -208,7 +213,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Test
     public void testMapping()
     {
-        long time = System.currentTimeMillis();
+        final Date currentTime = new Date();
 
         doInTransaction( this::persistTrackedEntityInstanceWithEnrollmentAndEvents );
 
@@ -225,17 +230,32 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
-        System.out.println( trackedEntityInstance );
-
         assertThat( trackedEntityInstance.getTrackedEntityType(), is( trackedEntityTypeA.getUid() ) );
         assertTrue( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) );
         assertThat( trackedEntityInstance.getOrgUnit(), is( organisationUnitA.getUid() ) );
         assertThat( trackedEntityInstance.isInactive(), is( false ) );
         assertThat( trackedEntityInstance.isDeleted(), is( false ) );
         assertThat( trackedEntityInstance.getFeatureType(), is( FeatureType.NONE ) );
+
+        // Dates
+
+        checkDate( currentTime, trackedEntityInstance.getCreated(), 10L );
+        checkDate( currentTime, trackedEntityInstance.getCreatedAtClient(), 10L );
+        checkDate( currentTime, trackedEntityInstance.getLastUpdatedAtClient(), 10L );
+        checkDate( currentTime, trackedEntityInstance.getLastUpdated(), 300L );
+
+        // get stored by is always null
         assertThat( trackedEntityInstance.getStoredBy(), is( nullValue() ) );
 
-        //trackedEntityInstance.getCreated()
+    }
+
+    private void checkDate( Date currentTime, String date, long milliseconds )
+    {
+        final long interval = currentTime.getTime() - DateUtils.parseDate( date ).getTime();
+        assertThat( date, hasDateTimeFormat( DATE_TIME_FORMAT ) );
+        assertTrue(
+            "Timestamp is higher than expected interval. Expecting: " + milliseconds + " got: " + interval,
+            Math.abs( interval ) < milliseconds );
     }
 
     private void makeUserSuper( User user )
