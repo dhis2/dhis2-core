@@ -67,14 +67,6 @@ public class EnrollmentRowCallbackHandler
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( rs.getString("uid") );
 
-        // we set these 4 fields in post-processing TODO
-
-        // enrollment.setTrackedEntityType();
-        // enrollment.setTrackedEntityInstance();
-        // enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
-        // enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
-
-
         Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( "geometry" ) );
         if ( geo.isPresent() )
         {
@@ -85,17 +77,21 @@ public class EnrollmentRowCallbackHandler
                 enrollment.setCoordinate( new org.hisp.dhis.dxf2.events.event.Coordinate( co.x, co.y ) );
             }
         }
-
-        enrollment.setCreated( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
-        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "createdatclient" ) ) );
-        enrollment.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( "lastupdated" ) ) );
-        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "lastupdatedatclient" ) ) );
+        enrollment.setTrackedEntityType( rs.getString( "type_uid" ) );
+        enrollment.setTrackedEntityInstance( rs.getString( "tei_uid" ) );
+        enrollment.setOrgUnit( rs.getString( "ou_uid" ) );
+        enrollment.setOrgUnitName( rs.getString( "ou_name" ) );
+        enrollment.setTrackedEntityInstance( rs.getString( "tei_uid" ) );
+        enrollment.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( "created" ) ) );
+        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "createdatclient" ) ) );
+        enrollment.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdated" ) ) );
+        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdatedatclient" ) ) );
         enrollment.setProgram( rs.getString( "program_uid" ) );
         enrollment.setStatus( EnrollmentStatus.fromStatusString( rs.getString( "status" ) ) );
-        enrollment.setEnrollmentDate( rs.getDate( "enrollmentdate" ) );
-        enrollment.setIncidentDate( rs.getDate( "incidentdate" ) );
+        enrollment.setEnrollmentDate( rs.getTimestamp( "enrollmentdate" ) );
+        enrollment.setIncidentDate( rs.getTimestamp( "incidentdate" ) );
         enrollment.setFollowup( rs.getBoolean( "followup" ) );
-        enrollment.setCompletedDate( rs.getDate( "enddate" ) );
+        enrollment.setCompletedDate( rs.getTimestamp( "enddate" ) );
         enrollment.setCompletedBy( rs.getString( "completedby" ) );
         enrollment.setStoredBy( rs.getString( "storedby" ) );
         enrollment.setDeleted( rs.getBoolean( "deleted" ) );

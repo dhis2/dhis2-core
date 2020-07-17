@@ -15,6 +15,8 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -211,7 +213,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    public void testMapping()
+    public void testTrackedEntityInstanceMapping()
     {
         final Date currentTime = new Date();
 
@@ -222,8 +224,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-        params.setIncludeEnrollments( true );
-        params.setIncludeEvents( true );
+        params.setIncludeEnrollments( false );
+        params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, params, false );
@@ -249,10 +251,62 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
     }
 
+    @Test
+    public void testEnrollmentMapping()
+    {
+        final Date currentTime = new Date();
+
+        doInTransaction( this::persistTrackedEntityInstanceWithEnrollmentAndEvents );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeEnrollments( true );
+        params.setIncludeEvents( false );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 );
+
+        assertThat( "Tracked Entity Type does not match", enrollment.getTrackedEntityType(),
+            is( trackedEntityTypeA.getUid() ) );
+        assertThat( "Tracked Entity Instance UID does not match", enrollment.getTrackedEntityInstance(),
+            is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+        assertThat( "Org Unit UID does not match", enrollment.getOrgUnit(), is( organisationUnitA.getUid() ) );
+        assertThat( "Org Unit Name does not match", enrollment.getOrgUnitName(), is( organisationUnitA.getName() ) );
+        assertTrue( CodeGenerator.isValidUid( enrollment.getEnrollment() ) );
+        assertThat( enrollment.getProgram(), is( programA.getUid() ) );
+        assertThat( enrollment.getStatus(), is( EnrollmentStatus.COMPLETED ) );
+        assertThat( enrollment.isDeleted(), is( false ) );
+        assertThat( enrollment.getStoredBy(), is( "system-process" ) );
+
+        // Dates
+
+        checkDate( currentTime, enrollment.getCreated(), 150L );
+        checkDate( currentTime, enrollment.getCreatedAtClient(), 150L );
+        checkDate( currentTime, enrollment.getLastUpdatedAtClient(), 150L );
+        checkDate( currentTime, enrollment.getLastUpdated(), 300L );
+        checkDate( currentTime, enrollment.getEnrollmentDate(), 300L );
+        checkDate( currentTime, enrollment.getIncidentDate(), 300L );
+        checkDate( currentTime, enrollment.getCompletedDate(), 150L );
+        assertThat( enrollment.getCompletedBy(), is( "hello-world" ) );
+    }
+
     private void checkDate( Date currentTime, String date, long milliseconds )
     {
         final long interval = currentTime.getTime() - DateUtils.parseDate( date ).getTime();
         assertThat( date, hasDateTimeFormat( DATE_TIME_FORMAT ) );
+        assertTrue(
+            "Timestamp is higher than expected interval. Expecting: " + milliseconds + " got: " + interval,
+            Math.abs( interval ) < milliseconds );
+    }
+
+    private void checkDate( Date currentTime, Date date, long milliseconds )
+    {
+        final long interval = currentTime.getTime() - date.getTime();
         assertTrue(
             "Timestamp is higher than expected interval. Expecting: " + milliseconds + " got: " + interval,
             Math.abs( interval ) < milliseconds );
