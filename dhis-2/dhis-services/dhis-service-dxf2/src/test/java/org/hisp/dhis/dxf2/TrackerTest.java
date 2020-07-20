@@ -82,6 +82,8 @@ public abstract class TrackerTest extends DhisSpringTest
 
     protected CategoryCombo categoryComboA;
 
+    protected final static String DEF_COC_UID = CodeGenerator.generateUid();
+
     @Override
     protected void setUpTest()
         throws Exception
@@ -94,7 +96,7 @@ public abstract class TrackerTest extends DhisSpringTest
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.setUid( CodeGenerator.generateUid() );
         organisationUnitA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-                
+
         categoryComboA = createCategoryCombo( 'A' );
         categoryComboA.setUid( CodeGenerator.generateUid() );
         categoryComboA.setName( RandomStringUtils.randomAlphanumeric( 10 ) );
@@ -103,17 +105,18 @@ public abstract class TrackerTest extends DhisSpringTest
 
         programStageA1 = createProgramStage( programA );
         programStageA2 = createProgramStage( programA );
-        
+
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setCategoryCombo( categoryComboA );
         programA.setUid( CodeGenerator.generateUid() );
         programA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-        programA.setProgramStages( Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
+        programA.setProgramStages(
+            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
 
         CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo( 'A' );
         defaultCategoryOptionCombo.setCategoryCombo( categoryComboA );
-        defaultCategoryOptionCombo.setUid( CodeGenerator.generateUid() );
+        defaultCategoryOptionCombo.setUid( DEF_COC_UID );
         defaultCategoryOptionCombo.setName( "default" );
 
         // Tracker graph persistence
@@ -136,7 +139,8 @@ public abstract class TrackerTest extends DhisSpringTest
     }
 
     @Override
-    public void tearDownTest() {
+    public void tearDownTest()
+    {
 
         dbmsManager.emptyDatabase();
     }
@@ -147,7 +151,7 @@ public abstract class TrackerTest extends DhisSpringTest
 
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
 
-        //manager.save( entityInstance );
+        // manager.save( entityInstance );
         trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
         return entityInstance;
     }
@@ -162,13 +166,13 @@ public abstract class TrackerTest extends DhisSpringTest
         return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5 );
     }
 
-    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents(int eventSize )
+    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize )
     {
         TrackedEntityInstance entityInstance = persistTrackedEntityInstance();
 
         final ImportSummary importSummary = enrollmentService.addEnrollment(
-                createEnrollmentWithEvents( this.programA, entityInstance, eventSize ),
-                ImportOptions.getDefaultImportOptions() );
+            createEnrollmentWithEvents( this.programA, entityInstance, eventSize ),
+            ImportOptions.getDefaultImportOptions() );
 
         assertThat( importSummary.getConflicts(), hasSize( 0 ) );
 
@@ -177,7 +181,8 @@ public abstract class TrackerTest extends DhisSpringTest
         return entityInstance;
     }
 
-    private Enrollment createEnrollmentWithEvents(Program program, TrackedEntityInstance trackedEntityInstance, int events )
+    private Enrollment createEnrollmentWithEvents( Program program, TrackedEntityInstance trackedEntityInstance,
+        int events )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( CodeGenerator.generateUid() );
@@ -230,7 +235,7 @@ public abstract class TrackerTest extends DhisSpringTest
 
         return programStage;
     }
-    
+
     protected void doInTransaction( Runnable operation )
     {
         final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();

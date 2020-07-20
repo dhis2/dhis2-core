@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -18,8 +19,10 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -264,17 +267,69 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeEnrollments( true );
-        params.setIncludeEvents( false );
+        params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, params, false );
+        TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
+        Enrollment enrollment = tei.getEnrollments().get( 0 );
+        Event event = enrollment.getEvents().get( 0 );
+
+        assertNotNull( event );
+
+        // The id is not serialized to JSON
+        assertThat( event.getId(), is( notNullValue() ) );
+        assertThat( event.getUid(), is( nullValue() ) );
+        assertTrue( CodeGenerator.isValidUid( event.getEvent() ) );
+        assertThat( event.getStatus(), is( EventStatus.COMPLETED ) );
+        assertThat( event.getProgram(), is( programA.getUid() ) );
+        assertThat( event.getProgramStage(), is( programStageA1.getUid() ) );
+        assertThat( event.getEnrollment(), is( enrollment.getEnrollment() ) );
+        assertThat( event.getEnrollmentStatus(), is( enrollment.getStatus() ) );
+        assertThat( event.getOrgUnit(), is( organisationUnitA.getUid() ) );
+        assertThat( event.getOrgUnitName(), is( organisationUnitA.getName() ) );
+        assertThat( event.getTrackedEntityInstance(), is( tei.getTrackedEntityInstance() ) );
+        assertThat( event.getAttributeOptionCombo(), is( DEF_COC_UID ) );
+
+        assertThat( event.isDeleted(), is( false ) );
+        assertThat( event.getStoredBy(), is( "[Unknown]" ) );
+        assertThat( event.getFollowup(), is( nullValue() ) );
+
+        // Dates
+        checkDate( currentTime, event.getCreated(), 400L );
+        checkDate( currentTime, event.getLastUpdated(), 300L );
+        assertThat( event.getEventDate(), is( notNullValue() ) );
+        checkDate( currentTime, event.getDueDate(), 400L );
+        checkDate( currentTime, event.getCreatedAtClient(), 400L );
+        checkDate( currentTime, event.getLastUpdatedAtClient(), 400L );
+        checkDate( currentTime, event.getCompletedDate(), 400L );
+        assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
+    }
+
+    @Test
+    public void testEventMapping()
+    {
+        final Date currentTime = new Date();
+
+        doInTransaction( this::persistTrackedEntityInstanceWithEnrollmentAndEvents );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeEnrollments( true );
+        params.setIncludeEvents( false );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+                .getTrackedEntityInstances2( queryParams, params, false );
 
         Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 );
 
         assertThat( "Tracked Entity Type does not match", enrollment.getTrackedEntityType(),
-            is( trackedEntityTypeA.getUid() ) );
+                is( trackedEntityTypeA.getUid() ) );
         assertThat( "Tracked Entity Instance UID does not match", enrollment.getTrackedEntityInstance(),
-            is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+                is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
         assertThat( "Org Unit UID does not match", enrollment.getOrgUnit(), is( organisationUnitA.getUid() ) );
         assertThat( "Org Unit Name does not match", enrollment.getOrgUnitName(), is( organisationUnitA.getName() ) );
         assertTrue( CodeGenerator.isValidUid( enrollment.getEnrollment() ) );
