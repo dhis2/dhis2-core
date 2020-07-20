@@ -22,11 +22,14 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -406,7 +409,114 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertNotNull( event );
 
     }
-    
+
+    @Test
+    public void testTrackedEntityInstanceRelationshipsTei2Tei()
+    {
+        final String[] teiUid = new String[2];
+
+        doInTransaction( () -> {
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstance();
+            this.persistRelationship( t1, t2 );
+            teiUid[0] = t1.getUid();
+            teiUid[1] = t2.getUid();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeRelationships( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertThat( trackedEntityInstances.get( 0 ).getRelationships(), hasSize( 1 ) );
+        final Relationship relationship = trackedEntityInstances.get( 0 ).getRelationships().get( 0 );
+
+        assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(), is( teiUid[0] ) );
+        assertThat( relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance(), is( teiUid[1] ) );
+    }
+
+    @Test
+    public void testTrackedEntityInstanceRelationshipsTei2Enrollment()
+    {
+        final String[] relationshipItemsUid = new String[2];
+
+        doInTransaction( () -> {
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstanceWithEnrollment();
+            ProgramInstance pi = t2.getProgramInstances().iterator().next();
+            this.persistRelationship( t1, pi );
+            relationshipItemsUid[0] = t1.getUid();
+            relationshipItemsUid[1] = pi.getUid();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeRelationships( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        // Fetch the TEI which is the vertex of the relationship TEI <--> ENROLLMENT
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.stream()
+            .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst().get();
+
+        assertThat( trackedEntityInstance.getRelationships(), hasSize( 1 ) );
+
+        final Relationship relationship = trackedEntityInstance.getRelationships().get( 0 );
+
+        assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
+            is( relationshipItemsUid[0] ) );
+        assertThat( relationship.getTo().getEnrollment().getEnrollment(), is( relationshipItemsUid[1] ) );
+    }
+
+    @Test
+    public void testTrackedEntityInstanceRelationshipsTei2Event()
+    {
+        final String[] relationshipItemsUid = new String[2];
+
+        doInTransaction( () -> {
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this
+                .persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            ProgramInstance pi = t2.getProgramInstances().iterator().next();
+            final ProgramStageInstance psi = pi.getProgramStageInstances().iterator().next();
+            this.persistRelationship( t1, psi );
+            relationshipItemsUid[0] = t1.getUid();
+            relationshipItemsUid[1] = psi.getUid();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeRelationships( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        // Fetch the TEI which is the vertex of the relationship TEI <--> ENROLLMENT
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.stream()
+            .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst().get();
+
+        assertThat( trackedEntityInstance.getRelationships(), hasSize( 1 ) );
+
+        final Relationship relationship = trackedEntityInstance.getRelationships().get( 0 );
+
+        assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
+            is( relationshipItemsUid[0] ) );
+        assertThat( relationship.getTo().getEvent().getEvent(), is( relationshipItemsUid[1] ) );
+
+    }
+
     private void checkDate( Date currentTime, String date, long milliseconds )
     {
         final long interval = currentTime.getTime() - DateUtils.parseDate( date ).getTime();
@@ -434,5 +544,4 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup1Super ) );
         user.setUserCredentials( userCredentials );
     }
-
 }

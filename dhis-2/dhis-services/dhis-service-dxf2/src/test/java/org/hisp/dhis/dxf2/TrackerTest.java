@@ -36,8 +36,14 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -75,6 +81,10 @@ public abstract class TrackerTest extends DhisSpringTest
     @Autowired
     protected DbmsManager dbmsManager;
 
+    @Autowired
+    private RelationshipService relationshipService;
+
+
     protected CurrentUserService currentUserService;
 
     protected TrackedEntityType trackedEntityTypeA;
@@ -86,6 +96,8 @@ public abstract class TrackerTest extends DhisSpringTest
     protected ProgramStage programStageA1;
 
     protected CategoryCombo categoryComboA;
+
+    protected RelationshipType relationshipType;
 
     protected final static String DEF_COC_UID = CodeGenerator.generateUid();
 
@@ -124,6 +136,11 @@ public abstract class TrackerTest extends DhisSpringTest
         defaultCategoryOptionCombo.setUid( DEF_COC_UID );
         defaultCategoryOptionCombo.setName( "default" );
 
+        relationshipType = new RelationshipType();
+        relationshipType.setFromToName( RandomStringUtils.randomAlphanumeric( 5 ) );
+        relationshipType.setToFromName( RandomStringUtils.randomAlphanumeric( 5 ) );
+        relationshipType.setName( RandomStringUtils.randomAlphanumeric( 10 ) );
+
         // Tracker graph persistence
         doInTransaction( () -> {
 
@@ -136,6 +153,8 @@ public abstract class TrackerTest extends DhisSpringTest
             manager.save( defaultCategoryOptionCombo );
 
             manager.save( programA );
+
+            manager.save( relationshipType );
         } );
 
         super.userService = this.userService;
@@ -153,13 +172,56 @@ public abstract class TrackerTest extends DhisSpringTest
     public TrackedEntityInstance persistTrackedEntityInstance()
     {
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnitA );
-
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
-
-        // manager.save( entityInstance );
         trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
         return entityInstance;
     }
+
+    private Relationship _persistRelationship( RelationshipItem from, RelationshipItem to ) {
+
+        Relationship relationship = new Relationship();
+        relationship.setFrom( from );
+        relationship.setTo( to );
+        relationship.setRelationshipType( relationshipType );
+
+        relationshipService.addRelationship( relationship );
+
+        return relationship;
+    }
+    
+    public Relationship persistRelationship( TrackedEntityInstance t1, TrackedEntityInstance t2 )
+    {
+        RelationshipItem from = new RelationshipItem();
+        from.setTrackedEntityInstance( t1 );
+
+        RelationshipItem to = new RelationshipItem();
+        to.setTrackedEntityInstance( t2 );
+
+        return _persistRelationship( from, to );
+    }
+
+    public Relationship persistRelationship( TrackedEntityInstance tei, ProgramInstance pi )
+    {
+        RelationshipItem from = new RelationshipItem();
+        from.setTrackedEntityInstance( tei );
+
+        RelationshipItem to = new RelationshipItem();
+        to.setProgramInstance( pi );
+
+        return _persistRelationship( from, to );
+    }
+
+    public Relationship persistRelationship( TrackedEntityInstance tei, ProgramStageInstance psi )
+    {
+        RelationshipItem from = new RelationshipItem();
+        from.setTrackedEntityInstance( tei );
+
+        RelationshipItem to = new RelationshipItem();
+        to.setProgramStageInstance( psi );
+
+        return _persistRelationship( from, to );
+    }
+    
 
     public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollment()
     {
@@ -250,7 +312,7 @@ public abstract class TrackerTest extends DhisSpringTest
                 }
             }
         }
-        
+
         return enrollment;
     }
 

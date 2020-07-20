@@ -58,21 +58,21 @@ public abstract class AbstractStore
 
     private final static String GET_RELATIONSHIP_SQL = "select "
         + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-        + "coalesce((select tei.uid from trackedentityinstance tei "
+        + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
         + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-        + "where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
+        + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid "
         + "from programinstance pi "
-        + "join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-        + "where ri.relationshipitemid = r.to_relationshipitemid), (select psi.uid "
+        + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid "
+        + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid "
         + "from programstageinstance psi "
         + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
         + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-        + "coalesce((select tei.uid from trackedentityinstance tei "
+        + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
         + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-        + "where ri.relationshipitemid = r.from_relationshipitemid) , (select pi.uid "
+        + "where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid "
         + "from programinstance pi "
-        + "join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-        + "where ri.relationshipitemid = r.from_relationshipitemid), (select psi.uid "
+        + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid "
+        + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid "
         + "from programstageinstance psi "
         + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
         + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
@@ -101,7 +101,6 @@ public abstract class AbstractStore
 
     public Multimap<String, Relationship> getRelationships( List<Long> ids )
     {
-
         String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
