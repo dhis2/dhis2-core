@@ -56,8 +56,6 @@ import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery;
-import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.util.DateUtils;
 

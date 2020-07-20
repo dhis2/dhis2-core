@@ -31,6 +31,9 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -47,19 +50,39 @@ public class RelationshipRowCallbackHandler
     public void processRow( ResultSet rs )
         throws SQLException
     {
-        Relationship relationship = getRelationship( rs );
+        final Relationship relationship = getRelationship( rs );
 
-        this.items.put( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(), getRelationship( rs ) );
-        this.items.put( relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance(), getRelationship( rs ) );
+        this.items.put( extractUid( relationship.getFrom() ), relationship );
+        this.items.put( extractUid( relationship.getTo() ), relationship );
     }
 
+    private String extractUid( RelationshipItem relationshipItem )
+    {
+        if ( relationshipItem.getTrackedEntityInstance() != null )
+        {
+            return relationshipItem.getTrackedEntityInstance().getTrackedEntityInstance();
+        }
+        else if ( relationshipItem.getEnrollment() != null )
+        {
+            return relationshipItem.getEnrollment().getEnrollment();
+        }
+        else if ( relationshipItem.getEvent() != null )
+        {
+            return relationshipItem.getEvent().getEvent();
+        }
+        return null; // FIXME: throw exception?
+    }
+
+
     @Override
-    Relationship getItem(ResultSet rs) {
+    Relationship getItem( ResultSet rs )
+    {
         return null;
     }
 
     @Override
-    String getKeyColumn() {
+    String getKeyColumn()
+    {
         return null;
     }
 
@@ -71,8 +94,8 @@ public class RelationshipRowCallbackHandler
         relationship.setRelationship( rs.getString( "rel_uid" ) );
         relationship.setRelationshipType( rs.getString( "reltype_uid" ) );
         relationship.setRelationshipName( rs.getString( "reltype_name" ) );
-        relationship.setFrom( createItem( rs.getString( "to_uid" ) ) );
-        relationship.setTo( createItem( rs.getString( "from_uid" ) ) );
+        relationship.setFrom( createItem( rs.getString( "from_uid" ) ) );
+        relationship.setTo( createItem( rs.getString( "to_uid" ) ) );
         relationship.setBidirectional( rs.getBoolean( "reltype_bi" ) );
         relationship.setCreated( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
         relationship.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( "lastupdated" ) ) );
@@ -80,15 +103,38 @@ public class RelationshipRowCallbackHandler
         return relationship;
     }
 
-    private RelationshipItem createItem( String uid )
+    private RelationshipItem createItem( String typeWithUid )
     {
+        if ( StringUtils.isEmpty( typeWithUid ) )
+        {
+            return new RelationshipItem();
+        }
         RelationshipItem ri = new RelationshipItem();
 
-        TrackedEntityInstance tei = new TrackedEntityInstance();
-        tei.clear();
-        tei.setTrackedEntityInstance( uid );
-        ri.setTrackedEntityInstance( tei );
+        final String type = typeWithUid.split("\\|")[0];
+        final String uid = typeWithUid.split("\\|")[1];
 
+        switch ( type )
+        {
+        case "tei":
+
+            TrackedEntityInstance tei = new TrackedEntityInstance();
+            tei.clear();
+            tei.setTrackedEntityInstance( uid );
+            ri.setTrackedEntityInstance( tei );
+            break;
+        case "pi":
+            Enrollment pi = new Enrollment();
+            pi.setEnrollment( uid );
+            ri.setEnrollment( pi );
+            break;
+        case "psi":
+
+            Event psi = new Event();
+            psi.setEvent( uid );
+            ri.setEvent( psi );
+            break;
+        }
         return ri;
     }
 }
