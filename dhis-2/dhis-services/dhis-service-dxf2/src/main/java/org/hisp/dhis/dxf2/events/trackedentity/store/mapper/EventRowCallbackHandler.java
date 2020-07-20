@@ -70,35 +70,32 @@ public class EventRowCallbackHandler
         Event event = new Event();
         event.setEvent( rs.getString( "uid" ) );
         event.setId( rs.getLong("programstageinstanceid") );
-        event.setTrackedEntityInstance( rs.getString( "enruid" ) );
-        event.setFollowup( rs.getBoolean( "enrfollowup" ) );
+        event.setTrackedEntityInstance( rs.getString( "tei_uid" ) );
+        final String followup = rs.getString( "enrfollowup");
+        event.setFollowup( followup != null ? Boolean.parseBoolean( followup ) : null );
         event.setEnrollmentStatus( EnrollmentStatus.fromStatusString( rs.getString("enrstatus") ) );
         event.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
         event.setEventDate( DateUtils.getIso8601NoTz( rs.getDate( "executiondate" ) ) );
-        event.setDueDate( DateUtils.getIso8601NoTz( rs.getDate( "duedate" ) ) );
+        event.setDueDate( DateUtils.getIso8601NoTz( rs.getTimestamp( "duedate" ) ) );
         event.setStoredBy( rs.getString( "storedby" ) );
         event.setCompletedBy( rs.getString( "completedby" ) );
-        event.setCompletedDate( DateUtils.getIso8601NoTz( rs.getDate( "completeddate" ) ) );
-        event.setCreated( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
-        event.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "createdatclient" ) ) );
-        event.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( "lastupdated" ) ) );
-        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "lastupdatedatclient" ) ) );
+        event.setCompletedDate( DateUtils.getIso8601NoTz( rs.getTimestamp( "completeddate" ) ) );
+        event.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( "created" ) ) );
+        event.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "createdatclient" ) ) );
+        event.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdated" ) ) );
+        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdatedatclient" ) ) );
 
         resolveGeometry( rs.getBytes( "geometry" ) ).ifPresent( event::setGeometry );
 
         event.setDeleted( rs.getBoolean( "deleted" ) );
 
         event.setProgram( rs.getString("prguid") );
-        //event.setEnrollment( programStageInstance.getProgramInstance().getUid() ); TODO do we need to duplicate this value? we have already setTrackedEntityInstance
+        event.setOrgUnit( rs.getString("ou_uid"));
+        event.setOrgUnitName( rs.getString("ou_name"));
+        event.setEnrollment( rs.getString("enrollment_uid") );
         event.setProgramStage( rs.getString("prgstguid") );
         event.setAttributeOptionCombo( rs.getString("cocuid") );
         event.setAttributeCategoryOptions( rs.getString("catoptions") );
-
-        // TODO
-//        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-//        {
-//            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-//        }
 
         return event;
     }

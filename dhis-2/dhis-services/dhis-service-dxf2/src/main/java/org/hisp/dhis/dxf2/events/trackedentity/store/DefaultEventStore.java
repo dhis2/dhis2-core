@@ -64,6 +64,7 @@ public class DefaultEventStore
         "psi.createdatclient, " +
         "psi.lastupdated, " +
         "psi.lastupdatedatclient, " +
+        "pi.uid as enrollment_uid, " +
         "psi.deleted, " +
         // FIXME luciano: ST_ASBINARY doesn't work in H2
         // "ST_AsBinary(psi.geometry) as geometry, " +
@@ -73,6 +74,9 @@ public class DefaultEventStore
         "pi.status       as enrstatus, " +
         "p.uid           as prguid, " +
         "ps.uid          as prgstguid, " +
+        "o.uid           as ou_uid," +
+        "tei.uid         as tei_uid, " +
+        "o.name           as ou_name," +
         "coc.uid         as cocuid, " +
         "( " +
         "SELECT string_agg(opt.uid::text, ',') " +
@@ -83,8 +87,10 @@ public class DefaultEventStore
         ") AS catoptions " +
         "from programstageinstance psi " +
         "join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
+        "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
         "join program p on pi.programid = p.programid " +
         "join programstage ps on psi.programstageid = ps.programstageid " +
+        "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
         "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
         "where pi.programinstanceid in (:ids)";
 
