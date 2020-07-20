@@ -11,8 +11,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
@@ -255,7 +257,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    public void testEnrollmentMapping()
+    public void testEventMapping()
     {
         final Date currentTime = new Date();
 
@@ -307,7 +309,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    public void testEventMapping()
+    public void testEnrollmentMapping()
     {
         final Date currentTime = new Date();
 
@@ -337,6 +339,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( enrollment.getStatus(), is( EnrollmentStatus.COMPLETED ) );
         assertThat( enrollment.isDeleted(), is( false ) );
         assertThat( enrollment.getStoredBy(), is( "system-process" ) );
+        assertThat( enrollment.getFollowup(), is( nullValue() ) );
 
         // Dates
 
@@ -353,6 +356,57 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( enrollment.getId(), is( notNullValue() ) );
     }
 
+    @Test
+    public void testEnrollmentFollowup()
+    {
+        Map<String, Object> enrollmentValues = new HashMap<>();
+        enrollmentValues.put( "followup", true );
+        doInTransaction( () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents( enrollmentValues ) );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeEnrollments( true );
+        params.setIncludeEvents( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+        TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
+        Enrollment enrollment = tei.getEnrollments().get( 0 );
+        Event event = enrollment.getEvents().get( 0 );
+
+        assertThat( enrollment.getFollowup(), is( true ) );
+        assertThat( event.getFollowup(), is( true ) );
+    }
+
+    @Test
+    public void testEnrollmentWithoutOrgUnit()
+    {
+        Map<String, Object> enrollmentValues = new HashMap<>();
+        enrollmentValues.put( "orgUnit", null );
+        doInTransaction( () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents( enrollmentValues ) );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeEnrollments( true );
+        params.setIncludeEvents( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+                .getTrackedEntityInstances2( queryParams, params, false );
+        TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
+        Enrollment enrollment = tei.getEnrollments().get( 0 );
+        Event event = enrollment.getEvents().get( 0 );
+        
+        assertNotNull( enrollment );
+        assertNotNull( event );
+
+    }
+    
     private void checkDate( Date currentTime, String date, long milliseconds )
     {
         final long interval = currentTime.getTime() - DateUtils.parseDate( date ).getTime();

@@ -56,6 +56,8 @@ import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.util.DateUtils;
 
@@ -108,7 +110,8 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         enrollment.setStatus( EnrollmentStatus.fromStatusString( rs.getString( getColumnName( STATUS ) ) ) );
         enrollment.setEnrollmentDate( rs.getTimestamp( getColumnName( ENROLLMENTDATE ) ) );
         enrollment.setIncidentDate( rs.getTimestamp( getColumnName( INCIDENTDATE ) ) );
-        enrollment.setFollowup( rs.getBoolean( getColumnName( FOLLOWUP ) ) );
+        final String followup = rs.getString( getColumnName( FOLLOWUP ) );
+        enrollment.setFollowup( followup != null ? Boolean.parseBoolean( followup ) : null );
         enrollment.setCompletedDate( rs.getTimestamp( getColumnName( COMPLETED ) ) );
         enrollment.setCompletedBy( rs.getString( getColumnName( COMPLETEDBY ) ) );
         enrollment.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );

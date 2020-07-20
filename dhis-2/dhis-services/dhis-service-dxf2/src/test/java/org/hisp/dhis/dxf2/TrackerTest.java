@@ -3,17 +3,22 @@ package org.hisp.dhis.dxf2;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
@@ -158,20 +163,26 @@ public abstract class TrackerTest extends DhisSpringTest
 
     public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollment()
     {
-        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 0 );
+        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 0, new HashMap<>() );
     }
 
     public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollmentAndEvents()
     {
-        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5 );
+        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, new HashMap<>() );
     }
 
-    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize )
+    public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollmentAndEvents(
+        Map<String, Object> enrollmentValues )
+    {
+        return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, enrollmentValues );
+    }
+
+    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize, Map<String, Object> enrollmentValues )
     {
         TrackedEntityInstance entityInstance = persistTrackedEntityInstance();
 
         final ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollmentWithEvents( this.programA, entityInstance, eventSize ),
+            createEnrollmentWithEvents( this.programA, entityInstance, eventSize, enrollmentValues ),
             ImportOptions.getDefaultImportOptions() );
 
         assertThat( importSummary.getConflicts(), hasSize( 0 ) );
@@ -217,6 +228,29 @@ public abstract class TrackerTest extends DhisSpringTest
 
             enrollment.setEvents( eventList );
         }
+        return enrollment;
+    }
+
+    private Enrollment createEnrollmentWithEvents( Program program, TrackedEntityInstance trackedEntityInstance,
+        int events, Map<String, Object> enrollmentValues )
+    {
+        Enrollment enrollment = createEnrollmentWithEvents( program, trackedEntityInstance, events );
+
+        if ( enrollmentValues != null && !enrollmentValues.isEmpty() )
+        {
+            for ( String method : enrollmentValues.keySet() )
+            {
+                try
+                {
+                    BeanUtils.setProperty( enrollment, method, enrollmentValues.get( method ) );
+                }
+                catch ( IllegalAccessException | InvocationTargetException e )
+                {
+                    fail( e.getMessage() );
+                }
+            }
+        }
+        
         return enrollment;
     }
 
