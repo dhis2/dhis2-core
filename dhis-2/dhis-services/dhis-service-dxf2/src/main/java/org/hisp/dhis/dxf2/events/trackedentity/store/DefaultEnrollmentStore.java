@@ -28,17 +28,8 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableMap;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.poi.ss.formula.functions.T;
-import org.checkerframework.checker.units.qual.C;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;

@@ -28,6 +28,8 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getQuery;
+
 import java.util.List;
 import java.util.Map;
 
@@ -38,14 +40,11 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
-import org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Multimap;
-
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getQuery;
 
 /**
  * @author Luciano Fiandesio

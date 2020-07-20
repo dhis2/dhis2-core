@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.getColumnName;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETEDBY;
@@ -38,6 +37,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ENROLLMENTDATE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.FOLLOWUP;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.GEOMETRY;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.INCIDENTDATE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ORGUNIT_NAME;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ORGUNIT_UID;
