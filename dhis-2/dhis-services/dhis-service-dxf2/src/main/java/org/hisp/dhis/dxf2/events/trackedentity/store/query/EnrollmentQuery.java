@@ -1,7 +1,6 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
 

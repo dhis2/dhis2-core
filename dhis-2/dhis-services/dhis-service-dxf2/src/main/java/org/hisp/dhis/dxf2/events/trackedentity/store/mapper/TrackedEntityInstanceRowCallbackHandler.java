@@ -28,19 +28,7 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.jdbc.core.RowCallbackHandler;
-
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getColumnName;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATEDCLIENT;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.DELETED;
@@ -51,7 +39,20 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityI
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATEDCLIENT;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getColumnName;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.jdbc.core.RowCallbackHandler;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

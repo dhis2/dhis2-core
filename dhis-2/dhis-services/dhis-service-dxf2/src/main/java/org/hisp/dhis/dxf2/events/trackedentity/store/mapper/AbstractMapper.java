@@ -31,8 +31,6 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.google.common.collect.ArrayListMultimap;

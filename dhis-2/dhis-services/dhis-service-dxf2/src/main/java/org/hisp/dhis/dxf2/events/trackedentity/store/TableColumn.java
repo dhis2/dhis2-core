@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class TableColumn
+public class TableColumn implements QueryElement
 {
     private String prefix;
 
@@ -22,13 +22,15 @@ public class TableColumn
         this.column = column;
     }
 
+    @Override
     public String useInSelect()
     {
         return prefix + "." + column + (alias == null ? "" : " as " + alias);
     }
 
-    public String getResultsetValue() {
-
+    @Override
+    public String getResultsetValue()
+    {
         return alias == null ? column : alias;
     }
 }

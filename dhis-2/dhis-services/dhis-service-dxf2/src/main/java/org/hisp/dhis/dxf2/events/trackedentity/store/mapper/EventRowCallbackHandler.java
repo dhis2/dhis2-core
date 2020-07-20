@@ -28,21 +28,17 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
+import static org.hisp.dhis.dxf2.events.trackedentity.store.mapper.MapperGeoUtils.resolveGeometry;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.getColumnName;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.util.DateUtils;
-import org.postgresql.util.PGobject;
-
-import static org.hisp.dhis.dxf2.events.trackedentity.store.mapper.MapperGeoUtils.resolveGeometry;
 
 /**
  * @author Luciano Fiandesio
@@ -68,34 +64,37 @@ public class EventRowCallbackHandler
         throws SQLException
     {
         Event event = new Event();
-        event.setEvent( rs.getString( "uid" ) );
-        event.setId( rs.getLong("programstageinstanceid") );
-        event.setTrackedEntityInstance( rs.getString( "tei_uid" ) );
-        final String followup = rs.getString( "enrfollowup");
+        event.setEvent( rs.getString( getColumnName( COLUMNS.UID ) ) );
+        event.setId( rs.getLong( getColumnName( COLUMNS.ID ) ) );
+        event.setTrackedEntityInstance( rs.getString( getColumnName( COLUMNS.TEI_UID ) ) );
+        final String followup = rs.getString( getColumnName( COLUMNS.ENROLLMENT_FOLLOWUP ) );
         event.setFollowup( followup != null ? Boolean.parseBoolean( followup ) : null );
-        event.setEnrollmentStatus( EnrollmentStatus.fromStatusString( rs.getString("enrstatus") ) );
-        event.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
-        event.setEventDate( DateUtils.getIso8601NoTz( rs.getDate( "executiondate" ) ) );
-        event.setDueDate( DateUtils.getIso8601NoTz( rs.getTimestamp( "duedate" ) ) );
-        event.setStoredBy( rs.getString( "storedby" ) );
-        event.setCompletedBy( rs.getString( "completedby" ) );
-        event.setCompletedDate( DateUtils.getIso8601NoTz( rs.getTimestamp( "completeddate" ) ) );
-        event.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( "created" ) ) );
-        event.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "createdatclient" ) ) );
-        event.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdated" ) ) );
-        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdatedatclient" ) ) );
+        event.setEnrollmentStatus(
+            EnrollmentStatus.fromStatusString( rs.getString( getColumnName( COLUMNS.ENROLLMENT_STATUS ) ) ) );
+        event.setStatus( EventStatus.valueOf( rs.getString( getColumnName( COLUMNS.STATUS ) ) ) );
+        event.setEventDate( DateUtils.getIso8601NoTz( rs.getDate( getColumnName( COLUMNS.EXECUTION_DATE ) ) ) );
+        event.setDueDate( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.DUE_DATE ) ) ) );
+        event.setStoredBy( rs.getString( getColumnName( COLUMNS.STOREDBY ) ) );
+        event.setCompletedBy( rs.getString( getColumnName( COLUMNS.COMPLETEDBY ) ) );
+        event.setCompletedDate( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.COMPLETEDDATE ) ) ) );
+        event.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.CREATED ) ) ) );
+        event.setCreatedAtClient(
+            DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.CREATEDCLIENT ) ) ) );
+        event.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.UPDATED ) ) ) );
+        event.setLastUpdatedAtClient(
+            DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.UPDATEDCLIENT ) ) ) );
 
-        resolveGeometry( rs.getBytes( "geometry" ) ).ifPresent( event::setGeometry );
+        resolveGeometry( rs.getBytes( getColumnName( COLUMNS.GEOMETRY ) ) ).ifPresent( event::setGeometry );
 
-        event.setDeleted( rs.getBoolean( "deleted" ) );
+        event.setDeleted( rs.getBoolean( getColumnName( COLUMNS.DELETED ) ) );
 
-        event.setProgram( rs.getString("prguid") );
-        event.setOrgUnit( rs.getString("ou_uid"));
-        event.setOrgUnitName( rs.getString("ou_name"));
-        event.setEnrollment( rs.getString("enrollment_uid") );
-        event.setProgramStage( rs.getString("prgstguid") );
-        event.setAttributeOptionCombo( rs.getString("cocuid") );
-        event.setAttributeCategoryOptions( rs.getString("catoptions") );
+        event.setProgram( rs.getString( getColumnName( COLUMNS.PROGRAM_UID ) ) );
+        event.setOrgUnit( rs.getString( getColumnName( COLUMNS.ORGUNIT_UID ) ) );
+        event.setOrgUnitName( rs.getString( getColumnName( COLUMNS.ORGUNIT_NAME ) ) );
+        event.setEnrollment( rs.getString( getColumnName( COLUMNS.ENROLLMENT_UID ) ) );
+        event.setProgramStage( rs.getString( getColumnName( COLUMNS.PROGRAM_STAGE_UID ) ) );
+        event.setAttributeOptionCombo( rs.getString( getColumnName( COLUMNS.COC_UID ) ) );
+        event.setAttributeCategoryOptions( rs.getString( getColumnName( COLUMNS.CAT_OPTIONS ) ) );
 
         return event;
     }

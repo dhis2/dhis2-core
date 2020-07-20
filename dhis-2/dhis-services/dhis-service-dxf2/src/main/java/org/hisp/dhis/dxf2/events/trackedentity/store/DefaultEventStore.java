@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -53,46 +54,7 @@ public class DefaultEventStore
     implements
     EventStore
 {
-    private final static String GET_EVENTS_SQL = "select psi.programstageinstanceid, psi.uid, " +
-        "psi.status, " +
-        "psi.executiondate, " +
-        "psi.duedate, " +
-        "psi.storedby, " +
-        "psi.completedby, " +
-        "psi.completeddate, " +
-        "psi.created, " +
-        "psi.createdatclient, " +
-        "psi.lastupdated, " +
-        "psi.lastupdatedatclient, " +
-        "pi.uid as enrollment_uid, " +
-        "psi.deleted, " +
-        // FIXME luciano: ST_ASBINARY doesn't work in H2
-        // "ST_AsBinary(psi.geometry) as geometry, " +
-        "psi.geometry    as geometry, " +
-        "pi.uid          as enruid, " +
-        "pi.followup     as enrfollowup, " +
-        "pi.status       as enrstatus, " +
-        "p.uid           as prguid, " +
-        "ps.uid          as prgstguid, " +
-        "o.uid           as ou_uid," +
-        "tei.uid         as tei_uid, " +
-        "o.name           as ou_name," +
-        "coc.uid         as cocuid, " +
-        "( " +
-        "SELECT string_agg(opt.uid::text, ',') " +
-        "FROM dataelementcategoryoption opt " +
-        "join categoryoptioncombos_categoryoptions ccc " +
-        "on opt.categoryoptionid = ccc.categoryoptionid " +
-        "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid " +
-        ") AS catoptions " +
-        "from programstageinstance psi " +
-        "join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-        "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
-        "join program p on pi.programid = p.programid " +
-        "join programstage ps on psi.programstageid = ps.programstageid " +
-        "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
-        "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
-        "where pi.programinstanceid in (:ids)";
+    private final static String GET_EVENTS_SQL = EventQuery.getQuery();
 
     private final static String GET_DATAVALUES_SQL = "select psi.uid as key, " +
         "psi.eventdatavalues " +
