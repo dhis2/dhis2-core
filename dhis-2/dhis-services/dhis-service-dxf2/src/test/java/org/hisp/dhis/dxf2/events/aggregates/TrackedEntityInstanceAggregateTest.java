@@ -8,14 +8,13 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
@@ -35,8 +34,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -471,16 +468,22 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             .getTrackedEntityInstances2( queryParams, params, false );
 
         // Fetch the TEI which is the vertex of the relationship TEI <--> ENROLLMENT
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.stream()
-            .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst().get();
+        Optional<TrackedEntityInstance> trackedEntityInstance = trackedEntityInstances.stream()
+            .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst();
+        if ( trackedEntityInstance.isPresent() )
+        {
+            assertThat( trackedEntityInstance.get().getRelationships(), hasSize( 1 ) );
 
-        assertThat( trackedEntityInstance.getRelationships(), hasSize( 1 ) );
+            final Relationship relationship = trackedEntityInstance.get().getRelationships().get( 0 );
 
-        final Relationship relationship = trackedEntityInstance.getRelationships().get( 0 );
-
-        assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
-            is( relationshipItemsUid[0] ) );
-        assertThat( relationship.getTo().getEnrollment().getEnrollment(), is( relationshipItemsUid[1] ) );
+            assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
+                is( relationshipItemsUid[0] ) );
+            assertThat( relationship.getTo().getEnrollment().getEnrollment(), is( relationshipItemsUid[1] ) );
+        }
+        else
+        {
+            fail();
+        }
     }
 
     @Test
@@ -510,17 +513,22 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             .getTrackedEntityInstances2( queryParams, params, false );
 
         // Fetch the TEI which is the vertex of the relationship TEI <--> ENROLLMENT
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.stream()
-            .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst().get();
+        Optional<TrackedEntityInstance> trackedEntityInstance = trackedEntityInstances.stream()
+            .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst();
+        if ( trackedEntityInstance.isPresent() )
+        {
+            assertThat( trackedEntityInstance.get().getRelationships(), hasSize( 1 ) );
 
-        assertThat( trackedEntityInstance.getRelationships(), hasSize( 1 ) );
+            final Relationship relationship = trackedEntityInstance.get().getRelationships().get( 0 );
 
-        final Relationship relationship = trackedEntityInstance.getRelationships().get( 0 );
-
-        assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
-            is( relationshipItemsUid[0] ) );
-        assertThat( relationship.getTo().getEvent().getEvent(), is( relationshipItemsUid[1] ) );
-
+            assertThat( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
+                is( relationshipItemsUid[0] ) );
+            assertThat( relationship.getTo().getEvent().getEvent(), is( relationshipItemsUid[1] ) );
+        }
+        else
+        {
+            fail();
+        }
     }
 
     @Test
@@ -565,16 +573,5 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertTrue(
             "Timestamp is higher than expected interval. Expecting: " + milliseconds + " got: " + interval,
             Math.abs( interval ) < milliseconds );
-    }
-
-    private void makeUserSuper( User user )
-    {
-        UserCredentials userCredentials = new UserCredentials();
-        UserAuthorityGroup userAuthorityGroup1Super = new UserAuthorityGroup();
-        userAuthorityGroup1Super.setUid( "uid4" );
-        userAuthorityGroup1Super
-            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
-        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup1Super ) );
-        user.setUserCredentials( userCredentials );
     }
 }
