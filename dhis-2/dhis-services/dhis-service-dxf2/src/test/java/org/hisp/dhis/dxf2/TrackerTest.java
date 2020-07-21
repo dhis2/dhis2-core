@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
@@ -50,6 +52,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
@@ -165,7 +169,6 @@ public abstract class TrackerTest extends DhisSpringTest
     @Override
     public void tearDownTest()
     {
-
         dbmsManager.emptyDatabase();
     }
 
@@ -177,7 +180,8 @@ public abstract class TrackerTest extends DhisSpringTest
         return entityInstance;
     }
 
-    private Relationship _persistRelationship( RelationshipItem from, RelationshipItem to ) {
+    private Relationship _persistRelationship( RelationshipItem from, RelationshipItem to )
+    {
 
         Relationship relationship = new Relationship();
         relationship.setFrom( from );
@@ -188,7 +192,7 @@ public abstract class TrackerTest extends DhisSpringTest
 
         return relationship;
     }
-    
+
     public Relationship persistRelationship( TrackedEntityInstance t1, TrackedEntityInstance t2 )
     {
         RelationshipItem from = new RelationshipItem();
@@ -221,7 +225,6 @@ public abstract class TrackerTest extends DhisSpringTest
 
         return _persistRelationship( from, to );
     }
-    
 
     public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollment()
     {
@@ -239,7 +242,8 @@ public abstract class TrackerTest extends DhisSpringTest
         return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, enrollmentValues );
     }
 
-    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize, Map<String, Object> enrollmentValues )
+    private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize,
+        Map<String, Object> enrollmentValues )
     {
         TrackedEntityInstance entityInstance = persistTrackedEntityInstance();
 
@@ -347,4 +351,14 @@ public abstract class TrackerTest extends DhisSpringTest
         txTemplate.setPropagationBehavior( defaultPropagationBehaviour );
     }
 
+    protected void makeUserSuper( User user )
+    {
+        UserCredentials userCredentials = new UserCredentials();
+        UserAuthorityGroup userAuthorityGroup1Super = new UserAuthorityGroup();
+        userAuthorityGroup1Super.setUid( "uid4" );
+        userAuthorityGroup1Super
+                .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
+        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup1Super ) );
+        user.setUserCredentials( userCredentials );
+    }
 }
