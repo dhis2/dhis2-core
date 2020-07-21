@@ -100,7 +100,6 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
-import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
@@ -210,13 +209,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
             daoTEIs.forEach( t -> {
-                Set<TrackedEntityAttribute> attributes = null;
+                Set<TrackedEntityAttribute> attributes = new HashSet<>();
                 for ( Program program : teaByProgram.keySet() )
                 {
                     attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
                         trackerOwnershipAccessManager.hasAccess( user, t, program ) );
                 }
-                dtoTeis.add( getTei( t, (attributes == null ? new HashSet<>() : attributes), params, user ) );
+                dtoTeis.add( getTei( t, attributes, params, user ) );
 
             } );
         }
