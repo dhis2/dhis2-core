@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
@@ -22,6 +23,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -31,6 +33,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -52,6 +55,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
+
+    @Autowired
+    private TrackedEntityProgramOwnerService programOwnerService;
 
     private final static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
@@ -516,6 +522,33 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( relationship.getTo().getEvent().getEvent(), is( relationshipItemsUid[1] ) );
 
     }
+
+    @Test
+    public void testTrackedEntityInstanceProgramOwners()
+    {
+        doInTransaction( () -> {
+            final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance();
+            programOwnerService.createOrUpdateTrackedEntityProgramOwner( trackedEntityInstance, programA,
+                organisationUnitA );
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setIncludeProgramOwners( true );
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertThat( trackedEntityInstances.get( 0 ).getProgramOwners(), hasSize( 1 ) );
+        ProgramOwner programOwner = trackedEntityInstances.get( 0 ).getProgramOwners().get( 0 );
+        assertThat( programOwner.getProgram(), is( programA.getUid() ) );
+        assertThat( programOwner.getOwnerOrgUnit(), is( organisationUnitA.getUid() ) );
+        assertThat( programOwner.getTrackedEntityInstance(), is(  trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+    }
+
 
     private void checkDate( Date currentTime, String date, long milliseconds )
     {
