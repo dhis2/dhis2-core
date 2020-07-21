@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,11 +28,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -42,9 +43,8 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Luciano Fiandesio
  */
-public class RelationshipRowCallbackHandler
-    extends
-    AbstractMapper<Relationship>
+@Slf4j
+public class RelationshipRowCallbackHandler extends AbstractMapper<Relationship>
 {
     @Override
     public void processRow( ResultSet rs )
@@ -54,6 +54,18 @@ public class RelationshipRowCallbackHandler
 
         this.items.put( extractUid( relationship.getFrom() ), relationship );
         this.items.put( extractUid( relationship.getTo() ), relationship );
+    }
+
+    @Override
+    Relationship getItem( ResultSet rs )
+    {
+        return null;
+    }
+
+    @Override
+    String getKeyColumn()
+    {
+        return null;
     }
 
     private String extractUid( RelationshipItem relationshipItem )
@@ -73,20 +85,6 @@ public class RelationshipRowCallbackHandler
         return null; // FIXME: throw exception?
     }
 
-
-    @Override
-    Relationship getItem( ResultSet rs )
-    {
-        return null;
-    }
-
-    @Override
-    String getKeyColumn()
-    {
-        return null;
-    }
-
-
     private Relationship getRelationship( ResultSet rs )
         throws SQLException
     {
@@ -103,6 +101,23 @@ public class RelationshipRowCallbackHandler
         return relationship;
     }
 
+    /**
+     * The SQL query that generates the ResultSet used by this  {@see RowCallbackHandler} fetches both sides of a
+     * relationship: since each side can be a Tracked Entity Instance, a Program Instance or a Program Stage Instance,
+     * the query adds an "hint" to the final result to help this Handler to correctly associate the type to the left or
+     * right side of the relationship.
+     * The "typeWithUid" variable contains the UID of the object and a string representing the type.
+     * E.g.
+     *
+     * tei|dj3382832
+     * psi|332983893
+     *
+     * This function parses the string and extract the type and the uid, in order to instantiate the appropriate object
+     * and assign it to the {@see RelationshipItem}
+     *
+     * @param typeWithUid a String containing the object type and the UID of the object, separated by | (pipe)
+     * @return a {@see RelationshipItem}
+     */
     private RelationshipItem createItem( String typeWithUid )
     {
         if ( StringUtils.isEmpty( typeWithUid ) )
@@ -111,8 +126,8 @@ public class RelationshipRowCallbackHandler
         }
         RelationshipItem ri = new RelationshipItem();
 
-        final String type = typeWithUid.split("\\|")[0];
-        final String uid = typeWithUid.split("\\|")[1];
+        final String type = typeWithUid.split( "\\|" )[0];
+        final String uid = typeWithUid.split( "\\|" )[1];
 
         switch ( type )
         {
@@ -124,6 +139,7 @@ public class RelationshipRowCallbackHandler
             ri.setTrackedEntityInstance( tei );
             break;
         case "pi":
+
             Enrollment pi = new Enrollment();
             pi.setEnrollment( uid );
             ri.setEnrollment( pi );
@@ -134,7 +150,10 @@ public class RelationshipRowCallbackHandler
             psi.setEvent( uid );
             ri.setEvent( psi );
             break;
+        default:
+            log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );
         }
+
         return ri;
     }
 }
