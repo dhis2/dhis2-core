@@ -45,6 +45,7 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.sharing.ObjectSharing;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
@@ -161,6 +162,8 @@ public class BaseIdentifiableObject
      * Last user updated this object.
      */
     protected User lastUpdatedBy;
+
+    protected ObjectSharing objectSharing;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -536,6 +539,20 @@ public class BaseIdentifiableObject
         User user = UserContext.getUser();
 
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectSharing getObjectSharing()
+    {
+        return objectSharing;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public void setObjectSharing( ObjectSharing objectSharing )
+    {
+        this.objectSharing = objectSharing;
     }
 
     @Override

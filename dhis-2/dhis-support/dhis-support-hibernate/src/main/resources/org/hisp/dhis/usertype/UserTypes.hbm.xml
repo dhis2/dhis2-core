@@ -87,4 +87,10 @@
     <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jsbObjectSharing">
+    <param name="clazz">org.hisp.dhis.sharing.ObjectSharing</param>
+  </typedef>
+
+
+
 </hibernate-mapping>

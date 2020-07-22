@@ -47,5 +47,9 @@ public class DhisPostgresDialect
         registerHibernateType( Types.OTHER, "pg-uuid" );
         registerFunction( "jsonb_extract_path", new StandardSQLFunction( "jsonb_extract_path", StandardBasicTypes.STRING ) );
         registerFunction( "jsonb_extract_path_text", new StandardSQLFunction( "jsonb_extract_path_text", StandardBasicTypes.STRING ) );
+        registerFunction( "has_user_group_ids", new StandardSQLFunction( "has_user_group_ids", StandardBasicTypes.BOOLEAN ) );
+        registerFunction( "check_user_group_access", new StandardSQLFunction( "check_user_group_access", StandardBasicTypes.BOOLEAN ) );
+        registerFunction( "has_user_id", new StandardSQLFunction( "has_user_id", StandardBasicTypes.BOOLEAN ) );
+        registerFunction( "check_user_access", new StandardSQLFunction( "check_user_access", StandardBasicTypes.BOOLEAN ) );
     }
 }

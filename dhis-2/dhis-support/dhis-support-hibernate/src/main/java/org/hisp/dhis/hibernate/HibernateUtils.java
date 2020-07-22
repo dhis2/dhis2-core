@@ -28,21 +28,26 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.Hibernate;
 import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.SerializableProxy;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.util.DebugUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -133,5 +138,27 @@ public class HibernateUtils
             });
 
         return proxy;
+    }
+
+    /**
+     * Convert List of json object into List of given klass
+     * @param mapper Object mapper that is configured for given klass
+     * @param content List of json objects
+     * @param klass Class for converting to
+     * @param <T>
+     * @return List of converted Object
+     */
+    public static <T> List<T> convertListJsonToListObject( ObjectMapper mapper, List<String> content, Class<T> klass  )
+    {
+        return content.stream().map( json -> {
+            try
+            {
+                return mapper.readValue( json, klass );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( e );
+            }
+        } ).collect( Collectors.toList() );
     }
 }

@@ -28,24 +28,8 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
-
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
@@ -80,7 +64,23 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author bobj
@@ -1187,11 +1187,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
     }
 
-    public List<Function<Root<T>, Predicate>> getJsonbSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    protected List<Function<Root<T>, Predicate>> getJsonbSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
-
-        CriteriaQuery<T> criteria = builder.createQuery( getClazz() );
 
         preProcessPredicates( builder, predicates );
 
@@ -1200,39 +1198,26 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return predicates;
         }
 
-        Function<Root<T>, Subquery<Integer>> userGroupPredicate = (( Root<T> root ) -> {
-            Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
-            Root<T> ugdc = userGroupSubQuery.from( getClazz() );
-            Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
-            userGroupSubQuery.select( uga.get( "id" ) );
+        Function<Root<T>,Predicate> userGroupPredicate  = ((Root<T> root) ->
+            builder.and(
+                builder.equal( builder.function( "has_user_group_ids", Boolean.class, root.get( "objectSharing" ),
+                    builder.parameter( String[].class, "userGroupUuIds" ) ), true ),
+                builder.equal( builder.function( "check_user_group_access", Boolean.class, root.get( "objectSharing" ),
+                    builder.literal( access ) ), true )
+            ));
 
-            return userGroupSubQuery.where(
-                builder.and(
-                    builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
-                    builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
-                    builder.like( uga.get( "access" ), access ) ) );
-        });
-
-        Function<Root<T>, Subquery<Integer>> userPredicate = (root -> {
-            Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
-            Root<T> udc = userSubQuery.from( getClazz() );
-            Join<T, UserAccess> ua = udc.join( "userAccesses" );
-            userSubQuery.select( ua.get( "id" ) );
-
-            return userSubQuery.where(
-                builder.and(
-                    builder.equal( root.get( "id" ), udc.get( "id" ) ),
-                    builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
-                    builder.like( ua.get( "access" ), access ) ) );
-        });
+        Function<Root<T>,Predicate> userPredicate  = ((Root<T> root) -> builder.and(
+            builder.equal(  builder.function( "has_user_id", Boolean.class, root.get( "objectSharing" ),  builder.literal( user.getUserCredentials().getUuid().toString() ) ) , true ),
+            builder.equal( builder.function( "check_user_access", Boolean.class, root.get( "objectSharing" ),builder.literal(  user.getUserCredentials().getUuid().toString() ),  builder.literal( access ) ), true )
+        ));
 
         predicates.add( root -> builder.or(
             builder.like( root.get( "publicAccess" ), access ),
             builder.isNull( root.get( "publicAccess" ) ),
             builder.isNull( root.get( "user" ) ),
             builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
-            builder.exists( userGroupPredicate.apply( root ) ),
-            builder.exists( userPredicate.apply( root ) ) ) );
+//            userGroupPredicate.apply( root ) ,
+             userPredicate.apply( root ) )  );
 
         return predicates;
     }

@@ -39,6 +39,7 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.hibernate.type.ArrayType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
@@ -50,6 +51,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -305,6 +307,15 @@ public class HibernateGenericStore<T>
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }
 
+        if ( parameters.getQueryParameters().size() > 0 )
+        {
+            parameters.getQueryParameters().forEach( (key,val) -> {
+
+                typedQuery.unwrap( Query.class ).setParameter( key, val );
+            } );
+        }
+
+
         return typedQuery
             .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) );
     }
@@ -490,7 +501,7 @@ public class HibernateGenericStore<T>
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+        return HibernateUtils.convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class );
     }
 
     @Override
@@ -572,7 +583,7 @@ public class HibernateGenericStore<T>
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+        return HibernateUtils.convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result , AttributeValue.class );
     }
 
     @Override

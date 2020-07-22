@@ -42,43 +42,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class JsonAttributeValueBinaryType
+public abstract class JsonMapBinaryType<T>
     extends JsonBinaryType
 {
-    public static final ObjectMapper MAPPER = new ObjectMapper();
-
     @Override
     protected JavaType getResultingJavaType( Class<?> returnedClass )
     {
         return MAPPER.getTypeFactory().constructMapLikeType( Map.class, String.class, returnedClass );
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public String convertObjectToJson( Object object )
-    {
-        try
-        {
-            Set<AttributeValue> attributeValues = object == null ? Collections.emptySet()
-                : (Set<AttributeValue>) object;
-
-            Map<String, AttributeValue> attrValueMap = new HashMap<>();
-
-            for ( AttributeValue attributeValue : attributeValues )
-            {
-                if ( attributeValue.getAttribute() != null )
-                {
-                    attrValueMap.put( attributeValue.getAttribute().getUid(), attributeValue );
-                }
-            }
-
-            return writer.writeValueAsString( attrValueMap );
-
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
     }
 
     @Override
@@ -93,7 +63,7 @@ public class JsonAttributeValueBinaryType
     {
         try
         {
-            Map<String, AttributeValue> data = reader.readValue( content );
+            Map<String, T> data = reader.readValue( content );
 
             return convertAttributeValueMapIntoSet( data );
         }
@@ -103,18 +73,55 @@ public class JsonAttributeValueBinaryType
         }
     }
 
-
-
-    private static Set<AttributeValue> convertAttributeValueMapIntoSet( Map<String, AttributeValue> data )
+    /**
+     * Convert Collection<Object> into Map<uid,Object>
+     *     then write converted Map to Json String
+     * @param object the object to convert. Should be a Collection
+     * @return Json String
+     */
+    @Override
+    public String convertObjectToJson( Object object )
     {
-        Set<AttributeValue> attributeValues = new HashSet<>();
-
-        for ( Map.Entry<String, AttributeValue> entry : data.entrySet() )
+        try
         {
-            AttributeValue attributeValue = entry.getValue();
-            attributeValues.add( attributeValue );
+            Set<T> elements = object == null ? Collections.emptySet() : (Set<T>) object;
+
+            Map<String, T> attrValueMap = new HashMap<>();
+
+            for ( T element : elements )
+            {
+                String key = getKey( element );
+                if ( key != null )
+                {
+                    attrValueMap.put( key, element );
+                }
+            }
+
+            return writer.writeValueAsString( attrValueMap );
+
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
+
+    /**
+     * Convert Map<Uid,Object> to Collection<Object>
+     * @param data
+     * @return
+     */
+    private Set<T> convertAttributeValueMapIntoSet( Map<String, T> data )
+    {
+        Set<T> set = new HashSet<>();
+
+        for ( Map.Entry<String, T> entry : data.entrySet() )
+        {
+            set.add( entry.getValue() );
         }
 
-        return attributeValues;
+        return set;
     }
+
+    protected abstract String getKey( T object );
 }
