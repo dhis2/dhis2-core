@@ -40,8 +40,12 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
@@ -66,19 +70,23 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramStageInstanceService programStageInstanceService;
 
+    private final ProgramRuleService programRuleService;
+
     public DefaultProgramRuleEngineService( @Qualifier( "oldRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService )
+        ProgramStageInstanceService programStageInstanceService, @Lazy ProgramRuleService programRuleService )
     {
         checkNotNull( programRuleEngine );
         checkNotNull( ruleActionImplementers );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
+        checkNotNull( programRuleService );
 
         this.programRuleEngine = programRuleEngine;
         this.ruleActionImplementers = ruleActionImplementers;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
+        this.programRuleService = programRuleService;
     }
 
     @Override
@@ -130,8 +138,16 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         return ruleEffects;
     }
 
-    private List<RuleEffect> getRuleEffects( ProgramInstance enrollment, Optional<ProgramStageInstance> event,
-        Set<ProgramStageInstance> events )
+    @Override
+    public RuleValidationResult getDescription( String condition, String programRuleId )
+    {
+        ProgramRule programRule = programRuleService.getProgramRule( programRuleId );
+
+        return programRuleEngine.evaluate( condition, programRule );
+    }
+
+    private List<RuleEffect> getRuleEffects(ProgramInstance enrollment, Optional<ProgramStageInstance> event,
+                                            Set<ProgramStageInstance> events )
     {
         return programRuleEngine.evaluate( enrollment, event, events );
     }

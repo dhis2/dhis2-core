@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -102,4 +103,10 @@ public interface ProgramRuleEntityMapperService
      * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
      */
     RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance );
+
+    /**
+     * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
+     * @return map containing item description
+     */
+    Map<String, String> getItemStore( List<ProgramRuleVariable> programRuleVariables );
 }

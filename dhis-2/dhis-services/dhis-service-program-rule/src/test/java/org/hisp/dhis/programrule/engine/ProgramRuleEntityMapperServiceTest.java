@@ -36,9 +36,11 @@ import java.util.*;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -128,6 +130,12 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     private ProgramRuleVariableService programRuleVariableService;
 
     @Mock
+    private ConstantService constantService;
+
+    @Mock
+    private I18nManager i18nManager;
+
+    @Mock
     private DataElementService dataElementService;
 
     private DefaultProgramRuleEntityMapperService subject;
@@ -136,7 +144,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
-            dataElementService );
+            dataElementService, constantService, i18nManager );
 
         setUpProgramRules();
     }

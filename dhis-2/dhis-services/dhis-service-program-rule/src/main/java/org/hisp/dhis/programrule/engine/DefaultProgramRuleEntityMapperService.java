@@ -30,7 +30,9 @@ package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -42,14 +44,19 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.utils.RuleUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -131,6 +138,21 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             prv -> prv.getDataElement().getValueType() )
         .build();
 
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, String>> DESCRIPTION_MAPPER =
+        new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, String>>()
+        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv ->
+        {
+            TrackedEntityAttribute attribute = prv.getAttribute();
+
+            return ObjectUtils.firstNonNull( attribute.getDisplayName(), attribute.getDisplayFormName(), attribute.getName() );
+        } )
+        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> ObjectUtils.firstNonNull( prv.getDisplayName(), prv.getName() ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::getDisplayName )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, this::getDisplayName )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, this::getDisplayName )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, this::getDisplayName )
+        .build();
+
     private final CachingMap<String, ValueType> dataElementToValueTypeCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
@@ -143,16 +165,25 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final DataElementService dataElementService;
 
+    private final ConstantService constantService;
+
+    private final I18nManager i18nManager;
+
     public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
-        ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService )
+        ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService,
+        ConstantService constantService, I18nManager i18nManager )
     {
         checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( dataElementService );
+        checkNotNull( constantService );
+        checkNotNull( i18nManager );
 
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.dataElementService = dataElementService;
+        this.constantService = constantService;
+        this.i18nManager = i18nManager;
     }
 
     @Override
@@ -208,6 +239,26 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     public Rule toMappedProgramRule( ProgramRule programRule )
     {
         return toRule( programRule );
+    }
+
+    @Override
+    public Map<String, String> getItemStore( List<ProgramRuleVariable> programRuleVariables )
+    {
+        Map<String, String> itemStore = new HashMap<>();
+
+        // program rule variables
+        programRuleVariables.forEach( prv -> itemStore.put( ObjectUtils.firstNonNull( prv.getName(), prv.getDisplayName() ),
+            DESCRIPTION_MAPPER.get( prv.getSourceType() ).apply( prv ) ) );
+
+        // constants
+        constantService.getAllConstants().forEach( constant -> itemStore.put( constant.getUid(),
+            ObjectUtils.firstNonNull( constant.getDisplayName(), constant.getDisplayFormName(), constant.getName() ) ) );
+
+        // program variables
+
+        RuleUtils.ENV_VARIABLES.forEach( var -> itemStore.put( var, i18nManager.getI18n().getString( var ) ) );
+
+        return itemStore;
     }
 
     @Override
@@ -513,5 +564,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
             return dataElement.getValueType();
         } );
+    }
+
+    private String getDisplayName( ProgramRuleVariable prv )
+    {
+        DataElement dataElement = prv.getDataElement();
+
+        return ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(), dataElement.getName() );
     }
 }
