@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.security;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -113,6 +116,45 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
+     * Will extract, from "programCategories/Category", any CategoryOption which the
+     * current user is authorized to read. The extracted CategoryOption's will be
+     * added to the list of non-authorized CategoryOption's. See
+     * {@link Category#addNonAuthorizedCategoryOption(CategoryOption)}.
+     *
+     * @param programCategories the list of program categories.
+     */
+    void extractNonAuthorizedCategoriesOptionsFrom( final List<Category> programCategories )
+    {
+        if ( isNotEmpty( programCategories ) )
+        {
+            for ( final Category category : programCategories )
+            {
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    for ( final CategoryOption categoryOption : categoryOptions )
+                    {
+                        if ( !hasDataReadPermissionFor( categoryOption ) )
+                        {
+                            // Adding to the transient collection that will hold the non-authorized program
+                            // category options.
+                            // This transient object is required to ensure that Hibernate will not reflect
+                            // any changes into DB down the execution flow.
+                            category.addNonAuthorizedCategoryOption( categoryOption );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
+    {
+        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
+    }
+
+    /**
      * Checks whether the given user has data view access to organisation units.
      *
      * @param params the data query parameters.
@@ -163,6 +205,11 @@ public class DefaultAnalyticsSecurityManager
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
+
+            if ( params.getProgram().hasCategoryCombo() )
+            {
+                extractNonAuthorizedCategoriesOptionsFrom( params.getProgram().getCategoryCombo().getCategories() );
+            }
         }
 
         if ( params.hasProgramStage() )

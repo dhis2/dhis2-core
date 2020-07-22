@@ -28,6 +28,7 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -64,6 +65,13 @@ public class Category
 
     private List<CategoryCombo> categoryCombos = new ArrayList<>();
 
+    /**
+     * This list holds CategoryOption's which the current user is not allowed to
+     * read. It's, currently, populated and used during Events queries. See
+     * {@link org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#extractNonAuthorizedCategoriesOptionsFrom(List)}
+     */
+    private transient List<CategoryOption> nonAuthorizedCategoryOptions = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -87,6 +95,14 @@ public class Category
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
+
+    public void addNonAuthorizedCategoryOption( CategoryOption categoryOption )
+    {
+        if ( categoryOption != null )
+        {
+            nonAuthorizedCategoryOptions.add( categoryOption );
+        }
+    }
 
     public void addCategoryOption( CategoryOption categoryOption )
     {
@@ -214,5 +230,16 @@ public class Category
     public void setCategoryCombos( List<CategoryCombo> categoryCombos )
     {
         this.categoryCombos = categoryCombos;
+    }
+
+    @JsonIgnore
+    public List<CategoryOption> getNonAuthorizedCategoryOptions()
+    {
+        return nonAuthorizedCategoryOptions;
+    }
+
+    public void setNonAuthorizedCategoryOptions( List<CategoryOption> nonAuthorizedCategoryOptions )
+    {
+        this.nonAuthorizedCategoryOptions = nonAuthorizedCategoryOptions;
     }
 }
