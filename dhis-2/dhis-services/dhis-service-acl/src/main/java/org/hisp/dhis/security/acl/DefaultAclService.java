@@ -138,14 +138,14 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) ) // --> we can skip this check
+        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
-            if ( object instanceof CategoryOptionCombo ) // this maybe we can skip as well
+            if ( object instanceof CategoryOptionCombo )
             {
                 return checkOptionComboSharingPermission( user, object, Permission.DATA_READ ) || checkOptionComboSharingPermission( user, object, Permission.DATA_WRITE );
             }
 
-            if ( schema.isDataShareable() && // sql from Stian
+            if ( schema.isDataShareable() &&
                 ( checkSharingPermission( user, object, Permission.DATA_READ )
                     || checkSharingPermission( user, object, Permission.DATA_WRITE )) )
             {
@@ -696,7 +696,7 @@ public class DefaultAclService implements AclService
         return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
     }
 
-    private boolean readWriteCommonCheck(User user, IdentifiableObject object )
+    private boolean readWriteCommonCheck( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
         {
