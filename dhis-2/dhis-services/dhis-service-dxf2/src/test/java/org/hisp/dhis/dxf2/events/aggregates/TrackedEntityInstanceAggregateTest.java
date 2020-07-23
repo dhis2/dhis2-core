@@ -35,7 +35,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -49,6 +48,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
@@ -66,12 +68,10 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         makeUserSuper( user );
 
         currentUserService = new MockCurrentUserService( user );
-    }
 
-    @Before
-    public void setUp()
-    {
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
     }
 
     @Test

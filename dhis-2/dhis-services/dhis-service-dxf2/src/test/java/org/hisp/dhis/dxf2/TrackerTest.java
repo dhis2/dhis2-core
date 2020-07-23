@@ -68,7 +68,7 @@ public abstract class TrackerTest extends DhisSpringTest
     protected IdentifiableObjectManager manager;
 
     @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+    protected TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private EnrollmentService enrollmentService;
@@ -87,7 +87,6 @@ public abstract class TrackerTest extends DhisSpringTest
 
     @Autowired
     private RelationshipService relationshipService;
-
 
     protected CurrentUserService currentUserService;
 
@@ -176,6 +175,30 @@ public abstract class TrackerTest extends DhisSpringTest
     {
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
+        trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
+        return entityInstance;
+    }
+
+    public TrackedEntityInstance persistTrackedEntityInstance( Map<String, Object> teiValues )
+    {
+        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnitA );
+        entityInstance.setTrackedEntityType( trackedEntityTypeA );
+
+        if ( teiValues != null && !teiValues.isEmpty() )
+        {
+            for ( String method : teiValues.keySet() )
+            {
+                try
+                {
+                    BeanUtils.setProperty( entityInstance, method, teiValues.get( method ) );
+                }
+                catch ( IllegalAccessException | InvocationTargetException e )
+                {
+                    fail( e.getMessage() );
+                }
+            }
+        }
+
         trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
         return entityInstance;
     }
@@ -326,7 +349,7 @@ public abstract class TrackerTest extends DhisSpringTest
         currentUserService = new MockCurrentUserService( user );
     }
 
-    private ProgramStage createProgramStage( Program program )
+    protected ProgramStage createProgramStage( Program program )
     {
         ProgramStage programStage = createProgramStage( '1', program );
         programStage.setUid( CodeGenerator.generateUid() );
