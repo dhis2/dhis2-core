@@ -12,7 +12,7 @@ CREATE OR REPLACE FUNCTION incrementSequentialCounter(counter_owner text, counte
 		WHERE SNC.owneruid = counter_owner
 		AND SNC.key = counter_key;
 		-- If it's 0, we add a new row
-		IF current_counter < 1 THEN
+		IF current_counter IS NULL THEN
 			INSERT INTO sequentialnumbercounter (id, owneruid, key, counter)
 			VALUES(nextval('hibernate_sequence'), counter_owner, counter_key, (1 + i));
 			RETURN 1;
