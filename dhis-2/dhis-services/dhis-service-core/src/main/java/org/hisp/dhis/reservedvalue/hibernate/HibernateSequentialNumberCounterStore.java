@@ -33,6 +33,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,6 +70,7 @@ public class HibernateSequentialNumberCounterStore
     }
 
     @Override
+    @Transactional
     public void deleteCounter( String uid )
     {
         sessionFactory.getCurrentSession().createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
