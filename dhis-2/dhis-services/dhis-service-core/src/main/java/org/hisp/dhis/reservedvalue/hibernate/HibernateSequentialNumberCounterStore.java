@@ -70,7 +70,6 @@ public class HibernateSequentialNumberCounterStore
     }
 
     @Override
-    @Transactional
     public void deleteCounter( String uid )
     {
         sessionFactory.getCurrentSession().createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
