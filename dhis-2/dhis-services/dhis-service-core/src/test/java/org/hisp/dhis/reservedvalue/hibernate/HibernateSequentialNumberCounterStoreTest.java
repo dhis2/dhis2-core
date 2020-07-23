@@ -29,6 +29,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class HibernateSequentialNumberCounterStoreTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private SequentialNumberCounterStore store;
@@ -81,5 +82,11 @@ public class HibernateSequentialNumberCounterStoreTest
         assertTrue( store.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
         assertTrue( store.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
         assertTrue( store.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

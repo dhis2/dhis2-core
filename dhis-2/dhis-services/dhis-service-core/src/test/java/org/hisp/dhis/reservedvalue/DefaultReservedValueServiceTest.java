@@ -31,6 +31,7 @@ package org.hisp.dhis.reservedvalue;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.ListUtils;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
@@ -57,7 +58,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DefaultReservedValueServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ReservedValueService reservedValueService;
@@ -116,7 +117,7 @@ public class DefaultReservedValueServiceTest
     }
 
     @Override
-    protected boolean emptyDatabaseAfterTest()
+    public boolean emptyDatabaseAfterTest()
     {
         return true;
     }
