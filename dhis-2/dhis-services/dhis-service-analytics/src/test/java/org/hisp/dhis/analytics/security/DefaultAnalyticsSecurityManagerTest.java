@@ -31,10 +31,12 @@ package org.hisp.dhis.analytics.security;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,6 +47,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -53,7 +56,6 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -97,7 +99,7 @@ public class DefaultAnalyticsSecurityManagerTest
     }
 
     @Test
-    public void testExcludeOnlyAuthorizedCategoryOptionsWhenOneCategoryOptionIsNotAllowed()
+    public void testExtractNonAuthorizedCategoriesOptionsWhenOneCategoryOptionIsNotAllowed()
     {
         // Given
         final CategoryOption aCategoryOptionNotAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
@@ -132,7 +134,7 @@ public class DefaultAnalyticsSecurityManagerTest
     }
 
     @Test
-    public void testExcludeOnlyAuthorizedCategoryOptionsWhenAllCategoryOptionsAreAllowed()
+    public void testExtractNonAuthorizedCategoriesOptionsWhenAllCategoryOptionsAreAllowed()
     {
         // Given
         final CategoryOption aCategoryOptionAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
@@ -183,6 +185,7 @@ public class DefaultAnalyticsSecurityManagerTest
 
         final DataQueryParams theEventQueryParams = stubEventQueryParamsWithProgramCategoryCombo(
             newArrayList( aCategoryA, aCategoryB ) );
+
         final User aStubUser = new User();
         final boolean canDataReadTrue = true;
 
@@ -223,7 +226,7 @@ public class DefaultAnalyticsSecurityManagerTest
         final DimensionalObject doA = new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList() );
         final DimensionalObject doC = new BaseDimensionalObject( "Cz3WQznvrCM", PROGRAM_ATTRIBUTE, newArrayList() );
 
-        final Period period = PeriodType.getPeriodFromIsoString( "2019Q2" );
+        final Period period = getPeriodFromIsoString( "2019Q2" );
 
         final CategoryCombo categoryCombo = new CategoryCombo( "cat-combo", ATTRIBUTE );
         categoryCombo.setCategories( categories );
@@ -231,11 +234,11 @@ public class DefaultAnalyticsSecurityManagerTest
         final Program program = new Program( "program", "a program" );
         program.setCategoryCombo( categoryCombo );
 
-        final DataQueryParams dataQueryParams = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doC )
+        final DataQueryParams dataQueryParams = newBuilder().addDimension( doA ).addDimension( doC )
             .withPeriods( Lists.newArrayList( period ) ).withPeriodType( period.getPeriodType().getIsoFormat() )
             .build();
 
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( dataQueryParams );
+        final Builder eventQueryParamsBuilder = new Builder( dataQueryParams );
         final EventQueryParams eventQueryParams = eventQueryParamsBuilder.withProgram( program ).build();
 
         return eventQueryParams;

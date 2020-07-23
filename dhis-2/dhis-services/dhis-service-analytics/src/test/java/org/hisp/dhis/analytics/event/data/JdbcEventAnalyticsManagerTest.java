@@ -31,10 +31,12 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isEmptyString;
+import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.Assert.assertThat;
 import static org.mockito.junit.MockitoJUnit.rule;
 
@@ -42,6 +44,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -50,7 +53,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.junit.Before;
@@ -89,11 +91,12 @@ public class JdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testWhereClauseWhenThereAreNoDimensionsAndOneNonAuthorizedCategoryOption()
+    public void testWhereClauseWhenThereAreNoDimensionsAndOneNonAuthorizedCategoryOptionIsPresent()
     {
         // Given
         final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
         final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
+
         final List<CategoryOption> someCategoryOptions = newArrayList( aCategoryOptionA, aCategoryOptionB );
         final List<CategoryOption> nonAuthorizedCategoryOptions = newArrayList( aCategoryOptionA );
 
@@ -102,7 +105,6 @@ public class JdbcEventAnalyticsManagerTest
 
         final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
             newArrayList( aCategoryA ) );
-
         final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A') ";
 
         // When
@@ -113,13 +115,14 @@ public class JdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testWhereClauseWhenThereAreNoDimensionsAndMultipleNonAuthorizedCategoryOptions()
+    public void testWhereClauseWhenThereAreNoDimensionsAndMultipleNonAuthorizedCategoryOptionsIsPresent()
     {
         // Given
         final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
         final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
         final List<CategoryOption> someCategoryOptions = newArrayList( aCategoryOptionA, aCategoryOptionB );
         final List<CategoryOption> nonAuthorizedCategoryOptions = newArrayList( aCategoryOptionA, aCategoryOptionB );
+
         final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
             someCategoryOptions, nonAuthorizedCategoryOptions );
         final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", someCategoryOptions,
@@ -127,7 +130,6 @@ public class JdbcEventAnalyticsManagerTest
 
         final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
             newArrayList( aCategoryA, aCategoryB ) );
-
         final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" not in ('uid-opt-A', 'uid-opt-B') ";
 
         // When
@@ -188,7 +190,7 @@ public class JdbcEventAnalyticsManagerTest
         final DimensionalObject doA = new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList() );
         final DimensionalObject doC = new BaseDimensionalObject( "Cz3WQznvrCM", PROGRAM_ATTRIBUTE, newArrayList() );
 
-        final Period period = PeriodType.getPeriodFromIsoString( "2019Q2" );
+        final Period period = getPeriodFromIsoString( "2019Q2" );
 
         final CategoryCombo categoryCombo = new CategoryCombo( "cat-combo", ATTRIBUTE );
         categoryCombo.setCategories( categories );
@@ -196,11 +198,11 @@ public class JdbcEventAnalyticsManagerTest
         final Program program = new Program( "program", "a program" );
         program.setCategoryCombo( categoryCombo );
 
-        final DataQueryParams dataQueryParams = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doC )
+        final DataQueryParams dataQueryParams = newBuilder().addDimension( doA ).addDimension( doC )
             .withPeriods( Lists.newArrayList( period ) ).withPeriodType( period.getPeriodType().getIsoFormat() )
             .build();
 
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( dataQueryParams );
+        final Builder eventQueryParamsBuilder = new Builder( dataQueryParams );
         final EventQueryParams eventQueryParams = eventQueryParamsBuilder.withProgram( program ).build();
 
         return eventQueryParams;
