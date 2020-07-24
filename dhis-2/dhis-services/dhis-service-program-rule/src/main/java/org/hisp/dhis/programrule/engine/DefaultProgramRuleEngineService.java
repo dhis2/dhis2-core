@@ -45,7 +45,6 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
@@ -64,6 +63,8 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramRuleEngine programRuleEngine;
 
+    private final ProgramRuleEngine programRuleEngineNew;
+
     private final List<RuleActionImplementer> ruleActionImplementers;
 
     private final ProgramInstanceService programInstanceService;
@@ -72,17 +73,20 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramRuleService programRuleService;
 
-    public DefaultProgramRuleEngineService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngine,
+    public DefaultProgramRuleEngineService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
+                                            @Qualifier( "oldRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, @Lazy ProgramRuleService programRuleService )
+        ProgramStageInstanceService programStageInstanceService, ProgramRuleService programRuleService )
     {
         checkNotNull( programRuleEngine );
+        checkNotNull( programRuleEngineNew );
         checkNotNull( ruleActionImplementers );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
         checkNotNull( programRuleService );
 
         this.programRuleEngine = programRuleEngine;
+        this.programRuleEngineNew = programRuleEngineNew;
         this.ruleActionImplementers = ruleActionImplementers;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
@@ -143,11 +147,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     {
         ProgramRule programRule = programRuleService.getProgramRule( programRuleId );
 
-        return programRuleEngine.getDescription( condition, programRule );
+        return programRuleEngineNew.getDescription( condition, programRule );
     }
 
-    private List<RuleEffect> getRuleEffects(ProgramInstance enrollment, Optional<ProgramStageInstance> event,
-                                            Set<ProgramStageInstance> events )
+    private List<RuleEffect> getRuleEffects( ProgramInstance enrollment, Optional<ProgramStageInstance> event,
+        Set<ProgramStageInstance> events )
     {
         return programRuleEngine.evaluate( enrollment, event, events );
     }

@@ -208,7 +208,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         List<RuleVariable> ruleVariables = subject.toMappedProgramRuleVariables();
 
-        assertEquals( ruleVariables.size(), 2 );
+        assertEquals( ruleVariables.size(), 3 );
 
         for ( RuleVariable variable : ruleVariables )
         {
@@ -369,8 +369,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'Z' );
         attribute.setName( "Tracked_entity_attribute_A" );
 
-        DataElement dataElement = createDataElement( 'E' );
-        dataElement.setDisplayFormName( "DateElement_E" );
+        DataElement dataElement1 = createDataElement( 'E' );
+        dataElement1.setDisplayFormName( "DateElement_E" );
 
         programRuleVariableA = createProgramRuleVariable( 'A', program );
         programRuleVariableB = createProgramRuleVariable( 'B', program );
@@ -383,7 +383,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
             ProgramRuleVariableSourceType.TEI_ATTRIBUTE, program, null, null, attribute );
 
         programRuleVariableC = setProgramRuleVariable( programRuleVariableC,
-            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, program, null, dataElement, null );
+            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, program, null, dataElement1, null );
 
         programRuleVariables.add( programRuleVariableA );
         programRuleVariables.add( programRuleVariableB );
