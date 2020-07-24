@@ -45,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.junit.Ignore;
@@ -84,8 +85,10 @@ public class HibernateSequentialNumberCounterStoreTest
         throws InterruptedException,
         ExecutionException
     {
-
-        Callable<List<Integer>> task = () -> dummyService.getNextValues( "ABC", "ABC-#", 50 );
+        Callable<List<Integer>> task = () -> {
+            final String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
+            return dummyService.getNextValues( uid, uid + "-#", 50 );
+        };
 
         List<Callable<List<Integer>>> tasks = Collections.nCopies( threadCount, task );
         ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
