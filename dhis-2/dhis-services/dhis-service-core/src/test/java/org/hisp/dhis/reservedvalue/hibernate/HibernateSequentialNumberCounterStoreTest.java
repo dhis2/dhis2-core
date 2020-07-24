@@ -36,7 +36,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -46,6 +48,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -82,10 +85,9 @@ public class HibernateSequentialNumberCounterStoreTest
         throws InterruptedException,
         ExecutionException
     {
-        Callable<List<Integer>> task = () -> {
-            final String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
-            return dummyService.getNextValues( uid, uid + "-#", 50 );
-        };
+        String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
+
+        Callable<List<Integer>> task = () -> dummyService.getNextValues( uid, uid + "-#", 50 );
 
         List<Callable<List<Integer>>> tasks = Collections.nCopies( threadCount, task );
         ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
@@ -101,13 +103,19 @@ public class HibernateSequentialNumberCounterStoreTest
 
         assertEquals( threadCount, futures.size() );
         
+        Set<Integer> allIds = new HashSet<>();
+        List<Integer> allIdList = new ArrayList<>();
         for ( List<Integer> integers : resultList )
         {
-            assertThat( integers, hasSize( 50 ));
-            Collections.sort( integers );
-            assertThat( integers.get( 0 ), is( 1 ) );
-            assertThat( integers.get( integers.size() -1  ), is( 50  ) );
+            allIds.addAll( integers );
+            allIdList.addAll( integers );
         }
+
+        assertThat( allIds, hasSize( threadCount * 50 ));
+
+        Collections.sort( allIdList );
+        assertThat( allIdList.get( 0 ), is( 1 ) );
+        assertThat( allIdList.get( allIdList.size() -1  ), is( 50 * threadCount ) );
     }
 
     @Test
