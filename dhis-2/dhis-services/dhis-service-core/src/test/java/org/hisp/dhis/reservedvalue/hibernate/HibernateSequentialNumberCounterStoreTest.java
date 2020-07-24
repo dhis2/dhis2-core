@@ -36,9 +36,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +46,6 @@ import java.util.concurrent.Future;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -104,19 +101,13 @@ public class HibernateSequentialNumberCounterStoreTest
 
         assertEquals( threadCount, futures.size() );
         
-        Set<Integer> allIds = new HashSet<>();
-        List<Integer> allIdList = new ArrayList<>();
         for ( List<Integer> integers : resultList )
         {
-            allIds.addAll( integers );
-            allIdList.addAll( integers );
+            assertThat( integers, hasSize( 50 ));
+            Collections.sort( integers );
+            assertThat( integers.get( 0 ), is( 1 ) );
+            assertThat( integers.get( integers.size() -1  ), is( 50  ) );
         }
-
-        assertThat( allIds, hasSize( threadCount * 50 ));
-        
-        Collections.sort( allIdList );
-        assertThat( allIdList.get( 0 ), is( 1 ) );
-        assertThat( allIdList.get( allIdList.size() -1  ), is( 50 * threadCount ) );
     }
 
     @Test
