@@ -44,7 +44,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -54,8 +53,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.rules.DataItem;
+import org.hisp.dhis.rules.ItemValueType;
 import org.hisp.dhis.rules.models.*;
-import org.hisp.dhis.rules.utils.RuleUtils;
+import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
@@ -138,15 +139,21 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             prv -> prv.getDataElement().getValueType() )
         .build();
 
-    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, String>> DESCRIPTION_MAPPER =
-        new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, String>>()
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>> DESCRIPTION_MAPPER =
+        new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>>()
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv ->
         {
             TrackedEntityAttribute attribute = prv.getAttribute();
 
-            return ObjectUtils.firstNonNull( attribute.getDisplayName(), attribute.getDisplayFormName(), attribute.getName() );
+            return DataItem.builder()
+                .value( ObjectUtils.firstNonNull( attribute.getDisplayName(), attribute.getDisplayFormName(), attribute.getName() ) )
+                .valueType( getItemValueType( attribute.getValueType() ) )
+                .build();
         } )
-        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> ObjectUtils.firstNonNull( prv.getDisplayName(), prv.getName() ) )
+        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> DataItem.builder()
+            .value( ObjectUtils.firstNonNull( prv.getDisplayName(), prv.getName() ) )
+            .valueType( ItemValueType.TEXT )
+            .build() )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::getDisplayName )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, this::getDisplayName )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, this::getDisplayName )
@@ -242,9 +249,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public Map<String, String> getItemStore( List<ProgramRuleVariable> programRuleVariables )
+    public Map<String, DataItem> getItemStore( List<ProgramRuleVariable> programRuleVariables )
     {
-        Map<String, String> itemStore = new HashMap<>();
+        Map<String, DataItem> itemStore = new HashMap<>();
 
         // program rule variables
         programRuleVariables.forEach( prv -> itemStore.put( ObjectUtils.firstNonNull( prv.getName(), prv.getDisplayName() ),
@@ -252,11 +259,17 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
         // constants
         constantService.getAllConstants().forEach( constant -> itemStore.put( constant.getUid(),
-            ObjectUtils.firstNonNull( constant.getDisplayName(), constant.getDisplayFormName(), constant.getName() ) ) );
+            DataItem.builder()
+                .value( ObjectUtils.firstNonNull( constant.getDisplayName(), constant.getDisplayFormName(), constant.getName() ) )
+                .valueType( ItemValueType.NUMBER )
+                .build() ) );
 
         // program variables
 
-        RuleUtils.ENV_VARIABLES.forEach( var -> itemStore.put( var, i18nManager.getI18n().getString( var ) ) );
+        RuleEngineUtils.ENV_VARIABLES.forEach( var -> itemStore.put( var, DataItem.builder()
+            .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var ), var ) )
+            .valueType( ItemValueType.TEXT )
+            .build() ) );
 
         return itemStore;
     }
@@ -566,10 +579,39 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         } );
     }
 
-    private String getDisplayName( ProgramRuleVariable prv )
+    private ItemValueType getItemValueType( ValueType valueType )
+    {
+        if ( valueType.isDate() )
+        {
+            return ItemValueType.DATE;
+        }
+
+        if ( valueType.isNumeric() )
+        {
+            return ItemValueType.NUMBER;
+        }
+
+        if ( valueType.isText() )
+        {
+            return ItemValueType.TEXT;
+        }
+
+        if ( valueType.isBoolean() )
+        {
+            return ItemValueType.BOOLEAN;
+        }
+
+        // default
+        return ItemValueType.TEXT;
+    }
+
+    private DataItem getDisplayName( ProgramRuleVariable prv )
     {
         DataElement dataElement = prv.getDataElement();
 
-        return ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(), dataElement.getName() );
+        return DataItem.builder()
+            .value( ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(), dataElement.getName() ) )
+            .valueType( getItemValueType( dataElement.getValueType() ))
+            .build() ;
     }
 }

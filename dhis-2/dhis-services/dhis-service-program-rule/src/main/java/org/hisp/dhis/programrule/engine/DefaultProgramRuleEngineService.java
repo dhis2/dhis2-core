@@ -72,7 +72,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramRuleService programRuleService;
 
-    public DefaultProgramRuleEngineService( @Qualifier( "oldRuleEngine" ) ProgramRuleEngine programRuleEngine,
+    public DefaultProgramRuleEngineService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
         ProgramStageInstanceService programStageInstanceService, @Lazy ProgramRuleService programRuleService )
     {
@@ -143,7 +143,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     {
         ProgramRule programRule = programRuleService.getProgramRule( programRuleId );
 
-        return programRuleEngine.evaluate( condition, programRule );
+        return programRuleEngine.getDescription( condition, programRule );
     }
 
     private List<RuleEffect> getRuleEffects(ProgramInstance enrollment, Optional<ProgramStageInstance> event,

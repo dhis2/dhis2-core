@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.models.*;
 
 /**
@@ -108,5 +109,5 @@ public interface ProgramRuleEntityMapperService
      * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
      * @return map containing item description
      */
-    Map<String, String> getItemStore( List<ProgramRuleVariable> programRuleVariables );
+    Map<String, DataItem> getItemStore(List<ProgramRuleVariable> programRuleVariables );
 }

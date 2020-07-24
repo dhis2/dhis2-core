@@ -49,6 +49,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.RuleEngineIntent;
@@ -159,7 +160,7 @@ public class ProgramRuleEngine
      * @param programRule {@link ProgramRule} which the condition is associated with.
      * @return RuleValidationResult contains description of program rule condition or errorMessage
      */
-    public RuleValidationResult evaluate( String condition, ProgramRule programRule )
+    public RuleValidationResult getDescription( String condition, ProgramRule programRule )
     {
         if ( programRule == null )
         {
@@ -196,7 +197,7 @@ public class ProgramRuleEngine
 
         if ( RuleEngineIntent.DESCRIPTION == intent )
         {
-            Map<String, String> itemStore = programRuleEntityMapperService.getItemStore( programRuleVariables );
+            Map<String, DataItem> itemStore = programRuleEntityMapperService.getItemStore( programRuleVariables );
 
             return RuleEngineContext.builder()
                 .supplementaryData( supplementaryData )
