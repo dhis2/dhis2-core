@@ -153,10 +153,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Autowired
     ProgramRuleEngine programRuleEngine;
 
-    @Qualifier( "newRuleEngine" )
-    @Autowired
-    ProgramRuleEngine programRuleEngineNew;
-
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
 
