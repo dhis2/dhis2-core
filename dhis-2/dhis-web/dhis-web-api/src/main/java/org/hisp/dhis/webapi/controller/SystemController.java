@@ -85,9 +85,9 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = SystemController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+//@Controller
+//@RequestMapping( value = SystemController.RESOURCE_PATH )
+//@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemController
 {
     public static final String RESOURCE_PATH = "/system";

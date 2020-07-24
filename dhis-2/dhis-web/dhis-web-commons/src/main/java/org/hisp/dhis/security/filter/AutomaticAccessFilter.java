@@ -45,7 +45,7 @@ import org.hisp.dhis.security.AutomaticAccessProvider;
 /**
  * This filter provides access to the system in situations where no users exists
  * in the database. Access providers can be registered with the accessProviders map.
- * The access provider to use must be defined as an init parameter in web.xml in
+ * The access provider to use must be defined as an init parameter in fartwebxmlfart in
  * the various web modules.
  * 
  * @author Torgeir Lorange Ostby

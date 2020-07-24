@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.webapi.vote;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -37,7 +37,7 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.opensymphony.xwork2.config.entities.ActionConfig;
+//import com.opensymphony.xwork2.config.entities.ActionConfig;
 
 /**
  * AccessDecisionVoter which grants access if one of the granted authorities
@@ -78,11 +78,12 @@ public class ModuleAccessVoter
     @Override
     public boolean supports( Class<?> clazz )
     {
-        boolean result = ActionConfig.class.equals( clazz );
-
-        log.debug( "Supports class: " + clazz + ", " + result );
-
-        return result;
+//        boolean result = ActionConfig.class.equals( clazz );
+//
+//        log.debug( "Supports class: " + clazz + ", " + result );
+//
+//        return result;
+        return false;
     }
 
     /**
@@ -94,35 +95,35 @@ public class ModuleAccessVoter
     @Override
     public int vote( Authentication authentication, Object object, Collection<ConfigAttribute> attributes )
     {
-        if ( !supports( object.getClass() ) )
-        {
-            log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
-
-            return ACCESS_ABSTAIN;
-        }
-
-        ActionConfig target = (ActionConfig) object;
-
-        if ( alwaysAccessible.contains( target.getPackageName() ) )
-        {
-            log.debug( "ACCESS_GRANTED [" + target.getPackageName() + "] by configuration." );
-
-            return ACCESS_GRANTED;
-        }
-
-        String requiredAuthority = attributePrefix + target.getPackageName();
-
-        for ( GrantedAuthority grantedAuthority : authentication.getAuthorities() )
-        {
-            if ( grantedAuthority.getAuthority().equals( requiredAuthority ) )
-            {
-                log.debug( "ACCESS_GRANTED [" + target.getPackageName() + "]" );
-
-                return ACCESS_GRANTED;
-            }
-        }
-
-        log.debug( "ACCESS_DENIED [" + target.getPackageName() + "]" );
+//        if ( !supports( object.getClass() ) )
+//        {
+//            log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
+//
+//            return ACCESS_ABSTAIN;
+//        }
+//
+//        ActionConfig target = (ActionConfig) object;
+//
+//        if ( alwaysAccessible.contains( target.getPackageName() ) )
+//        {
+//            log.debug( "ACCESS_GRANTED [" + target.getPackageName() + "] by configuration." );
+//
+//            return ACCESS_GRANTED;
+//        }
+//
+//        String requiredAuthority = attributePrefix + target.getPackageName();
+//
+//        for ( GrantedAuthority grantedAuthority : authentication.getAuthorities() )
+//        {
+//            if ( grantedAuthority.getAuthority().equals( requiredAuthority ) )
+//            {
+//                log.debug( "ACCESS_GRANTED [" + target.getPackageName() + "]" );
+//
+//                return ACCESS_GRANTED;
+//            }
+//        }
+//
+//        log.debug( "ACCESS_DENIED [" + target.getPackageName() + "]" );
 
         return ACCESS_DENIED;
     }

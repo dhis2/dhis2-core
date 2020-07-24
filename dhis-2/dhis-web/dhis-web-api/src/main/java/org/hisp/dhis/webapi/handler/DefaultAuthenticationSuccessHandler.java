@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.handler;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -32,7 +32,6 @@ package org.hisp.dhis.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTimeConstants;
 import org.springframework.security.core.Authentication;
@@ -57,6 +56,8 @@ import java.io.IOException;
 public class DefaultAuthenticationSuccessHandler
     extends SavedRequestAwareAuthenticationSuccessHandler
 {
+    public static final String JLI_SESSION_VARIABLE = "JLI";
+
     private static final int SESSION_MIN = DateTimeConstants.SECONDS_PER_MINUTE * 10;
     private static final int SESSION_DEFAULT = Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ); // 3600 s
     private static final String SESSION_MIN_MSG = "Session timeout must be greater than %d seconds";
@@ -93,7 +94,7 @@ public class DefaultAuthenticationSuccessHandler
         final String username = authentication.getName();
         
         session.setAttribute( "userIs", username );
-        session.setAttribute( LoginInterceptor.JLI_SESSION_VARIABLE, Boolean.TRUE );
+        session.setAttribute( JLI_SESSION_VARIABLE, Boolean.TRUE );
         session.setMaxInactiveInterval( systemSessionTimeout );
         
         super.onAuthenticationSuccess( request, response, authentication );

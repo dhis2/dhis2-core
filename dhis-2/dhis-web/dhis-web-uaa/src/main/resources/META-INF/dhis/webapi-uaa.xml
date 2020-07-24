@@ -26,13 +26,13 @@
 
   <context:component-scan base-package="org.hisp.dhis.web.uaa" />
 
-  <!-- OAuth2 -->
-  <oauth:authorization-server client-details-service-ref="clientDetailsService" token-services-ref="tokenServices"
-    user-approval-page="forward:/uaa/oauth/confirm_access" error-page="forward:/uaa/oauth/error">
-    <oauth:authorization-code authorization-code-services-ref="authorizationCodeServices" />
-    <oauth:refresh-token />
-    <oauth:password authentication-manager-ref="authenticationManager" />
-  </oauth:authorization-server>
-  <!-- End OAuth2 -->
+<!--  &lt;!&ndash; OAuth2 &ndash;&gt;-->
+<!--  <oauth:authorization-server client-details-service-ref="clientDetailsService" token-services-ref="tokenServices"-->
+<!--    user-approval-page="forward:/uaa/oauth/confirm_access" error-page="forward:/uaa/oauth/error">-->
+<!--    <oauth:authorization-code authorization-code-services-ref="authorizationCodeServices" />-->
+<!--    <oauth:refresh-token />-->
+<!--    <oauth:password authentication-manager-ref="authenticationManager" />-->
+<!--  </oauth:authorization-server>-->
+<!--  &lt;!&ndash; End OAuth2 &ndash;&gt;-->
 
 </beans>

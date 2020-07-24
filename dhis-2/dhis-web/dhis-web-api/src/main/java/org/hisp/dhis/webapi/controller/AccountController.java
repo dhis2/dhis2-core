@@ -575,9 +575,11 @@ public class AccountController
 
 //        SecurityContextHolder.getContext().setAuthentication( auth );
 
-        HttpSession session = request.getSession();
+        throw new RuntimeException( "NEED TO FIX missing authenticationManager!!!!! " );
 
-        session.setAttribute( "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext() );
+//        HttpSession session = request.getSession();
+//
+//        session.setAttribute( "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext() );
     }
 
     private Set<GrantedAuthority> getAuthorities( Set<UserAuthorityGroup> userRoles )

@@ -54,29 +54,29 @@ import com.google.common.collect.ImmutableMap;
 @Configuration
 public class WebConfig
 {
-    private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()
-        .put( "json", MediaType.APPLICATION_JSON )
-        .put( "json.gz", parseMediaType( "application/json+gzip" ) )
-        .put( "json.zip", parseMediaType( "application/json+zip" ) )
-        .put( "jsonp", parseMediaType( "application/javascript" ) )
-        .put( "xml", MediaType.APPLICATION_XML ) 
-        .put( "xml.gz", parseMediaType( "application/xml+gzip" ) )
-        .put( "xml.zip", parseMediaType( "application/xml+zip" ) )
-        .put( "png", MediaType.IMAGE_PNG )
-        .put( "pdf", MediaType.APPLICATION_PDF )
-        .put( "xls", parseMediaType( "application/vnd.ms-excel" ) )
-        .put( "xlsx", parseMediaType( "application/vnd.ms-excel" ) )
-        .put( "csv", parseMediaType( "application/csv" ) )
-        .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
-        .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
-        .put( "geojson", parseMediaType( "application/json+geojson" ) )
-        .build();
-
-    @Bean
-    public HandlerMappingIntrospector handlerMappingIntrospector()
-    {
-        return new HandlerMappingIntrospector();
-    }
+//    private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()
+//        .put( "json", MediaType.APPLICATION_JSON )
+//        .put( "json.gz", parseMediaType( "application/json+gzip" ) )
+//        .put( "json.zip", parseMediaType( "application/json+zip" ) )
+//        .put( "jsonp", parseMediaType( "application/javascript" ) )
+//        .put( "xml", MediaType.APPLICATION_XML )
+//        .put( "xml.gz", parseMediaType( "application/xml+gzip" ) )
+//        .put( "xml.zip", parseMediaType( "application/xml+zip" ) )
+//        .put( "png", MediaType.IMAGE_PNG )
+//        .put( "pdf", MediaType.APPLICATION_PDF )
+//        .put( "xls", parseMediaType( "application/vnd.ms-excel" ) )
+//        .put( "xlsx", parseMediaType( "application/vnd.ms-excel" ) )
+//        .put( "csv", parseMediaType( "application/csv" ) )
+//        .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
+//        .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
+//        .put( "geojson", parseMediaType( "application/json+geojson" ) )
+//        .build();
+//
+//    @Bean
+//    public HandlerMappingIntrospector handlerMappingIntrospector()
+//    {
+//        return new HandlerMappingIntrospector();
+//    }
 
 //    @Bean
 //    public CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy()
@@ -120,35 +120,35 @@ public class WebConfig
 //            parameterContentNegotiationStrategy, headerContentNegotiationStrategy, fixedContentNegotiationStrategy ) );
 //    }
 
-    @Bean
-    public CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping()
-    {
-
-        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
-            mediaTypeMap );
-        customPathExtensionContentNegotiationStrategy.setUseJaf( false );
-
-        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls","pdf", "csv"};
-
-        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
-            mediaTypeMap.entrySet().stream()
-                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
-                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
-
-        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
-
-        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
-            MediaType.APPLICATION_JSON );
-
-        ContentNegotiationManager contentNegotiationManager1 = new ContentNegotiationManager(
-            Arrays.asList( customPathExtensionContentNegotiationStrategy,
-                parameterContentNegotiationStrategy, headerContentNegotiationStrategy,
-                fixedContentNegotiationStrategy ) );
-
-
-        CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping = new CustomRequestMappingHandlerMapping();
-        customRequestMappingHandlerMapping.setContentNegotiationManager( contentNegotiationManager1 );
-
-        return customRequestMappingHandlerMapping;
-    }
+//    @Bean
+//    public CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping()
+//    {
+//
+//        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+//            mediaTypeMap );
+//        customPathExtensionContentNegotiationStrategy.setUseJaf( false );
+//
+//        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls","pdf", "csv"};
+//
+//        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
+//            mediaTypeMap.entrySet().stream()
+//                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
+//                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
+//
+//        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
+//
+//        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
+//            MediaType.APPLICATION_JSON );
+//
+//        ContentNegotiationManager contentNegotiationManager1 = new ContentNegotiationManager(
+//            Arrays.asList( customPathExtensionContentNegotiationStrategy,
+//                parameterContentNegotiationStrategy, headerContentNegotiationStrategy,
+//                fixedContentNegotiationStrategy ) );
+//
+//
+//        CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping = new CustomRequestMappingHandlerMapping();
+//        customRequestMappingHandlerMapping.setContentNegotiationManager( contentNegotiationManager1 );
+//
+//        return customRequestMappingHandlerMapping;
+//    }
 }

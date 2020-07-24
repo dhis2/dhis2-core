@@ -1,0 +1,275 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<web-app xmlns="http://java.sun.com/xml/ns/javaee"-->
+<!--  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!--  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"-->
+<!--  version="3.0">-->
+<!--  <display-name>DHIS 2</display-name>-->
+
+<!--  <context-param>-->
+<!--    <param-name>contextConfigLocation</param-name>-->
+<!--    <param-value>classpath*:/META-INF/dhis/beans.xml</param-value>-->
+<!--  </context-param>-->
+<!--  <context-param>-->
+<!--    <param-name>automaticAccessType</param-name>-->
+<!--    <param-value>databaseAdmin</param-value>-->
+<!--  </context-param>-->
+
+<!--  &lt;!&ndash; Filters &ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>RedirectFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.hisp.dhis.servlet.filter.HttpRedirectFilter</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;    <init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-name>redirectPath</param-name>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-value>dhis-web-commons-about/redirect.action</param-value>&ndash;&gt;-->
+<!--&lt;!&ndash;    </init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>shallowEtagHeaderFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;    <init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-name>excludeUriRegex</param-name>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-value>/api/(\d{2}/)?dataValueSets|/api/(\d{2}/)?dataValues|/api/(\d{2}/)?fileResources</param-value>&ndash;&gt;-->
+<!--&lt;!&ndash;    </init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  &ndash;&gt;-->
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>httpNoCacheFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.hisp.dhis.servlet.filter.HttpNoCacheFilter</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-name>urlPattern</param-name>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-value>index\.html|/$</param-value>&ndash;&gt;-->
+<!--&lt;!&ndash;    </init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>hiddenHttpMethodFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+<!--  <filter>-->
+<!--    <filter-name>OpenSessionInViewFilter</filter-name>-->
+<!--    <filter-class>org.springframework.orm.hibernate5.support.OpenSessionInViewFilter</filter-class>-->
+<!--    <async-supported>true</async-supported>-->
+<!--  </filter>-->
+
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>springSecurityFilterChain</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>Struts</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+
+<!--  <filter>-->
+<!--    <filter-name>encoding-filter</filter-name>-->
+<!--    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>-->
+<!--    <async-supported>true</async-supported>-->
+<!--    <init-param>-->
+<!--      <param-name>encoding</param-name>-->
+<!--      <param-value>UTF-8</param-value>-->
+<!--    </init-param>-->
+<!--    <init-param>-->
+<!--      <param-name>forceEncoding</param-name>-->
+<!--      <param-value>true</param-value>-->
+<!--    </init-param>-->
+<!--  </filter>-->
+
+<!--&lt;!&ndash;  <filter>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>appCacheFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter>&ndash;&gt;-->
+
+<!--  <filter>-->
+<!--    <filter-name>springSessionRepositoryFilter</filter-name>-->
+<!--	<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>-->
+<!--  </filter>-->
+
+<!--  <filter-mapping>-->
+<!--	<filter-name>springSessionRepositoryFilter</filter-name>-->
+<!--	<url-pattern>/*</url-pattern>-->
+<!--	<dispatcher>REQUEST</dispatcher>-->
+<!--	<dispatcher>ERROR</dispatcher>-->
+<!--  </filter-mapping>-->
+
+<!--  <filter>-->
+<!--    <filter-name>requestIdentifierFilter</filter-name>-->
+<!--    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>-->
+<!--    <init-param>-->
+<!--      <param-name>targetBeanName</param-name>-->
+<!--      <param-value>requestIdentifierFilter</param-value>-->
+<!--    </init-param>-->
+<!--  </filter>-->
+
+<!--  <filter>-->
+<!--    <filter-name>webMetricsFilter</filter-name>-->
+<!--    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>-->
+<!--    <init-param>-->
+<!--      <param-name>targetBeanName</param-name>-->
+<!--      <param-value>webMetricsFilter</param-value>-->
+<!--    </init-param>-->
+<!--  </filter>-->
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>encoding-filter</filter-name>-->
+<!--    <url-pattern>/*</url-pattern>-->
+<!--  </filter-mapping>-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>RedirectFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>OpenSessionInViewFilter</filter-name>-->
+<!--    <url-pattern>*.action</url-pattern>-->
+<!--  </filter-mapping>-->
+
+<!--  <filter-mapping>-->
+<!--    <filter-name>OpenSessionInViewFilter</filter-name>-->
+<!--    <url-pattern>/api/*</url-pattern>-->
+<!--  </filter-mapping>-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>shallowEtagHeaderFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/api/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>httpNoCacheFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>hiddenHttpMethodFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/uaa/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>OpenSessionInViewFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/uaa/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>OpenSessionInViewFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/mobile/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>springSecurityFilterChain</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>Struts</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>*.action</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>appCacheFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>*.appcache</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>requestIdentifierFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <filter-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <filter-name>webMetricsFilter</filter-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/api/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </filter-mapping>&ndash;&gt;-->
+
+<!--  &lt;!&ndash; Listeners &ndash;&gt;-->
+<!--&lt;!&ndash;  <listener>&ndash;&gt;-->
+<!--&lt;!&ndash;    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>&ndash;&gt;-->
+<!--&lt;!&ndash;  </listener>&ndash;&gt;-->
+<!--&lt;!&ndash;  <listener>&ndash;&gt;-->
+<!--&lt;!&ndash;    <listener-class>org.hisp.dhis.system.startup.StartupListener</listener-class>&ndash;&gt;-->
+<!--&lt;!&ndash;  </listener>&ndash;&gt;-->
+<!--&lt;!&ndash;  <listener>&ndash;&gt;-->
+<!--&lt;!&ndash;    <listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>&ndash;&gt;-->
+<!--&lt;!&ndash;  </listener>&ndash;&gt;-->
+
+<!--  &lt;!&ndash; Servlets &ndash;&gt;-->
+<!--&lt;!&ndash;  <servlet>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>webapi</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-name>contextConfigLocation</param-name>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-value>classpath*:/META-INF/dhis/servlet.xml</param-value>&ndash;&gt;-->
+<!--&lt;!&ndash;    </init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;    <load-on-startup>1</load-on-startup>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <servlet>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>mobile</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-name>contextConfigLocation</param-name>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-value>classpath*:/META-INF/dhis/mobile.xml</param-value>&ndash;&gt;-->
+<!--&lt;!&ndash;    </init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;    <load-on-startup>1</load-on-startup>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <servlet>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>uaaServlet</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>&ndash;&gt;-->
+<!--&lt;!&ndash;    <init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-name>contextConfigLocation</param-name>&ndash;&gt;-->
+<!--&lt;!&ndash;      <param-value>classpath*:/META-INF/dhis/webapi-uaa.xml</param-value>&ndash;&gt;-->
+<!--&lt;!&ndash;    </init-param>&ndash;&gt;-->
+<!--&lt;!&ndash;    <load-on-startup>1</load-on-startup>&ndash;&gt;-->
+<!--&lt;!&ndash;    <async-supported>true</async-supported>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>mobile</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/mobile</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;  <servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>mobile</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/mobile/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>webapi</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/api</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>webapi</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/api/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet-mapping>&ndash;&gt;-->
+
+<!--&lt;!&ndash;  <servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>uaaServlet</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/uaa</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;  <servlet-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <servlet-name>uaaServlet</servlet-name>&ndash;&gt;-->
+<!--&lt;!&ndash;    <url-pattern>/uaa/*</url-pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;  </servlet-mapping>&ndash;&gt;-->
+<!--  -->
+<!--  &lt;!&ndash; MIME mappings &ndash;&gt;-->
+<!--&lt;!&ndash;  &ndash;&gt;-->
+<!--&lt;!&ndash;  <mime-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <extension>webapp</extension>&ndash;&gt;-->
+<!--&lt;!&ndash;    <mime-type>application/json</mime-type>&ndash;&gt;-->
+<!--&lt;!&ndash;  </mime-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;  <mime-mapping>&ndash;&gt;-->
+<!--&lt;!&ndash;    <extension>properties</extension>&ndash;&gt;-->
+<!--&lt;!&ndash;    <mime-type>text/plain</mime-type>&ndash;&gt;-->
+<!--&lt;!&ndash;  </mime-mapping>&ndash;&gt;-->
+<!--  -->
+<!--</web-app>-->

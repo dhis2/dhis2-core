@@ -218,8 +218,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, User currentUser ) throws QueryParserException
+        HttpServletResponse response, User currentUserWTF ) throws QueryParserException
     {
+
+
+        User currentUser = currentUserService.getCurrentUser();
+
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<Order> orders = orderParams.getOrders( getSchema() );

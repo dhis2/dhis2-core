@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.handler;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,43 +29,46 @@ package org.hisp.dhis.security;
  */
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BasicAuthenticationEntryPoint
-    implements AuthenticationEntryPoint
+public class CustomExceptionMappingAuthenticationFailureHandler
+    extends ExceptionMappingAuthenticationFailureHandler
 {
     @Autowired
-    private RenderService renderService;
+    private I18nManager i18nManager;
 
     @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException
+    public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
     {
-        String message;
+        final String username = request.getParameter( "j_username" );
 
-        if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
+        request.getSession().setAttribute( "username", username );
+
+        I18n i18n = i18nManager.getI18n();
+
+        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class ) != -1)
         {
-            message = "Account locked" ;
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
         }
         else
         {
-            message = "Unauthorized";
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.invalid" ) );
         }
 
-        response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
+
+        super.onAuthenticationFailure( request, response, exception );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.webapi.vote;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -56,6 +56,12 @@ public class LogicalOrAccessDecisionManager
     implements AccessDecisionManager
 {
     private List<AccessDecisionManager> accessDecisionManagers = Collections.emptyList();
+
+    public LogicalOrAccessDecisionManager(
+        List<AccessDecisionManager> accessDecisionManagers )
+    {
+        this.accessDecisionManagers = accessDecisionManagers;
+    }
 
     public void setAccessDecisionManagers( List<AccessDecisionManager> accessDecisionManagers )
     {

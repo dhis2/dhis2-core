@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.webapi.vote;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo

@@ -50,7 +50,7 @@
     <property name="deviceResolver" ref="org.springframework.mobile.device.DeviceResolver" />
   </bean>
 
-  <bean id="defaultAuthenticationSuccessHandler" class="org.hisp.dhis.security.DefaultAuthenticationSuccessHandler">
+  <bean id="defaultAuthenticationSuccessHandler" class="org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler">
     <property name="redirectStrategy" ref="mappedRedirectStrategy" />
     <property name="sessionTimeout" ref="sessionTimeout" />
   </bean>
@@ -97,14 +97,16 @@
   </sec:http>
   -->
 
-  <bean id="http401LoginUrlAuthenticationEntryPoint" class="org.hisp.dhis.security.Http401LoginUrlAuthenticationEntryPoint">
+  <bean id="http401LoginUrlAuthenticationEntryPoint" class="org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint">
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
 
-  <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.security.BasicAuthenticationEntryPoint"/>
+  <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.webapi.security.BasicAuthenticationEntryPoint"/>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
     authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
+
+
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
       login-processing-url="/dhis-web-commons-security/openid.action"
@@ -178,6 +180,7 @@
     <sec:intercept-url pattern="/dhis-web-user/**" access="hasAnyRole('ALL,M_dhis-web-user')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
+
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
@@ -191,7 +194,7 @@
   </bean>
 
   <bean id="securityExceptionTranslationHandler"
-    class="org.hisp.dhis.security.CustomExceptionMappingAuthenticationFailureHandler">
+    class="org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler">
     <property name="exceptionMappings">
       <props>
         <prop key="org.springframework.security.authentication.CredentialsExpiredException">/dhis-web-commons/security/expired.action</prop>
@@ -236,7 +239,7 @@
 
   <!-- Security : AccessDecision/Voter -->
 
-  <bean id="accessDecisionManager" class="org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager">
+  <bean id="accessDecisionManager" class="org.hisp.dhis.webapi.vote.LogicalOrAccessDecisionManager">
     <property name="accessDecisionManagers">
       <list>
         <ref bean="adminAccessDecisionVoting" />
@@ -271,7 +274,7 @@
     <property name="expressionHandler" ref="webSecurityExpressionHandler" />
   </bean>
 
-  <bean id="externalAccessVoter" class="org.hisp.dhis.security.vote.ExternalAccessVoter" />
+  <bean id="externalAccessVoter" class="org.hisp.dhis.webapi.vote.ExternalAccessVoter" />
 
   <bean id="regularAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
     <constructor-arg name="decisionVoters">
@@ -290,7 +293,7 @@
     </constructor-arg>
   </bean>
 
-  <bean id="adminAccessVoter" class="org.hisp.dhis.security.vote.SimpleAccessVoter">
+  <bean id="adminAccessVoter" class="org.hisp.dhis.webapi.vote.SimpleAccessVoter">
     <property name="requiredAuthority" value="ALL" />
   </bean>
 
@@ -310,34 +313,34 @@
     </constructor-arg>
   </bean>
 
-  <bean id="actionAccessVoter" class="org.hisp.dhis.security.vote.ActionAccessVoter">
+  <bean id="actionAccessVoter" class="org.hisp.dhis.webapi.vote.ActionAccessVoter">
     <property name="attributePrefix" value="F_" />
     <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
     <property name="anyAuthoritiesKey" value="anyAuthorities" />
   </bean>
 
-  <bean id="moduleAccessVoter" class="org.hisp.dhis.security.vote.ModuleAccessVoter">
-    <property name="attributePrefix" value="M_" />
-    <property name="alwaysAccessible">
-      <set>
-        <value>dhis-web-commons-menu</value>
-        <value>dhis-web-commons-oust</value>
-        <value>dhis-web-commons-ouwt</value>
-        <value>dhis-web-commons-security</value>
-        <value>dhis-web-commons-i18n</value>
-        <value>dhis-web-commons-ajax</value>
-        <value>dhis-web-commons-ajax-json</value>
-        <value>dhis-web-commons-ajax-html</value>
-        <value>dhis-web-commons-stream</value>
-        <value>dhis-web-commons-help</value>
-        <value>dhis-web-commons-about</value>
-        <value>dhis-web-menu-management</value>
-        <value>dhis-web-apps</value>
-        <value>dhis-web-api-mobile</value>
-        <value>dhis-web-portal</value>
-        <value>dhis-web-uaa</value>
-      </set>
-    </property>
+  <bean id="moduleAccessVoter" class="org.hisp.dhis.webapi.vote.ModuleAccessVoter">
+      <property name="attributePrefix" value="M_" />
+      <property name="alwaysAccessible">
+        <set>
+          <value>dhis-web-commons-menu</value>
+          <value>dhis-web-commons-oust</value>
+          <value>dhis-web-commons-ouwt</value>
+          <value>dhis-web-commons-security</value>
+          <value>dhis-web-commons-i18n</value>
+          <value>dhis-web-commons-ajax</value>
+          <value>dhis-web-commons-ajax-json</value>
+          <value>dhis-web-commons-ajax-html</value>
+          <value>dhis-web-commons-stream</value>
+          <value>dhis-web-commons-help</value>
+          <value>dhis-web-commons-about</value>
+          <value>dhis-web-menu-management</value>
+          <value>dhis-web-apps</value>
+          <value>dhis-web-api-mobile</value>
+          <value>dhis-web-portal</value>
+          <value>dhis-web-uaa</value>
+        </set>
+      </property>
   </bean>
 
   <bean id="org.hisp.dhis.security.ActionAccessResolver"

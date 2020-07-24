@@ -48,7 +48,7 @@ import org.springframework.stereotype.Service;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml"} )
+@ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/oldservletxmlno"} )
 @ComponentScan(basePackages = {"org.hisp.dhis"}, useDefaultFilters = false, includeFilters = {
         @Filter(type=FilterType.ANNOTATION, value= Service.class),
         @Filter(type=FilterType.ANNOTATION, value= Component.class),
