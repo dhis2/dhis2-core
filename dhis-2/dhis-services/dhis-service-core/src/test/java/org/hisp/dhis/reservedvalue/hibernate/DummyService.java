@@ -28,5 +28,4 @@ public class DummyService
     {
         sequentialNumberCounterStore.deleteCounter( uid );
     }
-
 }

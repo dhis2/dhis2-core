@@ -48,7 +48,6 @@ import java.util.concurrent.Future;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -85,7 +84,7 @@ public class HibernateSequentialNumberCounterStoreTest
         throws InterruptedException,
         ExecutionException
     {
-        String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
+        final String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
 
         Callable<List<Integer>> task = () -> dummyService.getNextValues( uid, uid + "-#", 50 );
 
@@ -150,7 +149,15 @@ public class HibernateSequentialNumberCounterStoreTest
     {
         test( 16 );
     }
-    
+
+
+    @Test
+    public void test32()
+            throws InterruptedException,
+            ExecutionException
+    {
+        test( 32 );
+    }
     
     @Test
     public void deleteCounter()
