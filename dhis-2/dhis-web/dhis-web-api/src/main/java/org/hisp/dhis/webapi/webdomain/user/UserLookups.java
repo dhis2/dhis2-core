@@ -26,56 +26,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.webapi.webdomain.user;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.webdomain.user.UserLookup;
-import org.hisp.dhis.webapi.webdomain.user.UserLookups;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * The user lookup API provides a minimal user information endpoint.
+ * Wrapper DTO for a list of UserLookups.
  *
  * @author Lars Helge Overland
  */
-@RestController
-@RequestMapping( value = UserLookupController.API_ENDPOINT )
-public class UserLookupController
+@Getter
+@NoArgsConstructor
+public class UserLookups
 {
-    static final String API_ENDPOINT = "/userLookup";
+    @JsonProperty
+    private List<UserLookup> users = new ArrayList<>();
 
-    @Autowired
-    private UserService userService;
-
-    @GetMapping( value = "/{id}" )
-    public UserLookup lookUpUser( @PathVariable String id )
+    public UserLookups( List<UserLookup> users )
     {
-        User user = userService.getUserByIdentifier( id );
-
-        return user != null ? UserLookup.fromUser( user ) : null;
-    }
-
-    @GetMapping
-    public UserLookups lookUpUsers( @RequestParam String query )
-    {
-        UserQueryParams params = new UserQueryParams()
-            .setQuery( query )
-            .setMax( 25 );
-
-        List<UserLookup> users = userService.getUsers( params ).stream()
-            .map( user -> UserLookup.fromUser( user ) )
-            .collect( Collectors.toList() );
-
-        return new UserLookups( users );
+        this.users = users;
     }
 }
