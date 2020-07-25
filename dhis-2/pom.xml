@@ -577,7 +577,7 @@
       <dependency>
         <groupId>org.hisp.dhis.parser</groupId>
         <artifactId>dhis-antlr-expression-parser</artifactId>
-        <version>1.0.6-SNAPSHOT</version>
+        <version>1.0.7-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
