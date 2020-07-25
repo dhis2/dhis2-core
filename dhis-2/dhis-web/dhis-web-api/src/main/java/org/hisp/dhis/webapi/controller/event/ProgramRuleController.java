@@ -39,7 +39,6 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.schema.descriptors.ProgramRuleSchemaDescriptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,11 +57,15 @@ import javax.servlet.http.HttpServletResponse;
 public class ProgramRuleController
     extends AbstractCrudController<ProgramRule>
 {
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+    private final ProgramRuleEngineService programRuleEngineService;
+
+    public ProgramRuleController( I18nManager i18nManager, ProgramRuleEngineService programRuleEngineService )
+    {
+        this.i18nManager = i18nManager;
+        this.programRuleEngineService = programRuleEngineService;
+    }
 
     @RequestMapping( value = "/condition/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void validateCondition( @RequestBody String condition, @RequestParam String programRule, HttpServletResponse response )
