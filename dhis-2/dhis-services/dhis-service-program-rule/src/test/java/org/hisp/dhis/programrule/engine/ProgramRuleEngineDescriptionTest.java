@@ -28,6 +28,9 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -49,9 +52,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Zubair Asghar
@@ -60,7 +61,10 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
 {
     private String conditionTextAtt = "A{Program_Rule_Variable_Text_Attr} == 'text_att' || d2:hasValue(V{current_date})";
     private String conditionNumericAtt = "A{Program_Rule_Variable_Numeric_Attr} == 12 || d2:hasValue(V{current_date})";
+    private String conditionNumericAttWithOR = "A{Program_Rule_Variable_Numeric_Attr} == 12 or d2:hasValue(V{current_date})";
+    private String conditionNumericAttWithAND = "A{Program_Rule_Variable_Numeric_Attr} == 12 and d2:hasValue(V{current_date})";
     private String conditionTextDE = "#{Program_Rule_Variable_Text_DE} == 'text_de'";
+    private String incorrectConditionTextDE = "#{Program_Rule_Variable_Text_DE} == 'text_de' +";
     private String conditionNumericDE = "#{Program_Rule_Variable_Numeric_DE} == 14";
     private String conditionLiteralString = "1 > 2 ";
 
@@ -174,34 +178,81 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetDescription()
+    public void testProgramRuleWithTextTrackedEntityAttribute()
     {
-        RuleValidationResult result = programRuleEngineNew.getDescription( programRuleTextAtt.getCondition(), programRuleTextAtt );
-        assertNotNull( result );
-        assertTrue( result.isValid() );
-
-        result = programRuleEngineNew.getDescription( programRuleNumericAtt.getCondition(), programRuleNumericAtt );
-        assertNotNull( result );
-        assertTrue( result.isValid() );
-
-        result = programRuleEngineNew.getDescription( programRuleTextDE.getCondition(), programRuleTextDE );
-        assertNotNull( result );
-        assertTrue( result.isValid() );
-
-        result = programRuleEngineNew.getDescription( programRuleNumericDE.getCondition(), programRuleNumericDE );
-        assertNotNull( result );
-        assertTrue( result.isValid() );
-
-        result = programRuleEngineNew.getDescription( conditionLiteralString, programRuleNumericDE );
+        RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), programRuleTextAtt );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
 
     @Test
-    public void getDescriptionIncorrectRule()
+    public void testProgramRuleWithNumericTrackedEntityAttribute()
     {
-        RuleValidationResult result = programRuleEngineNew.getDescription( "1 > 2 +", programRuleTextAtt );
+        RuleValidationResult result = validateRuleCondition( programRuleNumericAtt.getCondition(), programRuleNumericAtt );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithNumericTrackedEntityAttributeWithOr()
+    {
+        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithOR, programRuleNumericAtt );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithNumericTrackedEntityAttributeWithAnd()
+    {
+        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithAND, programRuleNumericAtt );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithTextDataElement()
+    {
+        RuleValidationResult result = validateRuleCondition( programRuleTextDE.getCondition(), programRuleTextDE );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithNumericDataElement()
+    {
+        RuleValidationResult result = validateRuleCondition( programRuleNumericDE.getCondition(), programRuleNumericDE );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithLiterals()
+    {
+        RuleValidationResult result = validateRuleCondition( conditionLiteralString, programRuleNumericDE );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testIncorrectRuleWithLiterals()
+    {
+        RuleValidationResult result = validateRuleCondition( "1 > 2 +", programRuleTextAtt );
         assertNotNull( result );
         assertFalse( result.isValid() );
+        assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
+    }
+
+    @Test
+    public void testIncorrectRuleWithDataElement()
+    {
+        RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, programRuleTextDE );
+        assertNotNull( result );
+        assertFalse( result.isValid() );
+        assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
+    }
+
+    private RuleValidationResult validateRuleCondition( String condition, ProgramRule programRule )
+    {
+       return programRuleEngineNew.getDescription( condition, programRule );
     }
 }

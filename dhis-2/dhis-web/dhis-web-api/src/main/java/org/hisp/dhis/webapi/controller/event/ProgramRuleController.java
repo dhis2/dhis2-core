@@ -37,6 +37,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.schema.descriptors.ProgramRuleSchemaDescriptor;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -83,7 +84,7 @@ public class ProgramRuleController
         }
         else
         {
-            message.setDescription( result.getErrorMessage() );
+            message.setDescription( ObjectUtils.firstNonNull( result.getErrorMessage(), result.getException().getMessage() ) );
 
             message.setStatus( Status.ERROR );
 
