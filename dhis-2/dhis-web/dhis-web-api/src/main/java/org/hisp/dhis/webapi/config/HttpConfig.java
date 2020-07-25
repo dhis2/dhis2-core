@@ -3,6 +3,7 @@ package org.hisp.dhis.webapi.config;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
@@ -13,6 +14,12 @@ import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
+import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.vote.ActionAccessVoter;
 import org.hisp.dhis.webapi.vote.ExternalAccessVoter;
@@ -23,7 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -84,6 +94,7 @@ import java.util.List;
 //    org.hisp.dhis.analytics.config.ServiceConfig.class,
 //    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class } )
 @EnableGlobalMethodSecurity( prePostEnabled = true )
+@Slf4j
 public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer
 {
 //    public HttpConfig()
@@ -280,49 +291,8 @@ public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcCo
 //    }
 
 //
-//  <bean id="jsonMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
-//    <constructor-arg name="compression" value="NONE" />
-//  </bean>
 //
-//  <bean id="jsonMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
-//    <constructor-arg name="compression" value="GZIP" />
-//  </bean>
-//
-//  <bean id="jsonMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
-//    <constructor-arg name="compression" value="ZIP" />
-//  </bean>
-//
-//  <bean id="xmlMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
-//    <constructor-arg name="compression" value="NONE" />
-//  </bean>
-//
-//  <bean id="xmlMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
-//    <constructor-arg name="compression" value="GZIP" />
-//  </bean>
-//
-//  <bean id="xmlMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
-//    <constructor-arg name="compression" value="ZIP" />
-//  </bean>
-//
-//  <bean id="csvMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter">
-//    <constructor-arg name="compression" value="NONE" />
-//  </bean>
-//
-//  <bean id="csvMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter">
-//    <constructor-arg name="compression" value="GZIP" />
-//  </bean>
-//
-//  <bean id="csvMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter">
-//    <constructor-arg name="compression" value="ZIP" />
-//  </bean>
-//    <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter" />
-//
-//  <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter" />
-//
-//  <bean id="byteArrayHttpMessageConverter" class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
-//
-//  <bean id="formHttpMessageConverter" class="org.springframework.http.converter.FormHttpMessageConverter" />
-//
+
 //  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
 //
 //  <bean id="defaultHandlerExceptionResolver" class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
@@ -337,10 +307,20 @@ public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcCo
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
     {
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
 
-        converters.add(
-            new org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter( nodeService(), Compression.NONE ) );
-//        converters.add(new org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter(nodeService(), Compression.NONE));
+        converters.add( new JsonPMessageConverter( nodeService(), null ) );
+        converters.add( new PdfMessageConverter( nodeService() ) );
+        converters.add( new ExcelMessageConverter( nodeService() ) );
+
+        converters.add( new StringHttpMessageConverter() );
+        converters.add( new ByteArrayHttpMessageConverter() );
+        converters.add( new FormHttpMessageConverter() );
 
     }
 
