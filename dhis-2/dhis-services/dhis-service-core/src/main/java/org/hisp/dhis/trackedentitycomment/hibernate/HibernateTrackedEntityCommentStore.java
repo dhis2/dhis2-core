@@ -56,7 +56,12 @@
 
 package org.hisp.dhis.trackedentitycomment.hibernate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -83,7 +88,21 @@ public class HibernateTrackedEntityCommentStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentitycomment where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        return (boolean) sessionFactory.getCurrentSession()
+            .createNativeQuery( "select exists(select 1 from trackedentitycomment where uid=:uid)" )
+            .setParameter( "uid", uid )
+            .getSingleResult();
+    }
+
+    @Override
+    public List<String> filterExisting( List<String> noteUids )
+    {
+        if ( noteUids == null || noteUids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+        final Query<String> query = getTypedQuery( "select uid from TrackedEntityComment where uid in (:uids)" );
+        final List<String> foundUids = query.setParameterList( "uids", noteUids ).getResultList();
+        return noteUids.stream().filter( uid -> !foundUids.contains( uid ) ).collect( Collectors.toList() );
     }
 }

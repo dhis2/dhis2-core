@@ -30,22 +30,18 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -56,7 +52,6 @@ import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.core.Ordered;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +85,6 @@ public abstract class AbstractTrackerDtoValidationHook
 
     private final TrackedEntityAttributeService teAttrService;
 
-    private final TrackedEntityCommentService commentService;
-
     private final TrackerImportStrategy strategy;
 
     /**
@@ -105,14 +98,11 @@ public abstract class AbstractTrackerDtoValidationHook
     /**
      * This constructor is used by the PreCheck* hooks
      */
-    public AbstractTrackerDtoValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public AbstractTrackerDtoValidationHook( TrackedEntityAttributeService teAttrService )
     {
         checkNotNull( teAttrService );
-        checkNotNull( commentService );
 
         this.teAttrService = teAttrService;
-        this.commentService = commentService;
 
         this.removeOnError = true;
         this.dtoTypeClass = null;
@@ -120,18 +110,14 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     public <T extends TrackerDto> AbstractTrackerDtoValidationHook( Class<T> dtoClass, TrackerImportStrategy strategy,
-        TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+        TrackedEntityAttributeService teAttrService )
     {
         checkNotNull( teAttrService );
-        checkNotNull( commentService );
 
         checkNotNull( dtoClass );
         checkNotNull( strategy );
 
         this.teAttrService = teAttrService;
-        this.commentService = commentService;
-
         this.removeOnError = false;
         this.dtoTypeClass = dtoClass;
         this.strategy = strategy;
@@ -319,71 +305,6 @@ public abstract class AbstractTrackerDtoValidationHook
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1012 )
                 .addArg( featureType.name() ) );
-        }
-    }
-
-    protected void validateNotes( ValidationErrorReporter reporter, TrackerImportStrategy strategy, List<Note> notes )
-    {
-        for ( Note note : notes )
-        {
-            validateUid( reporter, note );
-
-            validateUniqueness( reporter, strategy, note );
-
-            boolean emptyValue = StringUtils.isEmpty( note.getValue() );
-            if ( emptyValue )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1119 )
-                    .addArg( note.toString() ) );
-            }
-
-            validateStoredDate( reporter, note );
-        }
-    }
-
-    private void validateStoredDate( ValidationErrorReporter reporter, Note note )
-    {
-        Date stored = null;
-        Exception error = null;
-        try
-        {
-            stored = DateUtils.parseDate( note.getStoredAt() );
-        }
-        catch ( Exception e )
-        {
-            error = e;
-        }
-        if ( stored == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1121 )
-                .addArg( note.toString() )
-                .addArg( error != null ? error.getMessage() : "" )
-            );
-        }
-    }
-
-    private void validateUniqueness( ValidationErrorReporter reporter, TrackerImportStrategy strategy, Note note )
-    {
-        if ( strategy.isCreate() )
-        {
-            //TODO: This looks like a potential performance killer, existence check on every note...
-            //TODO: Note persistence not impl. yet.
-            boolean alreadyExists = commentService.trackedEntityCommentExists( note.getNote() );
-            if ( alreadyExists )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1120 )
-                    .addArg( note.toString() ) );
-            }
-        }
-    }
-
-    private void validateUid( ValidationErrorReporter reporter, Note note )
-    {
-        boolean validUid = CodeGenerator.isValidUid( note.getNote() );
-        if ( !validUid )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1118 )
-                .addArg( note.toString() ) );
         }
     }
 
