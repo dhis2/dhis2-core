@@ -1,7 +1,6 @@
 package org.hisp.dhis.webapi.config;
 
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -10,24 +9,30 @@ import org.springframework.web.servlet.DispatcherServlet;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
+import javax.servlet.SessionTrackingMode;
+import java.util.EnumSet;
 
 public class MyWebAppInitializer implements WebApplicationInitializer
 {
     @Override
-    public void onStartup( ServletContext container )
+    public void onStartup( ServletContext context )
     {
-        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register( HttpConfig.class );
+//        container.getSessionCookieConfig().setHttpOnly( true );
+//        container.getSessionCookieConfig().setSecure( true );
+        context.setSessionTrackingModes( EnumSet.of( SessionTrackingMode.COOKIE ) );
 
-        container.addListener( new ContextLoaderListener( context ) );
+        AnnotationConfigWebApplicationContext annotationConfigWebApplicationContext = new AnnotationConfigWebApplicationContext();
+        annotationConfigWebApplicationContext.register( HttpConfig.class );
 
-        ServletRegistration.Dynamic dispatcher = container.addServlet( "dispatcher", new DispatcherServlet( context ) );
+        context.addListener( new ContextLoaderListener( annotationConfigWebApplicationContext ) );
+
+        ServletRegistration.Dynamic dispatcher = context
+            .addServlet( "dispatcher", new DispatcherServlet( annotationConfigWebApplicationContext ) );
 
         dispatcher.setLoadOnStartup( 1 );
         dispatcher.addMapping( "/api/*" );
 
-
-        FilterRegistration.Dynamic filter = container
+        FilterRegistration.Dynamic filter = context
             .addFilter( "openSessionInViewFilter", OpenSessionInViewFilter.class );
 //        filter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
 //        filter.setInitParameter( "singleSession", "true" );

@@ -42,8 +42,10 @@ import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -248,20 +250,6 @@ public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcCo
         return new LogicalOrAccessDecisionManager( decisionVoters );
     }
 
-//
-//    <sec:intercept-url pattern="/api/account/username" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/account/validatePassword" method="POST" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/account/validateUsername" method="POST" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/account" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
-//    <sec:intercept-url pattern="/api/icons/*/icon.svg" method="GET" access="permitAll()" />
-//    <sec:intercept-url request-matcher-ref="analyticPluginResources" access="permitAll()" />
-//
-
     @Bean
     public SessionRegistryImpl sessionRegistry()
     {
@@ -277,21 +265,19 @@ public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcCo
         return firewall;
     }
 
-//    @Override
-//    public void configure( WebSecurity web )
-//        throws Exception
-//    {
-//        super.configure( web );
-//        web
-//            .httpFirewall( allowUrlEncodedSlashHttpFirewall() )
-//
-//            .ignoring()
-//            .antMatchers( "/resources/**" )
-//            .antMatchers( "/publics/**" );
-//    }
+    @Override
+    public void configure( WebSecurity web )
+        throws Exception
+    {
+        super.configure( web );
+        web
+            .httpFirewall( allowUrlEncodedSlashHttpFirewall() )
 
-//
-//
+            .ignoring()
+            .antMatchers( "/resources/**" )
+            .antMatchers( "/publics/**" );
+    }
+
 
 //  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
 //
@@ -327,8 +313,59 @@ public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcCo
     protected void configure( HttpSecurity http )
         throws Exception
     {
-        http.authorizeRequests().antMatchers( "/api/**" )
-            .hasAuthority( "ALL" ).and()
+        http.
+            sessionManagement()
+            .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+            .enableSessionUrlRewriting( false )
+            .maximumSessions( 10 )
+            .expiredUrl( "/dhis-web-commons-security/logout.action" )
+            .sessionRegistry( sessionRegistry() )
+            .and()
+            .and()
+
+            .authorizeRequests()
+            .antMatchers( "/api/account/username" ).permitAll()
+            .antMatchers( "/api/account/recovery" ).permitAll()
+            .antMatchers( "/api/account/restore" ).permitAll()
+            .antMatchers( "/api/account/password" ).permitAll()
+            .antMatchers( "/api/account/validatePassword" ).permitAll()
+            .antMatchers( "/api/account/validateUsername" ).permitAll()
+            .antMatchers( "/api/account" ).permitAll()
+            .antMatchers( "/api/staticContent/*" ).permitAll()
+            .antMatchers( "/api/externalFileResources/*" ).permitAll()
+            .antMatchers( "/api/icons/*/icon.svg" ).permitAll()
+
+            .requestMatchers( analyticsPluginResources() ).permitAll()
+
+            .antMatchers( "/api/**" ).hasAuthority( "ALL" )
+
+            .antMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
+            .antMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
+            .antMatchers( "/dhis-web-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-visualizer" )
+            .antMatchers( "/dhis-web-data-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-data-visualizer" )
+            .antMatchers( "/dhis-web-mapping/**" ).hasAnyAuthority( "ALL", "M_dhis-web-mapping" )
+            .antMatchers( "/dhis-web-maps/**" ).hasAnyAuthority( "ALL", "M_dhis-web-maps" )
+            .antMatchers( "/dhis-web-event-reports/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-reports" )
+            .antMatchers( "/dhis-web-event-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-visualizer" )
+            .antMatchers( "/dhis-web-interpretation/**" ).hasAnyAuthority( "ALL", "M_dhis-web-interpretation" )
+            .antMatchers( "/dhis-web-settings/**" ).hasAnyAuthority( "ALL", "M_dhis-web-settings" )
+            .antMatchers( "/dhis-web-maintenance/**" ).hasAnyAuthority( "ALL", "M_dhis-web-maintenance" )
+            .antMatchers( "/dhis-web-app-management/**" ).hasAnyAuthority( "ALL", "M_dhis-web-app-management" )
+            .antMatchers( "/dhis-web-usage-analytics/**" ).hasAnyAuthority( "ALL", "M_dhis-web-usage-analytics" )
+            .antMatchers( "/dhis-web-event-capture/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-capture" )
+            .antMatchers( "/dhis-web-tracker-capture/**" ).hasAnyAuthority( "ALL", "M_dhis-web-tracker-capture" )
+            .antMatchers( "/dhis-web-cache-cleaner/**" ).hasAnyAuthority( "ALL", "M_dhis-web-cache-cleaner" )
+            .antMatchers( "/dhis-web-data-administration/**" )
+            .hasAnyAuthority( "ALL", "M_dhis-web-data-administration" )
+            .antMatchers( "/dhis-web-data-quality/**" ).hasAnyAuthority( "ALL", "M_dhis-web-data-quality" )
+            .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
+            .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
+            .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
+            .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
+
+            .antMatchers( "/**" ).authenticated()
+
+            .and()
             .httpBasic().and().csrf().disable();
 
 //        http
@@ -435,13 +472,8 @@ public class HttpConfig extends WebSecurityConfigurerAdapter implements WebMvcCo
 
     private RequestMatcher analyticsPluginResources()
     {
-//        <bean id="analyticPluginResources" class="org.springframework.security.web.util.matcher.RegexRequestMatcher">
-//    <constructor-arg name="pattern"
-//        value=".*(dhis-web-mapping\/map.js|dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js)" />
-//    <constructor-arg name="httpMethod" value="GET" />
-//  </bean>
-
-        String pattern = ".*(dhis-web-mapping\\/map.js|dhis-web-visualizer\\/chart.js|dhis-web-maps\\/map.js|dhis-web-event-reports\\/eventreport.js|dhis-web-event-visualizer\\/eventchart.js|dhis-web-pivot\\/reporttable.js)";
+        String pattern = ".*(dhis-web-mapping\\/map.js|dhis-web-visualizer\\/chart.js|dhis-web-maps\\" +
+            "/map.js|dhis-web-event-reports\\/eventreport.js|dhis-web-event-visualizer\\/eventchart.js|dhis-web-pivot\\/reporttable.js)";
 
         return new org.springframework.security.web.util.matcher.RegexRequestMatcher( pattern, "GET" );
     }
