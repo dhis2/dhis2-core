@@ -78,6 +78,7 @@ public class UserPropertyTransformer
 
         JsonNode node = jp.getCodec().readTree( jp );
 
+        // TODO generalize the next 2 ifs into a common id object deserializer (id, code, name, etc..)
         if ( node.has( "id" ) )
         {
             String identifier = node.get( "id" ).asText();
@@ -91,6 +92,14 @@ public class UserPropertyTransformer
             {
                 userCredentials.setUuid( UUID.fromString( identifier ) );
             }
+        }
+
+        if ( node.has( "code" ) )
+        {
+            String code = node.get( "code" ).asText();
+
+            user.setCode( code );
+            userCredentials.setCode( code );
         }
 
         if ( node.has( "username" ) )
