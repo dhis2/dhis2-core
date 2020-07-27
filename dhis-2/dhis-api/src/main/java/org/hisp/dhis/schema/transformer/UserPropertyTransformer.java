@@ -35,9 +35,11 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.schema.AbstractPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -59,6 +61,8 @@ public class UserPropertyTransformer
         User user = (User) o;
         UserCredentials userCredentials = user.getUserCredentials();
 
+        Assert.notNull( userCredentials, "UserCredentials should never be null." );
+
         return UserDto.builder()
             .id( userCredentials.getUuid().toString() )
             .username( userCredentials.getUsername() )
@@ -76,7 +80,17 @@ public class UserPropertyTransformer
 
         if ( node.has( "id" ) )
         {
-            userCredentials.setUuid( UUID.fromString( node.get( "id" ).asText() ) );
+            String identifier = node.get( "id" ).asText();
+
+            if ( CodeGenerator.isValidUid( identifier ) )
+            {
+                user.setUid( identifier );
+                userCredentials.setUid( identifier );
+            }
+            else
+            {
+                userCredentials.setUuid( UUID.fromString( identifier ) );
+            }
         }
 
         if ( node.has( "username" ) )
