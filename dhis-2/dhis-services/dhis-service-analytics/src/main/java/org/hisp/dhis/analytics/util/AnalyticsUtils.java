@@ -87,6 +87,7 @@ import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -890,18 +891,33 @@ public class AnalyticsUtils
     }
 
     /**
-     * Filters a List by Dimensional Item Object UID and returns one ore more
-     * {@see DimensionalItemObject} matching the given UID
+     * Filters a List by Dimensional Item Object identifier and returns one ore more
+     * {@see DimensionalItemObject} matching the given identifier
      *
-     * @param uid a uid to filter {@see DimensionalItemObject} on
+     * @param dimensionIdentifier a uid to filter {@see DimensionalItemObject} on
      * @param items the filtered List
      * @return a List only containing the {@see DimensionalItemObject} matching the
      *         uid
      */
-    public static List<DimensionalItemObject> findDimensionalItems( String uid, List<DimensionalItemObject> items )
+    public static List<DimensionalItemObject> findDimensionalItems( String dimensionIdentifier,
+        List<DimensionalItemObject> items )
     {
         return items.stream()
-            .filter( dio -> dio.getUid() != null && dio.getUid().equals( uid ) )
+            .filter( dio -> dio.getDimensionItem() != null && dio.getDimensionItem().equals( dimensionIdentifier ) )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * Check if the given Grid's row contains a valid period iso string
+     * 
+     * @param row the row as List of Object
+     * @param periodIndex the index in which the period is located
+     * @return true, if the rows contains a valid period iso string at the given
+     *         index
+     */
+    public static boolean hasPeriod( List<Object> row, int periodIndex )
+    {
+        return periodIndex < row.size() && row.get( periodIndex ) instanceof String
+            && PeriodType.getPeriodFromIsoString( (String) row.get( periodIndex ) ) != null;
     }
 }

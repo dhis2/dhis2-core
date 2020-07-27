@@ -53,10 +53,10 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
     private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
 
     public TrackerNotificationMessageManager(
-            MessageManager messageManager,
-            SchedulingManager schedulingManager,
-            RenderService renderService,
-            ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory )
+        MessageManager messageManager,
+        SchedulingManager schedulingManager,
+        RenderService renderService,
+        ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory )
     {
         super( messageManager, schedulingManager, renderService );
         this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
@@ -69,7 +69,8 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message ) throws JMSException, IOException
+    public void consume( TextMessage message )
+        throws JMSException, IOException
     {
         TrackerSideEffectDataBundle bundle = toBundle( message );
 
@@ -78,7 +79,8 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
             return;
         }
 
-        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy(), true );
+        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB,
+            bundle.getAccessedBy(), true );
 
         bundle.setJobConfiguration( jobConfiguration );
 

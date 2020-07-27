@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -83,6 +84,12 @@ public class TrackerBundle
      */
     @Builder.Default
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
+
+    /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipTextPatternValidation;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
@@ -148,6 +155,8 @@ public class TrackerBundle
      */
     @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+
+    private TrackerImportValidationContext trackerImportValidationContext;
 
     @JsonProperty
     public String getUsername()
