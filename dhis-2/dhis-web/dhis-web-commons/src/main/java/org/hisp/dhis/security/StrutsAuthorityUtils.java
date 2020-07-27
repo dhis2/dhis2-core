@@ -66,6 +66,10 @@ public class StrutsAuthorityUtils
         return keys;
     }
 
+    public static Collection<ConfigAttribute> getConfigAttributes( ActionConfig actionConfig, String key )
+    {
+        return getConfigAttributes( getAuthorities( actionConfig, key ) );
+    }
 
     public static Collection<ConfigAttribute> getConfigAttributes( Collection<String> authorities )
     {

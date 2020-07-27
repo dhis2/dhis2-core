@@ -130,7 +130,9 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        return userStore.getUser( userId );
+        User user = userStore.getUser( userId );
+        Set<String> auths = user.getUserCredentials().getAllAuthorities();
+        return user;
     }
 
     @Override

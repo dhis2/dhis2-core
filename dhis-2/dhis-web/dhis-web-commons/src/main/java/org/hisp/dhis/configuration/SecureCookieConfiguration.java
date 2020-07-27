@@ -45,32 +45,33 @@ import org.springframework.web.WebApplicationInitializer;
  */
 @Slf4j
 public class SecureCookieConfiguration
-    implements WebApplicationInitializer
+
 {
-    @Override
-    public void onStartup( ServletContext context )
-        throws ServletException
-    {
-        boolean httpsOnly = getConfig().isEnabled( ConfigurationKey.SERVER_HTTPS );
-
-        log.debug( String.format( "Configuring cookies, HTTPS only: %b", httpsOnly ) );
-
-        if ( httpsOnly )
-        {
-            context.getSessionCookieConfig().setSecure( true );
-            context.getSessionCookieConfig().setHttpOnly( true );
-
-            log.info( "HTTPS only is enabled, cookies configured as secure" );
-        }
-    }
-
-    private DhisConfigurationProvider getConfig()
-    {
-        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
-        locationManager.init();
-        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
-        configProvider.init();
-
-        return configProvider;
-    }
+//    implements WebApplicationInitializer
+//    @Override
+//    public void onStartup( ServletContext context )
+//        throws ServletException
+//    {
+//        boolean httpsOnly = getConfig().isEnabled( ConfigurationKey.SERVER_HTTPS );
+//
+//        log.debug( String.format( "Configuring cookies, HTTPS only: %b", httpsOnly ) );
+//
+//        if ( httpsOnly )
+//        {
+//            context.getSessionCookieConfig().setSecure( true );
+//            context.getSessionCookieConfig().setHttpOnly( true );
+//
+//            log.info( "HTTPS only is enabled, cookies configured as secure" );
+//        }
+//    }
+//
+//    private DhisConfigurationProvider getConfig()
+//    {
+//        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+//        locationManager.init();
+//        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
+//        configProvider.init();
+//
+//        return configProvider;
+//    }
 }

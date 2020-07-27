@@ -1,19 +1,23 @@
 package org.hisp.dhis.webapi.config;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 import javax.servlet.SessionTrackingMode;
 import java.util.EnumSet;
 
+@Order( 10 )
 public class MyWebAppInitializer implements WebApplicationInitializer
 {
+
     @Override
     public void onStartup( ServletContext context )
     {
@@ -36,7 +40,11 @@ public class MyWebAppInitializer implements WebApplicationInitializer
             .addFilter( "openSessionInViewFilter", OpenSessionInViewFilter.class );
 //        filter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
 //        filter.setInitParameter( "singleSession", "true" );
-//        filter.setInitParameter( "singleSession", "true" );
         filter.addMappingForServletNames( null, true, "dispatcher" );
+
+//        FilterRegistration.Dynamic strutsFilter = context
+//            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() );
+//        strutsFilter.addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
     }
+
 }

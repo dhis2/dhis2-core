@@ -101,7 +101,7 @@
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
 
-  <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.webapi.security.BasicAuthenticationEntryPoint"/>
+  <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint"/>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
     authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
@@ -239,7 +239,7 @@
 
   <!-- Security : AccessDecision/Voter -->
 
-  <bean id="accessDecisionManager" class="org.hisp.dhis.webapi.vote.LogicalOrAccessDecisionManager">
+  <bean id="accessDecisionManager" class="org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager">
     <property name="accessDecisionManagers">
       <list>
         <ref bean="adminAccessDecisionVoting" />
@@ -274,7 +274,7 @@
     <property name="expressionHandler" ref="webSecurityExpressionHandler" />
   </bean>
 
-  <bean id="externalAccessVoter" class="org.hisp.dhis.webapi.vote.ExternalAccessVoter" />
+  <bean id="externalAccessVoter" class="org.hisp.dhis.security.vote.ExternalAccessVoter" />
 
   <bean id="regularAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
     <constructor-arg name="decisionVoters">
@@ -293,7 +293,7 @@
     </constructor-arg>
   </bean>
 
-  <bean id="adminAccessVoter" class="org.hisp.dhis.webapi.vote.SimpleAccessVoter">
+  <bean id="adminAccessVoter" class="org.hisp.dhis.security.vote.SimpleAccessVoter">
     <property name="requiredAuthority" value="ALL" />
   </bean>
 
@@ -313,13 +313,13 @@
     </constructor-arg>
   </bean>
 
-  <bean id="actionAccessVoter" class="org.hisp.dhis.webapi.vote.ActionAccessVoter">
+  <bean id="actionAccessVoter" class="org.hisp.dhis.security.vote.ActionAccessVoter">
     <property name="attributePrefix" value="F_" />
     <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
     <property name="anyAuthoritiesKey" value="anyAuthorities" />
   </bean>
 
-  <bean id="moduleAccessVoter" class="org.hisp.dhis.webapi.vote.ModuleAccessVoter">
+  <bean id="moduleAccessVoter" class="org.hisp.dhis.security.vote.ModuleAccessVoter">
       <property name="attributePrefix" value="M_" />
       <property name="alwaysAccessible">
         <set>

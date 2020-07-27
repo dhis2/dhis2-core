@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.vote;
+package org.hisp.dhis.security.vote;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,9 +28,9 @@ package org.hisp.dhis.webapi.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//import com.opensymphony.xwork2.config.entities.ActionConfig;
-//import org.hisp.dhis.security.StrutsAuthorityUtils;
+import com.opensymphony.xwork2.config.entities.ActionConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.StrutsAuthorityUtils;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -72,12 +72,11 @@ public class ActionAccessVoter
     @Override
     public boolean supports( Class<?> clazz )
     {
-//        boolean result = ActionConfig.class.equals( clazz );
+        boolean result = ActionConfig.class.equals( clazz );
 
-//        log.debug( "Supports class: " + clazz + ", " + result );
-//
-//        return result;
-        return false;
+        log.debug( "Supports class: " + clazz + ", " + result );
+
+        return result;
     }
 
     @Override
@@ -90,28 +89,30 @@ public class ActionAccessVoter
             return AccessDecisionVoter.ACCESS_ABSTAIN;
         }
 
-//        ActionConfig actionConfig = (ActionConfig) object;
-//        Collection<ConfigAttribute> requiredAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig, requiredAuthoritiesKey );
-//        Collection<ConfigAttribute> anyAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig, anyAuthoritiesKey );
+        ActionConfig actionConfig = (ActionConfig) object;
+        Collection<ConfigAttribute> requiredAuthorities = StrutsAuthorityUtils
+            .getConfigAttributes( actionConfig, requiredAuthoritiesKey );
+        Collection<ConfigAttribute> anyAuthorities = StrutsAuthorityUtils
+            .getConfigAttributes( actionConfig, anyAuthoritiesKey );
 
-//        int allStatus = allAuthorities( authentication, object, requiredAuthorities );
-//
-//        if ( allStatus == AccessDecisionVoter.ACCESS_DENIED )
-//        {
-//            return AccessDecisionVoter.ACCESS_DENIED;
-//        }
-//
-//        int anyStatus = anyAuthority( authentication, object, anyAuthorities );
-//
-//        if ( anyStatus == AccessDecisionVoter.ACCESS_DENIED )
-//        {
-//            return AccessDecisionVoter.ACCESS_DENIED;
-//        }
-//
-//        if ( allStatus == AccessDecisionVoter.ACCESS_GRANTED || anyStatus == AccessDecisionVoter.ACCESS_GRANTED )
-//        {
-//            return AccessDecisionVoter.ACCESS_GRANTED;
-//        }
+        int allStatus = allAuthorities( authentication, object, requiredAuthorities );
+
+        if ( allStatus == AccessDecisionVoter.ACCESS_DENIED )
+        {
+            return AccessDecisionVoter.ACCESS_DENIED;
+        }
+
+        int anyStatus = anyAuthority( authentication, object, anyAuthorities );
+
+        if ( anyStatus == AccessDecisionVoter.ACCESS_DENIED )
+        {
+            return AccessDecisionVoter.ACCESS_DENIED;
+        }
+
+        if ( allStatus == AccessDecisionVoter.ACCESS_GRANTED || anyStatus == AccessDecisionVoter.ACCESS_GRANTED )
+        {
+            return AccessDecisionVoter.ACCESS_GRANTED;
+        }
 
         return AccessDecisionVoter.ACCESS_ABSTAIN;
     }

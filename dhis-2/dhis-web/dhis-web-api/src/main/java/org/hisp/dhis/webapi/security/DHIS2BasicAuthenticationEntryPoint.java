@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.vote;
+package org.hisp.dhis.webapi.security;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,44 +28,43 @@ package org.hisp.dhis.webapi.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.render.RenderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.ConfigAttribute;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * @author Torgeir Lorange Ostby
- * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-@Slf4j
-public abstract class AbstractPrefixedAccessDecisionVoter
-    implements AccessDecisionVoter<Object>
+public class DHIS2BasicAuthenticationEntryPoint implements AuthenticationEntryPoint
 {
-    // -------------------------------------------------------------------------
-    // Prefix
-    // -------------------------------------------------------------------------
-
-    protected String attributePrefix = "";
-
-    public void setAttributePrefix( String attributePrefix )
-    {
-        this.attributePrefix = attributePrefix;
-    }
-
-    // -------------------------------------------------------------------------
-    // AccessDecisionVoter implementation
-    // -------------------------------------------------------------------------
+    @Autowired
+    private RenderService renderService;
 
     @Override
-    public boolean supports( ConfigAttribute configAttribute )
+    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException
     {
-        boolean result = configAttribute.getAttribute() != null
-            && configAttribute.getAttribute().startsWith( attributePrefix );
+        String message;
 
-        log.debug( "Supports configAttribute: " + configAttribute + ", " + result + " (" + getClass().getSimpleName()
-            + ")" );
+        if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
+        {
+            message = "Account locked" ;
+        }
+        else
+        {
+            message = "Unauthorized";
+        }
 
-        return result;
+        response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
     }
 }

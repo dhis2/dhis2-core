@@ -7,15 +7,17 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
-        <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="true"/>
+
+        <Logger name="org.apache.activemq" level="INFO" additivity="true"/>
+        <Logger name="org.hisp.dhis" level="DEBUG" additivity="true"/>
+        <Logger name="org.hisp.dhis.webapi.mvc" level="DEBUG" additivity="true"/>
         <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="true"/>
         <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="true"/>
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>
-        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
+<!--        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>-->
 
-        <Root level="WARN">
+        <Root level="DEBUG">
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>
