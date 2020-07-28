@@ -38,6 +38,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -49,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.imageio.ImageIO;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -81,11 +82,15 @@ public class DefaultTrackedEntityAttributeService
     private final CurrentUserService currentUserService;
     private final AclService aclService;
     private final TrackedEntityAttributeStore trackedEntityAttributeStore;
+    private final TrackedEntityTypeAttributeStore entityTypeAttributeStore;
+    private final ProgramTrackedEntityAttributeStore programAttributeStore;
 
     public DefaultTrackedEntityAttributeService ( TrackedEntityAttributeStore attributeStore,
         ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
         FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
-        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore )
+        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore,
+        TrackedEntityTypeAttributeStore entityTypeAttributeStore,
+        ProgramTrackedEntityAttributeStore programAttributeStore )
     {
         checkNotNull( attributeStore );
         checkNotNull( programService );
@@ -95,6 +100,8 @@ public class DefaultTrackedEntityAttributeService
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( trackedEntityAttributeStore );
+        checkNotNull( entityTypeAttributeStore );
+        checkNotNull( programAttributeStore );
 
         this.attributeStore = attributeStore;
         this.programService = programService;
@@ -104,6 +111,8 @@ public class DefaultTrackedEntityAttributeService
         this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.trackedEntityAttributeStore = trackedEntityAttributeStore;
+        this.entityTypeAttributeStore = entityTypeAttributeStore;
+        this.programAttributeStore = programAttributeStore;
     }
 
     // -------------------------------------------------------------------------
@@ -282,13 +291,20 @@ public class DefaultTrackedEntityAttributeService
     @Transactional(readOnly = true)
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes )
     {
-        Set<TrackedEntityAttribute> attributes;
+        Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
-        attributes = programs.stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
-            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+        if ( programs != null && !programs.isEmpty() )
+        {
+            attributes.addAll( programAttributeStore.getAttributes(
+                programs.stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList()) ) );
+        }
 
-        attributes.addAll( trackedEntityTypes.stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );
+        if ( trackedEntityTypes != null && !trackedEntityTypes.isEmpty() )
+        {
+            attributes.addAll( entityTypeAttributeStore.getAttributes(
+                trackedEntityTypes.stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect(
+                    Collectors.toList()) ));
+        }
 
         return attributes;
     }
