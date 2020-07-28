@@ -72,7 +72,7 @@ public class V2_35_11__Visualization_Move_Columns_To_Filters extends BaseJavaMig
                 if ( !filtersTableContains( context, visualizationId, dimension ) )
                 {
                     // Insert the current column into filters table.
-                    insertIntoFilerTable( context, visualizationId, dimension, greatVisualizationSortOrder );
+                    insertIntoFilterTable( context, visualizationId, dimension, greatVisualizationSortOrder );
 
                     // Once the columns is copied into filters, remove it from columns table. The
                     // "moving" process is concluded for this visualization column.
@@ -118,7 +118,7 @@ public class V2_35_11__Visualization_Move_Columns_To_Filters extends BaseJavaMig
         }
     }
 
-    private void insertIntoFilerTable( final Context context, final long visualizationId, final String dimension,
+    private void insertIntoFilterTable( final Context context, final long visualizationId, final String dimension,
         final int sortOrder )
         throws SQLException
     {
