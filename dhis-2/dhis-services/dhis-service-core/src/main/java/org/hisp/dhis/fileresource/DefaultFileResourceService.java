@@ -38,11 +38,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FilenameUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -57,8 +55,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -69,12 +65,6 @@ public class DefaultFileResourceService
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
     public static final Predicate<FileResource> IS_ORPHAN_PREDICATE = (fr -> !fr.isAssigned());
-
-    private static final Set<String> CONTENT_TYPE_BLACKLIST = Sets.newHashSet( "text/html",
-        "application/vnd.debian.binary-package", "application/x-rpm", "application/x-ms-dos-executable",
-        "application/vnd.microsoft.portable-executable" );
-
-    private static final Set<String> FILE_EXTENSION_BLACKLIST = Sets.newHashSet( "html", "deb", "rpm", "exe" );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -117,7 +107,7 @@ public class DefaultFileResourceService
     {
         return checkStorageStatus( fileResourceStore.getByUid( uid ) );
     }
-    
+
     @Override
     @Transactional( readOnly = true )
     public List<FileResource> getFileResources( List<String> uids )
@@ -210,7 +200,7 @@ public class DefaultFileResourceService
     {
         return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
     }
-    
+
     @Override
     @Transactional( readOnly = true )
     public long getFileResourceContentLength( FileResource fileResource )
@@ -294,15 +284,12 @@ public class DefaultFileResourceService
     private void validateFileResource( FileResource fileResource )
         throws IllegalQueryException
     {
-        String filename = fileResource.getName();
-
-        if ( filename == null )
+        if ( fileResource.getName() == null )
         {
             throw new IllegalQueryException( ErrorCode.E6100 );
         }
 
-        if ( CONTENT_TYPE_BLACKLIST.contains( fileResource.getContentType() )
-            || FILE_EXTENSION_BLACKLIST.contains( FilenameUtils.getExtension( filename ) ) )
+        if ( !FileResourceBlocklist.isValid( fileResource ) )
         {
             throw new IllegalQueryException( ErrorCode.E6101 );
         }

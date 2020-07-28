@@ -113,6 +113,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -1972,7 +1973,7 @@ public abstract class AbstractEventService
         {
             return fallbackUsername;
         }
-        else if ( userName.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        else if ( !ValidationUtils.usernameIsValid( userName ) )
         {
             if ( importSummary != null )
             {

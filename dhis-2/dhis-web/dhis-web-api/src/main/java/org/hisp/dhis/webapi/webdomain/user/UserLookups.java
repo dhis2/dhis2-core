@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,22 +26,30 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.webapi.webdomain.user;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Wrapper DTO for a list of UserLookups.
+ *
+ * @author Lars Helge Overland
  */
-public enum TrackerErrorCode
+@Getter
+@NoArgsConstructor
+public class UserLookups
 {
-    NONE( "No error message given." );
+    @JsonProperty
+    private List<UserLookup> users = new ArrayList<>();
 
-    private String message;
-
-    TrackerErrorCode( String message )
+    public UserLookups( List<UserLookup> users )
     {
-        this.message = message;
-    }
-
-    public String getMessage()
-    {
-        return message;
+        this.users = users;
     }
 }

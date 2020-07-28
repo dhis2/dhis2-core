@@ -80,6 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.DoubleAccumulator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -89,6 +90,7 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -1348,11 +1350,12 @@ public class DefaultAnalyticsService
      * @param indicators the list of indicators.
      * @return a dimensional items to aggregate values map.
      */
-    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap(DataQueryParams params,
-                                                                                       List<Indicator> indicators )
+    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap( DataQueryParams params,
+        List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists
-                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
+            .newArrayList(
+                expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1361,7 +1364,8 @@ public class DefaultAnalyticsService
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 
-        DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
+        DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = DataQueryParams
             .newBuilder( params )
@@ -1381,8 +1385,8 @@ public class DefaultAnalyticsService
             return result;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex )
-                -> index == -1 ? defaultIndex : index;
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
+            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
 
         final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
         final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
@@ -1392,34 +1396,50 @@ public class DefaultAnalyticsService
 
         for ( List<Object> row : grid.getRows() )
         {
-            // Check if the current row period belongs to the list of periods from the original request
-            if ( isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+            final List<DimensionalItemObject> dimensionalItems = AnalyticsUtils
+                .findDimensionalItems( (String) row.get( dataIndex ), items );
+
+            // Check if the current row's Period belongs to the list of periods from the
+            // original Analytics request
+            // The row may not have a Period if Period is used as filter
+            if ( AnalyticsUtils.hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
-                // Key is composed of [uid-period]
-                final String key = StringUtils.join(
-                    ArrayUtils.remove( row.toArray( new Object[0] ), valueIndex ),
-                    DimensionalObject.DIMENSION_SEP );
-
-                final DimensionalItemObject dimensionalItemObject = AnalyticsUtils.findDimensionalItems( (String) row.get( dataIndex ), items ).get( 0 );
-                DimensionalItemObject clone = dimensionalItemObject;
-
-                if ( dimensionalItemObject.getPeriodOffset() != 0 )
+                if ( dimensionalItems.size() == 1 )
                 {
-                    List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
-                        (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
-                    if ( periodOffsetRow != null )
-                    {
-                        result.put( key,
-                            new DimensionItemObjectValue( dimensionalItemObject,
-                                (Double) periodOffsetRow.get( valueIndex ) ) );
+                    // Key is composed of [uid-period]
+                    final String key = StringUtils.join(
+                        ArrayUtils.remove( row.toArray( new Object[0] ), valueIndex ),
+                        DimensionalObject.DIMENSION_SEP );
 
+                    final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
+                    DimensionalItemObject clone = dimensionalItemObject;
+
+                    if ( dimensionalItemObject.getPeriodOffset() != 0 )
+                    {
+                        List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
+                            (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
+
+                        if ( periodOffsetRow != null )
+                        {
+                            result.put( key,
+                                new DimensionItemObjectValue( dimensionalItemObject,
+                                    (Double) periodOffsetRow.get( valueIndex ) ) );
+                        }
+
+                        clone = SerializationUtils.clone( dimensionalItemObject );
                     }
 
-                    clone = SerializationUtils.clone( dimensionalItemObject );
+                    result.put( key,
+                        new DimensionItemObjectValue( clone, ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
-
-                result.put( key,
-                    new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
+            }
+            else
+            {
+                if ( dimensionalItems.size() == 1 )
+                {
+                    result.put( dimensionalItems.get( 0 ).getDimensionItem(),
+                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                }
             }
         }
 

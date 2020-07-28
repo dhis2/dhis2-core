@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.validation.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,30 +28,45 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.MessageFormat;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.springframework.stereotype.Component;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TrackerErrorMessage
+@Component
+public class EnrollmentGeoValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
-    private final TrackerErrorCode errorCode;
-
-    private final Object[] args;
-
-    public TrackerErrorMessage( TrackerErrorCode errorCode, Object... args )
+    public EnrollmentGeoValidationHook( TrackedEntityAttributeService teAttrService,
+        TrackedEntityCommentService commentService )
     {
-        this.errorCode = errorCode;
-        this.args = args;
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
     }
 
-    public TrackerErrorCode getErrorCode()
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        return errorCode;
+        TrackerImportValidationContext context = reporter.getValidationContext();
+
+        Program program = context.getProgram( enrollment.getProgram() );
+
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+
+        if ( enrollment.getGeometry() != null )
+        {
+            validateGeometry( reporter,
+                enrollment.getGeometry(),
+                program.getFeatureType() );
+        }
     }
 
-    public String getMessage()
-    {
-        return MessageFormat.format( errorCode.getMessage(), args );
-    }
 }
