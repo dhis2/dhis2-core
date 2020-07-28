@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.trackedentity.hibernate;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,14 +31,14 @@ package org.hisp.dhis.program.hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttributeStore;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,46 +46,29 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * @author Lars Helge Overland
- */
-@Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" )
-public class HibernateProgramTrackedEntityAttributeStore
-    extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttribute>
-        implements ProgramTrackedEntityAttributeStore
+@Repository( "org.hisp.dhis.program.TrackedEntityTypeAttributeStore" )
+public class HibernateTrackedEntityTypeAttributeStore
+    extends HibernateIdentifiableObjectStore<TrackedEntityTypeAttribute>
+    implements TrackedEntityTypeAttributeStore
 {
-    public HibernateProgramTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+    public HibernateTrackedEntityTypeAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttribute.class, currentUserService,
-            deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityTypeAttribute.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Override
-    public ProgramTrackedEntityAttribute get(Program program, TrackedEntityAttribute attribute )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "attribute" ), attribute ) ) );
-    }
-
-    @Override
-    public List<TrackedEntityAttribute> getAttributes( List<Program> programs )
+    public List<TrackedEntityAttribute> getAttributes( List<TrackedEntityType> trackedEntityTypes )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         CriteriaQuery<TrackedEntityAttribute> query = builder.createQuery( TrackedEntityAttribute.class );
-        Root<ProgramTrackedEntityAttribute> root = query.from( ProgramTrackedEntityAttribute.class );
-        query.select( root.get( "attribute" ) );
-        query.where( root.get( "program" ).in( programs ) );
+        Root<TrackedEntityTypeAttribute> root = query.from( TrackedEntityTypeAttribute.class );
+        query.select( root.get( "trackedEntityAttribute" ) );
+        query.where( root.get( "trackedEntityType" ).in( trackedEntityTypes ) );
         query.distinct( true );
 
         return getSession().createQuery( query ).getResultList();
