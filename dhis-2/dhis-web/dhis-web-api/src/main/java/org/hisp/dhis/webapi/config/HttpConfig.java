@@ -62,48 +62,11 @@ import static org.springframework.http.MediaType.parseMediaType;
 @Configuration
 @Order( 1000 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
-//, useDefaultFilters = false, includeFilters = {
-//    @ComponentScan.Filter( type = FilterType.ANNOTATION, value = Controller.class ),
-//    @ComponentScan.Filter( type = FilterType.ANNOTATION, value = Service.class ),
-//    @ComponentScan.Filter( type = FilterType.ANNOTATION, value = Component.class ),
-//    @ComponentScan.Filter( type = FilterType.ANNOTATION, value = Repository.class )
-//
-//} )
-
 @EnableWebMvc
-//, excludeFilters = @ComponentScan.Filter( Configuration.class ) )
-//@Import( {
-//    JdbcConfig.class,
-//    HibernateConfig.class,
-//    FlywayConfig.class,
-//    EncryptionConfig.class,
-//    ServiceConfig.class,
-//    StoreConfig.class,
-//    LeaderElectionConfiguration.class,
-//    org.hisp.dhis.setting.config.ServiceConfig.class,
-//    org.hisp.dhis.external.config.ServiceConfig.class,
-//    org.hisp.dhis.dxf2.config.ServiceConfig.class,
-//    org.hisp.dhis.support.config.ServiceConfig.class,
-//    org.hisp.dhis.validation.config.ServiceConfig.class,
-//    org.hisp.dhis.validation.config.StoreConfig.class,
-//    org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
-//    org.hisp.dhis.reporting.config.StoreConfig.class,
-//    org.hisp.dhis.analytics.config.ServiceConfig.class,
-//    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class } )
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 @Slf4j
 public class HttpConfig implements WebMvcConfigurer
 {
-    //extends WebSecurityConfigurerAdapter
-    @PostConstruct
-    public void fart()
-    {
-        log.info( "TEST123" );
-    }
-//    public HttpConfig()
-//    {
-//        super( true );
-//    }
 
 //    @Autowired
 //    private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
