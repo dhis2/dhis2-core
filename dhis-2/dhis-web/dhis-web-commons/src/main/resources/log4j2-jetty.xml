@@ -1,24 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn">
-    <Appenders>
 
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout  pattern="* %-5p %d{ISO8601} %m (%F [%t])%n" />
+    <!--    -->
+    <!--    <Appenders>-->
+    <!--        <Console name="console" target="SYSTEM_OUT">-->
+    <!--            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n"/>-->
+    <!--        </Console>-->
+    <!--    </Appenders>-->
+
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%highlight{[%d] - %msg%n}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=black, DEBUG=green bold, TRACE=blue}"
+                    disableAnsi="false"/>
         </Console>
     </Appenders>
+
+
     <Loggers>
 
         <Logger name="org.apache.activemq" level="INFO" additivity="true"/>
         <Logger name="org.hisp.dhis" level="DEBUG" additivity="true"/>
         <Logger name="org.hisp.dhis.webapi.mvc" level="DEBUG" additivity="true"/>
-        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="true"/>
+        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy"
+                level="error" additivity="true"/>
         <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="true"/>
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>
-        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>
-<!--        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>-->
+        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error"
+                additivity="true"/>
+        <!--        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>-->
 
-        <Root level="DEBUG">
-            <AppenderRef ref="console"/>
+        <Root level="INFO">
+            <AppenderRef ref="CONSOLE"/>
         </Root>
     </Loggers>
 </Configuration>

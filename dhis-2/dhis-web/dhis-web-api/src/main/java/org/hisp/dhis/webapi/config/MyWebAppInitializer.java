@@ -36,11 +36,20 @@ public class MyWebAppInitializer implements WebApplicationInitializer
         dispatcher.setLoadOnStartup( 1 );
         dispatcher.addMapping( "/api/*" );
 
-        FilterRegistration.Dynamic filter = context
-            .addFilter( "openSessionInViewFilter", OpenSessionInViewFilter.class );
-//        filter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
-//        filter.setInitParameter( "singleSession", "true" );
-        filter.addMappingForServletNames( null, true, "dispatcher" );
+        FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter("openSessionInViewFilter",
+            OpenSessionInViewFilter.class);
+        openSessionInViewFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
+        openSessionInViewFilter.setInitParameter("singleSession", "true");
+        openSessionInViewFilter.setInitParameter("flushMode", "AUTO");
+        openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
+        openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
+
+
+//        FilterRegistration.Dynamic filter = context
+//            .addFilter( "openSessionInViewFilter", OpenSessionInViewFilter.class );
+//        filter.addMappingForServletNames( null, true, "dispatcher" );
+
+
 
 //        FilterRegistration.Dynamic strutsFilter = context
 //            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() );
