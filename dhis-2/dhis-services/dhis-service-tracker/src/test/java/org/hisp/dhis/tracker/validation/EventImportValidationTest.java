@@ -780,15 +780,18 @@ public class EventImportValidationTest
         throws IOException
     {
         Date now = new Date();
+        
+        // When
+        
         ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
         
-        final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();
-        String newEvent = typeReportMap.get( TrackerType.EVENT ).getObjectReportMap().get( 0 ).getUid();
-        final ProgramStageInstance programStageInstance = programStageServiceInstance
-            .getProgramStageInstance( newEvent );
+        // Then
+        
+        // Fetch the UID of the newly created event
+        final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
         assertThat( programStageInstance.getComments(), hasSize( 3 ) );
-        // validate note content
+        // Validate note content
         Stream.of( "first note", "second note", "third note" ).forEach( t -> {
 
             TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
@@ -801,16 +804,18 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void checkUpdate() throws IOException {
+    public void testValidateAndAddNotesToUpdatedEvent() throws IOException {
 
         Date now = new Date();
-
+        
+        // Given -> Creates an event with 3 notes
         createEvent("tracker/validations/events-with-notes-data.json");
+        
+        // When -> Update the event and adds 3 more notes
         final ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-update-data.json");
-        final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();
-        String newEvent = typeReportMap.get( TrackerType.EVENT ).getObjectReportMap().get( 0 ).getUid();
-        final ProgramStageInstance programStageInstance = programStageServiceInstance
-            .getProgramStageInstance( newEvent );
+        
+        // Then
+        final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
         assertThat( programStageInstance.getComments(), hasSize( 6 ) );
 
@@ -818,7 +823,7 @@ public class EventImportValidationTest
         Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
 
             TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
-            assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
+            assertTrue( CodeGenerator.isValidUid( comment. getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
@@ -828,16 +833,19 @@ public class EventImportValidationTest
     }
 
     private ValidateAndCommitTestUnit createEvent( String jsonPayload )
-            throws IOException
+        throws IOException
     {
+        // Given
         TrackerBundleParams trackerBundleParams = createBundleFromJson( jsonPayload );
 
+        // When
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
+
+        // Then
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
-
         assertEquals( 0, report.getErrorReports().size() );
 
         return createAndUpdate;
@@ -855,5 +863,13 @@ public class EventImportValidationTest
         }
         fail( "Can't find a comment starting or ending with " + commentText );
         return null;
+    }
+    
+    private ProgramStageInstance getEventFromReport( ValidateAndCommitTestUnit createAndUpdate )
+    {
+        final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();
+        String newEvent = typeReportMap.get( TrackerType.EVENT ).getObjectReportMap().get( 0 ).getUid();
+        return programStageServiceInstance
+            .getProgramStageInstance( newEvent );
     }
 }

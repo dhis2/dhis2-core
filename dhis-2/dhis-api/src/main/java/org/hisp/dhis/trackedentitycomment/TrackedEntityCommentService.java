@@ -62,9 +62,9 @@ public interface TrackedEntityCommentService
     boolean trackedEntityCommentExists( String uid );
 
     /**
-     * Filters out existing {@see TrackedEntityComment} uid.
+     * Filters out existing {@see TrackedEntityComment} uids from a List of uids.
      *
-     * Given:
+     * Given a List:
      *
      * uid: abcd
      * uid: cdef
@@ -73,7 +73,6 @@ public interface TrackedEntityCommentService
      *
      * and assuming that "cdef" and "abcd" are associated to two TrackedEntityComment in the database,
      * this method returns "ghil" and "mnop"
-     *
      *
      * @param uids a List of {@see TrackedEntityComment} uid
      * @return a List of uid that are not present in the database

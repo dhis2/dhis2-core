@@ -267,7 +267,6 @@ public class DefaultTrackerBundleService
 
             if ( !programInstance.getComments().isEmpty() )
             {
-
                 for ( TrackedEntityComment comment : programInstance.getComments() )
                 {
                     this.trackedEntityCommentService.addTrackedEntityComment( comment );
