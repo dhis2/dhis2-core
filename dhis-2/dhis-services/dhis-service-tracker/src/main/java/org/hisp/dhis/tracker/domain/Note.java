@@ -59,5 +59,5 @@ public class Note
     private String value;
 
     @JsonIgnore
-    private transient boolean newNote;
+    private boolean newNote;
 }

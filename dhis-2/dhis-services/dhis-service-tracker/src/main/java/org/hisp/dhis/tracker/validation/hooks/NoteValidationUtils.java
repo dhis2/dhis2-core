@@ -13,6 +13,19 @@ import java.util.stream.Collectors;
  */
 public class NoteValidationUtils {
 
+    private NoteValidationUtils()
+    {
+    }
+
+    /**
+     * Filters out from a List of {@see Note}, notes that have no value (empty note)
+     * and notes with an uid that already exist in the database.
+     *
+     * @param commentService an instance of {@see TrackedEntityCommentService},
+     *        required to check if a note uid already exist in the db
+     * @param notes the list of {@see Note} to filter
+     * @return a filtered list of {@see Note}}
+     */
     static List<Note> getPersistableNotes( TrackedEntityCommentService commentService, List<Note> notes )
     {
         // Check which notes are already on the DB and skip them
