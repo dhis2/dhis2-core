@@ -131,7 +131,7 @@ public class HttpStrutsConfig
 //                    .antMatchers( "/api/icons/*/icon.svg" ).permitAll()
                 )
 //                .httpBasic( withDefaults() );
-                .httpBasic().authenticationEntryPoint( basicAuthenticationEntryPoint() );
+                .httpBasic().authenticationEntryPoint( basicAuthenticationEntryPoint() ).and().csrf().disable();
 //
 //            //;.and().csrf().disable();
 //
