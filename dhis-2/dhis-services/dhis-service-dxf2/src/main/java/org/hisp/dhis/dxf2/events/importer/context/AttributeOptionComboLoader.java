@@ -248,7 +248,7 @@ public class AttributeOptionComboLoader
     private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions ) {
 
         final String key = "categorycomboid";
-        final String categoryComboKey = resolveId( idScheme, key, categoryComboId);
+        final String categoryComboKey = resolveId( idScheme, key, categoryComboId );
 
         final String optionsId = categoryOptions.stream()
             .map( co -> Long.toString( co.getId() ) )
