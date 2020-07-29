@@ -161,8 +161,7 @@ public class WorkContextLoader
             if ( currentUser != null )
             {
                 UserCredentials userCredentials = currentUser.getUserCredentials();
-                HibernateUtils.initializeProxy( userCredentials );
-                userCredentials.isSuper();
+                initUserCredentials( userCredentials );
                 importOptions.setUser( currentUser );
             }
         }
@@ -170,8 +169,19 @@ public class WorkContextLoader
         {
             final User user = importOptions.getUser();
             UserCredentials userCredentials = user.getUserCredentials();
-            HibernateUtils.initializeProxy( userCredentials );
-            userCredentials.isSuper();
+            initUserCredentials( userCredentials );
         }
+    }
+
+    /**
+     * Force Hibernate to pre-load all collections for the {@see UserCredentials}
+     * object and fetch the "isSuper()" data. This is required to avoid an Hibernate
+     * error later, when this object becomes detached from the Hibernate Session.
+     */
+    private void initUserCredentials( UserCredentials userCredentials )
+    {
+        HibernateUtils.initializeProxy( userCredentials );
+        userCredentials.isSuper();
+
     }
 }
