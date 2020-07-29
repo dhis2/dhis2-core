@@ -116,7 +116,7 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of(tei) );
+        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
 
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();
