@@ -67,7 +67,7 @@ public class JdbcUtils
                 try
                 {
                     int batchSize = pss.getBatchSize();
-                    InterruptibleBatchPreparedStatementSetter ipss = (pss instanceof InterruptibleBatchPreparedStatementSetter
+                    InterruptibleBatchPreparedStatementSetter ipss = ( pss instanceof InterruptibleBatchPreparedStatementSetter
                         ? (InterruptibleBatchPreparedStatementSetter) pss
                         : null);
                     int[] result;
