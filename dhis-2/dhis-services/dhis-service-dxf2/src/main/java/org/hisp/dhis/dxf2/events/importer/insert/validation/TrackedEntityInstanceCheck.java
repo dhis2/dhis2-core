@@ -46,7 +46,7 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 public class TrackedEntityInstanceCheck implements Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
