@@ -180,7 +180,7 @@ public class DataValueCheck implements Checker
         final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
 
         return validationStrategy == null || validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
-            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED);
+            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED );
 
     }
 
