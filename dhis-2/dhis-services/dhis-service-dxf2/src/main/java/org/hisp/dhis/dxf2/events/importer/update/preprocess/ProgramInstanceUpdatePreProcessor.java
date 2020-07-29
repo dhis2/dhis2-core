@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer.update.preprocess;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
-
 import static org.hisp.dhis.event.EventStatus.ACTIVE;
 import static org.hisp.dhis.event.EventStatus.COMPLETED;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
@@ -42,6 +42,7 @@ import java.util.Date;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -82,8 +83,7 @@ public class ProgramInstanceUpdatePreProcessor implements Processor
                 programStageInstance.setAttributeOptionCombo( categoryOptionCombo );
             }
 
-            final String storedBy = getValidUsername( event.getStoredBy(), null,
-                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+            final String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
 
             if ( event.getStatus() == ACTIVE )
             {
@@ -93,8 +93,8 @@ public class ProgramInstanceUpdatePreProcessor implements Processor
             }
             else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
             {
-                final String completedBy = getValidUsername( event.getCompletedBy(), null,
-                    importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+                final String completedBy = EventUtils.getValidUsername( event.getCompletedBy(),
+                    ctx.getImportOptions() );
 
                 programStageInstance.setCompletedBy( completedBy );
 
@@ -128,28 +128,5 @@ public class ProgramInstanceUpdatePreProcessor implements Processor
                 programStageInstance.setAssignedUser( ctx.getAssignedUserMap().get( event.getUid() ) );
             }
         }
-    }
-
-    private String getValidUsername( final String userName, final ImportSummary importSummary,
-        final String fallbackUsername )
-    {
-        String validUsername = userName;
-
-        if ( isEmpty( validUsername ) )
-        {
-            validUsername = getSafeUsername( fallbackUsername );
-        }
-        else if ( validUsername.length() > USERNAME_MAX_LENGTH )
-        {
-            if ( importSummary != null )
-            {
-                importSummary.getConflicts().add( new ImportConflict( "Username", validUsername + " is more than "
-                    + USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
-            }
-
-            validUsername = getSafeUsername( fallbackUsername );
-        }
-
-        return validUsername;
     }
 }
