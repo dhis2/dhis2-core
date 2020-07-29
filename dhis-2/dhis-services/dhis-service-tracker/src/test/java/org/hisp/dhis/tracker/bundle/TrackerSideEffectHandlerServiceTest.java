@@ -154,6 +154,6 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
 
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );
-        assertEquals( instance.getProgramNotificationTemplate().getUid(), "FdIeUL4gyoB" );
+        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplate().getUid() );
     }
 }

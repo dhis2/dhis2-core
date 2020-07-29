@@ -43,8 +43,6 @@ import java.util.List;
 public interface ProgramNotificationInstanceStore
     extends IdentifiableObjectStore<ProgramNotificationInstance>
 {
-    String ID = ProgramNotificationInstance.class.getName();
-
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
 
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
