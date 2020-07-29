@@ -156,7 +156,7 @@ public class AttributeOptionComboLoader
      */
     private CategoryOption getCategoryOption( IdScheme idScheme, String id )
     {
-        return loadCategoryOption( idScheme, id);
+        return loadCategoryOption( idScheme, id );
     }
 
     private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
