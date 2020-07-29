@@ -118,7 +118,6 @@ public class AttributeOptionComboLoader
     public CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
     {
         return loadCategoryOptionCombo( idScheme, id );
-        //return this.cocCache.get( idScheme.name() + KEY_SEPARATOR + id );
     }
 
     /**
