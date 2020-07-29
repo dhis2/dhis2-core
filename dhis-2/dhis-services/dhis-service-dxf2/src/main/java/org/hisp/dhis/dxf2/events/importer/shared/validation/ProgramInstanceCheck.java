@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;

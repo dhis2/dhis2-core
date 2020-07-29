@@ -32,10 +32,7 @@ import static org.hisp.dhis.event.EventStatus.ACTIVE;
 import static org.hisp.dhis.event.EventStatus.COMPLETED;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 import static org.hisp.dhis.event.EventStatus.SKIPPED;
-import static org.hisp.dhis.user.User.getSafeUsername;
-import static org.hisp.dhis.user.UserCredentials.USERNAME_MAX_LENGTH;
 import static org.hisp.dhis.util.DateUtils.parseDate;
-import static org.springframework.util.StringUtils.isEmpty;
 
 import java.util.Date;
 
@@ -43,10 +40,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.util.DateUtils;

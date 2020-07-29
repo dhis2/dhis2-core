@@ -31,8 +31,8 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 
 /**
  * @author Luciano Fiandesio

@@ -38,8 +38,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -71,6 +69,8 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.

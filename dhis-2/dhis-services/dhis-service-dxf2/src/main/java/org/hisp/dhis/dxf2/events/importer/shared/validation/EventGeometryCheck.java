@@ -34,8 +34,8 @@ import java.io.IOException;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;

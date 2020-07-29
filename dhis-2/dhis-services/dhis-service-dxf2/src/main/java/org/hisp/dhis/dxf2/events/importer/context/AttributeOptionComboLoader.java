@@ -37,15 +37,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.util.Strings;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;

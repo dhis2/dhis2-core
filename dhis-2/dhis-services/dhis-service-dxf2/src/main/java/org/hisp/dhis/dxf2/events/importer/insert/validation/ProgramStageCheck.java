@@ -32,11 +32,10 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.util.StringUtils;
 

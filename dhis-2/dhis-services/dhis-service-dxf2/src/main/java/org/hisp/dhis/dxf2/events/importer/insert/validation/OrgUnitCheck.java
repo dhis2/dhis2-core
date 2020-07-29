@@ -28,8 +28,8 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 

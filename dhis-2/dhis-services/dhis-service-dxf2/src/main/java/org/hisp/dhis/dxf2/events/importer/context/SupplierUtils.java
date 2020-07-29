@@ -28,12 +28,12 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Luciano Fiandesio

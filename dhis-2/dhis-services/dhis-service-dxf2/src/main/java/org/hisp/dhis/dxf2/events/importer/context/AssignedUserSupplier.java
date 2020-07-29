@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -44,6 +42,9 @@ import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio

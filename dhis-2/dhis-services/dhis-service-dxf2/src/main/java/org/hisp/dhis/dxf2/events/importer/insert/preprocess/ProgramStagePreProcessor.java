@@ -29,8 +29,8 @@
 package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 

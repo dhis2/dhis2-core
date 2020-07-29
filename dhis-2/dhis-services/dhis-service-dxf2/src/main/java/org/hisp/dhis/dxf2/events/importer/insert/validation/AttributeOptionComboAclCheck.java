@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
