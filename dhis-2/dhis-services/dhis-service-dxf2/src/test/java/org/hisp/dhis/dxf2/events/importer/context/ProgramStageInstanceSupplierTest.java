@@ -63,7 +63,7 @@ public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<Progr
     public void setUp()
     {
         JsonMapper mapper = new JsonMapper();
-        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper, programSupplier);
+        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper, programSupplier );
     }
 
     @Test
