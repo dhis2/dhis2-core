@@ -799,7 +799,7 @@ public class JdbcEventStore implements EventStore
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,"
             + "auc.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
+        if ( ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault() )
             && !isSuper( user ) )
         {
             sqlBuilder.append(
