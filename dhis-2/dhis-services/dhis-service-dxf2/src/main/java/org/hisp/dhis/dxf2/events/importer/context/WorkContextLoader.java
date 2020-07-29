@@ -137,7 +137,7 @@ public class WorkContextLoader
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )
             .assignedUserMap( assignedUserSupplier.get( localImportOptions, events ) )
-            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap, localImportOptions ))
+            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap, localImportOptions ) )
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
         // @formatter:on
