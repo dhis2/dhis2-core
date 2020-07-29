@@ -293,7 +293,7 @@ public class AttributeOptionComboLoader
         // @formatter:off
         StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
             .put( "key", key )
-            .put( "resolvedScheme", Objects.requireNonNull(resolveId(idScheme, key, id)))
+            .put( "resolvedScheme", Objects.requireNonNull( resolveId( idScheme, key, id ) ) )
             .build() );
         // @formatter:on
         try
