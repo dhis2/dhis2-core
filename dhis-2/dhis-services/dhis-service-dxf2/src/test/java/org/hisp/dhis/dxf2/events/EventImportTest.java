@@ -169,14 +169,14 @@ public class EventImportTest
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
-        CategoryOption categoryOption1 = new CategoryOption("male");
+        CategoryOption categoryOption1 = new CategoryOption( "male" );
         categoryOption1.setAutoFields();
-        CategoryOption categoryOption2 = new CategoryOption("female");
+        CategoryOption categoryOption2 = new CategoryOption( "female" );
         categoryOption2.setAutoFields();
         manager.save( Lists.newArrayList( categoryOption1, categoryOption2 ) );
 
         Category cat1 = new Category( "cat1", DataDimensionType.DISAGGREGATION );
-        cat1.setCategoryOptions( Lists.newArrayList(categoryOption1, categoryOption2));
+        cat1.setCategoryOptions( Lists.newArrayList( categoryOption1, categoryOption2 ) );
         manager.save( Lists.newArrayList( cat1  ) );
 
         CategoryCombo categoryCombo = manager.getByName( CategoryCombo.class, "default" );
@@ -258,7 +258,7 @@ public class EventImportTest
         pi.setProgram( programB );
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
-        pi.setName("EventImportTestPI");
+        pi.setName( "EventImportTestPI" );
         pi.setUid( CodeGenerator.generateUid() );
         manager.save( pi );
 

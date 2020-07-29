@@ -147,7 +147,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         .loader( new CacheLoader<Long, Set<User>>()
         {
             @Override
-            public Set<User> load(Long userGroupId) {
+            public Set<User> load( Long userGroupId ) {
                 return loadUserGroups( userGroupId );
             }
         } ).build() ;

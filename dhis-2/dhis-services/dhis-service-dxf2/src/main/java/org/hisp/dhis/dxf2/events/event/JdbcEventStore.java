@@ -230,7 +230,7 @@ public class JdbcEventStore implements EventStore
         while ( rowSet.next() )
         {
             if ( rowSet.getString( "psi_uid" ) == null
-                || (params.getCategoryOptionCombo() == null && !isSuper( user ) && !userHasAccess( rowSet )) )
+                || ( params.getCategoryOptionCombo() == null && !isSuper( user ) && !userHasAccess( rowSet ) ) )
             {
                 continue;
             }
@@ -412,7 +412,7 @@ public class JdbcEventStore implements EventStore
                     {
                         bindEventParamsForUpdate( ps, programStageInstance );
                     }
-                    catch ( JsonProcessingException | SQLException e)
+                    catch ( JsonProcessingException | SQLException e )
                     {
                         log.warn( "PSI failed to update and will be ignored. PSI UID: " + programStageInstance.getUid(),
                             programStageInstance.getUid(), e );

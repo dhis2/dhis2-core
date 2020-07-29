@@ -69,7 +69,7 @@ public class JdbcUtils
                     int batchSize = pss.getBatchSize();
                     InterruptibleBatchPreparedStatementSetter ipss = ( pss instanceof InterruptibleBatchPreparedStatementSetter
                         ? (InterruptibleBatchPreparedStatementSetter) pss
-                        : null);
+                        : null );
                     int[] result;
                     KeyHolder keyHolder = new GeneratedKeyHolder();
 
