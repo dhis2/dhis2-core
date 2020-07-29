@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,13 +26,32 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.system.util;
+
+import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.expressionIsValidSQl;
+import static org.hisp.dhis.system.util.ValidationUtils.getLatitude;
+import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
+import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
+import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
+import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
-
-import static org.hisp.dhis.system.util.ValidationUtils.*;
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -67,7 +84,7 @@ public class ValidationUtilsTest
         assertFalse( coordinateIsValid( "000.34,-94.23323" ) );
         assertFalse( coordinateIsValid( "123.34,-00.23323" ) );
     }
-    
+
     @Test
     public void testBboxIsValid()
     {
@@ -76,7 +93,7 @@ public class ValidationUtilsTest
         assertTrue( bboxIsValid( "4,-23.37,5,-24.904" ) );
         assertTrue( bboxIsValid( "2.23, -23.37, 5.22, -24.90" ) );
         assertTrue( bboxIsValid( "-179.234,-89.342,178.323,88.135" ) );
-        
+
         assertFalse( bboxIsValid( "[12.23,14.41,34.12,12.45]" ) );
         assertFalse( bboxIsValid( "22,23,14,41,34,11,11,41" ) );
         assertFalse( bboxIsValid( "22,23.14,41.34,11.11,41" ) );
@@ -118,6 +135,29 @@ public class ValidationUtilsTest
     {
         assertFalse( emailIsValid( "john@doe" ) );
         assertTrue( emailIsValid( "john@doe.com" ) );
+    }
+
+    @Test
+    public void testUuidIsValid()
+    {
+        assertTrue( uuidIsValid( "0b976c48-4577-437b-bba6-794d0e7ebde0" ) );
+        assertTrue( uuidIsValid( "38052fd0-8c7a-4330-ac45-2c53b3a41a78" ) );
+        assertTrue( uuidIsValid( "50be5898-2413-465f-91b9-aced950fc3ab" ) );
+
+        assertFalse( uuidIsValid( "Jjg3j3-412-1435-342-jajg8234f" ) );
+        assertFalse( uuidIsValid( "6cafdc73_2ca4_4c52-8a0a-d38adec33b24" ) );
+        assertFalse( uuidIsValid( "e1809673dbf3482d8f84e493c65f74d9" ) );
+    }
+
+    @Test
+    public void testUsernameIsValid()
+    {
+        assertTrue( usernameIsValid( "johnmichaeldoe" ) );
+        assertTrue( usernameIsValid( "ted@johnson.com" ) );
+        assertTrue( usernameIsValid( "harry@gmail.com" ) );
+
+        assertFalse( usernameIsValid( null ) );
+        assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ) ) );
     }
 
     @Test
