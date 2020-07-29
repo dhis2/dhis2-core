@@ -252,7 +252,7 @@ public class AttributeOptionComboLoader
 
         final String optionsId = categoryOptions.stream()
             .map( co -> Long.toString( co.getId() ) )
-            .map(s -> "'" + s + "'")
+            .map( s -> "'" + s + "'" )
             .collect( Collectors.joining( "," ) );
 
         // @formatter:off
