@@ -245,7 +245,7 @@ public class AttributeOptionComboLoader
         return id;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions) {
+    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions ) {
 
         final String key = "categorycomboid";
         final String categoryComboKey = resolveId( idScheme, key, categoryComboId);
