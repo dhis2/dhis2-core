@@ -57,7 +57,7 @@ public class QueryParamsBuilder
         String[] split = param.split( "=" );
         MutablePair pair = getByKey( split[0] );
 
-        if ( pair != null && !pair.getKey().equals( "filter"))
+        if ( pair != null && !pair.getKey().equals( "filter") )
         {
             pair.setRight( split[1] );
             return this;

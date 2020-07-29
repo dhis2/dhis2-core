@@ -459,7 +459,7 @@ public class ProgramStageInstanceServiceTest
 
         //Update PSI: create 0, update 3, delete 1
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), updatedEventDataValues, Collections.singleton( eventDataValueD ),
-            convertToMap(dataElementMap), programStageInstanceA, false );
+            convertToMap( dataElementMap ), programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 3 EventDataValues

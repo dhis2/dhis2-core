@@ -81,7 +81,7 @@ public class EventActions
         }
     }
 
-    public JsonObject createEventBody(String orgUnitId, String programId, String programStageId)
+    public JsonObject createEventBody( String orgUnitId, String programId, String programStageId )
     {
         JsonObject event = new JsonObject();
 
