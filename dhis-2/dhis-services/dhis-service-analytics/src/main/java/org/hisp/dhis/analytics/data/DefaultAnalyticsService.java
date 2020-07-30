@@ -80,6 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.DoubleAccumulator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -89,6 +90,7 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -1428,7 +1430,7 @@ public class DefaultAnalyticsService
                     }
 
                     result.put( key,
-                        new DimensionItemObjectValue( clone, (Double) row.get( valueIndex ) ) );
+                        new DimensionItemObjectValue( clone, ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
             else
