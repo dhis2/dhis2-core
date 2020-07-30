@@ -29,7 +29,6 @@ package org.hisp.dhis.dataelement;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -42,9 +41,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.user.User;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -171,14 +167,6 @@ public class DataElementGroup
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @Override
-    @JsonDeserialize( using = UserPropertyTransformer.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
-    public User getUser()
-    {
-        return super.getUser();
-    }
 
     @JsonProperty( "dataElements" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )

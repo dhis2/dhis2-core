@@ -28,13 +28,10 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonDeserializer;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractPropertyTransformer<T>
-    extends JsonDeserializer<T>
     implements PropertyTransformer
 {
 }

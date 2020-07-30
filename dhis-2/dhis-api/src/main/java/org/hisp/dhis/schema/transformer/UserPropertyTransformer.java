@@ -29,10 +29,14 @@ package org.hisp.dhis.schema.transformer;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
@@ -69,47 +73,6 @@ public class UserPropertyTransformer
             .build();
     }
 
-    @Override
-    public User deserialize( JsonParser jp, DeserializationContext ctxt ) throws IOException, JsonProcessingException
-    {
-        User user = new User();
-        UserCredentials userCredentials = new UserCredentials();
-        user.setUserCredentials( userCredentials );
-
-        JsonNode node = jp.getCodec().readTree( jp );
-
-        // TODO generalize the next 2 ifs into a common id object deserializer (id, code, name, etc..)
-        if ( node.has( "id" ) )
-        {
-            String identifier = node.get( "id" ).asText();
-
-            if ( CodeGenerator.isValidUid( identifier ) )
-            {
-                user.setUid( identifier );
-                userCredentials.setUid( identifier );
-            }
-            else
-            {
-                userCredentials.setUuid( UUID.fromString( identifier ) );
-            }
-        }
-
-        if ( node.has( "code" ) )
-        {
-            String code = node.get( "code" ).asText();
-
-            user.setCode( code );
-            userCredentials.setCode( code );
-        }
-
-        if ( node.has( "username" ) )
-        {
-            userCredentials.setUsername( node.get( "username" ).asText() );
-        }
-
-        return user;
-    }
-
     @Data
     @Builder
     public static class UserDto
@@ -128,6 +91,74 @@ public class UserPropertyTransformer
         public String getUsername()
         {
             return username;
+        }
+    }
+
+    public static final class JacksonSerialize extends StdSerializer<User>
+    {
+        public JacksonSerialize()
+        {
+            super( User.class );
+        }
+
+        @Override
+        public void serialize( User user, JsonGenerator gen, SerializerProvider provider ) throws IOException
+        {
+            UserCredentials userCredentials = user.getUserCredentials();
+            Assert.notNull( userCredentials, "UserCredentials should never be null." );
+
+            gen.writeStartObject();
+            gen.writeStringField( "id", userCredentials.getUuid().toString() );
+            gen.writeStringField( "username", userCredentials.getUsername() );
+            gen.writeEndObject();
+        }
+    }
+
+    public static final class JacksonDeserialize extends StdDeserializer<User>
+    {
+        public JacksonDeserialize()
+        {
+            super( User.class );
+        }
+
+        @Override
+        public User deserialize( JsonParser jp, DeserializationContext ctxt ) throws IOException, JsonProcessingException
+        {
+            User user = new User();
+            UserCredentials userCredentials = new UserCredentials();
+            user.setUserCredentials( userCredentials );
+
+            JsonNode node = jp.getCodec().readTree( jp );
+
+            if ( node.has( "id" ) )
+            {
+                String identifier = node.get( "id" ).asText();
+
+                if ( CodeGenerator.isValidUid( identifier ) )
+                {
+                    user.setUid( identifier );
+                    userCredentials.setUid( identifier );
+                }
+                else
+                {
+                    userCredentials.setUuid( UUID.fromString( identifier ) );
+                }
+            }
+
+            if ( node.has( "code" ) )
+            {
+                String code = node.get( "code" ).asText();
+
+                user.setCode( code );
+                userCredentials.setCode( code );
+            }
+
+            if ( node.has( "username" ) )
+            {
+                userCredentials.setUsername( node.get( "username" ).asText() );
+            }
+
+            return user;
         }
     }
 }
