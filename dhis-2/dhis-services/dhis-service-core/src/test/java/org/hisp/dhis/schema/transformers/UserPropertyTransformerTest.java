@@ -81,7 +81,6 @@ public class UserPropertyTransformerTest
         ComplexNode complexNode = nodeService.toNode( simple );
         RootNode rootNode = NodeUtils.createRootNode( complexNode );
 
-
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         nodeService.serialize( rootNode, "application/json", outputStream );
         String jsonSource = outputStream.toString();
