@@ -30,6 +30,7 @@ package org.hisp.dhis.schema.transformers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -49,8 +50,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -85,6 +85,7 @@ public class UserPropertyTransformerTest
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         nodeService.serialize( rootNode, "application/json", outputStream );
         String jsonSource = outputStream.toString();
+        verifyJsonSource( jsonSource );
 
         Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
 
@@ -106,6 +107,7 @@ public class UserPropertyTransformerTest
         simple.getUser().getUserCredentials().setUuid( uuid );
 
         String jsonSource = jsonMapper.writeValueAsString( simple );
+        verifyJsonSource( jsonSource );
 
         Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
 
@@ -127,6 +129,7 @@ public class UserPropertyTransformerTest
         simple.getUser().getUserCredentials().setUuid( uuid );
 
         String xmlSource = xmlMapper.writeValueAsString( simple );
+        verifyXmlSource( xmlSource );
 
         Simple simpleFromJson = xmlMapper.readValue( xmlSource, Simple.class );
 
@@ -138,6 +141,33 @@ public class UserPropertyTransformerTest
 
         assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
         assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+    }
+
+    private void verifyJsonSource( String jsonSource ) throws JsonProcessingException
+    {
+        JsonNode root = jsonMapper.readTree( jsonSource );
+        verifyJsonNode( root );
+    }
+
+    private void verifyXmlSource( String xmlSource ) throws JsonProcessingException
+    {
+        JsonNode root = xmlMapper.readTree( xmlSource );
+        verifyJsonNode( root );
+    }
+
+    private void verifyJsonNode( JsonNode root )
+    {
+        assertTrue( root.has( "id" ) );
+        assertTrue( root.has( "name" ) );
+        assertTrue( root.has( "user" ) );
+
+        JsonNode userNode = root.get( "user" );
+
+        assertTrue( userNode.has( "id" ) );
+        assertTrue( userNode.has( "username" ) );
+
+        assertEquals( userNode.get( "id" ).textValue(), uuid.toString() );
+        assertEquals( userNode.get( "username" ).textValue(), "usernamea" );
     }
 
     @JacksonXmlRootElement( localName = "simple" )
