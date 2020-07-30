@@ -34,6 +34,8 @@ import java.util.regex.Pattern;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -71,6 +73,12 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@WebFilter( urlPatterns = {
+    "/api/*"
+},
+    initParams = {
+        @WebInitParam( name = "excludeUriRegex", value = "/api/(\\d{2}/)?dataValueSets|/api/(\\d{2}/)?dataValues|/api/(\\d{2}/)?fileResources" )
+    } )
 public class ExcludableShallowEtagHeaderFilter
     extends ShallowEtagHeaderFilter
 {

@@ -21,5 +21,4 @@ public class MyWEBSTRUTSWebAppInitializer implements WebApplicationInitializer
 
         strutsFilter.addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
     }
-
 }

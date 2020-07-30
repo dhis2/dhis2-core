@@ -190,122 +190,122 @@ public class SystemController
     // Tasks
     // -------------------------------------------------------------------------
 
-//    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    public void getTasksJson( HttpServletResponse response )
-//        throws IOException
-//    {
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//
-//        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
-//    }
-//
-//    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
-//    public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
-//        throws IOException
-//    {
-//        List<Notification> notifications = new ArrayList<>();
-//
-//        if ( jobType != null )
-//        {
-//            notifications = notifier.getLastNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ), lastId );
-//        }
-//
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//
-//        renderService.toJson( response.getOutputStream(), notifications );
-//    }
-//
-//    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-//    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
-//    {
-//        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
-//
-//        if ( jobType != null )
-//        {
-//            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
-//        }
-//
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//
-//        renderService.toJson( response.getOutputStream(), notifications );
-//    }
-//
-//    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
-//        HttpServletResponse response )
-//        throws IOException
-//    {
-//        List<Notification> notifications = new ArrayList<>();
-//
-//        if ( jobType != null )
-//        {
-//            notifications = notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
-//        }
-//
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//
-//        renderService.toJson( response.getOutputStream(), notifications );
-//    }
-//
-//    // -------------------------------------------------------------------------
-//    // Tasks summary
-//    // -------------------------------------------------------------------------
-//
-//    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-//    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-//        throws IOException
-//    {
-//        if ( jobType != null )
-//        {
-//            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
-//
-//            handleSummary( response, summary );
-//            return;
-//        }
-//
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//    }
-//
-//    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
-//    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-//        throws IOException
-//    {
-//        if ( jobType != null )
-//        {
-//            Object summary = notifier.getJobSummary( JobType.valueOf( jobType.toUpperCase() ) );
-//
-//            handleSummary( response, summary );
-//            return;
-//        }
-//
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//    }
-//
-//    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-//    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
-//        HttpServletResponse response )
-//        throws IOException
-//    {
-//        if ( jobType != null )
-//        {
-//            Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
-//
-//            handleSummary( response, summary );
-//        }
-//
-//        setNoStore( response );
-//        response.setContentType( CONTENT_TYPE_JSON );
-//    }
+    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksJson( HttpServletResponse response )
+        throws IOException
+    {
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+
+        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
+    }
+
+    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
+    public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
+        throws IOException
+    {
+        List<Notification> notifications = new ArrayList<>();
+
+        if ( jobType != null )
+        {
+            notifications = notifier.getLastNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ), lastId );
+        }
+
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
+    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
+    {
+        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
+
+        if ( jobType != null )
+        {
+            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
+        }
+
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
+    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        List<Notification> notifications = new ArrayList<>();
+
+        if ( jobType != null )
+        {
+            notifications = notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+        }
+
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
+    // -------------------------------------------------------------------------
+    // Tasks summary
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummary( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+
+            handleSummary( response, summary );
+        }
+
+        setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
+    }
 
     private void handleSummary( HttpServletResponse response, Object summary )
         throws IOException

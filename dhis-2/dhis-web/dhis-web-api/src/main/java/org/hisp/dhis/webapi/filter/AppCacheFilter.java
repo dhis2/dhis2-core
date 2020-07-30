@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
@@ -42,6 +43,8 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -52,6 +55,10 @@ import java.io.PrintWriter;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
+@WebFilter( urlPatterns = {
+    "*.appcache"
+})
 public class AppCacheFilter implements Filter
 {
     @Autowired
@@ -67,9 +74,10 @@ public class AppCacheFilter implements Filter
     private UserSettingService userSettingService;
 
     @Override
-    public void doFilter( ServletRequest req, ServletResponse res, FilterChain chain ) throws IOException, ServletException
+    public void doFilter( ServletRequest req, ServletResponse res, FilterChain chain )
+        throws IOException, ServletException
     {
-        if ( req != null && req instanceof HttpServletRequest && res != null && res instanceof HttpServletResponse )
+        if ( req instanceof HttpServletRequest && res instanceof HttpServletResponse )
         {
             HttpServletRequest request = (HttpServletRequest) req;
             HttpServletResponse response = (HttpServletResponse) res;
@@ -92,13 +100,16 @@ public class AppCacheFilter implements Filter
     }
 
     @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
+    public void init( FilterConfig filterConfig )
+        throws ServletException
     {
+        log.debug( "Init AppCacheFilter called!" );
     }
 
     @Override
     public void destroy()
     {
+        log.debug( "Destroy AppCacheFilter called!" );
     }
 }
 

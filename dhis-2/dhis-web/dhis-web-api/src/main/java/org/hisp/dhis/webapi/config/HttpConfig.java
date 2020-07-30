@@ -10,9 +10,9 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
-import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
+import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -36,7 +36,6 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
@@ -45,10 +44,11 @@ import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.accept.ParameterContentNegotiationStrategy;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +67,6 @@ import static org.springframework.http.MediaType.parseMediaType;
 @Slf4j
 public class HttpConfig implements WebMvcConfigurer
 {
-
 //    @Autowired
 //    private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
@@ -82,6 +81,18 @@ public class HttpConfig implements WebMvcConfigurer
 
 //    @Autowired
 //    private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+
+    @Bean
+    public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()
+    {
+        return new DhisApiVersionHandlerMethodArgumentResolver();
+    }
+
+    @Override
+    public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
+    {
+        resolvers.add( dhisApiVersionHandlerMethodArgumentResolver() );
+    }
 
     @Bean
     public MethodSecurityExpressionHandler methodSecurityExpressionHandler()
@@ -127,37 +138,9 @@ public class HttpConfig implements WebMvcConfigurer
     }
 
     @Bean
-    public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-    {
-        CustomExceptionMappingAuthenticationFailureHandler handler =
-            new CustomExceptionMappingAuthenticationFailureHandler();
-
-        handler.setExceptionMappings(
-            ImmutableMap.of(
-                "org.springframework.security.authentication.CredentialsExpiredException",
-                "/dhis-web-commons/security/expired.action" ) );
-
-        handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-
-        return handler;
-    }
-
-    @Bean
-    public DefaultAuthenticationSuccessHandler authenticationSuccessHandler()
-    {
-        return new DefaultAuthenticationSuccessHandler();
-    }
-
-    @Bean
     public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
     {
         return new TwoFactorWebAuthenticationDetailsSource();
-    }
-
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
-    {
-        return new org.springframework.security.core.session.SessionRegistryImpl();
     }
 
 //  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
@@ -168,6 +151,12 @@ public class HttpConfig implements WebMvcConfigurer
     public NodeService nodeService()
     {
         return new DefaultNodeService();
+    }
+
+    @Override
+    public void addInterceptors( InterceptorRegistry registry )
+    {
+        registry.addInterceptor( TranslationInterceptor.get() );
     }
 
     @Override
@@ -198,7 +187,6 @@ public class HttpConfig implements WebMvcConfigurer
         return new RenderServiceMessageConverter();
     }
 
-
 //    @Bean
 //    public ContentNegotiationManager contentNegotiationManager(
 //        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy,
@@ -217,7 +205,7 @@ public class HttpConfig implements WebMvcConfigurer
 //  <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
 
     @Bean
-    public CustomRequestMappingHandlerMapping customRequestMappingHandlerMapping()
+    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
             new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
@@ -242,6 +230,7 @@ public class HttpConfig implements WebMvcConfigurer
                 fixedContentNegotiationStrategy ) );
 
         CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
+        mapping.setOrder( 0 );
         mapping.setContentNegotiationManager( manager );
 
         return mapping;

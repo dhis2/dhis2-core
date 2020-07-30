@@ -37,6 +37,8 @@ import java.util.Base64;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -82,6 +84,8 @@ public class RequestIdentifierFilter
         this.maxSize = Integer.parseInt( dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
         this.enabled = dhisConfig.isEnabled( MONITORING_LOG_REQUESTID_ENABLED );
     }
+
+
 
     @Override
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )

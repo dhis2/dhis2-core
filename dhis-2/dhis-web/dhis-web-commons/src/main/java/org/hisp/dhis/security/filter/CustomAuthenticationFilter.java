@@ -28,6 +28,10 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -39,23 +43,41 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CustomAuthenticationFilter
-    implements Filter
+@Slf4j
+@Component
+public class CustomAuthenticationFilter implements InitializingBean, Filter
 {
-    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
-    public static final String PARAM_AUTH_ONLY = "authOnly";
-    
+    private static CustomAuthenticationFilter instance;
+
     @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
+    public void afterPropertiesSet()
+        throws Exception
+    {
+        instance = this;
+    }
+
+    public static CustomAuthenticationFilter get()
+    {
+        return instance;
+    }
+
+    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
+
+    public static final String PARAM_AUTH_ONLY = "authOnly";
+
+    @Override
+    public void init( FilterConfig filterConfig )
+        throws ServletException
     {
     }
 
     @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
+        throws IOException, ServletException
     {
         String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
         String authOnly = request.getParameter( PARAM_AUTH_ONLY );
-        
+
         if ( mobileVersion != null )
         {
             request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
@@ -65,7 +87,7 @@ public class CustomAuthenticationFilter
         {
             request.setAttribute( PARAM_AUTH_ONLY, authOnly );
         }
-        
+
         filterChain.doFilter( request, response );
     }
 
@@ -74,3 +96,4 @@ public class CustomAuthenticationFilter
     {
     }
 }
+

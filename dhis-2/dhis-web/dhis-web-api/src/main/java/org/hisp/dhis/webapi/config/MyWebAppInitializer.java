@@ -5,6 +5,8 @@ import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.servlet.FilterRegistration;
@@ -42,5 +44,16 @@ public class MyWebAppInitializer implements WebApplicationInitializer
         openSessionInViewFilter.setInitParameter( "flushMode", "AUTO" );
         openSessionInViewFilter.addMappingForUrlPatterns( null, false, "/*" );
         openSessionInViewFilter.addMappingForServletNames( null, false, "dispatcher" );
+
+        FilterRegistration.Dynamic characterEncodingFilter = context.addFilter( "characterEncodingFilter",
+            CharacterEncodingFilter.class );
+        characterEncodingFilter.setInitParameter( "encoding", "UTF-8" );
+        characterEncodingFilter.setInitParameter( "forceEncoding", "true" );
+        characterEncodingFilter.addMappingForUrlPatterns( null, false, "/*" );
+        characterEncodingFilter.addMappingForServletNames( null, false, "dispatcher" );
+
+
+        context.addFilter( "RequestIdentifierFilter", new DelegatingFilterProxy( "requestIdentifierFilter" ) )
+            .addMappingForUrlPatterns( null, true, "/*" );
     }
 }

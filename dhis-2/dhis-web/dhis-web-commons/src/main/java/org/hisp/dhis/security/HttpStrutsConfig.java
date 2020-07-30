@@ -1,19 +1,26 @@
 package org.hisp.dhis.security;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.filter.CorsFilter;
+import org.hisp.dhis.security.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
 import org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.security.vote.SimpleAccessVoter;
+import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
+import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.annotation.Order;
+import org.springframework.mobile.device.DeviceResolver;
+import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
@@ -21,8 +28,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.Arrays;
@@ -38,6 +49,7 @@ import java.util.List;
 @Slf4j
 public class HttpStrutsConfig
 {
+
     @Configuration
     @Order( 1100 )
     public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter
@@ -62,18 +74,10 @@ public class HttpStrutsConfig
                 )
                 .httpBasic()
                 .authenticationEntryPoint( basicAuthenticationEntryPoint() )
-                .and().csrf().disable();
-//
-//            http
-////                .sessionManagement()
-////                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-////                .enableSessionUrlRewriting( false )
-////                .maximumSessions( 10 )
-////                .expiredUrl( "/dhis-web-commons-security/logout.action" )
-////                .sessionRegistry( sessionRegistry() )
-////                .and()
-////                .and()
-//
+                .and().csrf().disable()
+
+                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
         }
 
         @Bean
@@ -81,6 +85,31 @@ public class HttpStrutsConfig
         {
             return new DHIS2BasicAuthenticationEntryPoint();
         }
+    }
+
+    @Configuration
+    @Order( 3300 )
+    public static class SessionWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
+    {
+        @Bean
+        public static SessionRegistryImpl sessionRegistry()
+        {
+            return new org.springframework.security.core.session.SessionRegistryImpl();
+        }
+
+        @Override
+        protected void configure( HttpSecurity http )
+            throws Exception
+        {
+            http
+                .sessionManagement()
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions( 10 )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" )
+                .sessionRegistry( sessionRegistry() );
+        }
+
     }
 
     @Configuration
@@ -153,6 +182,10 @@ public class HttpStrutsConfig
                 .and()
 
                 .formLogin()
+
+                .failureHandler( authenticationFailureHandler() )
+                .successHandler( authenticationSuccessHandler() )
+
                 .loginPage( "/dhis-web-commons/security/login.action" ).permitAll()
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
@@ -167,17 +200,81 @@ public class HttpStrutsConfig
                 .and()
 
                 .exceptionHandling()
-                .authenticationEntryPoint( entryPoint() )
                 .and()
 
                 .csrf()
-                .disable();
+                .disable()
+
+                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
         }
+
+//        @Bean
+//        public AppCacheFilter appCacheFilter()
+//        {
+//            return new AppCacheFilter();
+//        }
+
+//
+//    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
+//    <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
+//    <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
+//    <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
+
+//        <bean id="customAuthenticationFilter" class="org.hisp.dhis.security.filter.CustomAuthenticationFilter" />
+//  <bean id="corsFilter" class="org.hisp.dhis.security.filter.CorsFilter" />
+//  <bean id="appCacheFilter" class="org.hisp.dhis.webapi.filter.AppCacheFilter" />
 
         @Bean
         public Http401LoginUrlAuthenticationEntryPoint entryPoint()
         {
+            // Converts to a HTTP basic login if  "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) )
             return new Http401LoginUrlAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+        }
+
+        @Bean
+        public DeviceResolver deviceResolver()
+        {
+            return new LiteDeviceResolver();
+        }
+
+        @Bean
+        public MappedRedirectStrategy mappedRedirectStrategy()
+        {
+            MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
+            mappedRedirectStrategy.setRedirectMap( ImmutableMap.of(
+                "/dhis-web-commons-stream/ping.action", "/"
+                )
+            );
+            mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
+
+            return mappedRedirectStrategy;
+        }
+
+        @Bean
+        public DefaultAuthenticationSuccessHandler authenticationSuccessHandler()
+        {
+            DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
+            successHandler.setRedirectStrategy( mappedRedirectStrategy() );
+            successHandler.setSessionTimeout( 1000 );
+            return successHandler;
+        }
+
+        @Bean
+        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
+        {
+            CustomExceptionMappingAuthenticationFailureHandler handler =
+                new CustomExceptionMappingAuthenticationFailureHandler();
+
+            // Handles the special case when a user failed to login because it has expired...
+            handler.setExceptionMappings(
+                ImmutableMap.of(
+                    "org.springframework.security.authentication.CredentialsExpiredException",
+                    "/dhis-web-commons/security/expired.action" ) );
+
+            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
+
+            return handler;
         }
 
         @Bean
@@ -248,4 +345,5 @@ public class HttpStrutsConfig
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }
+
 }
