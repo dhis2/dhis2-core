@@ -16,12 +16,12 @@
     <module>dhis-web-commons-resources</module>
 
     <module>dhis-web-api</module>
-<!--    <module>dhis-web-api-test</module>-->
+    <module>dhis-web-api-test</module>
 <!--    <module>dhis-web-uaa</module>-->
 
-<!--    <module>dhis-web-maintenance</module>-->
-<!--    <module>dhis-web-dataentry</module>-->
-<!--    <module>dhis-web-approval</module>-->
+    <module>dhis-web-maintenance</module>
+    <module>dhis-web-dataentry</module>
+    <module>dhis-web-approval</module>
 
 <!--    <module>dhis-web-apps</module>-->
 

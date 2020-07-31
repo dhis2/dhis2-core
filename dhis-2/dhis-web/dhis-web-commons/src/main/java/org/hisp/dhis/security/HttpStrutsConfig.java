@@ -45,9 +45,10 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @Order( 2000 )
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
+@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/beans-dataentry.xml",
+    "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 @Slf4j
-public class HttpStrutsConfig
+public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 {
 
     @Configuration

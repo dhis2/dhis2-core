@@ -31,7 +31,7 @@
                 additivity="true"/>
         <!--        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>-->
 
-        <Root level="DEBUG">
+        <Root level="WARN">
             <AppenderRef ref="CONSOLE"/>
         </Root>
     </Loggers>
