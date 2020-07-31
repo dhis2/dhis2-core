@@ -137,13 +137,9 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        String[] userGroupUuIds = user.getGroups().stream().map( ug -> ug.getUuid().toString() )
-            .collect( Collectors.toList() ).toArray( new String[0] );
-
         JpaQueryParameters<DataElement> param = new JpaQueryParameters<DataElement>()
             .addPredicates( getJsonbSharingPredicates( builder, user, AclService.LIKE_READ_METADATA ) )
             .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) );
-//            .addQueryParameters( "userGroupUuIds",  userGroupUuIds );
 
         return getSingleResult( builder, param );
     }

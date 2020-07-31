@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class UserSharing
     implements Serializable
 {

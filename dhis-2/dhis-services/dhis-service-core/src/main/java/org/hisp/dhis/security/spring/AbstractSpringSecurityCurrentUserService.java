@@ -89,4 +89,6 @@ public abstract class AbstractSpringSecurityCurrentUserService
 
         return (UserDetails) authentication.getPrincipal();
     }
+
+    public abstract Long getUserId(String username);
 }

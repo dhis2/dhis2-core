@@ -40,6 +40,7 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -134,7 +135,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public UserInfo getCurrentUserInfo()
     {
         UserDetails userDetails = getCurrentUserDetails();
@@ -158,7 +159,8 @@ public class DefaultCurrentUserService
         return new UserInfo( userId, userDetails.getUsername(), authorities );
     }
 
-    private Long getUserId( String username )
+    @Override
+    public Long getUserId( String username )
     {
         UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
 

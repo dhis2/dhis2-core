@@ -9,7 +9,7 @@ LANGUAGE SQL IMMUTABLE PARALLEL SAFE
 CREATE or replace FUNCTION has_user_group_ids (jsonb, text[] )
 RETURNS bool
 AS $$
-select  $1->'userGroups' ?| $2
+select  $1->'userGroups' ?| $2 
 $$
 LANGUAGE SQL IMMUTABLE PARALLEL SAFE
 ;

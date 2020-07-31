@@ -2,15 +2,23 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelement.DataElementStore;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dbms.DbmsUtils;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.sharing.ObjectSharing;
 import org.hisp.dhis.sharing.UserGroupSharing;
 import org.hisp.dhis.sharing.UserSharing;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +35,18 @@ public class HibernateIdentifiableObjectStoreTest
     @Autowired
     private DataElementStore dataElementStore;
 
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private UserService _userService;
+
+    @Before
+    public void init()
+    {
+        userService = _userService;
+    }
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -36,6 +56,7 @@ public class HibernateIdentifiableObjectStoreTest
     @Test
     public void testSaveDEWithObjectSharings()
     {
+        User admin = createAndInjectAdminUser();
         User user1 = new User();
         UserCredentials userCredentials1 = new UserCredentials();
         userCredentials1.setUuid( UUID.randomUUID() );
@@ -43,7 +64,7 @@ public class HibernateIdentifiableObjectStoreTest
 
         User user2 = new User();
         UserCredentials userCredentials2 = new UserCredentials();
-        userCredentials1.setUuid( UUID.randomUUID() );
+        userCredentials2.setUuid( UUID.randomUUID() );
         user2.setUserCredentials( userCredentials2 );
 
         UserGroup userGroup1 = new UserGroup();
@@ -51,6 +72,9 @@ public class HibernateIdentifiableObjectStoreTest
 
         UserGroup userGroup2 = new UserGroup(  );
         userGroup2.setUuid( UUID.randomUUID() );
+
+        user1.getGroups().add(userGroup1);
+        user1.getGroups().add(userGroup2);
 
         Map<String, UserSharing> userSharing = new HashMap<>();
         userSharing.put( user1.getUserCredentials().getUuid().toString(),
@@ -65,21 +89,28 @@ public class HibernateIdentifiableObjectStoreTest
         userGroupSharing.put( userGroup2.getUuid().toString(),
             UserGroupSharing.builder().userGroupUuid( userGroup2.getUuid().toString() ).access( "--------" ).build() );
 
-        DataElement de = createDataElement( 'A' );
+        DataElement dataElement = createDataElement( 'A' );
+        String dataElementUid = "deabcdefghA";
+        dataElement.setUid(dataElementUid);
+        dataElement.setUser(admin);
+
         ObjectSharing objectSharing = ObjectSharing.builder()
             .external( true )
-            .publicAccess( "rw------" )
+            .publicAccess( "--------" )
             .owner( "testOwner" )
             .userGroups( userGroupSharing )
             .users( userSharing ).build();
 
-        de.setObjectSharing( objectSharing );
+        dataElement.setObjectSharing( objectSharing );
+        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
+        dataElement.setExternalAccess(false);
+        dataElementService.addDataElement( dataElement );
 
-        dataElementStore.save( de );
+        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
+        dataElementService.updateDataElement(dataElement);
+        dataElement = dataElementStore.getByUidNoAcl(dataElementUid);
 
-        DataElement dataElement = dataElementStore.get( de.getId() );
-
-        assertNotNull( de.getObjectSharing() );
+        assertNotNull( dataElement.getObjectSharing() );
         assertEquals( 2, dataElement.getObjectSharing().getUserGroups().size() );
         assertEquals( 2, dataElement.getObjectSharing().getUsers().size() );
 
