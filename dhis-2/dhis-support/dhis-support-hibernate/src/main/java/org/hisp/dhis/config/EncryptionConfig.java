@@ -30,6 +30,7 @@ package org.hisp.dhis.config;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
@@ -94,14 +95,14 @@ public class EncryptionConfig
         return registry;
     }
 
-//    @Bean
-//    public MethodInvokingFactoryBean addProvider()
-//    {
-//        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
-//        methodInvokingFactoryBean.setStaticMethod( "java.security.Security.addProvider" );
-////        methodInvokingFactoryBean.setArguments( new BouncyCastleProvider() );
-//        return methodInvokingFactoryBean;
-//    }
+    @Bean
+    public MethodInvokingFactoryBean addProvider()
+    {
+        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
+        methodInvokingFactoryBean.setStaticMethod( "java.security.Security.addProvider" );
+        methodInvokingFactoryBean.setArguments( new BouncyCastleProvider() );
+        return methodInvokingFactoryBean;
+    }
 
     private Object getConnectionProperty( String key, String defaultValue )
     {
