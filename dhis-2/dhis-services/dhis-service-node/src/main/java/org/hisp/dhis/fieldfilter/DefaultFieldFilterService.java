@@ -35,6 +35,8 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -69,7 +71,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -103,6 +107,13 @@ public class DefaultFieldFilterService implements FieldFilterService
     private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
 
     private Property baseIdentifiableIdProperty;
+
+    private static Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
+        .forRegion( "propertyTransformerCache" )
+        .expireAfterAccess( 12, TimeUnit.HOURS )
+        .withInitialCapacity( 20 )
+        .withMaximumSize( 30000 )
+        .build();
 
     public DefaultFieldFilterService(
         FieldParser fieldParser,
@@ -288,18 +299,21 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             if ( property.hasPropertyTransformer() )
             {
-                PropertyTransformer propertyTransformer;
+                Optional<PropertyTransformer> propertyTransformer = TRANSFORMER_CACHE.get( property.getPropertyTransformer().getName(), s -> {
+                    try
+                    {
+                        return property.getPropertyTransformer().newInstance();
+                    }
+                    catch ( InstantiationException | IllegalAccessException e )
+                    {
+                        throw new RuntimeException( e );
+                    }
+                } );
 
-                try
+                if ( propertyTransformer.isPresent() )
                 {
-                    propertyTransformer = property.getPropertyTransformer().newInstance();
+                    returnValue = propertyTransformer.get().transform( returnValue );
                 }
-                catch ( InstantiationException | IllegalAccessException e )
-                {
-                    throw new RuntimeException( e );
-                }
-
-                returnValue = propertyTransformer.transform( returnValue );
 
                 if ( returnValue == null )
                 {
