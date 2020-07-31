@@ -154,8 +154,9 @@ import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * This component is responsible for handling and appending the respective
- *
+ * This component is responsible for handling and retrieving data based on the
+ * input provided to the public methods. The main goal is to correctly populate
+ * the data into the Grid object.
  */
 @Slf4j
 @Component

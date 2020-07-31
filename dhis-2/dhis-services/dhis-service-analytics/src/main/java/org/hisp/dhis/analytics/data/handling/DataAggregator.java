@@ -44,6 +44,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
 
+/**
+ * Class responsible for aggregating all necessary data, provided by the
+ * handlers, into the Grid object
+ */
 @Component
 public class DataAggregator
 {

@@ -68,6 +68,9 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
 
+/**
+ * Component that populates the Grid metadata.
+ */
 @Component
 public class MetadataHandler
 {

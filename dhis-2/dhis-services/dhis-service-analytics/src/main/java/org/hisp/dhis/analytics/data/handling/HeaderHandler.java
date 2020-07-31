@@ -56,6 +56,9 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.springframework.stereotype.Component;
 
+/**
+ * Component that populates the Grid headers.
+ */
 @Component
 public class HeaderHandler
 {
