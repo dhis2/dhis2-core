@@ -21,7 +21,7 @@ package org.hisp.dhis.analytics.data.handling;
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES)
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.ArrayUtils.remove;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.COUNT;
@@ -49,6 +50,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.getPermutationDimensionalI
 import static org.hisp.dhis.analytics.DataQueryParams.getPermutationOrgUnitGroupCountMap;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.DimensionItem.asItemKey;
+import static org.hisp.dhis.analytics.DimensionItem.getItemIdentifiers;
 import static org.hisp.dhis.analytics.DimensionItem.getOrganisationUnitItem;
 import static org.hisp.dhis.analytics.DimensionItem.getPeriodItem;
 import static org.hisp.dhis.analytics.OutputFormat.ANALYTICS;
@@ -256,51 +258,50 @@ public class DataHandler
             {
                 for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
                 {
-                    String permKey = asItemKey( dimensionItems );
+                    IndicatorValue value = getIndicatorValue( filterPeriods, constantMap, permutationOrgUnitTargetMap,
+                        permutationDimensionItemValueMap, indicator, dimensionItems );
 
-                    final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap
-                        .getOrDefault( permKey, new ArrayList<>() );
-
-                    List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
-                        : singletonList( (Period) getPeriodItem( dimensionItems ) );
-
-                    OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem( dimensionItems );
-
-                    String ou = unit != null ? unit.getUid() : null;
-
-                    Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null
-                        ? permutationOrgUnitTargetMap.get( ou )
-                        : null;
-
-                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, periods,
-                        convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
-
-                    if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
-                    {
-                        List<DimensionItem> row = new ArrayList<>( dimensionItems );
-
-                        row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
-
-                        grid.addRow()
-                            .addValues( DimensionItem.getItemIdentifiers( row ) )
-                            .addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
-                                value.getValue() ) );
-
-                        if ( params.isIncludeNumDen() )
-                        {
-                            grid.addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
-                                value.getNumeratorValue() ) )
-                                .addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
-                                    value.getDenominatorValue() ) )
-                                .addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
-                                    value.getFactor() ) )
-                                .addValue( value.getMultiplier() )
-                                .addValue( value.getDivisor() );
-                        }
-                    }
+                    addIndicatorValuesToGrid( params, grid, dataSourceParams, indicator, dimensionItems, value );
                 }
             }
         }
+    }
+
+    /**
+     * Based on the given Indicator plus additional parameters, this method will
+     * find the respective IndicatorValue.
+     * 
+     * @param filterPeriods
+     * @param constantMap
+     * @param permutationOrgUnitTargetMap
+     * @param permutationDimensionItemValueMap
+     * @param indicator
+     * @param dimensionItems
+     * @return the IndicatorValue
+     */
+    private IndicatorValue getIndicatorValue( List<Period> filterPeriods, Map<String, Constant> constantMap,
+        Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
+        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap, Indicator indicator,
+        List<DimensionItem> dimensionItems )
+    {
+        String permKey = asItemKey( dimensionItems );
+
+        final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap
+            .getOrDefault( permKey, new ArrayList<>() );
+
+        List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
+            : singletonList( (Period) getPeriodItem( dimensionItems ) );
+
+        OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem( dimensionItems );
+
+        String ou = unit != null ? unit.getUid() : null;
+
+        Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null
+            ? permutationOrgUnitTargetMap.get( ou )
+            : null;
+
+        return expressionService.getIndicatorValueObject( indicator, periods,
+            convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
     }
 
     /**
@@ -556,7 +557,7 @@ public class DataHandler
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
-            int timeUnits = params.hasFilter( PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
+            int timeUnits = getTimeUnits( params );
 
             for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {
@@ -575,55 +576,96 @@ public class DataHandler
                         : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
 
-                    // Use number of days for daily data sets as target, as query
-                    // periods might often span/contain different numbers of days
+                    target = getCalculatedTarget( periodIndex, timeUnits, dataRow, target, queryPt, dataSetPt );
 
-                    if ( dataSetPt.equalsName( NAME ) )
-                    {
-                        Period period = getPeriodFromIsoString( dataRow.get( periodIndex ) );
-                        target = target * period.getDaysInPeriod() * timeUnits;
-                    }
-                    else
-                    {
-                        target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
-                    }
-
-                    // ---------------------------------------------------------
-                    // Calculate reporting rate and replace data set with rate
-                    // ---------------------------------------------------------
-
-                    Double value = 0d;
-
-                    if ( EXPECTED_REPORTS == metric )
-                    {
-                        value = target;
-                    }
-                    else if ( ACTUAL_REPORTS == metric || ACTUAL_REPORTS_ON_TIME == metric )
-                    {
-                        value = actual;
-                    }
-                    else if ( !isZero( target ) ) // REPORTING_RATE or REPORTING_RATE_ON_TIME
-                    {
-                        value = min( ((actual * PERCENT) / target), 100d );
-                    }
-
-                    String reportingRate = getDimensionItem( dataRow.get( DX_INDEX ), metric );
-                    dataRow.set( DX_INDEX, reportingRate );
-
-                    grid.addRow()
-                        .addValues( dataRow.toArray() )
-                        .addValue( params.isSkipRounding() ? value : getRounded( value ) );
-
-                    if ( params.isIncludeNumDen() )
-                    {
-                        grid.addValue( actual )
-                            .addValue( target )
-                            .addValue( PERCENT )
-                            .addNullValues( 2 );
-                    }
+                    addReportRateToGrid( params, grid, metric, dataRow, target, actual );
                 }
             }
         }
+    }
+
+    private int getTimeUnits( DataQueryParams params )
+    {
+        return params.hasFilter( PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
+    }
+
+    /**
+     * Calculate reporting rate and replace data set with rate and add the rate to
+     * the Grid.
+     * 
+     * @param params
+     * @param grid
+     * @param metric
+     * @param dataRow
+     * @param target
+     * @param actual
+     */
+    private void addReportRateToGrid( DataQueryParams params, Grid grid, ReportingRateMetric metric,
+        List<String> dataRow, Double target, Double actual )
+    {
+        Double value = getReportRate( metric, target, actual );
+
+        String reportingRate = getDimensionItem( dataRow.get( DX_INDEX ), metric );
+        dataRow.set( DX_INDEX, reportingRate );
+
+        grid.addRow()
+            .addValues( dataRow.toArray() )
+            .addValue( params.isSkipRounding() ? value : getRounded( value ) );
+
+        if ( params.isIncludeNumDen() )
+        {
+            grid.addValue( actual )
+                .addValue( target )
+                .addValue( PERCENT )
+                .addNullValues( 2 );
+        }
+    }
+
+    /**
+     * Use number of days for daily data sets as target, as query periods might
+     * often span/contain different numbers of days.
+     * 
+     * @param periodIndex
+     * @param timeUnits
+     * @param dataRow
+     * @param target
+     * @param queryPt
+     * @param dataSetPt
+     * @return the calculate target
+     */
+    private Double getCalculatedTarget( Integer periodIndex, int timeUnits, List<String> dataRow, Double target,
+        PeriodType queryPt, PeriodType dataSetPt )
+    {
+        if ( dataSetPt.equalsName( NAME ) )
+        {
+            Period period = getPeriodFromIsoString( dataRow.get( periodIndex ) );
+            target = target * period.getDaysInPeriod() * timeUnits;
+        }
+        else
+        {
+            target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+        }
+        return target;
+    }
+
+    private Double getReportRate( ReportingRateMetric metric, Double target, Double actual )
+    {
+        Double value = 0d;
+
+        if ( EXPECTED_REPORTS == metric )
+        {
+            value = target;
+        }
+        else if ( ACTUAL_REPORTS == metric || ACTUAL_REPORTS_ON_TIME == metric )
+        {
+            value = actual;
+        }
+        else if ( !isZero( target ) ) // REPORTING_RATE or REPORTING_RATE_ON_TIME
+        {
+            value = min( ((actual * PERCENT) / target), 100d );
+        }
+
+        return value;
     }
 
     /**
@@ -884,7 +926,7 @@ public class DataHandler
         Grid grid = dataAggregator.getAggregatedDataValueGridInternal( dataSourceParams );
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
-        if ( grid.getRows().size() == 0 )
+        if ( isEmpty( grid.getRows() ) )
         {
             return result;
         }
@@ -904,34 +946,13 @@ public class DataHandler
                 items );
 
             // Check if the current row's Period belongs to the list of periods from the
-            // original Analytics request
-            // The row may not have a Period if Period is used as filter
+            // original Analytics request.
+            // The row may not have a Period if Period is used as filter.
             if ( hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
                 if ( dimensionalItems.size() == 1 )
                 {
-                    // Key is composed of [uid-period]
-                    final String key = join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
-
-                    final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
-                    DimensionalItemObject clone = dimensionalItemObject;
-
-                    if ( dimensionalItemObject.getPeriodOffset() != 0 )
-                    {
-                        List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
-                            (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
-
-                        if ( periodOffsetRow != null )
-                        {
-                            result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
-                                (Double) periodOffsetRow.get( valueIndex ) ) );
-                        }
-
-                        clone = SerializationUtils.clone( dimensionalItemObject );
-                    }
-
-                    result.put( key,
-                        new DimensionItemObjectValue( clone, ((Number) row.get( valueIndex )).doubleValue() ) );
+                    addItemBasedOnPeriodOffset( grid, result, periodIndex, valueIndex, row, dimensionalItems );
                 }
             }
             else
@@ -945,6 +966,82 @@ public class DataHandler
         }
 
         return result;
+    }
+
+    /**
+     * Add the given Indicator values to the Grid.
+     * 
+     * @param params
+     * @param grid
+     * @param dataSourceParams
+     * @param indicator
+     * @param dimensionItems
+     * @param value
+     */
+    private void addIndicatorValuesToGrid( DataQueryParams params, Grid grid, DataQueryParams dataSourceParams,
+        Indicator indicator, List<DimensionItem> dimensionItems, IndicatorValue value )
+    {
+        if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
+        {
+            List<DimensionItem> row = new ArrayList<>( dimensionItems );
+
+            row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
+
+            grid.addRow()
+                .addValues( getItemIdentifiers( row ) )
+                .addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
+                    value.getValue() ) );
+
+            if ( params.isIncludeNumDen() )
+            {
+                grid.addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
+                    value.getNumeratorValue() ) )
+                    .addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
+                        value.getDenominatorValue() ) )
+                    .addValue( getRoundedValue( dataSourceParams, indicator.getDecimals(),
+                        value.getFactor() ) )
+                    .addValue( value.getMultiplier() )
+                    .addValue( value.getDivisor() );
+            }
+        }
+    }
+
+    /**
+     * Calculate the dimensional item offset and adds to the give result map.
+     * 
+     * @param grid
+     * @param result
+     * @param periodIndex
+     * @param valueIndex
+     * @param row
+     * @param dimensionalItems
+     * @return the DimensionalItemObject
+     */
+    private void addItemBasedOnPeriodOffset( Grid grid, MultiValuedMap<String, DimensionItemObjectValue> result,
+        int periodIndex, int valueIndex, List<Object> row, List<DimensionalItemObject> dimensionalItems )
+    {
+        // Key is composed of [uid-period]
+        final String key = join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
+
+        final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
+        DimensionalItemObject clone = dimensionalItemObject;
+
+        if ( dimensionalItemObject.getPeriodOffset() != 0 )
+        {
+            List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
+                (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
+
+            if ( periodOffsetRow != null )
+            {
+                result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
+                    (Double) periodOffsetRow.get( valueIndex ) ) );
+            }
+
+            clone = SerializationUtils.clone( dimensionalItemObject );
+        }
+
+        result.put( key,
+            new DimensionItemObjectValue( clone, ((Number) row.get( valueIndex )).doubleValue() ) );
     }
 
     /**
@@ -984,45 +1081,51 @@ public class DataHandler
 
         for ( List<DataQueryParams> queries : queryGroups.getSequentialQueries() )
         {
-            List<Future<Map<String, Object>>> futures = new ArrayList<>();
-
-            for ( DataQueryParams query : queries )
-            {
-                futures.add( analyticsManager.getAggregatedDataValues( query, tableType, maxLimit ) );
-            }
-
-            for ( Future<Map<String, Object>> future : futures )
-            {
-                try
-                {
-                    Map<String, Object> taskValues = future.get();
-
-                    if ( taskValues != null )
-                    {
-                        map.putAll( taskValues );
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    log.error( getStackTrace( ex ) );
-                    log.error( getStackTrace( ex.getCause() ) );
-
-                    if ( ex.getCause() != null && ex.getCause() instanceof RuntimeException )
-                    {
-                        throw (RuntimeException) ex.getCause(); // Throw the real exception instead of execution
-                        // exception
-                    }
-                    else
-                    {
-                        throw new RuntimeException( "Error during execution of aggregation query task", ex );
-                    }
-                }
-            }
+            executeQueries( tableType, maxLimit, map, queries );
         }
 
         timer.getTime( "Got analytics values" );
 
         return map;
+    }
+
+    private void executeQueries( AnalyticsTableType tableType, int maxLimit, Map<String, Object> map,
+        List<DataQueryParams> queries )
+    {
+        List<Future<Map<String, Object>>> futures = new ArrayList<>();
+
+        for ( DataQueryParams query : queries )
+        {
+            futures.add( analyticsManager.getAggregatedDataValues( query, tableType, maxLimit ) );
+        }
+
+        for ( Future<Map<String, Object>> future : futures )
+        {
+            try
+            {
+                Map<String, Object> taskValues = future.get();
+
+                if ( taskValues != null )
+                {
+                    map.putAll( taskValues );
+                }
+            }
+            catch ( Exception ex )
+            {
+                log.error( getStackTrace( ex ) );
+                log.error( getStackTrace( ex.getCause() ) );
+
+                if ( ex.getCause() instanceof RuntimeException )
+                {
+                    throw (RuntimeException) ex.getCause(); // Throw the real exception instead of execution
+                    // exception
+                }
+                else
+                {
+                    throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                }
+            }
+        }
     }
 
     /**
