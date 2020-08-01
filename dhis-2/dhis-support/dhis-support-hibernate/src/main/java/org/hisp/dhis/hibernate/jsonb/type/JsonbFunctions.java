@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.dialect;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,12 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.function.StandardSQLFunction;
-import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
-import org.hibernate.type.StandardBasicTypes;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+public class JsonbFunctions {
 
-import java.sql.Types;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Stian Sandvold <stian@dhis2.org>
- */
-public class DhisPostgresDialect
-    extends PostgisPG95Dialect
-{
-    public DhisPostgresDialect()
-    {
-        registerColumnType( Types.JAVA_OBJECT, "jsonb" );
-        registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( JsonbFunctions.EXTRACT_PATH, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS, new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.HAS_USER_ID, new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
-    }
+    public static String HAS_USER_GROUP_IDS = "jsonb_has_user_group_ids" ;
+    public static String CHECK_USER_GROUPS_ACCESS = "jsonb_check_user_groups_access" ;
+    public static String HAS_USER_ID = "jsonb_has_user_id" ;
+    public static String CHECK_USER_ACCESS = "jsonb_check_user_access" ;
+    public static String EXTRACT_PATH = "jsonb_extract_path" ;
+    public static String EXTRACT_PATH_TEXT = "jsonb_extract_path_text" ;
 }

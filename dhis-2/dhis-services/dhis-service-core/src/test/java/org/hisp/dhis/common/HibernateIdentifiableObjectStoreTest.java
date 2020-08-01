@@ -67,6 +67,16 @@ public class HibernateIdentifiableObjectStoreTest
         userCredentials2.setUuid( UUID.randomUUID() );
         user2.setUserCredentials( userCredentials2 );
 
+        User user3 = new User();
+        UserCredentials userCredentials3 = new UserCredentials();
+        userCredentials3.setUuid( UUID.randomUUID() );
+        user3.setUserCredentials( userCredentials3 );
+
+        User user4 = new User();
+        UserCredentials userCredentials4 = new UserCredentials();
+        userCredentials3.setUuid( UUID.randomUUID() );
+        user4.setUserCredentials( userCredentials4 );
+
         UserGroup userGroup1 = new UserGroup();
         userGroup1.setUuid( UUID.randomUUID() );
 
@@ -75,13 +85,20 @@ public class HibernateIdentifiableObjectStoreTest
 
         user1.getGroups().add(userGroup1);
         user1.getGroups().add(userGroup2);
+        user4.getGroups().add(userGroup2);
 
         Map<String, UserSharing> userSharing = new HashMap<>();
         userSharing.put( user1.getUserCredentials().getUuid().toString(),
-            UserSharing.builder().userUuid( user1.getUserCredentials().getUuid().toString() ).access( "rw------" ).build() );
+            UserSharing.builder().userUuid( user1.getUserCredentials().getUuid().toString() ).access( "--------" ).build() );
 
         userSharing.put( user2.getUserCredentials().getUuid().toString(),
-            UserSharing.builder().userUuid( user2.getUserCredentials().getUuid().toString() ).access( "--------" ).build() );
+            UserSharing.builder().userUuid( user2.getUserCredentials().getUuid().toString() ).access( "rw------" ).build() );
+
+        userSharing.put( user3.getUserCredentials().getUuid().toString(),
+                UserSharing.builder().userUuid( user3.getUserCredentials().getUuid().toString() ).access( "--------" ).build() );
+
+        userSharing.put( user4.getUserCredentials().getUuid().toString(),
+                UserSharing.builder().userUuid( user4.getUserCredentials().getUuid().toString() ).access( "--------" ).build() );
 
         Map<String, UserGroupSharing> userGroupSharing = new HashMap<>();
         userGroupSharing.put( userGroup1.getUuid().toString(),
@@ -112,10 +129,12 @@ public class HibernateIdentifiableObjectStoreTest
 
         assertNotNull( dataElement.getObjectSharing() );
         assertEquals( 2, dataElement.getObjectSharing().getUserGroups().size() );
-        assertEquals( 2, dataElement.getObjectSharing().getUsers().size() );
+        assertEquals( 4, dataElement.getObjectSharing().getUsers().size() );
 
         assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user1 ) );
-        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user2 ) );
+        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user2 ) );
+        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user3 ) );
+        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
     }
 
 }

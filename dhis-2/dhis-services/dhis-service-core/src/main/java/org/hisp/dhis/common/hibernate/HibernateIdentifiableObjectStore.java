@@ -51,6 +51,7 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
@@ -1191,7 +1192,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        String groupParam =  "{"+user.getGroups().stream().map( ug -> "'"+ug.getUuid().toString() +"'" ).collect(Collectors.joining(",")) +"}";
+        String groupParam = "{"+user.getGroups().stream().map( ug -> ug.getUuid().toString() ).collect(Collectors.joining(",")) +"}";
 
         preProcessPredicates( builder, predicates );
 
@@ -1202,16 +1203,38 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         Function<Root<T>,Predicate> userGroupPredicate  = ((Root<T> root) ->
             builder.and(
-                builder.equal( builder.function( "has_user_group_ids", Boolean.class, root.get( "objectSharing" ),
-                    builder.literal( groupParam ) ), true ),
-                builder.equal( builder.function( "check_user_group_access", Boolean.class, root.get( "objectSharing" ),
-                    builder.literal( access ) ), true )
+                builder.equal(
+                        builder.function(
+                                JsonbFunctions.HAS_USER_GROUP_IDS,
+                                Boolean.class,
+                                root.get( "objectSharing" ),
+                                builder.literal( groupParam ) ),
+                        true ),
+                builder.equal(
+                        builder.function(
+                                JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
+                                Boolean.class,
+                                root.get( "objectSharing" ),
+                                builder.literal( access ),
+                                builder.literal( groupParam ) ),
+                        true )
             ));
 
         Function<Root<T>,Predicate> userPredicate  = ((Root<T> root) ->
                 builder.and(
-                    builder.equal( builder.function( "has_user_id", Boolean.class, root.get( "objectSharing" ),  builder.literal( user.getUserCredentials().getUuid().toString() ) ) , true ),
-                    builder.equal( builder.function( "check_user_access", Boolean.class, root.get( "objectSharing" ),builder.literal(  user.getUserCredentials().getUuid().toString() ),  builder.literal( access ) ), true )
+                    builder.equal(
+                            builder.function(
+                                    JsonbFunctions.HAS_USER_ID,
+                                    Boolean.class, root.get( "objectSharing" ),
+                                    builder.literal( user.getUserCredentials().getUuid().toString() ) ),
+                            true ),
+                    builder.equal(
+                            builder.function(
+                                    JsonbFunctions.CHECK_USER_ACCESS,
+                                    Boolean.class, root.get( "objectSharing" ),
+                                    builder.literal( user.getUserCredentials().getUuid().toString() ),
+                                    builder.literal( access ) ),
+                            true )
         ));
 
         predicates.add( root ->
@@ -1220,9 +1243,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                             builder.isNull( root.get( "publicAccess" ) ),
                             builder.isNull( root.get( "user" ) ),
                             builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
-                            userPredicate.apply(root), userGroupPredicate.apply(root))
+                            userPredicate.apply( root ), userGroupPredicate.apply( root ) )
                         );
-//        });
         return predicates;
     }
 
