@@ -1,5 +1,33 @@
 package org.hisp.dhis.common;
 
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -31,7 +59,6 @@ import static org.junit.Assert.assertNull;
 public class HibernateIdentifiableObjectStoreTest
     extends IntegrationTestBase
 {
-
     @Autowired
     private DataElementStore dataElementStore;
 
@@ -125,15 +152,30 @@ public class HibernateIdentifiableObjectStoreTest
 
         dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
         dataElementService.updateDataElement(dataElement);
-        dataElement = dataElementStore.getByUidNoAcl(dataElementUid);
+        dataElement = dataElementStore.getByUidNoAcl( dataElementUid );
 
         assertNotNull( dataElement.getObjectSharing() );
         assertEquals( 2, dataElement.getObjectSharing().getUserGroups().size() );
         assertEquals( 4, dataElement.getObjectSharing().getUsers().size() );
 
+        /**
+         * User and UserGroups mapping
+         *          User1 | User2 | User3 | User 4
+         * Group1     x   |       |       |
+         * Group2     X   |       |       |  X
+         *
+         * DataElementA access defined for Users and UserGroups
+         *                  User1 | User2 | User3 | UserGroup1 | UserGroup2
+         * Can access DEA         |  X    |       |    X       |
+         */
+
+        // User1 can't access but it belong to UserGroup1 which has access
         assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user1 ) );
+        // User2 has access to DEA
         assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user2 ) );
+        // User3 doesn't have access and also does't belong to any groups
         assertNull( dataElementStore.getDataElement( dataElement.getUid(), user3 ) );
+        // User4 doesn't have access and it belong to UserGroup2 which also doesn't have access
         assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
     }
 
