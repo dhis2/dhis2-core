@@ -147,6 +147,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -255,11 +256,11 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
-        {
-            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
-            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
-        }
+//        if ( analyticsCache.isEnabled() )
+//        {
+//            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
+//            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
+//        }
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -513,7 +514,8 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
+                    final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap
+                        .getOrDefault( permKey, new ArrayList<>() );
 
                     List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
                         : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
@@ -1374,9 +1376,9 @@ public class DefaultAnalyticsService
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withSkipMeta( true ).build();
+            .withSkipMeta( true )
+            .build();
 
-        // Each row in the Grid contains: dimension uid | period | value
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
@@ -1385,11 +1387,9 @@ public class DefaultAnalyticsService
             return result;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
-            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
-
-        final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
-        final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
+        // Derive the Grid indexes for data, value and period based on the first row of the Grid
+        final int dataIndex = GridUtils.getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
+        final int periodIndex = GridUtils.getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
         final int valueIndex = grid.getWidth() - 1;
 
         final List<DimensionalItemObject> basePeriods = params.getPeriods();
