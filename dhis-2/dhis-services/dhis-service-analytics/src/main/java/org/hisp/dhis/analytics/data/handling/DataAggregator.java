@@ -75,7 +75,7 @@ public class DataAggregator
      * @param params the {@link DataQueryParams}.
      * @return a grid with aggregated data.
      */
-    public Grid getAggregatedDataValueGridInternal( DataQueryParams params )
+    public Grid getAggregatedDataValueGrid( DataQueryParams params )
     {
         params = preHandleQuery( params );
 

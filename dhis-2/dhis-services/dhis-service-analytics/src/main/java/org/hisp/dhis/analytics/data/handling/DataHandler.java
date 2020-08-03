@@ -271,12 +271,16 @@ public class DataHandler
      * Based on the given Indicator plus additional parameters, this method will
      * find the respective IndicatorValue.
      * 
-     * @param filterPeriods
-     * @param constantMap
-     * @param permutationOrgUnitTargetMap
-     * @param permutationDimensionItemValueMap
-     * @param indicator
-     * @param dimensionItems
+     * @param filterPeriods the filter periods.
+     * @param constantMap the current constants map.
+     *        See @{{@link ConstantService#getConstantMap()}}.
+     * @param permutationOrgUnitTargetMap the org unit permutation map. See
+     *        {@link #getOrgUnitTargetMap(DataQueryParams, Collection)}.
+     * @param permutationDimensionItemValueMap the dimension item permutation map.
+     *        See {@link #getPermutationDimensionItemValueMap(DataQueryParams)}.
+     * @param indicator the input Indicator where the IndicatorValue will be based.
+     * @param dimensionItems the dimensional items permutation map. See
+     *        {@link DataQueryParams#getDimensionItemPermutations()}.
      * @return the IndicatorValue
      */
     private IndicatorValue getIndicatorValue( List<Period> filterPeriods, Map<String, Constant> constantMap,
@@ -592,13 +596,16 @@ public class DataHandler
     /**
      * Calculate reporting rate and replace data set with rate and add the rate to
      * the Grid.
-     * 
-     * @param params
-     * @param grid
-     * @param metric
-     * @param dataRow
-     * @param target
-     * @param actual
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the current Grid to be manipulated.
+     * @param metric the object to assist with the report rate calculation.
+     * @param dataRow the current dataRow, based on the key map built by
+     *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
+     * @param target the current value of the respective key ("dataRow"). See
+     * @param actual the current actual value from
+     *        {@link #getAggregatedCompletenessValueMap(DataQueryParams)} or zero
+     *        (default)
      */
     private void addReportRateToGrid( DataQueryParams params, Grid grid, ReportingRateMetric metric,
         List<String> dataRow, Double target, Double actual )
@@ -625,12 +632,16 @@ public class DataHandler
      * Use number of days for daily data sets as target, as query periods might
      * often span/contain different numbers of days.
      * 
-     * @param periodIndex
-     * @param timeUnits
-     * @param dataRow
-     * @param target
-     * @param queryPt
-     * @param dataSetPt
+     * @param periodIndex the index of the period in the "dataRow".
+     * @param timeUnits the time unit size found in the current DataQueryParams. See
+     *        {@link #getTimeUnits(DataQueryParams)}.
+     * @param dataRow the current dataRow, based on the key map built by
+     *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
+     * @param target the current value of the respective key ("dataRow"). See
+     *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams).
+     * @param queryPt the filter period in the current "dataRow". See {@link PeriodType#getPeriodTypeFromIsoString}.
+     * @param dataSetPt the dataset period.
+     * 
      * @return the calculate target
      */
     private Double getCalculatedTarget( Integer periodIndex, int timeUnits, List<String> dataRow, Double target,
@@ -923,7 +934,7 @@ public class DataHandler
             .withSkipMeta( true ).build();
 
         // Each row in the Grid contains: dimension uid | period | value
-        Grid grid = dataAggregator.getAggregatedDataValueGridInternal( dataSourceParams );
+        Grid grid = dataAggregator.getAggregatedDataValueGrid( dataSourceParams );
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
         if ( isEmpty( grid.getRows() ) )
@@ -971,12 +982,14 @@ public class DataHandler
     /**
      * Add the given Indicator values to the Grid.
      * 
-     * @param params
-     * @param grid
-     * @param dataSourceParams
-     * @param indicator
-     * @param dimensionItems
-     * @param value
+     * @param params the current DataQueryParams.
+     * @param grid the current Grid.
+     * @param dataSourceParams the DataQueryParams built for Indicators.
+     * @param indicator the Indicator which the values will be extracted from, and
+     *        added to be added to the Grid.
+     * @param dimensionItems the dimensional items permutation. See @{link
+     *        {@link DataQueryParams#getDimensionItemPermutations()}}.
+     * @param value the IndicatorValue which the values will be extracted from.
      */
     private void addIndicatorValuesToGrid( DataQueryParams params, Grid grid, DataQueryParams dataSourceParams,
         Indicator indicator, List<DimensionItem> dimensionItems, IndicatorValue value )
@@ -1009,12 +1022,14 @@ public class DataHandler
     /**
      * Calculate the dimensional item offset and adds to the give result map.
      * 
-     * @param grid
-     * @param result
-     * @param periodIndex
-     * @param valueIndex
-     * @param row
-     * @param dimensionalItems
+     * @param grid the current Grid.
+     * @param result the map where the values will be added to.
+     * @param periodIndex the current grid row period index.
+     * @param valueIndex the current grid row value index.
+     * @param row the current grid row.
+     * @param dimensionalItems the dimensional items for the current grid row, see
+     *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
+     *
      * @return the DimensionalItemObject
      */
     private void addItemBasedOnPeriodOffset( Grid grid, MultiValuedMap<String, DimensionItemObjectValue> result,
@@ -1040,8 +1055,13 @@ public class DataHandler
             clone = SerializationUtils.clone( dimensionalItemObject );
         }
 
-        result.put( key,
-            new DimensionItemObjectValue( clone, ((Number) row.get( valueIndex )).doubleValue() ) );
+        Double value = null;
+        if ( row.get( valueIndex ) != null )
+        {
+            value = ((Number) row.get( valueIndex )).doubleValue();
+        }
+
+        result.put( key, new DimensionItemObjectValue( clone, value ) );
     }
 
     /**

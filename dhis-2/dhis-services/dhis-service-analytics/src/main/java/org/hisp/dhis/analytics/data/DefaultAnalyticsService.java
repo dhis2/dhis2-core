@@ -111,10 +111,10 @@ public class DefaultAnalyticsService
         {
             final DataQueryParams immutableParams = newBuilder( params ).build();
             return analyticsCache.getOrFetch( params,
-                p -> dataAggregator.getAggregatedDataValueGridInternal( immutableParams ) );
+                p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
         }
 
-        return dataAggregator.getAggregatedDataValueGridInternal( params );
+        return dataAggregator.getAggregatedDataValueGrid( params );
     }
 
     @Override
@@ -145,7 +145,7 @@ public class DefaultAnalyticsService
             .withOutputFormat( DATA_VALUE_SET )
             .build();
 
-        Grid grid = dataAggregator.getAggregatedDataValueGridInternal( query );
+        Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
 
         return getDataValueSetFromGrid( params, grid );
     }
