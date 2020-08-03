@@ -32,6 +32,7 @@ import org.hisp.dhis.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.EncryptionConfig;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.ServiceConfig;
+import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
@@ -88,7 +89,9 @@ import javax.transaction.Transactional;
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
     org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class,
-    MvcTestConfig.class } )
+    MvcTestConfig.class,
+    StartupConfig.class
+} )
 @Transactional
 public class WebTestConfiguration
 {

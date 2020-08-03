@@ -1,5 +1,6 @@
 package org.hisp.dhis.webapi.config;
 
+import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.WebApplicationInitializer;
@@ -55,5 +56,8 @@ public class MyWebAppInitializer implements WebApplicationInitializer
 
         context.addFilter( "RequestIdentifierFilter", new DelegatingFilterProxy( "requestIdentifierFilter" ) )
             .addMappingForUrlPatterns( null, true, "/*" );
+
+
+        context.addListener( new StartupListener() );
     }
 }
