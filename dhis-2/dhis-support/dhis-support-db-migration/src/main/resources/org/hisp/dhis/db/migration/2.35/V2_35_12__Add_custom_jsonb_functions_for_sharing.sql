@@ -14,7 +14,7 @@ $$
 LANGUAGE SQL IMMUTABLE PARALLEL SAFE;
 
 -- Second parameter is an array of userGroup uuid. e.g. '{248ed37f-31a4-37ac-9bd8-0273bfb566ac,09c0b68f-1fb7-40a0-3575-bf4687a1d9dd}'
--- This function use the index  gin ( (sharing->'userGroups')  ) ;
+-- This function uses the index  gin ( (sharing->'userGroups')  ) ;
 CREATE OR replace FUNCTION jsonb_has_user_group_ids(jsonb,  text)
 RETURNS bool
 AS $$

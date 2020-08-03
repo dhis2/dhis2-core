@@ -141,9 +141,9 @@ public class HibernateUtils
     }
 
     /**
-     * Convert List of json object into List of given klass
+     * Convert List of Json String object into List of given klass
      * @param mapper Object mapper that is configured for given klass
-     * @param content List of json objects
+     * @param content List of Json String
      * @param klass Class for converting to
      * @param <T>
      * @return List of converted Object

@@ -135,7 +135,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    @Transactional(readOnly = true)
     public UserInfo getCurrentUserInfo()
     {
         UserDetails userDetails = getCurrentUserDetails();

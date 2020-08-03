@@ -1185,7 +1185,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
+        return getSharingPredicates( builder, currentUserService.getCurrentUser(), access );
     }
 
     protected List<Function<Root<T>, Predicate>> getJsonbSharingPredicates( CriteriaBuilder builder, User user, String access )
