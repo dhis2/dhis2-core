@@ -109,5 +109,5 @@ public interface ProgramRuleEntityMapperService
      * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
      * @return map containing item description
      */
-    Map<String, DataItem> getItemStore(List<ProgramRuleVariable> programRuleVariables );
+    Map<String, DataItem> getItemStore( List<ProgramRuleVariable> programRuleVariables );
 }

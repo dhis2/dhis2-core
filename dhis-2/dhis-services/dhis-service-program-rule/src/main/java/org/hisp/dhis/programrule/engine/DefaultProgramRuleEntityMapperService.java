@@ -265,7 +265,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .build() ) );
 
         // program variables
-
         RuleEngineUtils.ENV_VARIABLES.forEach( var -> itemStore.put( var, DataItem.builder()
             .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var ), var ) )
             .valueType( ItemValueType.TEXT )
@@ -611,7 +610,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
         return DataItem.builder()
             .value( ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(), dataElement.getName() ) )
-            .valueType( getItemValueType( dataElement.getValueType() ))
+            .valueType( getItemValueType( dataElement.getValueType() ) )
             .build() ;
     }
 }
