@@ -34,16 +34,16 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.sqlview.SqlView;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Collection;
@@ -56,24 +56,8 @@ import java.util.Map;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Component
-public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>, InitializingBean
+public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>
 {
-
-    private static ExternalAccessVoter instance;
-
-    @Override
-    public void afterPropertiesSet()
-        throws Exception
-    {
-        instance = this;
-    }
-
-    public static ExternalAccessVoter get()
-    {
-        return instance;
-    }
-
     // this should probably be moved somewhere else, but leaving it here for now
     private static final Map<String, Class<? extends IdentifiableObject>> externalClasses = new HashMap<>();
 
@@ -85,6 +69,8 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
         externalClasses.put( "reports", Report.class );
         externalClasses.put( "documents", Document.class );
         externalClasses.put( "sqlViews", SqlView.class );
+        externalClasses.put( "eventReports", EventReport.class );
+        externalClasses.put( "eventCharts", EventChart.class );
     }
 
     // -------------------------------------------------------------------------
@@ -111,8 +97,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
     }
 
     @Override
-    public int vote( Authentication authentication, FilterInvocation filterInvocation,
-        Collection<ConfigAttribute> attributes )
+    public int vote( Authentication authentication, FilterInvocation filterInvocation, Collection<ConfigAttribute> attributes )
     {
         if ( authentication.getPrincipal().equals( "anonymousUser" ) && authentication.isAuthenticated() &&
             filterInvocation.getRequest().getMethod().equals( RequestMethod.GET.name() ) )

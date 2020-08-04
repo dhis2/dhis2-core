@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import javassist.util.proxy.ProxyFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -62,7 +61,6 @@ import java.util.StringJoiner;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 public class TrackerPreheat
 {
     /**
@@ -172,7 +170,6 @@ public class TrackerPreheat
         return (T) map.get( identifier ).get( klass ).get( key );
     }
 
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAll( TrackerIdentifier identifier, List<T> keys )
     {
         List<T> objects = new ArrayList<>();
