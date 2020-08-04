@@ -1379,7 +1379,7 @@ public class DefaultAnalyticsService
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
-        if ( grid.getRows().size() == 0 )
+        if ( grid.getRows().isEmpty() )
         {
             return result;
         }
@@ -1484,6 +1484,6 @@ public class DefaultAnalyticsService
     {
         Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
 
-        return (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
+        return ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
     }
 }
