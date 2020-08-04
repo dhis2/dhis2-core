@@ -328,8 +328,8 @@ public class DefaultTrackerBundleService
 
             ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
             
-            if (!programStageInstance.getComments().isEmpty()) {
-
+            if ( !programStageInstance.getComments().isEmpty() )
+            {
                 for ( TrackedEntityComment comment : programStageInstance.getComments() )
                 {
                     this.trackedEntityCommentService.addTrackedEntityComment( comment );
