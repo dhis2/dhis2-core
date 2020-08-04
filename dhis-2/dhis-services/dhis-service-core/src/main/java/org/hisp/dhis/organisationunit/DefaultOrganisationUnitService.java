@@ -420,7 +420,7 @@ public class DefaultOrganisationUnitService
         List<DataSet> dataSets = (user != null && user.isSuper()) ? null : dataSetService.getUserDataWrite( user );
 
         Map<String, Set<String>> associationSet = organisationUnitStore
-            .getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
+            .getOrganisationUnitDataSetAssociationMap( organisationUnits, dataSets );
 
         OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
 

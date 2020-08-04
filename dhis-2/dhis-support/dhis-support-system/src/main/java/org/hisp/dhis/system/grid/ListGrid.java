@@ -1052,6 +1052,13 @@ public class ListGrid
     }
 
     @Override
+    public Grid replaceAllValues( List<List<Object>> rows )
+    {
+        this.grid = rows;
+        return this;
+    }
+
+    @Override
     public Grid addRows( SqlRowSet rs )
     {
         return addRows( rs, -1 );

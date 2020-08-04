@@ -485,4 +485,12 @@ public interface Grid
      * @param maxLimit the max number of records to return, use {@code -1} for no limit.
      */
     Grid addRows( SqlRowSet rs, int maxLimit );
+
+    /**
+     * Replaces the content of the Grid with the provided List of rows
+     * 
+     * @param rows a List of List, representing the Grid's rows
+     * 
+     */
+    Grid replaceAllValues( List<List<Object>> rows );
 }

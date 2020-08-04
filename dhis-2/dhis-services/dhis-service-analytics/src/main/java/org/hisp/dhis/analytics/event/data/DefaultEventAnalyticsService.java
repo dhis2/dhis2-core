@@ -72,6 +72,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.event.data.grid.postprocessor.GridPostprocessor;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -149,9 +150,9 @@ public class DefaultEventAnalyticsService
         TrackedEntityAttributeService trackedEntityAttributeService, EventAnalyticsManager eventAnalyticsManager,
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
-        AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager )
+        AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager, GridPostprocessor gridPostprocessor )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, gridPostprocessor );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );

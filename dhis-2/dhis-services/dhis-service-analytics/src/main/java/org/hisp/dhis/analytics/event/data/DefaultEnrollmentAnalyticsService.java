@@ -34,6 +34,7 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.*;
+import org.hisp.dhis.analytics.event.data.grid.postprocessor.GridPostprocessor;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
@@ -66,9 +67,10 @@ public class DefaultEnrollmentAnalyticsService
     private final EventQueryPlanner queryPlanner;
 
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
+        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
+        GridPostprocessor gridPostprocessor )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, gridPostprocessor );
 
         checkNotNull( enrollmentAnalyticsManager );
         checkNotNull( queryPlanner );

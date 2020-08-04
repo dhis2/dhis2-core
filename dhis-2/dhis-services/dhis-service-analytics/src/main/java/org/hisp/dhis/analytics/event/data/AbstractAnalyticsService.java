@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.event.data.grid.postprocessor.GridPostprocessor;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.*;
@@ -64,13 +65,17 @@ public abstract class AbstractAnalyticsService
 
     final EventQueryValidator queryValidator;
 
-    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
+    private final GridPostprocessor gridPostprocessor;
+
+    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator, GridPostprocessor gridPostprocessor )
     {
         checkNotNull( securityManager );
         checkNotNull( queryValidator );
+        checkNotNull( gridPostprocessor );
 
         this.securityManager = securityManager;
         this.queryValidator = queryValidator;
+        this.gridPostprocessor = gridPostprocessor;
     }
 
     protected Grid getGrid( EventQueryParams params )
@@ -137,7 +142,7 @@ public abstract class AbstractAnalyticsService
             grid.getMetaData().put( PAGER.getKey(), pager );
         }
 
-        return grid;
+        return gridPostprocessor.postProcess( grid );
     }
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );

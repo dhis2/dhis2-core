@@ -107,7 +107,16 @@ public interface OrganisationUnitStore
      *
      * @return a map of sets.
      */
-    Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets );
+    Map<String, Set<String>> getOrganisationUnitDataSetAssociationMap( Collection<OrganisationUnit> organisationUnits,
+        Collection<DataSet> dataSets );
+
+    /**
+     * Creates a mapping between the provided organisation unit UIDs and their names
+     * 
+     * @param organisationUnitUids a List of organisation unit UIDs
+     * @return a Map, where the key is the OU UID and the value is the OU Name
+     */
+    Map<String, String> getOrganisationUnitUidNameMap( Collection<String> organisationUnitUids );
 
     /**
      * Retrieves the objects where its coordinate is within the 4 area points.

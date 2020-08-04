@@ -258,7 +258,7 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
             + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
-        String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+        String aliasD5 = "(select ou.uid from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
@@ -336,7 +336,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( 42 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
-            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
+            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
             .addColumn( tea1.getUid() + "_geom", GEOMETRY,
                 String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
@@ -369,7 +369,7 @@ public class JdbcEventAnalyticsTableManagerTest
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+        String ouQuery = "(select ou.uid from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' from programstageinstance where "
             + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
@@ -405,7 +405,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+        String ouQuery = "(select ou.uid from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
@@ -563,7 +563,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+        String ouQuery = "(select ou.uid from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 

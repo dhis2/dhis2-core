@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -63,6 +64,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 /**
  * @author Kristian Nordal
@@ -218,7 +223,7 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
+    public Map<String, Set<String>> getOrganisationUnitDataSetAssociationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -262,6 +267,23 @@ public class HibernateOrganisationUnitStore
         } );
 
         return map;
+    }
+
+    @Override
+    public Map<String, String> getOrganisationUnitUidNameMap( Collection<String> organisationUnitUids )
+    {
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+
+        final CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
+
+        Root<OrganisationUnit> root = query.from( OrganisationUnit.class );
+        // Select UID, NAME ...
+        query.multiselect( root.get( "uid" ), root.get( "name" ) );
+        // Where UID IN (...)
+        query.where( builder.and( root.get( "uid" ).in( organisationUnitUids ) ) );
+
+        return sessionFactory.getCurrentSession().createQuery( query ).getResultStream()
+            .collect( Collectors.toMap( x -> (String) x[0], x -> (String) x[1] ) );
     }
 
     @Override
