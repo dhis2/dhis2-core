@@ -100,6 +100,7 @@ import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
+import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
 import static org.hisp.dhis.system.util.MathUtils.isZero;
@@ -112,7 +113,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -931,9 +931,9 @@ public class DataHandler
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( ANALYTICS )
-            .withSkipMeta( true ).build();
+            .withSkipMeta( true )
+            .build();
 
-        // Each row in the Grid contains: dimension uid | period | value
         Grid grid = dataAggregator.getAggregatedDataValueGrid( dataSourceParams );
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
@@ -942,11 +942,10 @@ public class DataHandler
             return result;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
-            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
-
-        final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
-        final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
+        // Derive the Grid indexes for data, value and period based on the first row of
+        // the Grid.
+        final int dataIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
+        final int periodIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
         final int valueIndex = grid.getWidth() - 1;
 
         final List<DimensionalItemObject> basePeriods = params.getPeriods();
