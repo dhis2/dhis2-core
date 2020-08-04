@@ -38,7 +38,7 @@ import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.sideeffect.TrackerSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,11 +68,11 @@ public class TrackerSideEffectDataBundle implements Message
 
     @JsonProperty
     @Builder.Default
-    private Map<String, List<TrackerSideEffect>> enrollmentRuleEffects = new HashMap<>();
+    private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
 
     @JsonProperty
     @Builder.Default
-    private Map<String, List<TrackerSideEffect>> eventRuleEffects = new HashMap<>();
+    private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
 
     @JsonProperty
     private TrackerImportStrategy importStrategy;

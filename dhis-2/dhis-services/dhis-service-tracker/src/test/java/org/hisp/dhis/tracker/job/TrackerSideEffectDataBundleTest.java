@@ -35,7 +35,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.sideeffect.TrackerSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -56,7 +56,7 @@ public class TrackerSideEffectDataBundleTest
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( "test-enrollment" );
 
-        Map<String, List<TrackerSideEffect>> enrollmentRuleEffects = new HashMap<>();
+        Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
         enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
 
         ProgramInstance programInstance = new ProgramInstance();
@@ -84,7 +84,7 @@ public class TrackerSideEffectDataBundleTest
         Event event = new Event();
         event.setEvent( "test-event" );
 
-        Map<String, List<TrackerSideEffect>> eventRuleEffects = new HashMap<>();
+        Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
         eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();

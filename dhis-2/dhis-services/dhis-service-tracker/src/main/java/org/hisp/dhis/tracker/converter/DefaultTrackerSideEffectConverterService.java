@@ -37,7 +37,7 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerAssignValueSideEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerScheduleMessageSideEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerSendMessageSideEffect;
-import org.hisp.dhis.tracker.sideeffect.TrackerSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,24 +53,24 @@ import java.util.function.Function;
 @Service
 public class DefaultTrackerSideEffectConverterService implements TrackerSideEffectConverterService
 {
-    private final ImmutableMap<Class<?>, Function<RuleEffect, TrackerSideEffect>> TO_SIDE_EFFECT = new
-        ImmutableMap.Builder<Class<?>, Function<RuleEffect, TrackerSideEffect>>()
+    private final ImmutableMap<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>> TO_SIDE_EFFECT = new
+        ImmutableMap.Builder<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>>()
         .put( RuleActionSendMessage.class, this::toTrackerSendMessageSideEffect )
         .put( RuleActionScheduleMessage.class, this::toTrackerScheduleMessageSideEffect )
         .put( RuleActionAssign.class, this::toTrackerAssignSideEffect )
         .build();
 
-    private final ImmutableMap<Class<? extends TrackerSideEffect>, Function<TrackerSideEffect, RuleEffect>> TO_RULE_EFFECT = new
-        ImmutableMap.Builder<Class<? extends TrackerSideEffect>, Function<TrackerSideEffect, RuleEffect>>()
+    private final ImmutableMap<Class<? extends TrackerRuleEngineSideEffect>, Function<TrackerRuleEngineSideEffect, RuleEffect>> TO_RULE_EFFECT = new
+        ImmutableMap.Builder<Class<? extends TrackerRuleEngineSideEffect>, Function<TrackerRuleEngineSideEffect, RuleEffect>>()
         .put( TrackerAssignValueSideEffect.class, this::toAssignRuleEffect )
         .put( TrackerSendMessageSideEffect.class, this::toSendMessageRuleEffect )
         .put( TrackerScheduleMessageSideEffect.class, this::toScheduleMessageRuleEffect )
         .build();
 
     @Override
-    public Map<String, List<TrackerSideEffect>> toTrackerSideEffects( Map<String, List<RuleEffect>> ruleEffects )
+    public Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects( Map<String, List<RuleEffect>> ruleEffects )
     {
-        Map<String, List<TrackerSideEffect>> trackerSideEffects = new HashMap<>();
+        Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects = new HashMap<>();
 
         for ( Map.Entry<String, List<RuleEffect>> entry : ruleEffects.entrySet() )
         {
@@ -86,15 +86,15 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
     }
 
     @Override
-    public Map<String, List<RuleEffect>> toRuleEffects( Map<String, List<TrackerSideEffect>> trackerSideEffects )
+    public Map<String, List<RuleEffect>> toRuleEffects( Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects )
     {
         Map<String, List<RuleEffect>> ruleEffects = new HashMap<>();
 
-        for ( Map.Entry<String, List<TrackerSideEffect>> entry : trackerSideEffects.entrySet() )
+        for ( Map.Entry<String, List<TrackerRuleEngineSideEffect>> entry : trackerSideEffects.entrySet() )
         {
             if ( entry.getValue() != null && !entry.getValue().isEmpty() )
             {
-                List<TrackerSideEffect> trackerSideEffectsList = entry.getValue();
+                List<TrackerRuleEngineSideEffect> trackerSideEffectsList = entry.getValue();
 
                 ruleEffects.put( entry.getKey(), toRuleEffectList( trackerSideEffectsList ) );
             }
@@ -103,9 +103,9 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
         return ruleEffects;
     }
 
-    private List<TrackerSideEffect> toTrackerSideEffectList (List<RuleEffect> ruleEffects )
+    private List<TrackerRuleEngineSideEffect> toTrackerSideEffectList ( List<RuleEffect> ruleEffects )
     {
-        List<TrackerSideEffect> trackerSideEffects = new ArrayList<>();
+        List<TrackerRuleEngineSideEffect> trackerSideEffects = new ArrayList<>();
 
         for ( RuleEffect ruleEffect : ruleEffects )
         {
@@ -120,11 +120,11 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
         return trackerSideEffects;
     }
 
-    private List<RuleEffect> toRuleEffectList( List<TrackerSideEffect> trackerSideEffects )
+    private List<RuleEffect> toRuleEffectList( List<TrackerRuleEngineSideEffect> trackerSideEffects )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
-        for ( TrackerSideEffect trackerSideEffect : trackerSideEffects )
+        for ( TrackerRuleEngineSideEffect trackerSideEffect : trackerSideEffects )
         {
             if ( trackerSideEffect != null )
             {
@@ -135,7 +135,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
         return ruleEffects;
     }
 
-    private TrackerSideEffect toTrackerSendMessageSideEffect( RuleEffect ruleEffect )
+    private TrackerRuleEngineSideEffect toTrackerSendMessageSideEffect( RuleEffect ruleEffect )
     {
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleEffect.ruleAction();
 
@@ -144,7 +144,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
             .build();
     }
 
-    private TrackerSideEffect toTrackerScheduleMessageSideEffect( RuleEffect ruleEffect )
+    private TrackerRuleEngineSideEffect toTrackerScheduleMessageSideEffect( RuleEffect ruleEffect )
     {
         RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleEffect.ruleAction();
 
@@ -153,7 +153,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
             .build();
     }
 
-    private TrackerSideEffect toTrackerAssignSideEffect( RuleEffect ruleEffect )
+    private TrackerRuleEngineSideEffect toTrackerAssignSideEffect( RuleEffect ruleEffect )
     {
         RuleActionAssign ruleActionAssign = (RuleActionAssign) ruleEffect.ruleAction();
 
@@ -162,7 +162,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
                 .build();
     }
 
-    private RuleEffect toAssignRuleEffect( TrackerSideEffect trackerSideEffect )
+    private RuleEffect toAssignRuleEffect( TrackerRuleEngineSideEffect trackerSideEffect )
     {
         TrackerAssignValueSideEffect assignValueSideEffect = (TrackerAssignValueSideEffect) trackerSideEffect;
 
@@ -170,7 +170,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
                 assignValueSideEffect.getData(), assignValueSideEffect.getField() ), assignValueSideEffect.getData() );
     }
 
-    private RuleEffect toSendMessageRuleEffect( TrackerSideEffect trackerSideEffect )
+    private RuleEffect toSendMessageRuleEffect( TrackerRuleEngineSideEffect trackerSideEffect )
     {
         TrackerSendMessageSideEffect sendMessageSideEffect = (TrackerSendMessageSideEffect) trackerSideEffect;
 
@@ -178,7 +178,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
                 sendMessageSideEffect.getData() ), sendMessageSideEffect.getData() );
     }
 
-    private RuleEffect toScheduleMessageRuleEffect( TrackerSideEffect trackerSideEffect )
+    private RuleEffect toScheduleMessageRuleEffect( TrackerRuleEngineSideEffect trackerSideEffect )
     {
         TrackerScheduleMessageSideEffect scheduleMessageSideEffect = (TrackerScheduleMessageSideEffect) trackerSideEffect;
 

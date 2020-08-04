@@ -42,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes( { @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
         @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
         @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
-public interface TrackerSideEffect
+public interface TrackerRuleEngineSideEffect
 {
     String getData();
 }

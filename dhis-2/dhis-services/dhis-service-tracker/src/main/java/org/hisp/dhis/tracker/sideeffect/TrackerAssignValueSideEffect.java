@@ -41,7 +41,7 @@ import lombok.Data;
 @Data
 @Builder( builderClassName = "TrackerAssignValueSideEffectBuilder" )
 @JsonDeserialize( builder = TrackerAssignValueSideEffect.TrackerAssignValueSideEffectBuilder.class )
-public class TrackerAssignValueSideEffect implements TrackerSideEffect
+public class TrackerAssignValueSideEffect implements TrackerRuleEngineSideEffect
 {
     @JsonProperty
     private String data;

@@ -41,7 +41,7 @@ import lombok.Data;
 @Data
 @Builder( builderClassName = "TrackerSendMessageSideEffectBuilder" )
 @JsonDeserialize( builder = TrackerSendMessageSideEffect.TrackerSendMessageSideEffectBuilder.class )
-public class TrackerSendMessageSideEffect implements TrackerSideEffect
+public class TrackerSendMessageSideEffect implements TrackerRuleEngineSideEffect
 {
     @JsonProperty
     private String notification;
