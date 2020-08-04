@@ -89,7 +89,7 @@ import javax.transaction.Transactional;
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
     org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class,
-    MvcTestConfig.class,
+
     StartupConfig.class
 } )
 @Transactional
