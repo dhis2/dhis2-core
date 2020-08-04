@@ -129,6 +129,13 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
+     * A Map of event uid and preheated {@see ProgramInstance}. The value is a List,
+     * because the system may return multiple ProgramInstance, which will be
+     * detected by validation
+     */
+    private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
+
+    /**
      * Identifier map
      */
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
@@ -629,6 +636,16 @@ public class TrackerPreheat
         this.identifiers = identifiers;
     }
 
+    public Map<String, List<ProgramInstance>> getProgramInstances()
+    {
+        return programInstances;
+    }
+
+    public void setProgramInstances(Map<String, List<ProgramInstance>> programInstances)
+    {
+        this.programInstances = programInstances;
+    }
+    
     @Override
     public String toString()
     {

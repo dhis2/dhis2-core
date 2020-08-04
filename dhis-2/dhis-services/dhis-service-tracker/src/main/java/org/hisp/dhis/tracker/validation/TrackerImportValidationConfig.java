@@ -36,7 +36,6 @@ import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventCountValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventDateValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventGeoValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventNoteValidationHook;
@@ -87,7 +86,6 @@ public class TrackerImportValidationConfig
         EnrollmentAttributeValidationHook.class,
 
         EventCategoryOptValidationHook.class,
-        EventCountValidationHook.class,
         EventDateValidationHook.class,
         EventGeoValidationHook.class,
         EventNoteValidationHook.class
