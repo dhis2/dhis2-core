@@ -30,6 +30,7 @@ package org.hisp.dhis.organisationunit;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dataset.DataSet;
@@ -38,7 +39,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -404,5 +408,26 @@ public class OrganisationUnitStoreTest
         orgUnitStore.save( ouG );
         
         assertEquals( 3, orgUnitStore.getMaxLevel() );
-    }        
+    }
+
+    @Test
+    public void testGetOrganisationUnitUidNameMap()
+    {
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+        orgUnitStore.save( ouC );
+        orgUnitStore.save( ouD );
+        orgUnitStore.save( ouE );
+
+        List<OrganisationUnit> orgUnits = orgUnitStore.getAll();
+
+        final Map<String, String> organisationUnitUidNameMap = orgUnitStore.getOrganisationUnitUidNameMap(
+            orgUnits.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+
+        assertThat( organisationUnitUidNameMap.get( ouA.getUid() ), is( ouA.getName() ) );
+        assertThat( organisationUnitUidNameMap.get( ouB.getUid() ), is( ouB.getName() ) );
+        assertThat( organisationUnitUidNameMap.get( ouC.getUid() ), is( ouC.getName() ) );
+        assertThat( organisationUnitUidNameMap.get( ouD.getUid() ), is( ouD.getName() ) );
+        assertThat( organisationUnitUidNameMap.get( ouE.getUid() ), is( ouE.getName() ) );
+    }
 }
