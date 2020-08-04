@@ -39,11 +39,13 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.sqlview.SqlView;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Collection;
@@ -56,8 +58,24 @@ import java.util.Map;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>
+@Component
+public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>, InitializingBean
 {
+    private static ExternalAccessVoter instance;
+
+    @Override
+    public void afterPropertiesSet()
+        throws Exception
+    {
+        instance = this;
+    }
+
+    public static ExternalAccessVoter get()
+    {
+        return instance;
+    }
+
+
     // this should probably be moved somewhere else, but leaving it here for now
     private static final Map<String, Class<? extends IdentifiableObject>> externalClasses = new HashMap<>();
 
