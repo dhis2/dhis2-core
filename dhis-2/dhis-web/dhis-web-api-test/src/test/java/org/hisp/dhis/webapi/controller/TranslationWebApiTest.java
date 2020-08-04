@@ -60,7 +60,6 @@ public class TranslationWebApiTest
     private IdentifiableObjectManager identifiableObjectManager;
 
     @Test
-    @Ignore
     public void testOK() throws Exception
     {
         // TODO: NEEDS TO GET WORKING

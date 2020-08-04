@@ -257,7 +257,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            successHandler.setSessionTimeout( 1000 );
+//            successHandler.setSessionTimeout( 10000 ); //TODO: FIX get real
             return successHandler;
         }
 
@@ -333,11 +333,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             return v;
         }
 
-        @Bean
-        private static ExternalAccessVoter getExternalAccessVoter()
-        {
-            return new ExternalAccessVoter();
-        }
 
         @Bean
         public LogicalOrAccessDecisionManager accessDecisionManager()
@@ -346,7 +341,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
                 new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
                 new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( getExternalAccessVoter() ) ),
+                new UnanimousBased( ImmutableList.of( ExternalAccessVoter.get() ) ),
                 new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) )
             );
             return new LogicalOrAccessDecisionManager( decisionVoters );

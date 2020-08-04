@@ -25,6 +25,7 @@ public class MyWebAppInitializer implements WebApplicationInitializer
     {
 //        container.getSessionCookieConfig().setHttpOnly( true );
 //        container.getSessionCookieConfig().setSecure( true );
+
         context.setSessionTrackingModes( EnumSet.of( SessionTrackingMode.COOKIE ) );
 
         AnnotationConfigWebApplicationContext annotationConfigWebApplicationContext = new AnnotationConfigWebApplicationContext();
@@ -35,6 +36,7 @@ public class MyWebAppInitializer implements WebApplicationInitializer
         ServletRegistration.Dynamic dispatcher = context
             .addServlet( "dispatcher", new DispatcherServlet( annotationConfigWebApplicationContext ) );
 
+        dispatcher.setAsyncSupported(true);
         dispatcher.setLoadOnStartup( 1 );
         dispatcher.addMapping( "/api/*" );
 
