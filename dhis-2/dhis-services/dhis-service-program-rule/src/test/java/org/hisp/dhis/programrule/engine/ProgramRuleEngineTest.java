@@ -74,6 +74,7 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -461,19 +462,19 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
-        Date incidenDate = testDate1.toDate();
+        Date incidentDate = testDate1.toDate();
 
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
 
         ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
-            programA, enrollmentDate, incidenDate, organisationUnitA );
+            programA, enrollmentDate, incidentDate, organisationUnitA );
         programInstanceA.setUid( "UID-P1" );
         programInstanceService.updateProgramInstance( programInstanceA );
 
         ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS,
-            programS, enrollmentDate, incidenDate, organisationUnitB );
+            programS, enrollmentDate, incidentDate, organisationUnitB );
         programInstanceS.setUid( "UID-PS" );
         programInstanceService.updateProgramInstance( programInstanceS );
 
