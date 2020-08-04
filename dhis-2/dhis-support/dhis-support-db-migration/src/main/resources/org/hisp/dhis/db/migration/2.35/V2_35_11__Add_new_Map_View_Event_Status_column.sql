@@ -1,4 +1,4 @@
 
 -- Add a new column "eventstatus" to the mapview table.
 
-ALTER TABLE mapview ADD COLUMN eventstatus VARCHAR(50);
+alter table mapview add column if not exists eventstatus VARCHAR(50);
