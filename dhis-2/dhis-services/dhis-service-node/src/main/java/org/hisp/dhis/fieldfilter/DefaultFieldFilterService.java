@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -391,6 +392,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
+                    returnValue = handleJsonbObjectProperties( klass, propertyClass, returnValue );
                     child = buildNode( fieldValue, propertyClass, returnValue, user, defaults );
                 }
             }
@@ -615,5 +617,21 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean isProperIdObject( Class<?> klass )
     {
         return !(UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+    }
+
+    /**
+     * {@link AttributeValue} is saved as JSONB, and it contains only Attribute's uid
+     * If fields parameter requires more than just Attribute's uid
+     * then we need to get full {@link Attribute} object ( from cache )
+     * e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
+     */
+    private Object handleJsonbObjectProperties( Class klass, Class propertyClass, Object returnObject )
+    {
+        if ( AttributeValue.class.isAssignableFrom( klass ) && Attribute.class.isAssignableFrom( propertyClass ) )
+        {
+            returnObject = attributeService.getAttribute( ( ( Attribute ) returnObject ).getUid() );
+        }
+
+        return returnObject;
     }
 }
