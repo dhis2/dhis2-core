@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * 
+ * Interface represents DHIS2 objects equivalent to rule engine objects.
  * @author Zubair Asghar
  */
 
