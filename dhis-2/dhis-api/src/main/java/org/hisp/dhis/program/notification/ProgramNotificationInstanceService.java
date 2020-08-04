@@ -28,21 +28,31 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * @author Zubair Asghar
  */
-
-public interface ProgramNotificationInstanceStore
-    extends IdentifiableObjectStore<ProgramNotificationInstance>
+public interface ProgramNotificationInstanceService
 {
+    void save( ProgramNotificationInstance programNotificationInstance );
+
+    void update ( ProgramNotificationInstance programNotificationInstance );
+
+    void delete( ProgramNotificationInstance programNotificationInstance );
+
+    ProgramNotificationInstance get( long programNotificationInstance );
+
+    /**
+     * return ProgramNotificationInstances associated with this enrollment (ProgramInstance)
+     */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
 
+    /**
+     * return ProgramNotificationInstances associated with this event (ProgramStageInstance)
+     */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
 }

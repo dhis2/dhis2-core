@@ -29,11 +29,13 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceStore;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Zubair Asghar
@@ -43,11 +45,13 @@ import java.util.List;
 public class ProgramNotificationInstanceDeletionHandler
     extends DeletionHandler
 {
-    private final ProgramNotificationInstanceStore programNotificationInstanceStore;
+    private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    public ProgramNotificationInstanceDeletionHandler( ProgramNotificationInstanceStore programNotificationInstanceStore )
+    public ProgramNotificationInstanceDeletionHandler( ProgramNotificationInstanceService programNotificationInstanceService )
     {
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
+        checkNotNull( programNotificationInstanceService );
+
+        this.programNotificationInstanceService = programNotificationInstanceService;
     }
 
     @Override
@@ -59,18 +63,18 @@ public class ProgramNotificationInstanceDeletionHandler
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceStore.
+        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService.
             getProgramNotificationInstances( programInstance );
 
-        notificationInstances.forEach( programNotificationInstanceStore::delete );
+        notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceStore.
-                getProgramNotificationInstances( programStageInstance );
+        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService.
+            getProgramNotificationInstances( programStageInstance );
 
-        notificationInstances.forEach( programNotificationInstanceStore::delete );
+        notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 }
