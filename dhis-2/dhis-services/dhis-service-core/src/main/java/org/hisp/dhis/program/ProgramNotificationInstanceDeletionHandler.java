@@ -31,12 +31,15 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceStore;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * @author Zubair Asghar
  */
+
+@Component( "org.hisp.dhis.program.ProgramNotificationInstanceDeletionHandler" )
 public class ProgramNotificationInstanceDeletionHandler
     extends DeletionHandler
 {

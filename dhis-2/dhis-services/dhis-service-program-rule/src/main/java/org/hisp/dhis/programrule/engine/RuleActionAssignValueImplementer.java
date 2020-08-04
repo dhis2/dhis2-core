@@ -47,11 +47,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
-@Transactional
 public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
     private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*";
@@ -84,6 +83,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     @Override
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
+        checkNotNull( ruleEffect );
+        checkNotNull( programInstance );
+
         assignValue( ruleEffect, programInstance );
     }
 

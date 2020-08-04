@@ -48,6 +48,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Zubair Asghar.
  */
@@ -124,15 +126,10 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return notificationInstance;
     }
 
-    @Transactional
     public boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        if ( ruleEffect == null || programInstance == null )
-        {
-            log.warn( "RuleEffect and ProgramInstance cannot be null" );
-
-            return false;
-        }
+        checkNotNull( ruleEffect );
+        checkNotNull( programInstance );
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 

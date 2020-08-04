@@ -39,7 +39,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by zubair@dhis2.org on 10.01.18.
  */
 
-@Transactional
 @Service( "org.hisp.dhis.notification.logging.NotificationLoggingService" )
 public class DefaultNotificationLoggingService
     implements NotificationLoggingService
@@ -54,24 +53,28 @@ public class DefaultNotificationLoggingService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ExternalNotificationLogEntry get(String uid )
     {
         return notificationLoggingStore.getByUid( uid );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ExternalNotificationLogEntry get( int id )
     {
         return notificationLoggingStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ExternalNotificationLogEntry getByKey( String key )
     {
         return notificationLoggingStore.getByKey( key );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ExternalNotificationLogEntry> getAllLogEntries()
     {
         return notificationLoggingStore.getAll();
@@ -86,18 +89,21 @@ public class DefaultNotificationLoggingService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
     {
         return notificationLoggingStore.getByTemplateUid( templateUid );
     }
 
     @Override
+    @Transactional
     public void save( ExternalNotificationLogEntry entry )
     {
         notificationLoggingStore.save( entry );
     }
 
     @Override
+    @Transactional
     public void update( ExternalNotificationLogEntry entry )
     {
         notificationLoggingStore.update( entry );
