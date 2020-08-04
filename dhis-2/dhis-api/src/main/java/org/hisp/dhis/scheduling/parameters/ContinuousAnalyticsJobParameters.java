@@ -62,7 +62,7 @@ public class ContinuousAnalyticsJobParameters
     /**
      * The number of last years of data to include in the full analytics table update.
      */
-    private Integer lastYears = 0;
+    private Integer lastYears;
 
     /**
      * The types of analytics tables for which to skip update.
