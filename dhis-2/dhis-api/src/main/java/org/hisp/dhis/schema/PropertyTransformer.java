@@ -1,4 +1,4 @@
-package org.hisp.dhis.keyjsonvalue;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,59 +26,22 @@ package org.hisp.dhis.keyjsonvalue;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
-import org.hisp.dhis.metadata.version.MetadataVersionService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Interface for converting from one object to another. The main use case being supporting
+ * property transformers, these are transformers that are applied BEFORE any field filtering
+ * takes place, and hides the original object completely.
+ *
+ * The main reason for using a property transformer is to either collapse an object (a deeply nested
+ * object can be replaced with a more relevant one), or to smooth the transition when planning domain
+ * object changes (this so the frontend can start working on the new payloads before all internals are
+ * finished refactoring).
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
-public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
+@FunctionalInterface
+public interface PropertyTransformer
 {
-    private final KeyJsonValueStore keyJsonValueStore;
-
-    public DefaultMetadataKeyJsonService(
-        KeyJsonValueStore keyJsonValueStore )
-    {
-        checkNotNull( keyJsonValueStore );
-
-        this.keyJsonValueStore = keyJsonValueStore;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public KeyJsonValue getMetaDataVersion( String key )
-    {
-        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
-    }
-
-    @Override
-    @Transactional
-    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
-    {
-        keyJsonValueStore.delete( keyJsonValue );
-    }
-
-    @Override
-    @Transactional
-    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
-    {
-        keyJsonValueStore.save( keyJsonValue );
-
-        return keyJsonValue.getId();
-    }
-
-    @Override
-    public List<String> getAllVersions()
-    {
-        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
-    }
+    Object transform( Object o );
 }

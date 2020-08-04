@@ -96,7 +96,10 @@ public class IdentifiableObjectUtils
      */
     public static <T extends IdentifiableObject> List<String> getUids( Collection<T> objects )
     {
-        return objects != null ? objects.stream().map( o -> o.getUid() ).collect( Collectors.toList() ) : null;
+        return objects != null ? objects.stream()
+                .filter( o -> o != null )
+                .map( o -> o.getUid() )
+                .collect( Collectors.toList() ) : null;
     }
 
     /**
