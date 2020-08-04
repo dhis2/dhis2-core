@@ -45,13 +45,11 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
@@ -104,8 +102,6 @@ public class DefaultTrackerBundleService
 
     private final DbmsManager dbmsManager;
 
-    private final TrackerProgramRuleService trackerProgramRuleService;
-
     private final ReservedValueService reservedValueService;
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
@@ -136,10 +132,8 @@ public class DefaultTrackerBundleService
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
-        TrackerProgramRuleService trackerProgramRuleService,
         ReservedValueService reservedValueService,
         TrackerSideEffectConverterService sideEffectConverterService )
-
     {
         this.trackerPreheatService = trackerPreheatService;
         this.teConverter = trackedEntityTrackerConverterService;
@@ -151,7 +145,6 @@ public class DefaultTrackerBundleService
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
-        this.trackerProgramRuleService = trackerProgramRuleService;
         this.reservedValueService = reservedValueService;
         this.sideEffectConverterService = sideEffectConverterService;
     }
