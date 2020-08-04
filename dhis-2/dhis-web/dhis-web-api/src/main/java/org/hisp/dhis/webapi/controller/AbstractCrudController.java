@@ -753,7 +753,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T parsed = deserializeJsonEntity( request, response );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
-        System.err.println( renderService.toJsonAsString( parsed.getUser() ) );
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
