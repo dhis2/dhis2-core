@@ -1,0 +1,34 @@
+{
+  "enrollments": [
+    {
+      "enrollment": "TvctPPhpD8u",
+      "created": "2018-01-26T13:48:13.363",
+      "lastUpdated": "2018-01-26T13:48:13.363",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntityType": "nEenWmSyUEp",
+      "trackedEntityInstance": "IOR1AXXl24H",
+      "program": "BFcipDERJne",
+      "status": "ACTIVE",
+      "orgUnit": "PlKwabX2xRW",
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2021-03-28T12:05:00.000",
+      "occurredAt": "2021-03-28T12:05:00.000",
+      "followup": false,
+      "deleted": false
+    }
+  ],
+  "trackedEntities": [
+    {
+      "trackedEntity": "IOR1AXXl24H",
+      "trackedEntityType": "nEenWmSyUEp",
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
+      "clientCreatedAt": "2020-02-20T12:09:21.844",
+      "clientUpdatedAt": "2020-02-20T12:09:21.844",
+      "orgUnit": "PlKwabX2xRW",
+      "inactive": false,
+      "deleted": false,
+      "featureType": "NONE"
+    }
+  ]
+}

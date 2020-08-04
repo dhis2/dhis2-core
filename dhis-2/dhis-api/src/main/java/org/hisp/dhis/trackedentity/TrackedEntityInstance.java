@@ -40,6 +40,7 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -55,7 +56,7 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 @Auditable( scope = AuditScope.TRACKER )
 public class TrackedEntityInstance
-    extends BaseIdentifiableObject
+    extends SoftDeletableObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
 
@@ -80,12 +81,11 @@ public class TrackedEntityInstance
     @AuditAttribute
     private Boolean inactive = false;
 
-    @AuditAttribute
-    private Boolean deleted = false;
-
     private Geometry geometry;
 
     private Date lastSynchronized = new Date( 0 );
+
+    private String storedBy;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -153,6 +153,18 @@ public class TrackedEntityInstance
     public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
     {
         this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 
     @JsonProperty
@@ -232,18 +244,6 @@ public class TrackedEntityInstance
         this.inactive = inactive;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isDeleted()
-    {
-        return deleted;
-    }
-
-    public void setDeleted( Boolean deleted )
-    {
-        this.deleted = deleted;
-    }
-
     @JsonIgnore
     public Date getLastSynchronized()
     {
@@ -289,7 +289,7 @@ public class TrackedEntityInstance
             ", organisationUnit=" + organisationUnit +
             ", trackedEntityType=" + trackedEntityType +
             ", inactive=" + inactive +
-            ", deleted=" + deleted +
+            ", deleted=" + isDeleted() +
             ", lastSynchronized=" + lastSynchronized +
             '}';
     }

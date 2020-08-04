@@ -1,5 +1,3 @@
-package org.hisp.dhis.user.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,23 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.user.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
@@ -36,7 +51,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
@@ -53,20 +67,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.persistence.TypedQuery;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Nguyen Hong Duc
  */
@@ -79,10 +79,9 @@ public class HibernateUserStore
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService, SchemaService schemaService )
+        AclService aclService, SchemaService schemaService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
@@ -120,6 +119,7 @@ public class HibernateUserStore
         {
             return Collections.emptyList();
         }
+
         final List<User> users = new ArrayList<>( result.size() );
         for ( Object o : result )
         {
@@ -156,8 +156,16 @@ public class HibernateUserStore
 
         hql +=
             "from User u " +
-            "inner join u.userCredentials uc " +
-            "left join u.groups g ";
+            "inner join u.userCredentials uc ";
+
+        if ( params.isPrefetchUserGroups() && !count )
+        {
+            hql += "left join fetch u.groups g ";
+        }
+        else
+        {
+            hql += "left join u.groups g ";
+        }
 
         if ( !params.getOrganisationUnits().isEmpty() )
         {
@@ -194,8 +202,8 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " (" +
                 "lower(u.firstName) like :key " +
-                "or lower(u.email) like :key " +
                 "or lower(u.surname) like :key " +
+                "or lower(u.email) like :key " +
                 "or lower(uc.username) like :key) ";
         }
 
@@ -362,7 +370,7 @@ public class HibernateUserStore
     @Override
     public User getUser( long id )
     {
-        return sessionFactory.getCurrentSession().get( User.class, id );
+        return getSession().get( User.class, id );
     }
 
     @Override

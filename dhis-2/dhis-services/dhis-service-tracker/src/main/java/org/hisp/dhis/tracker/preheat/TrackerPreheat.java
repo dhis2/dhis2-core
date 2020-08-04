@@ -43,6 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
@@ -127,6 +128,11 @@ public class TrackerPreheat
      */
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
+    /**
+     * Identifier map
+     */
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+
     public TrackerPreheat()
     {
     }
@@ -146,13 +152,15 @@ public class TrackerPreheat
         this.user = user;
     }
 
-    public <T extends IdentifiableObject> T get( TrackerIdentifier identifier, Class<? extends IdentifiableObject> klass, IdentifiableObject object )
+    public <T extends IdentifiableObject> T get( TrackerIdentifier identifier,
+        Class<? extends IdentifiableObject> klass, IdentifiableObject object )
     {
         return get( identifier.getIdScheme(), klass, identifier.getIdentifier( object ) );
     }
 
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass, String key )
+    public <T extends IdentifiableObject> T get( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass,
+        String key )
     {
         if ( !containsKey( identifier, klass, key ) )
         {
@@ -162,18 +170,17 @@ public class TrackerPreheat
         return (T) map.get( identifier ).get( klass ).get( key );
     }
 
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAll( TrackerIdentifier identifier, List<T> keys )
     {
         List<T> objects = new ArrayList<>();
 
         for ( T key : keys )
         {
-            IdentifiableObject identifiableObject = get( identifier, key );
+            T identifiableObject = get( identifier, key );
 
             if ( identifiableObject != null )
             {
-                objects.add( (T) identifiableObject );
+                objects.add( identifiableObject );
             }
         }
 
@@ -199,14 +206,16 @@ public class TrackerPreheat
             return null;
         }
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
+            object.getClass() );
 
         return get( identifier.getIdScheme(), klass, identifier.getIdentifier( object ) );
     }
 
     public boolean containsKey( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass, String key )
     {
-        return !(isEmpty() || isEmpty( identifier ) || isEmpty( identifier, klass )) && map.get( identifier ).get( klass ).containsKey( key );
+        return !(isEmpty() || isEmpty( identifier ) || isEmpty( identifier, klass )) &&
+            map.get( identifier ).get( klass ).containsKey( key );
     }
 
     public boolean isEmpty()
@@ -221,19 +230,24 @@ public class TrackerPreheat
 
     public boolean isEmpty( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass )
     {
-        return isEmpty( identifier ) || !map.get( identifier ).containsKey( klass ) || map.get( identifier ).get( klass ).isEmpty();
+        return isEmpty( identifier ) || !map.get( identifier ).containsKey( klass ) ||
+            map.get( identifier ).get( klass ).isEmpty();
     }
 
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdentifier identifier, T object )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();
-        if ( object == null ) return this;
+        if ( object == null )
+            return this;
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
+            object.getClass() );
 
-        if ( !map.containsKey( idScheme ) ) map.put( idScheme, new HashMap<>(  ) );
-        if ( !map.get( idScheme ).containsKey( klass ) ) map.get( idScheme ).put( klass, new HashMap<>(  ) );
+        if ( !map.containsKey( idScheme ) )
+            map.put( idScheme, new HashMap<>() );
+        if ( !map.get( idScheme ).containsKey( klass ) )
+            map.get( idScheme ).put( klass, new HashMap<>() );
 
         if ( User.class.isAssignableFrom( klass ) )
         {
@@ -246,7 +260,8 @@ public class TrackerPreheat
 
             Map<String, IdentifiableObject> identifierMap = map.get( idScheme ).get( UserCredentials.class );
 
-            if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) && !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
+            if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) &&
+                !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
             {
                 identifierMap.put( identifier.getIdentifier( user ), user.getUserCredentials() );
             }
@@ -267,12 +282,16 @@ public class TrackerPreheat
     public <T extends IdentifiableObject> TrackerPreheat replace( TrackerIdentifier identifier, T object )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();
-        if ( object == null ) return this;
+        if ( object == null )
+            return this;
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
+            object.getClass() );
 
-        if ( !map.containsKey( idScheme ) ) map.put( idScheme, new HashMap<>() );
-        if ( !map.get( idScheme ).containsKey( klass ) ) map.get( idScheme ).put( klass, new HashMap<>() );
+        if ( !map.containsKey( idScheme ) )
+            map.put( idScheme, new HashMap<>() );
+        if ( !map.get( idScheme ).containsKey( klass ) )
+            map.get( idScheme ).put( klass, new HashMap<>() );
 
         if ( User.class.isAssignableFrom( klass ) )
         {
@@ -285,7 +304,8 @@ public class TrackerPreheat
 
             Map<String, IdentifiableObject> identifierMap = map.get( idScheme ).get( UserCredentials.class );
 
-            if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) && !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
+            if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) &&
+                !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
             {
                 identifierMap.put( identifier.getIdentifier( user ), user.getUserCredentials() );
             }
@@ -306,7 +326,12 @@ public class TrackerPreheat
     {
         for ( T object : objects )
         {
-            if ( isDefault( object ) ) continue;
+            boolean isDefault = isDefault( object );
+            if ( isDefault )
+            {
+                continue;
+            }
+
             put( identifier, object );
         }
 
@@ -327,7 +352,8 @@ public class TrackerPreheat
     public TrackerPreheat remove( TrackerIdentifier identifier, IdentifiableObject object )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
+            object.getClass() );
 
         String key = identifier.getIdentifier( object );
 
@@ -339,7 +365,8 @@ public class TrackerPreheat
         return this;
     }
 
-    public TrackerPreheat remove( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass, Collection<String> keys )
+    public TrackerPreheat remove( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass,
+        Collection<String> keys )
     {
         for ( String key : keys )
         {
@@ -429,7 +456,8 @@ public class TrackerPreheat
         trackedEntityInstances.forEach( te -> putTrackedEntity( identifier, te.getUid(), te ) );
     }
 
-    private void putTrackedEntity( TrackerIdScheme identifier, String trackedEntity, TrackedEntityInstance trackedEntityInstance )
+    private void putTrackedEntity( TrackerIdScheme identifier, String trackedEntity,
+        TrackedEntityInstance trackedEntityInstance )
     {
         if ( !trackedEntities.containsKey( identifier ) )
         {
@@ -444,7 +472,8 @@ public class TrackerPreheat
         return trackedEntityAttributes;
     }
 
-    public void setTrackedEntityAttributes( Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes )
+    public void setTrackedEntityAttributes(
+        Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes )
     {
         this.trackedEntityAttributes = trackedEntityAttributes;
     }
@@ -588,6 +617,16 @@ public class TrackerPreheat
         IdentifiableObject defaultObject = getDefaults().get( klass );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    public TrackerIdentifierParams getIdentifiers()
+    {
+        return identifiers;
+    }
+
+    public void setIdentifiers( TrackerIdentifierParams identifiers )
+    {
+        this.identifiers = identifiers;
     }
 
     @Override

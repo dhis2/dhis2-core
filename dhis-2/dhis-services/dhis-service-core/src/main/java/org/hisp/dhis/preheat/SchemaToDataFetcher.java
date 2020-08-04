@@ -47,7 +47,7 @@ import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for fetching all the unique attributes for a {@see IdentifiableObject} subclass
+ * This component is responsible for fetching all the unique attributes for a {@link IdentifiableObject} subclass.
  *
  * @author Luciano Fiandesio
  */
@@ -67,9 +67,9 @@ public class SchemaToDataFetcher
 
     /**
      * Executes a read-only query for the given Schema class and fetches only the fields
-     * marked as "unique"
-     * 
-     * @param schema a {@see Schema}
+     * marked as "unique".
+     *
+     * @param schema a {@link Schema}
      * @return a List of objects corresponding to the "klass" of the given Schema
      */
     public List<? extends IdentifiableObject> fetch( Schema schema )
@@ -109,7 +109,7 @@ public class SchemaToDataFetcher
     private List<IdentifiableObject> handleMultipleColumn( List<Object[]> objects, List<Property> uniqueProperties,
         Schema schema )
     {
-        List<IdentifiableObject> resultsObjects = new ArrayList( objects.size() );
+        List<IdentifiableObject> resultsObjects = new ArrayList<>( objects.size() );
 
         for ( Object[] uniqueValuesArray : objects )
         {
@@ -125,11 +125,11 @@ public class SchemaToDataFetcher
 
         return resultsObjects;
     }
-    
+
     private List<IdentifiableObject> handleSingleColumn( List<Object> objects, List<Property> uniqueProperties,
         Schema schema )
     {
-        List<IdentifiableObject> resultsObjects = new ArrayList( objects.size() );
+        List<IdentifiableObject> resultsObjects = new ArrayList<>( objects.size() );
         for ( Object uniqueValue : objects )
         {
             Map<String, Object> valuesMap = new HashMap<>();
@@ -143,7 +143,6 @@ public class SchemaToDataFetcher
 
     private void addToResult( Schema schema, Map<String, Object> valuesMap, List<IdentifiableObject> resultsObjects )
     {
-
         try
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) schema.getKlass().newInstance();
@@ -155,10 +154,10 @@ public class SchemaToDataFetcher
             log.error( "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(), e );
         }
     }
-    
+
     private String extractUniqueFields( List<Property> uniqueProperties )
     {
         return uniqueProperties.stream().map( Property::getFieldName ).collect( Collectors.joining( "," ) );
     }
-
 }
+

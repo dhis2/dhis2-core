@@ -51,8 +51,11 @@ import javax.jms.TextMessage;
 public class TrackerMessageManager
 {
     private final MessageManager messageManager;
+
     private final ObjectMapper objectMapper;
+
     private final SchedulingManager schedulingManager;
+
     private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
 
     public TrackerMessageManager(
@@ -81,7 +84,8 @@ public class TrackerMessageManager
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message ) throws JMSException, JsonProcessingException
+    public void consume( TextMessage message )
+        throws JMSException, JsonProcessingException
     {
         String payload = message.getText();
 

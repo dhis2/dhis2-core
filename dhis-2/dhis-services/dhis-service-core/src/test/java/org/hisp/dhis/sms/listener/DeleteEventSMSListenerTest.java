@@ -39,8 +39,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.models.DeleteSMSSubmission;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -122,7 +122,7 @@ public class DeleteEventSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new DeleteEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -157,7 +157,7 @@ public class DeleteEventSMSListenerTest
     }
 
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         user = createUser( 'U' );
         user.setPhoneNumber( ORIGINATOR );
@@ -168,13 +168,13 @@ public class DeleteEventSMSListenerTest
         incomingSmsDelete = createSMSFromSubmission( createDeleteSubmission() );
     }
 
-    private DeleteSMSSubmission createDeleteSubmission()
+    private DeleteSmsSubmission createDeleteSubmission()
     {
-        DeleteSMSSubmission subm = new DeleteSMSSubmission();
+        DeleteSmsSubmission subm = new DeleteSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setEvent( programStageInstance.getUid() );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }

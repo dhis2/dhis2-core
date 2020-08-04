@@ -46,6 +46,4 @@ public interface TrackerConverterService<From, To>
     To from( TrackerPreheat preheat, From object );
 
     List<To> from( List<From> objects );
-
-    List<To> from( TrackerPreheat preheat, List<From> objects );
 }

@@ -45,7 +45,7 @@ public class DhisPostgresDialect
     {
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( "jsonb_extract_path", new StandardSQLFunction("jsonb_extract_path", StandardBasicTypes.STRING ));
-        registerFunction( "jsonb_extract_path_text", new StandardSQLFunction("jsonb_extract_path_text", StandardBasicTypes.STRING ));
+        registerFunction( "jsonb_extract_path", new StandardSQLFunction( "jsonb_extract_path", StandardBasicTypes.STRING ) );
+        registerFunction( "jsonb_extract_path_text", new StandardSQLFunction( "jsonb_extract_path_text", StandardBasicTypes.STRING ) );
     }
 }

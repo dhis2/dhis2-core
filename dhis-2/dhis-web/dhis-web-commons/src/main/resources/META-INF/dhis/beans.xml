@@ -474,6 +474,8 @@
   <bean id="org.hisp.dhis.interceptor.I18nInterceptor" class="org.hisp.dhis.interceptor.I18nInterceptor">
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService"/>
   </bean>
 
   <bean id="org.hisp.dhis.interceptor.SystemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor">

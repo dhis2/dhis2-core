@@ -43,6 +43,23 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
+    /* Data */
+
+    E2000( "Query parameters cannot be null" ),
+    E2001( "At least one data element, data set or data element group must be specified" ),
+    E2002( "At least one period, start/end dates, last updated or last updated duration must be specified" ),
+    E2003( "Both periods and start/end date cannot be specified" ),
+    E2004( "Start date must be before end date" ),
+    E2005( "Duration is not valid: `{0}`" ),
+    E2006( "At least one organisation unit or organisation unit group must be specified" ),
+    E2007( "Organisation unit children cannot be included for organisation unit groups" ),
+    E2008( "At least one organisation unit must be specified when children are included" ),
+    E2009( "Limit cannot be less than zero: `{0}`" ),
+    E2010( "User is not allowed to read data for data set: `{0}`" ),
+    E2011( "User is not allowed to read data for attribute option combo: `{0}`" ),
+    E2012( "User is not allowed to view org unit: `{0}`" ),
+    E2013( "At least one data set must be specified" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),
@@ -77,24 +94,31 @@ public enum ErrorCode
     E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`" ),
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`" ),
     E4018( "Property `{0}` must be set when property `{1}` is `{2}`" ),
-
-    /* TextPattern */
     E4019( "Failed to parse pattern `{0}`. {1}" ),
     E4020( "The value `{0}` does not conform to the attribute pattern `{1}`" ),
-
-    /* TextPattern for ID generation */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
     E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
-
-    /* Tracker relationship */
     E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
     E4024( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together." ),
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
-
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
+
+    /* SQL views */
+    E4300( "SQL query is null" ),
+    E4301( "SQL query must be a select query" ),
+    E4302( "SQL query can only contain a single semi-colon at the end of the query" ),
+    E4303( "Variables contain null key" ),
+    E4304( "Variables contain null value" ),
+    E4305( "Variable params are invalid: `{0}`" ),
+    E4306( "Variables are invalid: `{0}`" ),
+    E4307( "SQL query contains variables not provided in request: `{0}`" ),
+    E4308( "Criteria params are invalid: `{0}`" ),
+    E4309( "Criteria values are invalid: `{0}`" ),
+    E4310( "SQL query contains references to protected tables" ),
+    E4311( "SQL query contains illegal keywords" ),
 
     /* Preheat */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
@@ -142,6 +166,18 @@ public enum ErrorCode
     E7117( "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET" ),
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
+    E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
+    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`"),
+    E7122( "Data approval level does not exist: `{0}`" ),
+    E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
+    E7124( "Dimension is present in query without any valid dimension options: `{0}`" ),
+    E7125( "Dimension identifier does not reference any dimension: `{0}`" ),
+    E7126( "Column must be present as dimension in query: `{0}`" ),
+    E7127( "Row must be present as dimension in query: `{0}`" ),
+    E7128( "Query result set exceeded max limit: `{0}`" ),
+    E7129( "Program is specified but does not exist: `{0}`" ),
+    E7130( "Program stage is specified but does not exist: `{0}`" ),
+    E7131( "Query failed, likely because the query timed out" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -160,7 +196,25 @@ public enum ErrorCode
     E7213( "Bbox is invalid, must be on format: 'min-lng,min-lat,max-lng,max-lat': `{0}`" ),
     E7214( "Cluster field must be specified when bbox or cluster size are specified" ),
     E7215( "Query item cannot specify both legend set and option set: `{0}`" ),
-    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" );
+    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
+    E7217( "User is not allowed to view event analytics data: `{0}`" ),
+    E7218( "Spatial database support is not enabled" ),
+    E7219( "Data element must be of value type coordinate in order to be used as coordinate field: `{0}`" ),
+    E7220( "Attribute must be of value type coordinate to in order to be used as coordinate field: `{0}`" ),
+    E7221( "Coordinate field is invalid: `{0}`" ),
+    E7222( "Query item or filter is invalid: `{0}`" ),
+    E7223( "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`" ),
+    E7224( "Item identifier does not reference any data element, attribute or indicator part of the program: `{0}`" ),
+    E7225( "Program stage is mandatory for data element dimensions in enrollment analytics queries: `{0}`" ),
+    E7226( "Dimension is not a valid query item: `{0}`" ),
+    E7227( "Relationship entity type not supported: `{0}`" ),
+
+    /* Org unit analytics */
+    E7300( "At least one organisation unit must be specified" ),
+    E7301( "At least one organisation unit group set must be specified" ),
+
+    /* Debug analytics */
+    E7400( "Debug query must contain at least one data element, one period and one organisation unit" );
 
     private String message;
 

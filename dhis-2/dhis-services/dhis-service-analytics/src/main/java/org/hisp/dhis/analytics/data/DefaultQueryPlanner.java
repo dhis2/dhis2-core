@@ -30,19 +30,38 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryGroups;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
@@ -176,6 +195,11 @@ public class DefaultQueryPlanner
 
     /**
      * Splits the given list of queries in sub queries on the given dimension.
+     *
+     * @param queryGroups {@link {@link DataQueryGroups}.
+     * @param dimension the dimension identifier.
+     * @param optimalQueries the number of optimal queries.
+     * @return a {@link DataQueryGroups}.
      */
     private DataQueryGroups splitByDimension( DataQueryGroups queryGroups, String dimension, int optimalQueries )
     {
@@ -224,6 +248,9 @@ public class DefaultQueryPlanner
      * name on each query. If periods appear as filters, replaces the period filter
      * with one filter for each period type. Sets the dimension names and filter
      * names respectively.
+     *
+     * @param params the {@link DataQueryParams} object.
+     * @return a list of {@link DataQueryParams}.
      */
     @Override
     public List<DataQueryParams> groupByPeriodType( DataQueryParams params )
@@ -236,7 +263,7 @@ public class DefaultQueryPlanner
         }
         else if ( !params.getPeriods().isEmpty() )
         {
-            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils.getPeriodTypePeriodMap( params.getPeriods() );
+            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PeriodOffsetUtils.getPeriodTypePeriodMap( params );
 
             for ( String periodType : periodTypePeriodMap.keySet() )
             {
@@ -244,7 +271,7 @@ public class DefaultQueryPlanner
                     .addOrSetDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), periodTypePeriodMap.get( periodType ) )
                     .withPeriodType( periodType ).build();
 
-                queries.add( query );
+                queries.add( PeriodOffsetUtils.removeOffsetPeriodsIfNotNeeded( query ) );
             }
         }
         else if ( !params.getFilterPeriods().isEmpty() )
@@ -358,7 +385,7 @@ public class DefaultQueryPlanner
         }
         else
         {
-            throw new IllegalQueryException( "Query does not contain any period dimension items" );
+            throwIllegalQueryEx( ErrorCode.E7104 );
         }
 
         logQuerySplit( queries, "period start and end date" );
@@ -369,7 +396,7 @@ public class DefaultQueryPlanner
     /**
      * Groups queries by their data type.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDataType( DataQueryParams params )
@@ -423,7 +450,7 @@ public class DefaultQueryPlanner
      * query will be returned unchanged. If there are no data elements or data
      * element group sets specified the aggregation type will fall back to sum.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByAggregationType( DataQueryParams params )
@@ -494,11 +521,12 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Check if the filter of this DataQueryParams contains Data Elements having the same Aggregation Type
+     * Check if the filter of this {@link DataQueryParams} contains Data Elements having the same Aggregation Type
      * and the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams
      * aggregationType overrides all the Data Elements' aggregation types.
      *
      * @param params DataQueryParams object.
+     * @return true if filter has data elements of same aggregation type and value.
      */
     private boolean filterHasDataElementsOfSameAggregationTypeAndValueType( DataQueryParams params )
     {
@@ -527,7 +555,7 @@ public class DefaultQueryPlanner
      * since the number of days in the aggregation period is part of the expression
      * for aggregating the value.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDaysInPeriod( DataQueryParams params )
@@ -569,7 +597,7 @@ public class DefaultQueryPlanner
      * data elements. Sets the data period type on each query. This only applies
      * if the aggregation type of the query involves disaggregation.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDataPeriodType( DataQueryParams params )
@@ -614,7 +642,7 @@ public class DefaultQueryPlanner
      * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be
      * aggregated individually.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByPeriod( DataQueryParams params )

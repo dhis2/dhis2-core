@@ -82,7 +82,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -149,6 +154,8 @@ public class UserController
             params.setAuthSubset( true );
         }
 
+        params.setPrefetchUserGroups( filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) ) );
+
         int count = userService.getUserCount( params );
 
         if ( options.hasPaging() && filters.isEmpty() )
@@ -159,11 +166,14 @@ public class UserController
             params.setMax( pager.getPageSize() );
         }
 
-        List<User> users = userService.getUsers( params,
-            ( orders == null ) ? null : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() ) );
+        List<String> ordersAsString = orders == null ? null :
+            orders.stream().map( Order::toOrderString ).collect( Collectors.toList() );
 
-        // keep the memory query on the result
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
+        List<User> users = userService.getUsers( params, ordersAsString );
+
+        // Keep the memory query on the result
+        Query query = queryService.getQueryFromUrl( getEntityClass(),
+            filters, orders, getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
@@ -445,50 +455,11 @@ public class UserController
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
     public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
-
-        if ( users.isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( getEntityName() + " does not exist: " + pvUid ) );
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
-        }
-
-        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
-        // (in case it gets detached)
-        if ( currentUser != null )
-        {
-            currentUser.getUserCredentials().getAllAuthorities();
-        }
-
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
-        parsed.setUid( pvUid );
 
-        parsed = mergeLastLoginAttribute( users.get( 0 ), parsed );
-
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
-            || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
-
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsed );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        updateUserGroups( importReport, pvUid, parsed, currentUser );
+        ImportReport importReport = updateUser( pvUid, parsed );
 
         response.setContentType( "application/xml" );
-
         renderService.toXml( response.getOutputStream(), importReport );
     }
 
@@ -496,15 +467,27 @@ public class UserController
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
+        User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
+
+        ImportReport importReport = updateUser( pvUid, parsed );
+
+        response.setContentType( "application/json" );
+        renderService.toJson( response.getOutputStream(), importReport );
+    }
+
+    protected ImportReport updateUser( String userUid, User parsedUserObject )
+        throws WebMessageException
+    {
+        List<User> users = getEntity( userUid, NO_WEB_OPTIONS );
 
         if ( users.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( getEntityName() + " does not exist: " + pvUid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( getEntityName() + " does not exist: " + userUid ) );
         }
 
         User currentUser = currentUserService.getCurrentUser();
-
+        // TODO: Can we disallow currentUser == NULL ?
         if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
@@ -517,45 +500,57 @@ public class UserController
             currentUser.getUserCredentials().getAllAuthorities();
         }
 
-        User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
-        parsed.setUid( pvUid );
+        parsedUserObject.setUid( userUid );
+        parsedUserObject = mergeLastLoginAttribute( users.get( 0 ), parsedUserObject );
 
-        parsed = mergeLastLoginAttribute( users.get( 0 ), parsed );
+        boolean isPasswordChangeAttempt =
+            parsedUserObject.getUserCredentials() != null &&
+                parsedUserObject.getUserCredentials().getPassword() != null;
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
+        List<String> groupsUids = IdentifiableObjectUtils.getUids( parsedUserObject.getGroups() );
+
+        if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "You must have permissions to create user, " +
+                    "or ability to manage at least one user group for the user." ) );
         }
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsed );
+        params.addObject( parsedUserObject );
 
         ImportReport importReport = importService.importMetadata( params );
 
-        updateUserGroups( importReport, pvUid, parsed, currentUser );
-
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), importReport );
-    }
-
-    protected void updateUserGroups( ImportReport importReport, String pvUid, User parsed, User currentUser )
-    {
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
-            User user = userService.getUser( pvUid );
+            updateUserGroups( userUid, parsedUserObject, currentUser );
 
-            // current user may have been changed and detached and must become managed again
-            if ( currentUser != null && currentUser.getId() == user.getId() )
+            // If it was a pw change attempt (input.pw != null) and update was success we assume password has changed...
+            // We chose to expire the special case if password is set to the same. i.e. no before & after equals pw check
+            if ( isPasswordChangeAttempt )
             {
-                currentUser = currentUserService.getCurrentUser();
+                userService.expireActiveSessions( parsedUserObject.getUserCredentials() );
             }
-
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
+
+        return importReport;
+    }
+
+    protected void updateUserGroups( String pvUid, User parsed, User currentUser )
+    {
+        User user = userService.getUser( pvUid );
+
+        // current user may have been changed and detached and must become managed again
+        // TODO: what is this doing? I don't understand how this is possible.
+        if ( currentUser != null && currentUser.getId() == user.getId() )
+        {
+            currentUser = currentUserService.getCurrentUser();
+        }
+
+        userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
     }
 
     // -------------------------------------------------------------------------

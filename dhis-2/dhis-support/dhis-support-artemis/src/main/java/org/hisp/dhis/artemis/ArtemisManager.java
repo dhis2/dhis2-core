@@ -30,8 +30,6 @@ package org.hisp.dhis.artemis;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-
-
 import org.hisp.dhis.artemis.config.ArtemisConfigData;
 import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.springframework.stereotype.Service;
@@ -42,8 +40,8 @@ import javax.annotation.PreDestroy;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
 @Slf4j
+@Service
 public class ArtemisManager
 {
     private final EmbeddedActiveMQ embeddedActiveMQ;

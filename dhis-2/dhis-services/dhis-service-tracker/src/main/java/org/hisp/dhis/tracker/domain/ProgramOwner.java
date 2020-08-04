@@ -33,7 +33,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,18 +44,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 public class ProgramOwner
 {
     @JsonProperty
-    private String ownerOrgUnit;
+    private String orgUnit;
 
     @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
     private String program;
-
-    public ProgramOwner( TrackedEntityProgramOwner programOwner )
-    {
-        this.ownerOrgUnit = programOwner.getOrganisationUnit().getUid();
-        this.program = programOwner.getProgram().getUid();
-        this.trackedEntity = programOwner.getEntityInstance().getUid();
-    }
 }

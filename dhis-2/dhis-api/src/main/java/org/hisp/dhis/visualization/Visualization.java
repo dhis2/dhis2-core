@@ -1,5 +1,3 @@
-package org.hisp.dhis.visualization;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,8 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.visualization;
+
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -54,19 +54,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.HideEmptyItemStrategy;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -80,7 +95,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
     extends BaseAnalyticalObject
-        implements MetadataObject
+    implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
@@ -160,6 +175,12 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items in the
+     * first dimension of the "columns" list by dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -184,24 +205,18 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    /*
-     * # Legend related attributes.
-     */
     private LegendDisplayStyle legendDisplayStyle;
 
     private LegendSet legendSet;
 
     private LegendDisplayStrategy legendDisplayStrategy;
 
-    private ColorSet colorSet;
+    private VisualizationFontStyle fontStyle;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    /*
-     * # Settings more likely to be applied to graphics or charts.
-     */
     private Double targetLineValue;
 
     private Double baseLineValue;
@@ -329,11 +344,6 @@ public class Visualization
      */
     private transient String gridTitle;
 
-    /**
-     * The name of the reporting month based on the report param.
-     */
-    private transient String reportingPeriodName;
-
     /*
      * Collections mostly used for analytics tabulated data, like pivots or reports.
      */
@@ -400,8 +410,8 @@ public class Visualization
     }
 
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;
@@ -418,12 +428,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "columnDimension", namespace = DXF_2_0 )
     public List<String> getColumnDimensions()
     {
-        return removingNullElements( columnDimensions );
+        return columnDimensions;
     }
 
     public void setColumnDimensions( List<String> columnDimensions )
     {
-        this.columnDimensions = removingNullElements( columnDimensions );
+        this.columnDimensions = columnDimensions;
     }
 
     @JsonProperty
@@ -431,12 +441,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "rowDimension", namespace = DXF_2_0 )
     public List<String> getRowDimensions()
     {
-        return removingNullElements( rowDimensions );
+        return rowDimensions;
     }
 
     public void setRowDimensions( List<String> rowDimensions )
     {
-        this.rowDimensions = removingNullElements( rowDimensions );
+        this.rowDimensions = rowDimensions;
     }
 
     @JsonProperty
@@ -444,12 +454,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "filterDimension", namespace = DXF_2_0 )
     public List<String> getFilterDimensions()
     {
-        return removingNullElements( filterDimensions );
+        return filterDimensions;
     }
 
     public void setFilterDimensions( List<String> filterDimensions )
     {
-        this.filterDimensions = removingNullElements( filterDimensions );
+        this.filterDimensions = filterDimensions;
     }
 
     @JsonProperty
@@ -519,7 +529,7 @@ public class Visualization
         return cumulativeValues;
     }
 
-    public void setCumulativeValues(boolean cumulativeValues)
+    public void setCumulativeValues( boolean cumulativeValues )
     {
         this.cumulativeValues = cumulativeValues;
     }
@@ -628,7 +638,7 @@ public class Visualization
         return optionalAxes;
     }
 
-    public void setOptionalAxes(List<Axis> optionalAxes)
+    public void setOptionalAxes( List<Axis> optionalAxes )
     {
         this.optionalAxes = optionalAxes;
     }
@@ -819,6 +829,19 @@ public class Visualization
         this.regressionType = regressionType;
     }
 
+    @JsonProperty( "series" )
+    @JacksonXmlElementWrapper( localName = "series", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DXF_2_0 )
+    public List<Series> getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( List<Series> series )
+    {
+        this.series = series;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
@@ -917,14 +940,14 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ColorSet getColorSet()
+    public VisualizationFontStyle getFontStyle()
     {
-        return colorSet;
+        return fontStyle;
     }
 
-    public void setColorSet( ColorSet colorSet )
+    public void setFontStyle( VisualizationFontStyle fontStyle )
     {
-        this.colorSet = colorSet;
+        this.fontStyle = fontStyle;
     }
 
     @JsonProperty
@@ -941,6 +964,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -953,6 +977,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -977,6 +1002,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -989,6 +1015,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
@@ -1063,12 +1090,6 @@ public class Visualization
 
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
-
-        // Handle report parameters
-        if ( hasRelativePeriods() )
-        {
-            this.reportingPeriodName = relatives.getReportingPeriodName( date, format );
-        }
 
         if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
         {
@@ -1225,17 +1246,29 @@ public class Visualization
 
         for ( String dimension : columnDimensions )
         {
-            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( dimension != null )
+            {
+                tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         for ( String dimension : rowDimensions )
         {
-            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( dimension != null )
+            {
+                tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         for ( String filter : filterDimensions )
         {
-            filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( filter != null )
+            {
+                filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
@@ -1279,21 +1312,6 @@ public class Visualization
     // -------------------------------------------------------------------------
     // Display and supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Filtering out eventual null elements caused by occasional invalid sortOrder.
-     *
-     * @param list
-     * @return the list without null elements.
-     */
-    private List<String> removingNullElements( final List<String> list )
-    {
-        if ( isNotEmpty( list ) )
-        {
-            return list.stream().filter( x -> x != null ).collect( Collectors.toList() );
-        }
-        return list;
-    }
 
     /**
      * Returns the category combo of the first data element.
@@ -1370,9 +1388,9 @@ public class Visualization
      * Generates a grid for this visualization based on the given aggregate value
      * map.
      *
-     * @param grid the grid, should be empty and not null.
-     * @param valueMap the mapping of identifiers to aggregate values.
-     * @param displayProperty the display property to use for meta data.
+     * @param grid               the grid, should be empty and not null.
+     * @param valueMap           the mapping of identifiers to aggregate values.
+     * @param displayProperty    the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */

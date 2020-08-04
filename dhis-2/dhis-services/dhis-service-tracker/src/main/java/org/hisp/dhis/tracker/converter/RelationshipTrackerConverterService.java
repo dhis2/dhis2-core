@@ -83,11 +83,10 @@ public class RelationshipTrackerConverterService
             Relationship toRelationship = new Relationship();
             toRelationship.setRelationship( fromRelationship.getUid() );
             toRelationship.setBidirectional( fromRelationship.getRelationshipType().isBidirectional() );
-            toRelationship.setCreated( fromRelationship.getCreated().toString() );
+            toRelationship.setCreatedAt( fromRelationship.getCreated().toString() );
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
-            toRelationship.setLastUpdated( fromRelationship.getLastUpdated().toString() );
-            toRelationship.setRelationshipName( fromRelationship.getName() );
+            toRelationship.setUpdatedAt( fromRelationship.getLastUpdated().toString() );
             toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
 
             return toRelationship;
@@ -122,7 +121,8 @@ public class RelationshipTrackerConverterService
     @Override
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
     {
-        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat, Collections.singletonList( relationship ) );
+        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
+            Collections.singletonList( relationship ) );
 
         if ( relationships.isEmpty() )
         {
@@ -138,8 +138,8 @@ public class RelationshipTrackerConverterService
         return from( preheat( relationships ), relationships );
     }
 
-    @Override
-    public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat, List<Relationship> fromRelationships )
+    private List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
+        List<Relationship> fromRelationships )
     {
         List<org.hisp.dhis.relationship.Relationship> toRelationships = new ArrayList<>();
 
@@ -165,7 +165,6 @@ public class RelationshipTrackerConverterService
                 toRelationship.setUid( CodeGenerator.generateUid() );
             }
 
-            toRelationship.setName( fromRelationship.getRelationshipName() );
             toRelationship.setRelationshipType( relationshipType );
 
             if ( fromRelationship.getRelationship() != null )

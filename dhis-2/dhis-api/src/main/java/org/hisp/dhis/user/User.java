@@ -44,13 +44,13 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Nguyen Hong Duc
@@ -293,6 +293,11 @@ public class User
         return userCredentials != null ? userCredentials.getUsername() : null;
     }
 
+    public UUID getUuid()
+    {
+        return userCredentials != null ? userCredentials.getUuid() : null;
+    }
+
     public boolean isSuper()
     {
         return userCredentials != null && userCredentials.isSuper();
@@ -413,11 +418,6 @@ public class User
         }
 
         return false;
-    }
-
-    public static String getSafeUsername( String username )
-    {
-        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
     }
 
     public boolean hasEmail()
@@ -765,7 +765,12 @@ public class User
 
     public static String username( User user )
     {
-        return user != null ? user.getUsername() : "system-process";
+        return username( user, "system-process" );
+    }
+
+    public static String username( User user, String defaultValue )
+    {
+        return user != null ? user.getUsername() : defaultValue;
     }
 
     @Override

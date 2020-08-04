@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
@@ -94,6 +95,12 @@ public final class SchemaUtils
                 }
             }
 
+            if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyTransformer.class ) )
+            {
+                PropertyTransformer propertyTransformer = AnnotationUtils.getAnnotation( property.getGetterMethod(), PropertyTransformer.class );
+                property.setPropertyTransformer( propertyTransformer.value() );
+            }
+
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyRange.class ) )
             {
                 PropertyRange propertyRange = AnnotationUtils.getAnnotation( property.getGetterMethod(), PropertyRange.class );
@@ -109,16 +116,17 @@ public final class SchemaUtils
                     }
                 }
 
-                if ( property.is( PropertyType.COLLECTION ) )
+                if ( property.is( PropertyType.COLLECTION ) && min < 0 )
                 {
                     min = 0d;
                 }
 
-                //Max will be applied from PropertyRange annotation only if it is more restrictive than hibernate max.
-                if ( property.getMax() == null || max < property.getMax() )
+                //Max will be applied from PropertyRange annotation only if it is more restrictive than hibernate max (or its a collection)
+                if ( property.getMax() == null || max < property.getMax() || property.is( PropertyType.COLLECTION ) )
                 {
                     property.setMax( max );
                 }
+
                 //Min is not set by hibernate (always 0) hence the min from PropertyRange will always be applied.
                 property.setMin( min );
             }

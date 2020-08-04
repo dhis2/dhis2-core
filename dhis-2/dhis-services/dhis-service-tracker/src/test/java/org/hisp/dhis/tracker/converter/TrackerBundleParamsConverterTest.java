@@ -199,7 +199,6 @@ public class TrackerBundleParamsConverterTest
         trackedEntity.setGeometry( null );
         trackedEntity.setTrackedEntity( uid );
         trackedEntity.setEnrollments( enrollments );
-        trackedEntity.setCoordinates( null );
         return trackedEntity;
     }
 
@@ -216,7 +215,6 @@ public class TrackerBundleParamsConverterTest
         enrollment.setEnrollment( uid );
         enrollment.setTrackedEntity( parent );
         enrollment.setEvents( events );
-        enrollment.setCoordinate( null );
         return enrollment;
     }
 
@@ -229,7 +227,6 @@ public class TrackerBundleParamsConverterTest
             event.setGeometry( null );
             event.setEvent( uid + i );
             event.setEnrollment( parent );
-            event.setCoordinate( null );
             events.add( event );
         }
 

@@ -25,6 +25,10 @@
     <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbVisualizationFontStyle">
+    <param name="clazz">org.hisp.dhis.visualization.VisualizationFontStyle</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
     <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
   </typedef>
@@ -59,6 +63,10 @@
     <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
   </typedef>
   
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
+    <param name="clazz">org.hisp.dhis.visualization.Series</param>
+  </typedef>
+  
    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
     <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
   </typedef>
@@ -71,12 +79,11 @@
     <param name="clazz">org.hisp.dhis.eventdatavalue.EventDataValue</param>
   </typedef>
 
-    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonProgramRuleEvaluationEnvironmentSetBinaryType"
-             name="jsbProgramRuleEvaluationEnvironments">
-        <param name="clazz">org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment</param>
-    </typedef>
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonProgramRuleEvaluationEnvironmentSetBinaryType" name="jsbProgramRuleEvaluationEnvironments">
+    <param name="clazz">org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment</param>
+  </typedef>
 
-    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
     <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
   </typedef>
 

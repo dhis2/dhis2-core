@@ -28,7 +28,6 @@ package org.hisp.dhis.mock;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -92,12 +91,6 @@ public class MockCurrentUserService
     }
 
     @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        return Sets.newHashSet( currentUser.getUserCredentials().getAllAuthorities() );
-    }
-
-    @Override
     public User getCurrentUser()
     {
         return currentUser;
@@ -120,12 +113,6 @@ public class MockCurrentUserService
     public boolean currentUserIsSuper()
     {
         return superUserFlag;
-    }
-
-    @Override
-    public void clearCurrentUser()
-    {
-        currentUser = null;
     }
 
     @Override

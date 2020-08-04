@@ -72,94 +72,94 @@ public class DashboardServiceTest
     @Autowired
     private IdentifiableObjectManager objectManager;
 
-    private Dashboard dA;
-    private Dashboard dB;
+    private Dashboard dbA;
+    private Dashboard dbB;
 
     private DashboardItem diA;
     private DashboardItem diB;
     private DashboardItem diC;
     private DashboardItem diD;
 
-    private Visualization visualizationA;
-    private Visualization visualizationB;
+    private Visualization vzA;
+    private Visualization vzB;
 
-    private Document docA;
+    private Document dcA;
 
     @Override
     public void setUpTest()
     {
-        visualizationA = createVisualization( "A" );
-        visualizationB = createVisualization( "B" );
+        vzA = createVisualization( "A" );
+        vzB = createVisualization( "B" );
 
-        visualizationService.save( visualizationA );
-        visualizationService.save( visualizationB );
+        visualizationService.save( vzA );
+        visualizationService.save( vzB );
 
-        docA = new Document( "A", "url", false, null );
-        Document docB = new Document( "B", "url", false, null );
-        Document docC = new Document( "C", "url", false, null );
-        Document docD = new Document( "D", "url", false, null );
+        dcA = new Document( "A", "url", false, null );
+        Document dcB = new Document( "B", "url", false, null );
+        Document dcC = new Document( "C", "url", false, null );
+        Document dcD = new Document( "D", "url", false, null );
 
-        documentService.saveDocument( docA );
-        documentService.saveDocument( docB );
-        documentService.saveDocument( docC );
-        documentService.saveDocument( docD );
+        documentService.saveDocument( dcA );
+        documentService.saveDocument( dcB );
+        documentService.saveDocument( dcC );
+        documentService.saveDocument( dcD );
 
         diA = new DashboardItem();
         diA.setAutoFields();
-        diA.setVisualization( visualizationA );
+        diA.setVisualization( vzA );
 
         diB = new DashboardItem();
         diB.setAutoFields();
-        diB.setVisualization( visualizationB );
+        diB.setVisualization( vzB );
 
         diC = new DashboardItem();
         diC.setAutoFields();
-        diC.getResources().add( docA );
-        diC.getResources().add( docB );
+        diC.getResources().add( dcA );
+        diC.getResources().add( dcB );
 
         diD = new DashboardItem();
         diD.setAutoFields();
-        diD.getResources().add( docC );
-        diD.getResources().add( docD );
+        diD.getResources().add( dcC );
+        diD.getResources().add( dcD );
 
-        dA = new Dashboard( "A" );
-        dA.setAutoFields();
-        dA.getItems().add( diA );
-        dA.getItems().add( diB );
-        dA.getItems().add( diC );
+        dbA = new Dashboard( "A" );
+        dbA.setAutoFields();
+        dbA.getItems().add( diA );
+        dbA.getItems().add( diB );
+        dbA.getItems().add( diC );
 
-        dB = new Dashboard( "B" );
-        dB.setAutoFields();
-        dB.getItems().add( diD );
+        dbB = new Dashboard( "B" );
+        dbB.setAutoFields();
+        dbB.getItems().add( diD );
     }
 
     @Test
     public void testAddGet()
     {
-        long dAId = dashboardService.saveDashboard( dA );
-        long dBId = dashboardService.saveDashboard( dB );
+        long dAId = dashboardService.saveDashboard( dbA );
+        long dBId = dashboardService.saveDashboard( dbB );
 
-        assertEquals( dA, dashboardService.getDashboard( dAId ) );
-        assertEquals( dB, dashboardService.getDashboard( dBId ) );
+        assertEquals( dbA, dashboardService.getDashboard( dAId ) );
+        assertEquals( dbB, dashboardService.getDashboard( dBId ) );
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
 
-        assertEquals( 1, dashboardService.countVisualizationDashboardItems( visualizationA ) );
-        assertEquals( 1, dashboardService.countVisualizationDashboardItems( visualizationB ) );
-        assertEquals( 1, dashboardService.countDocumentDashboardItems( docA ) );
+        assertEquals( 1, dashboardService.countVisualizationDashboardItems( vzA ) );
+        assertEquals( 1, dashboardService.countVisualizationDashboardItems( vzB ) );
+        assertEquals( 1, dashboardService.countDocumentDashboardItems( dcA ) );
     }
 
     @Test
     public void testUpdate()
     {
-        long dAId = dashboardService.saveDashboard( dA );
+        long dAId = dashboardService.saveDashboard( dbA );
 
         assertEquals( "A", dashboardService.getDashboard( dAId ).getName() );
 
-        dA.setName( "B" );
+        dbA.setName( "B" );
 
-        dashboardService.updateDashboard( dA );
+        dashboardService.updateDashboard( dbA );
 
         assertEquals( "B", dashboardService.getDashboard( dAId ).getName() );
     }
@@ -169,8 +169,8 @@ public class DashboardServiceTest
     {
         // ## Ensuring the preparation for deletion
         // When saved
-        final long dAId = dashboardService.saveDashboard( dA );
-        final long dBId = dashboardService.saveDashboard( dB );
+        final long dAId = dashboardService.saveDashboard( dbA );
+        final long dBId = dashboardService.saveDashboard( dbB );
 
         // Then confirm that they were saved
         assertThatDashboardAndItemsArePersisted( dAId );
@@ -182,8 +182,8 @@ public class DashboardServiceTest
         final List<DashboardItem> itemsOfDashB = dashboardService.getDashboard( dBId ).getItems();
 
         // When deleted
-        dashboardService.deleteDashboard( dA );
-        dashboardService.deleteDashboard( dB );
+        dashboardService.deleteDashboard( dbA );
+        dashboardService.deleteDashboard( dbB );
 
         // Then confirm that they were deleted
         assertDashboardAndItemsAreDeleted( dAId, itemsOfDashA );
@@ -217,10 +217,10 @@ public class DashboardServiceTest
     @Test
     public void testAddItemContent()
     {
-        dashboardService.saveDashboard( dA );
-        dashboardService.saveDashboard( dB );
+        dashboardService.saveDashboard( dbA );
+        dashboardService.saveDashboard( dbB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dA.getUid(), DashboardItemType.VISUALIZATION, visualizationA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION, vzA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
@@ -255,20 +255,20 @@ public class DashboardServiceTest
     @Test
     public void testSearchDashboard()
     {
-        dashboardService.saveDashboard( dA );
-        dashboardService.saveDashboard( dB );
+        dashboardService.saveDashboard( dbA );
+        dashboardService.saveDashboard( dbB );
 
         DashboardSearchResult result = dashboardService.search( "A" );
-        assertEquals(1, result.getVisualizationCount() );
-        assertEquals(1, result.getResourceCount() );
+        assertEquals( 1, result.getVisualizationCount() );
+        assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "B" );
-        assertEquals(1, result.getVisualizationCount() );
-        assertEquals(1, result.getResourceCount() );
+        assertEquals( 1, result.getVisualizationCount() );
+        assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "Z" );
-        assertEquals(0, result.getVisualizationCount() );
-        assertEquals(0, result.getResourceCount() );
+        assertEquals( 0, result.getVisualizationCount() );
+        assertEquals( 0, result.getResourceCount() );
     }
 
     @Test
@@ -277,14 +277,14 @@ public class DashboardServiceTest
         Program prA = createProgram( 'A', null, null );
         objectManager.save( prA );
 
-        IntStream.range(1, 30).forEach( i -> {
-            Visualization visualization = createVisualization( "A" );
+        IntStream.range( 1, 30 ).forEach( i -> {
+            Visualization visualization = createVisualization( 'A' );
             visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
 
-        });
+        } );
 
-        IntStream.range(1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
+        IntStream.range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
 
         DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ) );
 
@@ -301,6 +301,13 @@ public class DashboardServiceTest
         assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
 
+    }
+
+    private Visualization createVisualization( String name )
+    {
+        Visualization visualization = createVisualization( 'X' );
+        visualization.setName( name );
+        return visualization;
     }
 
     private EventChart createEventChart( Program program )

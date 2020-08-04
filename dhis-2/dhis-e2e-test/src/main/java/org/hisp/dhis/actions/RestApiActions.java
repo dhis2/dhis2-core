@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,13 +28,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
 
 import java.io.File;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
@@ -123,7 +125,7 @@ public class RestApiActions
      * Shortcut used in preconditions only.
      * Sends post request to specified endpoint and verifies that request was successful
      *
-     * @param object Body of reqeuest
+     * @param object Body of request
      * @return ID of generated entity.
      */
     public String create( Object object )
@@ -131,7 +133,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode( Matchers.isOneOf( 200, 201 ) );
+            .statusCode(  is(oneOf( 200, 201 ) ) );
 
         return response.extractUid();
     }
@@ -162,16 +164,12 @@ public class RestApiActions
      *
      * @param resourceId         Id of resource
      * @param queryParamsBuilder Query params to append to url
-     * @return
      */
     public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get( resourceId + path );
+        Response response = this.given().contentType( ContentType.TEXT ).when().get( resourceId + path );
 
         return new ApiResponse( response );
     }
@@ -183,7 +181,6 @@ public class RestApiActions
      * @param contentType           Content type of the request
      * @param accept                Accepted response Content type
      * @param queryParamsBuilder    Query params to append to url
-     * @return
      */
     public ApiResponse get( String resourceId, String contentType, String accept, QueryParamsBuilder queryParamsBuilder )
     {
@@ -204,7 +201,6 @@ public class RestApiActions
      *
      * @param resourceId            Id of resource
      * @param queryParamsBuilder    Query params to append to url
-     * @return
      */
     public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
@@ -218,7 +214,6 @@ public class RestApiActions
      * If delete request successful, removes entity from TestRunStorage.
      *
      * @param path Id of resource
-     * @return
      */
     public ApiResponse delete( String path )
     {
@@ -239,7 +234,6 @@ public class RestApiActions
      *
      * @param resourceId Id of resource
      * @param object     Body of request
-     * @return
      */
     public ApiResponse update( String resourceId, Object object )
     {
@@ -277,12 +271,12 @@ public class RestApiActions
         {
             return;
         }
+
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
-            importSummaries.forEach( importSummary -> {
-                TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() );
-            } );
+            importSummaries
+                .forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ) );
             return;
         }
 
@@ -290,9 +284,8 @@ public class RestApiActions
         {
             SchemasActions schemasActions = new SchemasActions();
             response.getTypeReports().stream()
-                .filter( typeReport -> {
-                    return typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0;
-                } )
+                .filter(
+                    typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0 )
                 .forEach( tr -> {
                     List<ObjectReport> objectReports = tr.getObjectReports();
 
@@ -314,7 +307,6 @@ public class RestApiActions
         {
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
-
     }
 }
 

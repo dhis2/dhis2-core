@@ -151,7 +151,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         String value = (String) propertyObject;
 
-        // check column max length
+        // Check column max length
         if ( value.length() > property.getLength() )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4001, property.getName(), property.getLength(), value.length() )
