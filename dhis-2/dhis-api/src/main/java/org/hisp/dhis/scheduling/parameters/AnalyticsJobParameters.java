@@ -53,7 +53,7 @@ public class AnalyticsJobParameters
 {
     private static final long serialVersionUID = 4613054056442242637L;
 
-    private Integer lastYears;
+    private Integer lastYears = 0;
 
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
