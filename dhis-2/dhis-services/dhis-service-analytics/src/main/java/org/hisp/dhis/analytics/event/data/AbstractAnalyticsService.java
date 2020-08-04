@@ -199,14 +199,22 @@ public abstract class AbstractAnalyticsService
             metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
         }
 
-        params.getItemLegends().forEach( legend -> metadataItemMap.put( legend.getUid(),
-            new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) ) );
+        params.getItemLegends().stream()
+            .filter( legend -> legend != null )
+            .forEach( legend -> metadataItemMap.put( legend.getUid(),
+                new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
+                    legend.getCode() ) ) );
 
-        params.getItemOptions().forEach( option -> metadataItemMap.put( option.getUid(),
-            new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) ) );
+        params.getItemOptions().stream()
+            .filter( option -> option != null )
+            .forEach( option -> metadataItemMap.put( option.getUid(),
+                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                    option.getCode() ) ) );
 
-        params.getItemsAndItemFilters().forEach( item -> metadataItemMap.put( item.getItemId(),
-            new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+        params.getItemsAndItemFilters().stream()
+            .filter( item -> item != null )
+            .forEach( item -> metadataItemMap.put( item.getItemId(),
+                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
         return metadataItemMap;
     }
