@@ -62,9 +62,22 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @Configuration( "dxf2ServiceConfig" )
-@SuppressWarnings("unchecked")
 public class ServiceConfig
 {
+    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
+        DeletionCheck.class );
 
     @Autowired
     @Qualifier( "initialInterval" )
@@ -92,27 +105,6 @@ public class ServiceConfig
 
         return retryTemplate;
     }
-
-    /*
-
-    Default validation chains for each Import Strategy
-
-     */
-
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
-        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
-        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
-        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
-        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
-        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
-        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
-        DeletionCheck.class );
 
     @Bean( "validatorMap" )
     public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
