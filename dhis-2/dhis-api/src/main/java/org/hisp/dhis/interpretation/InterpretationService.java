@@ -65,7 +65,7 @@ public interface InterpretationService
 
     void updateComment( Interpretation interpretation, InterpretationComment comment );
 
-    void updateSharingForMentions( Interpretation interpretation, Set<User> users );
+    boolean updateSharingForMentions( Interpretation interpretation, Set<User> users );
 
     void updateCurrentUserLastChecked();
 
