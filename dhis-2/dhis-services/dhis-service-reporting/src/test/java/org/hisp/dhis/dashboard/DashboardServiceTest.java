@@ -49,7 +49,6 @@ import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

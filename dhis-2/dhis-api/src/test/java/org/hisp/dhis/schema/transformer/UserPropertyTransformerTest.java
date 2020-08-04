@@ -1,4 +1,4 @@
-package org.hisp.dhis.keyjsonvalue;
+package org.hisp.dhis.schema.transformer;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,59 +26,40 @@ package org.hisp.dhis.keyjsonvalue;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-import org.hisp.dhis.metadata.version.MetadataVersionService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.junit.Test;
 
-import java.util.List;
+import java.util.UUID;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
-public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
+public class UserPropertyTransformerTest
 {
-    private final KeyJsonValueStore keyJsonValueStore;
+    private static final UUID uuid = UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" );
 
-    public DefaultMetadataKeyJsonService(
-        KeyJsonValueStore keyJsonValueStore )
+    @Test
+    public void testUserTransform()
     {
-        checkNotNull( keyJsonValueStore );
+        User user = new User();
+        UserCredentials userCredentials = new UserCredentials();
+        userCredentials.setUuid( uuid );
+        userCredentials.setUser( user );
+        userCredentials.setUsername( "test" );
+        userCredentials.setUserInfo( user );
 
-        this.keyJsonValueStore = keyJsonValueStore;
-    }
+        user.setUserCredentials( userCredentials );
+        user.setUser( user );
 
-    @Override
-    @Transactional( readOnly = true )
-    public KeyJsonValue getMetaDataVersion( String key )
-    {
-        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
-    }
+        UserPropertyTransformer transformer = new UserPropertyTransformer();
+        UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );
 
-    @Override
-    @Transactional
-    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
-    {
-        keyJsonValueStore.delete( keyJsonValue );
-    }
-
-    @Override
-    @Transactional
-    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
-    {
-        keyJsonValueStore.save( keyJsonValue );
-
-        return keyJsonValue.getId();
-    }
-
-    @Override
-    public List<String> getAllVersions()
-    {
-        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        assertEquals( uuid.toString(), userDto.getId() );
+        assertEquals( "test", userDto.getUsername() );
     }
 }

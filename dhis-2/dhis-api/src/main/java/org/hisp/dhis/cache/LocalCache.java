@@ -110,15 +110,17 @@ public class LocalCache<V> implements Cache<V>
         }
 
         V value = cache2kInstance.get( key );
+
         if ( value == null )
         {
             value = mappingFunction.apply( key );
+
+            if ( value != null )
+            {
+                cache2kInstance.put( key, value );
+            }
         }
 
-        if ( value != null )
-        {
-            cache2kInstance.put( key, value );
-        }
         return Optional.ofNullable( Optional.ofNullable( value ).orElse( defaultValue ) );
     }
 
