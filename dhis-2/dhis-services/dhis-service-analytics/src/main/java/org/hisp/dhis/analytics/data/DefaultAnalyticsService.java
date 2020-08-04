@@ -80,8 +80,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.DoubleAccumulator;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -90,7 +88,6 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -1382,12 +1379,12 @@ public class DefaultAnalyticsService
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
-        if ( grid.getRows().size() == 0 )
+        if ( grid.getRows().isEmpty() )
         {
             return result;
         }
 
-        // Derive the Grid indexes for data, value and period based on the first row of the Grid
+        // Derive the Grid indexes for data, value and period based on the first row of the grid
         final int dataIndex = GridUtils.getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
         final int periodIndex = GridUtils.getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
         final int valueIndex = grid.getWidth() - 1;
@@ -1399,9 +1396,7 @@ public class DefaultAnalyticsService
             final List<DimensionalItemObject> dimensionalItems = AnalyticsUtils
                 .findDimensionalItems( (String) row.get( dataIndex ), items );
 
-            // Check if the current row's Period belongs to the list of periods from the
-            // original Analytics request
-            // The row may not have a Period if Period is used as filter
+            // Check if periods of the current row belong to the list of periods from the original analytics request
             if ( AnalyticsUtils.hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
             {
                 if ( dimensionalItems.size() == 1 )
@@ -1489,6 +1484,6 @@ public class DefaultAnalyticsService
     {
         Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
 
-        return (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
+        return ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
     }
 }
