@@ -334,17 +334,22 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         }
 
         @Bean
+        private static ExternalAccessVoter getExternalAccessVoter()
+        {
+            return new ExternalAccessVoter();
+        }
+
+        @Bean
         public LogicalOrAccessDecisionManager accessDecisionManager()
         {
             List<AccessDecisionManager> decisionVoters = Arrays.asList(
                 new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
                 new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
                 new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( new ExternalAccessVoter() ) ),
+                new UnanimousBased( ImmutableList.of( getExternalAccessVoter() ) ),
                 new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) )
             );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }
-
 }
