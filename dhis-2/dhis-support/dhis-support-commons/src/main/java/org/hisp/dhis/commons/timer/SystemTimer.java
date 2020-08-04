@@ -65,7 +65,7 @@ public class SystemTimer
     @Override
     public String toString()
     {
-        double seconds = TimeUnit.MILLISECONDS.convert( duration(), TimeUnit.NANOSECONDS ) / 1000.0f;
-        return String.format( "%.2f seconds", seconds );
+        double seconds = duration() / (double) TimeUnit.SECONDS.toNanos( 1 );
+        return String.format( "%f sec.",  seconds );
     }
 }

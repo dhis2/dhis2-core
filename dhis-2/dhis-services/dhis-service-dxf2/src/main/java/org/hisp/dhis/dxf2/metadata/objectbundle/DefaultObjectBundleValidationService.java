@@ -71,10 +71,10 @@ public class DefaultObjectBundleValidationService
 
         ObjectBundleValidationReport validation = new ObjectBundleValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
+        if ( ( bundle.getUser() == null || bundle.getUser().isSuper() ) && bundle.isSkipValidation() )
         {
-            log.warn(
-                "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
+            log.warn( "Skipping validation for metadata import by user '" +
+                bundle.getUsername() + "'. Not recommended." );
             return validation;
         }
 
@@ -90,7 +90,7 @@ public class DefaultObjectBundleValidationService
 
             // Validate the bundle by running the validation checks chain
             validation.addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects,
-                    nonPersistedObjects ) );
+                nonPersistedObjects ) );
         }
 
         validateAtomicity( bundle, validation );
@@ -114,12 +114,12 @@ public class DefaultObjectBundleValidationService
     {
         if ( AtomicMode.NONE == bundle.getAtomicMode() )
         {
-
             return;
         }
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> nonPersistedObjects = bundle
             .getObjects( false );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> persistedObjects = bundle.getObjects( true );
 
         if ( AtomicMode.ALL == bundle.getAtomicMode() )

@@ -30,12 +30,13 @@ package org.hisp.dhis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
@@ -53,6 +54,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
@@ -79,6 +81,9 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.MapViewRenderingStrategy;
+import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -100,6 +105,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramType;
@@ -196,6 +202,9 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_COC_UID = "cuabcdefgh";
     protected static final String BASE_USER_UID = "userabcdef";
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
+    protected static final String BASE_PG_UID = "pgabcdefgh";
+    protected static final String BASE_PR_UID = "prabcdefgh";
+    protected static final String BASE_TEI_UID = "teibcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
@@ -1259,12 +1268,12 @@ public abstract class DhisConvenienceTest
         return legendSet;
     }
 
-    public static Visualization createVisualization( final String name )
+    public static Visualization createVisualization( char uniqueCharacter )
     {
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
         visualization.setAutoFields();
-        visualization.setName( name );
-        visualization.setType(PIVOT_TABLE);
+        visualization.setName( "Visualization" + uniqueCharacter );
+        visualization.setType( PIVOT_TABLE );
 
         return visualization;
     }
@@ -1327,6 +1336,23 @@ public abstract class DhisConvenienceTest
         user.setAutoFields();
 
         return user;
+    }
+
+    public static MapView createMapView( String layer )
+    {
+        MapView mapView = new MapView();
+        mapView.setAutoFields();
+
+        mapView.setLayer( layer );
+        mapView.setAggregationType( AggregationType.SUM );
+        mapView.setThematicMapType( ThematicMapType.CHOROPLETH );
+        mapView.setProgramStatus( ProgramStatus.COMPLETED );
+        mapView.setOrganisationUnitSelectionMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        mapView.setRenderingStrategy( MapViewRenderingStrategy.SINGLE );
+        mapView.setUserOrgUnitType( UserOrgUnitType.DATA_CAPTURE );
+        mapView.setNoDataColor( "#ddeeff" );
+
+        return mapView;
     }
 
     public static UserCredentials createUserCredentials( char uniqueCharacter, User user )
@@ -1399,6 +1425,7 @@ public abstract class DhisConvenienceTest
         Program program = new Program();
         program.setAutoFields();
 
+        program.setUid( BASE_PR_UID + uniqueCharacter);
         program.setName( "Program" + uniqueCharacter );
         program.setCode( "ProgramCode" + uniqueCharacter );
         program.setShortName( "ProgramShort" + uniqueCharacter );
@@ -1517,6 +1544,7 @@ public abstract class DhisConvenienceTest
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
 
+        programStage.setUid( BASE_PG_UID + uniqueCharacter );
         programStage.setName( "ProgramStage" + uniqueCharacter );
         programStage.setDescription( "description" + uniqueCharacter );
         programStage.setMinDaysFromStart( minDays );
@@ -1699,6 +1727,17 @@ public abstract class DhisConvenienceTest
         return entityInstance;
     }
 
+    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar,
+        OrganisationUnit organisationUnit )
+    {
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        entityInstance.setAutoFields();
+        entityInstance.setOrganisationUnit( organisationUnit );
+        entityInstance.setUid( BASE_TEI_UID + uniqueChar );
+
+        return entityInstance;
+    }
+
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
@@ -1797,7 +1836,7 @@ public abstract class DhisConvenienceTest
     public static FileResource createFileResource( char uniqueChar, byte[] content )
     {
         String filename = "filename" + uniqueChar;
-        String contentMd5 = Hashing.md5().hashBytes( content ).toString();
+        String contentMd5 = DigestUtils.md5( content ).toString();
         String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
         FileResource fileResource = new FileResource( filename, contentType, content.length, contentMd5, FileResourceDomain.DATA_VALUE );

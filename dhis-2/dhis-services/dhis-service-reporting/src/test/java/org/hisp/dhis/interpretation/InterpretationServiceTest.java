@@ -81,7 +81,7 @@ public class InterpretationServiceTest
     private User userA;
 
     private User userB;
-    
+
     private User userC;
 
     private Visualization visualizationA;
@@ -97,7 +97,7 @@ public class InterpretationServiceTest
     {
         userService = _userService;
     }
-    
+
     @Before
     public void beforeTest()
     {
@@ -110,11 +110,11 @@ public class InterpretationServiceTest
 
         setDependency( interpretationService, "currentUserService", new MockCurrentUserService( userA ),
             CurrentUserService.class );
-        
+
         setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB, userC) ),
             UserService.class );
 
-        visualizationA = createVisualization( "Visualization-A" );
+        visualizationA = createVisualization( 'A' );
         visualizationService.save(visualizationA);
 
         interpretationA = new Interpretation( visualizationA, null, "Interpration of chart A" );
@@ -126,7 +126,7 @@ public class InterpretationServiceTest
     public void testConstruct()
     {
         // Given
-        final Visualization aVisualizationA = createVisualization( "Visualization-A" );
+        final Visualization aVisualizationA = createVisualization( 'A' );
 
         // When
         final Interpretation anInterpretationA = new Interpretation( aVisualizationA, null, "InterpretationA" );
@@ -229,7 +229,7 @@ public class InterpretationServiceTest
     public void testMentions()
     {
         String text;
-        // Testing with mentions 
+        // Testing with mentions
         interpretationA = new Interpretation(visualizationA, null, "Interpration of chart A with Mentions @" + userA.getUsername() );
         interpretationService.saveInterpretation( interpretationA );
 
@@ -237,18 +237,18 @@ public class InterpretationServiceTest
         assertNotNull( uid );
         assertNotNull( interpretationA.getMentions() );
         assertEquals( 1, interpretationA.getMentions().size() );
-        
+
         text = "Interpretation of chart A with Mentions @" + userA.getUsername() + " @" + userB.getUsername();
         interpretationService.updateInterpretationText( interpretationA, text );
         uid = interpretationA.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationA.getMentions() );
         assertEquals( 2, interpretationA.getMentions().size() );
-        
+
         InterpretationComment interpretationComment = interpretationService.addInterpretationComment( uid, "This interpretation is good @" +  userA.getUsername() + " @" + userB.getUsername());
         assertNotNull( interpretationComment.getMentions() );
         assertEquals( 2, interpretationComment.getMentions().size() );
-        
+
         interpretationA = interpretationService.getInterpretation( uid );
         assertNotNull( interpretationA.getComments() );
         assertEquals( 1, interpretationA.getComments().size() );
@@ -256,37 +256,37 @@ public class InterpretationServiceTest
         assertEquals( 2, interpretationA.getMentions().size() );
         assertNotNull( interpretationComment.getMentions() );
         assertEquals( 2, interpretationComment.getMentions().size() );
-        
+
         InterpretationComment interpretationComment2 = interpretationService.addInterpretationComment( uid, "This interpretation is bad @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername());
         assertNotNull( interpretationComment2.getMentions() );
         assertEquals( 3, interpretationComment2.getMentions().size() );
-        
+
         interpretationA = interpretationService.getInterpretation( uid );
         assertNotNull( interpretationA.getComments() );
         assertEquals( 2, interpretationA.getComments().size() );
-        
+
         // Testing with no mention or non real mentions
         interpretationB = new Interpretation(visualizationA, null, "Interpration of chart B with no mentions");
-        interpretationService.saveInterpretation( interpretationB );      
+        interpretationService.saveInterpretation( interpretationB );
         uid = interpretationB.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationB.getMentions() );
         assertEquals( 0, interpretationB.getMentions().size() );
-        
+
         text = "Interpration of chart B with fake mention @thisisnotauser";
         interpretationService.updateInterpretationText( interpretationB, text );
         uid = interpretationB.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationB.getMentions() );
         assertEquals( 0, interpretationB.getMentions().size() );
-        
+
         text = "Interpration of chart B with 3 mentions @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername();
         interpretationService.updateInterpretationText( interpretationB, text );
         uid = interpretationB.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationB.getMentions() );
         assertEquals( 3, interpretationB.getMentions().size() );
-        
+
         InterpretationComment interpretationComment3 = interpretationService.addInterpretationComment( uid, "This interpretation has no mentions");
         assertNotNull( interpretationComment3.getMentions() );
         assertEquals( 0, interpretationComment3.getMentions().size() );
@@ -294,7 +294,7 @@ public class InterpretationServiceTest
         interpretationComment3 = interpretationService.addInterpretationComment( uid, "This interpretation has a fake mention @thisisnotauser");
         assertNotNull( interpretationComment3.getMentions() );
         assertEquals( 0, interpretationComment3.getMentions().size() );
-        
+
         interpretationA = interpretationService.getInterpretation( uid );
         assertNotNull( interpretationA.getComments() );
         assertEquals( 2, interpretationA.getComments().size() );
@@ -343,7 +343,7 @@ public class InterpretationServiceTest
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
         userGroupService.addUserGroup( userGroup );
 
-        Visualization visualization = createVisualization( "Visualization-A" );
+        Visualization visualization = createVisualization( 'A' );
         manager.save( visualization );
 
         visualization.setPublicAccess( AccessStringHelper.READ_WRITE );

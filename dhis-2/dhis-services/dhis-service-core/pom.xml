@@ -154,14 +154,14 @@
     </dependency>
 
     <!-- Image Processing -->
-    
+
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
     </dependency>
 
     <!-- SMPP -->
-    
+
     <dependency>
       <groupId>org.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
@@ -189,7 +189,7 @@
     <dependency>
       <groupId>com.github.dhis2</groupId>
       <artifactId>sms-compression</artifactId>
-      <version>0.2.1</version>
+      <version>0.2.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -198,7 +198,7 @@
     </dependency>
 
     <!-- Security -->
-    
+
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
       <artifactId>aerogear-otp-java</artifactId>
@@ -211,7 +211,7 @@
     </dependency>
 
     <!-- Test -->
-    
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -230,7 +230,7 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

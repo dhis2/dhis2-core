@@ -28,14 +28,14 @@ package org.hisp.dhis.expression.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.ExpressionItem;
-
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Parsed dimensional item as handled by the expression service.
@@ -48,13 +48,14 @@ public abstract class DimensionalItem
     @Override
     public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        DimensionalItemId itemId = getDimensionalItemId( ctx );
+        DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
 
         DimensionalItemObject item = visitor.getDimensionService().getDataDimensionalItemObject( itemId );
 
         if ( item == null )
         {
-            throw new ParserExceptionWithoutContext( "Can't find " + itemId.getDimensionItemType().name() + " for '" + itemId + "'" );
+            throw new ParserExceptionWithoutContext(
+                "Can't find " + itemId.getDimensionItemType().name() + " for '" + itemId + "'" );
         }
 
         visitor.getItemDescriptions().put( ctx.getText(), item.getDisplayName() );
@@ -65,7 +66,7 @@ public abstract class DimensionalItem
     @Override
     public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getItemIds().add( getDimensionalItemId( ctx ) );
+        visitor.getItemIds().add( getDimensionalItemId( ctx, visitor ) );
 
         return DOUBLE_VALUE_IF_NULL;
     }
@@ -79,7 +80,7 @@ public abstract class DimensionalItem
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Double value = visitor.getItemValueMap().get( getId( ctx ) );
+        Double value = visitor.getItemValueMap().get( getId( ctx, visitor ) );
 
         return visitor.handleNulls( value );
     }
@@ -88,9 +89,11 @@ public abstract class DimensionalItem
      * Constructs the DimensionalItemId object for this item.
      *
      * @param ctx the parser item context
+     * @param visitor
      * @return the DimensionalItemId object for this item
      */
-    public abstract DimensionalItemId getDimensionalItemId( ExprContext ctx );
+    public abstract DimensionalItemId getDimensionalItemId( ExprContext ctx,
+        CommonExpressionVisitor visitor );
 
     /**
      * Returns the id for this item.
@@ -100,5 +103,5 @@ public abstract class DimensionalItem
      * @param ctx the parser item context
      * @return the id for this item
      */
-    public abstract String getId( ExprContext ctx );
+    public abstract String getId( ExprContext ctx, CommonExpressionVisitor visitor );
 }

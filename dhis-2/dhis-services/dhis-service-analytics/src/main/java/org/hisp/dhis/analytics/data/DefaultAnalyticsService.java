@@ -50,6 +50,8 @@ import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.isPeriodInPeriods;
+import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.getPeriodOffsetRow;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
@@ -78,9 +80,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.DoubleAccumulator;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -108,6 +118,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -148,7 +159,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
@@ -493,7 +503,7 @@ public class DefaultAnalyticsService
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
 
-            Map<String, Map<DimensionalItemObject, Double>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
+            Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
 
             handleEmptyDimensionItemPermutations( dimensionItemPermutations );
 
@@ -503,8 +513,7 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap
-                        .getOrDefault( permKey, new HashMap<>() );
+                    final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
 
                     List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
                         : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
@@ -515,7 +524,8 @@ public class DefaultAnalyticsService
 
                     Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null ? permutationOrgUnitTargetMap.get( ou ) : null;
 
-                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, periods, valueMap, constantMap, orgUnitCountMap );
+                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, periods,
+                        DimensionalObjectUtils.convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
 
                     if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
@@ -1321,13 +1331,12 @@ public class DefaultAnalyticsService
      *
      * @param params the {@link DataQueryParams}.
      */
-    private Map<String, Map<DimensionalItemObject, Double>> getPermutationDimensionItemValueMap( DataQueryParams params )
+    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap( DataQueryParams params )
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
-        Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
-
-        return DataQueryParams.getPermutationDimensionalItemValueMap( valueMap );
+        return DataQueryParams
+            .getPermutationDimensionalItemValueMap( getAggregatedDataValueMap( params, indicators ) );
     }
 
     /**
@@ -1341,19 +1350,22 @@ public class DefaultAnalyticsService
      * @param indicators the list of indicators.
      * @return a dimensional items to aggregate values map.
      */
-    private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
+    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap( DataQueryParams params,
+        List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists
-                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
+            .newArrayList(
+                expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
 
         if ( items.isEmpty() )
         {
-            return Maps.newHashMap();
+            return new ArrayListValuedHashMap<>();
         }
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 
-        DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
+        DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = DataQueryParams
             .newBuilder( params )
@@ -1364,9 +1376,74 @@ public class DefaultAnalyticsService
             .withOutputFormat( OutputFormat.ANALYTICS )
             .withSkipMeta( true ).build();
 
+        // Each row in the Grid contains: dimension uid | period | value
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
+        MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
-        return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
+        if ( grid.getRows().size() == 0 )
+        {
+            return result;
+        }
+
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
+            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
+
+        final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
+        final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
+        final int valueIndex = grid.getWidth() - 1;
+
+        final List<DimensionalItemObject> basePeriods = params.getPeriods();
+
+        for ( List<Object> row : grid.getRows() )
+        {
+            final List<DimensionalItemObject> dimensionalItems = AnalyticsUtils
+                .findDimensionalItems( (String) row.get( dataIndex ), items );
+
+            // Check if the current row's Period belongs to the list of periods from the
+            // original Analytics request
+            // The row may not have a Period if Period is used as filter
+            if ( AnalyticsUtils.hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+            {
+                if ( dimensionalItems.size() == 1 )
+                {
+                    // Key is composed of [uid-period]
+                    final String key = StringUtils.join(
+                        ArrayUtils.remove( row.toArray( new Object[0] ), valueIndex ),
+                        DimensionalObject.DIMENSION_SEP );
+
+                    final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
+                    DimensionalItemObject clone = dimensionalItemObject;
+
+                    if ( dimensionalItemObject.getPeriodOffset() != 0 )
+                    {
+                        List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
+                            (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
+
+                        if ( periodOffsetRow != null )
+                        {
+                            result.put( key,
+                                new DimensionItemObjectValue( dimensionalItemObject,
+                                    (Double) periodOffsetRow.get( valueIndex ) ) );
+                        }
+
+                        clone = SerializationUtils.clone( dimensionalItemObject );
+                    }
+
+                    result.put( key,
+                        new DimensionItemObjectValue( clone, ((Number) row.get( valueIndex )).doubleValue() ) );
+                }
+            }
+            else
+            {
+                if ( dimensionalItems.size() == 1 )
+                {
+                    result.put( dimensionalItems.get( 0 ).getDimensionItem(),
+                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                }
+            }
+        }
+
+        return result;
     }
 
     /**
