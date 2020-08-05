@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.program.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -41,10 +42,12 @@ import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
@@ -79,6 +82,8 @@ public class HibernateProgramInstanceStore
     extends SoftDeleteHibernateObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
+    private final static String STATUS = "status";
+
     private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
         Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
@@ -176,7 +181,7 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasProgramStatus() )
         {
-            hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
+            hql += hlp.whereAnd() + "pi." + STATUS + " = '" + params.getProgramStatus() + "'";
         }
 
         if ( params.hasFollowUp() )
@@ -217,7 +222,7 @@ public class HibernateProgramInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
+            .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
 
     @Override
@@ -228,7 +233,7 @@ public class HibernateProgramInstanceStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
+            .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
 
     @Override
@@ -326,6 +331,40 @@ public class HibernateProgramInstanceStore
     {
         publisher.publishEvent( new ObjectDeletionRequestedEvent( programInstance ) );
         getSession().delete( programInstance );
+    }
+
+    @Override
+    public List<ProgramInstance> getByProgramAndTrackedEntityInstance(
+        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
+    {
+        checkNotNull( programTeiPair );
+
+        if ( programTeiPair.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<ProgramInstance> cr = cb.createQuery( ProgramInstance.class );
+        Root<ProgramInstance> programInstance = cr.from( ProgramInstance.class );
+
+        // Constructing list of parameters
+        List<Predicate> predicates = new ArrayList<>();
+
+        // TODO we may have potentially thousands of events here, so, it's better to
+        // partition the list
+        for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
+        {
+            predicates.add( cb.and(
+                cb.equal( programInstance.get( "program" ), pair.getLeft() ),
+                cb.equal( programInstance.get( "entityInstance" ), pair.getRight() ),
+                cb.equal( programInstance.get( STATUS ), programStatus ) ) );
+        }
+
+        cr.select( programInstance )
+            .where( cb.or( predicates.toArray( new Predicate[] {} ) ) );
+
+        return sessionFactory.getCurrentSession().createQuery( cr ).getResultList();
     }
 
     private String toDateProperty( NotificationTrigger trigger )

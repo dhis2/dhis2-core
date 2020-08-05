@@ -177,6 +177,8 @@ public class MapView
 
     private ThematicMapType thematicMapType;
 
+    private EventStatus eventStatus;
+
     /**
      * General configuration property for JSON values used to store information
      * for layers with arbitrary configuration needs.
@@ -749,6 +751,18 @@ public class MapView
     public void setThematicMapType( ThematicMapType thematicMapType )
     {
         this.thematicMapType = thematicMapType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventStatus getEventStatus()
+    {
+        return eventStatus;
+    }
+
+    public void setEventStatus( EventStatus eventStatus )
+    {
+        this.eventStatus = eventStatus;
     }
 
     @JsonProperty

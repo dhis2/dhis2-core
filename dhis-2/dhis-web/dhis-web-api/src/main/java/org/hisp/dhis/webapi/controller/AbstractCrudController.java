@@ -251,7 +251,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             }
             else
             {
-                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey( currentUser, filters, options ), () -> count( metadata, options, filters, orders ) );
+                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( options, filters, orders ) );
             }
 
             pager = new Pager( options.getPage(), count, options.getPageSize() );
@@ -753,7 +753,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T parsed = deserializeJsonEntity( request, response );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
-        System.err.println( renderService.toJsonAsString( parsed.getUser() ) );
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
@@ -1187,7 +1186,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
             options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );

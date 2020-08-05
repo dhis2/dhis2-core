@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -43,9 +44,11 @@ import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,6 +85,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
     @Mock
     private RuleActionSendMessageImplementer ruleActionSendMessage;
+
+    @Mock
+    private ProgramRuleService programRuleService;
 
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
@@ -194,6 +200,17 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+    }
+
+    @Test
+    public void testGetDescription()
+    {
+        RuleValidationResult result = RuleValidationResult.builder().isValid( true ).build();
+        when( programRuleService.getProgramRule( anyString() ) ).thenReturn( programRuleA );
+        when( programRuleEngine.getDescription( programRuleA.getCondition(), programRuleA ) ).thenReturn( result );
+
+        assertNotNull( result );
+        assertTrue( result.isValid() );
     }
 
     // -------------------------------------------------------------------------

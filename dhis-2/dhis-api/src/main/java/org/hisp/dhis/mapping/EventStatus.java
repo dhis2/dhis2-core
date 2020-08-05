@@ -1,4 +1,4 @@
-package org.hisp.dhis.visualization;
+package org.hisp.dhis.mapping;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,20 +28,11 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum VisualizationType
+public enum EventStatus
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    STACKED_AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE,
-    PIVOT_TABLE
+    ACTIVE,
+    COMPLETED,
+    SCHEDULE,
+    OVERDUE,
+    SKIPPED
 }
