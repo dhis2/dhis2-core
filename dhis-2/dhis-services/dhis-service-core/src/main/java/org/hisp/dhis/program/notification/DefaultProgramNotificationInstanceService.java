@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,56 +43,56 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 
 @Service( "org.hisp.dhis.program.notification.ProgramNotificationInstanceService" )
-public class DefaultProgramNotificationInstanceService implements ProgramNotificationInstanceService
+public class DefaultProgramNotificationInstanceService
+    implements ProgramNotificationInstanceService
 {
-    private final ProgramNotificationInstanceStore programNotificationInstanceStore;
+    private final ProgramNotificationInstanceStore notificationInstanceStore;
 
-    public DefaultProgramNotificationInstanceService( ProgramNotificationInstanceStore programNotificationInstanceStore )
+    public DefaultProgramNotificationInstanceService( ProgramNotificationInstanceStore notificationInstanceStore )
     {
-        checkNotNull( programNotificationInstanceStore );
-
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
+        checkNotNull( notificationInstanceStore );
+        this.notificationInstanceStore = notificationInstanceStore;
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance )
     {
-        return programNotificationInstanceStore.getProgramNotificationInstances( programInstance );
+        return notificationInstanceStore.getProgramNotificationInstances( programInstance );
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance )
     {
-        return programNotificationInstanceStore.getProgramNotificationInstances( programStageInstance );
+        return notificationInstanceStore.getProgramNotificationInstances( programStageInstance );
     }
 
     @Override
     @Transactional( readOnly = true )
     public ProgramNotificationInstance get( long programNotificationInstance )
     {
-        return programNotificationInstanceStore.get( programNotificationInstance );
+        return notificationInstanceStore.get( programNotificationInstance );
     }
 
     @Override
     @Transactional
     public void save( ProgramNotificationInstance programNotificationInstance )
     {
-        programNotificationInstanceStore.save( programNotificationInstance );
+        notificationInstanceStore.save( programNotificationInstance );
     }
 
     @Override
     @Transactional
     public void update( ProgramNotificationInstance programNotificationInstance )
     {
-        programNotificationInstanceStore.update( programNotificationInstance );
+        notificationInstanceStore.update( programNotificationInstance );
     }
 
     @Override
     @Transactional
     public void delete( ProgramNotificationInstance programNotificationInstance )
     {
-        programNotificationInstanceStore.delete( programNotificationInstance );
+        notificationInstanceStore.delete( programNotificationInstance );
     }
 }

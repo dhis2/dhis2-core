@@ -46,8 +46,9 @@ import java.util.List;
  */
 
 @Repository( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-public class HibernateProgramNotificationInstanceStore extends HibernateIdentifiableObjectStore<ProgramNotificationInstance>
-    implements ProgramNotificationInstanceStore
+public class HibernateProgramNotificationInstanceStore
+    extends HibernateIdentifiableObjectStore<ProgramNotificationInstance>
+        implements ProgramNotificationInstanceStore
 {
     public HibernateProgramNotificationInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
