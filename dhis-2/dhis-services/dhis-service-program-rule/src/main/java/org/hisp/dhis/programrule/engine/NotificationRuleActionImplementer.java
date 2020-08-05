@@ -37,7 +37,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
@@ -61,7 +61,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     // Dependencies
     // -------------------------------------------------------------------------
 
-    protected final ProgramNotificationTemplateStore programNotificationTemplateStore;
+    protected final ProgramNotificationTemplateService programNotificationTemplateService;
 
     protected final NotificationLoggingService notificationLoggingService;
 
@@ -69,12 +69,12 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
     protected final ProgramStageInstanceService programStageInstanceService;
 
-    public NotificationRuleActionImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
-          NotificationLoggingService notificationLoggingService,
-          ProgramInstanceService programInstanceService,
-          ProgramStageInstanceService programStageInstanceService )
+    public NotificationRuleActionImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService )
     {
-        this.programNotificationTemplateStore = programNotificationTemplateStore;
+        this.programNotificationTemplateService = programNotificationTemplateService;
         this.notificationLoggingService = notificationLoggingService;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
@@ -107,7 +107,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
             uid = scheduleMessage.notification();
         }
 
-        return programNotificationTemplateStore.getByUid( uid );
+        return programNotificationTemplateService.getByUid( uid );
     }
 
     protected String generateKey( ProgramNotificationTemplate template, ProgramInstance programInstance )

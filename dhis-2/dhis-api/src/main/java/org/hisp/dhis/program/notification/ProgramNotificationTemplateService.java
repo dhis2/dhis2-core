@@ -1,3 +1,5 @@
+package org.hisp.dhis.program.notification;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,41 +28,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.program.notification;
-
 import java.util.List;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
- * Created by zubair@dhis2.org on 16.11.17.
+ * @author Zubair Asghar
  */
-@Repository( "org.hisp.dhis.program.ProgramNotificationTemplateStore" )
-public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
-    implements ProgramNotificationTemplateStore
+public interface ProgramNotificationTemplateService
 {
-    public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramNotificationTemplate.class, currentUserService,
-            aclService, true );
-    }
+    ProgramNotificationTemplate get( long programNotificationTemplate );
 
-    @Override
-    public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    ProgramNotificationTemplate getByUid( String programNotificationTemplate );
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "notificationtrigger" ), trigger ) ) );
-    }
+    void save( ProgramNotificationTemplate programNotificationTemplate );
+
+    void update( ProgramNotificationTemplate programNotificationTemplate );
+
+    void delete( ProgramNotificationTemplate programNotificationTemplate );
+
+    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger );
 }

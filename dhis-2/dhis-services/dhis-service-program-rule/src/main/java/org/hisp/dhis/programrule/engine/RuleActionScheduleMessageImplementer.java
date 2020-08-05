@@ -38,7 +38,9 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
@@ -61,16 +63,16 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+    private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
          NotificationLoggingService notificationLoggingService,
          ProgramInstanceService programInstanceService,
          ProgramStageInstanceService programStageInstanceService,
-         @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
+         ProgramNotificationInstanceService programNotificationInstanceService )
     {
-        super(programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService);
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
+        this.programNotificationInstanceService = programNotificationInstanceService;
     }
 
     @Override
@@ -108,7 +110,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         notificationInstance.setProgramStageInstance( null );
         notificationInstance.setProgramInstance( programInstance );
 
-        programNotificationInstanceStore.save( notificationInstance );
+        programNotificationInstanceService.save( notificationInstance );
 
         log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
 
@@ -146,7 +148,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 
-        programNotificationInstanceStore.save( notificationInstance );
+        programNotificationInstanceService.save( notificationInstance );
 
         log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
 

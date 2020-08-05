@@ -65,13 +65,13 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private final ApplicationEventPublisher publisher;
 
-    public RuleActionSendMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+    public RuleActionSendMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
          NotificationLoggingService notificationLoggingService,
          ProgramInstanceService programInstanceService,
          ProgramStageInstanceService programStageInstanceService,
          ApplicationEventPublisher publisher )
     {
-        super( programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService );
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
         this.publisher = publisher;
     }
 
