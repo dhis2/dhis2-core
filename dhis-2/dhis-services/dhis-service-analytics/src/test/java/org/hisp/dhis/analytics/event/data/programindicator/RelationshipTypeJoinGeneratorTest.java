@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.event.data.programIndicator;
+package org.hisp.dhis.analytics.event.data.programindicator;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.event.data.programIndicator;
  */
 
 import com.google.common.collect.ImmutableMap;
+
+import org.hisp.dhis.analytics.event.data.programindicator.RelationshipTypeJoinGenerator;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
