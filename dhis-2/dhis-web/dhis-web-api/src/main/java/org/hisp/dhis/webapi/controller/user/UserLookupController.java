@@ -35,6 +35,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.user.UserLookup;
+import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,14 +66,16 @@ public class UserLookupController
     }
 
     @GetMapping
-    public List<UserLookup> lookUpUsers( @RequestParam String query )
+    public UserLookups lookUpUsers( @RequestParam String query )
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
             .setMax( 25 );
 
-        return userService.getUsers( params ).stream()
+        List<UserLookup> users = userService.getUsers( params ).stream()
             .map( user -> UserLookup.fromUser( user ) )
             .collect( Collectors.toList() );
+
+        return new UserLookups( users );
     }
 }

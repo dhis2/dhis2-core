@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -66,7 +65,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
-@Slf4j
 @RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
 {

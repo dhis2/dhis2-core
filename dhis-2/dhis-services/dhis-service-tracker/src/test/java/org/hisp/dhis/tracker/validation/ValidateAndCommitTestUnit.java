@@ -63,7 +63,7 @@ public class ValidateAndCommitTestUnit
 
     private Exception commitException;
 
-    private boolean forceCommit = false;
+    private boolean forceCommit;
 
     @Builder.Default
     private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
