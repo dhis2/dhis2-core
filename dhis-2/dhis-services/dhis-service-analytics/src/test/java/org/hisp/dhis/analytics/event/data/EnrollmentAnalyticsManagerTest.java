@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
