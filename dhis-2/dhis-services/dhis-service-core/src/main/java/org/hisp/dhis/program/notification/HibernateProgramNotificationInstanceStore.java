@@ -63,7 +63,7 @@ public class HibernateProgramNotificationInstanceStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programinstanceid" ), programInstance ) ) );
+            .addPredicate( root -> builder.equal( root.get( "programInstance" ), programInstance ) ) );
     }
 
     @Override
@@ -72,6 +72,6 @@ public class HibernateProgramNotificationInstanceStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programstageinstanceid" ), programStageInstance ) ) );
+            .addPredicate( root -> builder.equal( root.get( "programStageInstance" ), programStageInstance ) ) );
     }
 }

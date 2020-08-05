@@ -77,4 +77,22 @@ public class ProgramNotificationInstanceDeletionHandler
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
+
+    @Override
+    public String allowDeleteProgramInstance( ProgramInstance programInstance )
+    {
+        List<ProgramNotificationInstance> instances = programNotificationInstanceService
+            .getProgramNotificationInstances( programInstance );
+
+        return instances == null || instances.isEmpty() ? null : ERROR;
+    }
+
+    @Override
+    public String allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        List<ProgramNotificationInstance> instances = programNotificationInstanceService
+            .getProgramNotificationInstances( programStageInstance );
+
+        return instances == null || instances.isEmpty() ? null : ERROR;
+    }
 }
