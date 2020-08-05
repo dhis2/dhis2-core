@@ -153,6 +153,17 @@ public class ObjectBundleServiceFavoritesTest
         assertTrue( visualizations.get( 0 ).getBaseLineValue() < 0 );
         assertTrue( visualizations.get( 1 ).getBaseLineValue() < 0 );
         assertTrue( visualizations.get( 2 ).getBaseLineValue() < 0 );
+
+        assertNotNull( visualizations.get( 0 ).getFontStyle() );
+        assertNotNull( visualizations.get( 1 ).getFontStyle() );
+        assertNotNull( visualizations.get( 2 ).getFontStyle() );
+        assertNotNull( visualizations.get( 0 ).getFontStyle().getVisualizationTitle() );
+        assertNotNull( visualizations.get( 1 ).getFontStyle().getVisualizationTitle() );
+        assertNotNull( visualizations.get( 2 ).getFontStyle().getVisualizationTitle() );
+
+        assertEquals( "color_set_01", visualizations.get( 0 ).getColorSet() );
+        assertEquals( "color_set_01", visualizations.get( 1 ).getColorSet() );
+        assertEquals( "color_set_01", visualizations.get( 2 ).getColorSet() );
     }
 
     @Test

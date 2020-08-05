@@ -327,6 +327,7 @@
           "textAlign": "CENTER"
         }
       },
+      "colorSet": "color_set_01",
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
@@ -458,6 +459,7 @@
           "textAlign": "CENTER"
         }
       },
+      "colorSet": "color_set_01",
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
@@ -589,6 +591,7 @@
           "textAlign": "CENTER"
         }
       },
+      "colorSet": "color_set_01",
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
