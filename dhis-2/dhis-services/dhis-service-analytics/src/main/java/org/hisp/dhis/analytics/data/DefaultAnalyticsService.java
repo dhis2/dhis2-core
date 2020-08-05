@@ -68,7 +68,6 @@ import org.springframework.stereotype.Service;
 public class DefaultAnalyticsService
     implements AnalyticsService
 {
-
     private final AnalyticsSecurityManager securityManager;
 
     private final QueryValidator queryValidator;
@@ -189,7 +188,7 @@ public class DefaultAnalyticsService
     /**
      * Check the common security constraints that should be applied to the given
      * params. Decide access, add constraints and validate.
-     * 
+     *
      * @param params
      * @return the params after the security constraints appliance.
      */

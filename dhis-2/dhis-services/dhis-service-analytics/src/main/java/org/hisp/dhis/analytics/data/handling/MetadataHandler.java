@@ -74,7 +74,6 @@ import com.google.common.collect.Sets;
 @Component
 public class MetadataHandler
 {
-
     final DataQueryService dataQueryService;
 
     public MetadataHandler( DataQueryService dataQueryService )

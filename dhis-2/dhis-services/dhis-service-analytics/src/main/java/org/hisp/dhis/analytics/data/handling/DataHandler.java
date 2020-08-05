@@ -164,7 +164,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DataHandler
 {
-
     private static final int MAX_QUERIES = 8;
 
     private static final int PERCENT = 100;
@@ -270,7 +269,7 @@ public class DataHandler
     /**
      * Based on the given Indicator plus additional parameters, this method will
      * find the respective IndicatorValue.
-     * 
+     *
      * @param filterPeriods the filter periods.
      * @param constantMap the current constants map.
      *        See @{{@link ConstantService#getConstantMap()}}.
@@ -631,7 +630,7 @@ public class DataHandler
     /**
      * Use number of days for daily data sets as target, as query periods might
      * often span/contain different numbers of days.
-     * 
+     *
      * @param periodIndex the index of the period in the "dataRow".
      * @param timeUnits the time unit size found in the current DataQueryParams. See
      *        {@link #getTimeUnits(DataQueryParams)}.
@@ -641,7 +640,7 @@ public class DataHandler
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams).
      * @param queryPt the filter period in the current "dataRow". See {@link PeriodType#getPeriodTypeFromIsoString}.
      * @param dataSetPt the dataset period.
-     * 
+     *
      * @return the calculate target
      */
     private Double getCalculatedTarget( Integer periodIndex, int timeUnits, List<String> dataRow, Double target,
@@ -980,7 +979,7 @@ public class DataHandler
 
     /**
      * Add the given Indicator values to the Grid.
-     * 
+     *
      * @param params the current DataQueryParams.
      * @param grid the current Grid.
      * @param dataSourceParams the DataQueryParams built for Indicators.
@@ -1020,7 +1019,7 @@ public class DataHandler
 
     /**
      * Calculate the dimensional item offset and adds to the give result map.
-     * 
+     *
      * @param grid the current Grid.
      * @param result the map where the values will be added to.
      * @param periodIndex the current grid row period index.
