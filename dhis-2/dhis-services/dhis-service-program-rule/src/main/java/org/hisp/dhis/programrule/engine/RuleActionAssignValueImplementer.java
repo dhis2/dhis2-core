@@ -44,7 +44,6 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar.

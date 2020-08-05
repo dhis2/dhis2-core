@@ -54,7 +54,7 @@ public class DefaultNotificationLoggingService
 
     @Override
     @Transactional( readOnly = true )
-    public ExternalNotificationLogEntry get(String uid )
+    public ExternalNotificationLogEntry get( String uid )
     {
         return notificationLoggingStore.getByUid( uid );
     }
@@ -81,6 +81,7 @@ public class DefaultNotificationLoggingService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean isValidForSending( String key )
     {
         ExternalNotificationLogEntry logEntry = getByKey( key );

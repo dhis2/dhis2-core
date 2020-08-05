@@ -91,7 +91,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return entry;
     }
 
-    @Transactional
+    @Transactional( readOnly = true )
     public ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
         String uid = "";
@@ -126,6 +126,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return notificationInstance;
     }
 
+    @Transactional( readOnly = true )
     public boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
