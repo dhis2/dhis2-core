@@ -322,7 +322,7 @@ public class TrackedEntityInstanceServiceTest
             getDate( 2019, 7, 7 ),
             getDate( 2020, 7, 7 ),
             AssignedUserSelectionMode.PROVIDED,
-            newHashSet( "user-1", "user-2" ),
+            newHashSet( "A1234567890", "B1234567890" ),
             true,
             1,
             50,
@@ -367,8 +367,8 @@ public class TrackedEntityInstanceServiceTest
         assertThat( queryParams.getEventStartDate(), is( getDate( 2019, 7, 7 ) ) );
         assertThat( queryParams.getEventEndDate(), is( getDate( 2020, 7, 7 ) ) );
         assertThat( queryParams.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "user-1" ) ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "user-2" ) ) );
+        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "A1234567890" ) ) );
+        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "B1234567890" ) ) );
 
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( false ) );
