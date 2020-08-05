@@ -64,10 +64,10 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     public TrackedEntityComment from( Note note )
     {
         TrackedEntityComment comment = new TrackedEntityComment();
+        comment.setUid( note.getNote() );
         comment.setAutoFields();
         comment.setCommentText( note.getValue() );
-        comment.setUid( note.getNote() );
-
+        
         // FIXME: what about the storedBy and lastUpdatedBy -> currently they are set to null
         return comment;
     }
