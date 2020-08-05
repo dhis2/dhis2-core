@@ -28,23 +28,26 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,22 +66,17 @@ public class DefaultAttributeService
 
     private final IdentifiableObjectManager manager;
 
-    private final CacheProvider cacheProvider;
-
     private SessionFactory sessionFactory;
 
     private final Environment env;
 
-    public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
-        CacheProvider cacheProvider, SessionFactory sessionFactory, Environment env )
+    public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager, SessionFactory sessionFactory, Environment env )
     {
         checkNotNull( attributeStore );
         checkNotNull( manager );
-        checkNotNull( cacheProvider );
 
         this.attributeStore = attributeStore;
         this.manager = manager;
-        this.cacheProvider = cacheProvider;
         this.sessionFactory = sessionFactory;
         this.env = env;
     }
@@ -86,7 +84,7 @@ public class DefaultAttributeService
     @PostConstruct
     public void init()
     {
-        attributeCache = cacheProvider.newCacheBuilder( Attribute.class )
+        attributeCache = new SimpleCacheBuilder<Attribute>()
             .forRegion( "metadataAttributes" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
@@ -196,7 +194,7 @@ public class DefaultAttributeService
         if ( attribute.isUnique() )
         {
 
-            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
+            if ( !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }
