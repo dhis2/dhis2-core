@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -39,20 +39,24 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,8 +73,11 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Zubair Asghar
  */
-public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
+public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 {
+    @Autowired
+    private TrackerPreheatService trackerPreheatService;
+
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -89,12 +96,20 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    protected CurrentUserService currentUserService;
+
     @Override
     protected void setUpTest()
         throws IOException
     {
         renderService = _renderService;
         userService = _userService;
+
+        User user = createUser( "testUser" );
+
+        currentUserService = new MockCurrentUserService( user );
+
+        ReflectionTestUtils.setField( trackerPreheatService, "currentUserService", currentUserService );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource("tracker/tracker_metadata_with_program_rules.json").getInputStream(), RenderFormat.JSON );
@@ -132,6 +147,7 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
 
         User user = userService.getUser( ADMIN_USER_UID );
         params.setUser( user );
+        params.setUserId( ADMIN_USER_UID );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( params );
 
@@ -155,5 +171,11 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );
         assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplate().getUid() );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

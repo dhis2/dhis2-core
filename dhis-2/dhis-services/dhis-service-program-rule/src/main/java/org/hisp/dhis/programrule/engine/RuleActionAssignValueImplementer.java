@@ -83,8 +83,8 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     @Override
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        checkNotNull( ruleEffect );
-        checkNotNull( programInstance );
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programInstance, "ProgramInstance cannot be null" );
 
         assignValue( ruleEffect, programInstance );
     }

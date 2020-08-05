@@ -128,8 +128,8 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
     public boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        checkNotNull( ruleEffect );
-        checkNotNull( programInstance );
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programInstance, "ProgramInstance cannot be null" );
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 

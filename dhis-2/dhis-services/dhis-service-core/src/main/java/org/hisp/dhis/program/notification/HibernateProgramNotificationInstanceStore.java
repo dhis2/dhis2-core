@@ -45,7 +45,7 @@ import java.util.List;
  * @author Zubair Asghar
  */
 
-@Repository( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
+@Repository( "org.hisp.dhis.program.ProgramNotificationInstanceStore" )
 public class HibernateProgramNotificationInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationInstance>
         implements ProgramNotificationInstanceStore
@@ -54,7 +54,7 @@ public class HibernateProgramNotificationInstanceStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramNotificationInstance.class, currentUserService,
-                aclService, true );
+            aclService, true );
     }
 
     @Override
