@@ -119,9 +119,9 @@ public class DefaultAnalyticsService
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        return isTableLayout( columns, rows )
-            ? getAggregatedDataValuesTableLayout( params, columns, rows )
-            : getAggregatedDataValues( params );
+        return isTableLayout( columns, rows ) ?
+            getAggregatedDataValuesTableLayout( params, columns, rows ) :
+            getAggregatedDataValues( params );
     }
 
     @Override

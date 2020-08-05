@@ -29,12 +29,10 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -55,7 +53,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -95,7 +92,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class EventSecurityImportValidationTest
     extends AbstractImportValidationTest
 {
@@ -121,9 +117,6 @@ public class EventSecurityImportValidationTest
     private UserService _userService;
 
     @Autowired
-    private ProgramStageService programStageService;
-
-    @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
 
     @Autowired
@@ -134,9 +127,6 @@ public class EventSecurityImportValidationTest
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
