@@ -97,7 +97,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             ProgramStage programStageA = createProgramStage( programB );
             ProgramStage programStageB = createProgramStage( programB );
 
-            // Create 5 Tracked Entity Attributes (named A .. F)
+            // Create 5 Tracked Entity Attributes (named A .. E)
             IntStream.range( A, F ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
                     .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
 
@@ -133,11 +133,11 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
             // make sure the current user does not have access to program B
 
-
             // Create a TEI associated to program B
             final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
                 ImmutableMap.of( "program", programB ) );
 
+            // Assign Attribute A,B,E to Tracked Entity Instance
             attributeValueService.addTrackedEntityAttributeValue(
                 new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeA"), trackedEntityInstance, "A" ) );
             attributeValueService.addTrackedEntityAttributeValue(
@@ -153,7 +153,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances2( queryParams, params, false );
 
         assertThat( trackedEntityInstances.get( 0 ).getAttributes(), hasSize( 2 ) );
 
