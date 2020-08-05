@@ -95,7 +95,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    public void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -122,6 +122,5 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
             "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
-        //assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
     }
 }
