@@ -102,7 +102,7 @@ public class AnalyticsServiceProgramDataElementTest
         when( eventAnalyticsService.getAggregatedEventData( any( EventQueryParams.class ) ) )
             .thenReturn( new ListGrid() );
 
-        target.getAggregatedDataValues( params );
+        target.getAggregatedDataValueGrid( params );
 
         verify( eventAnalyticsService ).getAggregatedEventData( capturedParams.capture() );
         EventQueryParams data = capturedParams.getValue();

@@ -102,7 +102,7 @@ public class AnalyticsServiceReportingRateTest
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
 
         assertEquals( expectedReports * timeUnit,
             getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.EXPECTED_REPORTS ) ).get(), 0 );
@@ -144,7 +144,7 @@ public class AnalyticsServiceReportingRateTest
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
 
         assertEquals( 0D,
             getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(), 0 );
@@ -182,7 +182,7 @@ public class AnalyticsServiceReportingRateTest
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( null ) ); // NO TARGET RETURNED
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
 
         assertNull( getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) )
             .orElse( null ) );
@@ -229,7 +229,7 @@ public class AnalyticsServiceReportingRateTest
                 eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( actuals ) );
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
         assertReportingRatesGrid( grid, dataSetA, "201902" );
     }
 
@@ -276,7 +276,7 @@ public class AnalyticsServiceReportingRateTest
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( actuals ) );
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
         assertReportingRatesGrid( grid, dataSetA, "201901" );
     }
     

@@ -30,6 +30,8 @@ package org.hisp.dhis.programrule.config;
 
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.*;
 import org.hisp.dhis.user.CurrentUserService;
@@ -60,6 +62,12 @@ public class ProgramRuleConfig
 
     @Autowired
     private ConstantService constantService;
+
+    @Autowired
+    private ProgramRuleService programRuleService;
+    @Autowired
+    private ProgramService programService;
+
 
     @Bean( "oldRuleEngine" )
     public ProgramRuleEngine oldRuleEngine( OldImplementableRuleService oldImplementableRuleService )
