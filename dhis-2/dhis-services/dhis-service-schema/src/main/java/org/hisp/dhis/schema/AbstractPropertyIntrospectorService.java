@@ -292,7 +292,7 @@ public abstract class AbstractPropertyIntrospectorService
                 }
                 else if (type instanceof DoubleType)
                 {
-                    property.setMin( Double.MIN_VALUE );
+                    property.setMin( -Double.MAX_VALUE );
                     property.setMax( Double.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
