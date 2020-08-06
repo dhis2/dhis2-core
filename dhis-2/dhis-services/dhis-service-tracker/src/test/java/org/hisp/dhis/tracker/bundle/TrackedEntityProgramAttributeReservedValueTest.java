@@ -48,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -123,6 +124,7 @@ public class TrackedEntityProgramAttributeReservedValueTest
     }
 
     @Test
+    @Ignore
     public void testTrackedEntityProgramAttributeReservedValue() throws IOException, TextPatternGenerationException, ReserveValueException
     {
         TrackedEntityAttribute attribute = manager.get( TrackedEntityAttribute.class, "PlcHadZORzk" );
