@@ -42,7 +42,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -76,10 +75,9 @@ public class PreCheckDataRelationsValidationHook
     private final CategoryService categoryService;
 
     public PreCheckDataRelationsValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService, ProgramInstanceService programInstanceService,
-        CategoryService categoryService )
+        ProgramInstanceService programInstanceService, CategoryService categoryService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
 
         checkNotNull( categoryService );
 

@@ -39,7 +39,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -73,10 +72,9 @@ public class PreCheckOwnershipValidationHook
     private final TrackerImportAccessManager trackerImportAccessManager;
 
     public PreCheckOwnershipValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService,
         TrackerImportAccessManager trackerImportAccessManager )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
 
         checkNotNull( trackerImportAccessManager );
 

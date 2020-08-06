@@ -28,31 +28,50 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import com.google.common.collect.Streams;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.domain.Note;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Luciano Fiandesio
  */
-@Component
-public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
-{
-    private final TrackedEntityCommentService commentService;
+public class NoteValidationUtils {
 
-    public EnrollmentNoteValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    private NoteValidationUtils()
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-        this.commentService = commentService;
     }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    /**
+     * Filters out from a List of {@see Note}, notes that have no value (empty note)
+     * and notes with an uid that already exist in the database.
+     *
+     * @param commentService an instance of {@see TrackedEntityCommentService},
+     *        required to check if a note uid already exist in the db
+     * @param notes the list of {@see Note} to filter
+     * @return a filtered list of {@see Note}}
+     */
+    static List<Note> getPersistableNotes( TrackedEntityCommentService commentService, List<Note> notes )
     {
-        enrollment.setNotes( NoteValidationUtils.getPersistableNotes( this.commentService, enrollment.getNotes() ) );
+        // Check which notes are already on the DB and skip them
+        // Only check notes that are marked NOT marked as "new note"
+        // FIXME: do we really need this? Currently trackedentitycomment uid is a unique
+        // key in the db, can't we simply catch the exception
+        List<String> nonExistingUid = commentService.filterExistingNotes( notes.stream()
+            .filter( n -> StringUtils.isNotEmpty( n.getValue() ) )
+            .filter( n -> !n.isNewNote() )
+            .map( Note::getNote )
+            .collect( Collectors.toList() ) );
+
+        return Streams.concat(
+            notes.stream()
+                .filter( Note::isNewNote )
+                .filter( n -> StringUtils.isNotEmpty( n.getValue() ) ),
+            notes.stream()
+                .filter( n -> nonExistingUid.contains( n.getNote() ) ) )
+            .collect( Collectors.toList() );
     }
 }
