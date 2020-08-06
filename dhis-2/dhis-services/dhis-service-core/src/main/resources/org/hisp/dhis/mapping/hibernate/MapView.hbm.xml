@@ -226,6 +226,14 @@
       </type>
     </property>
 
+    <property name="eventStatus" length="50" column="eventstatus">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.mapping.EventStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <property name="config" type="text" />
     
     <property name="styleDataItem" type="jbObject" />

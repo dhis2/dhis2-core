@@ -106,7 +106,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 
         initMock(params);
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
 
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertThat( items.get( "wjP19dkFeIk" ), allOf(
@@ -148,7 +148,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 
         initMock(params);
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
 
         assertThat( items.get( indicatorGroup.getUid() ),
@@ -179,7 +179,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 
         initMock(params);
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
 
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertThat( items.get( "tTUf91fCytl" ), allOf( hasProperty( "name", is( "Chiefdom" ) ),
@@ -214,7 +214,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 
         initMock(params);
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
 
         assertThat( items.get( dataElementGroup.getUid() ),
@@ -250,7 +250,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 
         initMock(params);
 
-        Grid grid = target.getAggregatedDataValues( params );
+        Grid grid = target.getAggregatedDataValueGrid( params );
 
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertTrue(items.containsKey(THIS_QUARTER.name()));

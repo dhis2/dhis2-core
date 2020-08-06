@@ -49,7 +49,6 @@ import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -92,11 +91,11 @@ public class DataElementOperandController
     private final SchemaService schemaService;
     private final CategoryService dataElementCategoryService;
     private final CurrentUserService currentUserService;
-    
+
     private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
-    
+
     public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
         FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService,
         SchemaService schemaService,

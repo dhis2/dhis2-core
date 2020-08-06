@@ -343,14 +343,17 @@ public class JdbcEventAnalyticsTableManager
         columns.addAll( addOrganisationUnitGroupSets() );
 
         columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) ).collect( Collectors.toList() ) );
+            .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) )
+            .collect( Collectors.toList() ) );
         columns.addAll( addPeriodColumns( "dps" ) );
 
         columns.addAll( program.getDataElements().stream()
-            .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream ).collect( Collectors.toList() ) );
+            .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )
+            .collect( Collectors.toList() ) );
 
         columns.addAll( program.getDataElementsWithLegendSet().stream()
-            .map( de -> getColumnFromDataElement( de, true) ).flatMap( Collection::stream ).collect( Collectors.toList() ) );
+            .map( de -> getColumnFromDataElement( de, true) ).flatMap( Collection::stream )
+            .collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributes().stream()
             .map( tea -> getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, false ) )
