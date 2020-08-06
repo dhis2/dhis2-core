@@ -8,12 +8,25 @@
     <!--        </Console>-->
     <!--    </Appenders>-->
 
+<!--    <Appenders>&ndash;&gt;-->
+    <!--        <RollingFile name="fileLogger" fileName="dhis.log" filePattern="dhis.log%i">-->
+    <!--            <PatternLayout>-->
+    <!--                <pattern>* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}</pattern>-->
+    <!--            </PatternLayout>-->
+    <!--            <Policies>-->
+    <!--                <SizeBasedTriggeringPolicy size="25 MB" />-->
+    <!--            </Policies>-->
+    <!--            <DefaultRolloverStrategy max="3"/>-->
+    <!--        </RollingFile>-->
 
+    <!--        <Console name="console" target="SYSTEM_OUT">-->
+    <!--            <PatternLayout  pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}" />-->
+    <!--        </Console>-->
+    <!--    </Appenders>-->
     <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%highlight{[%d] - %msg%n}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=black, DEBUG=green bold, TRACE=blue}"
-                    disableAnsi="false"/>
+                    pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}" disableAnsi="false"/>
         </Console>
     </Appenders>
 
