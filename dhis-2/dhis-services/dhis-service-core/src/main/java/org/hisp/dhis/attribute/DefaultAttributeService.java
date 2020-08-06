@@ -38,7 +38,7 @@ import javax.annotation.PostConstruct;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -63,22 +63,18 @@ public class DefaultAttributeService
 
     private final IdentifiableObjectManager manager;
 
-    private final CacheProvider cacheProvider;
-
     private SessionFactory sessionFactory;
 
     private final Environment env;
 
     public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
-        CacheProvider cacheProvider, SessionFactory sessionFactory, Environment env )
+        SessionFactory sessionFactory, Environment env )
     {
         checkNotNull( attributeStore );
         checkNotNull( manager );
-        checkNotNull( cacheProvider );
 
         this.attributeStore = attributeStore;
         this.manager = manager;
-        this.cacheProvider = cacheProvider;
         this.sessionFactory = sessionFactory;
         this.env = env;
     }
@@ -86,7 +82,7 @@ public class DefaultAttributeService
     @PostConstruct
     public void init()
     {
-        attributeCache = cacheProvider.newCacheBuilder( Attribute.class )
+        attributeCache = new SimpleCacheBuilder<Attribute>()
             .forRegion( "metadataAttributes" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();

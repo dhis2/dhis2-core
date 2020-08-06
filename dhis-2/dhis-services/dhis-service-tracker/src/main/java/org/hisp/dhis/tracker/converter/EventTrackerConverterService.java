@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -58,6 +57,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -67,9 +69,16 @@ public class EventTrackerConverterService
 {
     private final TrackerPreheatService trackerPreheatService;
 
-    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    private final NotesConverterService notesConverterService;
+
+    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService,
+        NotesConverterService notesConverterService )
     {
+        checkNotNull( trackerPreheatService );
+        checkNotNull( notesConverterService );
+
         this.trackerPreheatService = trackerPreheatService;
+        this.notesConverterService = notesConverterService;
     }
 
     @Override
@@ -86,7 +95,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
@@ -110,8 +118,6 @@ public class EventTrackerConverterService
             event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
             event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
             event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
-            event.setClientCreatedAt( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
-            event.setClientUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -120,8 +126,6 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
-                // TODO do we need this? this is not even the translated name..
-                // event.setOrgUnitName( ou.getName() );
             }
 
             Program program = psi.getProgramInstance().getProgram();
@@ -186,16 +190,15 @@ public class EventTrackerConverterService
         return from( preheat( events ), events );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
+    private List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
         events.forEach( e -> {
             ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, e.getEvent() );
             ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, e.getProgramStage() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
 
             if ( programStageInstance == null )
             {
@@ -225,8 +228,6 @@ public class EventTrackerConverterService
                 preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
             programStageInstance.setGeometry( e.getGeometry() );
             programStageInstance.setStatus( e.getStatus() );
-            programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getClientCreatedAt() ) );
-            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( e.getClientUpdatedAt() ) );
 
             if ( programStageInstance.isCompleted() )
             {
@@ -255,13 +256,19 @@ public class EventTrackerConverterService
 
             programStageInstance.setEventDataValues( eventDataValues );
 
+            if ( isNotEmpty( e.getNotes() ) )
+            {
+                programStageInstance.getComments().addAll( notesConverterService.from( e.getNotes() ) );
+            }
+            
             programStageInstances.add( programStageInstance );
         } );
 
         return programStageInstances;
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment, Program program )
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
+        Program program )
     {
         if ( !StringUtils.isEmpty( enrollment ) )
         {

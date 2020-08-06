@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Nguyen Hong Duc
@@ -290,6 +291,11 @@ public class User
     public String getUsername()
     {
         return userCredentials != null ? userCredentials.getUsername() : null;
+    }
+
+    public UUID getUuid()
+    {
+        return userCredentials != null ? userCredentials.getUuid() : null;
     }
 
     public boolean isSuper()

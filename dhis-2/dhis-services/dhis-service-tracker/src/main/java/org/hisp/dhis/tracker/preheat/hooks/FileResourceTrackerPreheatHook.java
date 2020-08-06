@@ -72,14 +72,17 @@ public class FileResourceTrackerPreheatHook
 
         List<String> fileResourceIds = new ArrayList<>();
 
-        params.getTrackedEntities().forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
-        params.getEnrollments().forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
+        params.getTrackedEntities()
+            .forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
+        params.getEnrollments()
+            .forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
 
         List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
         preheat.put( TrackerIdentifier.UID, fileResources );
     }
 
-    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds, List<Attribute> attributes )
+    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds,
+        List<Attribute> attributes )
     {
         attributes.forEach( at -> {
             if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )

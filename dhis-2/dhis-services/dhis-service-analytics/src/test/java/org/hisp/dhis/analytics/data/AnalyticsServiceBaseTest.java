@@ -28,9 +28,24 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.*;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.analytics.AnalyticsManager;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.DataQueryGroups;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
+import org.hisp.dhis.analytics.data.handling.DataAggregator;
+import org.hisp.dhis.analytics.data.handling.DataHandler;
+import org.hisp.dhis.analytics.data.handling.HeaderHandler;
+import org.hisp.dhis.analytics.data.handling.MetadataHandler;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.constant.ConstantService;
@@ -44,10 +59,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
@@ -101,16 +112,22 @@ public abstract class AnalyticsServiceBaseTest
     @Mock
     private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
-    AnalyticsService target;
+    DataAggregator target;
 
     @Before
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager, nestedIndicatorCyclicDependencyInspector );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager,
+            nestedIndicatorCyclicDependencyInspector );
 
-        target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-            queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, resolver, analyticsCache );
+        HeaderHandler headerHandler = new HeaderHandler();
+        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService );
+        DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
+            resolver, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
+            organisationUnitService );
+
+        target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
+        target.feedHandlers();
 
         when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
         when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
@@ -119,9 +136,9 @@ public abstract class AnalyticsServiceBaseTest
     void initMock( DataQueryParams params )
     {
         when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
-                .thenReturn( params );
+            .thenReturn( params );
         when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
     }
 }

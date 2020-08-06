@@ -45,8 +45,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Enrollment
+public class Enrollment implements TrackerDto
 {
+    private String uid;
+
     @JsonProperty
     private String enrollment;
 
@@ -55,12 +57,6 @@ public class Enrollment
 
     @JsonProperty
     private String updatedAt;
-
-    @JsonProperty
-    private String clientCreatedAt;
-
-    @JsonProperty
-    private String clientUpdatedAt;
 
     @JsonProperty
     private String trackedEntityType;

@@ -28,6 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -138,4 +139,26 @@ public interface ProgramInstanceStore
      * @param programInstance the ProgramInstance to delete.
      */
     void hardDelete( ProgramInstance programInstance );
+
+    /**
+     * Executes a query to fetch all {@see ProgramInstance} matching the
+     * Program/TrackedEntityInstance list.
+     *
+     * Resulting SQL query:
+     *
+     * <pre>{@code
+     *  select programinstanceid, programid, trackedentityinstanceid
+     *      from programinstance
+     *      where (programid = 726 and trackedentityinstanceid = 19 and status = 'ACTIVE')
+     *         or (programid = 726 and trackedentityinstanceid = 18 and status = 'ACTIVE')
+     *         or (programid = 726 and trackedentityinstanceid = 17 and status = 'ACTIVE')
+     * }</pre>
+     *
+     * @param programTeiPair a List of Pair, where the left side is a {@see Program}
+     *        and the right side is a {@see TrackedEntityInstance}
+     * @param programStatus filter on the status of all the Program
+     * @return a List of {@see ProgramInstance}
+     */
+    List<ProgramInstance> getByProgramAndTrackedEntityInstance(
+        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
 }

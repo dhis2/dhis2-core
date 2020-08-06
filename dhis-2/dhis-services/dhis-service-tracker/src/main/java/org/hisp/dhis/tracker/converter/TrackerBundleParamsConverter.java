@@ -28,15 +28,7 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.util.StdConverter;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -46,11 +38,18 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.util.StdConverter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure
- *
+ * <p>
  * Assuming a structure like:
  * <pre>
  *
@@ -68,7 +67,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *            |_ EVENT 3
  *            |_ EVENT 4
  * </pre>
- *
+ * <p>
  * This converter will transform the object into:
  *
  * <pre>
@@ -81,7 +80,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *  |___EVENT 1, EVENT 2, EVENT 3, EVENT 4
  *
  * </pre>
- *
+ * <p>
  * This converter also assigns UIDs to Tracked Entities, Enrollment and Events if the payload does not contain UIDs
  *
  * @author Luciano Fiandesio
@@ -155,7 +154,6 @@ public class TrackerBundleParamsConverter
 
     /**
      * Make sure that the Enrollment has the parent ID correctly set
-     *
      */
     private Enrollment addParent( Enrollment enrollment, String trackerEntityId )
     {
@@ -168,7 +166,6 @@ public class TrackerBundleParamsConverter
 
     /**
      * Make sure that the Event has the parent ID correctly set
-     *
      */
     private Event addParent( Event event, String enrollmentId )
     {

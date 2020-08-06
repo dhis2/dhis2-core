@@ -145,7 +145,7 @@ public interface ExpressionItem
     @Override
     default Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "evaluate not implemnted for " + ctx.getText() );
+        throw new ParserExceptionWithoutContext( "evaluate not implemented for " + ctx.getText() );
     }
 
     /**

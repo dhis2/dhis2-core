@@ -104,6 +104,9 @@ public class BaseIdentifiableObject
     @AuditAttribute
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
+    /**
+     * Cache of attribute values which allows for lookup by attribute identifier.
+     */
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**

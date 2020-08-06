@@ -15,11 +15,12 @@
         {
           "updatedAt": "2020-02-10T10:56:07.591",
           "storedBy": "admin",
-            "createdAt": "2020-02-10T10:56:07.588",
+          "createdAt": "2020-02-10T10:56:07.588",
           "valueType": "TEXT",
           "attribute": "s0n3o7m87tI",
           "value": "123"
-        }],
+        }
+      ],
       "programOwners": [
         {
           "ownerOrgUnit": "h4w96yEMlzO",
@@ -63,7 +64,14 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "completedBy": "admin",
       "dataValues": [
-        { "updatedAt": "2019-01-28T12:10:38.113", "storedBy": "admin", "createdAt": "2019-01-28T12:10:38.113", "dataElement": "MMPRJBTw2FR", "value": 98, "providedElsewhere": false }
+        {
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "createdAt": "2019-01-28T12:10:38.113",
+          "dataElement": "MMPRJBTw2FR",
+          "value": 98,
+          "providedElsewhere": false
+        }
       ]
     },
     {
@@ -81,7 +89,14 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "completedBy": "admin",
       "dataValues": [
-        { "updatedAt": "2019-01-28T12:10:38.115", "storedBy": "admin", "createdAt": "2019-01-28T12:10:38.115", "dataElement": "MMPRJBTw2FR", "value": 98, "providedElsewhere": false }
+        {
+          "updatedAt": "2019-01-28T12:10:38.115",
+          "storedBy": "admin",
+          "createdAt": "2019-01-28T12:10:38.115",
+          "dataElement": "MMPRJBTw2FR",
+          "value": 98,
+          "providedElsewhere": false
+        }
       ]
     },
     {
@@ -99,7 +114,15 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "completedBy": "admin",
       "dataValues": [
-        { "updatedAt": "2019-01-28T12:10:38.116", "storedBy": "admin", "createdAt": "2019-01-28T12:10:38.116", "dataElement": "MMPRJBTw2FR", "value": 99, "providedElsewhere": false }
+        {
+          "updatedAt": "2019-01-28T12:10:38.116",
+          "storedBy": "admin",
+          "createdAt": "2019-01-28T12:10:38.116",
+          "dataElement": "MMPRJBTw2FR",
+          "value": 99,
+          "providedElsewhere": false
+        }
       ]
-    }]
+    }
+  ]
 }

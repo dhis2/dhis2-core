@@ -28,20 +28,11 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
@@ -126,11 +117,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -142,7 +140,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
+    {
+    }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -236,7 +236,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
-        
+
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
         Pager pager = metadata.getPager();
@@ -251,9 +251,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             }
             else
             {
-                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( metadata, options, filters, orders ) );
+                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( options, filters, orders ) );
             }
-            
+
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
@@ -1088,7 +1088,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
     }
-    
+
     /**
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
@@ -1186,10 +1186,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" )  );
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
         return queryService.count( query );
     }
 

@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
@@ -92,6 +93,12 @@ public final class SchemaUtils
                 {
                     property.setReadable( false );
                 }
+            }
+
+            if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyTransformer.class ) )
+            {
+                PropertyTransformer propertyTransformer = AnnotationUtils.getAnnotation( property.getGetterMethod(), PropertyTransformer.class );
+                property.setPropertyTransformer( propertyTransformer.value() );
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyRange.class ) )
