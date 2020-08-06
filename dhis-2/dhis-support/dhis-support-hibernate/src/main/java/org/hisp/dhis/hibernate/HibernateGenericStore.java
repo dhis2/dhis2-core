@@ -307,15 +307,6 @@ public class HibernateGenericStore<T>
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }
 
-        if ( parameters.getQueryParameters().size() > 0 )
-        {
-            parameters.getQueryParameters().forEach( (key,val) -> {
-
-                typedQuery.unwrap( Query.class ).setParameter( key, val );
-            } );
-        }
-
-
         return typedQuery
             .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) );
     }

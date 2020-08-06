@@ -1188,39 +1188,42 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingPredicates( builder, currentUserService.getCurrentUser(), access );
     }
 
-    protected List<Function<Root<T>, Predicate>> getJsonbSharingPredicates( CriteriaBuilder builder, User user, String access )
+    protected Function<Root<T>, Predicate> getJsonbSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
-
-        String groupParam = "{"+user.getGroups().stream().map( ug -> ug.getUuid().toString() ).collect(Collectors.joining(",")) +"}";
-
-        preProcessPredicates( builder, predicates );
-
         if ( !sharingEnabled( user ) || user == null )
         {
-            return predicates;
+            return null;
         }
 
-        Function<Root<T>,Predicate> userGroupPredicate  = ((Root<T> root) ->
-            builder.and(
-                builder.equal(
-                        builder.function(
-                                JsonbFunctions.HAS_USER_GROUP_IDS,
-                                Boolean.class,
-                                root.get( "objectSharing" ),
-                                builder.literal( groupParam ) ),
-                        true ),
-                builder.equal(
-                        builder.function(
-                                JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
-                                Boolean.class,
-                                root.get( "objectSharing" ),
-                                builder.literal( access ),
-                                builder.literal( groupParam ) ),
-                        true )
-            ));
+        Function<Root<T>, Predicate> userGroupPredicate =  ( Root<T> root ) ->
+        {
+            if ( user.getGroups() == null || user.getGroups().isEmpty() )
+            {
+                return null;
+            }
 
-        Function<Root<T>,Predicate> userPredicate  = ((Root<T> root) ->
+            String groupUuIds = "{" + user.getGroups().stream().map( ug -> ug.getUuid().toString() ).collect( Collectors.joining( "," ) ) + "}";
+
+            return builder.and(
+                    builder.equal(
+                            builder.function(
+                                    JsonbFunctions.HAS_USER_GROUP_IDS,
+                                    Boolean.class,
+                                    root.get( "objectSharing" ),
+                                    builder.literal( groupUuIds ) ),
+                            true ),
+                    builder.equal(
+                            builder.function(
+                                    JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
+                                    Boolean.class,
+                                    root.get( "objectSharing" ),
+                                    builder.literal( access ),
+                                    builder.literal( groupUuIds ) ),
+                            true )
+            );
+        };
+
+        Function<Root<T>,Predicate> userPredicate  = ( Root<T> root ) ->
                 builder.and(
                     builder.equal(
                             builder.function(
@@ -1235,17 +1238,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                                     builder.literal( user.getUserCredentials().getUuid().toString() ),
                                     builder.literal( access ) ),
                             true )
-        ));
+                );
 
-        predicates.add( root ->
-                        builder.or(
-                            builder.like( root.get( "publicAccess" ), access ),
-                            builder.isNull( root.get( "publicAccess" ) ),
-                            builder.isNull( root.get( "user" ) ),
-                            builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
-                            userPredicate.apply( root ), userGroupPredicate.apply( root ) )
-                        );
-        return predicates;
+        Function<Root<T>, Predicate> predicate = ( root -> {
+            Predicate disjunction = builder.or(
+                builder.like( root.get( "publicAccess" ), access ),
+                builder.isNull( root.get( "publicAccess" ) ),
+                builder.isNull( root.get( "user" ) ),
+                builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
+                userPredicate.apply( root )
+            );
+
+            Predicate ugPredicateWithRoot = userGroupPredicate.apply( root );
+
+            if ( ugPredicateWithRoot != null )
+            {
+               return builder.or( disjunction, ugPredicateWithRoot );
+            }
+
+            return disjunction;
+        } );
+
+        return predicate;
     }
 
     /**
