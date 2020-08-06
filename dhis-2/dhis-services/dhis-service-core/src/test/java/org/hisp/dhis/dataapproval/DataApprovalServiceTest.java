@@ -223,7 +223,7 @@ public class DataApprovalServiceTest
         defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
         defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        periodType = PeriodType.getPeriodTypeByName( "Monthly" );
+        periodType = periodService.reloadPeriodType( PeriodType.getPeriodTypeByName( "Monthly" ) );
 
         periodA = createPeriod( "201401" ); // Monthly: Jan
         periodB = createPeriod( "201402" ); // Monthly: Feb
