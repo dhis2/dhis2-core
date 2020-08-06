@@ -65,7 +65,7 @@ public class HibernateSequentialNumberCounterStore
             .setParameter( 2, length )
             .uniqueResult();
 
-        return IntStream.range( count, count + length ).boxed().collect( Collectors.toList() );
+        return IntStream.range( count - length, length + (count - length) ).boxed().collect( Collectors.toList() );
 
     }
 
