@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.event.data.programIndicator;
+package org.hisp.dhis.analytics.event.data.programindicator;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;

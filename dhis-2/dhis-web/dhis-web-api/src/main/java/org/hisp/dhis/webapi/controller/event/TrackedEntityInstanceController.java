@@ -194,6 +194,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
         @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -229,7 +230,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits,
             ouMode, program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
-            trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
+            trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
             page, pageSize, totalPages, skipPaging, includeDeleted, includeAllAttributes, getOrderParams( order ) );
 
         if ( trackedEntityInstance == null )
@@ -408,6 +409,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
         @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -432,7 +434,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
-            trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
+            trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
             page, pageSize, totalPages, skipPaging, includeDeleted, false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -460,6 +462,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
         @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -483,7 +486,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
-            trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
+            trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
             page, pageSize, totalPages, skipPaging, includeDeleted, false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
@@ -512,6 +515,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
         @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -535,7 +539,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
-            trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
+            trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
             page, pageSize, totalPages, skipPaging, includeDeleted, false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
@@ -564,6 +568,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
         @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -587,7 +592,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
-            trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
+            trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
             page, pageSize, totalPages, skipPaging, includeDeleted, false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
@@ -618,6 +623,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
         @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -638,7 +644,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits,
             ouMode, program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
-            trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, true,
+            trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, true,
             TrackedEntityInstanceQueryParams.DEFAULT_PAGE, Pager.DEFAULT_PAGE_SIZE, true, true,
             includeDeleted, false, null );
 
