@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.objectmapper;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,31 +26,65 @@ package org.hisp.dhis.system.objectmapper;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.hisp.quick.mapper.RowMapper;
-import org.hisp.dhis.organisationunit.OrganisationUnitRelationship;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class OrganisationUnitRelationshipRowMapper
-    implements RowMapper<OrganisationUnitRelationship>, org.springframework.jdbc.core.RowMapper<OrganisationUnitRelationship>
-{    
-    @Override
-    public OrganisationUnitRelationship mapRow( ResultSet resultSet )
-        throws SQLException
+@Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
+public class DefaultMetaDataKeyJsonService implements MetaDataKeyJsonService
+{
+
+    private final KeyJsonValueStore keyJsonValueStore;
+
+    private final ObjectMapper jsonMapper;
+
+    public DefaultMetaDataKeyJsonService(
+        KeyJsonValueStore keyJsonValueStore,
+        ObjectMapper jsonMapper )
     {
-        return new OrganisationUnitRelationship( resultSet.getLong( "parentid" ), resultSet.getLong( "organisationunitid" ) );
+        this.jsonMapper = jsonMapper;
+        checkNotNull( keyJsonValueStore );
+
+        this.keyJsonValueStore = keyJsonValueStore;
     }
-    
+
     @Override
-    public OrganisationUnitRelationship mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
+    @Transactional( readOnly = true )
+    public KeyJsonValue getMetaDataVersion( String key )
     {
-        return mapRow( resultSet );
+        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
+    }
+
+    @Override
+    @Transactional
+    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
+    {
+        keyJsonValueStore.delete( keyJsonValue );
+    }
+
+    @Override
+    @Transactional
+    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
+    {
+        keyJsonValueStore.save( keyJsonValue );
+
+        return keyJsonValue.getId();
+    }
+
+    @Override
+    public List<String> getAllVersions()
+    {
+        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
     }
 }

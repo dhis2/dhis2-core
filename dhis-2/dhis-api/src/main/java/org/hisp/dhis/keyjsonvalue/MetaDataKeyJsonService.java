@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.objectmapper;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,31 +26,38 @@ package org.hisp.dhis.system.objectmapper;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.quick.mapper.RowMapper;
-import org.hisp.dhis.organisationunit.OrganisationUnitRelationship;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class OrganisationUnitRelationshipRowMapper
-    implements RowMapper<OrganisationUnitRelationship>, org.springframework.jdbc.core.RowMapper<OrganisationUnitRelationship>
-{    
-    @Override
-    public OrganisationUnitRelationship mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        return new OrganisationUnitRelationship( resultSet.getLong( "parentid" ), resultSet.getLong( "organisationunitid" ) );
-    }
-    
-    @Override
-    public OrganisationUnitRelationship mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
-    {
-        return mapRow( resultSet );
-    }
+public interface MetaDataKeyJsonService
+{
+    /**
+     * Retrieves a KeyJsonValue based on a namespace and key.
+     *
+     * @param key       the key referencing the value.
+     * @return the KeyJsonValue matching the key and namespace.
+     */
+    KeyJsonValue getMetaDataVersion( String key );
+
+    /**
+     * Deletes a keyJsonValue.
+     *
+     * @param keyJsonValue the KeyJsonValue to be deleted.
+     */
+    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
+
+    /**
+     * Adds a new KeyJsonValue.
+     *
+     * @param keyJsonValue the KeyJsonValue to be stored.
+     * @return the id of the KeyJsonValue stored.
+     */
+    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
+
+    List<String> getAllVersions();
 }

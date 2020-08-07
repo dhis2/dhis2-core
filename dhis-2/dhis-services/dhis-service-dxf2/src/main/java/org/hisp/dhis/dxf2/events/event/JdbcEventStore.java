@@ -36,10 +36,13 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.inject.internal.cglib.core.$ProcessArrayCallback;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -78,6 +81,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
@@ -85,6 +89,8 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcEventStore
     implements EventStore
 {
+    private static final String DOT_NAME = ".name)";
+
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
@@ -111,7 +117,8 @@ public class JdbcEventStore
 
     private final IdentifiableObjectManager manager;
 
-    public JdbcEventStore( StatementBuilder statementBuilder, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+    public JdbcEventStore( StatementBuilder statementBuilder,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager )
     {
         checkNotNull( statementBuilder );
@@ -149,7 +156,17 @@ public class JdbcEventStore
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        SqlRowSet rowSet;
+
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql, getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+        }
+        else
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql );
+        }
 
         log.debug( "Event query SQL: " + sql );
 
@@ -347,7 +364,16 @@ public class JdbcEventStore
     {
         String sql = buildGridSql( params, organisationUnits );
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rowSet;
+
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql, getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+        }
+        else
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql );
+        }
 
         log.debug( "Event query SQL: " + sql );
 
@@ -392,7 +418,17 @@ public class JdbcEventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        SqlRowSet rowSet;
+
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql, getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+        }
+        else
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql );
+        }
 
         log.debug( "Event query SQL: " + sql );
 
@@ -583,7 +619,14 @@ public class JdbcEventStore
 
         log.debug( "Event query count SQL: " + sql );
 
-        return jdbcTemplate.queryForObject( sql, Integer.class );
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            return jdbcTemplate.queryForObject( sql, new Object[] { params.getAssignedUsers() }, Integer.class );
+        }
+        else
+        {
+            return jdbcTemplate.queryForObject( sql, Integer.class );
+        }
     }
 
     private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
@@ -777,9 +820,14 @@ public class JdbcEventStore
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
+                    else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                    {
+                        sql += "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
                     else
                     {
-                        sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                        sql += "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
@@ -886,7 +934,7 @@ public class JdbcEventStore
 
         if ( params.hasAssignedUsers() )
         {
-            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+            sql += hlp.whereAnd() + " (au.uid in (?)) ";
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )
@@ -980,7 +1028,7 @@ public class JdbcEventStore
                     }
                     else
                     {
-                        sql += "and lower( " + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                        sql += "and lower( " + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                 }
@@ -1079,7 +1127,7 @@ public class JdbcEventStore
 
         if ( params.hasAssignedUsers() )
         {
-            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+            sql += hlp.whereAnd() + " (au.uid in (?)) ";
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )
@@ -1158,7 +1206,6 @@ public class JdbcEventStore
 
         return sql;
     }
-
 
     private String getEventPagingQuery( EventSearchParams params )
     {

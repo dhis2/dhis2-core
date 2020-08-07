@@ -100,18 +100,21 @@ public class TrackerEventSMSListener
         User user = userService.getUser( subm.getUserId().getUid() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUid() );
+        
         if ( programInstance == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( enrolmentid ) );
         }
 
         ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
+        
         if ( programStage == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+        
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
@@ -120,6 +123,7 @@ public class TrackerEventSMSListener
         List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
             aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
+            
         if ( !errorUIDs.isEmpty() )
         {
             return SmsResponse.WARN_DVERR.setList( errorUIDs );
@@ -136,7 +140,6 @@ public class TrackerEventSMSListener
     @Override
     protected boolean handlesType( SubmissionType type )
     {
-        return (type == SubmissionType.TRACKER_EVENT);
+        return ( type == SubmissionType.TRACKER_EVENT );
     }
-
 }

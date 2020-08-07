@@ -118,6 +118,7 @@ public class EnrollmentSMSListener
 
         Date enrollmentDate = subm.getEnrollmentDate();
         Date incidentDate = subm.getIncidentDate();
+
         Uid teiUid = subm.getTrackedEntityInstance();
         Uid progid = subm.getTrackerProgram();
         Uid tetid = subm.getTrackedEntityType();
@@ -126,12 +127,14 @@ public class EnrollmentSMSListener
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
 
         Program program = programService.getProgram( progid.getUid() );
+        
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.getUid() );
+        
         if ( entityType == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
@@ -143,6 +146,7 @@ public class EnrollmentSMSListener
         }
 
         TrackedEntityInstance entityInstance;
+
         boolean teiExists = teiService.trackedEntityInstanceExists( teiUid.getUid() );
 
         if ( teiExists )
@@ -154,6 +158,7 @@ public class EnrollmentSMSListener
         {
             log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUid ) );
             entityInstance = new TrackedEntityInstance();
+
             entityInstance.setUid( teiUid.getUid() );
             entityInstance.setOrganisationUnit( orgUnit );
             entityInstance.setTrackedEntityType( entityType );
@@ -177,6 +182,7 @@ public class EnrollmentSMSListener
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
         ProgramInstance enrollment;
+
         boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.getUid() );
         if ( enrollmentExists )
         {
@@ -188,7 +194,8 @@ public class EnrollmentSMSListener
         else
         {
             enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
-                orgUnit, enrollmentid.getUid() );
+
+            orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )
         {
@@ -200,6 +207,7 @@ public class EnrollmentSMSListener
 
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserId().getUid() );
+        
         List<Object> errorUIDs = new ArrayList<>();
         if ( subm.getEvents() != null )
         {
@@ -282,8 +290,8 @@ public class EnrollmentSMSListener
         Uid attribUid = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
 
-        TrackedEntityAttribute attribute = trackedEntityAttributeService
-            .getTrackedEntityAttribute( attribUid.getUid() );
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUid.getUid() );
+        
         if ( attribute == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );
@@ -307,18 +315,21 @@ public class EnrollmentSMSListener
         Uid orgunitid = event.getOrgUnit();
 
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.getUid() );
+        
         if ( orgUnit == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ORGUNIT.set( orgunitid ) );
         }
 
         ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
+        
         if ( programStage == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+        
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
