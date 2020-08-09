@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
