@@ -28,34 +28,49 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 public class HibernateSequentialNumberCounterStoreTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
-    private SequentialNumberCounterStore store;
+    private DummyService dummyService;
 
     @Test
     public void getNextValues()
     {
 
-        List<Integer> result = store.getNextValues( "ABC", "ABC-#", 3 );
+        List<Integer> result = dummyService.getNextValues( "ABC", "ABC-#", 3 );
 
         assertEquals( 3, result.size() );
         assertTrue( result.contains( 1 ) );
         assertTrue( result.contains( 2 ) );
         assertTrue( result.contains( 3 ) );
 
-        result = store.getNextValues( "ABC", "ABC-#", 50 );
+        result = dummyService.getNextValues( "ABC", "ABC-#", 50 );
 
         assertEquals( 50, result.size() );
         assertTrue( result.contains( 4 ) );
@@ -65,21 +80,119 @@ public class HibernateSequentialNumberCounterStoreTest
 
     }
 
+    private void test( final int threadCount )
+        throws InterruptedException,
+        ExecutionException
+    {
+        final String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
+
+        Callable<List<Integer>> task = () -> dummyService.getNextValues( uid, uid + "-#", 50 );
+
+        List<Callable<List<Integer>>> tasks = Collections.nCopies( threadCount, task );
+        ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
+        List<Future<List<Integer>>> futures = executorService.invokeAll( tasks );
+        List<List<Integer>> resultList = new ArrayList<>( futures.size() );
+
+        // Check for exceptions
+        for ( Future<List<Integer>> future : futures )
+        {
+            // Throws an exception if an exception was thrown by the task.
+            resultList.add( future.get() );
+        }
+
+        assertEquals( threadCount, futures.size() );
+        
+        Set<Integer> allIds = new HashSet<>();
+        List<Integer> allIdList = new ArrayList<>();
+        for ( List<Integer> integers : resultList )
+        {
+            allIds.addAll( integers );
+            allIdList.addAll( integers );
+        }
+
+        assertThat( allIds, hasSize( threadCount * 50 ));
+
+        Collections.sort( allIdList );
+        assertThat( allIdList.get( 0 ), is( 1 ) );
+        assertThat( allIdList.get( allIdList.size() -1  ), is( 50 * threadCount ) );
+    }
+
+    @Test
+    public void test1()
+            throws InterruptedException,
+            ExecutionException
+    {
+        test( 1 );
+    }
+
+    @Test
+    public void test4()
+            throws InterruptedException,
+            ExecutionException
+    {
+        test( 4 );
+    }
+
+    @Test
+    public void test8()
+            throws InterruptedException,
+            ExecutionException
+    {
+        test( 8);
+    }
+
+
+    @Test
+    public void test16()
+        throws InterruptedException,
+        ExecutionException
+    {
+        test( 16 );
+    }
+
+
+    @Test
+    public void test32()
+            throws InterruptedException,
+            ExecutionException
+    {
+        test( 32 );
+    }
+    
     @Test
     public void deleteCounter()
     {
-        assertTrue( store.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
 
-        store.deleteCounter( "ABC" );
+        dummyService.deleteCounter( "ABC" );
 
-        assertTrue( store.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        assertTrue( store.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
-        assertTrue( store.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
 
-        store.deleteCounter( "ABC" );
+        dummyService.deleteCounter( "ABC" );
 
-        assertTrue( store.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        assertTrue( store.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
-        assertTrue( store.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+    
+    @Configuration
+    static class TestConfig
+    {
+        @Autowired
+        private SequentialNumberCounterStore sequentialNumberCounterStore;
+
+        @Bean
+        public DummyService dummyService()
+        {
+            return new DummyService( sequentialNumberCounterStore );
+        }
     }
 }
