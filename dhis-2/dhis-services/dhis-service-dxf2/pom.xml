@@ -79,7 +79,13 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-    
+
+    <!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+    </dependency>
+
     <!-- Test -->
     
     <dependency>

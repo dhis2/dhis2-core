@@ -26,7 +26,7 @@
     <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}" disableAnsi="false"/>
+                    pattern="** %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}" disableAnsi="false"/>
         </Console>
     </Appenders>
 
@@ -34,16 +34,17 @@
     <Loggers>
 
         <Logger name="org.apache.activemq" level="WARN" additivity="true"/>
-        <Logger name="org.hisp.dhis" level="DEBUG" additivity="true"/>
-        <Logger name="org.hisp.dhis.webapi.mvc" level="DEBUG" additivity="true"/>
+<!--        <Logger name="org.hisp.dhis" level="WARN" additivity="true"/>-->
+<!--        <Logger name="org.hisp.dhis.webapi.mvc" level="WARN" additivity="true"/>-->
 
+        <Logger name="org.hibernate" level="WARN" additivity="true"/>
         <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="ERROR" additivity="true"/>
         <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="ERROR" additivity="true"/>
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR" additivity="true"/>
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="ERROR" additivity="true"/>
         <!--        <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="true"/>-->
 
-        <Root level="WARN">
+        <Root level="DEBUG">
             <AppenderRef ref="CONSOLE"/>
         </Root>
     </Loggers>

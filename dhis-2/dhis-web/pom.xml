@@ -23,7 +23,7 @@
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
 
-    <module>dhis-web-apps</module>
+<!--    <module>dhis-web-apps</module>-->
 
     <module>dhis-web-portal</module>
 
@@ -188,7 +188,7 @@
   <properties>
     <rootDir>../</rootDir>
     <useWarCompression>true</useWarCompression>
-    <maven-jetty-plugin.version>9.4.30.v20200611</maven-jetty-plugin.version>
+    <maven-jetty-plugin.version>9.4.31.v20200723</maven-jetty-plugin.version>
     <tomcat.version>8.5.47</tomcat.version>
   </properties>
 
