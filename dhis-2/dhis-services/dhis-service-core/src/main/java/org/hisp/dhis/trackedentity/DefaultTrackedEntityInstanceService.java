@@ -36,6 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -673,7 +674,7 @@ public class DefaultTrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
-        Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
+        Date programIncidentEndDate, String trackedEntityType, String programStage, EventStatus eventStatus, Date eventStartDate,
         Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
         boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
@@ -737,6 +738,13 @@ public class DefaultTrackedEntityInstanceService
         {
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
+        
+        ProgramStage ps = programStage != null ? getProgramStageFromProgram( pr, programStage ) : null;
+
+        if ( programStage != null && ps == null )
+        {
+            throw new IllegalQueryException( "Program does not contain the specified programStage: " + programStage );
+        }
 
         TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
@@ -776,6 +784,7 @@ public class DefaultTrackedEntityInstanceService
             .setProgramIncidentEndDate( programIncidentEndDate )
             .setTrackedEntityType( te )
             .setOrganisationUnitMode( ouMode )
+            .setProgramStage( ps )
             .setEventStatus( eventStatus )
             .setEventStartDate( eventStartDate )
             .setEventEndDate( eventEndDate )
@@ -792,6 +801,16 @@ public class DefaultTrackedEntityInstanceService
             .setOrders( orders );
 
         return params;
+    }
+    
+    private ProgramStage getProgramStageFromProgram( Program pr, String programStage )
+    {
+        if ( pr == null )
+        {
+            return null;
+        }
+
+        return pr.getProgramStages().stream().filter( pstage-> pstage.getUid().equals( programStage ) ).findFirst().orElse( null );
     }
 
     /**
