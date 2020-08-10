@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -77,8 +78,7 @@ public class DefaultTrackerProgramRuleService
             .stream()
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
                 ProgramInstance enrollment = enrollmentTrackerConverterService.from( bundle.getPreheat(), e );
-                return programRuleEngine.evaluate( enrollment,
-                    getEventsFromEnrollment( e.getEnrollment(), bundle, Lists.newArrayList() ) );
+                return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
             } ) );
     }
 

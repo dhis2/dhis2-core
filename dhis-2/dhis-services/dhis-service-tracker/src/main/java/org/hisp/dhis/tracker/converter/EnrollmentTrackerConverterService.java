@@ -126,7 +126,8 @@ public class EnrollmentTrackerConverterService
             TrackedEntityInstance trackedEntityInstance = preheat
                 .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
-            checkNotNull( trackedEntityInstance, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
+            // checkNotNull( trackedEntityInstance,
+            // TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
 
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
 
