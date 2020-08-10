@@ -381,17 +381,18 @@ public class DefaultDimensionService
             final String[] keyIds = {key.getId0(), key.getId1(), key.getId2()};
             final DimensionalItemObject item = map.get( key );
 
-            if ( dios.containsKey( makeKey.apply( keyIds ) ) )
+            String madeKey = makeKey.apply( keyIds );
+            if ( dios.containsKey( madeKey ) )
             {
-                if ( dios.get( makeKey.apply( keyIds ) ).getPeriodOffset() == 0
+                if ( dios.get( madeKey ).getPeriodOffset() == 0
                     && item.getPeriodOffset() != 0 )
                 {
-                    dios.replace( item.getUid(), item );
+                    dios.replace( madeKey, item );
                 }
             }
             else
             {
-                dios.put( makeKey.apply( keyIds ), item );
+                dios.put( madeKey, item );
             }
         }
 
