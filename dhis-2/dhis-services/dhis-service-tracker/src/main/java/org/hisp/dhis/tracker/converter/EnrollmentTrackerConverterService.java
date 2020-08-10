@@ -95,6 +95,7 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
