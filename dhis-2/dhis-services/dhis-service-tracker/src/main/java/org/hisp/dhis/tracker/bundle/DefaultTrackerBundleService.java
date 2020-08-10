@@ -41,6 +41,8 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
@@ -102,9 +104,11 @@ public class DefaultTrackerBundleService
 
     private final DbmsManager dbmsManager;
 
+    private final ReservedValueService reservedValueService;
+
     private final TrackerProgramRuleService trackerProgramRuleService;
 
-    private final ReservedValueService reservedValueService;
+    private final TrackedEntityCommentService trackedEntityCommentService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
@@ -132,8 +136,9 @@ public class DefaultTrackerBundleService
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
+        ReservedValueService reservedValueService,
         TrackerProgramRuleService trackerProgramRuleService,
-        ReservedValueService reservedValueService )
+        TrackedEntityCommentService trackedEntityCommentService )
 
     {
         this.trackerPreheatService = trackerPreheatService;
@@ -146,8 +151,9 @@ public class DefaultTrackerBundleService
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
-        this.trackerProgramRuleService = trackerProgramRuleService;
         this.reservedValueService = reservedValueService;
+        this.trackerProgramRuleService = trackerProgramRuleService;
+        this.trackedEntityCommentService = trackedEntityCommentService;
     }
 
     @Override
@@ -279,6 +285,15 @@ public class DefaultTrackerBundleService
             Enrollment enrollment = enrollments.get( idx );
 
             ProgramInstance programInstance = enrollmentConverter.from( bundle.getPreheat(), enrollment );
+
+            if ( !programInstance.getComments().isEmpty() )
+            {
+                for ( TrackedEntityComment comment : programInstance.getComments() )
+                {
+                    this.trackedEntityCommentService.addTrackedEntityComment( comment );
+                }
+            }
+
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
             programInstance.setLastUpdatedBy( bundle.getUser() );
@@ -333,6 +348,15 @@ public class DefaultTrackerBundleService
             Event event = events.get( idx );
 
             ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
+
+            if ( !programStageInstance.getComments().isEmpty() )
+            {
+                for ( TrackedEntityComment comment : programStageInstance.getComments() )
+                {
+                    this.trackedEntityCommentService.addTrackedEntityComment( comment );
+                }
+            }
+
             Date now = new Date();
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );

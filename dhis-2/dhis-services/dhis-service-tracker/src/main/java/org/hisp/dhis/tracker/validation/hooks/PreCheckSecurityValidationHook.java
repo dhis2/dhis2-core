@@ -31,7 +31,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -58,10 +57,9 @@ public class PreCheckSecurityValidationHook
     private final TrackerImportAccessManager accessManager;
 
     public PreCheckSecurityValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService,
         TrackerImportAccessManager accessManager )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
 
         checkNotNull( accessManager );
 

@@ -165,7 +165,7 @@ public interface TrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
-        Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
+        Date programIncidentEndDate, String trackedEntityType, String programStage,  EventStatus eventStatus, Date eventStartDate,
         Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers,
         boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders );

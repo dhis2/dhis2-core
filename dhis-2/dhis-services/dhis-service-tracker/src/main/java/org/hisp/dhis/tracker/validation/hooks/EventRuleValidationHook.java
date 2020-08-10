@@ -54,10 +54,9 @@ public class EventRuleValidationHook
 {
     private List<RuleActionValidator> validators;
 
-    public EventRuleValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EventRuleValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
     }
 
     @Autowired( required = false )

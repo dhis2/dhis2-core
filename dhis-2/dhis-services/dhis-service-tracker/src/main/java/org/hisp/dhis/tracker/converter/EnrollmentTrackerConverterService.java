@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,8 +60,13 @@ public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
 
-    public EnrollmentTrackerConverterService()
+    private final NotesConverterService notesConverterService;
+
+    public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )
     {
+        checkNotNull( notesConverterService );
+
+        this.notesConverterService = notesConverterService;
     }
 
     @Override
@@ -155,6 +161,11 @@ public class EnrollmentTrackerConverterService
             }
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+
+            if ( isNotEmpty( enrollment.getNotes() ) )
+            {
+                programInstance.getComments().addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
+            }
 
             programInstances.add( programInstance );
         } );

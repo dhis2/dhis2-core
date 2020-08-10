@@ -62,7 +62,10 @@ public class EventTrackerConverterServiceTest
 
     private final static String PROGRAM_UID = "ProgramUid";
 
-    private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService = new EventTrackerConverterService();
+    private NotesConverterService notesConverterService = new NotesConverterService();
+
+    private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService = new EventTrackerConverterService(
+        notesConverterService );
 
     @Mock
     public TrackerPreheat preheat;

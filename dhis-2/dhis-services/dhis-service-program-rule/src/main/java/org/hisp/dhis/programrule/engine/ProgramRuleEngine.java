@@ -40,6 +40,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,8 +49,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
+import org.hisp.dhis.rules.RuleEngineIntent;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -148,6 +151,33 @@ public class ProgramRuleEngine
         return ruleEffects;
     }
 
+    /**
+     * To getDescription rule condition in order to fetch its description
+     * 
+     * @param condition of program rule
+     * @param programRule {@link ProgramRule} which the condition is associated
+     *        with.
+     * @return RuleValidationResult contains description of program rule condition
+     *         or errorMessage
+     */
+    public RuleValidationResult getDescription( String condition, ProgramRule programRule )
+    {
+        if ( programRule == null )
+        {
+            log.error( "ProgramRule cannot be null" );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( "ProgramRule cannot be null" ).build();
+        }
+
+        Program program = programRule.getProgram();
+
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
+
+        RuleEngine ruleEngine = ruleEngineBuilder( ListUtils.newList( programRule ), programRuleVariables,
+            RuleEngineIntent.DESCRIPTION ).build();
+
+        return ruleEngine.evaluate( condition );
+    }
+
     private RuleEngineContext getRuleEngineContext( Program program )
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
@@ -172,11 +202,53 @@ public class ProgramRuleEngine
 
         return RuleEngineContext.builder()
             .supplementaryData( supplementaryData )
-            .calculatedValueMap( Maps.newHashMap() )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .constantsValue( constantMap )
             .build();
+    }
+
+    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules,
+        List<ProgramRuleVariable> programRuleVariables, RuleEngineIntent intent )
+    {
+        Map<String, String> constantMap = constantService.getConstantMap().entrySet()
+            .stream()
+            .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
+
+        Map<String, List<String>> supplementaryData = organisationUnitGroupService.getAllOrganisationUnitGroups()
+            .stream()
+            .collect( Collectors.toMap( BaseIdentifiableObject::getUid,
+                g -> g.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+
+        if ( currentUserService.getCurrentUser() != null )
+        {
+            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials()
+                .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+        }
+        if ( RuleEngineIntent.DESCRIPTION == intent )
+        {
+            Map<String, DataItem> itemStore = programRuleEntityMapperService.getItemStore( programRuleVariables );
+
+            return RuleEngineContext.builder()
+                .supplementaryData( supplementaryData )
+                .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
+                .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
+                .constantsValue( constantMap ).ruleEngineItent( intent ).itemStore( itemStore )
+                .build()
+                .toEngineBuilder()
+                .triggerEnvironment( TriggerEnvironment.SERVER );
+        }
+        else
+        {
+            return RuleEngineContext.builder()
+                .supplementaryData( supplementaryData )
+                .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
+                .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
+                .constantsValue( constantMap ).ruleEngineItent( intent )
+                .build()
+                .toEngineBuilder()
+                .triggerEnvironment( TriggerEnvironment.SERVER );
+        }
     }
 
     private RuleEvent getRuleEvent( ProgramStageInstance programStageInstance )

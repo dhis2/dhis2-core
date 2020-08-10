@@ -28,9 +28,6 @@ package org.hisp.dhis.webapi.controller.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.commons.timer.SystemTimer;
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -53,7 +50,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -69,7 +65,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
-@Slf4j
 @RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
 {
@@ -99,16 +94,8 @@ public class TrackerController
         this.notifier = notifier;
     }
 
-    @PostMapping( value = "/empty", consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.OK )
-    public String emptyCall( HttpServletRequest request, HttpServletResponse response,
-        User currentUser )
-        throws IOException
-    {
-        return "empty";
-    }
-
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
@@ -136,43 +123,6 @@ public class TrackerController
                     .id( jobId ).location( location )
                     .build()
             ) );
-    }
-
-    @PostMapping( value = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public TrackerImportReport postJsonTrackerSync( HttpServletRequest request, HttpServletResponse response,
-        User currentUser )
-        throws IOException
-    {
-        Timer totalTimer = new SystemTimer().start();
-
-        Timer prepareReqTimer = new SystemTimer().start();
-
-        TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( request.getInputStream(), TrackerBundleParams.class );
-
-        TrackerBundle trackerBundle = trackerBundleParams.toTrackerBundle();
-        params.setTrackedEntities( trackerBundle.getTrackedEntities() );
-        params.setEnrollments( trackerBundle.getEnrollments() );
-        params.setEvents( trackerBundle.getEvents() );
-        params.setRelationships( trackerBundle.getRelationships() );
-        params.setUser( currentUser );
-
-        String prepareReqTotalFormatted = prepareReqTimer.toString();
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        if ( trackerImportReport != null )
-        {
-            trackerImportReport.getTimings().setTotalRequest( totalTimer.toString() );
-            trackerImportReport.getTimings().setPrepareRequest( prepareReqTotalFormatted );
-
-            return trackerImportReport;
-        }
-
-        throw new HttpClientErrorException( HttpStatus.INTERNAL_SERVER_ERROR );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )

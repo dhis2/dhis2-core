@@ -33,13 +33,15 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -49,9 +51,12 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -65,16 +70,18 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
+    private final ProgramInstanceService programInstanceService;
+
     private final CategoryService categoryService;
 
     public PreCheckDataRelationsValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService,
-        CategoryService categoryService )
+        ProgramInstanceService programInstanceService, CategoryService categoryService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
 
         checkNotNull( categoryService );
 
+        this.programInstanceService = programInstanceService;
         this.categoryService = categoryService;
     }
 
@@ -133,19 +140,86 @@ public class PreCheckDataRelationsValidationHook
 
             if ( strategy.isCreate() )
             {
-                ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
-                ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+                validateHasEnrollments( reporter, event );
 
-                if ( programStage != null && programInstance != null
-                    && !programStage.getRepeatable()
-                    && programInstance.hasProgramStageInstance( programStage ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1039 ).addArg( programStage ) );
-                }
+                validateNotMultipleEvents( reporter, event );
             }
         }
 
         validateEventCategoryCombo( reporter, event, program );
+    }
+
+    private void validateHasEnrollments( ValidationErrorReporter reporter, Event event )
+    {
+        TrackerImportValidationContext ctx = reporter.getValidationContext();
+        Program program = ctx.getProgram( event.getProgram() );
+
+        if ( program.isRegistration() )
+        {
+            ProgramInstance programInstance = ctx.getProgramInstance( event.getEnrollment() );
+
+            if ( programInstance == null )
+            {
+                TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
+
+                List<ProgramInstance> programInstances = ctx.getEventToProgramInstancesMap()
+                    .getOrDefault( event.getUid(), new ArrayList<>() );
+
+                final int count = programInstances.size();
+
+                if ( count == 0 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1037 )
+                        .addArg( tei )
+                        .addArg( program ) );
+                }
+                else if ( count > 1 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1038 )
+                        .addArg( tei )
+                        .addArg( program ) );
+                }
+                else
+                {
+                    // FIXME: we probably need to take in consideration the idScheme
+                    event.setEnrollment( programInstances.get( 0 ).getUid() );
+                }
+            }
+        }
+        else
+        {
+            User user = ctx.getBundle().getUser();
+
+            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+            params.setProgram( program );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+            params.setUser( user );
+
+            params.setTrackedEntityInstance( null );
+
+            int count = programInstanceService.countProgramInstances( params );
+
+            if ( count > 1 )
+            {
+                // TODO: this also needs to be changed to match original code.
+                reporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
+            }
+        }
+    }
+
+    private void validateNotMultipleEvents( ValidationErrorReporter reporter, Event event )
+    {
+        TrackerImportValidationContext context = reporter.getValidationContext();
+
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
+        if ( programStage != null && programInstance != null
+            && !programStage.getRepeatable()
+            && programInstance.hasProgramStageInstance( programStage ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1039 ).addArg( programStage ) );
+        }
     }
 
     //TODO: This method needs some love and care, the logic here is very hard to read.

@@ -37,7 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -80,10 +79,9 @@ public class EnrollmentInExistingValidationHook
     @Autowired
     private TrackerImportAccessManager trackerImportAccessManager;
 
-    public EnrollmentInExistingValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EnrollmentInExistingValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
     }
 
     @Override

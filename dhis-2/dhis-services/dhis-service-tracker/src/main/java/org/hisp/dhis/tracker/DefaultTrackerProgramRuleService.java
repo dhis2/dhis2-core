@@ -60,7 +60,7 @@ public class DefaultTrackerProgramRuleService
 
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
-    public DefaultTrackerProgramRuleService( @Qualifier( "newImporterRuleEngine" ) ProgramRuleEngine programRuleEngine,
+    public DefaultTrackerProgramRuleService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngine,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService )
     {

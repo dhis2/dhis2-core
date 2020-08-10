@@ -96,9 +96,6 @@ public enum TrackerErrorCode
     E1103( "User: `{0}`, is lacking 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`." ),
     E1104( "User: `{0}`, has no data read access to program: `{1}`, TrackedEntityType: `{2}`." ),
     E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
-    E1118( "Note does not have a valid uuid: `{0}`." ),
-    E1119( "Note does not have a value: `{0}`." ),
-    E1121( "Note stored at date is invalid: `{0}`; Error: `{1}`." ),
     E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
     E1115( "Could not find CategoryOptionCombo: `{0}`." ),
     E1116( "Could not find CategoryOption: `{0}`." ),
@@ -111,8 +108,6 @@ public enum TrackerErrorCode
     E1082( "Event: `{0}`, is already deleted." ),
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
-    // TODO: Note persistence not impl. yet
-    E1120( "Note already exist with same uuid: `{0}`." ),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),

@@ -28,18 +28,16 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -53,6 +51,7 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyTransformer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -65,12 +64,21 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,8 +109,20 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService, AttributeService attributeService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
+    private static Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
+        .forRegion( "propertyTransformerCache" )
+        .expireAfterAccess( 12, TimeUnit.HOURS )
+        .withInitialCapacity( 20 )
+        .withMaximumSize( 30000 )
+        .build();
+
+    public DefaultFieldFilterService(
+        FieldParser fieldParser,
+        SchemaService schemaService,
+        AclService aclService,
+        CurrentUserService currentUserService,
+        AttributeService attributeService,
+        @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
@@ -223,7 +243,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean mayExclude( Class<?> klass, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isAssignableFrom( klass ) &&
-            ( Preheat.isDefaultClass( klass ) || klass.isInterface() || ( klass.getModifiers() & Modifier.ABSTRACT ) != 0 );
+            (Preheat.isDefaultClass( klass ) || klass.isInterface() || (klass.getModifiers() & Modifier.ABSTRACT) != 0);
     }
 
     private boolean shouldExclude( Object object, Defaults defaults )
@@ -277,7 +297,39 @@ public class DefaultFieldFilterService implements FieldFilterService
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
-            if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection() && property.getKlass().isInterface() && !property.isIdentifiableObject() )
+
+            if ( property.hasPropertyTransformer() )
+            {
+                Optional<PropertyTransformer> propertyTransformer = TRANSFORMER_CACHE.get( property.getPropertyTransformer().getName(), s -> {
+                    try
+                    {
+                        return property.getPropertyTransformer().newInstance();
+                    }
+                    catch ( InstantiationException | IllegalAccessException e )
+                    {
+                        throw new RuntimeException( e );
+                    }
+                } );
+
+                if ( propertyTransformer.isPresent() )
+                {
+                    returnValue = propertyTransformer.get().transform( returnValue );
+                }
+
+                if ( returnValue == null )
+                {
+                    continue;
+                }
+
+                propertyClass = returnValue.getClass();
+                propertySchema = schemaService.getDynamicSchema( propertyClass );
+            }
+
+            if ( returnValue != null
+                && propertySchema.getProperties().isEmpty()
+                && !property.isCollection()
+                && property.getKlass().isInterface()
+                && !property.isIdentifiableObject() )
             {
                 // try to retrieve schema from concrete class
                 propertyClass = returnValue.getClass();
@@ -339,13 +391,10 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        if ( collection != null )
+                        for ( Object collectionObject : collection )
                         {
-                            for ( Object collectionObject : collection )
-                            {
-                                SimpleNode simpleNode = child.addChild( new SimpleNode( property.getName(), collectionObject ) );
-                                simpleNode.setProperty( property );
-                            }
+                            SimpleNode simpleNode = child.addChild( new SimpleNode( property.getName(), collectionObject ) );
+                            simpleNode.setProperty( property );
                         }
                     }
                 }
@@ -391,6 +440,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
+                    returnValue = handleJsonbObjectProperties( klass, propertyClass, returnValue );
                     child = buildNode( fieldValue, propertyClass, returnValue, user, defaults );
                 }
             }
@@ -569,10 +619,13 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         Schema schema;
 
-        if ( currentProperty.isCollection() )
+        if ( currentProperty.hasPropertyTransformer() )
+        {
+            schema = schemaService.getDynamicSchema( object.getClass() );
+        }
+        else if ( currentProperty.isCollection() )
         {
             schema = schemaService.getDynamicSchema( currentProperty.getItemKlass() );
-
         }
         else
         {
@@ -609,11 +662,32 @@ public class DefaultFieldFilterService implements FieldFilterService
     private ComplexNode createBaseIdentifiableObjectIdNode( @Nonnull Property currentProperty, @Nonnull Object object )
     {
         return new ComplexNode( currentProperty, new SimpleNode(
-            "id", baseIdentifiableIdProperty, ( (BaseIdentifiableObject) object ).getUid() ) );
+            "id", baseIdentifiableIdProperty, ((BaseIdentifiableObject) object).getUid() ) );
     }
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        return !(UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+        if ( UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ) )
+        {
+            return false;
+        }
+
+        return IdentifiableObject.class.isAssignableFrom( klass );
+    }
+
+    /**
+     * {@link AttributeValue} is saved as JSONB, and it contains only Attribute's uid
+     * If fields parameter requires more than just Attribute's uid
+     * then we need to get full {@link Attribute} object ( from cache )
+     * e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
+     */
+    private Object handleJsonbObjectProperties( Class klass, Class propertyClass, Object returnObject )
+    {
+        if ( AttributeValue.class.isAssignableFrom( klass ) && Attribute.class.isAssignableFrom( propertyClass ) )
+        {
+            returnObject = attributeService.getAttribute( ( ( Attribute ) returnObject ).getUid() );
+        }
+
+        return returnObject;
     }
 }

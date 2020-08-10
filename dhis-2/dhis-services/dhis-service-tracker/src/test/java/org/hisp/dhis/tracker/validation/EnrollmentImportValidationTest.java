@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -72,10 +71,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class EnrollmentImportValidationTest
     extends AbstractImportValidationTest
-
 {
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
@@ -600,6 +597,10 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1093 ) ) ) );
     }
 
+    /**
+     * Notes with no value are ignored
+     * 
+     */
     @Test
     public void testBadEnrollmentNoteNoValue()
         throws IOException
@@ -613,10 +614,7 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
+        assertEquals( 0, validationReport.getErrorReports().size() );
     }
 
     @Test
@@ -627,39 +625,19 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
             "tracker/validations/enrollments_bad-note-bad-uuid.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
 
         assertEquals( 1, validationReport.getErrorReports().size() );
 
+
         assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1118 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1048 ) ) ) );
     }
 
     @Test
-    public void testBadEnrollmentNoteBadDate()
-        throws IOException
-    {
-        TrackerBundleParams params = createBundleFromJson(
-            "tracker/validations/enrollments_bad-stored-date.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
-
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1121 ) ) ) );
-    }
-
-    // TODO: Note persistence not impl yet...
-    @Test
-    @Ignore( "Not persistence not yet impl." )
     public void testBadEnrollmentNoteUUIDExist()
         throws IOException
     {
@@ -674,9 +652,6 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1120 ) ) ) );
+        assertEquals( 0, validationReport.getErrorReports().size() );
     }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker;
  */
 
 import com.google.common.base.Enums;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,7 +56,6 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @Service
 public class DefaultTrackerImportService
     implements TrackerImportService

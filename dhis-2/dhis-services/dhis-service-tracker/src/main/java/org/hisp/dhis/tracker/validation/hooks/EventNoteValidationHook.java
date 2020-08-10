@@ -32,12 +32,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -45,20 +41,18 @@ import java.util.List;
 @Component
 public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
+    private final TrackedEntityCommentService commentService;
+
     public EventNoteValidationHook( TrackedEntityAttributeService teAttrService,
         TrackedEntityCommentService commentService )
     {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        this.commentService = commentService;
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-
-        List<Note> notes = event.getNotes();
-
-        validateNotes( reporter, strategy, notes );
+        event.setNotes( NoteValidationUtils.getPersistableNotes( commentService, event.getNotes() ) );
     }
 }

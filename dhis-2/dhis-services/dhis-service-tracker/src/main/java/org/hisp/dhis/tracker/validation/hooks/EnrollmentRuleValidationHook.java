@@ -53,10 +53,9 @@ public class EnrollmentRuleValidationHook
 {
     private List<RuleActionValidator> validators;
 
-    public EnrollmentRuleValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EnrollmentRuleValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
     }
 
     @Autowired( required = false )

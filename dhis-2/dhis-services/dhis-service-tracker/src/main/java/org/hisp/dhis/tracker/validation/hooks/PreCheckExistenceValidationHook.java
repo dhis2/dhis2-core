@@ -29,12 +29,10 @@ package org.hisp.dhis.tracker.validation.hooks;
  *
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -50,16 +48,14 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component
 public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
-    public PreCheckExistenceValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public PreCheckExistenceValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
     }
 
     @Override

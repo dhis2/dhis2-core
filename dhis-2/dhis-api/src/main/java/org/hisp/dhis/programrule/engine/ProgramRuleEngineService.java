@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule.engine;
 import java.util.List;
 
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -54,4 +55,6 @@ public interface ProgramRuleEngineService
      * @return the list of rule effects calculated by rule engine
      */
     List<RuleEffect> evaluateEventAndRunEffects( long event );
+
+    RuleValidationResult getDescription( String condition, String programRuleId );
 }

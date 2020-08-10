@@ -71,7 +71,6 @@ public class TrackerImportValidationConfig
         EnrollmentAttributeValidationHook.class,
 
         EventCategoryOptValidationHook.class,
-        EventCountValidationHook.class,
         EventDateValidationHook.class,
         EventGeoValidationHook.class,
         EventNoteValidationHook.class,

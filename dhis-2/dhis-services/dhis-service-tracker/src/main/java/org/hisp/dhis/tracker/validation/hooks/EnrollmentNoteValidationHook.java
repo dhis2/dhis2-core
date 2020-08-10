@@ -32,12 +32,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -45,20 +41,18 @@ import java.util.List;
 @Component
 public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
+    private final TrackedEntityCommentService commentService;
+
     public EnrollmentNoteValidationHook( TrackedEntityAttributeService teAttrService,
         TrackedEntityCommentService commentService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        this.commentService = commentService;
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-
-        List<Note> notes = enrollment.getNotes();
-
-        validateNotes( reporter, strategy, notes );
+        enrollment.setNotes( NoteValidationUtils.getPersistableNotes( this.commentService, enrollment.getNotes() ) );
     }
 }
