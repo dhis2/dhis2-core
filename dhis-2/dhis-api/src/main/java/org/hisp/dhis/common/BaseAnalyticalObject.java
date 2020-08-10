@@ -514,7 +514,7 @@ public abstract class BaseAnalyticalObject
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
-                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
+                    tead.getDisplayName(), tead.getLegendSet(), tead.getFilter() );
             }
 
             // Tracked entity data element
@@ -527,7 +527,7 @@ public abstract class BaseAnalyticalObject
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
+                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -540,7 +540,7 @@ public abstract class BaseAnalyticalObject
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
-                    teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
+                    teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
             }
         }
 
@@ -680,7 +680,7 @@ public abstract class BaseAnalyticalObject
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
-                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
+                    tead.getDisplayName(), tead.getLegendSet(), tead.getFilter() );
             }
 
             // Tracked entity data element
@@ -693,7 +693,7 @@ public abstract class BaseAnalyticalObject
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
+                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -706,7 +706,7 @@ public abstract class BaseAnalyticalObject
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
-                    teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
+                    teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
             }
         }
 
