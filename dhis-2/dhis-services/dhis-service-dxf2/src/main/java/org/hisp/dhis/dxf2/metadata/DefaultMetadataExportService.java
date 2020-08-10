@@ -238,7 +238,8 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         User user = params.getUser();
 
-        if ( params.getClasses().isEmpty() && !(user.isSuper() || user.isAuthorized( "F_METADATA_EXPORT" )) )
+        if ( params.getClasses().isEmpty()
+            && !(user == null || user.isSuper() || user.isAuthorized( "F_METADATA_EXPORT" )) )
         {
             throw new MetadataExportException( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." );
         }
