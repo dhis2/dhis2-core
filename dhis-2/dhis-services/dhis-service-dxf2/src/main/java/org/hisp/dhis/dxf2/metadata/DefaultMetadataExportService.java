@@ -231,6 +231,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     @Override
     public void validate( MetadataExportParams params )
     {
+        /*
         if ( params.getUser() == null )
         {
             params.setUser( currentUserService.getCurrentUser() );
@@ -243,6 +244,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             throw new MetadataExportException( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." );
         }
+        */
     }
 
     @Override
