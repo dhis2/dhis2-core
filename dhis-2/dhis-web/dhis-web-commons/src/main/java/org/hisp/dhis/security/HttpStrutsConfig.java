@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.filter.CorsFilter;
 import org.hisp.dhis.security.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.oprovider.OldOauthAuthenticationProvider;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
 import org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager;
@@ -19,7 +19,6 @@ import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
@@ -29,6 +28,9 @@ import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -38,11 +40,9 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.config.annotation.configuration.ClientDetailsServiceConfiguration;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
@@ -50,6 +50,7 @@ import org.springframework.security.oauth2.provider.endpoint.FrameworkEndpointHa
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -137,8 +138,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 
     @Configuration
     @Order( 1001 )
-    @Import( { AuthorizationServerEndpointsConfiguration.class, ClientDetailsServiceConfiguration.class,
-        AuthorizationServerEndpointsConfiguration.class } )
+    @Import( { AuthorizationServerEndpointsConfiguration.class, AuthorizationServerEndpointsConfiguration.class } )
     public class Outh1SecurityConfig extends WebSecurityConfigurerAdapter implements AuthorizationServerConfigurer
     {
 
@@ -179,7 +179,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             String tokenKeyPath = handlerMapping.getServletPath( "/oauth/token_key" );
             String checkTokenPath = handlerMapping.getServletPath( "/oauth/check_token" );
 
-//            if ( !endpoints.getEndpointsConfigurer().isUserDetailsServiceOverride() )
+            if ( !endpoints.getEndpointsConfigurer().isUserDetailsServiceOverride() )
 //            {
 //                UserDetailsService userDetailsService = http.getSharedObject( UserDetailsService.class );
 //                endpoints.getEndpointsConfigurer().userDetailsService( userDetailsService );
@@ -197,6 +197,21 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
 //            http.setSharedObject( ClientDetailsService.class, clientDetailsService );
+            http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
+        }
+
+        private class AuthorizationServerAuthenticationManagerConfigurer
+            extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>
+        {
+            @Override
+            public void init( HttpSecurity builder )
+                throws Exception
+            {
+                AuthenticationManagerBuilder authBuilder = builder
+                    .getSharedObject( AuthenticationManagerBuilder.class );
+                authBuilder.removeConfigurer( DaoAuthenticationConfigurer.class );
+                authBuilder.authenticationProvider( oldOauthAuthenticationProvider );
+            }
         }
 
 //    protected void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
@@ -206,13 +221,14 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 //    }
 
         @Autowired
-        TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-//
+        OldOauthAuthenticationProvider oldOauthAuthenticationProvider;
+
+        //
         @Override
         public void configure( AuthorizationServerSecurityConfigurer security )
             throws Exception
         {
-            security.addAuthenticationProvider( twoFactorAuthenticationProvider );
+//            security.addAuthenticationProvider( twoFactorAuthenticationProvider );
         }
 
 //        @Autowired
@@ -238,7 +254,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             throws Exception
         {
 
-
             // @formatter:off
             endpoints
 //                .tokenServices( tokenServices() )
@@ -251,77 +266,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 
             // @formatter:on
         }
-
-//        @Autowired
-//        private UserService userService;
-//
-//        @Autowired
-//        private UserDetailsService userDetailsService;
-//
-//        @Autowired
-//        private SecurityService securityService;
-//
-//        @Autowired
-//        @Qualifier("clientDetailsUserService")
-//        private ClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
-//
-//        @Autowired
-//        public void configure( AuthenticationManagerBuilder auth )
-//            throws Exception
-//        {
-//            TwoFactorAuthenticationProvider twoFactorAuthenticationProvider = new TwoFactorAuthenticationProvider();
-//            twoFactorAuthenticationProvider.setPasswordEncoder( NoOpPasswordEncoder.getInstance() );
-//            twoFactorAuthenticationProvider.setUserService( userService );
-//            twoFactorAuthenticationProvider.setUserDetailsService( userDetailsService );
-//            twoFactorAuthenticationProvider.setSecurityService( securityService );
-//
-//            // configure the Authentication providers
-//
-//            auth
-//                // Two factor
-//                .authenticationProvider( twoFactorAuthenticationProvider )
-//                // LDAP Authentication
-////            .authenticationProvider( customLdapAuthenticationProvider )
-//                //  OAUTH2
-//                .userDetailsService( defaultClientDetailsUserDetailsService )
-//                // Use a non-encoding password for oauth2 secrets, since the secret is generated by the client
-//                .passwordEncoder( NoOpPasswordEncoder.getInstance() );
-//        }
-
-//
-//        @Bean( "authenticationManager" )
-//        public AuthenticationManager customAuthenticationManager()
-//            throws Exception
-//        {
-//            return authenticationManager();
-//        }
-
-//        @Bean( name = "authenticationManager" )
-//        @Override
-//        public AuthenticationManager authenticationManagerBean()
-//            throws Exception
-//        {
-//            return super.authenticationManagerBean();
-//        }
-
-//    @Bean
-//    public OAuth2AuthenticationManager oAuth2AuthenticationManager()
-//    {
-//        OAuth2AuthenticationManager oa2Manager = new OAuth2AuthenticationManager();
-//        oa2Manager.setTokenServices( tokenServices() );
-//        oa2Manager.setClientDetailsService( defaultClientDetailsService );
-//        return oa2Manager;
-//    }
-//    @Bean( "authenticationManager" )
-//    public AuthenticationManager authenticationManager( AuthenticationManagerBuilder auth )
-//    {
-//        return auth.getOrBuild();
-//    }
-//    @Bean
-//    public TokenStore tokenStore()
-//    {
-//        return new JwtTokenStore( accessTokenConverter() );
-//    }
 
         @Bean
         public TokenStore tokenStore()

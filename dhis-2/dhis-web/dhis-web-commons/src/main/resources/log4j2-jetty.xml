@@ -44,7 +44,7 @@
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="ERROR" additivity="true"/>
         <!--        <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="true"/>-->
 
-        <Root level="INFO">
+        <Root level="DEBUG">
             <AppenderRef ref="CONSOLE"/>
         </Root>
     </Loggers>

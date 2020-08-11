@@ -28,34 +28,78 @@ package org.hisp.dhis.security.oauth2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.ClientRegistrationException;
-import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.NoSuchClientException;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "clientDetailsUserService" )
-public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
+@Service( "defaultClientDetailsUserDetailsService" )
+public class DefaultClientDetailsUserDetailsService implements UserDetailsService
 {
-    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+
+    private final DefaultClientDetailsService clientDetailsService;
+
+    private String emptyPassword = "";
+
+    @Autowired
+    public DefaultClientDetailsUserDetailsService(
+        @Qualifier( "defaultClientDetailsService" ) DefaultClientDetailsService clientDetailsService )
     {
-        super( clientDetailsService );
+        this.clientDetailsService = clientDetailsService;
     }
 
-    @Override
-    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+    /**
+     * @param passwordEncoder the password encoder to set
+     */
+    public void setPasswordEncoder( PasswordEncoder passwordEncoder )
     {
+        this.emptyPassword = passwordEncoder.encode( "" );
+    }
+
+    public UserDetails loadUserByUsername( String username )
+        throws UsernameNotFoundException
+    {
+        ClientDetails clientDetails;
         try
         {
-            return super.loadUserByUsername( username );
+            clientDetails = clientDetailsService.loadClientByClientId( username );
         }
-        catch ( ClientRegistrationException ex )
+        catch ( NoSuchClientException e )
         {
-            throw new UsernameNotFoundException( ex.getMessage(), ex );
+            throw new UsernameNotFoundException( e.getMessage(), e );
         }
+        String clientSecret = clientDetails.getClientSecret();
+        if ( clientSecret == null || clientSecret.trim().length() == 0 )
+        {
+            clientSecret = emptyPassword;
+        }
+        return new User( username, clientSecret, clientDetails.getAuthorities() );
     }
+
+//    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+//    {
+//        super( clientDetailsService );
+//    }
+//
+//    @Override
+//    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+//    {
+//        try
+//        {
+//            return super.loadUserByUsername( username );
+//        }
+//        catch ( ClientRegistrationException ex )
+//        {
+//            throw new UsernameNotFoundException( ex.getMessage(), ex );
+//        }
+//    }
 }
