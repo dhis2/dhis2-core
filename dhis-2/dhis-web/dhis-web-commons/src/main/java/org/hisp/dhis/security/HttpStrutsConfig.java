@@ -253,9 +253,9 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         public void configure( final AuthorizationServerEndpointsConfigurer endpoints )
             throws Exception
         {
-
-            // @formatter:off
             endpoints
+                .prefix( "/oauth" )
+                .pathMapping( "/oauth/token","/token" )
 //                .tokenServices( tokenServices() )
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
                 .tokenStore(tokenStore())
@@ -263,8 +263,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 //            .setClientDetailsService( clientDetailsService );
             // .accessTokenConverter(accessTokenConverter())
 //            .tokenEnhancer(tokenEnhancerChain)
-
-            // @formatter:on
         }
 
         @Bean

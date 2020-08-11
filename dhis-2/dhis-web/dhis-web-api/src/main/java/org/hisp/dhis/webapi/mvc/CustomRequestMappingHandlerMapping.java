@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.mvc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -45,12 +46,19 @@ import java.util.Set;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class CustomRequestMappingHandlerMapping
     extends RequestMappingHandlerMapping
 {
     @Override
     protected RequestMappingInfo getMappingForMethod( Method method, Class<?> handlerType )
     {
+
+        if ( handlerType.equals( org.springframework.security.oauth2.provider.endpoint.TokenEndpoint.class ) )
+        {
+            log.info( "jurray" );
+        }
+
         RequestMappingInfo info = super.getMappingForMethod( method, handlerType );
 
         if ( info == null )

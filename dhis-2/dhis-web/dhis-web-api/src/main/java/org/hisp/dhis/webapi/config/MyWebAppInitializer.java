@@ -39,6 +39,7 @@ public class MyWebAppInitializer implements WebApplicationInitializer
         dispatcher.setAsyncSupported(true);
         dispatcher.setLoadOnStartup( 1 );
         dispatcher.addMapping( "/api/*" );
+        dispatcher.addMapping( "/oauth/*" );
 
         FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
             OpenSessionInViewFilter.class );
