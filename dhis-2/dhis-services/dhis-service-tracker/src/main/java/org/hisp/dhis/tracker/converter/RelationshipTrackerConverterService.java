@@ -57,10 +57,6 @@ public class RelationshipTrackerConverterService
     implements TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
 {
 
-    public RelationshipTrackerConverterService()
-    {
-    }
-
     @Override
     @Transactional( readOnly = true )
     public Relationship to( org.hisp.dhis.relationship.Relationship relationship )

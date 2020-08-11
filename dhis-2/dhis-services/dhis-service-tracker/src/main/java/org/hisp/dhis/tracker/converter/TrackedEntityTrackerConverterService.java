@@ -53,10 +53,6 @@ public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance>
 {
 
-    public TrackedEntityTrackerConverterService()
-    {
-    }
-
     @Override
     @Transactional( readOnly = true )
     public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
