@@ -960,7 +960,7 @@
             });
             var userProfilePromise = jQuery.ajax({
                 type: "GET",
-                url: dhis2.settings.getBaseUrl() + "/api/me/profile.json",
+                url: dhis2.settings.getBaseUrl() + "/api/me.json",
                 dataType: "json"
             });
 

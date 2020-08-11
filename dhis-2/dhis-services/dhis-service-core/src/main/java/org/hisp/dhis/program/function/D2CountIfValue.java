@@ -49,7 +49,7 @@ public class D2CountIfValue
 
         Object value = visitor.visit( ctx.expr( 0 ) );
 
-        castClass( programStageElement.getClass(), value ); // Check that we are compaing same data types.
+        castClass( programStageElement.getClass(), value ); // Check that we are comparing same data types.
 
         return DEFAULT_DOUBLE_VALUE;
     }

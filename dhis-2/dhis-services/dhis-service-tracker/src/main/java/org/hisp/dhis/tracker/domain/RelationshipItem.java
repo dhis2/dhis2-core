@@ -44,11 +44,11 @@ import lombok.NoArgsConstructor;
 public class RelationshipItem
 {
     @JsonProperty
-    private TrackedEntity trackedEntity;
+    private String trackedEntity;
 
     @JsonProperty
-    private Enrollment enrollment;
+    private String enrollment;
 
     @JsonProperty
-    private Event event;
+    private String event;
 }

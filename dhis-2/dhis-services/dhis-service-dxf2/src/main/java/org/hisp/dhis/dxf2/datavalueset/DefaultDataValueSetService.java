@@ -28,24 +28,8 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
-import static org.hisp.dhis.util.DateUtils.parseDate;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.csvreader.CsvReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.calendar.CalendarService;
@@ -82,7 +66,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
-import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18n;
@@ -100,7 +86,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -121,10 +106,24 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-
-import com.csvreader.CsvReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.system.notification.NotificationLevel.*;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -149,7 +148,7 @@ public class DefaultDataValueSetService
 
     private final DataApprovalService approvalService;
 
-    private  BatchHandlerFactory batchHandlerFactory;
+    private BatchHandlerFactory batchHandlerFactory;
 
     private final CompleteDataSetRegistrationService registrationService;
 
@@ -171,20 +170,35 @@ public class DefaultDataValueSetService
 
     private final DataValueService dataValueService;
 
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    private AclService aclService;
+    private final AclService aclService;
 
-    private AggregateAccessManager accessManager;
+    private final AggregateAccessManager accessManager;
 
-    public DefaultDataValueSetService( IdentifiableObjectManager identifiableObjectManager,
-        CategoryService categoryService, OrganisationUnitService organisationUnitService, PeriodService periodService,
-        DataApprovalService approvalService, BatchHandlerFactory batchHandlerFactory,
-        CompleteDataSetRegistrationService registrationService, CurrentUserService currentUserService,
-        DataValueSetStore dataValueSetStore, SystemSettingManager systemSettingManager,
-        LockExceptionStore lockExceptionStore, I18nManager i18nManager, Notifier notifier, InputUtils inputUtils,
-        CalendarService calendarService, DataValueService dataValueService, FileResourceService fileResourceService,
-        AclService aclService, AggregateAccessManager accessManager )
+    private final ObjectMapper jsonMapper;
+
+    public DefaultDataValueSetService(
+        IdentifiableObjectManager identifiableObjectManager,
+        CategoryService categoryService,
+        OrganisationUnitService organisationUnitService,
+        PeriodService periodService,
+        DataApprovalService approvalService,
+        BatchHandlerFactory batchHandlerFactory,
+        CompleteDataSetRegistrationService registrationService,
+        CurrentUserService currentUserService,
+        DataValueSetStore dataValueSetStore,
+        SystemSettingManager systemSettingManager,
+        LockExceptionStore lockExceptionStore,
+        I18nManager i18nManager,
+        Notifier notifier,
+        InputUtils inputUtils,
+        CalendarService calendarService,
+        DataValueService dataValueService,
+        FileResourceService fileResourceService,
+        AclService aclService,
+        AggregateAccessManager accessManager,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( identifiableObjectManager );
         checkNotNull( categoryService );
@@ -205,6 +219,7 @@ public class DefaultDataValueSetService
         checkNotNull( fileResourceService );
         checkNotNull( aclService );
         checkNotNull( accessManager );
+        checkNotNull( jsonMapper );
 
         this.identifiableObjectManager = identifiableObjectManager;
         this.categoryService = categoryService;
@@ -225,6 +240,7 @@ public class DefaultDataValueSetService
         this.fileResourceService = fileResourceService;
         this.aclService = aclService;
         this.accessManager = accessManager;
+        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -309,74 +325,98 @@ public class DefaultDataValueSetService
     @Override
     public void validate( DataExportParams params )
     {
-        String violation = null;
+        ErrorMessage error = null;
 
         if ( params == null )
         {
-            throw new IllegalArgumentException( "Params cannot be null" );
+            throw new IllegalQueryException( ErrorCode.E2000 );
         }
 
-        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        if ( !params.hasDataElements() && !params.hasDataSets() && !params.hasDataElementGroups() )
         {
-            violation = "At least one valid data set or data element group must be specified";
+            error = new ErrorMessage( ErrorCode.E2001 );
         }
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasLastUpdated() && !params.hasLastUpdatedDuration() )
         {
-            violation = "At least one valid period, start/end dates, last updated or last updated duration must be specified";
+            error = new ErrorMessage( ErrorCode.E2002 );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
         {
-            violation = "Both periods and start/end date cannot be specified";
+            error = new ErrorMessage( ErrorCode.E2003 );
         }
 
         if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
         {
-            violation = "Start date must be before end date";
+            error = new ErrorMessage( ErrorCode.E2004 );
         }
 
         if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
         {
-            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+            error = new ErrorMessage( ErrorCode.E2005 );
         }
 
         if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
         {
-            violation = "At least one valid organisation unit or organisation unit group must be specified";
+            error = new ErrorMessage( ErrorCode.E2006 );
         }
 
         if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
         {
-            violation = "Children cannot be included for organisation unit groups";
+            error = new ErrorMessage( ErrorCode.E2007 );
         }
 
         if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
         {
-            violation = "At least one valid organisation unit must be specified when children is included";
+            error = new ErrorMessage( ErrorCode.E2008 );
         }
 
         if ( params.hasLimit() && params.getLimit() < 0 )
         {
-            violation = "Limit cannot be less than zero: " + params.getLimit();
+            error = new ErrorMessage( ErrorCode.E2009, params.getLimit() );
         }
 
-        if ( violation != null )
+        if ( error != null )
         {
-            log.warn( "Validation failed: " + violation );
+            log.warn( "Validation failed: " + error );
 
-            throw new IllegalQueryException( violation );
+            throw new IllegalQueryException( error );
         }
     }
 
     @Override
     public void decideAccess( DataExportParams params )
     {
+        User user = currentUserService.getCurrentUser();
+
+        // Verify data set read sharing
+
+        for ( DataSet dataSet : params.getDataSets() )
+        {
+            if ( !aclService.canDataRead( user, dataSet ) )
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2010, dataSet.getUid() ) );
+            }
+        }
+
+        // Verify attribute option combination data read sharing
+
+        for ( CategoryOptionCombo optionCombo : params.getAttributeOptionCombos() )
+        {
+            if ( !aclService.canDataRead( user, optionCombo ) )
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2011, optionCombo.getUid() ) );
+            }
+        }
+
+        // Verify org unit being located within user data capture hierarchy
+
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
         {
             if ( !organisationUnitService.isInUserHierarchy( unit ) )
             {
-                throw new IllegalQueryException( "User is not allowed to view org unit: " + unit.getUid() );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2012, unit.getUid() ) );
             }
         }
     }
@@ -617,7 +657,7 @@ public class DefaultDataValueSetService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            DataValueSet dataValueSet = DefaultRenderService.getJsonMapper().readValue( in, DataValueSet.class );
+            DataValueSet dataValueSet = jsonMapper.readValue( in, DataValueSet.class );
             return saveDataValueSet( importOptions, id, dataValueSet );
         }
         catch ( Exception ex )
@@ -673,7 +713,7 @@ public class DefaultDataValueSetService
     @Override
     public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions )
     {
-       return saveDataValueSetPdf( in, importOptions, null );
+        return saveDataValueSetPdf( in, importOptions, null );
     }
 
     /**
@@ -692,7 +732,6 @@ public class DefaultDataValueSetService
      * <p>
      * If id scheme is specific in the data value set, any id schemes in the import
      * options will be ignored.
-     *
      */
     private ImportSummary saveDataValueSet( ImportOptions importOptions, JobConfiguration id, DataValueSet dataValueSet )
     {
@@ -1076,7 +1115,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictPeriods && !dataElementPeriodTypesMap.get( dataElement.getUid(),
-                    dataElement::getPeriodTypes).contains( period.getPeriodType() ) )
+                dataElement::getPeriodTypes ).contains( period.getPeriodType() ) )
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getPeriod(),
                     "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
@@ -1091,7 +1130,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
-                    dataElement::getCategoryOptionCombos).contains( categoryOptionCombo ) )
+                dataElement::getCategoryOptionCombos ).contains( categoryOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( categoryOptionCombo.getUid(),
                     "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );
@@ -1099,7 +1138,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictAttrOptionCombos && !dataElementAttrOptionComboMap.get( dataElement.getUid(),
-                    dataElement::getDataSetCategoryOptionCombos).contains( attrOptionCombo ) )
+                dataElement::getDataSetCategoryOptionCombos ).contains( attrOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( attrOptionCombo.getUid(),
                     "Attribute option combo: " + attrOptionCombo.getUid() + " must be part of category combo of data sets of data element: " + dataElement.getUid() ) );
@@ -1133,10 +1172,10 @@ public class DefaultDataValueSetService
 
             final CategoryOptionCombo aoc = attrOptionCombo;
 
-            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange);
+            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange );
 
-            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
-                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
+            if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0)
+                || (aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
@@ -1155,7 +1194,7 @@ public class DefaultDataValueSetService
             }
 
             final DataSet approvalDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
-                    dataElement::getApprovalDataSet);
+                dataElement::getApprovalDataSet );
 
             if ( approvalDataSet != null && !forceDataInput ) // Data element is assigned to at least one data set
             {
@@ -1167,7 +1206,7 @@ public class DefaultDataValueSetService
                     continue;
                 }
 
-                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), dataElement::getLatestOpenFuturePeriod);
+                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), dataElement::getLatestOpenFuturePeriod );
 
                 if ( period.isAfter( latestFuturePeriod ) && isIso8601 )
                 {

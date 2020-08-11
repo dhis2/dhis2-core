@@ -1,5 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
+import java.util.UUID;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -30,7 +32,9 @@ package org.hisp.dhis.user.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,12 +46,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.user.UserCredentialsStore" )
 public class HibernateUserCredentialsStore
-    extends HibernateGenericStore<UserCredentials>
+    extends HibernateIdentifiableObjectStore<UserCredentials>
     implements UserCredentialsStore
 {
-    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -71,6 +76,14 @@ public class HibernateUserCredentialsStore
     {
         Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.ldapId = :ldapId" );
         query.setParameter( "ldapId", ldapId );
+        return query.uniqueResult();
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByUuid( UUID uuid )
+    {
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.uuid = :uuid" );
+        query.setParameter( "uuid", uuid );
         return query.uniqueResult();
     }
 }

@@ -270,4 +270,24 @@ public class StreamUtils
             throw new RuntimeException( "Failed to finish the content of the ZipOutputStream", ex );
         }
     }
+
+    /**
+     * Closes an {@link InputStream} unconditionally without throwing exceptions.
+     *
+     * @param input the input stream.
+     */
+    public static void closeQuietly( InputStream input )
+    {
+        try
+        {
+            if ( input != null )
+            {
+                input.close();
+            }
+        }
+        catch ( final IOException ioe )
+        {
+            // Ignore
+        }
+    }
 }

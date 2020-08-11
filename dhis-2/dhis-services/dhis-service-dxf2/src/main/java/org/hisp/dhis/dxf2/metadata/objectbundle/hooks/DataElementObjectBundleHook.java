@@ -43,7 +43,6 @@ import java.util.List;
 public class DataElementObjectBundleHook
     extends AbstractObjectBundleHook
 {
-
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -59,9 +58,9 @@ public class DataElementObjectBundleHook
                 {
                     TextPatternParser.parse( "\"" + dataElement.getFieldMask() + "\"" );
                 }
-                catch ( TextPatternParser.TextPatternParsingException e )
+                catch ( TextPatternParser.TextPatternParsingException ex )
                 {
-                    errors.add( new ErrorReport(DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ));
+                    errors.add( new ErrorReport( DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(), "Not a valid TextPattern 'TEXT' segment" ) );
                 }
             }
 
@@ -69,5 +68,4 @@ public class DataElementObjectBundleHook
 
         return errors;
     }
-
 }

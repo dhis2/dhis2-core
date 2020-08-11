@@ -45,8 +45,8 @@ import static com.cronutils.utils.Preconditions.checkNotNull;
  */
 public abstract class AbstractHibernateListener
 {
-    final AuditManager auditManager;
-    final AuditObjectFactory objectFactory;
+    protected final AuditManager auditManager;
+    protected final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
 
     public AbstractHibernateListener(

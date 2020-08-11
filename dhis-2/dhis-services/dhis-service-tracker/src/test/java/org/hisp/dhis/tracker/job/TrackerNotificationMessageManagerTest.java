@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.job;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.job.TrackerNotificationThread;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -45,8 +43,20 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.ObjectFactory;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Zubair Asghar
@@ -61,6 +71,12 @@ public class TrackerNotificationMessageManagerTest
 
     @Mock
     private MessageManager messageManager;
+
+    @Mock
+    private RenderService renderService;
+
+    @Mock
+    private TextMessage textMessage;
 
     @Mock
     private SchedulingManager schedulingManager;
@@ -97,13 +113,21 @@ public class TrackerNotificationMessageManagerTest
 
     @Test
     public void test_message_consumer()
+        throws JMSException, IOException
     {
+        TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().accessedBy( "test-user" ).build();
+
+        when( textMessage.getText() ).thenReturn( "text" );
         when( objectFactory.getObject() ).thenReturn( trackerNotificationThread );
         doNothing().when( schedulingManager ).executeJob( any( Runnable.class ) );
 
-        TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
+        when( renderService.fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) ) ).thenReturn( null );
+        trackerNotificationMessageManager.consume( textMessage );
 
-        trackerNotificationMessageManager.consume( dataBundle );
+        verify( schedulingManager, times( 0 ) ).executeJob( any( Runnable.class ) );
+
+        doReturn( bundle ).when( renderService ).fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) );
+        trackerNotificationMessageManager.consume( textMessage );
 
         Mockito.verify( schedulingManager ).executeJob( runnableCaptor.capture() );
 

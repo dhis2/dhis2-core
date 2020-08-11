@@ -138,7 +138,7 @@ public class DataSet
      * Property indicating if the dataset could be collected using mobile data
      * entry.
      */
-    private boolean mobile;
+    private boolean mobile; //TODO Remove, mobile service is now removed
 
     /**
      * Indicating custom data entry form, can be null.
@@ -967,6 +967,7 @@ public class DataSet
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -974,6 +975,7 @@ public class DataSet
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

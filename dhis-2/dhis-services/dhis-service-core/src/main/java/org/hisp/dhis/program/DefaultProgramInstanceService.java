@@ -28,14 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.common.*;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -43,7 +39,11 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotif
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -52,7 +52,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 
 /**
  * @author Abyot Asalefew
@@ -94,9 +99,6 @@ public class DefaultProgramInstanceService
     private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
-    private ProgramInstanceAuditService programInstanceAuditService;
-
-    @Autowired
     private AclService aclService;
 
     // -------------------------------------------------------------------------
@@ -113,25 +115,26 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void deleteProgramInstance( ProgramInstance programInstance )
+    public long addProgramInstance( ProgramInstance programInstance, User user )
     {
-        deleteProgramInstance( programInstance, false );
+        programInstanceStore.save( programInstance, user );
+        return programInstance.getId();
     }
 
     @Override
     @Transactional
-    public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
+    public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        if ( forceDelete )
-        {
-            programInstanceStore.delete( programInstance );
-        }
-        else
-        {
-            programInstance.setDeleted( true );
-            programInstance.setStatus( ProgramStatus.CANCELLED );
-            programInstanceStore.update( programInstance );
-        }
+        programInstance.setStatus( ProgramStatus.CANCELLED );
+        programInstanceStore.update( programInstance );
+        programInstanceStore.delete( programInstance );
+    }
+
+    @Override
+    @Transactional
+    public void hardDeleteProgramInstance( ProgramInstance programInstance )
+    {
+        programInstanceStore.hardDelete( programInstance );
     }
 
     @Override
@@ -139,13 +142,6 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( long id )
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
-        {
-            addProgramInstanceAudit( programInstance, user.getUsername() );
-        }
 
         return programInstance;
     }
@@ -155,13 +151,6 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( String uid )
     {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
-        {
-            addProgramInstanceAudit( programInstance, user.getUsername() );
-        }
 
         return programInstance;
     }
@@ -192,6 +181,13 @@ public class DefaultProgramInstanceService
     public void updateProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.update( programInstance );
+    }
+
+    @Override
+    @Transactional
+    public void updateProgramInstance( ProgramInstance programInstance, User user )
+    {
+        programInstanceStore.update( programInstance, user );
     }
 
     @Override
@@ -308,11 +304,6 @@ public class DefaultProgramInstanceService
         }
 
         List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        if ( user != null )
-        {
-            addProgramInstanceAudits( programInstances, user.getUsername() );
-        }
 
         return programInstances;
     }
@@ -643,23 +634,5 @@ public class DefaultProgramInstanceService
         programInstance.setEndDate( null );
 
         updateProgramInstance( programInstance );
-    }
-
-    private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
-    {
-        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
-        {
-            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
-
-            programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
-        }
-    }
-
-    private void addProgramInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
-    {
-        for ( ProgramInstance programInstance : programInstances )
-        {
-            addProgramInstanceAudit( programInstance, accessedBy );
-        }
     }
 }

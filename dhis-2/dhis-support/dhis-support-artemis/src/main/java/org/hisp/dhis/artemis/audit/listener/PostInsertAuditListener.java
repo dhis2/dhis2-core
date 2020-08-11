@@ -50,7 +50,9 @@ import java.time.LocalDateTime;
 public class PostInsertAuditListener
     extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
-    public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
+    public PostInsertAuditListener(
+        AuditManager auditManager,
+        AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
         super( auditManager, auditObjectFactory, userNameSupplier );

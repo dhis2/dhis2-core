@@ -1,30 +1,4 @@
-package org.hisp.dhis.dxf2.sync;/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+package org.hisp.dhis.dxf2.sync;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -60,6 +34,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
+import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -79,7 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-
 @Slf4j
 public class SyncUtils
 {
@@ -121,14 +95,14 @@ public class SyncUtils
         return false;
     }
 
-    private static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
+    public static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
         RequestCallback requestCallback, Class<? extends AbstractWebMessageResponse> klass, String syncUrl,
         int maxSyncAttempts )
     {
         boolean networkErrorOccurred = true;
         int syncAttemptsDone = 0;
 
-        ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
+        ResponseExtractor<? extends AbstractWebMessageResponse> responseExtractor = getResponseExtractor( klass );
         AbstractWebMessageResponse responseSummary = null;
 
         while ( networkErrorOccurred )
@@ -175,6 +149,22 @@ public class SyncUtils
 
         log.info( "Sync summary: " + responseSummary );
         return Optional.ofNullable( responseSummary );
+    }
+
+    private static ResponseExtractor<? extends AbstractWebMessageResponse> getResponseExtractor( Class<? extends AbstractWebMessageResponse> klass )
+    {
+        if ( ImportSummaries.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummariesResponseExtractor();
+        }
+        else if ( ImportSummary.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummaryResponseExtractor();
+        }
+        else
+        {
+            throw new IllegalStateException( "ResponseExtractor for given class '" + klass + "' is not supported." );
+        }
     }
 
     /**

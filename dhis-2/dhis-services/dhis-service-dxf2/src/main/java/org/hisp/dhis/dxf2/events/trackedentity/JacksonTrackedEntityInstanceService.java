@@ -28,22 +28,13 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -56,10 +47,12 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -70,7 +63,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,15 +76,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Transactional
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService
 {
-    public JacksonTrackedEntityInstanceService( org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
-        TrackedEntityAttributeService trackedEntityAttributeService, RelationshipService _relationshipService,
+    public JacksonTrackedEntityInstanceService(
+        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+        TrackedEntityAttributeService trackedEntityAttributeService,
+        RelationshipService _relationshipService,
         org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService, IdentifiableObjectManager manager,
-        UserService userService, DbmsManager dbmsManager, EnrollmentService enrollmentService,
-        ProgramInstanceService programInstanceService, CurrentUserService currentUserService,
-        SchemaService schemaService, QueryService queryService, ReservedValueService reservedValueService,
-        TrackerAccessManager trackerAccessManager, FileResourceService fileResourceService,
-        TrackerOwnershipManager trackerOwnershipAccessManager, Notifier notifier )
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+        IdentifiableObjectManager manager,
+        UserService userService,
+        DbmsManager dbmsManager,
+        EnrollmentService enrollmentService,
+        ProgramInstanceService programInstanceService,
+        CurrentUserService currentUserService,
+        SchemaService schemaService,
+        QueryService queryService,
+        ReservedValueService reservedValueService,
+        TrackerAccessManager trackerAccessManager,
+        FileResourceService fileResourceService,
+        TrackerOwnershipManager trackerOwnershipAccessManager,
+        Notifier notifier,
+        ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
         checkNotNull( teiService );
         checkNotNull( trackedEntityAttributeService );
@@ -112,6 +116,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         checkNotNull( fileResourceService );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( notifier );
+        checkNotNull( jsonMapper );
+        checkNotNull( xmlMapper );
 
         this.teiService = teiService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -131,68 +137,36 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.fileResourceService = fileResourceService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.notifier = notifier;
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
     }
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
-    private static final ObjectMapper XML_MAPPER = new XmlMapper();
-
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( InputStream inputStream, Class<?> clazz ) throws IOException
+    private <T> T fromXml( InputStream inputStream, Class<?> clazz ) throws IOException
     {
-        return (T) XML_MAPPER.readValue( inputStream, clazz );
+        return (T) xmlMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( String input, Class<?> clazz ) throws IOException
+    private <T> T fromXml( String input, Class<?> clazz ) throws IOException
     {
-        return (T) XML_MAPPER.readValue( input, clazz );
+        return (T) xmlMapper.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( InputStream inputStream, Class<?> clazz ) throws IOException
+    private <T> T fromJson( InputStream inputStream, Class<?> clazz ) throws IOException
     {
-        return (T) JSON_MAPPER.readValue( inputStream, clazz );
+        return (T) jsonMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( String input, Class<?> clazz ) throws IOException
+    private <T> T fromJson( String input, Class<?> clazz ) throws IOException
     {
-        return (T) JSON_MAPPER.readValue( input, clazz );
-    }
-
-    static
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.registerModules( module, new JtsModule() );
-        XML_MAPPER.registerModules( module, new JtsModule() );
+        return (T) jsonMapper.readValue( input, clazz );
     }
 
     // -------------------------------------------------------------------------
@@ -237,7 +211,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        JsonNode root = JSON_MAPPER.readTree( input );
+        JsonNode root = jsonMapper.readTree( input );
 
         if ( root.get( "trackedEntityInstances" ) != null )
         {

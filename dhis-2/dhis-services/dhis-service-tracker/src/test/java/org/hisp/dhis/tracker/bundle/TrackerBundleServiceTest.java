@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -52,13 +52,16 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerBundleServiceTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -79,8 +82,11 @@ public class TrackerBundleServiceTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -99,12 +105,6 @@ public class TrackerBundleServiceTest
         objectBundleService.commit( bundle );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testVerifyMetadata()
     {
@@ -117,10 +117,12 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testTrackedEntityInstanceImport() throws IOException
+    public void testTrackedEntityInstanceImport()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
+                TrackerBundleParams.class ).toTrackerBundle();
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 

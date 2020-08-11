@@ -67,7 +67,6 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * Note: The remove associations methods must be altered if caching is introduced.
@@ -363,11 +362,6 @@ public class DefaultDashboardService
     public void deleteDashboard( Dashboard dashboard )
     {
         dashboardStore.delete( dashboard );
-
-        for ( DashboardItem dashboardItem : dashboard.getItems() )
-        {
-            dashboardItemStore.delete( dashboardItem );
-        }
     }
 
     @Override

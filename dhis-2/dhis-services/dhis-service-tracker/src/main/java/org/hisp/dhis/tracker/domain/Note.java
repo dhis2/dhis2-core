@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
@@ -47,11 +50,14 @@ public class Note
     private String note;
 
     @JsonProperty
-    private String value;
+    private String storedAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
-    private String storedDate;
+    private String value;
+
+    @JsonIgnore
+    private boolean newNote;
 }

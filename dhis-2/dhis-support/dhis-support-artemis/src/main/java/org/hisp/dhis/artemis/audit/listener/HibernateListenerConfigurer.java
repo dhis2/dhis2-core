@@ -30,9 +30,6 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
-import org.hibernate.event.spi.PostDeleteEventListener;
-import org.hibernate.event.spi.PostLoadEventListener;
-import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;

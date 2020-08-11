@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
@@ -67,8 +67,8 @@
       <artifactId>dhis-support-expression-parser</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-antlr-expression-parser</artifactId>
+      <groupId>org.hisp.dhis.parser</groupId>
+      <artifactId>dhis-antlr-expression-parser</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -154,12 +154,14 @@
     </dependency>
 
     <!-- Image Processing -->
+
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
     </dependency>
 
     <!-- SMPP -->
+
     <dependency>
       <groupId>org.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
@@ -187,7 +189,7 @@
     <dependency>
       <groupId>com.github.dhis2</groupId>
       <artifactId>sms-compression</artifactId>
-      <version>0.1.7</version>
+      <version>0.2.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -196,6 +198,7 @@
     </dependency>
 
     <!-- Security -->
+
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
       <artifactId>aerogear-otp-java</artifactId>
@@ -207,7 +210,8 @@
       <scope>compile</scope>
     </dependency>
 
-    <!-- TEST -->
+    <!-- Test -->
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -215,9 +219,18 @@
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

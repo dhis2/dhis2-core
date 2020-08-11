@@ -30,8 +30,13 @@ package org.hisp.dhis.tracker.job;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.stereotype.Component;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * @author Zubair Asghar
@@ -41,19 +46,25 @@ import org.springframework.stereotype.Component;
 public abstract class BaseMessageManager
 {
     private final MessageManager messageManager;
+
     private final SchedulingManager schedulingManager;
 
+    private final RenderService renderService;
+
     public BaseMessageManager(
-            MessageManager messageManager,
-            SchedulingManager schedulingManager )
+        MessageManager messageManager,
+        SchedulingManager schedulingManager,
+        RenderService renderService )
     {
         this.messageManager = messageManager;
         this.schedulingManager = schedulingManager;
+        this.renderService = renderService;
     }
 
     public String addJob( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
         String jobId = CodeGenerator.generateUid();
+        sideEffectDataBundle.setJobId( jobId );
 
         messageManager.sendQueue( getTopic(), sideEffectDataBundle );
 
@@ -63,6 +74,14 @@ public abstract class BaseMessageManager
     public void executeJob( Runnable runnable )
     {
         schedulingManager.executeJob( runnable );
+    }
+
+    public TrackerSideEffectDataBundle toBundle( TextMessage message )
+        throws JMSException, IOException
+    {
+        String payload = message.getText();
+
+        return renderService.fromJson( payload, TrackerSideEffectDataBundle.class );
     }
 
     public abstract String getTopic();

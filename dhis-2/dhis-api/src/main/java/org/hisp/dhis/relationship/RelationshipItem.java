@@ -28,19 +28,21 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 /**
  * @author Stian Sandvold
  */
-public class RelationshipItem
-    implements EmbeddedObject
+public class RelationshipItem implements EmbeddedObject
 {
     private int id;
 
@@ -69,6 +71,7 @@ public class RelationshipItem
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     public Relationship getRelationship()
     {
         return relationship;
@@ -81,6 +84,7 @@ public class RelationshipItem
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     public TrackedEntityInstance getTrackedEntityInstance()
     {
         return trackedEntityInstance;
@@ -93,6 +97,7 @@ public class RelationshipItem
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     public ProgramInstance getProgramInstance()
     {
         return programInstance;
@@ -105,6 +110,7 @@ public class RelationshipItem
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     public ProgramStageInstance getProgramStageInstance()
     {
         return programStageInstance;

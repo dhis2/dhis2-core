@@ -28,6 +28,7 @@ package org.hisp.dhis.mobile.action.smscommand;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 
 import com.opensymphony.xwork2.Action;
@@ -62,9 +63,15 @@ public class DeleteSMSCommandAction
 
     @Override
     public String execute()
-        throws Exception
     {
-        smsCommandService.delete( smsCommandService.getSMSCommand( id ) );
+        SMSCommand smsCommand = smsCommandService.getSMSCommand( id );
+
+        if ( smsCommand == null )
+        {
+            return ERROR;
+        }
+
+        smsCommandService.delete( smsCommand );
 
         return SUCCESS;
     }

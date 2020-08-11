@@ -1,5 +1,7 @@
+package org.hisp.dhis.dto;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dto;
-
 import com.google.gson.annotations.Expose;
 
 /**
@@ -35,6 +35,8 @@ import com.google.gson.annotations.Expose;
  */
 public class OrgUnit
 {
+    private String id;
+
     private String name;
 
     private String shortName;
@@ -45,6 +47,16 @@ public class OrgUnit
     private String parent;
 
     private Integer level;
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
 
     public String getName()
     {

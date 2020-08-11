@@ -10,7 +10,6 @@ const mkdir = promisify(require('fs').mkdir)
  * not have struts definitions generated.
  */
 const blacklist = [
-    'core-resource-app',
     'user-profile-app'
 ]
 

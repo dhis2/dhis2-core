@@ -112,7 +112,7 @@ public class ProgramIndicatorServiceTest
 
     private ProgramInstance programInstance;
 
-    private DataElement deA;
+    private DataElement deAInteger;
 
     private DataElement deB;
 
@@ -120,7 +120,13 @@ public class ProgramIndicatorServiceTest
 
     private DataElement deD;
 
-    private DataElement deE;
+    private DataElement deEText;
+
+    private DataElement deFNumber;
+
+    private DataElement deGBoolean;
+
+    private DataElement deHDate;
 
     private TrackedEntityAttribute atA;
 
@@ -176,9 +182,9 @@ public class ProgramIndicatorServiceTest
         // Program Stage DE
         // ---------------------------------------------------------------------
 
-        deA = createDataElement( 'A' );
-        deA.setDomainType( DataElementDomain.TRACKER );
-        deA.setUid( "DataElmentA" );
+        deAInteger = createDataElement( 'A' );
+        deAInteger.setDomainType( DataElementDomain.TRACKER );
+        deAInteger.setUid( "DataElmentA" );
 
         deB = createDataElement( 'B' );
         deB.setDomainType( DataElementDomain.TRACKER );
@@ -192,24 +198,45 @@ public class ProgramIndicatorServiceTest
         deD.setDomainType( DataElementDomain.TRACKER );
         deD.setUid( "DataElmentD" );
 
-        deE = createDataElement( 'E' );
-        deE.setValueType( ValueType.TEXT );
-        deE.setDomainType( DataElementDomain.TRACKER );
-        deE.setUid( "DataElmentE" );
+        deEText = createDataElement( 'E' );
+        deEText.setValueType( ValueType.TEXT );
+        deEText.setDomainType( DataElementDomain.TRACKER );
+        deEText.setUid( "DataElmentE" );
 
-        dataElementService.addDataElement( deA );
+        deFNumber = createDataElement( 'F' );
+        deFNumber.setValueType( ValueType.NUMBER );
+        deFNumber.setDomainType( DataElementDomain.TRACKER );
+        deFNumber.setUid( "DataElmentF" );
+
+        deGBoolean = createDataElement( 'G' );
+        deGBoolean.setValueType( ValueType.BOOLEAN );
+        deGBoolean.setDomainType( DataElementDomain.TRACKER );
+        deGBoolean.setUid( "DataElmentG" );
+
+        deHDate = createDataElement( 'H' );
+        deHDate.setValueType( ValueType.DATE );
+        deHDate.setDomainType( DataElementDomain.TRACKER );
+        deHDate.setUid( "DataElmentH" );
+
+        dataElementService.addDataElement(deAInteger);
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
         dataElementService.addDataElement( deD );
-        dataElementService.addDataElement( deE );
+        dataElementService.addDataElement( deEText );
+        dataElementService.addDataElement( deFNumber );
+        dataElementService.addDataElement( deGBoolean );
+        dataElementService.addDataElement( deHDate );
 
-        ProgramStageDataElement stageDataElementA = new ProgramStageDataElement( psA, deA, false, 1 );
+        ProgramStageDataElement stageDataElementA = new ProgramStageDataElement( psA, deAInteger, false, 1 );
         ProgramStageDataElement stageDataElementB = new ProgramStageDataElement( psA, deB, false, 2 );
-        ProgramStageDataElement stageDataElementC = new ProgramStageDataElement( psB, deA, false, 1 );
+        ProgramStageDataElement stageDataElementC = new ProgramStageDataElement( psB, deAInteger, false, 1 );
         ProgramStageDataElement stageDataElementD = new ProgramStageDataElement( psB, deB, false, 2 );
         ProgramStageDataElement stageDataElementE = new ProgramStageDataElement( psA, deC, false, 3 );
         ProgramStageDataElement stageDataElementF = new ProgramStageDataElement( psA, deD, false, 4 );
-        ProgramStageDataElement stageDataElementG = new ProgramStageDataElement( psA, deE, false, 5 );
+        ProgramStageDataElement stageDataElementG = new ProgramStageDataElement( psA, deEText, false, 5 );
+        ProgramStageDataElement stageDataElementH = new ProgramStageDataElement( psA, deFNumber, false, 6 );
+        ProgramStageDataElement stageDataElementI = new ProgramStageDataElement( psA, deGBoolean, false, 6 );
+        ProgramStageDataElement stageDataElementJ = new ProgramStageDataElement( psA, deHDate, false, 6 );
 
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
         programStageDataElementService.addProgramStageDataElement( stageDataElementB );
@@ -218,6 +245,9 @@ public class ProgramIndicatorServiceTest
         programStageDataElementService.addProgramStageDataElement( stageDataElementE );
         programStageDataElementService.addProgramStageDataElement( stageDataElementF );
         programStageDataElementService.addProgramStageDataElement( stageDataElementG );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementH );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementI );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementJ );
 
         // ---------------------------------------------------------------------
         // TrackedEntityInstance & Enrollment
@@ -299,14 +329,14 @@ public class ProgramIndicatorServiceTest
         String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_INCIDENT_DATE + "}";
         indicatorD = createProgramIndicator( 'D', programB, expressionD, null );
 
-        String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_DATAELEMENT + "{"
-                + psB.getUid() + "." + deA.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + " + KEY_ATTRIBUTE
+        String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} + " + KEY_DATAELEMENT + "{"
+                + psB.getUid() + "." + deAInteger.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + " + KEY_ATTRIBUTE
                 + "{" + atB.getUid() + "}";
-        String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
+        String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} + " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
         indicatorE = createProgramIndicator( 'E', programB, expressionE, filterE );
 
-        String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}";
-        String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} > " +
+        String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "}";
+        String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} > " +
             KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
@@ -446,7 +476,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetAnalyticsSQl()
     {
-        String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
+        String expected = "coalesce(\"" + deAInteger.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date() ) );
     }
@@ -474,9 +504,9 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testExpressionWithFunctionIsValid()
     {
-        String exprA = "#{" + psA.getUid() + "." + deA.getUid() + "}";
-        String exprB = "d2:zing(#{" + psA.getUid() + "." + deA.getUid() + "})";
-        String exprC = "d2:condition('#{" + psA.getUid() + "." + deA.getUid() + "} > 10',2,1)";
+        String exprA = "#{" + psA.getUid() + "." + deAInteger.getUid() + "}";
+        String exprB = "d2:zing(#{" + psA.getUid() + "." + deAInteger.getUid() + "})";
+        String exprC = "d2:condition('#{" + psA.getUid() + "." + deAInteger.getUid() + "} > 10',2,1)";
 
         assertTrue( programIndicatorService.expressionIsValid( exprA ) );
         assertTrue( programIndicatorService.expressionIsValid( exprB ) );
@@ -484,22 +514,15 @@ public class ProgramIndicatorServiceTest
     }
 
     @Test
-    public void testFilterIsValid()
+    public void testFilterExpressionValidityWithD2FunctionsAndDifferentValueTypes()
     {
-        String filterA =
-            KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}  - " + KEY_ATTRIBUTE + "{" + atA.getUid() +
-                "} > 10";
-        String filterB =
-            KEY_ATTRIBUTE + "{" + atA.getUid() + "} == " + KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() +
-                "} - 5";
-        String filterC = KEY_ATTRIBUTE + "{invaliduid} == 100";
-        String filterD = KEY_ATTRIBUTE + "{" + atA.getUid() + "} + 200";
-
-//        assertTrue( programIndicatorService.filterIsValid( filterA ) );
-//        assertTrue( programIndicatorService.filterIsValid( filterB ) );
-//        assertFalse( programIndicatorService.filterIsValid( filterC ) );
-        assertFalse( programIndicatorService.filterIsValid( filterD ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deAInteger.getUid() + "})" ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deEText.getUid() + "})" ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deFNumber.getUid() + "})" ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deGBoolean.getUid() + "})" ) );
+        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deHDate.getUid() + "})" ) );
     }
+
 
     @Test
     public void testValueCount()

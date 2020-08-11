@@ -28,10 +28,8 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.visualization.Visualization;
 
 /**

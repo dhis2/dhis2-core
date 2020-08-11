@@ -37,9 +37,9 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
@@ -53,6 +53,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.MimeTypeUtils;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -123,11 +125,33 @@ public class FileResourceServiceTest
         assertThat( event.getFile(), is( file ) );
     }
 
+    @Test( expected = IllegalQueryException.class )
+    public void verifySaveIllegalFileTypeResourceA()
+    {
+        FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
+            FileResourceDomain.USER_AVATAR );
+
+        File file = new File( "very_evil_script.html" );
+
+        subject.saveFileResource( fileResource, file );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void verifySaveIllegalFileTypeResourceB()
+    {
+        FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
+            FileResourceDomain.MESSAGE_ATTACHMENT );
+
+        File file = new File( "suspicious_program.rpm" );
+
+        subject.saveFileResource( fileResource, file );
+    }
+
     @Test
     public void verifySaveImageFile()
     {
         FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
-                FileResourceDomain.DATA_VALUE );
+            FileResourceDomain.DATA_VALUE );
 
         File file = new File( "" );
 

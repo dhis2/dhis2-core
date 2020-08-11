@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,16 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.dxf2.metadata.objectbundle;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -47,12 +55,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -135,6 +137,33 @@ public class ObjectBundleServiceFavoritesTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( 4, dataElements.size() );
         assertEquals( 3, visualizations.size() );
+
+        assertNotNull( visualizations.get( 0 ).getFontSize() );
+        assertNotNull( visualizations.get( 1 ).getFontSize() );
+        assertNotNull( visualizations.get( 2 ).getFontSize() );
+        assertNotNull( visualizations.get( 0 ).getSeries() );
+        assertNotNull( visualizations.get( 1 ).getSeries() );
+        assertNotNull( visualizations.get( 2 ).getSeries() );
+        assertEquals( 2, visualizations.get( 0 ).getSeries().size() );
+        assertEquals( 2, visualizations.get( 1 ).getSeries().size() );
+        assertEquals( 2, visualizations.get( 2 ).getSeries().size() );
+        assertTrue( visualizations.get( 0 ).getRangeAxisMinValue() < 0 );
+        assertTrue( visualizations.get( 1 ).getRangeAxisMinValue() < 0 );
+        assertTrue( visualizations.get( 2 ).getRangeAxisMinValue() < 0 );
+        assertTrue( visualizations.get( 0 ).getBaseLineValue() < 0 );
+        assertTrue( visualizations.get( 1 ).getBaseLineValue() < 0 );
+        assertTrue( visualizations.get( 2 ).getBaseLineValue() < 0 );
+
+        assertNotNull( visualizations.get( 0 ).getFontStyle() );
+        assertNotNull( visualizations.get( 1 ).getFontStyle() );
+        assertNotNull( visualizations.get( 2 ).getFontStyle() );
+        assertNotNull( visualizations.get( 0 ).getFontStyle().getVisualizationTitle() );
+        assertNotNull( visualizations.get( 1 ).getFontStyle().getVisualizationTitle() );
+        assertNotNull( visualizations.get( 2 ).getFontStyle().getVisualizationTitle() );
+
+        assertEquals( "color_set_01", visualizations.get( 0 ).getColorSet() );
+        assertEquals( "color_set_01", visualizations.get( 1 ).getColorSet() );
+        assertEquals( "color_set_01", visualizations.get( 2 ).getColorSet() );
     }
 
     @Test

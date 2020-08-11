@@ -129,4 +129,12 @@ public interface CompleteDataSetRegistrationExchangeService
      */
     ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
         JobConfiguration jobId );
+
+    /**
+     * Validates the given {@link ExportParams}.
+     *
+     * @param params the export parameters.
+     * @throws IllegalQueryException if validation failed.
+     */
+    void validate( ExportParams params );
 }

@@ -29,15 +29,15 @@ package org.hisp.dhis.artemis.audit;
  */
 
 
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -59,8 +59,10 @@ public class AuditScheduler
 
     public void addAuditItem( final Audit auditItem )
     {
-        log.debug( String.format( "add Audit object with content %s to delayed queue", auditItem.toString() ) );
-
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( String.format( "add Audit object with content %s to delayed queue", auditItem.toLog() ) );
+        }
         final QueuedAudit postponed = new QueuedAudit( auditItem, delay );
 
         if ( !delayed.contains( postponed ) )

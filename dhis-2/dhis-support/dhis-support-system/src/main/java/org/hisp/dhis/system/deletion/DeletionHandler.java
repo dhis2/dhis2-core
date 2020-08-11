@@ -36,8 +36,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -419,16 +417,20 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public String allowDeleteValidationResult( ValidationResult validationResult )
-    {
-        return null;
-    }
-
     public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
     }
 
     public String allowDeleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    {
+        return null;
+    }
+
+    public void deleteValidationResult( ValidationResult validationResult )
+    {
+    }
+
+    public String allowDeleteValidationResult( ValidationResult validationResult )
     {
         return null;
     }
@@ -936,24 +938,6 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteColorSet( ColorSet colorSet )
-    {
-    }
-
-    public String allowDeleteColorSet( ColorSet colorSet )
-    {
-        return null;
-    }
-
-    public void deleteColor( Color color )
-    {
-    }
-
-    public String allowDeleteColor( Color color )
-    {
-        return null;
-    }
-
     public void deleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
     {
     }
@@ -1072,12 +1056,12 @@ public abstract class DeletionHandler
     public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
     }
-    
+
     public String allowDeleteVisualization( Visualization visualization )
     {
         return null;
     }
-    
+
     public void deleteVisualization( Visualization visualization )
     {
     }

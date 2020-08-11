@@ -28,17 +28,7 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
-import org.hisp.dhis.fileresource.events.FileDeletedEvent;
-import org.hisp.dhis.fileresource.events.FileSavedEvent;
-import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Hours;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +41,19 @@ import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
+import org.hisp.dhis.fileresource.events.FileSavedEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Hours;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -62,8 +64,7 @@ public class DefaultFileResourceService
 {
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
-    public static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
-        (fr -> !fr.isAssigned());
+    public static final Predicate<FileResource> IS_ORPHAN_PREDICATE = (fr -> !fr.isAssigned());
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -79,9 +80,9 @@ public class DefaultFileResourceService
 
     private final ApplicationEventPublisher fileEventPublisher;
 
-    public DefaultFileResourceService( FileResourceStore fileResourceStore,
-        SessionFactory sessionFactory, FileResourceContentStore fileResourceContentStore,
-        ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher )
+    public DefaultFileResourceService( FileResourceStore fileResourceStore, SessionFactory sessionFactory,
+        FileResourceContentStore fileResourceContentStore, ImageProcessingService imageProcessingService,
+        ApplicationEventPublisher fileEventPublisher )
     {
         checkNotNull( fileResourceStore );
         checkNotNull( sessionFactory );
@@ -120,19 +121,23 @@ public class DefaultFileResourceService
     @Transactional( readOnly = true )
     public List<FileResource> getOrphanedFileResources()
     {
-        return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() )
-            .stream().filter( IS_ORPHAN_PREDICATE ).collect( Collectors.toList() );
+        return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() ).stream()
+            .filter( IS_ORPHAN_PREDICATE )
+            .collect( Collectors.toList() );
     }
 
     @Override
     @Transactional
     public void saveFileResource( FileResource fileResource, File file )
     {
+        validateFileResource( fileResource );
+
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
 
-        if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() )
+            && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
@@ -147,7 +152,6 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, byte[] bytes )
     {
-
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
@@ -182,7 +186,8 @@ public class DefaultFileResourceService
             return;
         }
 
-        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( fileResource.getStorageKey(), fileResource.getContentType(), fileResource.getDomain() );
+        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( fileResource.getStorageKey(),
+            fileResource.getContentType(), fileResource.getDomain() );
 
         fileResourceStore.delete( fileResource );
 
@@ -198,10 +203,17 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional( readOnly = true )
-    public long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    public long getFileResourceContentLength( FileResource fileResource )
+    {
+        return fileResourceContentStore.getFileResourceContentLength( fileResource.getStorageKey() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException
     {
-        return fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
+        fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }
 
     @Override
@@ -246,8 +258,7 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<FileResource> getExpiredFileResources(
-        FileResourceRetentionStrategy retentionStrategy )
+    public List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy )
     {
         DateTime expires = DateTime.now().minus( retentionStrategy.getRetentionTime() );
         return fileResourceStore.getExpiredFileResources( expires );
@@ -263,6 +274,26 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Validates the given {@link FileResource}. Throws an exception if not.
+     *
+     * @param fileResource the file resource.
+     * @throws IllegalQueryException if the given file resource is invalid.
+     */
+    private void validateFileResource( FileResource fileResource )
+        throws IllegalQueryException
+    {
+        if ( fileResource.getName() == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E6100 );
+        }
+
+        if ( !FileResourceBlocklist.isValid( fileResource ) )
+        {
+            throw new IllegalQueryException( ErrorCode.E6101 );
+        }
+    }
 
     private FileResource checkStorageStatus( FileResource fileResource )
     {

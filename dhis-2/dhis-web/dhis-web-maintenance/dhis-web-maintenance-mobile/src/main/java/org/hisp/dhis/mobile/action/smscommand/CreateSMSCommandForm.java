@@ -169,7 +169,6 @@ public class CreateSMSCommandForm
 
     @Override
     public String execute()
-        throws Exception
     {
         SMSCommand command = new SMSCommand();
         command.setName( name );

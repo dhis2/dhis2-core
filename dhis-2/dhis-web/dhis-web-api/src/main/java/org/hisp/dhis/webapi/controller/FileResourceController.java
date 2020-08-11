@@ -130,7 +130,7 @@ public class FileResourceController
         }
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setHeader( HttpHeaders.CONTENT_LENGTH, String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try
@@ -147,8 +147,7 @@ public class FileResourceController
     }
 
     @PostMapping
-    public WebMessage saveAnyFileResource(
-        @RequestParam MultipartFile file,
+    public WebMessage saveFileResource( @RequestParam MultipartFile file,
         @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain
     )
         throws WebMessageException, IOException
@@ -160,6 +159,9 @@ public class FileResourceController
         contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType : DEFAULT_CONTENT_TYPE;
 
         long contentLength = file.getSize();
+
+        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
+            filename, file.getOriginalFilename(), file.getContentType(), contentLength );
 
         if ( contentLength <= 0 )
         {

@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,17 +26,28 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+package org.hisp.dhis.trackedentity.hibernate;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
@@ -51,9 +60,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -67,10 +74,9 @@ public class HibernateTrackedEntityAttributeStore
 
     public HibernateTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService, StatementBuilder statementBuilder )
+        AclService aclService, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, aclService, true );
         this.statementBuilder = statementBuilder;
     }
 
@@ -156,6 +162,7 @@ public class HibernateTrackedEntityAttributeStore
     }
 
 
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
     {
@@ -170,6 +177,7 @@ public class HibernateTrackedEntityAttributeStore
     }
 
 
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
     {
@@ -177,7 +185,7 @@ public class HibernateTrackedEntityAttributeStore
 
         Query query = sessionFactory.getCurrentSession().createQuery( "select p.programAttributes from Program p" );
 
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (List<ProgramTrackedEntityAttribute>) query.list();
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
 
         for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : programTrackedEntityAttributes )
         {

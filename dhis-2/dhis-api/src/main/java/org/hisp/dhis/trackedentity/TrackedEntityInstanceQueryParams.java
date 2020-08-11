@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -37,6 +38,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 
@@ -151,6 +153,11 @@ public class TrackedEntityInstanceQueryParams
     private TrackedEntityType trackedEntityType;
 
     /**
+     * Tracked entity types to fetch.
+     */
+    private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
+
+    /**
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
@@ -165,6 +172,11 @@ public class TrackedEntityInstanceQueryParams
      */
     private Set<String> assignedUsers = new HashSet<>();
 
+    /**
+     * ProgramStage to be used in conjunction with eventstatus.
+     */
+    private ProgramStage programStage; 
+   
     /**
      * Status of any events in the specified program.
      */
@@ -627,6 +639,14 @@ public class TrackedEntityInstanceQueryParams
     {
         return organisationUnitMode != null && organisationUnitMode.equals( mode );
     }
+    
+    /**
+     * Indicates whether this parameters specifies a programStage.
+     */
+    public boolean hasProgramStage()
+    {
+        return programStage != null;
+    }
 
     /**
      * Indicates whether this params specifies an event status.
@@ -831,6 +851,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setProgram( Program program )
     {
         this.program = program;
+        return this;
+    }
+
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public TrackedEntityInstanceQueryParams setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
         return this;
     }
 
@@ -1140,6 +1171,14 @@ public class TrackedEntityInstanceQueryParams
         this.assignedUsers = assignedUsers;
         return this;
     }
-    
-    
+
+    public List<TrackedEntityType> getTrackedEntityTypes()
+    {
+        return trackedEntityTypes;
+    }
+
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
+    {
+        this.trackedEntityTypes = trackedEntityTypes;
+    }
 }

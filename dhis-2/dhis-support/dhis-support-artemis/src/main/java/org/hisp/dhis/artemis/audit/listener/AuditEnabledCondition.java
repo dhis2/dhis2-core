@@ -44,7 +44,7 @@ public class AuditEnabledCondition
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        return !isTestRun( context );
+        return !isTestRun( context ) || isAuditTest( context );
     }
 
     @Override

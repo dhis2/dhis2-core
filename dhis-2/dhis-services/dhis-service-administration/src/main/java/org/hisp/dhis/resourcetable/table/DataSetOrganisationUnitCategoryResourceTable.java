@@ -69,8 +69,8 @@ public class DataSetOrganisationUnitCategoryResourceTable
     public String getCreateTempTableStatement()
     {
         return "create table " + getTempTableName() + " " +
-            "(datasetid integer not null, organisationunitid integer not null, " +
-            "attributeoptioncomboid integer not null, costartdate date, coenddate date)";
+            "(datasetid bigint not null, organisationunitid bigint not null, " +
+            "attributeoptioncomboid bigint not null, costartdate date, coenddate date)";
     }
 
     @Override

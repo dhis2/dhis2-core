@@ -29,20 +29,30 @@ package org.hisp.dhis.analytics.security;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -76,7 +86,6 @@ public class DefaultAnalyticsSecurityManager
         SystemSettingManager systemSettingManager, DimensionService dimensionService, AclService aclService,
         CurrentUserService currentUserService )
     {
-
         checkNotNull( approvalLevelService );
         checkNotNull( systemSettingManager );
         checkNotNull( dimensionService );
@@ -93,36 +102,6 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
-
-    /**
-     * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is authorized to read, so we can filter out the category options
-     * not authorized later on (if any).
-     *
-     * @param programCategories the categories related to this program.
-     */
-    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
-    {
-        if ( isNotEmpty( programCategories ) )
-        {
-            for ( Category category : programCategories )
-            {
-
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    category.getCategoryOptions()
-                        .removeIf( categoryOption -> hasDataReadPermissionFor( categoryOption ) );
-                }
-            }
-        }
-    }
-
-    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
-    {
-        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
-    }
 
     @Override
     public void decideAccess( DataQueryParams params )
@@ -158,7 +137,10 @@ public class DefaultAnalyticsSecurityManager
 
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
-            throwExWhenTrue( notDescendant, String.format( "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
+            if ( notDescendant )
+            {
+                throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
+            }
         }
     }
 
@@ -166,7 +148,7 @@ public class DefaultAnalyticsSecurityManager
      * Checks whether the given user has data read access to all programs,
      * program stages, data sets and category options in the request.
      *
-     * @param params the data query parameters.
+     * @param params the {@link {@link DataQueryParams}.
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
@@ -181,12 +163,6 @@ public class DefaultAnalyticsSecurityManager
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
-
-            if ( params.getProgram().hasCategoryCombo() )
-            {
-                final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeOnlyAuthorizedCategoryOptions( programCategories );
-            }
         }
 
         if ( params.hasProgramStage() )
@@ -196,14 +172,10 @@ public class DefaultAnalyticsSecurityManager
 
         for ( IdentifiableObject object : objects )
         {
-            boolean canNotRead = !aclService.canDataRead( user, object );
-            String className = TextUtils.getPrettyClassName( object.getClass() );
-
-            if ( canNotRead )
+            if ( !aclService.canDataRead( user, object ) )
             {
-                throw new IllegalQueryException( String.format(
-                    "User: %s is not allowed to read data for '%s': %s",
-                    user.getUsername(), className, object.getUid() ) );
+                throwIllegalQueryEx( ErrorCode.E7121, user.getUsername(),
+                    TextUtils.getPrettyClassName( object.getClass() ), object.getUid() );
             }
         }
     }
@@ -211,15 +183,27 @@ public class DefaultAnalyticsSecurityManager
     @Override
     public void decideAccessEventQuery( EventQueryParams params )
     {
-        User user = currentUserService.getCurrentUser();
-
         decideAccess( params );
+        decideAccessEventAnalyticsAuthority( params );
+    }
+
+    /**
+     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
+     *
+     * @param params the {@link {@link DataQueryParams}.
+     */
+    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
+    {
+        User user = currentUserService.getCurrentUser();
 
         boolean notAuthorized = user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS );
 
         String username = user != null ? user.getUsername() : "[None]";
 
-        throwExWhenTrue( notAuthorized, String.format( "User: '%s' is not allowed to view event analytics", username ) );
+        if ( notAuthorized )
+        {
+            throwIllegalQueryEx( ErrorCode.E7217, username );
+        }
     }
 
     @Override
@@ -250,7 +234,10 @@ public class DefaultAnalyticsSecurityManager
 
                 DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
 
-                throwExWhenTrue( approvalLevel == null, String.format( "Approval level does not exist: %s", params.getApprovalLevel() ) );
+                if ( approvalLevel == null )
+                {
+                    throwIllegalQueryEx( ErrorCode.E7122, params.getApprovalLevel() );
+                }
 
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
             }
@@ -265,7 +252,7 @@ public class DefaultAnalyticsSecurityManager
             {
                 paramsBuilder.withDataApprovalLevels( approvalLevels );
 
-                log.debug( String.format( "User: %s constrained by data approval levels: %s", user.getUsername(), approvalLevels.values() ) );
+                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(), approvalLevels.values() ) );
             }
         }
 
@@ -273,12 +260,23 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
-    public DataQueryParams withDimensionConstraints( DataQueryParams params )
+    public DataQueryParams withUserConstraints( DataQueryParams params )
     {
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
 
         applyOrganisationUnitConstraint( builder, params );
-        applyUserConstraints( builder, params );
+        applyDimensionConstraints( builder, params );
+
+        return builder.build();
+    }
+
+    @Override
+    public EventQueryParams withUserConstraints( EventQueryParams params )
+    {
+        EventQueryParams.Builder builder = new EventQueryParams.Builder( params );
+
+        applyOrganisationUnitConstraint( builder, params );
+        applyDimensionConstraints( builder, params );
 
         return builder.build();
     }
@@ -286,10 +284,10 @@ public class DefaultAnalyticsSecurityManager
     /**
      * Applies organisation unit security constraint.
      *
-     * @param builder the data query parameters builder.
+     * @param builder the {@link QueryParamsBuilder}.
      * @param params the data query parameters.
      */
-    private void applyOrganisationUnitConstraint( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyOrganisationUnitConstraint( QueryParamsBuilder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -323,16 +321,16 @@ public class DefaultAnalyticsSecurityManager
 
         builder.addFilter( constraint );
 
-        log.debug( String.format( "User: %s constrained by data view organisation units", user.getUsername() ) );
+        log.debug( String.format( "User: '%s' constrained by data view organisation units", user.getUsername() ) );
     }
 
     /**
-     * Applies user security constraint.
+     * Applies dimension constraints.
      *
-     * @param builder the data query parameters builder.
+     * @param builder the {@link QueryParamsBuilder}.
      * @param params the data query parameters.
      */
-    private void applyUserConstraints( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyDimensionConstraints( QueryParamsBuilder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -350,7 +348,7 @@ public class DefaultAnalyticsSecurityManager
         for ( DimensionalObject dimension : dimensionConstraints )
         {
             // -----------------------------------------------------------------
-            // Check if constraint already is specified with items
+            // Check if dimension constraint already is specified with items
             // -----------------------------------------------------------------
 
             if ( params.hasDimensionOrFilterWithItems( dimension.getUid() ) )
@@ -364,9 +362,10 @@ public class DefaultAnalyticsSecurityManager
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
 
-            boolean hasNoReadItems =  canReadItems == null || canReadItems.isEmpty();
-
-            throwExWhenTrue( hasNoReadItems, String.format( "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
+            if ( canReadItems.isEmpty() )
+            {
+                throwIllegalQueryEx( ErrorCode.E7123, dimension.getDimension() );
+            }
 
             // -----------------------------------------------------------------
             // Apply constraint as filter, and remove potential all-dimension
@@ -379,23 +378,7 @@ public class DefaultAnalyticsSecurityManager
 
             builder.addFilter( constraint );
 
-            log.debug( String.format( "User: %s constrained by dimension: %s", user.getUsername(), constraint.getDimension() ) );
-        }
-    }
-
-    /**
-     * Throws a {@link IllegalQueryException} with the given message if the
-     * given condition is true.
-     *
-     * @param condition the condition.
-     * @param message the message.
-     * @throws {@link IllegalQueryException}.
-     */
-    private void throwExWhenTrue( boolean condition, String message )
-    {
-        if ( condition )
-        {
-            throw new IllegalQueryException( message );
+            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(), constraint.getDimension() ) );
         }
     }
 }

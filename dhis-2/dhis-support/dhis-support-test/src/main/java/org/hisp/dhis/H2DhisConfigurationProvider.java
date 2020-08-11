@@ -56,6 +56,8 @@ public class H2DhisConfigurationProvider
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
 
+    private EncryptionStatus encryptionStatus = EncryptionStatus.OK;
+
     public H2DhisConfigurationProvider()
     {
         this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
@@ -126,19 +128,6 @@ public class H2DhisConfigurationProvider
         return false;
     }
 
-
-    @Override
-    public long getAnalyticsCacheExpiration()
-    {
-        return 0;
-    }
-
-    @Override
-    public boolean isAnalyticsCacheEnabled()
-    {
-        return false;
-    }
-
     @Override
     public boolean isClusterEnabled()
     {
@@ -154,7 +143,12 @@ public class H2DhisConfigurationProvider
     @Override
     public EncryptionStatus getEncryptionStatus()
     {
-        return EncryptionStatus.OK;
+        return encryptionStatus;
+    }
+
+    public void setEncryptionStatus(EncryptionStatus status)
+    {
+        this.encryptionStatus = status;
     }
 
     @Override

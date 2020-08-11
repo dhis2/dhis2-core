@@ -28,21 +28,14 @@ package org.hisp.dhis.dxf2.events.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -65,50 +58,54 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
 
 public abstract class AbstractRelationshipService
     implements RelationshipService
 {
-    @Autowired
     protected DbmsManager dbmsManager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    protected CurrentUserService currentUserService;
 
-    @Autowired
-    private SchemaService schemaService;
+    protected SchemaService schemaService;
 
-    @Autowired
-    private QueryService queryService;
+    protected QueryService queryService;
 
-    @Autowired
-    private TrackerAccessManager trackerAccessManager;
+    protected TrackerAccessManager trackerAccessManager;
 
-    @Autowired
-    private org.hisp.dhis.relationship.RelationshipService relationshipService;
+    protected org.hisp.dhis.relationship.RelationshipService relationshipService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+    protected EnrollmentService enrollmentService;
 
-    @Autowired
-    private EventService eventService;
+    protected EventService eventService;
 
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+    protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
 
-    @Autowired
-    private UserService userService;
+    protected UserService userService;
+
+    protected ObjectMapper jsonMapper;
+
+    protected ObjectMapper xmlMapper;
 
     private HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
 
@@ -119,7 +116,7 @@ public abstract class AbstractRelationshipService
     private HashMap<String, ProgramStageInstance> programStageInstanceCache = new HashMap<>();
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
         TrackedEntityInstance tei, boolean skipAccessValidation )
     {
@@ -131,7 +128,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
@@ -142,7 +139,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {
@@ -398,12 +395,12 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Relationship getRelationshipByUid( String id )
     {
         org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( id );
 
-        if ( relationship == null)
+        if ( relationship == null )
         {
             return null;
         }
@@ -412,7 +409,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
         User user )
     {
@@ -557,7 +554,6 @@ public abstract class AbstractRelationshipService
 
     /**
      * Checks the relationship for any conflicts, like missing or invalid references.
-     *
      */
     private List<ImportConflict> checkRelationship( Relationship relationship )
     {
@@ -587,7 +583,7 @@ public abstract class AbstractRelationshipService
 
         if ( relationship.getFrom().equals( relationship.getTo() ) )
         {
-            conflicts.add( new ImportConflict( relationship.getRelationship(), "Self-referencing relationships are not allowed." ));
+            conflicts.add( new ImportConflict( relationship.getRelationship(), "Self-referencing relationships are not allowed." ) );
         }
 
         if ( !conflicts.isEmpty() )
@@ -703,7 +699,7 @@ public abstract class AbstractRelationshipService
         return "";
     }
 
-    private org.hisp.dhis.relationship.Relationship createDAORelationship(Relationship relationship )
+    private org.hisp.dhis.relationship.Relationship createDAORelationship( Relationship relationship )
     {
         RelationshipType relationshipType = relationshipTypeCache.get( relationship.getRelationshipType() );
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
@@ -780,7 +776,7 @@ public abstract class AbstractRelationshipService
         queryService.query( query ).forEach( rt -> relationshipTypeCache.put( rt.getUid(), (RelationshipType) rt ) );
 
         // Group all uids into their respective RelationshipEntities
-        relationshipTypeCache.values().forEach(relationshipType -> {
+        relationshipTypeCache.values().forEach( relationshipType -> {
             List<String> fromUids = relationshipTypeMap.get( relationshipType.getUid() ).stream()
                 .map( ( r ) -> getUidOfRelationshipItem( r.getFrom() ) ).collect( Collectors.toList() );
 
@@ -799,7 +795,7 @@ public abstract class AbstractRelationshipService
         // Find and put all Relationship members in their respective cache
         if ( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ) != null )
         {
-            teiDaoService.getTrackedEntityInstancesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user)
+            teiDaoService.getTrackedEntityInstancesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user )
                 .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), tei ) );
         }
 
@@ -829,7 +825,7 @@ public abstract class AbstractRelationshipService
         programInstanceCache.clear();
         programStageInstanceCache.clear();
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
     }
 
     protected ImportOptions updateImportOptions( ImportOptions importOptions )
@@ -847,7 +843,7 @@ public abstract class AbstractRelationshipService
         return importOptions;
     }
 
-    private void reloadUser(ImportOptions importOptions)
+    private void reloadUser( ImportOptions importOptions )
     {
         if ( importOptions == null || importOptions.getUser() == null )
         {

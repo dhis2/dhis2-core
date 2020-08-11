@@ -1,240 +1,30 @@
-{ "relationships":
-  [
+{
+  "relationships": [
     {
       "relationshipType": "dDrh5UyCyvQ",
-      "relationshipName": "Mother-Child_a-to-b_(Person-Person)",
       "relationship": "Nva3Xj2j75W",
       "bidirectional": false,
       "from": {
-        "trackedEntity": {
-          "trackedEntityType": "nEenWmSyUEp",
-          "trackedEntity": "Ea0rRdBPAIp",
-          "orgUnit": "DiszpKrYNg8",
-          "created": "2013-09-08T21:40:28.000",
-          "lastUpdated": "2014-07-23T12:53:31.638",
-          "attributes": [
-            {
-              "displayName": "First name",
-              "attribute": "w75KJ2mc4zz",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "MMD_PER_NAM",
-              "value": "Jeanette"
-            },
-            {
-              "displayName": "TB number",
-              "attribute": "ruQQnf6rswq",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "1Z 1F2 A84 99 4464 073 6"
-            },
-            {
-              "displayName": "Last name",
-              "attribute": "zDhUuAYrxNC",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Zimmerman"
-            },
-            {
-              "displayName": "Gender",
-              "attribute": "cejWyOfXge6",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Female"
-            },
-            {
-              "displayName": "National identifier",
-              "attribute": "AuPLng5hLbE",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "National identifier",
-              "value": "3423434325"
-            }
-          ],
-          "deleted": false,
-          "featureType": "NONE"
-        }
+        "trackedEntity": "Ea0rRdBPAIp"
       },
       "to": {
-        "trackedEntity": {
-          "trackedEntityType": "nEenWmSyUEp",
-          "trackedEntity": "G1afLIEKt8A",
-          "orgUnit": "DiszpKrYNg8",
-          "created": "2013-09-08T21:40:28.000",
-          "lastUpdated": "2014-07-23T12:18:42.751",
-          "attributes": [
-            {
-              "displayName": "Last name",
-              "attribute": "zDhUuAYrxNC",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Wells"
-            },
-            {
-              "displayName": "First name",
-              "attribute": "w75KJ2mc4zz",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "MMD_PER_NAM",
-              "value": "Sabrina"
-            },
-            {
-              "displayName": "National identifier",
-              "attribute": "AuPLng5hLbE",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "National identifier",
-              "value": "45452411336"
-            },
-            {
-              "displayName": "Gender",
-              "attribute": "cejWyOfXge6",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Female"
-            },
-            {
-              "displayName": "TB number",
-              "attribute": "ruQQnf6rswq",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "1Z 1F2 A84 59 4464 073 8"
-            }
-          ],
-          "deleted": false,
-          "featureType": "NONE"
-        }
+        "trackedEntity": "G1afLIEKt8A"
       },
-      "created": "2018-10-01T12:17:30.163",
-      "lastUpdated": "2018-10-01T12:17:30.163"
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163"
     },
     {
       "relationshipType": "tBeOL0DL026",
-      "relationshipName": "Mother-Child_b-to-a_(Person-Person)",
       "relationship": "HiXiipNGsxT",
       "bidirectional": false,
       "from": {
-        "trackedEntity": {
-          "trackedEntityType": "nEenWmSyUEp",
-          "trackedEntity": "G1afLIEKt8A",
-          "orgUnit": "DiszpKrYNg8",
-          "created": "2013-09-08T21:40:28.000",
-          "lastUpdated": "2014-07-23T12:18:42.751",
-          "attributes": [
-            {
-              "displayName": "Last name",
-              "attribute": "zDhUuAYrxNC",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Wells"
-            },
-            {
-              "displayName": "First name",
-              "attribute": "w75KJ2mc4zz",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "MMD_PER_NAM",
-              "value": "Sabrina"
-            },
-            {
-              "displayName": "National identifier",
-              "attribute": "AuPLng5hLbE",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "National identifier",
-              "value": "45452411336"
-            },
-            {
-              "displayName": "Gender",
-              "attribute": "cejWyOfXge6",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Female"
-            },
-            {
-              "displayName": "TB number",
-              "attribute": "ruQQnf6rswq",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "1Z 1F2 A84 59 4464 073 8"
-            }
-          ],
-          "deleted": false,
-          "featureType": "NONE"
-        }
+        "trackedEntity": "G1afLIEKt8A"
       },
       "to": {
-        "trackedEntity": {
-          "trackedEntityType": "nEenWmSyUEp",
-          "trackedEntity": "Ea0rRdBPAIp",
-          "orgUnit": "DiszpKrYNg8",
-          "created": "2013-09-08T21:40:28.000",
-          "lastUpdated": "2014-07-23T12:53:31.638",
-          "attributes": [
-            {
-              "displayName": "First name",
-              "attribute": "w75KJ2mc4zz",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "MMD_PER_NAM",
-              "value": "Jeanette"
-            },
-            {
-              "displayName": "TB number",
-              "attribute": "ruQQnf6rswq",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "1Z 1F2 A84 99 4464 073 6"
-            },
-            {
-              "displayName": "Last name",
-              "attribute": "zDhUuAYrxNC",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Zimmerman"
-            },
-            {
-              "displayName": "Gender",
-              "attribute": "cejWyOfXge6",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "value": "Female"
-            },
-            {
-              "displayName": "National identifier",
-              "attribute": "AuPLng5hLbE",
-              "created": "2016-01-12T09:10:26.986",
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "valueType": "TEXT",
-              "code": "National identifier",
-              "value": "3423434325"
-            }
-          ],
-          "deleted": false,
-          "featureType": "NONE"
-        }
+        "trackedEntity": "Ea0rRdBPAIp"
       },
-      "created": "2018-10-01T12:17:30.163",
-      "lastUpdated": "2018-10-01T12:17:30.163"
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163"
     }
   ]
 }

@@ -453,7 +453,6 @@ public class ProgramRuleAction
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "evaluationEnvironments", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "evaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRuleActionEvaluationEnvironment> getProgramRuleActionEvaluationEnvironments()

@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,15 +26,40 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.trackedentity.hibernate;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-import static org.hisp.dhis.util.DateUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -50,9 +73,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,6 +83,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -79,7 +102,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
 public class HibernateTrackedEntityInstanceStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityInstance>
+    extends SoftDeleteHibernateObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
     // -------------------------------------------------------------------------
@@ -92,11 +115,9 @@ public class HibernateTrackedEntityInstanceStore
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService,
-        OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
+        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService, false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
@@ -273,9 +294,10 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
+        params.handleOrganisationUnits();
+
         if ( params.hasOrganisationUnits() )
         {
-            params.handleOrganisationUnits();
 
             if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
             {
@@ -578,7 +600,15 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntityType() )
+        if ( !params.hasTrackedEntityType() )
+        {
+            sql += hlp.whereAnd() + " tei.trackedentitytypeid in (" + params.getTrackedEntityTypes().stream()
+                .filter( Objects::nonNull )
+                .map( TrackedEntityType::getId )
+                .map( String::valueOf )
+                .collect( Collectors.joining(", ") ) + ") ";
+        }
+        else
         {
             sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }
@@ -738,6 +768,11 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
+        
+        if ( params.hasProgramStage() )
+        {
+            sql += " psi.programstageid = " + params.getProgramStage().getId() + " and ";
+        }
 
         if ( params.hasAssignedUsers() )
         {
@@ -793,6 +828,11 @@ public class HibernateTrackedEntityInstanceStore
             {
                 hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
+        }
+        
+        if ( params.hasProgramStage() )
+        {
+            hql += " psi.programStage.uid = " + params.getProgramStage().getUid() + " and ";
         }
 
         if ( params.hasAssignedUsers() )

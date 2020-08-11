@@ -62,7 +62,7 @@ public class CategoryOptionGroupDeletionHandler
     {
         return CategoryOptionGroup.class.getName();
     }
-    
+
     @Override
     public void deleteCategoryOption( CategoryOption categoryOption )
     {

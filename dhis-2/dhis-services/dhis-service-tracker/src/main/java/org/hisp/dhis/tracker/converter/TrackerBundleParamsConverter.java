@@ -28,23 +28,28 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.util.StdConverter;
+import com.google.common.collect.Maps;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.util.StdConverter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure
- *
+ * <p>
  * Assuming a structure like:
  * <pre>
  *
@@ -62,7 +67,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *            |_ EVENT 3
  *            |_ EVENT 4
  * </pre>
- *
+ * <p>
  * This converter will transform the object into:
  *
  * <pre>
@@ -75,7 +80,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *  |___EVENT 1, EVENT 2, EVENT 3, EVENT 4
  *
  * </pre>
- *
+ * <p>
  * This converter also assigns UIDs to Tracked Entities, Enrollment and Events if the payload does not contain UIDs
  *
  * @author Luciano Fiandesio
@@ -98,22 +103,35 @@ public class TrackerBundleParamsConverter
         return bundle;
     }
 
-    private void flattenPayload( TrackerBundleParams bundle ) {
+    private void flattenPayload( TrackerBundleParams bundle )
+    {
 
         List<Event> events = new ArrayList<>();
 
         List<Enrollment> enrollments = new ArrayList<>();
 
+        Set<Relationship> relationships = new HashSet<>();
+
         // Iterate over **all** enrollments
         for ( Enrollment enrollment : bundle.getTrackedEntities().stream()
-                .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
+            .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
         {
-            // collect all events from enrollemts and add them to the flattened events collection
+            // collect all events from enrollments and add them to the flattened events collection
             events.addAll( enrollment.getEvents().stream().map( e -> addParent( e, enrollment.getEnrollment() ) )
                 .collect( Collectors.toList() ) );
 
-            // remove events from enrollment
+            // Extract relationships from enrollment
+            relationships.addAll( enrollment.getRelationships() );
+
+            // Extract relationships from events
+            relationships
+                .addAll( events.stream().flatMap( l -> l.getRelationships().stream() ).collect( Collectors.toSet() ) );
+
+            // remove events and relationships from enrollment
             enrollment.setEvents( Collections.emptyList() );
+            enrollment.setRelationships( Collections.emptyList() );
+            // remove relationships from events
+            events.forEach( e -> e.setRelationships( Collections.emptyList() ) );
         }
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
@@ -121,17 +139,21 @@ public class TrackerBundleParamsConverter
             enrollments.addAll( trackedEntity.getEnrollments().stream()
                 .map( e -> addParent( e, trackedEntity.getTrackedEntity() ) ).collect( Collectors.toList() ) );
 
-            // remove enrollments from tracked entities
+            // Extract relationships from Tracked Entity
+            relationships.addAll( trackedEntity.getRelationships() );
+
+            // remove enrollments and relationships from tracked entities
             trackedEntity.setEnrollments( Collections.emptyList() );
+            trackedEntity.setRelationships( Collections.emptyList() );
         }
 
         bundle.getEvents().addAll( events );
         bundle.getEnrollments().addAll( enrollments );
+        bundle.getRelationships().addAll( relationships );
     }
 
     /**
      * Make sure that the Enrollment has the parent ID correctly set
-     *
      */
     private Enrollment addParent( Enrollment enrollment, String trackerEntityId )
     {
@@ -144,7 +166,6 @@ public class TrackerBundleParamsConverter
 
     /**
      * Make sure that the Event has the parent ID correctly set
-     *
      */
     private Event addParent( Event event, String enrollmentId )
     {
@@ -169,29 +190,60 @@ public class TrackerBundleParamsConverter
 
     private void generateUid( TrackerBundleParams params )
     {
-        // Assign an UID to Tracked Entities if no UID is present
-        params.getTrackedEntities().stream()
-            .filter( o -> StringUtils.isEmpty( o.getTrackedEntity() ) )
-            .forEach( o -> o.setTrackedEntity( CodeGenerator.generateUid() ) );
-
         List<TrackedEntity> trackedEntities = params.getTrackedEntities();
 
         for ( TrackedEntity trackedEntity : trackedEntities )
         {
+            if ( StringUtils.isEmpty( trackedEntity.getTrackedEntity() ) )
+            {
+                trackedEntity.setTrackedEntity( CodeGenerator.generateUid() );
+            }
+
+            Map<Relationship, String> relationshipsWithUid = Maps.newHashMap();
+
+            generateRelationshipUids( trackedEntity.getRelationships(), relationshipsWithUid );
+
             List<Enrollment> enrollments = trackedEntity.getEnrollments();
 
             for ( Enrollment enrollment : enrollments )
             {
                 // Assign an UID to Enrollment if no UID is present
-                if (StringUtils.isEmpty( enrollment.getEnrollment() )) {
-                    enrollment.setEnrollment(CodeGenerator.generateUid() );
+                if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
+                {
+                    enrollment.setEnrollment( CodeGenerator.generateUid() );
                 }
+
+                generateRelationshipUids( enrollment.getRelationships(), relationshipsWithUid );
+
                 // Assign an UID to Events if no UID is present
-                enrollment.getEvents().stream().filter( e -> StringUtils.isEmpty( e.getEvent() ) )
+                enrollment.getEvents()
+                    .stream()
+                    .peek( event -> generateRelationshipUids( event.getRelationships(), relationshipsWithUid ) )
+                    .filter( e -> StringUtils.isEmpty( e.getEvent() ) )
                     .forEach( e -> e.setEvent( CodeGenerator.generateUid() ) );
             }
 
         }
+    }
 
+    private void generateRelationshipUids( Collection<Relationship> relationships,
+        Map<Relationship, String> relationshipsWithUid )
+    {
+        for ( Relationship entityRelationship : relationships )
+        {
+            if ( StringUtils.isEmpty( entityRelationship.getRelationship() ) )
+            {
+                String uid = relationshipsWithUid.get( entityRelationship );
+                if ( uid != null )
+                {
+                    entityRelationship.setRelationship( uid );
+                }
+                else
+                {
+                    entityRelationship.setRelationship( CodeGenerator.generateUid() );
+                }
+                relationshipsWithUid.put( entityRelationship, entityRelationship.getRelationship() );
+            }
+        }
     }
 }

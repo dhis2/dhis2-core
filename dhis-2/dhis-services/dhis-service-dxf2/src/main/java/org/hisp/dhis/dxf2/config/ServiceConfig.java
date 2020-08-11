@@ -28,8 +28,25 @@ package org.hisp.dhis.dxf2.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UpdateCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationHooksCheck;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -38,8 +55,8 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -47,6 +64,20 @@ import java.util.Map;
 @Configuration( "dxf2ServiceConfig" )
 public class ServiceConfig
 {
+    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
+        DeletionCheck.class );
 
     @Autowired
     @Qualifier( "initialInterval" )
@@ -73,5 +104,16 @@ public class ServiceConfig
         retryTemplate.setRetryPolicy( simpleRetryPolicy );
 
         return retryTemplate;
+    }
+
+    @Bean( "validatorMap" )
+    public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
+    {
+        return ImmutableMap.of(
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
+            ImportStrategy.CREATE, CREATE_CHECKS,
+            ImportStrategy.UPDATE, UPDATE_CHECKS,
+            ImportStrategy.DELETE, DELETE_CHECKS
+        );
     }
 }

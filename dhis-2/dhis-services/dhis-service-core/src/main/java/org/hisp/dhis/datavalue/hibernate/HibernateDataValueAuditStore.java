@@ -50,7 +50,6 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -184,18 +183,19 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     /**
-     * Return list of Predicates generated from given parameters
-     * Return empty list if given Period does not exist in database, means no data available.
-     * @param builder
-     * @param dataElements
-     * @param periods
-     * @param organisationUnits
-     * @param categoryOptionCombo
-     * @param attributeOptionCombo
-     * @param auditType
-     * @return
+     * Returns a list of Predicates generated from given parameters. Returns an empty list if given Period does not
+     * exist in database.
+     *
+     * @param builder the {@link CriteriaBuilder}.
+     * @param dataElements the list of data elements.
+     * @param periods the list of periods.
+     * @param organisationUnits the list of organisation units.
+     * @param categoryOptionCombo the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param auditType the audit type.
      */
-    private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder, List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+    private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder,
+        List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         List<Period> storedPeriods = new ArrayList<>();
@@ -215,7 +215,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
         List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
 
-        if ( storedPeriods != null && !storedPeriods.isEmpty() )
+        if ( !storedPeriods.isEmpty() )
         {
             predicates.add( root -> root.get( "period" ).in( storedPeriods ) );
         }

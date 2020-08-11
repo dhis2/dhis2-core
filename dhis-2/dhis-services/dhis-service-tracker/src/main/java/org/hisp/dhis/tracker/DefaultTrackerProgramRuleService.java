@@ -28,54 +28,99 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Enrico Colasante
  */
-@Slf4j
 @Service
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
-    private final DefaultProgramRuleEngineService programRuleEngineService;
+    private final ProgramRuleEngine programRuleEngine;
 
-    public DefaultTrackerProgramRuleService( DefaultProgramRuleEngineService programRuleEngineService )
+    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
+
+    private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+
+    public DefaultTrackerProgramRuleService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngine,
+        TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
+        TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService )
     {
-        this.programRuleEngineService = programRuleEngineService;
+        this.programRuleEngine = programRuleEngine;
+        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
+        this.eventTrackerConverterService = eventTrackerConverterService;
     }
 
     @Override
-    public Map<Enrollment, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle )
+    public Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( List<Enrollment> enrollments,
+        TrackerBundle bundle )
     {
-        return trackerBundle.getEnrollments()
+        return enrollments
             .stream()
-            .collect( Collectors
-                .toMap(
-                    Function.identity(),
-                    e -> programRuleEngineService
-                        .evaluateEnrollment( e.getEnrollment() ) ) );
+            .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
+                ProgramInstance enrollment = enrollmentTrackerConverterService.from( e );
+                return programRuleEngine.evaluate( enrollment, Optional.empty(),
+                    getEventsFromEnrollment( e.getEnrollment(), bundle, Lists.newArrayList() ) );
+            } ) );
     }
 
     @Override
-    public Map<Event, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle )
+    public Map<String, List<RuleEffect>> calculateEventRuleEffects( List<Event> events, TrackerBundle bundle )
     {
-        return trackerBundle.getEvents()
+        return events
             .stream()
-            .collect( Collectors
-                .toMap(
-                    Function.identity(),
-                    e -> programRuleEngineService.evaluateEvent( e.getEvent() ) ) );
+            .collect( Collectors.toMap( Event::getEvent, event -> {
+                ProgramInstance enrollment = getEnrollment( bundle, event );
+                return programRuleEngine.evaluate( enrollment,
+                    Optional.of( eventTrackerConverterService.from( event ) ),
+                    getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+            } ) );
+    }
+
+    private ProgramInstance getEnrollment( TrackerBundle bundle, Event event )
+    {
+        Optional<Enrollment> bundleEnrollment = bundle.getEnrollments()
+            .stream()
+            .filter( e -> event.getEnrollment().equals( e.getEnrollment() ) )
+            .findAny();
+        return bundleEnrollment.isPresent() ? enrollmentTrackerConverterService.from( bundleEnrollment.get() )
+            : bundle.getPreheat().getEnrollment( TrackerIdScheme.UID, event.getEnrollment() );
+    }
+
+    private Set<ProgramStageInstance> getEventsFromEnrollment( String enrollment, TrackerBundle bundle,
+        List<Event> events )
+    {
+        List<ProgramStageInstance> preheatEvents = bundle.getPreheat().getEvents().values()
+            .stream()
+            .flatMap( psi -> psi.values().stream() )
+            .collect( Collectors.toList() );
+        Stream<ProgramStageInstance> programStageInstances = preheatEvents
+            .stream()
+            .filter( e -> e.getProgramInstance().getUid().equals( enrollment ) );
+        Stream<ProgramStageInstance> bundleEvents = events
+            .stream()
+            .filter( e -> e.getEnrollment().equals( enrollment ) )
+            .map( eventTrackerConverterService::from );
+
+        return Stream.concat( programStageInstances, bundleEvents ).collect( Collectors.toSet() );
+
     }
 }

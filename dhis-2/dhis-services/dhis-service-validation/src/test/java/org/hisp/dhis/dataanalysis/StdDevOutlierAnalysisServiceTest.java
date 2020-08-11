@@ -28,7 +28,14 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -48,20 +55,13 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 @SuppressWarnings( "unused" )
-public class StdDevOutlierAnalysisServiceTest
-    extends DhisSpringTest
+public class StdDevOutlierAnalysisServiceTest extends DhisSpringTest
 {
     @Autowired
     @Qualifier( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
@@ -85,7 +85,7 @@ public class StdDevOutlierAnalysisServiceTest
     @Autowired
     private PeriodService periodService;
 
-    private DataElement dataElementA;
+    private DataElement dataElementSingleQuoteName;
 
     private DataElement dataElementB;
 
@@ -136,17 +136,18 @@ public class StdDevOutlierAnalysisServiceTest
     {
         categoryCombo = categoryService.getDefaultCategoryCombo();
 
-        dataElementA = createDataElement( 'A', categoryCombo );
+        dataElementSingleQuoteName = createDataElement( 'A', categoryCombo );
+        dataElementSingleQuoteName.setName( "DataElementA'" );
         dataElementB = createDataElement( 'B', categoryCombo );
         dataElementC = createDataElement( 'C', categoryCombo );
         dataElementD = createDataElement( 'D', categoryCombo );
 
-        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementSingleQuoteName );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
 
-        dataElementsA.add( dataElementA );
+        dataElementsA.add( dataElementSingleQuoteName );
         dataElementsA.add( dataElementB );
 
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
@@ -174,25 +175,27 @@ public class StdDevOutlierAnalysisServiceTest
     @Test
     public void testGetFindOutliers()
     {
-        dataValueA = createDataValue( dataElementA, periodI, organisationUnitA, "71", categoryOptionCombo );
-        dataValueB = createDataValue( dataElementA, periodJ, organisationUnitA, "-71", categoryOptionCombo );
+        dataValueA = createDataValue( dataElementSingleQuoteName, periodI, organisationUnitA, "71",
+            categoryOptionCombo );
+        dataValueB = createDataValue( dataElementSingleQuoteName, periodJ, organisationUnitA, "-71",
+            categoryOptionCombo );
 
-        dataValueService.addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "-5",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "5",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodD, organisationUnitA, "-5",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodE, organisationUnitA, "10",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodF, organisationUnitA, "-10",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodG, organisationUnitA, "13",
-            categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodH, organisationUnitA, "-13",
-            categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodA, organisationUnitA, "5", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodB, organisationUnitA, "-5", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodC, organisationUnitA, "5", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodD, organisationUnitA, "-5", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodE, organisationUnitA, "10", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodF, organisationUnitA, "-10", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodG, organisationUnitA, "13", categoryOptionCombo ) );
+        dataValueService.addDataValue(
+            createDataValue( dataElementSingleQuoteName, periodH, organisationUnitA, "-13", categoryOptionCombo ) );
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
 
@@ -203,8 +206,8 @@ public class StdDevOutlierAnalysisServiceTest
         periods.add( periodA );
         periods.add( periodE );
 
-        List<DeflatedDataValue> values = stdDevOutlierAnalysisService.analyse(
-            Lists.newArrayList( organisationUnitA ), dataElementsA, periods, stdDevFactor, from );
+        List<DeflatedDataValue> values = stdDevOutlierAnalysisService.analyse( Lists.newArrayList( organisationUnitA ),
+            dataElementsA, periods, stdDevFactor, from );
 
         double lowerBound = -34.51 * stdDevFactor;
         double upperBound = 34.51 * stdDevFactor;

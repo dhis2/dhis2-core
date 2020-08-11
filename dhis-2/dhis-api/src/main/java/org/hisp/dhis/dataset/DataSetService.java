@@ -121,12 +121,6 @@ public interface DataSetService
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
 
     /**
-     * Returns all DataSets that can be collected through mobile (one
-     * organisation unit).
-     */
-    List<DataSet> getDataSetsForMobile( OrganisationUnit source );
-
-    /**
      * Returns the data sets which current user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
      */

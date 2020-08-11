@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-support</artifactId>
@@ -14,15 +14,14 @@
   <name>DHIS Support Parent Project</name>
 
   <modules>
-    <module>dhis-support-antlr-expression-parser</module>
     <module>dhis-support-commons</module>
     <module>dhis-support-db-migration</module>
     <module>dhis-support-test</module>
     <module>dhis-support-external</module>
     <module>dhis-support-hibernate</module>
+    <module>dhis-support-audit</module>
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
-    <module>dhis-support-audit</module>
     <module>dhis-support-expression-parser</module>
     <module>dhis-support-artemis</module>
   </modules>

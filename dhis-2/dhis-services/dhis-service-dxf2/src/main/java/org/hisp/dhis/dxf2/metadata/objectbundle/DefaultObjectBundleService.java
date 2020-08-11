@@ -38,9 +38,12 @@ import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
@@ -85,8 +88,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     private final MergeService mergeService;
 
-    private final DeletedObjectService deletedObjectService;
-
     private List<ObjectBundleHook> objectBundleHooks;
 
     public DefaultObjectBundleService( CurrentUserService currentUserService, PreheatService preheatService,
@@ -116,7 +117,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         this.cacheManager = cacheManager;
         this.notifier = notifier;
         this.mergeService = mergeService;
-        this.deletedObjectService = deletedObjectService;
     }
 
     @Override
@@ -380,11 +380,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
-
-            if (object instanceof MetadataObject)
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 

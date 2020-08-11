@@ -28,29 +28,30 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Luciano Fiandesio
@@ -74,14 +75,23 @@ public class TrackerBundleParamsConverterTest
     public void verifyNestedTeiStructureIsFlattenedDuringDeserialization()
         throws IOException
     {
+        List<Relationship> relationships1 = createRelationships( 2, "rel1" );
+        List<Relationship> relationships2 = createRelationships( 2, "rel2" );
+
         List<Event> events1 = createEvent( 3, "ev1", "enr1" );
         List<Event> events2 = createEvent( 7, "ev2", "enr2" );
 
         List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( createEnrollment( "enr1", "teiABC", events1 ) );
-        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
+        Enrollment enrollment1 = createEnrollment( "enr1", "teiABC", events1 );
+        Enrollment enrollment2 = createEnrollment( "enr2", "teiABC", events2 );
+        enrollment1.setRelationships( relationships2 );
+        enrollment2.setRelationships( relationships1 );
+        enrollments.add( enrollment1 );
+        enrollments.add( enrollment2 );
 
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
+
+        trackedEntity.setRelationships( relationships1 );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) )
@@ -93,20 +103,30 @@ public class TrackerBundleParamsConverterTest
         assertThat( b2.getTrackedEntities(), hasSize( 1 ) );
         assertThat( b2.getEnrollments(), hasSize( 2 ) );
         assertThat( b2.getEvents(), hasSize( 10 ) );
+        assertThat( b2.getRelationships(), hasSize( 4 ) );
     }
 
     @Test
     public void verifyNestedTeiStructureHasNestedDataClearedAfterFlattening()
         throws IOException
     {
+        List<Relationship> relationships1 = createRelationships( 2, "rel1" );
+        List<Relationship> relationships2 = createRelationships( 2, "rel2" );
+
         List<Event> events1 = createEvent( 3, "ev1", "enr1" );
         List<Event> events2 = createEvent( 7, "ev2", "enr2" );
 
         List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( createEnrollment( "enr1", "teiABC", events1 ) );
-        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
+        Enrollment enrollment1 = createEnrollment( "enr1", "teiABC", events1 );
+        Enrollment enrollment2 = createEnrollment( "enr2", "teiABC", events2 );
+        enrollment1.setRelationships( relationships2 );
+        enrollment2.setRelationships( relationships1 );
+        enrollments.add( enrollment1 );
+        enrollments.add( enrollment2 );
 
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
+
+        trackedEntity.setRelationships( relationships1 );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) )
@@ -116,20 +136,33 @@ public class TrackerBundleParamsConverterTest
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
 
         assertThat( b2.getTrackedEntities().get( 0 ).getEnrollments(), hasSize( 0 ) );
+        assertThat( b2.getTrackedEntities().get( 0 ).getRelationships(), hasSize( 0 ) );
+        assertThat( b2.getEnrollments().get( 0 ).getEvents(), hasSize( 0 ) );
+        assertThat( b2.getEnrollments().get( 0 ).getRelationships(), hasSize( 0 ) );
+        assertThat( b2.getEvents().get( 0 ).getRelationships(), hasSize( 0 ) );
     }
 
     @Test
     public void verifyUidIsAssignedWhenMissing()
         throws IOException
     {
+        List<Relationship> relationships1 = createRelationships( 2, null );
+        List<Relationship> relationships2 = createRelationships( 2, "rel2" );
+
         List<Event> events1 = createEvent( 3, null, null );
         List<Event> events2 = createEvent( 7, null, null );
 
         List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( createEnrollment( null, null, events1 ) );
-        enrollments.add( createEnrollment( null, null, events2 ) );
+        Enrollment enrollment1 = createEnrollment( null, null, events1 );
+        Enrollment enrollment2 = createEnrollment( null, null, events2 );
+        enrollment1.setRelationships( relationships1 );
+        enrollment2.setRelationships( relationships2 );
+        enrollments.add( enrollment1 );
+        enrollments.add( enrollment2 );
 
         TrackedEntity trackedEntity = createTrackedEntity( null, enrollments );
+
+        trackedEntity.setRelationships( relationships1 );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) )
@@ -152,6 +185,12 @@ public class TrackerBundleParamsConverterTest
 
         assertThat( b2.getEvents().get( 0 ).getEvent(), is( notNullValue() ) );
         assertThat( b2.getEvents().get( 1 ).getEvent(), is( notNullValue() ) );
+
+        assertThat( b2.getRelationships(), hasSize( 4 ) );
+        b2.getRelationships()
+            .stream()
+            .forEach( r -> assertThat( r.getRelationship(), is( notNullValue() ) ) );
+
     }
 
     private TrackedEntity createTrackedEntity( String uid, List<Enrollment> enrollments )
@@ -160,7 +199,6 @@ public class TrackerBundleParamsConverterTest
         trackedEntity.setGeometry( null );
         trackedEntity.setTrackedEntity( uid );
         trackedEntity.setEnrollments( enrollments );
-        trackedEntity.setCoordinates( null );
         return trackedEntity;
     }
 
@@ -177,7 +215,6 @@ public class TrackerBundleParamsConverterTest
         enrollment.setEnrollment( uid );
         enrollment.setTrackedEntity( parent );
         enrollment.setEvents( events );
-        enrollment.setCoordinate( null );
         return enrollment;
     }
 
@@ -190,10 +227,23 @@ public class TrackerBundleParamsConverterTest
             event.setGeometry( null );
             event.setEvent( uid + i );
             event.setEnrollment( parent );
-            event.setCoordinate( null );
             events.add( event );
         }
 
         return events;
     }
+
+    private List<Relationship> createRelationships( int size, String uid )
+    {
+        List<Relationship> relationships = new ArrayList<>();
+        for ( int i = 0; i < size; i++ )
+        {
+            Relationship relationship = rnd.randomObject( Relationship.class );
+            relationship.setRelationship( uid + i );
+            relationships.add( relationship );
+        }
+
+        return relationships;
+    }
+
 }

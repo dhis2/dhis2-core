@@ -64,7 +64,7 @@ public class CategoryOptionComboNameResourceTable
     public String getCreateTempTableStatement()
     {
         return "create table " + getTempTableName() +
-            " (categoryoptioncomboid integer not null primary key, " +
+            " (categoryoptioncomboid bigint not null primary key, " +
             "categoryoptioncomboname varchar(255), approvallevel integer, " +
             "startdate date, enddate date)";
     }

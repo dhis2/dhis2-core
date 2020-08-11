@@ -31,6 +31,7 @@ package org.hisp.dhis.program.function;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_BOOLEAN_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -44,7 +45,9 @@ public class D2HasValue
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return getProgramArgType( ctx ).getDescription( ctx, visitor );
+        getProgramArgType( ctx ).getDescription( ctx, visitor );
+
+        return DEFAULT_BOOLEAN_VALUE;
     }
 
     @Override

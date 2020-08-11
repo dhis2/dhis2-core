@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,7 +26,13 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
+package org.hisp.dhis.program.hibernate;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -38,8 +42,7 @@ import javax.persistence.criteria.Root;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,7 +65,7 @@ import com.google.common.collect.Sets;
  */
 @Repository( "org.hisp.dhis.program.ProgramStageInstanceStore" )
 public class HibernateProgramStageInstanceStore
-    extends HibernateIdentifiableObjectStore<ProgramStageInstance>
+    extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
@@ -72,9 +75,9 @@ public class HibernateProgramStageInstanceStore
         );
 
     public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService,
             aclService, false );
     }
 
@@ -125,21 +128,31 @@ public class HibernateProgramStageInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Query query = getSession().createNativeQuery( "select count(*) from programstageinstance where uid=? and deleted is false" );
-        query.setParameter( 1, uid );
-        int count = ( (Number) query.getSingleResult() ).intValue();
+        if ( uid == null )
+        {
+            return false;
+        }
 
-        return count > 0;
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programstageinstance where uid=? and deleted is false)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Query query = getSession().createNativeQuery( "select count(*) from programstageinstance where uid=?" );
-        query.setParameter( 1, uid );
-        int count = ( (Number) query.getSingleResult() ).intValue();
+        if ( uid == null )
+        {
+            return false;
+        }
 
-        return count > 0;
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programstageinstance where uid=?)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override

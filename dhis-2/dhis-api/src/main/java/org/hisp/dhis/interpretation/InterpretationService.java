@@ -28,9 +28,7 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -65,7 +63,7 @@ public interface InterpretationService
 
     void updateComment( Interpretation interpretation, InterpretationComment comment );
 
-    void updateSharingForMentions( Interpretation interpretation, Set<User> users );
+    boolean updateSharingForMentions( Interpretation interpretation, Set<User> users );
 
     void updateCurrentUserLastChecked();
 
