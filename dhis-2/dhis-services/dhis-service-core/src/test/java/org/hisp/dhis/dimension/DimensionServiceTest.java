@@ -55,6 +55,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -490,9 +491,61 @@ public class DimensionServiceTest
     }
 
     @Test
+    public void testGetDataDimensionalItemObjectsWithOffsetValue()
+    {
+        // Given
+        int offset = 1;
+        Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
+
+        DimensionalItemId itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset );
+        DimensionalItemId itemIdB = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset );
+        DimensionalItemId itemIdC = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), offset );
+
+        dimensionalItemIds.add( itemIdA );
+        dimensionalItemIds.add( itemIdB );
+        dimensionalItemIds.add( itemIdC );
+
+        // When
+        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
+
+        // Then
+        assertEquals( 3, objects.size() );
+        for ( DimensionalItemObject object : objects )
+        {
+            assertThat( object.getPeriodOffset(), is( 1 ) );
+        }
+    }
+
+    @Test
+    public void testGetDataDimensionalItemObjectsReturnsItemWithOffsetLargerThanZero()
+    {
+        // Given
+        int offset = 1;
+        Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
+
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid() ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid() ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid() ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), offset ) );
+
+        // When
+        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
+
+        // Then
+        assertEquals( 3, objects.size() );
+        for ( DimensionalItemObject object : objects )
+        {
+            assertThat( object.getPeriodOffset(), is( 1 ) );
+        }
+    }
+
+    @Test
     public void testGetDataDimensionalItemObjectMap()
     {
-        Map<DimensionalItemId, DimensionalItemObject> map = dimensionService.getDataDimensionalItemObjectMap( new HashSet<>() );
+        Map<DimensionalItemId, DimensionalItemObject> map = dimensionService
+            .getDataDimensionalItemObjectMap( new HashSet<>() );
 
         assertNotNull( map );
         assertEquals( 0, map.size() );
