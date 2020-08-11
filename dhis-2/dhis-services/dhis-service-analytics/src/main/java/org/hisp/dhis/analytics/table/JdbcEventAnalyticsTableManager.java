@@ -89,8 +89,8 @@ public class JdbcEventAnalyticsTableManager
 {
     private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
-    private static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
     public static final String OU_NAME_COL_SUFFIX = "_name";
+    public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
     public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
