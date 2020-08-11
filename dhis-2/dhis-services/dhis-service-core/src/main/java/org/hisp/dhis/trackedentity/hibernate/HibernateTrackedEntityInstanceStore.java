@@ -150,6 +150,11 @@ public class HibernateTrackedEntityInstanceStore
             query.setMaxResults( params.getPageSizeWithDefault() );
         }
 
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            query.setParameter( "assignedUsers", params.getAssignedUsers() );
+        }
+
         return query.list();
     }
 
@@ -420,7 +425,16 @@ public class HibernateTrackedEntityInstanceStore
         // Query
         // ---------------------------------------------------------------------
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rowSet;
+
+        if ( params.hasAssignedUsers() && !params.getAssignedUsers().isEmpty() )
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql, getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+        }
+        else
+        {
+            rowSet = jdbcTemplate.queryForRowSet( sql );
+        }
 
         log.debug( "Tracked entity instance query SQL: " + sql );
 
@@ -759,10 +773,15 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
+        
+        if ( params.hasProgramStage() )
+        {
+            sql += " psi.programstageid = " + params.getProgramStage().getId() + " and ";
+        }
 
         if ( params.hasAssignedUsers() )
         {
-            sql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
+            sql += " (au.uid in (?)) and ";
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )
@@ -815,10 +834,15 @@ public class HibernateTrackedEntityInstanceStore
                 hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
+        
+        if ( params.hasProgramStage() )
+        {
+            hql += " psi.programStage.uid = " + params.getProgramStage().getUid() + " and ";
+        }
 
         if ( params.hasAssignedUsers() )
         {
-            hql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
+            hql += " (au.uid in (:assignedUsers)) and ";
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )

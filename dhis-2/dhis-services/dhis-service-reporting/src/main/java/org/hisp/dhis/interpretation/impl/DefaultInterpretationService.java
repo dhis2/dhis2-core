@@ -191,8 +191,11 @@ public class DefaultInterpretationService
     {
         Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
         comment.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
-        interpretationStore.update( interpretation );
+        comment.setLastUpdated( new Date() );
+        if ( updateSharingForMentions( interpretation, users ) )
+        {
+            interpretationStore.update( interpretation );
+        }
         notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
         sendMentionNotifications( interpretation, comment, users );
     }
@@ -374,15 +377,22 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public void updateSharingForMentions( Interpretation interpretation, Set<User> users )
+    public boolean updateSharingForMentions( Interpretation interpretation, Set<User> users )
     {
+        boolean modified = false;
+        IdentifiableObject interpretationObject = interpretation.getObject();
+        Set<UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
+
         for ( User user : users )
         {
-            if ( !aclService.canRead( user, interpretation.getObject() ) )
+            if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationUserAccesses.add( new UserAccess( user, AccessStringHelper.READ ) );
+                modified = true;
             }
         }
+
+        return modified;
     }
 
     @Override
