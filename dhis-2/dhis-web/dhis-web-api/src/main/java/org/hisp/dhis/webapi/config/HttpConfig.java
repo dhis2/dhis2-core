@@ -6,13 +6,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -21,7 +17,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -33,23 +28,14 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.accept.ParameterContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
@@ -68,20 +54,26 @@ import static org.springframework.http.MediaType.parseMediaType;
 @EnableWebMvc
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 @Slf4j
-@EnableAuthorizationServer
-public class HttpConfig extends AuthorizationServerConfigurerAdapter implements WebMvcConfigurer
+public class HttpConfig implements WebMvcConfigurer
 {
 //    @Autowired
 //    private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
+//    @Autowired
+//    AuthenticationManager authenticationManager;
 
-    @Autowired
-    private UserService userService;
+//    @Bean
+//    public TokenStore tokenStore()
+//    {
+//        return new JwtTokenStore( accessTokenConverter() );
+//    }
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private SecurityService securityService;
+//    @Bean
+//    public JwtAccessTokenConverter accessTokenConverter()
+//    {
+//        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+//        converter.setSigningKey( "123" );
+//        return converter;
+//    }
 
 //    @Autowired
 //    private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
@@ -106,58 +98,19 @@ public class HttpConfig extends AuthorizationServerConfigurerAdapter implements 
         return expressionHandler;
     }
 
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+//    public void configure( ClientDetailsServiceConfigurer clients )
+//        throws Exception
+//    {
+//        clients
+//            .inMemory()
+//            .withClient( "first-client" )
+//            .secret( encoder().encode( "noonewilleverguess" ) )
+//            .scopes( "resource:read" )
+//            .authorizedGrantTypes( "authorization_code" )
+//            .redirectUris( "http://localhost:8081/oauth/login/client-app" );
+//    }
 
-    public void configure( ClientDetailsServiceConfigurer clients )
-        throws Exception
-    {
-        clients
-            .inMemory()
-            .withClient( "first-client" )
-            .secret( encoder().encode( "noonewilleverguess" ) )
-            .scopes( "resource:read" )
-            .authorizedGrantTypes( "authorization_code" )
-            .redirectUris( "http://localhost:8081/oauth/login/client-app" );
-    }
 
-    @Autowired
-    public void configureGlobal( AuthenticationManagerBuilder auth )
-        throws Exception
-    {
-        TwoFactorAuthenticationProvider twoFactorAuthenticationProvider = new TwoFactorAuthenticationProvider();
-        twoFactorAuthenticationProvider.setPasswordEncoder( encoder() );
-        twoFactorAuthenticationProvider.setUserService( userService );
-        twoFactorAuthenticationProvider.setUserDetailsService( userDetailsService );
-        twoFactorAuthenticationProvider.setSecurityService( securityService );
-
-        // configure the Authentication providers
-
-        auth
-            // Two factor
-            .authenticationProvider( twoFactorAuthenticationProvider )
-            // LDAP Authentication
-//            .authenticationProvider( customLdapAuthenticationProvider )
-            //  OAUTH2
-            .userDetailsService( userDetailsService )
-            // Use a non-encoding password for oauth2 secrets, since the secret is generated by the client
-            .passwordEncoder( NoOpPasswordEncoder.getInstance() );
-    }
-
-    @Bean( "authenticationManager" )
-    public AuthenticationManager authenticationManager( AuthenticationManagerBuilder auth )
-    {
-        return auth.getOrBuild();
-    }
-
-    @Bean
-    public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
-    {
-        return new TwoFactorWebAuthenticationDetailsSource();
-    }
 
 //  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
 //
@@ -169,11 +122,11 @@ public class HttpConfig extends AuthorizationServerConfigurerAdapter implements 
         return new DefaultNodeService();
     }
 
-    @Override
-    public void addInterceptors( InterceptorRegistry registry )
-    {
-        registry.addInterceptor( TranslationInterceptor.get() );
-    }
+//    @Override
+//    public void addInterceptors( InterceptorRegistry registry )
+//    {
+//        registry.addInterceptor( TranslationInterceptor.get() );
+//    }
 
     @Override
     public void configureMessageConverters(

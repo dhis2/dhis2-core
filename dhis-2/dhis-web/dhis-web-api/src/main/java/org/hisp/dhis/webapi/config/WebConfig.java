@@ -28,30 +28,9 @@
 
 package org.hisp.dhis.webapi.config;
 
-import static org.springframework.http.MediaType.parseMediaType;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.web.accept.ContentNegotiationManager;
-import org.springframework.web.accept.FixedContentNegotiationStrategy;
-import org.springframework.web.accept.HeaderContentNegotiationStrategy;
-import org.springframework.web.accept.ParameterContentNegotiationStrategy;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
-@Configuration
 public class WebConfig
 {
 //    private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

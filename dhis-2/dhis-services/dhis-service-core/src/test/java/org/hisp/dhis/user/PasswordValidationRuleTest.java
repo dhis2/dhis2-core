@@ -98,7 +98,7 @@ public class PasswordValidationRuleTest
         lengthValidationRule = new PasswordLengthValidationRule( systemSettingManager );
         upperCasePatternValidationRule = new UpperCasePatternValidationRule();
         parameterValidationRule = new UserParameterValidationRule();
-        historyValidationRule = new PasswordHistoryValidationRule( passwordEncoder, userService, currentUserService );
+//        historyValidationRule = new PasswordHistoryValidationRule( passwordEncoder, userService, currentUserService );
     }
 
     @Test
