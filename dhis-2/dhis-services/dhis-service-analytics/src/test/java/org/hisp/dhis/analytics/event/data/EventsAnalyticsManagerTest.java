@@ -34,6 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -128,6 +129,27 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         assertThat( sql.getValue(), is(expected) );
     }
+
+    @Test
+    public void verifyGetEventSqlWithOrgUnitTypeDataElement()
+    {
+        mockEmptyRowSet();
+
+        DataElement dataElement = createDataElement('a');
+        QueryItem queryItem = new QueryItem( dataElement, this.programA, null,
+            ValueType.ORGANISATION_UNIT, AggregationType.SUM, null );
+
+        subject.getEvents( createRequestParams( queryItem ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "select psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) " +
+                "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name" + "\"  " +
+                "from " + getTable( programA.getUid() ) + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+
+        assertThat( sql.getValue(), is(expected) );
+    }
+
 
     @Test
     public void verifyGetEventSqlWithProgram()
