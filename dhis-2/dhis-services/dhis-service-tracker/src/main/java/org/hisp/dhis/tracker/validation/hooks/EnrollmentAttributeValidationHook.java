@@ -36,7 +36,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -61,10 +60,9 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 public class EnrollmentAttributeValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EnrollmentAttributeValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EnrollmentAttributeValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
     }
 
     @Override

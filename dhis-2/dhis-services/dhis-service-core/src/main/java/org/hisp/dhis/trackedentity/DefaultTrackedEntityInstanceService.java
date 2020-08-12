@@ -30,24 +30,13 @@ package org.hisp.dhis.trackedentity;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -685,7 +674,7 @@ public class DefaultTrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
-        Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
+        Date programIncidentEndDate, String trackedEntityType, String programStage, EventStatus eventStatus, Date eventStartDate,
         Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
         boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
@@ -749,6 +738,13 @@ public class DefaultTrackedEntityInstanceService
         {
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
+        
+        ProgramStage ps = programStage != null ? getProgramStageFromProgram( pr, programStage ) : null;
+       
+        if ( programStage != null && ps == null )
+        {
+            throw new IllegalQueryException( "Program does not contain the specified programStage: " + programStage );
+        }
 
         TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
@@ -768,6 +764,13 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
 
+        if ( assignedUsers != null )
+        {
+            assignedUsers = assignedUsers.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
+
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -781,6 +784,7 @@ public class DefaultTrackedEntityInstanceService
             .setProgramIncidentEndDate( programIncidentEndDate )
             .setTrackedEntityType( te )
             .setOrganisationUnitMode( ouMode )
+            .setProgramStage( ps )
             .setEventStatus( eventStatus )
             .setEventStartDate( eventStartDate )
             .setEventEndDate( eventEndDate )
@@ -797,6 +801,16 @@ public class DefaultTrackedEntityInstanceService
             .setOrders( orders );
 
         return params;
+    }
+
+    private ProgramStage getProgramStageFromProgram( Program pr, String programStage )
+    {
+        if ( pr == null )
+        {
+            return null;
+        }
+        
+        return pr.getProgramStages().stream().filter( pstage-> pstage.getUid().equals( programStage ) ).findFirst().orElse( null );
     }
 
     /**

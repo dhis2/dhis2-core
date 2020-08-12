@@ -35,7 +35,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -57,10 +56,9 @@ public class PreCheckMetaValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
-    public PreCheckMetaValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public PreCheckMetaValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
     }
 
     @Override

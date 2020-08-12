@@ -733,7 +733,9 @@ public class DimensionalObjectUtils
     public static Map<DimensionalItemObject, Double> convertToDimItemValueMap(
         List<DimensionItemObjectValue> dimensionItemObjectValues )
     {
-        return dimensionItemObjectValues.stream().collect( Collectors
-            .toMap( DimensionItemObjectValue::getDimensionalItemObject, DimensionItemObjectValue::getValue ) );
+        return dimensionItemObjectValues.stream()
+            .filter( item -> item.getValue() != null )
+            .collect( Collectors
+                .toMap( DimensionItemObjectValue::getDimensionalItemObject, DimensionItemObjectValue::getValue ) );
     }
 }

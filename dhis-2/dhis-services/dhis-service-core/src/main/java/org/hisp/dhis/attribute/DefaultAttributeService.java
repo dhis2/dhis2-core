@@ -82,7 +82,7 @@ public class DefaultAttributeService
     @PostConstruct
     public void init()
     {
-        attributeCache = attributeCache = new SimpleCacheBuilder<Attribute>()
+        attributeCache = new SimpleCacheBuilder<Attribute>()
             .forRegion( "metadataAttributes" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
