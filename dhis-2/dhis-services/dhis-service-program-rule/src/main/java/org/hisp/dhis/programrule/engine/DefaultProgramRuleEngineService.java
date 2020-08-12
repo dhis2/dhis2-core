@@ -71,8 +71,9 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramRuleService programRuleService;
 
-    public DefaultProgramRuleEngineService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
-        @Qualifier( "oldRuleEngine" ) ProgramRuleEngine programRuleEngine,
+    public DefaultProgramRuleEngineService(
+        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
+        @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
         ProgramStageInstanceService programStageInstanceService, ProgramRuleService programRuleService )
     {

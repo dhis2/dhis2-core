@@ -65,7 +65,7 @@ public class ProgramRuleConfig
      * {@link ProgramRuleEngineListener}. Only the notification rule actions are
      * executed.
      */
-    @Bean( "oldRuleEngine" )
+    @Bean( "notificationRuleEngine" )
     public ProgramRuleEngine oldRuleEngine( OldImplementableRuleService oldImplementableRuleService )
     {
         return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService,
@@ -77,7 +77,7 @@ public class ProgramRuleConfig
      * This bean is used when the new importer is called. All the relevant rule
      * actions are executed.
      */
-    @Bean( "newRuleEngine" )
+    @Bean( "serviceTrackerRuleEngine" )
     public ProgramRuleEngine newRuleEngine( NewImplementableRuleService newImplementableRuleService )
     {
         return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService,

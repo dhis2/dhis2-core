@@ -54,7 +54,6 @@ public class TrackedEntityTrackerConverterService
 {
 
     @Override
-    @Transactional( readOnly = true )
     public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
         List<TrackedEntity> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
@@ -68,7 +67,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         return trackedEntityInstances.stream().map( tei -> {
@@ -80,7 +78,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat,
         TrackedEntity trackedEntityInstance )
     {
@@ -96,7 +93,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {

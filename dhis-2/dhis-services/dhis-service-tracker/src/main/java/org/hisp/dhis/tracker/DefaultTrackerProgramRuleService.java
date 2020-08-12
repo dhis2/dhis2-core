@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker;
  */
 
 import com.google.api.client.util.Sets;
-import com.google.common.collect.Lists;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
@@ -61,7 +60,8 @@ public class DefaultTrackerProgramRuleService
 
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
-    public DefaultTrackerProgramRuleService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngine,
+    public DefaultTrackerProgramRuleService(
+        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngine,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService )
     {

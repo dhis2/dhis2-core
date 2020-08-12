@@ -148,7 +148,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date psEventDate;
 
-    @Qualifier( "oldRuleEngine" )
+    @Qualifier( "notificationRuleEngine" )
     @Autowired
     ProgramRuleEngine programRuleEngine;
 

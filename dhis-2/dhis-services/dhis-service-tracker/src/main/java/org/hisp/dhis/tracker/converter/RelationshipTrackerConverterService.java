@@ -58,7 +58,6 @@ public class RelationshipTrackerConverterService
 {
 
     @Override
-    @Transactional( readOnly = true )
     public Relationship to( org.hisp.dhis.relationship.Relationship relationship )
     {
         List<Relationship> relationships = to( Collections.singletonList( relationship ) );
@@ -72,7 +71,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Relationship> to( List<org.hisp.dhis.relationship.Relationship> relationships )
     {
         return relationships.stream().map( fromRelationship -> {
@@ -103,7 +101,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
@@ -118,7 +115,6 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
         List<Relationship> fromRelationships )
     {

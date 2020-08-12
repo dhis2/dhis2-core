@@ -95,7 +95,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
@@ -108,7 +107,6 @@ public class EnrollmentTrackerConverterService
         return programInstances.get( 0 );
     }
     @Override
-    @Transactional( readOnly = true )
     public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
@@ -126,9 +124,6 @@ public class EnrollmentTrackerConverterService
 
             TrackedEntityInstance trackedEntityInstance = preheat
                 .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
-
-            // checkNotNull( trackedEntityInstance,
-            // TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
 
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
 
