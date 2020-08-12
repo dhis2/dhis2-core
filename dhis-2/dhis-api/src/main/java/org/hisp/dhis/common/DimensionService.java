@@ -94,7 +94,10 @@ public interface DimensionService
 
     /**
      * Gets a set of dimension item objects from their ids.
-     *
+     * In case of two {@see DimensionalItemId} having the same ids, this function always returns a
+     * {@see DimensionalItemObject} corresponding to the {@see DimensionalItemId}
+     * with the Period Offset property higher/lower than 0.
+     * 
      * @param itemIds a set of ids of the dimension item objects to get.
      * @return the set of dimension item objects built from the ids.
      */
