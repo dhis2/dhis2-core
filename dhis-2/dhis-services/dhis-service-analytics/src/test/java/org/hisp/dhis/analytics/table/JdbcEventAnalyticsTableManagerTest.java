@@ -258,7 +258,7 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
             + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
-        String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+        String aliasD5 = "(select ou.uid from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
@@ -266,6 +266,8 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
         String aliasD5_geo = "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
+        String aliasD5_name = "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+                + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
@@ -280,7 +282,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 47 ).addColumns( periodColumns )
+            .withColumnSize( 48 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
@@ -288,9 +290,9 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5
-                                                                                                       // also creates a
-                                                                                                       // Geo column
+            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5 also creates a Geo column
+            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) ) // element d5 also creates a Name column
+
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
@@ -334,12 +336,14 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 42 ).addColumns( periodColumns )
+            .withColumnSize( 43 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
-            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
+            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
             .addColumn( tea1.getUid() + "_geom", GEOMETRY,
                 String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
+            .addColumn( tea1.getUid() + "_name", TEXT,
+                String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) )
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
@@ -369,11 +373,13 @@ public class JdbcEventAnalyticsTableManagerTest
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' from programstageinstance where "
             + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
     }
 
     @Test
@@ -405,11 +411,12 @@ public class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
     }
 
     @Test
@@ -563,11 +570,12 @@ public class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
-            + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+        final String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
+                + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+                + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
     }
 
     private String toAlias( String template, String uid )
