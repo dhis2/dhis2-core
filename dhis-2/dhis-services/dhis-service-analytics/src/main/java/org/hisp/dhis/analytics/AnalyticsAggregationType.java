@@ -42,6 +42,7 @@ public class AnalyticsAggregationType
     public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
     public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
+    public static final AnalyticsAggregationType LAST_ANALYTICS_PERIOD = new AnalyticsAggregationType( AggregationType.LAST_ANALYTICS_PERIOD, AggregationType.LAST_ANALYTICS_PERIOD );
 
     /**
      * General aggregation type.
@@ -107,6 +108,12 @@ public class AnalyticsAggregationType
         case LAST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
             break;
+        case LAST_ANALYTICS_PERIOD:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST_ANALYTICS_PERIOD );
+            break;
+        case LAST_ANALYTICS_PERIOD_AVERAGE_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST_ANALYTICS_PERIOD_AVERAGE_ORG_UNIT );
+            break;
         case FIRST:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.FIRST );
             break;
@@ -140,9 +147,19 @@ public class AnalyticsAggregationType
         return AggregationType.FIRST == periodAggregationType || AggregationType.FIRST_AVERAGE_ORG_UNIT == periodAggregationType;
     }
     
+    public boolean isLastAnalyticsPeriodAggregationType()
+    {
+        return AggregationType.LAST_ANALYTICS_PERIOD == periodAggregationType || AggregationType.LAST_ANALYTICS_PERIOD_AVERAGE_ORG_UNIT == periodAggregationType;
+    }
+
     public boolean isFirstOrLastPeriodAggregationType()
     {
         return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
+    }
+
+    public boolean isFirstOrLastOrLastAnalyticsPeriodAggregationType()
+    {
+        return isFirstPeriodAggregationType() || isLastPeriodAggregationType() || isLastAnalyticsPeriodAggregationType();
     }
 
     public boolean isNumericDataType()
