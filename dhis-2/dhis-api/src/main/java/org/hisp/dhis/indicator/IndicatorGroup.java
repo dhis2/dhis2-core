@@ -50,7 +50,7 @@ import java.util.Set;
 public class IndicatorGroup
     extends BaseIdentifiableObject implements MetadataObject
 {
-	private String description;
+    private String description;
 
     private Set<Indicator> members = new HashSet<>();
 
