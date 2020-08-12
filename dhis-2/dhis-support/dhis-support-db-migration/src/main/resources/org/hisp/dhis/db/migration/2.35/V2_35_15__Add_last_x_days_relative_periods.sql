@@ -1,5 +1,5 @@
 
--- Adds last 30, 60, 90 days columns to "relativeperiods" table
+-- Adds last 30, 60, 90, 180 days columns to "relativeperiods" table
 
 alter table "relativeperiods" add column if not exists "last30days" boolean;
 update "relativeperiods" set "last30days" = false where "last30days" is null;
