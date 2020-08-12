@@ -19,7 +19,7 @@
 
     <property name="shortName" column="shortname" unique="true" length="50" />
 
-	<property name="description" type="text" />
+    <property name="description" type="text" />
 
     <property name="translations" type="jblTranslations"/>
 
