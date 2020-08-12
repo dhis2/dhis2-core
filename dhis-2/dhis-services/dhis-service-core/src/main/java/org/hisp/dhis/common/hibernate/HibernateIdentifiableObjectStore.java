@@ -1243,7 +1243,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return predicate;
     }
 
-
     protected Function<Root<T>, Predicate> getJsonbSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
         if ( !sharingEnabled( user ) || user == null )
@@ -1261,39 +1260,39 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             String groupUuIds = "{" + user.getGroups().stream().map( ug -> ug.getUuid().toString() ).collect( Collectors.joining( "," ) ) + "}";
 
             return builder.and(
-                    builder.equal(
-                            builder.function(
-                                    JsonbFunctions.HAS_USER_GROUP_IDS,
-                                    Boolean.class,
-                                    root.get( "sharing" ),
-                                    builder.literal( groupUuIds ) ),
-                            true ),
-                    builder.equal(
-                            builder.function(
-                                    JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
-                                    Boolean.class,
-                                    root.get( "sharing" ),
-                                    builder.literal( access ),
-                                    builder.literal( groupUuIds ) ),
-                            true )
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.HAS_USER_GROUP_IDS,
+                        Boolean.class,
+                        root.get( "sharing" ),
+                        builder.literal( groupUuIds ) ),
+                    true ),
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
+                        Boolean.class,
+                        root.get( "sharing" ),
+                        builder.literal( access ),
+                        builder.literal( groupUuIds ) ),
+                    true )
             );
         };
 
         Function<Root<T>,Predicate> userPredicate  = ( Root<T> root ) ->
                 builder.and(
                     builder.equal(
-                            builder.function(
-                                    JsonbFunctions.HAS_USER_ID,
-                                    Boolean.class, root.get( "sharing" ),
-                                    builder.literal( user.getUserCredentials().getUuid().toString() ) ),
-                            true ),
+                        builder.function(
+                            JsonbFunctions.HAS_USER_ID,
+                            Boolean.class, root.get( "sharing" ),
+                            builder.literal( user.getUserCredentials().getUuid().toString() ) ),
+                        true ),
                     builder.equal(
-                            builder.function(
-                                    JsonbFunctions.CHECK_USER_ACCESS,
-                                    Boolean.class, root.get( "sharing" ),
-                                    builder.literal( user.getUserCredentials().getUuid().toString() ),
-                                    builder.literal( access ) ),
-                            true )
+                        builder.function(
+                            JsonbFunctions.CHECK_USER_ACCESS,
+                            Boolean.class, root.get( "sharing" ),
+                            builder.literal( user.getUserCredentials().getUuid().toString() ),
+                            builder.literal( access ) ),
+                        true )
                 );
 
         Function<Root<T>, Predicate> predicate = ( root -> {

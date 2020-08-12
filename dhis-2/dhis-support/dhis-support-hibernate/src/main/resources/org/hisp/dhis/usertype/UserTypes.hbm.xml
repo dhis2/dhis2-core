@@ -88,7 +88,7 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jsbObjectSharing">
-    <param name="clazz">org.hisp.dhis.sharing.ObjectSharing</param>
+    <param name="clazz">org.hisp.dhis.sharing.Sharing</param>
   </typedef>
 
 

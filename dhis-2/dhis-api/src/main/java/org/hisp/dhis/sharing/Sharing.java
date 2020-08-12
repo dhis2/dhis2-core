@@ -11,7 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ObjectSharing
+public class Sharing
     implements Serializable
 {
     private static final long serialVersionUID = 6977793211734844477L;

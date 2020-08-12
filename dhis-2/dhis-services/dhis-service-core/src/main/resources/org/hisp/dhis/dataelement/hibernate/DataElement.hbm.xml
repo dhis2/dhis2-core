@@ -90,7 +90,7 @@
 
     <!-- Access properties -->
 
-    <property name="objectSharing" type="jsbObjectSharing"/>
+    <property name="sharing" type="jsbObjectSharing"/>
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelement_userid" />
 

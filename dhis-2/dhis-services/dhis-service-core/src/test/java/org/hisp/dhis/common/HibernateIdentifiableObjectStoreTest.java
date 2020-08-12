@@ -32,10 +32,8 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.sharing.ObjectSharing;
+import org.hisp.dhis.sharing.Sharing;
 import org.hisp.dhis.sharing.UserGroupSharing;
 import org.hisp.dhis.sharing.UserSharing;
 import org.hisp.dhis.user.User;
@@ -45,8 +43,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -138,14 +134,14 @@ public class HibernateIdentifiableObjectStoreTest
         dataElement.setUid(dataElementUid);
         dataElement.setUser(admin);
 
-        ObjectSharing objectSharing = ObjectSharing.builder()
+        Sharing sharing = Sharing.builder()
             .external( true )
             .publicAccess( "--------" )
             .owner( "testOwner" )
             .userGroups( userGroupSharing )
             .users( userSharing ).build();
 
-        dataElement.setObjectSharing( objectSharing );
+        dataElement.setObjectSharing( sharing );
         dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
         dataElement.setExternalAccess(false);
         dataElementService.addDataElement( dataElement );
