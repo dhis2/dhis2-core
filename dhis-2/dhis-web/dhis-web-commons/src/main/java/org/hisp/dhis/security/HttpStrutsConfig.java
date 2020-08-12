@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.filter.CorsFilter;
 import org.hisp.dhis.security.filter.CustomAuthenticationFilter;
+import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oprovider.OldOauthAuthenticationProvider;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
@@ -17,6 +18,7 @@ import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -26,8 +28,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
@@ -45,15 +49,25 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.endpoint.FrameworkEndpointHandlerMapping;
+import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
+import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -185,16 +199,16 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 //                endpoints.getEndpointsConfigurer().userDetailsService( userDetailsService );
 //            }
 
-            http
-                .authorizeRequests()
-                .antMatchers( tokenEndpointPath ).fullyAuthenticated()
-                .antMatchers( tokenKeyPath ).access( configurer.getTokenKeyAccess() )
-                .antMatchers( checkTokenPath ).access( configurer.getCheckTokenAccess() )
-                .and()
-                .requestMatchers()
-                .antMatchers( tokenEndpointPath, tokenKeyPath, checkTokenPath )
-                .and()
-                .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
+                http
+                    .authorizeRequests()
+                    .antMatchers( tokenEndpointPath ).fullyAuthenticated()
+                    .antMatchers( tokenKeyPath ).access( configurer.getTokenKeyAccess() )
+                    .antMatchers( checkTokenPath ).access( configurer.getCheckTokenAccess() )
+                    .and()
+                    .requestMatchers()
+                    .antMatchers( tokenEndpointPath, tokenKeyPath, checkTokenPath )
+                    .and()
+                    .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
 //            http.setSharedObject( ClientDetailsService.class, clientDetailsService );
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
@@ -255,31 +269,33 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         {
             endpoints
                 .prefix( "/oauth" )
-                .pathMapping( "/oauth/token","/token" )
+                .pathMapping( "/oauth/token", "/token" )
 //                .tokenServices( tokenServices() )
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
-                .tokenStore(tokenStore())
+                .tokenStore( tokenStore() )
                 .authenticationManager( authenticationManager() );
 //            .setClientDetailsService( clientDetailsService );
             // .accessTokenConverter(accessTokenConverter())
 //            .tokenEnhancer(tokenEnhancerChain)
         }
 
-        @Bean
-        public TokenStore tokenStore()
-        {
-            return new JdbcTokenStore( dataSource );
-        }
 
-        @Bean
-        @Primary
-        public DefaultTokenServices tokenServices()
-        {
-            final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-            defaultTokenServices.setTokenStore( tokenStore() );
-            defaultTokenServices.setSupportRefreshToken( true );
-            return defaultTokenServices;
-        }
+    }
+
+    @Bean
+    public TokenStore tokenStore()
+    {
+        return new JdbcTokenStore( dataSource );
+    }
+
+    @Bean("tokenService1")
+    @Primary
+    public DefaultTokenServices tokenServices()
+    {
+        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore( tokenStore() );
+        defaultTokenServices.setSupportRefreshToken( true );
+        return defaultTokenServices;
     }
 
     @Configuration
@@ -308,12 +324,110 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
     @Order( 1100 )
     public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter
     {
+
+//
+//        private ResourceServerTokenServices resourceTokenServices(HttpSecurity http) {
+//            tokenServices(http);
+//            return this.resourceTokenServices;
+//        }
+//
+//        private ResourceServerTokenServices tokenServices(HttpSecurity http) {
+//            if (resourceTokenServices != null) {
+//                return resourceTokenServices;
+//            }
+//            DefaultTokenServices tokenServices = new DefaultTokenServices();
+//            tokenServices.setTokenStore(tokenStore());
+//            tokenServices.setSupportRefreshToken(true);
+//            tokenServices.setClientDetailsService(clientDetails());
+//            this.resourceTokenServices = tokenServices;
+//            return tokenServices;
+//        }
+
+        @Autowired
+        @Qualifier("tokenService1")
+        public ResourceServerTokenServices tokenServices;
+
+        @Autowired
+        @Qualifier( "defaultClientDetailsService" )
+        DefaultClientDetailsService clientDetailsService;
+
+        OAuth2AuthenticationProcessingFilter resourcesServerFilter;
+
+        private AuthenticationManager authenticationManager;
+
+        private SecurityExpressionHandler<FilterInvocation> expressionHandler = new OAuth2WebSecurityExpressionHandler();
+
+        private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
+
+        private AccessDeniedHandler accessDeniedHandler = new OAuth2AccessDeniedHandler();
+
+        private String resourceId = "oauth2-resource";
+
+        private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
+        {
+            OAuth2AuthenticationManager oauthAuthenticationManager = new OAuth2AuthenticationManager();
+            if ( authenticationManager != null )
+            {
+                if ( authenticationManager instanceof OAuth2AuthenticationManager )
+                {
+                    oauthAuthenticationManager = (OAuth2AuthenticationManager) authenticationManager;
+                }
+                else
+                {
+                    return authenticationManager;
+                }
+            }
+            oauthAuthenticationManager.setResourceId( resourceId );
+//            oauthAuthenticationManager.setTokenServices(resourceTokenServices(http));
+            oauthAuthenticationManager.setTokenServices( tokenServices );
+            oauthAuthenticationManager.setClientDetailsService( clientDetailsService );
+
+            return oauthAuthenticationManager;
+        }
+
         protected void configure( HttpSecurity http )
             throws Exception
         {
+
+            AuthenticationManager oauthAuthenticationManager = oauthAuthenticationManager( http );
+            resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
+            resourcesServerFilter.setAuthenticationEntryPoint( authenticationEntryPoint );
+            resourcesServerFilter.setAuthenticationManager( oauthAuthenticationManager );
+
+//            if (eventPublisher != null) {
+//                resourcesServerFilter.setAuthenticationEventPublisher(eventPublisher);
+//            }
+
+//            if (tokenExtractor != null) {
+//                resourcesServerFilter.setTokenExtractor(tokenExtractor);
+//            }
+
+//            if (authenticationDetailsSource != null) {
+//                resourcesServerFilter.setAuthenticationDetailsSource(authenticationDetailsSource);
+//            }
+
+//            resourcesServerFilter = postProcess(resourcesServerFilter);
+            resourcesServerFilter.setStateless(false);
+
+//            // @formatter:off
+//            http
+//                .authorizeRequests().expressionHandler(expressionHandler)
+//                .and()
+//                .addFilterBefore(resourcesServerFilter, AbstractPreAuthenticatedProcessingFilter.class)
+//                .exceptionHandling()
+//                .accessDeniedHandler(accessDeniedHandler)
+//                .authenticationEntryPoint(authenticationEntryPoint);
+
+
+
+
+
             http
                 .antMatcher( "/api/**" )
                 .authorizeRequests( authorize -> authorize
+
+                    .expressionHandler( expressionHandler )
+
                     .antMatchers( "/api/account/username" ).permitAll()
                     .antMatchers( "/api/account/recovery" ).permitAll()
                     .antMatchers( "/api/account/restore" ).permitAll()
@@ -331,7 +445,13 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 .and().csrf().disable()
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
-                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class )
+
+//                .addFilterBefore(resourcesServerFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .addFilterAfter(resourcesServerFilter, BasicAuthenticationFilter.class)
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler)
+                .authenticationEntryPoint(authenticationEntryPoint);
         }
 
         @Bean
