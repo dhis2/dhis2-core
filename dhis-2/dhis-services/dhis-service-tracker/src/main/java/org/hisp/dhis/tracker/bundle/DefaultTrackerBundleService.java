@@ -186,6 +186,10 @@ public class DefaultTrackerBundleService
         }
         catch ( Exception e )
         {
+            // TODO: Report that rule engine has failed
+            // Rule engine can fail because of validation errors in the payload that
+            // were not discovered yet.
+            // If rule engine fails and the validation pass, a 500 code should be returned
             e.printStackTrace();
         }
         return bundles;

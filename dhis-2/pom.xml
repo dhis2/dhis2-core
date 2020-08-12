@@ -80,16 +80,6 @@
       <url>https://maven.java.net/content/repositories/staging/</url>
       <layout>default</layout>
     </repository>
-    <repository>
-      <id>github</id>
-      <name>GitHub ANTLR Apache Maven Packages</name>
-      <url>https://maven.pkg.github.com/dhis2/dhis2-antlr-expression-parser</url>
-    </repository>
-    <repository>
-      <id>github-rule-engine</id>
-      <name>GitHub Rule Engine Apache Maven Packages</name>
-      <url>https://maven.pkg.github.com/dhis2/dhis2-rule-engine</url>
-    </repository>
   </repositories>
 
   <issueManagement>
