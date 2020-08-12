@@ -130,7 +130,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getUid() );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
         List<RuleEffect> ruleEffects = getRuleEffects( psi.getProgramInstance(), Optional.of( psi ),
             programInstance.getProgramStageInstances() );

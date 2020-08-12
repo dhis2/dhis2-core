@@ -182,6 +182,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
         when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
