@@ -51,7 +51,6 @@ public class ConfigurationExtension
     public void beforeAll( ExtensionContext context )
     {
         RestAssured.baseURI = TestConfiguration.get().baseUrl();
-        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
         RestAssured.config = RestAssuredConfig.config()
             .jsonConfig( new JsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL ) );
 
