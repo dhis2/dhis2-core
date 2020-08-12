@@ -42,6 +42,7 @@ public enum RelativePeriodEnum
     LAST_30_DAYS,
     LAST_60_DAYS,
     LAST_90_DAYS,
+    LAST_180_DAYS,
     THIS_MONTH,
     LAST_MONTH,
     THIS_BIMONTH,

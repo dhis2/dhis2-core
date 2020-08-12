@@ -158,6 +158,8 @@ public class RelativePeriods
 
     private boolean last90Days = false;
 
+    private boolean last180Days = false;
+
     private boolean thisMonth = false;
 
     private boolean lastMonth = false;
@@ -253,7 +255,8 @@ public class RelativePeriods
      */
     public PeriodType getPeriodType()
     {
-        if ( isThisDay() || isYesterday() || isLast3Days() || isLast7Days() || isLast14Days() || isLast30Days() || isLast60Days() || isLast90Days() )
+        if ( isThisDay() || isYesterday() || isLast3Days() || isLast7Days() || isLast14Days() ||
+            isLast30Days() || isLast60Days() || isLast90Days() || isLast180Days() )
         {
             return PeriodType.getPeriodTypeByName( DailyPeriodType.NAME );
         }
@@ -431,6 +434,11 @@ public class RelativePeriods
         if ( isLast90Days() )
         {
             periods.addAll( getRollingRelativePeriodList( new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 275, 365 ) );
+        }
+
+        if ( isLast180Days() )
+        {
+            periods.addAll( getRollingRelativePeriodList( new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 185, 365 ) );
         }
 
         if ( isThisWeek() )
@@ -738,6 +746,7 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.LAST_30_DAYS, new RelativePeriods().setLast30Days( true ) );
         map.put( RelativePeriodEnum.LAST_60_DAYS, new RelativePeriods().setLast60Days( true ) );
         map.put( RelativePeriodEnum.LAST_90_DAYS, new RelativePeriods().setLast90Days( true ) );
+        map.put( RelativePeriodEnum.LAST_180_DAYS, new RelativePeriods().setLast180Days( true ) );
         map.put( RelativePeriodEnum.THIS_MONTH, new RelativePeriods().setThisMonth( true ) );
         map.put( RelativePeriodEnum.LAST_MONTH, new RelativePeriods().setLastMonth( true ) );
         map.put( RelativePeriodEnum.THIS_BIMONTH, new RelativePeriods().setThisBimonth( true ) );
@@ -794,6 +803,7 @@ public class RelativePeriods
         add( list, RelativePeriodEnum.LAST_30_DAYS, last30Days );
         add( list, RelativePeriodEnum.LAST_60_DAYS, last60Days );
         add( list, RelativePeriodEnum.LAST_90_DAYS, last90Days );
+        add( list, RelativePeriodEnum.LAST_180_DAYS, last180Days );
         add( list, RelativePeriodEnum.THIS_MONTH, thisMonth );
         add( list, RelativePeriodEnum.LAST_MONTH, lastMonth );
         add( list, RelativePeriodEnum.THIS_BIMONTH, thisBimonth );
@@ -844,6 +854,7 @@ public class RelativePeriods
             last30Days = relativePeriods.contains( RelativePeriodEnum.LAST_30_DAYS );
             last60Days = relativePeriods.contains( RelativePeriodEnum.LAST_60_DAYS );
             last90Days = relativePeriods.contains( RelativePeriodEnum.LAST_90_DAYS );
+            last180Days = relativePeriods.contains( RelativePeriodEnum.LAST_180_DAYS );
             thisMonth = relativePeriods.contains( RelativePeriodEnum.THIS_MONTH );
             lastMonth = relativePeriods.contains( RelativePeriodEnum.LAST_MONTH );
             thisBimonth = relativePeriods.contains( RelativePeriodEnum.THIS_BIMONTH );
@@ -985,6 +996,19 @@ public class RelativePeriods
     public RelativePeriods setLast90Days( boolean last90Days )
     {
         this.last90Days = last90Days;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLast180Days()
+    {
+        return last180Days;
+    }
+
+    public RelativePeriods setLast180Days( boolean last180Days )
+    {
+        this.last180Days = last180Days;
         return this;
     }
 
@@ -1464,6 +1488,10 @@ public class RelativePeriods
         result = prime * result + (last3Days ? 1 : 0);
         result = prime * result + (last7Days ? 1 : 0);
         result = prime * result + (last14Days ? 1 : 0);
+        result = prime * result + (last30Days ? 1 : 0);
+        result = prime * result + (last60Days ? 1 : 0);
+        result = prime * result + (last90Days ? 1 : 0);
+        result = prime * result + (last180Days ? 1 : 0);
         result = prime * result + (lastMonth ? 1 : 0);
         result = prime * result + (lastBimonth ? 1 : 0);
         result = prime * result + (lastQuarter ? 1 : 0);
@@ -1550,6 +1578,11 @@ public class RelativePeriods
         }
 
         if ( !last90Days == other.last90Days )
+        {
+            return false;
+        }
+
+        if ( !last180Days == other.last180Days )
         {
             return false;
         }
