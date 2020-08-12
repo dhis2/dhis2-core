@@ -106,7 +106,9 @@ public abstract class AbstractAnalyticsService
         {
             if ( item.getValueType() == ValueType.ORGANISATION_UNIT
                 && params.getCoordinateField().equals( item.getItem().getUid() ) )
-            {
+            {   // Special case: if the request contains an item of Org Unit value type and the item uid
+                // is linked to coordinates (coordinateField), then create an Header of ValueType
+                // COORDINATE and type "Point"
                 grid.addHeader( new GridHeader( item.getItem().getUid(),
                     item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
                     Point.class.getName(), false, true, item.getOptionSet(), item.getLegendSet() ) );

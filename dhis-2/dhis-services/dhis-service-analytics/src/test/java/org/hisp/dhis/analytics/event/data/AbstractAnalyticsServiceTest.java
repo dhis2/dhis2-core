@@ -39,6 +39,9 @@ import com.google.common.collect.Lists;
 import org.opengis.geometry.primitive.Point;
 
 /**
+ * This class only tests the "shared" code of AbstractAnalyticsService, which includes Grid header generation and
+ * Grid Metadata
+ *
  * @author Luciano Fiandesio
  */
 public class AbstractAnalyticsServiceTest
@@ -79,7 +82,7 @@ public class AbstractAnalyticsServiceTest
     }
 
     @Test
-    public void verifyOrgUnitCoordinateFieldHasCoordinateHeader()
+    public void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
     {
         // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
@@ -93,7 +96,6 @@ public class AbstractAnalyticsServiceTest
         QueryItem qiC = new QueryItem( deC, null, deC.getValueType(), deC.getAggregationType(), null );
 
         EventQueryParams params = new EventQueryParams.Builder()
-            // .withProgram( prA )
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA ).addItem( qiB ).addItem( qiC )
