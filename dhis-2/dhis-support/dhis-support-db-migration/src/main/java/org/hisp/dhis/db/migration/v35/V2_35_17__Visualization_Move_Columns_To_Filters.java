@@ -36,7 +36,7 @@ import java.sql.Statement;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
-public class V2_35_11__Visualization_Move_Columns_To_Filters extends BaseJavaMigration
+public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMigration
 {
     @Override
     public void migrate( final Context context )
