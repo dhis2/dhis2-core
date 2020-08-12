@@ -17,6 +17,9 @@
     <property name="last3Days" />
     <property name="last7Days" />
     <property name="last14Days" />
+    <property name="last30Days" />
+    <property name="last60Days" />
+    <property name="last90Days" />
     <property name="thisMonth" />
     <property name="lastMonth" />
     <property name="thisBimonth" />
