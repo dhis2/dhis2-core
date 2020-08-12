@@ -272,7 +272,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
             {
-                if ( params.getCoordinateField().equals( queryItem.getItem().getUid() ) )
+                if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
                 {
                     String colName = quote( queryItem.getItemId() + OU_GEOMETRY_COL_SUFFIX );
 
