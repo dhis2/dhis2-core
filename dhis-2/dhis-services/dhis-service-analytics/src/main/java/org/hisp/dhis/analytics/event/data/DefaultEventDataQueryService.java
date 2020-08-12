@@ -327,14 +327,14 @@ public class DefaultEventDataQueryService
 
         if ( dataElement != null )
         {
-            return getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField, ErrorCode.E7219);
+            return getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField, ErrorCode.E7219 );
         }
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
         if ( attribute != null )
         {
-            return getCoordinateFieldOrFail( attribute.getValueType(), coordinateField, ErrorCode.E7220);
+            return getCoordinateFieldOrFail( attribute.getValueType(), coordinateField, ErrorCode.E7220 );
         }
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
