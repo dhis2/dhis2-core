@@ -268,8 +268,8 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             throws Exception
         {
             endpoints
-                .prefix( "/oauth" )
-                .pathMapping( "/oauth/token", "/token" )
+                .prefix( "/uaa" )
+//                .pathMapping( "/oauth/token", "/token" )
 //                .tokenServices( tokenServices() )
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
                 .tokenStore( tokenStore() )
