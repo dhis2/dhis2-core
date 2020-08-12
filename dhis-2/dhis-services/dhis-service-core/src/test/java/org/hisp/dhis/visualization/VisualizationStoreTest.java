@@ -98,6 +98,7 @@ public class VisualizationStoreTest
         assertNotNull( vA.getFontStyle().getHorizontalAxisTitle() );
         assertEquals( Font.ARIAL, vA.getFontStyle().getHorizontalAxisTitle().getFont() );
         assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getItalic() );
+
         assertNotNull( vA.getRelatives() );
         assertTrue( vA.getRelatives().isLast30Days() );
 
