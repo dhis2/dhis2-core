@@ -33,7 +33,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -54,10 +53,9 @@ public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
-    public PreCheckExistenceValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public PreCheckExistenceValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
     }
 
     @Override

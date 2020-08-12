@@ -57,6 +57,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -66,9 +69,16 @@ public class EventTrackerConverterService
 {
     private final TrackerPreheatService trackerPreheatService;
 
-    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    private final NotesConverterService notesConverterService;
+
+    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService,
+        NotesConverterService notesConverterService )
     {
+        checkNotNull( trackerPreheatService );
+        checkNotNull( notesConverterService );
+
         this.trackerPreheatService = trackerPreheatService;
+        this.notesConverterService = notesConverterService;
     }
 
     @Override
@@ -246,6 +256,11 @@ public class EventTrackerConverterService
 
             programStageInstance.setEventDataValues( eventDataValues );
 
+            if ( isNotEmpty( e.getNotes() ) )
+            {
+                programStageInstance.getComments().addAll( notesConverterService.from( e.getNotes() ) );
+            }
+            
             programStageInstances.add( programStageInstance );
         } );
 
