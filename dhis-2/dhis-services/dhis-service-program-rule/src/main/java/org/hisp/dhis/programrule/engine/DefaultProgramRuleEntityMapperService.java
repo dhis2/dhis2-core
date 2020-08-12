@@ -316,7 +316,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
                     psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
                 .collect( Collectors.toList() ),
-            psi.getProgramStage().getName() );
+            psi.getProgramStage().getName(), ObjectUtils.defaultIfNull( psi.getCompletedDate(), null ) );
     }
 
     // ---------------------------------------------------------------------
