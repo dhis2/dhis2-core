@@ -202,7 +202,7 @@
         </plugins>
       </build>
     </profile>
-    
+
     <profile>
       <id>coverage</id>
       <build>
@@ -220,7 +220,6 @@
               </execution>
               <execution>
                 <id>report</id>
-                <!-- By default 'report' is bound to verify phase but we don't call that yet in Travis -->
                 <phase>test</phase>
                 <goals>
                   <goal>report</goal>
@@ -398,31 +397,6 @@
             </execution>
           </executions>
         </plugin>
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${jacoco.version}</version>
-          <configuration>
-            <destFile>${sonar.jacoco.reportPath}</destFile>
-            <dataFile>${sonar.jacoco.reportPath}</dataFile>
-            <append>true</append>
-          </configuration>
-          <executions>
-            <execution>
-              <id>default-prepare-agent</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>default-report</id>
-              <goals>
-                <goal>report</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-
         <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
@@ -1638,7 +1612,7 @@
     <slf4j.version>1.7.25</slf4j.version>
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
-    <jacoco.version>0.8.2</jacoco.version>
+    <jacoco.version>0.8.5</jacoco.version>
     <artemis.version>2.14.0</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
