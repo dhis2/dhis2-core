@@ -15,7 +15,7 @@ public class UserGroupSharing
 {
     private static final long serialVersionUID = -3710960740973504220L;
 
-    @JsonProperty
+    @JsonProperty("id")
     private String userGroupUuid;
 
     @JsonProperty

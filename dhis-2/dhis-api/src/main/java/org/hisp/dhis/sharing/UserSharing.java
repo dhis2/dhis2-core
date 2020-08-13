@@ -17,7 +17,7 @@ public class UserSharing
 {
     private static final long serialVersionUID = 518817889121954770L;
 
-    @JsonProperty
+    @JsonProperty("id")
     private String userUuid;
 
     @JsonProperty

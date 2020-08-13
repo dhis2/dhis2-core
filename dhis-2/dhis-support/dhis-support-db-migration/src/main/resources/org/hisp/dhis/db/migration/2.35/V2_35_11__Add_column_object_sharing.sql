@@ -1,286 +1,46 @@
-
-alter table attribute add column if not exists objectsharing jsonb '{}';
-alter table userrole add column if not exists objectsharing jsonb '{}';
-alter table usergroup add column if not exists objectsharing jsonb '{}';
-alter table userrole add column if not exists objectsharing jsonb '{}';
-alter table sqlview add column if not exists objectsharing jsonb '{}';
-alter table constant add column if not exists objectsharing jsonb '{}';
-alter table optionset add column if not exists objectsharing jsonb '{}';
-alter table optiongroupset add column if not exists objectsharing jsonb '{}';
-alter table userrole add column if not exists objectsharing jsonb '{}';
-
-maplegendset
-
-
-organisationunit
-
-
-orgunitlevel
-
-
-orgunitgroup
-
-
-orgunitgroupset
-
-
-dataelementcategoryoption
-
-
-categoryoptiongroup
-
-
-categoryoptiongroupset
-
-
-dataelementcategory
-
-
-categorycombo
-
-
-categoryoptioncombo
-
-
-dataelement
-
-
-dataelementgroup
-
-
-dataelementgroupset
-indicator
-indicatorgroup
-indicatorgroupset
-dataset
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-dataset.Section
-
-
-dataapproval.DataApprovalLevel
-
-
-dataapproval.DataApprovalWorkflow
-
-
-validation.ValidationRule
-
-
-validation.ValidationRuleGroup
-
-
-validation.notification.ValidationNotificationTemplate
-
-
-trackedentity.TrackedEntityAttribute
-
-
-trackedentity.TrackedEntityType
-
-
-trackedentity.TrackedEntityTypeAttribute
-
-
-program.ProgramTrackedEntityAttributeGroup
-
-
-program.ProgramStageSection
-
-
-program.notification.ProgramNotificationTemplate
-
-
-program.ProgramStage
-
-
-sms.command.SMSCommand
-
-
-program.Program
-
-
-eventchart.EventChart
-
-
-eventreport.EventReport
-
-
-program.ProgramSection
-
-
-program.ProgramIndicator
-
-
-relationship.RelationshipType
-
-
-program.ProgramIndicatorGroup
-
-
-programrule.ProgramRuleVariable
-
-
-programrule.ProgramRuleAction
-
-
-programrule.ProgramRule
-
-
-mapping.MapView
-
-
-chart.Chart
-
-
-validation.ValidationResult
-
-
-reporttable.ReportTable
-
-
-report.Report
-
-
-mapping.ExternalMapLayer
-
-
-document.Document
-
-
-visualization.Visualization
-
-
-mapping.Map
-
-
-predictor.Predictor
-
-
-predictor.PredictorGroup
-
-
-dashboard.DashboardItem
-
-
-dashboard.Dashboard
-
-
-pushanalysis.PushAnalysis
-
-
-keyjsonvalue.KeyJsonValue
-
-
-program.ProgramDataElementDimensionItem
-
-
-legend.Legend
-
-
-organisationunit.OrganisationUnitGroupSetDimension
-
-
-dataelement.DataElementOperand
-
-
-program.ProgramInstance
-
-
-interpretation.Interpretation
-
-
-user.UserAccess
-
-
-metadata.version.MetadataVersion
-
-
-trackedentity.TrackedEntityProgramIndicatorDimension
-
-
-programstagefilter.ProgramStageInstanceFilter
-
-
-user.UserGroupAccess
-
-
-trackedentity.TrackedEntityInstance
-
-
-trackedentityattributevalue.TrackedEntityAttributeValue
-
-
-fileresource.FileResource
-
-
-minmax.MinMaxDataElement
-
-
-category.CategoryDimension
-
-
-relationship.Relationship
-
-
-interpretation.InterpretationComment
-
-
-program.AnalyticsPeriodBoundary
-
-
-trackedentityfilter.TrackedEntityInstanceFilter
-
-
-program.ProgramTrackedEntityAttribute
-
-
-program.ProgramStageInstance
-
-
-trackedentity.TrackedEntityDataElementDimension
-
-
-user.UserCredentials
-
-
-program.ProgramStageDataElement
-
-
-icon.Icon
-
-
-category.CategoryOptionGroupSetDimension
-
-
-message.MessageConversation
-
-
-dataset.DataSetElement
-
-
-program.ProgramTrackedEntityAttributeDimensionItem
-
-
-common.ReportingRate
-
-
-dataset.DataInputPeriod
-
-
-dataelement.DataElementGroupSetDimension
-
+alter table attribute add column if not exists sharing jsonb '{}';
+alter table userrole add column if not exists sharing jsonb '{}';
+alter table usergroup add column if not exists sharing jsonb '{}';
+alter table sqlview add column if not exists sharing jsonb '{}';
+alter table constant add column if not exists sharing jsonb '{}';
+alter table optionset add column if not exists sharing jsonb '{}';
+alter table optiongroup add column if not exists sharing jsonb '{}';
+alter table optiongroupset add column if not exists sharing jsonb '{}';
+alter table legendset add column if not exists sharing jsonb '{}';
+alter table organisationunitgroup add column if not exists sharing jsonb '{}';
+alter table organisationunitgroupSet add column if not exists sharing jsonb '{}';
+alter table categoryoption add column if not exists sharing jsonb '{}';
+alter table categoryoptiongroup add column if not exists sharing jsonb '{}';
+alter table categoryoptiongroupSet add column if not exists sharing jsonb '{}';
+alter table dataelementcategory add column if not exists sharing jsonb '{}';
+alter table categorycombo add column if not exists sharing jsonb '{}';
+alter table dataelement add column if not exists sharing jsonb '{}';
+alter table dataelementgroup add column if not exists sharing jsonb '{}';
+alter table dataelementgroupset add column if not exists sharing jsonb '{}';
+alter table indicator add column if not exists sharing jsonb '{}';
+alter table indicatorgroup add column if not exists sharing jsonb '{}';
+alter table indicatorgroupset add column if not exists sharing jsonb '{}';
+alter table dataset add column if not exists sharing jsonb '{}';
+alter table dataapprovallevel add column if not exists sharing jsonb '{}';
+alter table dataapprovalworkflow add column if not exists sharing jsonb '{}';
+alter table validationrule add column if not exists sharing jsonb '{}';
+alter table validationrulegroup add column if not exists sharing jsonb '{}';
+alter table trackedentityattribute add column if not exists sharing jsonb '{}';
+alter table trackedentitytype add column if not exists sharing jsonb '{}';
+alter table programstage add column if not exists sharing jsonb '{}';
+alter table program add column if not exists sharing jsonb '{}';
+alter table eventreport add column if not exists sharing jsonb '{}';
+alter table eventchart add column if not exists sharing jsonb '{}';
+alter table programindicator add column if not exists sharing jsonb '{}';
+alter table programindicatorgroup add column if not exists sharing jsonb '{}';
+alter table relationshiptype add column if not exists sharing jsonb '{}';
+alter table externalmapLayer add column if not exists sharing jsonb '{}';
+alter table map add column if not exists sharing jsonb '{}';
+alter table report add column if not exists sharing jsonb '{}';
+alter table document add column if not exists sharing jsonb '{}';
+alter table visualization add column if not exists sharing jsonb '{}';
+alter table predictorgroup add column if not exists sharing jsonb '{}';
+alter table dashboard add column if not exists sharing jsonb '{}';
+alter table identifiableobject add column if not exists sharing jsonb '{}';
+alter table interpretation add column if not exists sharing jsonb '{}';
+alter table programstageinstancefilter add column if not exists sharing jsonb '{}';
