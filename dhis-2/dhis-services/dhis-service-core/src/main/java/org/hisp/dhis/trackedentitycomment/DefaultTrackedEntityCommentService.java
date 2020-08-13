@@ -30,6 +30,9 @@ package org.hisp.dhis.trackedentitycomment;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -77,6 +80,13 @@ public class DefaultTrackedEntityCommentService
     public boolean trackedEntityCommentExists( String uid )
     {
         return commentStore.exists( uid );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> filterExistingNotes( List<String> uids )
+    {
+        return this.commentStore.filterExisting( uids );
     }
 
     @Override

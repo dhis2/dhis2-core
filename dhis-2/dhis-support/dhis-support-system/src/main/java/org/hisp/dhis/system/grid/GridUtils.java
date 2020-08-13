@@ -39,6 +39,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.velocity.VelocityContext;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -68,6 +69,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.system.util.PDFUtils.*;
@@ -455,6 +457,32 @@ public class GridUtils
                 grid.addValue( rs.getObject( i ) );
             }
         }
+    }
+
+    /**
+     * Derives the positional index of a Grid's row, based on the {@see DimensionalItemObject} identifiers
+     *
+     * @param row a Grid's row
+     * @param items a List of {@see DimensionalItemObject}
+     * @param defaultIndex the default positional index to return
+     * @return the positional index matching one of the DimensionalItemObject identifiers
+     */
+    public static int getGridIndexByDimensionItem( List<Object> row, List<DimensionalItemObject> items, int defaultIndex )
+    {
+        // accumulate the DimensionalItemObject identifiers into a List
+        List<String> valid = items.stream().map( DimensionalItemObject::getDimensionItem )
+            .collect( Collectors.toList() );
+
+        // skip the last index, since it is always the row value
+        for ( int i = 0; i < row.size() -1 ; i++ )
+        {
+            final String value = (String) row.get( i );
+            if ( valid.contains( value ) )
+            {
+                return i;
+            }
+        }
+        return defaultIndex;
     }
 
     /**

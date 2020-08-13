@@ -211,7 +211,15 @@ public class Visualization
 
     private LegendDisplayStrategy legendDisplayStrategy;
 
+    /**
+     * The font style for various components of the visualization.
+     */
     private VisualizationFontStyle fontStyle;
+
+    /**
+     * The key of the color set to use for visualization items, like columns and bars.
+     */
+    private String colorSet;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
@@ -948,6 +956,18 @@ public class Visualization
     public void setFontStyle( VisualizationFontStyle fontStyle )
     {
         this.fontStyle = fontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public String getColorSet()
+    {
+        return colorSet;
+    }
+
+    public void setColorSet( String colorSet )
+    {
+        this.colorSet = colorSet;
     }
 
     @JsonProperty
