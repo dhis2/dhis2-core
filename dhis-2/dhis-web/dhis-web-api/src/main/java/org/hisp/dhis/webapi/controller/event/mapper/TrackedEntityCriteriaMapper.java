@@ -309,14 +309,14 @@ public class TrackedEntityCriteriaMapper
         return null;
     }
 
-    private ProgramStage getProgramStageFromProgram( Program pr, String programStage )
+    private ProgramStage getProgramStageFromProgram( Program program, String programStage )
     {
-        if ( pr == null )
+        if ( program == null )
         {
             return null;
         }
 
-        return pr.getProgramStages().stream().filter( pstage -> pstage.getUid().equals( programStage ) ).findFirst()
+        return program.getProgramStages().stream().filter( ps -> ps.getUid().equals( programStage ) ).findFirst()
             .orElse( null );
     }
 }
