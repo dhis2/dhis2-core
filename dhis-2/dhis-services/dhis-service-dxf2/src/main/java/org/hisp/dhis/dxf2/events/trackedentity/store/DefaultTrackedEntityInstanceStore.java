@@ -28,8 +28,6 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getQuery;
-
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +40,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.OwnedTeiMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -57,17 +57,9 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultTrackedEntityInstanceStore extends AbstractStore implements TrackedEntityInstanceStore
 {
-    private final static String GET_TEIS_SQL = getQuery();
+    private final static String GET_TEIS_SQL = TrackedEntityInstanceQuery.getQuery();
 
-    private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid" +
-        ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, " +
-        "teav.value, teav.storedby, t.name as att_name, " +
-        "t.uid as att_uid, t.valuetype as att_val_type, " +
-        "t.code as att_code, t.skipsynchronization as att_skip_sync " +
-        "from trackedentityattributevalue teav " +
-        "join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid " +
-        "join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid " +
-        "where teav.trackedentityinstanceid in (:ids)";
+    private final static String GET_TEI_ATTRIBUTES = TeiAttributeQuery.getQuery();
 
     private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid " +
         "from trackedentityprogramowner teop " +
@@ -104,7 +96,8 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     }
 
     @Override
-    String getRelationshipEntityColumn() {
+    String getRelationshipEntityColumn()
+    {
         return "trackedentityinstanceid";
     }
 

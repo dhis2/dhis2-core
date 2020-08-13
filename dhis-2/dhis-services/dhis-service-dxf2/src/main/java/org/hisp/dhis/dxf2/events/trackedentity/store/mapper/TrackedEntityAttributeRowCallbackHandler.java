@@ -35,6 +35,18 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.util.DateUtils;
 
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_CODE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_NAME;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_SKIP_SYNC;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_VALUE_TYPE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.CREATED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.STOREDBY;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.TEI_UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.UPDATED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.VALUE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.getColumnName;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -53,7 +65,7 @@ public class TrackedEntityAttributeRowCallbackHandler
     @Override
     String getKeyColumn()
     {
-        return "teiuid";
+        return getColumnName( TEI_UID );
     }
 
     private Attribute getAttribute( ResultSet rs )
@@ -61,15 +73,15 @@ public class TrackedEntityAttributeRowCallbackHandler
     {
         Attribute attribute = new Attribute();
 
-        attribute.setCreated( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
-        attribute.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( "lastupdated" ) ) );
-        attribute.setDisplayName( rs.getString( "att_name" ) );
-        attribute.setAttribute( rs.getString( "att_uid" ) );
-        attribute.setValueType( ValueType.fromString( rs.getString( "att_val_type" ) ) );
-        attribute.setCode( rs.getString( "att_code" ) );
-        attribute.setValue( rs.getString( "value" ) );
-        attribute.setStoredBy( rs.getString( "storedby" ) );
-        attribute.setSkipSynchronization( rs.getBoolean( "att_skip_sync" ) );
+        attribute.setCreated( DateUtils.getIso8601NoTz( rs.getDate( getColumnName( CREATED ) ) ) );
+        attribute.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( getColumnName( UPDATED ) ) ) );
+        attribute.setDisplayName( rs.getString( getColumnName( ATTR_NAME ) ) );
+        attribute.setAttribute( rs.getString( getColumnName( ATTR_UID ) ) );
+        attribute.setValueType( ValueType.fromString( rs.getString( getColumnName( ATTR_VALUE_TYPE ) ) ) );
+        attribute.setCode( rs.getString( getColumnName( ATTR_CODE ) ) );
+        attribute.setValue( rs.getString( getColumnName( VALUE ) ) );
+        attribute.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );
+        attribute.setSkipSynchronization( rs.getBoolean( getColumnName( ATTR_SKIP_SYNC ) ) );
 
         return attribute;
     }
