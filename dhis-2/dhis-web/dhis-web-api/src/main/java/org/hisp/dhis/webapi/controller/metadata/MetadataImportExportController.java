@@ -38,7 +38,11 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
-import org.hisp.dhis.dxf2.metadata.*;
+import org.hisp.dhis.dxf2.metadata.Metadata;
+import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -59,7 +63,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -215,6 +223,30 @@ public class MetadataImportExportController
         return Arrays.asList( CsvImportClass.values() );
     }
 
+    @GetMapping
+    public ResponseEntity<RootNode> getMetadata(
+        @RequestParam( required = false, defaultValue = "false" ) boolean translate,
+        @RequestParam( required = false ) String locale,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+    {
+        if ( translate )
+        {
+            TranslateParams translateParams = new TranslateParams( true, locale );
+            setUserContext( currentUserService.getCurrentUser(), translateParams );
+        }
+
+        MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        metadataExportService.validate( params );
+
+        RootNode rootNode = metadataExportService.getMetadataAsNode( params );
+
+        return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------
+    // Helpers
+    //----------------------------------------------------------------------------------------------------------------------------------------
+
     private void startAsyncMetadata( MetadataImportParams params, HttpServletRequest request, HttpServletResponse response )
     {
         MetadataAsyncImporter metadataImporter = metadataAsyncImporterFactory.getObject();
@@ -236,24 +268,7 @@ public class MetadataImportExportController
         webMessageService.send( jobConfigurationReport( params.getId() ), response, request );
     }
 
-    @GetMapping
-    public ResponseEntity<RootNode> getMetadata(
-        @RequestParam( required = false, defaultValue = "false" ) boolean translate, @RequestParam( required = false ) String locale,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-    {
-        if ( translate )
-        {
-            TranslateParams translateParams = new TranslateParams( true, locale );
-            setUserContext( currentUserService.getCurrentUser(), translateParams );
-        }
-
-        MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        metadataExportService.validate( params );
-        RootNode rootNode = metadataExportService.getMetadataAsNode( params );
-        return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
-    }
-
-    private void setUserContext(User user, TranslateParams translateParams )
+    private void setUserContext( User user, TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
         UserContext.setUser( user );
