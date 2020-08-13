@@ -1626,7 +1626,6 @@
     <jacoco.version>0.8.2</jacoco.version>
     <artemis.version>2.14.0</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
-    <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
