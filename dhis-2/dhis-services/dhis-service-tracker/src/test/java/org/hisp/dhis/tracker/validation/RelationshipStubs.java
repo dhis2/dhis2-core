@@ -66,7 +66,7 @@ public class RelationshipStubs
             relationshipTypeE );
     }
 
-    public static List<Relationship> getBadTEIRelationshipItemRelationships()
+    public static Relationship getBadTEIRelationshipItemRelationship()
     {
         RelationshipItem notValidTEIRelationshipItem = new RelationshipItem();
         notValidTEIRelationshipItem.setEvent( "eventG" );
@@ -79,10 +79,10 @@ public class RelationshipStubs
         notValidRelationship.setFrom( notValidTEIRelationshipItem );
         notValidRelationship.setTo( validEventRelationshipItem );
 
-        return Lists.newArrayList( notValidRelationship );
+        return notValidRelationship;
     }
 
-    public static List<Relationship> getBadEnrollmentRelationshipItemRelationships()
+    public static Relationship getBadEnrollmentRelationshipItemRelationship()
     {
         RelationshipItem notValidEnrollmentRelationshipItem = new RelationshipItem();
         notValidEnrollmentRelationshipItem.setTrackedEntity( "trackedEntityE" );
@@ -95,10 +95,10 @@ public class RelationshipStubs
         notValidRelationship.setFrom( notValidEnrollmentRelationshipItem );
         notValidRelationship.setTo( validEventRelationshipItem );
 
-        return Lists.newArrayList( notValidRelationship );
+        return notValidRelationship;
     }
 
-    public static List<Relationship> getBadEventRelationshipItemRelationships()
+    public static Relationship getBadEventRelationshipItemRelationship()
     {
         RelationshipItem validEnrollmentRelationshipItem = new RelationshipItem();
         validEnrollmentRelationshipItem.setEnrollment( "enrollmentH" );
@@ -111,42 +111,56 @@ public class RelationshipStubs
         notValidRelationship.setFrom( validEnrollmentRelationshipItem );
         notValidRelationship.setTo( notValidEventRelationshipItem );
 
-        return Lists.newArrayList( notValidRelationship );
+        return notValidRelationship;
     }
 
-    public static List<Relationship> getMissingToRelationshipItemRelationships()
+    public static Relationship getMissingToRelationshipItemRelationship()
     {
-        List<Relationship> validRelationships = getValidRelationships();
-        validRelationships.get( 0 ).setTo( null );
-        return validRelationships;
+        Relationship validRelationship = getValidRelationship();
+        validRelationship.setTo( null );
+        return validRelationship;
     }
 
-    public static List<Relationship> getMissingFromRelationshipItemRelationships()
+    public static Relationship getMissingFromRelationshipItemRelationship()
     {
-        List<Relationship> validRelationships = getValidRelationships();
-        validRelationships.get( 0 ).setFrom( null );
-        return validRelationships;
+        Relationship validRelationship = getValidRelationship();
+        validRelationship.setFrom( null );
+        return validRelationship;
     }
 
-    public static List<Relationship> getAutoRelationship()
+    public static Relationship getAutoRelationship()
     {
         RelationshipItem validTEIRelationshipItem = new RelationshipItem();
         validTEIRelationshipItem.setTrackedEntity( "trackedEntityA" );
 
-        Relationship validRelationship = new Relationship();
-        validRelationship.setRelationshipType( TEI_TO_TEI_RELATIONSHIP_TYPE );
-        validRelationship.setFrom( validTEIRelationshipItem );
-        validRelationship.setTo( validTEIRelationshipItem );
+        Relationship autoRelationship = new Relationship();
+        autoRelationship.setRelationshipType( TEI_TO_TEI_RELATIONSHIP_TYPE );
+        autoRelationship.setFrom( validTEIRelationshipItem );
+        autoRelationship.setTo( validTEIRelationshipItem );
 
-        return Lists.newArrayList( validRelationship );
+        return autoRelationship;
+    }
+
+    public static List<Relationship> getDuplicatedAndValidRelationships()
+    {
+        List<Relationship> duplicatedRelationships = getDuplicatedRelationships();
+        duplicatedRelationships.add( getValidRelationship() );
+        return duplicatedRelationships;
+    }
+
+    public static List<Relationship> getBidirectionalDuplicatedAndValidRelationships()
+    {
+        List<Relationship> bidirectionalDuplicatedRelationships = getBidirectionalDuplicatedRelationships();
+        bidirectionalDuplicatedRelationships.add( getValidRelationship() );
+        return bidirectionalDuplicatedRelationships;
     }
 
     public static List<Relationship> getDuplicatedRelationships()
     {
         RelationshipItem validTEIRelationshipItem = new RelationshipItem();
-        validTEIRelationshipItem.setTrackedEntity( "trackedEntityA" );
+        validTEIRelationshipItem.setTrackedEntity( "trackedEntityZ" );
         RelationshipItem validEventRelationshipItem = new RelationshipItem();
-        validEventRelationshipItem.setEvent( "eventB" );
+        validEventRelationshipItem.setEvent( "eventY" );
 
         Relationship validRelationship = new Relationship();
 
@@ -170,9 +184,9 @@ public class RelationshipStubs
     public static List<Relationship> getBidirectionalDuplicatedRelationships()
     {
         RelationshipItem validTEIRelationshipItem = new RelationshipItem();
-        validTEIRelationshipItem.setTrackedEntity( "trackedEntityA" );
+        validTEIRelationshipItem.setTrackedEntity( "trackedEntityZ" );
         RelationshipItem validEventRelationshipItem = new RelationshipItem();
-        validEventRelationshipItem.setEvent( "eventB" );
+        validEventRelationshipItem.setEvent( "eventY" );
 
         Relationship validRelationship = new Relationship();
 
@@ -195,36 +209,25 @@ public class RelationshipStubs
 
     public static List<Relationship> getOnlyOneBidirectionalDuplicatedRelationships()
     {
-        RelationshipItem validTEIRelationshipItem = new RelationshipItem();
-        validTEIRelationshipItem.setTrackedEntity( "trackedEntityA" );
-        RelationshipItem validEventRelationshipItem = new RelationshipItem();
-        validEventRelationshipItem.setEvent( "eventB" );
+        Relationship validRelationship = getValidRelationship();
 
-        Relationship validRelationship = new Relationship();
-
-        validRelationship.setRelationship( VALID_RELATIONSHIP_UID );
-        validRelationship.setBidirectional( false );
-        validRelationship.setRelationshipType( TEI_TO_EVENT_RELATIONSHIP_TYPE );
-        validRelationship.setFrom( validTEIRelationshipItem );
-        validRelationship.setTo( validEventRelationshipItem );
-
-        Relationship validDuplicatedRelationship = new Relationship();
-
-        validDuplicatedRelationship.setRelationship( VALID_DUPLICATED_RELATIONSHIP_UID );
+        Relationship validDuplicatedRelationship = getValidRelationship();
         validDuplicatedRelationship.setBidirectional( true );
-        validDuplicatedRelationship.setRelationshipType( EVENT_TO_TEI_RELATIONSHIP_TYPE );
-        validDuplicatedRelationship.setFrom( validEventRelationshipItem );
-        validDuplicatedRelationship.setTo( validTEIRelationshipItem );
 
         return Lists.newArrayList( validRelationship, validDuplicatedRelationship );
+    }
+
+    public static Relationship getValidRelationship()
+    {
+        return getValidRelationships().get( 0 );
     }
 
     public static List<Relationship> getValidRelationships()
     {
         RelationshipItem validTEIRelationshipItem = new RelationshipItem();
-        validTEIRelationshipItem.setTrackedEntity( "trackedEntityA" );
+        validTEIRelationshipItem.setTrackedEntity( "validTEIA" );
         RelationshipItem validEventRelationshipItem = new RelationshipItem();
-        validEventRelationshipItem.setEvent( "eventB" );
+        validEventRelationshipItem.setEvent( "validEventB" );
 
         Relationship validRelationship = new Relationship();
         validRelationship.setRelationshipType( TEI_TO_EVENT_RELATIONSHIP_TYPE );

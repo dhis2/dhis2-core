@@ -136,7 +136,7 @@ public enum TrackerErrorCode
     E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
     E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4003( "There are duplicated relationships. " ),
-    E4004( "There are duplicated bidirectional relationships. " ),
+    E4004( "Missing required property: 'relationshipType'." ),
 
     E9999( "N/A" );
 
