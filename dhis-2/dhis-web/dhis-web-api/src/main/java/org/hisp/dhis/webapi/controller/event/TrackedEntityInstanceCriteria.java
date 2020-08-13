@@ -113,9 +113,15 @@ public class TrackedEntityInstanceCriteria
     private AssignedUserSelectionMode assignedUserMode;
 
     /**
-     *Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
+     * Semicolon-delimited list of user UIDs to filter based on events assigned to
+     * the users.
      */
     private String assignedUser;
+
+    /**
+     * Program Stage UID, used for filtering TEIs based on the selected Program Stage
+     */
+    private String programStage;
 
     /**
      * Status of any events in the specified program.
@@ -148,7 +154,8 @@ public class TrackedEntityInstanceCriteria
     private Integer pageSize;
 
     /**
-     * Indicates whether to include the total number of pages in the paging response.
+     * Indicates whether to include the total number of pages in the paging
+     * response.
      */
     private boolean totalPages;
 
@@ -178,7 +185,8 @@ public class TrackedEntityInstanceCriteria
     private String order;
 
     /**
-     * FIXME: luciano - temporary request attribute used to select the TEI fetching implementation
+     * FIXME: luciano - temporary request attribute used to select the TEI fetching
+     * implementation
      */
     private boolean useFast;
 

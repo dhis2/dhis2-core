@@ -24,6 +24,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -133,9 +134,10 @@ public class TrackedEntityCriteriaMapper
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
-
+        Program program = validateProgram( criteria );
         params.setQuery( queryFilter )
-            .setProgram( validateProgram( criteria ) )
+            .setProgram( program )
+            .setProgramStage( validateProgramStage( criteria, program) )
             .setProgramStatus( criteria.getProgramStatus() )
             .setFollowUp( criteria.getFollowUp() )
             .setLastUpdatedStartDate( criteria.getLastUpdatedStartDate() )
@@ -255,6 +257,19 @@ public class TrackedEntityCriteriaMapper
         return program;
     }
 
+    private ProgramStage validateProgramStage( TrackedEntityInstanceCriteria criteria, Program program ) {
+
+        final String programStage = criteria.getProgramStage();
+
+        ProgramStage ps = programStage != null ? getProgramStageFromProgram( program, programStage ) : null;
+
+        if ( programStage != null && ps == null )
+        {
+            throw new IllegalQueryException( "Program does not contain the specified programStage: " + programStage );
+        }
+        return ps;
+    }
+
     private TrackedEntityType validateTrackedEntityType( TrackedEntityInstanceCriteria criteria )
     {
         Function<String, TrackedEntityType> getTeiType = uid -> {
@@ -292,5 +307,16 @@ public class TrackedEntityCriteriaMapper
         }
 
         return null;
+    }
+
+    private ProgramStage getProgramStageFromProgram( Program pr, String programStage )
+    {
+        if ( pr == null )
+        {
+            return null;
+        }
+
+        return pr.getProgramStages().stream().filter( pstage -> pstage.getUid().equals( programStage ) ).findFirst()
+            .orElse( null );
     }
 }
