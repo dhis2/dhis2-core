@@ -41,7 +41,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       if: github.event_name == 'pull_request'
       run: |
-        mvn -f dhis-2/pom.xml clean install sonar:sonar -Psonarqube -Dsonar.pullrequest.key=${PR} -Dsonar.pullrequest.branch=${BRANCH} -Dsonar.pullrequest.base=${BASE_BRANCH} -Dsonar.projectKey=dhis2_dhis2-core
+        mvn -f dhis-2/pom.xml clean install sonar:sonar -Psonarqube -Dsonar.coverage.jacoco.xmlReportPaths=$(find . -path '*jacoco.xml' | tr '\n' ',')
+  -Dsonar.pullrequest.key=${PR} -Dsonar.pullrequest.branch=${BRANCH} -Dsonar.pullrequest.base=${BASE_BRANCH} -Dsonar.projectKey=dhis2_dhis2-core
     - name: Analyse long-living branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
