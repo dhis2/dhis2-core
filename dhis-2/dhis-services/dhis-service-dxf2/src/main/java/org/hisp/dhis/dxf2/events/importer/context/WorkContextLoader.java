@@ -36,6 +36,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -126,7 +127,6 @@ public class WorkContextLoader
             .get( localImportOptions, events );
 
         return WorkContext.builder()
-        // @formatter:off
             .importOptions( localImportOptions )
             .programsMap( programSupplier.get( localImportOptions, events ) )
             .programStageInstanceMap( programStageInstanceMap )
@@ -137,10 +137,10 @@ public class WorkContextLoader
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )
             .assignedUserMap( assignedUserSupplier.get( localImportOptions, events ) )
-            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap, localImportOptions ) )
+            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap,
+                localImportOptions ) )
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
-        // @formatter:on
     }
 
     /**
