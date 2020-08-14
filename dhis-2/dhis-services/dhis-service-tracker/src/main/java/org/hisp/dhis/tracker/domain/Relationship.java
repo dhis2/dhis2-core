@@ -41,7 +41,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship
+public class Relationship implements TrackerDto
 {
     @JsonProperty
     private String relationship;

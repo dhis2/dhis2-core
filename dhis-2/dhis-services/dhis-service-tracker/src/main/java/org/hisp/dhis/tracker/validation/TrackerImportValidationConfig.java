@@ -75,6 +75,8 @@ public class TrackerImportValidationConfig
         EventGeoValidationHook.class,
         EventNoteValidationHook.class,
 
+        RelationshipsValidationHook.class,
+
         EnrollmentRuleValidationHook.class,
         EventRuleValidationHook.class
     );

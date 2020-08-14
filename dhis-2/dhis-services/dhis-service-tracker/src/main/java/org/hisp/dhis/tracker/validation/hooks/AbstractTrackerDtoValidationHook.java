@@ -39,11 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -146,6 +142,17 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
+     * Must be implemented if dtoTypeClass == Relationship or dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param relationship entity to validate
+     */
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
+    }
+
+    /**
      * Must be implemented if dtoTypeClass == TrackedEntity or dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
@@ -182,6 +189,7 @@ public abstract class AbstractTrackerDtoValidationHook
             }
         }
 
+        // @formatter:off
         // Setup all the mapping between validation methods and entity lists and dto classes.
         Map<Class<? extends TrackerDto>,
             Pair<ValidationFunction<TrackerDto>,
@@ -191,7 +199,10 @@ public abstract class AbstractTrackerDtoValidationHook
             Enrollment.class, Pair.of( ( o, r ) ->
                 validateEnrollment( r, (Enrollment) o ), bundle.getEnrollments() ),
             Event.class, Pair.of( ( o, r ) ->
-                validateEvent( r, (Event) o ), bundle.getEvents() ) );
+                validateEvent( r, (Event) o ), bundle.getEvents() ),
+            Relationship.class, Pair.of( ( o, r ) -> 
+                validateRelationship( r, (Relationship) o ), bundle.getRelationships() ) );
+        // @formatter:on
 
         // If no dtoTypeClass is set, we will validate all types of entities in bundle
         // i.e. that impl. hook is meant for all types.
