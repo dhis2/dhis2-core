@@ -1828,5 +1828,37 @@
       "translations": [],
       "userAccesses": []
     }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-02-10T09:10:22.603",
+      "id": "sYn3tkL3XKa",
+      "created": "2020-02-10T09:10:22.603",
+      "name": "Attribute_Integer",
+      "shortName": "Attribute_Integer",
+      "aggregationType": "SUM",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "INTEGER",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    }
   ]
 }

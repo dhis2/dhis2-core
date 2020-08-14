@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.converter;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,12 +50,15 @@ public class NotesConverterServiceTest
 {
     private NotesConverterService notesConverterService;
 
+    private TrackerPreheat preheat;
+
     private BeanRandomizer rnd;
 
     @Before
     public void setUp()
     {
         this.notesConverterService = new NotesConverterService();
+        this.preheat = new TrackerPreheat();
         rnd = new BeanRandomizer();
     }
 
@@ -63,7 +67,7 @@ public class NotesConverterServiceTest
     {
         Note note = rnd.randomObject( Note.class );
 
-        final TrackedEntityComment comment = notesConverterService.from( note );
+        final TrackedEntityComment comment = notesConverterService.from( preheat, note );
         assertNoteValues( comment, note );
     }
 
@@ -72,7 +76,7 @@ public class NotesConverterServiceTest
     {
         List<Note> notes = rnd.randomObjects( Note.class, 10 );
 
-        final List<TrackedEntityComment> comments = notesConverterService.from( notes );
+        final List<TrackedEntityComment> comments = notesConverterService.from( preheat, notes );
 
         assertThat( comments, hasSize( 10 ) );
 
@@ -90,7 +94,7 @@ public class NotesConverterServiceTest
 
         final Note note = notesConverterService.to( comment );
 
-        assertCommentValues(note, comment);
+        assertCommentValues( note, comment );
     }
 
     @Test
@@ -116,7 +120,7 @@ public class NotesConverterServiceTest
         // if this is needed
     }
 
-    private void assertCommentValues( Note note, TrackedEntityComment comment  )
+    private void assertCommentValues( Note note, TrackedEntityComment comment )
     {
         assertThat( note, is( notNullValue() ) );
         assertThat( note.getNote(), is( comment.getUid() ) );
