@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import com.google.api.client.util.Sets;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
@@ -60,7 +60,8 @@ public class DefaultTrackerProgramRuleService
 
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
-    public DefaultTrackerProgramRuleService( @Qualifier( "newRuleEngine" ) ProgramRuleEngine programRuleEngine,
+    public DefaultTrackerProgramRuleService(
+        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngine,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService )
     {
@@ -76,9 +77,8 @@ public class DefaultTrackerProgramRuleService
         return enrollments
             .stream()
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
-                ProgramInstance enrollment = enrollmentTrackerConverterService.from( e );
-                return programRuleEngine.evaluate( enrollment, Optional.empty(),
-                    getEventsFromEnrollment( e.getEnrollment(), bundle, Lists.newArrayList() ) );
+                ProgramInstance enrollment = enrollmentTrackerConverterService.from( bundle.getPreheat(), e );
+                return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
             } ) );
     }
 
@@ -90,7 +90,7 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
                 return programRuleEngine.evaluate( enrollment,
-                    Optional.of( eventTrackerConverterService.from( event ) ),
+                    eventTrackerConverterService.from( bundle.getPreheat(), event ),
                     getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
             } ) );
     }
@@ -101,7 +101,8 @@ public class DefaultTrackerProgramRuleService
             .stream()
             .filter( e -> event.getEnrollment().equals( e.getEnrollment() ) )
             .findAny();
-        return bundleEnrollment.isPresent() ? enrollmentTrackerConverterService.from( bundleEnrollment.get() )
+        return bundleEnrollment.isPresent()
+            ? enrollmentTrackerConverterService.from( bundle.getPreheat(), bundleEnrollment.get() )
             : bundle.getPreheat().getEnrollment( TrackerIdScheme.UID, event.getEnrollment() );
     }
 
@@ -118,7 +119,7 @@ public class DefaultTrackerProgramRuleService
         Stream<ProgramStageInstance> bundleEvents = events
             .stream()
             .filter( e -> e.getEnrollment().equals( enrollment ) )
-            .map( eventTrackerConverterService::from );
+            .map( event -> eventTrackerConverterService.from( bundle.getPreheat(), event ) );
 
         return Stream.concat( programStageInstances, bundleEvents ).collect( Collectors.toSet() );
 

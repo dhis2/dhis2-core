@@ -61,26 +61,21 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     }
 
     @Override
-    public TrackedEntityComment from( Note note )
+    public TrackedEntityComment from( TrackerPreheat preheat, Note note )
     {
         TrackedEntityComment comment = new TrackedEntityComment();
         comment.setUid( note.getNote() );
         comment.setAutoFields();
         comment.setCommentText( note.getValue() );
-        
-        // FIXME: what about the storedBy and lastUpdatedBy -> currently they are set to null
+
+        // FIXME: what about the storedBy and lastUpdatedBy -> currently they are set to
+        // null
         return comment;
     }
 
     @Override
-    public TrackedEntityComment from( TrackerPreheat preheat, Note note )
+    public List<TrackedEntityComment> from( TrackerPreheat preheat, List<Note> notes )
     {
-        return from( note );
-    }
-
-    @Override
-    public List<TrackedEntityComment> from( List<Note> notes )
-    {
-        return notes.stream().map( this::from ).collect( Collectors.toList() );
+        return notes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
     }
 }

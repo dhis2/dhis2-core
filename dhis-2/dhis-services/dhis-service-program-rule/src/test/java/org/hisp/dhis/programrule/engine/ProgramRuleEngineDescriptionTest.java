@@ -89,7 +89,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     private ProgramRuleVariable programRuleVariableNumericDE;
     private ProgramRuleVariable programRuleVariableNumericAtt;
 
-    @Qualifier( "newRuleEngine" )
+    @Qualifier( "serviceTrackerRuleEngine" )
     @Autowired
     private ProgramRuleEngine programRuleEngineNew;
 

@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -139,14 +138,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             prv -> prv.getDataElement().getValueType() )
         .build();
 
-    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>> DESCRIPTION_MAPPER =
-        new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>>()
-        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv ->
-        {
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>> DESCRIPTION_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>>()
+        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> {
             TrackedEntityAttribute attribute = prv.getAttribute();
 
             return DataItem.builder()
-                .value( ObjectUtils.firstNonNull( attribute.getDisplayName(), attribute.getDisplayFormName(), attribute.getName() ) )
+                .value( ObjectUtils.firstNonNull( attribute.getDisplayName(), attribute.getDisplayFormName(),
+                    attribute.getName() ) )
                 .valueType( getItemValueType( attribute.getValueType() ) )
                 .build();
         } )
@@ -202,14 +200,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public List<Rule> toMappedProgramRules( Program program )
-    {
-        List<ProgramRule> programRules = programRuleService.getProgramRule( program );
-
-        return toMappedProgramRules( programRules );
-    }
-
-    @Override
     public List<Rule> toMappedProgramRules( List<ProgramRule> programRules )
     {
         return programRules.stream().map( this::toRule ).filter( Objects::nonNull ).collect( Collectors.toList() );
@@ -219,14 +209,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     public List<RuleVariable> toMappedProgramRuleVariables()
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getAllProgramRuleVariable();
-
-        return toMappedProgramRuleVariables( programRuleVariables );
-    }
-
-    @Override
-    public List<RuleVariable> toMappedProgramRuleVariables( Program program )
-    {
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
         return toMappedProgramRuleVariables( programRuleVariables );
     }
@@ -243,24 +225,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public Rule toMappedProgramRule( ProgramRule programRule )
-    {
-        return toRule( programRule );
-    }
-
-    @Override
     public Map<String, DataItem> getItemStore( List<ProgramRuleVariable> programRuleVariables )
     {
         Map<String, DataItem> itemStore = new HashMap<>();
 
         // program rule variables
-        programRuleVariables.forEach( prv -> itemStore.put( ObjectUtils.firstNonNull( prv.getName(), prv.getDisplayName() ),
-            DESCRIPTION_MAPPER.get( prv.getSourceType() ).apply( prv ) ) );
+        programRuleVariables
+            .forEach( prv -> itemStore.put( ObjectUtils.firstNonNull( prv.getName(), prv.getDisplayName() ),
+                DESCRIPTION_MAPPER.get( prv.getSourceType() ).apply( prv ) ) );
 
         // constants
         constantService.getAllConstants().forEach( constant -> itemStore.put( constant.getUid(),
             DataItem.builder()
-                .value( ObjectUtils.firstNonNull( constant.getDisplayName(), constant.getDisplayFormName(), constant.getName() ) )
+                .value( ObjectUtils.firstNonNull( constant.getDisplayName(), constant.getDisplayFormName(),
+                    constant.getName() ) )
                 .valueType( ItemValueType.NUMBER )
                 .build() ) );
 
@@ -307,12 +285,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     @Override
     public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
-        Optional<ProgramStageInstance> psiToEvaluate )
+        ProgramStageInstance psiToEvaluate )
     {
         return programStageInstances
             .stream()
             .filter( Objects::nonNull )
-            .filter( psi -> !(psiToEvaluate.isPresent() && psi.getUid().equals( psiToEvaluate.get().getUid() )) )
+            .filter( psi -> !(psiToEvaluate != null && psi.getUid().equals( psiToEvaluate.getUid() )) )
             .map( this::toMappedRuleEvent )
             .collect( Collectors.toList() );
     }
@@ -609,8 +587,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         DataElement dataElement = prv.getDataElement();
 
         return DataItem.builder()
-            .value( ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(), dataElement.getName() ) )
+            .value( ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(),
+                dataElement.getName() ) )
             .valueType( getItemValueType( dataElement.getValueType() ) )
-            .build() ;
+            .build();
     }
 }

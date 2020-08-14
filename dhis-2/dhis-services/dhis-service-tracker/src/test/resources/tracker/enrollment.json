@@ -1,4 +1,36 @@
 {
+  "trackedEntities": [
+    {
+      "trackedEntityType": "nEenWmSyUEp",
+      "trackedEntity": "IOR1AXXl24H",
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
+      "clientCreatedAt": "2020-02-20T12:09:21.844",
+      "clientUpdatedAt": "2020-02-20T12:09:21.844",
+      "orgUnit": "PlKwabX2xRW",
+      "inactive": false,
+      "deleted": false,
+      "featureType": "NONE",
+      "programOwners": [
+        {
+          "ownerOrgUnit": "cNEZTkdAvmg",
+          "program": "hJUBNVQWl4e",
+          "trackedEntity": "EEFkxTWB55Y"
+        }
+      ],
+      "attributes": [
+        {
+          "updatedAt": "2020-02-20T12:09:21.852",
+          "storedBy": "admin",
+          "displayName": "Attribute_Integer",
+          "createdAt": "2020-02-20T12:09:21.852",
+          "valueType": "INTEGER",
+          "attribute": "sYn3tkL3XKa",
+          "value": "321"
+        }
+      ]
+    }
+  ],
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
@@ -6,7 +38,7 @@
       "lastUpdated": "2018-01-26T13:48:13.363",
       "createdAtClient": "2017-01-26T13:48:13.363",
       "trackedEntityType": "nEenWmSyUEp",
-      "trackedEntityInstance": "IOR1AXXl24H",
+      "trackedEntity": "IOR1AXXl24H",
       "program": "BFcipDERJne",
       "status": "ACTIVE",
       "orgUnit": "PlKwabX2xRW",
@@ -15,20 +47,6 @@
       "occurredAt": "2021-03-28T12:05:00.000",
       "followup": false,
       "deleted": false
-    }
-  ],
-  "trackedEntities": [
-    {
-      "trackedEntity": "IOR1AXXl24H",
-      "trackedEntityType": "nEenWmSyUEp",
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
-      "clientCreatedAt": "2020-02-20T12:09:21.844",
-      "clientUpdatedAt": "2020-02-20T12:09:21.844",
-      "orgUnit": "PlKwabX2xRW",
-      "inactive": false,
-      "deleted": false,
-      "featureType": "NONE"
     }
   ]
 }
