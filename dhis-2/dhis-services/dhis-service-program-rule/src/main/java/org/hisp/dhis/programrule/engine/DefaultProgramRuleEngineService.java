@@ -131,9 +131,9 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
-        
+
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( psi.getProgramInstance(), psi,
-            psi.getProgramInstance().getProgramStageInstances() );
+            programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {
