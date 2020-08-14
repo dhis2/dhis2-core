@@ -28,20 +28,26 @@
 
 package org.hisp.dhis.programrule.engine;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OldImplementableRuleService implements ImplementableRuleService
 {
-    @Autowired
-    private ProgramRuleService programRuleService;
+    private final ProgramRuleService programRuleService;
+
+    public OldImplementableRuleService( ProgramRuleService programRuleService )
+    {
+        checkNotNull( programRuleService );
+        this.programRuleService = programRuleService;
+    }
 
     @Override
     public List<ProgramRule> getImplementableRules( Program program )

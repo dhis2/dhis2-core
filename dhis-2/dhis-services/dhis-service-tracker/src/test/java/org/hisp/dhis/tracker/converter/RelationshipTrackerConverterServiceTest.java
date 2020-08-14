@@ -154,7 +154,7 @@ public class RelationshipTrackerConverterServiceTest
     public void testConverterFromRelationships()
     {
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( trackerBundle.getRelationships() );
+            .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
 
         assertNotNull( from );
         assertEquals( 2, from.size() );
@@ -180,7 +180,7 @@ public class RelationshipTrackerConverterServiceTest
     public void testConverterToRelationships()
     {
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( trackerBundle.getRelationships() );
+            .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
 
         List<Relationship> to = relationshipConverterService.to( from );
 

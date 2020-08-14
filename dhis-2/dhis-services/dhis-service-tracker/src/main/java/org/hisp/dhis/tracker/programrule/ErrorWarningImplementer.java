@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,33 +26,57 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+package org.hisp.dhis.tracker.programrule;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
- * Created by zubair@dhis2.org on 23.10.17.
+ * @Author Enrico Colasante
  */
-public interface ProgramRuleEngineService
+public abstract class ErrorWarningImplementer
+    implements RuleActionValidator
 {
-    /**
-     * Call rule engine to evaluate the target enrollment and get a list of rule
-     * effects, then run the actions present in these effects
-     *
-     * @param enrollment Uid of the target enrollment
-     * @return the list of rule effects calculated by rule engine
-     */
-    List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
+    @Override
+    public abstract Class<? extends RuleActionMessage> getActionClass();
 
-    /**
-     * Call rule engine to evaluate the target event and get a list of rule effects,
-     * then run the actions present in these effects
-     *
-     * @param event Uid of the target event
-     * @return the list of rule effects calculated by rule engine
-     */
-    List<RuleEffect> evaluateEventAndRunEffects( long event );
+    @Override
+    public Map<String, List<String>> validateEnrollments( TrackerBundle bundle )
+    {
+        Map<String, List<RuleEffect>> effects = getEffects( bundle.getEnrollmentRuleEffects() );
 
-    RuleValidationResult getDescription( String condition, String programRuleId );
+        return effects.entrySet().stream()
+            .collect( Collectors.toMap( e -> e.getKey(),
+                e -> parseErrors( e.getValue() ) ) );
+    }
+
+    // TODO: This is a temp format, as soon as we have the definitive validation
+    // structure it will be changed
+    private List<String> parseErrors( List<RuleEffect> effects )
+    {
+        return effects
+            .stream()
+            .map( ruleEffect -> {
+                String field = getActionClass().cast( ruleEffect.ruleAction() ).field();
+                String data = ruleEffect.data();
+
+                return field + " " + data;
+            } )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public Map<String, List<String>> validateEvents( TrackerBundle bundle )
+    {
+        Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
+
+        return effects.entrySet().stream()
+            .collect( Collectors.toMap( e -> e.getKey(),
+                e -> parseErrors( e.getValue() ) ) );
+    }
 }

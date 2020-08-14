@@ -132,7 +132,9 @@ public enum TrackerErrorCode
     // TODO See TODO on error usage
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
 
-    E4000( "Relationship: `{0}` cannot link itself" ),
+    E1200( "Rule engine error: `{0}`" ),
+
+    E4000( "Relationship: `{0}` cannot link to itself" ),
     E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
     E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4003( "There are duplicated relationships. " ),
