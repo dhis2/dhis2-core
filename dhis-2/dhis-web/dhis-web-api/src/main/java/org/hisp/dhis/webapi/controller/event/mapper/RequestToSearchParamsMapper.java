@@ -34,9 +34,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -215,6 +217,13 @@ public class RequestToSearchParamsMapper
         {
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
+
+        if ( assignedUsers != null )
+        {
+            assignedUsers = assignedUsers.stream()
+                    .filter( CodeGenerator::isValidUid )
+                    .collect( Collectors.toSet() );
         }
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
