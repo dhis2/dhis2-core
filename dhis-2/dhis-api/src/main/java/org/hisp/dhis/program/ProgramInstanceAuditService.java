@@ -36,9 +36,6 @@ import java.util.List;
  */
 public interface ProgramInstanceAuditService
 {
-
-    String ID = ProgramInstanceAuditService.class.getName();
-
     /**
      * Adds program instance audit
      *
