@@ -28,7 +28,6 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.period.RelativePeriods;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -256,18 +255,5 @@ public abstract class AbstractRelativePeriodsAction
     public void setLastSixMonth( boolean lastSixMonth )
     {
         this.lastSixMonth = lastSixMonth;
-    }
-
-    protected RelativePeriods getRelativePeriods()
-    {
-        RelativePeriods relatives = new RelativePeriods( reportingDay, yesterday, last3Days, last7Days, last14Days, reportingMonth, lastMonth,
-            reportingBimonth, lastBiMonth, reportingQuarter, lastQuarter, reportingSixMonth, lastSixMonth,
-            weeksThisYear, monthsThisYear, biMonthsThisYear, quartersThisYear, thisYear, 
-            monthsLastYear, quartersLastYear, lastYear,
-            last5Years, last12Months, last6Months, last3Months, last6BiMonths, last4Quarters, last2SixMonths,
-            thisFinancialYear, lastFinancialYear, last5FinancialYears,
-            reportingWeek, lastWeek, reportingBiWeek, lastBiWeek, last4Weeks, last4BiWeeks, last12Weeks, last52Weeks );
-
-        return relatives;
     }
 }

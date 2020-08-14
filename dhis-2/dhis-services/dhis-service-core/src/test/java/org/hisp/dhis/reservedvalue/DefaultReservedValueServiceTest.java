@@ -31,6 +31,7 @@ package org.hisp.dhis.reservedvalue;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
@@ -57,7 +58,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DefaultReservedValueServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ReservedValueService reservedValueService;
@@ -102,6 +103,12 @@ public class DefaultReservedValueServiceTest
         simpleReservedValue = createReservedValue( tea, "FOOBAR" );
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Before
     public void setUpTest()
         throws Exception
@@ -113,12 +120,6 @@ public class DefaultReservedValueServiceTest
     public void tearDown()
     {
         reservedValueStore.getAll().forEach( reservedValueStore::delete );
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Test

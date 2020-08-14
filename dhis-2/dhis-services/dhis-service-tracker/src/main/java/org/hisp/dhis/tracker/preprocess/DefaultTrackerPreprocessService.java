@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.tracker.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,50 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.render.type.ValueTypeRenderingObject;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ValueRenderTypeDeserialize
-    extends AbstractDeviceRenderTypeMapDeserializer<ValueTypeRenderingObject>
+import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.programrule.RuleActionApplier;
+import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationConfig;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationFailFastException;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author Enrico Colasante
+ */
+@Slf4j
+@Service
+public class DefaultTrackerPreprocessService
+    implements TrackerPreprocessService
 {
-    public ValueRenderTypeDeserialize()
+    private List<RuleActionApplier> appliers = new ArrayList<>();
+
+    @Autowired( required = false )
+    public void setAppliers( List<RuleActionApplier> appliers )
     {
-        super( ValueTypeRenderingObject::new );
+        this.appliers = appliers;
+    }
+
+    @Override
+    public TrackerBundle preprocess( TrackerBundle bundle )
+    {
+
+        for ( RuleActionApplier applier : appliers )
+        {
+            bundle = applier.executeActions( bundle );
+        }
+
+        return bundle;
     }
 }

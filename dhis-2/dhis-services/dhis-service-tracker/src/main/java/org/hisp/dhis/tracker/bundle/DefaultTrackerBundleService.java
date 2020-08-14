@@ -45,6 +45,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -52,6 +53,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
@@ -105,7 +107,9 @@ public class DefaultTrackerBundleService
     private final DbmsManager dbmsManager;
 
     private final ReservedValueService reservedValueService;
-    
+
+    private final TrackerProgramRuleService trackerProgramRuleService;
+
     private final TrackedEntityCommentService trackedEntityCommentService;
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
@@ -137,8 +141,10 @@ public class DefaultTrackerBundleService
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
         ReservedValueService reservedValueService,
-        TrackerSideEffectConverterService sideEffectConverterService,
-        TrackedEntityCommentService trackedEntityCommentService )
+        TrackerProgramRuleService trackerProgramRuleService,
+        TrackedEntityCommentService trackedEntityCommentService,
+        TrackerSideEffectConverterService trackerSideEffectConverterService )
+
     {
         this.trackerPreheatService = trackerPreheatService;
         this.teConverter = trackedEntityTrackerConverterService;
@@ -151,8 +157,9 @@ public class DefaultTrackerBundleService
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
         this.reservedValueService = reservedValueService;
-        this.sideEffectConverterService = sideEffectConverterService;
+        this.trackerProgramRuleService = trackerProgramRuleService;
         this.trackedEntityCommentService = trackedEntityCommentService;
+        this.sideEffectConverterService = trackerSideEffectConverterService;
     }
 
     @Override
@@ -166,14 +173,32 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-//        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-//            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-//        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-//            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-//        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-//        trackerBundle.setEventRuleEffects( eventRuleEffects );
-
         return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
+    }
+
+    @Override
+    public List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles )
+    {
+        try
+        {
+            bundles.forEach( trackerBundle -> {
+                Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+                    .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+                Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+                    .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+                trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+                trackerBundle.setEventRuleEffects( eventRuleEffects );
+            } );
+        }
+        catch ( Exception e )
+        {
+            // TODO: Report that rule engine has failed
+            // Rule engine can fail because of validation errors in the payload that
+            // were not discovered yet.
+            // If rule engine fails and the validation pass, a 500 code should be returned
+            e.printStackTrace();
+        }
+        return bundles;
     }
 
     @Override
@@ -283,7 +308,7 @@ public class DefaultTrackerBundleService
                     this.trackedEntityCommentService.addTrackedEntityComment( comment );
                 }
             }
-            
+
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
             programInstance.setLastUpdatedBy( bundle.getUser() );
@@ -342,7 +367,7 @@ public class DefaultTrackerBundleService
             Event event = events.get( idx );
 
             ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
-            
+
             if ( !programStageInstance.getComments().isEmpty() )
             {
                 for ( TrackedEntityComment comment : programStageInstance.getComments() )
@@ -350,7 +375,7 @@ public class DefaultTrackerBundleService
                     this.trackedEntityCommentService.addTrackedEntityComment( comment );
                 }
             }
-            
+
             Date now = new Date();
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );

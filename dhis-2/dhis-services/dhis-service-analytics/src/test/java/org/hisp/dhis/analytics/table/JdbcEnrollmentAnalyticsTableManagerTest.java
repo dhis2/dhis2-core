@@ -95,7 +95,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    public void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -117,10 +117,10 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = " +
             "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
             "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
     }
 }

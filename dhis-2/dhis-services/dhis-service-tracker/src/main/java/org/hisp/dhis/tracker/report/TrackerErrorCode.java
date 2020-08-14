@@ -132,6 +132,8 @@ public enum TrackerErrorCode
     // TODO See TODO on error usage
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
 
+    E1200( "Rule engine error: `{0}`" ),
+
     E9999( "N/A" );
 
     private final String message;
