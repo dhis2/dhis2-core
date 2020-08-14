@@ -1,28 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)">
-  <text id="text1512" style="word-spacing:0px;letter-spacing:0px" xml:space="preserve" font-size="7.0556px" line-height="1.25" y="270.5416565" x="44.97916794" font-family="robo" fill="#000000"><tspan id="tspan1510" y="276.9786682" x="44.97916794" stroke-width=".26458"/></text>
-  <path id="path13388" d="m2.1167 286.42v3.175h3.175v-3.175zm0.26458 0.26458h2.6458v2.6458h-2.6459zm0.7798 3.175v0.79375h0.26458v-0.79375zm0 1.0583v0.79375h0.26458v-0.79375zm4.2333 0.79375v3.161h3.161v-3.161zm-4.2333 0.26458v0.79375h0.26458v-0.79375zm4.5119 0h2.646v2.6458h-2.6461zm-4.5119 1.0583v0.26458h0.79375v-0.26458zm1.0583 0v0.26458h0.79375v-0.26458zm1.0583 0v0.26458h0.79375v-0.26458zm1.0583 0v0.26458h0.79375v-0.26458z" fill-rule="evenodd" fill-opacity=".99608" fill="#333"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M8.00024 8.0127V20.0126H20.0002V8.0127H8.00024ZM9.00023 9.0126H19.0001V19.0125H8.99985L9.00023 9.0126ZM11.9475 21.0127V24.0126H12.9475V21.0127H11.9475ZM11.9475 25.0125V28.0125H12.9475V25.0125H11.9475ZM27.9474 28.0125V39.9596H39.8945V28.0125H27.9474ZM11.9475 29.0124V32.0125H12.9475V29.0124H11.9475ZM29.0004 29.0124H39.001V39.0124H29L29.0004 29.0124ZM11.9475 33.0124V34.0124H14.9475V33.0124H11.9475ZM15.9474 33.0124V34.0124H18.9474V33.0124H15.9474ZM19.9473 33.0124V34.0124H22.9473V33.0124H19.9473ZM23.9471 33.0124V34.0124H26.9471V33.0124H23.9471Z" fill="#333333"/>
 </svg>
