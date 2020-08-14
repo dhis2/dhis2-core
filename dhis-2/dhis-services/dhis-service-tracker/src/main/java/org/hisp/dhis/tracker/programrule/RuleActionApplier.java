@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,20 +26,14 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+package org.hisp.dhis.tracker.programrule;
 
-import java.util.List;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @Author Enrico Colasante
  */
-public interface TrackerConverterService<From, To>
+public interface RuleActionApplier extends RuleActionImplementer
 {
-    From to( To object );
-
-    List<From> to( List<To> objects );
-
-    To from( TrackerPreheat preheat, From object );
-
-    List<To> from( TrackerPreheat preheat, List<From> objects );
+    TrackerBundle executeActions( TrackerBundle bundle );
 }

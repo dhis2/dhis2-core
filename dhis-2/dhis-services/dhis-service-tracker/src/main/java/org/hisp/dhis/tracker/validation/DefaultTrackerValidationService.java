@@ -85,11 +85,7 @@ public class DefaultTrackerValidationService
                 {
                     Timer hookTimer = Timer.startTimer();
 
-                    List<TrackerErrorReport> errors = hook.validate( context );
-                    if ( !errors.isEmpty() )
-                    {
-                        validationReport.add( errors );
-                    }
+                    validationReport.add( hook.validate( context ) );
 
                     validationReport.add( TrackerValidationHookTimerReport.builder()
                         .name( hook.getClass().getName() )

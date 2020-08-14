@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,20 +26,53 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @Author Enrico Colasante
  */
-public interface TrackerConverterService<From, To>
+public interface RuleActionImplementer<T>
 {
-    From to( To object );
+    /**
+     * @return the class of the action that the implementer work with
+     */
+    Class<T> getActionClass();
 
-    List<From> to( List<To> objects );
+    /**
+     * Filter the actions by the action class of the implementer
+     *
+     * @param effects a map of enrollments/events and effects
+     * @return the same map with the actions in the effects filtered
+     */
+    default Map<String, List<RuleEffect>> getEffects( Map<String, List<RuleEffect>> effects )
+    {
+        return effects
+            .entrySet()
+            .stream()
+            .collect( Collectors.toMap( e -> e.getKey(),
+                e -> e.getValue()
+                    .stream()
+                    .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+                    .collect( Collectors.toList() ) ) );
+    }
 
-    To from( TrackerPreheat preheat, From object );
-
-    List<To> from( TrackerPreheat preheat, List<From> objects );
+    /**
+     * Filter the actions by the action class of the implementer
+     *
+     * @param effects a map of enrollments/events and effects
+     * @return the same map with the actions in the effects filtered
+     */
+    default List<RuleEffect> getEffects( List<RuleEffect> effects )
+    {
+        return effects
+            .stream()
+            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+            .collect( Collectors.toList() );
+    }
 }
