@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -55,24 +54,10 @@ public interface ProgramRuleEntityMapperService
     List<Rule> toMappedProgramRules();
 
     /**
-     * @param program The program which provides ProgramRule.
-     * @return A list of mapped Rules for a specific program.
-     */
-    List<Rule> toMappedProgramRules( Program program );
-
-    /**
      * @param programRules The list of program rules to be mapped
      * @return A list of mapped Rules for list of programs.
      */
     List<Rule> toMappedProgramRules( List<ProgramRule> programRules );
-
-    Rule toMappedProgramRule( ProgramRule programRule );
-
-    /**
-     * @param program The program which provides ProgramRuleVariable.
-     * @return A list of mapped RuleVariables for a specific program.
-     */
-    List<RuleVariable> toMappedProgramRuleVariables( Program program );
 
     /***
      * @return A list of mapped RuleVariables for all programs.
@@ -92,7 +77,7 @@ public interface ProgramRuleEntityMapperService
      * @return A list of mapped events for the list of DHIS events.
      */
     List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
-        Optional<ProgramStageInstance> psiToEvaluate );
+        ProgramStageInstance psiToEvaluate );
 
     /**
      * @param psiToEvaluate event to converted.

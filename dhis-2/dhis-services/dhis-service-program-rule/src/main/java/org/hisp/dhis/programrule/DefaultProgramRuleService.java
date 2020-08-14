@@ -28,19 +28,18 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.Program;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author markusbekken
  */
-@Transactional
 @Service( "org.hisp.dhis.programrule.ProgramRuleService" )
 public class DefaultProgramRuleService
     implements ProgramRuleService
@@ -58,11 +57,12 @@ public class DefaultProgramRuleService
         this.programRuleStore = programRuleStore;
     }
 
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // ProgramRule implementation
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramRule( ProgramRule programRule )
     {
         programRuleStore.save( programRule );
@@ -70,78 +70,91 @@ public class DefaultProgramRuleService
     }
 
     @Override
+    @Transactional
     public void deleteProgramRule( ProgramRule programRule )
     {
         programRuleStore.delete( programRule );
     }
 
     @Override
+    @Transactional
     public void updateProgramRule( ProgramRule programRule )
     {
         programRuleStore.update( programRule );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramRule getProgramRule( long id )
     {
         return programRuleStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramRule getProgramRule( String uid )
     {
         return programRuleStore.getByUid( uid );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramRule getProgramRuleByName( String name, Program program )
     {
         return programRuleStore.getByName( name, program );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getAllProgramRule()
     {
         return programRuleStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
         return programRuleStore.getImplementableProgramRules( program, types );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRule( Program program )
     {
         return programRuleStore.get( program );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRules( Program program, String key )
     {
         return programRuleStore.get( program, key );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
         return programRuleStore.getProgramRulesWithNoPriority();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRulesWithNoCondition()
     {
         return programRuleStore.getProgramRulesWithNoCondition();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
     {
         return programRuleStore.getProgramRulesByEvaluationTime( evaluationTime );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
         ProgramRuleActionEvaluationEnvironment evaluationEnvironment )
     {
@@ -149,6 +162,7 @@ public class DefaultProgramRuleService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRulesWithNoAction()
     {
         return programRuleStore.getProgramRulesWithNoAction();

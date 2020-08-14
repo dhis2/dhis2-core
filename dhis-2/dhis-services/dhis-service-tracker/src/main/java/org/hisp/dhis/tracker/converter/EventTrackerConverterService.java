@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -67,17 +68,13 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
 
     private final NotesConverterService notesConverterService;
 
-    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService,
-        NotesConverterService notesConverterService )
+    public EventTrackerConverterService( NotesConverterService notesConverterService )
     {
-        checkNotNull( trackerPreheatService );
         checkNotNull( notesConverterService );
 
-        this.trackerPreheatService = trackerPreheatService;
         this.notesConverterService = notesConverterService;
     }
 
@@ -159,19 +156,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public ProgramStageInstance from( Event event )
-    {
-        List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
-
-        if ( programStageInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programStageInstances.get( 0 );
-    }
-
-    @Override
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
@@ -185,12 +169,7 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public List<ProgramStageInstance> from( List<Event> events )
-    {
-        return from( preheat( events ), events );
-    }
-
-    private List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
+    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
@@ -258,9 +237,9 @@ public class EventTrackerConverterService
 
             if ( isNotEmpty( e.getNotes() ) )
             {
-                programStageInstance.getComments().addAll( notesConverterService.from( e.getNotes() ) );
+                programStageInstance.getComments().addAll( notesConverterService.from( preheat, e.getNotes() ) );
             }
-            
+
             programStageInstances.add( programStageInstance );
         } );
 
@@ -282,14 +261,5 @@ public class EventTrackerConverterService
 
         // no valid enrollment given and program not single event, just return null
         return null;
-    }
-
-    private TrackerPreheat preheat( List<Event> events )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .events( events )
-            .build();
-
-        return trackerPreheatService.preheat( params );
     }
 }
