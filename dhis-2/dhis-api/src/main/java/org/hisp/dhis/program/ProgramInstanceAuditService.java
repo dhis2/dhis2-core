@@ -41,21 +41,21 @@ public interface ProgramInstanceAuditService
 
     /**
      * Adds program instance audit
-     * 
+     *
      * @param programInstanceAudit the audit to add
      */
     void addProgramInstanceAudit( ProgramInstanceAudit programInstanceAudit );
 
     /**
      * Deletes program instance audit for the given program instance
-     * 
+     *
      * @param programInstance the program instance
      */
     void deleteProgramInstanceAudit( ProgramInstance programInstance );
 
     /**
      * Returns program instance audits matching query params
-     * 
+     *
      * @param params program instance audit query params
      * @return matching ProgramInstanceAudits
      */
@@ -63,7 +63,7 @@ public interface ProgramInstanceAuditService
 
     /**
      * Returns count of program instance audits matching query params
-     * 
+     *
      * @param params program instance audit query params
      * @return count of ProgramInstanceAudits
      */

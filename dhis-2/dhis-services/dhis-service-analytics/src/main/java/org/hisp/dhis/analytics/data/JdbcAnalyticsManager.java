@@ -537,7 +537,7 @@ public class JdbcAnalyticsManager
      * attribute option combo. A column {@code pe_rank} defines the rank. Only data
      * for the last 10 years relative to the period end date is included.
      */
-    private String getFirstOrLastValueSubquerySql(DataQueryParams params )
+    private String getFirstOrLastValueSubquerySql( DataQueryParams params )
     {
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
