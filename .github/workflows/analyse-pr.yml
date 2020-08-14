@@ -26,6 +26,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+        fetch-depth: 0 
     - uses: actions/cache@v1
       with:
         path: ~/.m2/repository
@@ -42,7 +43,7 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         mvn -f dhis-2/pom.xml clean install -Psonarqube
-        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.pullrequest.key=${PR} -Dsonar.pullrequest.branch=${BRANCH} -Dsonar.pullrequest.base=${BASE_BRANCH} -Dsonar.projectKey=dhis2_dhis2-core
+        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
     - name: Analyse long-living branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,4 +51,4 @@ jobs:
       if: github.event_name != 'pull_request'
       run: |
         mvn -f dhis-2/pom.xml clean install -Psonarqube
-        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core
+        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')

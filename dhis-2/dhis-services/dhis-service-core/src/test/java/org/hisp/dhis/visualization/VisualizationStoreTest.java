@@ -32,6 +32,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Font;
 import org.hisp.dhis.common.FontStyle;
 import org.hisp.dhis.common.TextAlign;
+import org.hisp.dhis.period.RelativePeriods;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -74,8 +75,12 @@ public class VisualizationStoreTest
         fontStyle.setVisualizationTitle( visualizationTitle );
         fontStyle.setHorizontalAxisTitle( horizontalAxisTitle );
 
+        RelativePeriods relativePeriods = new RelativePeriods()
+            .setLast30Days( true );
+
         Visualization vA = createVisualization( 'A' );
         vA.setFontStyle( fontStyle );
+        vA.setRelatives( relativePeriods );
 
         Visualization vB = createVisualization( 'B' );
 
@@ -93,6 +98,9 @@ public class VisualizationStoreTest
         assertNotNull( vA.getFontStyle().getHorizontalAxisTitle() );
         assertEquals( Font.ARIAL, vA.getFontStyle().getHorizontalAxisTitle().getFont() );
         assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getItalic() );
+
+        assertNotNull( vA.getRelatives() );
+        assertTrue( vA.getRelatives().isLast30Days() );
 
         assertNotNull( vB );
         assertNull( vB.getFontStyle() );

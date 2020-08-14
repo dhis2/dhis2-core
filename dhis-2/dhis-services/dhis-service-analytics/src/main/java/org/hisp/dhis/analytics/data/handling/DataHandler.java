@@ -966,11 +966,8 @@ public class DataHandler
             }
             else
             {
-                if ( dimensionalItems.size() == 1 )
-                {
-                    result.put( dimensionalItems.get( 0 ).getDimensionItem(),
-                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
-                }
+                result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
+                    new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
             }
         }
 
