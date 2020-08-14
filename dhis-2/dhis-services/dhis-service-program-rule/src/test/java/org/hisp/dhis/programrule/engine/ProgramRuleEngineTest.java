@@ -148,7 +148,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date psEventDate;
 
-    @Qualifier( "oldRuleEngine" )
+    @Qualifier( "notificationRuleEngine" )
     @Autowired
     ProgramRuleEngine programRuleEngine;
 
@@ -248,8 +248,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Optional.empty(),
-            Sets.newHashSet() );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -270,7 +269,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            Optional.of( programStageInstance ), Sets.newHashSet() );
+            programStageInstance, Sets.newHashSet() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -330,7 +329,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            Optional.of( programStageInstance ), Sets.newHashSet() );
+            programStageInstance, Sets.newHashSet() );
 
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -344,7 +343,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            Optional.of( programStageInstance ), Sets.newHashSet() );
+            programStageInstance, Sets.newHashSet() );
 
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -461,19 +460,19 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
-        Date incidenDate = testDate1.toDate();
+        Date incidentDate = testDate1.toDate();
 
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
 
         ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
-            programA, enrollmentDate, incidenDate, organisationUnitA );
+            programA, enrollmentDate, incidentDate, organisationUnitA );
         programInstanceA.setUid( "UID-P1" );
         programInstanceService.updateProgramInstance( programInstanceA );
 
         ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS,
-            programS, enrollmentDate, incidenDate, organisationUnitB );
+            programS, enrollmentDate, incidentDate, organisationUnitB );
         programInstanceS.setUid( "UID-PS" );
         programInstanceService.updateProgramInstance( programInstanceS );
 

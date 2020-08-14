@@ -29,13 +29,13 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -43,9 +43,11 @@ import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,6 +84,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
     @Mock
     private RuleActionSendMessageImplementer ruleActionSendMessage;
+
+    @Mock
+    private ProgramRuleService programRuleService;
 
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
@@ -120,7 +125,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         setProgramRuleActionType_ShowError();
 
-        verify( programRuleEngine, never() ).evaluate( programInstance, Optional.empty(), Sets.newHashSet() );
+        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet() );
         assertEquals( 0, ruleEffects.size() );
     }
 
@@ -136,7 +141,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
-        when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
 
@@ -154,7 +159,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
         }
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any(), any() );
+        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any() );
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
@@ -176,24 +181,37 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
         when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
 
-        ArgumentCaptor<Optional> argumentCaptor = ArgumentCaptor.forClass( Optional.class );
+        ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 
         verify( programRuleEngine, times( 1 ) ).evaluate( any(), argumentCaptor.capture(), any() );
-        assertEquals( programStageInstance, argumentCaptor.getValue().get() );
+        assertEquals( programStageInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+    }
+
+    @Test
+    public void testGetDescription()
+    {
+        RuleValidationResult result = RuleValidationResult.builder().isValid( true ).build();
+        when( programRuleService.getProgramRule( anyString() ) ).thenReturn( programRuleA );
+        when( programRuleEngine.getDescription( programRuleA.getCondition(), programRuleA ) ).thenReturn( result );
+
+        assertNotNull( result );
+        assertTrue( result.isValid() );
     }
 
     // -------------------------------------------------------------------------

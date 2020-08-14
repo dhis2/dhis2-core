@@ -48,7 +48,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -1702,25 +1704,33 @@ public class DataQueryParams
      * @return a mapping of permutation keys and mappings of data element operands
      *         and values.
      */
-    public static MapMap<String, DimensionalItemObject, Double> getPermutationDimensionalItemValueMap( Map<String, Double> aggregatedDataMap )
+    public static Map<String, List<DimensionItemObjectValue>> getPermutationDimensionalItemValueMap(
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap )
     {
-        MapMap<String, DimensionalItemObject, Double> permutationMap = new MapMap<>();
+        Map<String, List<DimensionItemObjectValue>> permutationMap = new HashMap<>();
 
         for ( String key : aggregatedDataMap.keySet() )
         {
+            // Remove DimensionalItemObject uid from key
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
-
-            String dimItem = keys.get( DX_INDEX );
-
             keys.remove( DX_INDEX );
 
-            BaseDimensionalItemObject dimItemObject = new BaseDimensionalItemObject( dimItem );
+            final Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
 
-            String permKey = StringUtils.join( keys, DIMENSION_SEP );
+            // Generate final permutation key
+            final String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
-            Number number = aggregatedDataMap.get( key );
-
-            permutationMap.putEntry( permKey, dimItemObject, number != null ? number.doubleValue() : null );
+            for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues )
+            {
+                if ( !permutationMap.containsKey( permKey ) )
+                {
+                    permutationMap.put( permKey, Lists.newArrayList( dimWithValue ) );
+                }
+                else
+                {
+                    permutationMap.get( permKey ).add( dimWithValue );
+                }
+            }
         }
 
         return permutationMap;
@@ -2570,6 +2580,12 @@ public class DataQueryParams
         public Builder withPeriods( List<? extends DimensionalItemObject> periods )
         {
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
+            return this;
+        }
+
+        public Builder withPeriods( String periodName, List<? extends DimensionalItemObject> periods )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodName, asList( periods ) );
             return this;
         }
 

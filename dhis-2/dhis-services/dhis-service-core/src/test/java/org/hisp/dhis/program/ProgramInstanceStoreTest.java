@@ -29,6 +29,8 @@ package org.hisp.dhis.program;
  */
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -45,6 +47,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -52,6 +55,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.Assert.*;
@@ -327,5 +332,32 @@ public class ProgramInstanceStoreTest
         programInstanceStore.delete( programInstanceA );
 
         assertEquals( 1, programInstanceStore.getAll().size() );
+    }
+
+    @Test
+    public void testGetByProgramAndTrackedEntityInstance()
+    {
+        // Create a second Program Instance with identical Program and TEI as
+        // programInstanceA.
+        // This should really never happen in production
+        // Doing it here to test that the query can return both instances
+        ProgramInstance programInstanceZ = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA,
+            programA );
+        programInstanceZ.setUid( "UID-Z" );
+
+        programInstanceStore.save( programInstanceA );
+        programInstanceStore.save( programInstanceZ );
+
+        List<Pair<Program, TrackedEntityInstance>> programTeiPair = new ArrayList<>();
+        Pair<Program, TrackedEntityInstance> pair1 = Pair.of( programA, entityInstanceA );
+        programTeiPair.add( pair1 );
+
+        final List<ProgramInstance> programInstances = programInstanceStore
+            .getByProgramAndTrackedEntityInstance( programTeiPair, ProgramStatus.ACTIVE );
+
+        assertEquals( 2, programInstances.size() );
+        assertThat( programInstances, containsInAnyOrder(
+            Matchers.hasProperty( "uid", is( "UID-Z" ) ),
+            Matchers.hasProperty( "uid", is( "UID-A" ) ) ) );
     }
 }

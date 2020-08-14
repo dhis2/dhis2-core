@@ -51,5 +51,5 @@ public enum TrackerIdScheme
     /**
      * Find first non-null identifier in order: UID, CODE
      */
-    AUTO;
+    AUTO
 }

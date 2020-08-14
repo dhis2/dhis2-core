@@ -119,6 +119,7 @@ public class HibernateUserStore
         {
             return Collections.emptyList();
         }
+
         final List<User> users = new ArrayList<>( result.size() );
         for ( Object o : result )
         {
@@ -201,8 +202,8 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " (" +
                 "lower(u.firstName) like :key " +
-                "or lower(u.email) like :key " +
                 "or lower(u.surname) like :key " +
+                "or lower(u.email) like :key " +
                 "or lower(uc.username) like :key) ";
         }
 
@@ -369,7 +370,7 @@ public class HibernateUserStore
     @Override
     public User getUser( long id )
     {
-        return sessionFactory.getCurrentSession().get( User.class, id );
+        return getSession().get( User.class, id );
     }
 
     @Override

@@ -28,23 +28,27 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
 @Service
-public class DefaultTrackerValidationService implements TrackerValidationService
+public class DefaultTrackerValidationService
+    implements TrackerValidationService
 {
     private List<TrackerValidationHook> validationHooks = new ArrayList<>();
 
@@ -52,6 +56,9 @@ public class DefaultTrackerValidationService implements TrackerValidationService
     public void setValidationHooks( List<TrackerValidationHook> validationHooks )
     {
         this.validationHooks = validationHooks;
+
+        // This sorts the hooks according to the VALIDATION_ORDER list in TrackerImportValidationConfig
+        TrackerImportValidationConfig.sortHooks( validationHooks );
     }
 
     @Override
@@ -59,20 +66,36 @@ public class DefaultTrackerValidationService implements TrackerValidationService
     {
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
+        User user = bundle.getUser();
+
+        if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
-            log.warn( "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
+            log.warn( "Skipping validation for metadata import by user '" +
+                bundle.getUsername() + "'. Not recommended." );
             return validationReport;
         }
 
-        for ( TrackerValidationHook hook : validationHooks )
-        {
-            validationReport.add( hook.validate( bundle ) );
+        TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
 
-            if ( !validationReport.isEmpty() && ValidationMode.FAIL_FAST == bundle.getValidationMode() )
+        try
+        {
+            for ( TrackerValidationHook hook : validationHooks )
             {
-                break;
+                if ( hook.isEnabled() )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validationReport.add( hook.validate( context ) );
+
+                    validationReport.add( TrackerValidationHookTimerReport.builder()
+                        .name( hook.getClass().getName() )
+                        .totalTime( hookTimer.toString() ).build() );
+                }
             }
+        }
+        catch ( ValidationFailFastException e )
+        {
+            validationReport.add( e.getErrors() );
         }
 
         return validationReport;

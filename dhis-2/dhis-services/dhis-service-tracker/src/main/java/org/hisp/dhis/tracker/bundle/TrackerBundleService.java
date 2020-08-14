@@ -46,6 +46,13 @@ public interface TrackerBundleService
     List<TrackerBundle> create( TrackerBundleParams params );
 
     /**
+     * Call rule engine for tracker bundles.
+     *
+     * @return Tracker bundles populated with rule effects
+     */
+    List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles );
+
+    /**
      * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
      *
      * @param bundle TrackerBundle to commit.

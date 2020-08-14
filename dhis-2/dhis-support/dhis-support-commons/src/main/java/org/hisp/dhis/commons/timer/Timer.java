@@ -35,6 +35,11 @@ package org.hisp.dhis.commons.timer;
  */
 public interface Timer
 {
+    static Timer startTimer()
+    {
+        return new SystemTimer().start();
+    }
+
     /**
      * Starts the Timer immediately.
      * @return this Timer.

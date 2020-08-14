@@ -103,6 +103,15 @@ public abstract class EventAnalyticsTest
         return createRequestParams( withProgramStage, null );
     }
 
+    protected EventQueryParams createRequestParams( QueryItem queryItem )
+    {
+        EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
+
+        params.addItem( queryItem );
+
+        return params.build();
+    }
+
     private EventQueryParams _createRequestParams()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );

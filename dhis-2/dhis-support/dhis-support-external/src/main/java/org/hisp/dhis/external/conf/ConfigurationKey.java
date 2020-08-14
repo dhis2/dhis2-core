@@ -80,7 +80,7 @@ public enum ConfigurationKey
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
     ARTEMIS_MODE( "artemis.mode", "EMBEDDED" ),
     ARTEMIS_HOST( "artemis.host", "127.0.0.1" ),
-    ARTEMIS_PORT( "artemis.port", "15672" ),
+    ARTEMIS_PORT( "artemis.port", "25672" ),
     ARTEMIS_USERNAME( "artemis.username", "guest", true ),
     ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", "false" ),

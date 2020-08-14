@@ -20,7 +20,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -56,8 +56,8 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_UNCOMPLETE_EVENT"
       ],
-      "translations": [ ],
-      "userAccesses": [ ]
+      "translations": [],
+      "userAccesses": []
     }
   ],
   "organisationUnits": [
@@ -77,8 +77,8 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "attributeValues": [ ],
-      "translations": [ ]
+      "attributeValues": [],
+      "translations": []
     }
   ],
   "users": [
@@ -117,20 +117,20 @@
           "write": true,
           "manage": true
         },
-        "favorites": [ ],
-        "cogsDimensionConstraints": [ ],
-        "catDimensionConstraints": [ ],
-        "translations": [ ],
-        "userGroupAccesses": [ ],
-        "attributeValues": [ ],
+        "favorites": [],
+        "cogsDimensionConstraints": [],
+        "catDimensionConstraints": [],
+        "translations": [],
+        "userGroupAccesses": [],
+        "attributeValues": [],
         "userRoles": [
           {
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": [ ]
+        "userAccesses": []
       },
-      "teiSearchOrganisationUnits": [ ],
+      "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
           "id": "cNEZTkdAvmg"
@@ -141,7 +141,7 @@
           "id": "cNEZTkdAvmg"
         }
       ],
-      "attributeValues": [ ]
+      "attributeValues": []
     }
   ],
   "trackedEntityAttributes": [
@@ -169,11 +169,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     },
     {
       "lastUpdated": "2020-02-23T13:53:30.087",
@@ -199,11 +199,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     },
     {
       "lastUpdated": "2020-02-25T10:53:49.222",
@@ -229,11 +229,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     },
     {
       "lastUpdated": "2020-02-12T15:06:45.404",
@@ -259,11 +259,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     },
     {
       "lastUpdated": "2020-02-10T10:55:43.245",
@@ -289,11 +289,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     },
     {
       "lastUpdated": "2020-02-25T17:53:31.504",
@@ -319,11 +319,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     },
     {
       "lastUpdated": "2020-02-25T15:20:24.842",
@@ -349,11 +349,11 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "translations": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "userAccesses": [ ],
-      "legendSets": [ ]
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
     }
   ],
   "trackedEntityTypes": [
@@ -370,12 +370,12 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "style": { },
+      "style": {},
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
       "trackedEntityTypeAttributes": [
         {
           "lastUpdated": "2020-02-25T10:54:34.965",
@@ -403,11 +403,11 @@
           "trackedEntityType": {
             "id": "KrYIdvLxkMb"
           },
-          "favorites": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-25T10:54:34.965",
@@ -435,11 +435,11 @@
           "trackedEntityType": {
             "id": "KrYIdvLxkMb"
           },
-          "favorites": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-25T10:54:34.966",
@@ -468,11 +468,11 @@
           "trackedEntityType": {
             "id": "KrYIdvLxkMb"
           },
-          "favorites": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-25T10:54:34.966",
@@ -500,11 +500,11 @@
           "trackedEntityType": {
             "id": "KrYIdvLxkMb"
           },
-          "favorites": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-25T10:54:34.966",
@@ -532,15 +532,15 @@
           "trackedEntityType": {
             "id": "KrYIdvLxkMb"
           },
-          "favorites": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         }
       ],
-      "translations": [ ],
-      "userAccesses": [ ]
+      "translations": [],
+      "userAccesses": []
     }
   ],
   "categoryCombos": [
@@ -553,9 +553,9 @@
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "skipTotal": false,
-      "userGroupAccesses": [ ],
-      "translations": [ ],
-      "userAccesses": [ ],
+      "userGroupAccesses": [],
+      "translations": [],
+      "userAccesses": [],
       "categories": [
         {
           "id": "GLevLNI9wkl"
@@ -574,8 +574,8 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "translations": [ ],
-      "attributeValues": [ ],
+      "translations": [],
+      "attributeValues": [],
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
@@ -590,7 +590,7 @@
       "created": "2020-02-10T10:01:02.674",
       "name": "Level 1",
       "id": "Ph8mdZMxZHm",
-      "translations": [ ]
+      "translations": []
     }
   ],
   "categories": [
@@ -603,10 +603,10 @@
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "dataDimension": false,
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "translations": [ ],
-      "userAccesses": [ ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
@@ -622,11 +622,11 @@
       "name": "default",
       "id": "xYerKDKCefk",
       "publicAccess": "rwrw----",
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "translations": [ ],
-      "userAccesses": [ ],
-      "organisationUnits": [ ]
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
+      "organisationUnits": []
     }
   ],
   "programs": [
@@ -695,12 +695,12 @@
           "trackedEntityAttribute": {
             "id": "p5TPww5Uhrd"
           },
-          "favorites": [ ],
-          "programTrackedEntityAttributeGroups": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-20T12:08:40.007",
@@ -731,12 +731,12 @@
           "trackedEntityAttribute": {
             "id": "sTGqP5JNy6E"
           },
-          "favorites": [ ],
-          "programTrackedEntityAttributeGroups": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-20T12:08:40.008",
@@ -767,12 +767,12 @@
           "trackedEntityAttribute": {
             "id": "sYn3tkL3XKa"
           },
-          "favorites": [ ],
-          "programTrackedEntityAttributeGroups": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         },
         {
           "lastUpdated": "2020-02-20T12:08:40.008",
@@ -803,26 +803,26 @@
           "trackedEntityAttribute": {
             "id": "TsfP85GKsU5"
           },
-          "favorites": [ ],
-          "programTrackedEntityAttributeGroups": [ ],
-          "translations": [ ],
-          "userGroupAccesses": [ ],
-          "attributeValues": [ ],
-          "userAccesses": [ ]
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
         }
       ],
-      "notificationTemplates": [ ],
-      "translations": [ ],
+      "notificationTemplates": [],
+      "translations": [],
       "organisationUnits": [
         {
           "id": "cNEZTkdAvmg"
         }
       ],
-      "userGroupAccesses": [ ],
-      "programSections": [ ],
-      "attributeValues": [ ],
-      "programStages": [ ],
-      "userAccesses": [ ]
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [],
+      "userAccesses": []
     }
   ]
 }

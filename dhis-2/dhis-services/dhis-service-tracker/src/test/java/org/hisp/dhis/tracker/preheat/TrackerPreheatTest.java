@@ -192,7 +192,8 @@ public class TrackerPreheatTest
         assertFalse( preheat.isEmpty( TrackerIdScheme.UID ) );
         assertTrue( preheat.isEmpty( TrackerIdScheme.CODE ) );
 
-        preheat.remove( TrackerIdScheme.UID, DataElement.class, Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
+        preheat.remove( TrackerIdScheme.UID, DataElement.class,
+            Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
 
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de1.getUid() ) );
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de2.getUid() ) );

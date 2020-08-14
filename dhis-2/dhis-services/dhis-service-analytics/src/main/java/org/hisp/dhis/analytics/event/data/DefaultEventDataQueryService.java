@@ -328,7 +328,7 @@ public class DefaultEventDataQueryService
         {
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
-                throwIllegalQueryEx( ErrorCode.E7129, coordinateField );
+                throwIllegalQueryEx( ErrorCode.E7219, coordinateField );
             }
 
             return dataElement.getUid();
@@ -340,7 +340,7 @@ public class DefaultEventDataQueryService
         {
             if ( ValueType.COORDINATE != attribute.getValueType() )
             {
-                throwIllegalQueryEx( ErrorCode.E7130, coordinateField );
+                throwIllegalQueryEx( ErrorCode.E7220, coordinateField );
             }
 
             return attribute.getUid();
