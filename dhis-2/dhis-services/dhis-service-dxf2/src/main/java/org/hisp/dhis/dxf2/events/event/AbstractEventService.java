@@ -96,6 +96,8 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
@@ -218,6 +220,8 @@ public abstract class AbstractEventService
     protected EventSyncService eventSyncService;
 
     protected ProgramRuleVariableService ruleVariableService;
+
+    protected ProgramRuleService programRuleService;
 
     protected ObjectMapper jsonMapper;
 
@@ -1402,26 +1406,34 @@ public abstract class AbstractEventService
         // 1. only once for whole event
         // 2. only if data value is associated with any ProgramRuleVariable
 
-        boolean isLinkedWithRuleVariable = false;
-
-        for ( DataValue dv : event.getDataValues() )
+        if ( !importOptions.isSkipNotifications() )
         {
-            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+            List<ProgramRule> programRules = programRuleService.getProgramRule( program );
 
-            if ( dataElement != null )
+            if ( !programRules.isEmpty() )
             {
-                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+                boolean isLinkedWithRuleVariable = false;
+
+                for ( DataValue dv : event.getDataValues() )
+                {
+                    DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+
+                    if ( dataElement != null )
+                    {
+                        isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+
+                        if ( isLinkedWithRuleVariable )
+                        {
+                            break;
+                        }
+                    }
+                }
 
                 if ( isLinkedWithRuleVariable )
                 {
-                    break;
+                    eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
                 }
             }
-        }
-
-        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
-        {
-            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
         }
 
         sendProgramNotification( programStageInstance, importOptions );

@@ -47,6 +47,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -117,6 +118,7 @@ public class JacksonEventService extends AbstractEventService
         UserService userService,
         EventSyncService eventSyncService,
         ProgramRuleVariableService ruleVariableService,
+        ProgramRuleService programRuleService,
         ObjectMapper jsonMapper,
         @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
@@ -146,6 +148,7 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( userService );
         checkNotNull( eventSyncService );
         checkNotNull( ruleVariableService );
+        checkNotNull( programRuleService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
