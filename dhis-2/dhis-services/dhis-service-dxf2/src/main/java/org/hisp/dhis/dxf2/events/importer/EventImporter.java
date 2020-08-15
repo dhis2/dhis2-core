@@ -92,7 +92,7 @@ public class EventImporter
 
         final WorkContext context = workContextLoader.load( importOptions, events );
 
-        log.debug( "::: validation context load took : " + ( nanoTime() - now) );
+        log.debug( "::: event tracker import context load took : " + ( nanoTime() - now) );
 
         final List<List<Event>> partitions = partition( events, BATCH_SIZE );
 
