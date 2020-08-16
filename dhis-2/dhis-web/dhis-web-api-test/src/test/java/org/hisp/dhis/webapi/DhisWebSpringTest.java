@@ -45,6 +45,7 @@ import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,8 +84,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
 {
-    @Autowired
-    protected FilterChainProxy filterChainProxy;
+    // MvcTestConfig.class,
+//    @Autowired
+//    protected FilterChainProxy filterChainProxy;
 
     @Autowired
     protected WebApplicationContext webApplicationContext;
@@ -117,7 +119,7 @@ public abstract class DhisWebSpringTest
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
+//            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
 
             .apply( documentationConfiguration( this.restDocumentation ) )
 
