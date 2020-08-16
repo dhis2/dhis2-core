@@ -67,7 +67,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -190,8 +189,10 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             http.apply( configurer );
 
             String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
-            String tokenKeyPath = handlerMapping.getServletPath( "/oauth/token_key" );
-            String checkTokenPath = handlerMapping.getServletPath( "/oauth/check_token" );
+            String authorizePath = handlerMapping.getServletPath( "/oauth/authorize" );
+
+//            String tokenKeyPath = handlerMapping.getServletPath( "/oauth/token_key" );
+//            String checkTokenPath = handlerMapping.getServletPath( "/oauth/check_token" );
 
             if ( !endpoints.getEndpointsConfigurer().isUserDetailsServiceOverride() )
 //            {
@@ -201,12 +202,17 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 
                 http
                     .authorizeRequests()
+//                    .antMatchers( authorizePath ).fullyAuthenticated()
                     .antMatchers( tokenEndpointPath ).fullyAuthenticated()
-                    .antMatchers( tokenKeyPath ).access( configurer.getTokenKeyAccess() )
-                    .antMatchers( checkTokenPath ).access( configurer.getCheckTokenAccess() )
+
+//                    .antMatchers( tokenKeyPath ).access( configurer.getTokenKeyAccess() )
+//                    .antMatchers( checkTokenPath ).access( configurer.getCheckTokenAccess() )
+
                     .and()
                     .requestMatchers()
-                    .antMatchers( tokenEndpointPath, tokenKeyPath, checkTokenPath )
+//                    .antMatchers( tokenEndpointPath, tokenKeyPath, checkTokenPath )
+//                    .antMatchers( tokenEndpointPath, authorizePath )
+                    .antMatchers( tokenEndpointPath )
                     .and()
                     .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
@@ -271,6 +277,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 .prefix( "/uaa" )
 //                .pathMapping( "/oauth/token", "/token" )
 //                .tokenServices( tokenServices() )
+
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
                 .tokenStore( tokenStore() )
                 .authenticationManager( authenticationManager() );
@@ -278,7 +285,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             // .accessTokenConverter(accessTokenConverter())
 //            .tokenEnhancer(tokenEnhancerChain)
         }
-
 
     }
 
@@ -288,7 +294,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         return new JdbcTokenStore( dataSource );
     }
 
-    @Bean("tokenService1")
+    @Bean( "tokenService1" )
     @Primary
     public DefaultTokenServices tokenServices()
     {
@@ -344,7 +350,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 //        }
 
         @Autowired
-        @Qualifier("tokenService1")
+        @Qualifier( "tokenService1" )
         public ResourceServerTokenServices tokenServices;
 
         @Autowired
@@ -407,7 +413,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 //            }
 
 //            resourcesServerFilter = postProcess(resourcesServerFilter);
-            resourcesServerFilter.setStateless(false);
+            resourcesServerFilter.setStateless( false );
 
 //            // @formatter:off
 //            http
@@ -512,6 +518,9 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 .antMatchers( "/dhis-web-commons/css/**" )
                 .antMatchers( "/dhis-web-commons/flags/**" )
                 .antMatchers( "/dhis-web-commons/fonts/**" )
+                .antMatchers( "/dhis-web-commons/i18nJavaScript.action" )
+                .antMatchers( "/dhis-web-commons/security/**" )
+
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
                 .antMatchers( "/favicon.ico" );
@@ -564,7 +573,7 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 .loginPage( "/dhis-web-commons/security/login.action" ).permitAll()
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .defaultSuccessUrl( "/dhis-web-dashboard" )
+//                .defaultSuccessUrl( "/dhis-web-dashboard" )
                 .failureUrl( "/dhis-web-commons/security/login.action" )
                 .and()
 
