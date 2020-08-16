@@ -35,12 +35,12 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbSectionRenderType">
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
-    <param name="deserializer">org.hisp.dhis.common.adapter.SectionRenderTypeDeserialize</param>
+    <param name="renderType">org.hisp.dhis.render.type.SectionRenderingObject</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbValueRenderType">
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
-    <param name="deserializer">org.hisp.dhis.common.adapter.ValueRenderTypeDeserialize</param>
+    <param name="renderType">org.hisp.dhis.render.type.ValueTypeRenderingObject</param>
   </typedef>
   
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">

@@ -1,27 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)" fill="#333">
-  <path id="path878" d="m24 8.0098a15.99 15.99 0 0 0 -15.99 15.99 15.99 15.99 0 0 0 15.99 15.99 15.99 15.99 0 0 0 15.99 -15.99 15.99 15.99 0 0 0 -15.99 -15.99zm0 0.54297a15.447 15.447 0 0 1 15.447 15.447 15.447 15.447 0 0 1 -15.447 15.447 15.447 15.447 0 0 1 -15.447 -15.447 15.447 15.447 0 0 1 15.447 -15.447z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M23.9998 8.00977C19.7591 8.00977 15.692 9.6944 12.6933 12.6931C9.69464 15.6917 8.01001 19.7588 8.01001 23.9996C8.01001 28.2403 9.69464 32.3074 12.6933 35.3061C15.692 38.3047 19.7591 39.9894 23.9998 39.9894C26.0996 39.9894 28.1789 39.5758 30.1188 38.7722C32.0588 37.9686 33.8215 36.7909 35.3063 35.3061C36.7911 33.8213 37.9689 32.0586 38.7725 30.1186C39.576 28.1786 39.9896 26.0994 39.9896 23.9996C39.9896 21.8998 39.576 19.8205 38.7725 17.8805C37.9689 15.9406 36.7911 14.1779 35.3063 12.6931C33.8215 11.2083 32.0588 10.0305 30.1188 9.22692C28.1789 8.42335 26.0996 8.00977 23.9998 8.00977ZM23.9998 8.55272C28.0966 8.55272 32.0255 10.1802 34.9224 13.077C37.8192 15.9738 39.4466 19.9028 39.4466 23.9995C39.4466 26.028 39.0471 28.0367 38.2708 29.9108C37.4945 31.7849 36.3567 33.4877 34.9224 34.9221C33.488 36.3564 31.7851 37.4942 29.911 38.2705C28.037 39.0468 26.0283 39.4463 23.9998 39.4463C19.9031 39.4463 15.9741 37.8189 13.0773 34.9221C10.1804 32.0252 8.553 28.0963 8.553 23.9995C8.553 19.9028 10.1804 15.9738 13.0773 13.077C15.9741 10.1802 19.9031 8.55272 23.9998 8.55272Z" fill="#333333"/>
 </svg>

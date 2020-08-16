@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import org.hisp.dhis.i18n.I18nFormat;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
@@ -238,6 +239,8 @@ public interface PeriodService
      * @return a Period.
      */
     Period reloadPeriod( Period period );
+
+    Period reloadIsoPeriodInStatelessSession( String isoPeriod );
 
     /**
      * Retrieves the period with the given ISO period identifier. Reloads the 

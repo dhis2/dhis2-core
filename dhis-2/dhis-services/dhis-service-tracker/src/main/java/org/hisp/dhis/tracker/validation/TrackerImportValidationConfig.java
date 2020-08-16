@@ -30,22 +30,7 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckDataRelationsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckMetaValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckOwnershipValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckSecurityValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckValidateAndGenerateUidHook;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
+import org.hisp.dhis.tracker.validation.hooks.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -88,7 +73,12 @@ public class TrackerImportValidationConfig
         EventCategoryOptValidationHook.class,
         EventDateValidationHook.class,
         EventGeoValidationHook.class,
-        EventNoteValidationHook.class
+        EventNoteValidationHook.class,
+
+        RelationshipsValidationHook.class,
+
+        EnrollmentRuleValidationHook.class,
+        EventRuleValidationHook.class
     );
 
     /**

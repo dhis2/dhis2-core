@@ -809,9 +809,17 @@ public class JdbcEventStore
                             eventDataValuesWhereSql += " and ";
                         }
 
-                        eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
+                        if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                        {
+                            eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                        }
+                        else
+                        {
+                            eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
+                        }
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
