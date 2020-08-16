@@ -46,17 +46,16 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     public static final String ERROR = "Password must not be one of the previous %d passwords";
     public static final String I18_ERROR = "password_history_validation";
 
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     private final UserService userService;
 
     private final CurrentUserService currentUserService;
 
     @Autowired
-    public PasswordHistoryValidationRule( UserService userService, CurrentUserService currentUserService )
+    public PasswordHistoryValidationRule( PasswordEncoder passwordEncoder, UserService userService, CurrentUserService currentUserService )
     {
-//         PasswordEncoder passwordEncoder,
-//        this.passwordEncoder = passwordEncoder;
+        this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.currentUserService = currentUserService;
     }
@@ -73,15 +72,15 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
 
         List<String> previousPasswords = userCredentials.getPreviousPasswords();
 
-//        for ( String encodedPassword : previousPasswords )
-//        {
-//            final boolean match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
-//
-//            if ( match )
-//            {
-//                return new PasswordValidationResult( String.format( ERROR , HISTORY_LIMIT ), I18_ERROR, false );
-//            }
-//        }
+        for ( String encodedPassword : previousPasswords )
+        {
+            final boolean match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
+
+            if ( match )
+            {
+                return new PasswordValidationResult( String.format( ERROR , HISTORY_LIMIT ), I18_ERROR, false );
+            }
+        }
 
         // remove one item from password history if size exceeds HISTORY_LIMIT
         if ( previousPasswords.size() == HISTORY_LIMIT )

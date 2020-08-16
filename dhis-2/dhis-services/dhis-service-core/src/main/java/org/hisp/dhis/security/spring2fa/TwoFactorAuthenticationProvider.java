@@ -45,7 +45,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
@@ -64,11 +63,12 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
     private SecurityService securityService;
 
     @Autowired
-    public TwoFactorAuthenticationProvider( @Qualifier( "userDetailsService" ) UserDetailsService detailsService)
+    public TwoFactorAuthenticationProvider( @Qualifier( "userDetailsService" ) UserDetailsService detailsService,
+        PasswordEncoder passwordEncoder )
     {
 //        super();
         setUserDetailsService( detailsService );
-        setPasswordEncoder( new BCryptPasswordEncoder() );
+        setPasswordEncoder( passwordEncoder );
     }
 
     @Override

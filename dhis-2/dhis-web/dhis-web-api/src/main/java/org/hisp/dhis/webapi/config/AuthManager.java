@@ -28,11 +28,7 @@ public class AuthManager
 //        return authenticationManager();
 //    }
 
-    @Bean
-    public PasswordEncoder passwordEncoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+
 
 //    @Autowired
 //    private UserService userService;
