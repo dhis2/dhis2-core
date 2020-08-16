@@ -37,6 +37,7 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.sqlview.SqlView;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDecisionVoter;
