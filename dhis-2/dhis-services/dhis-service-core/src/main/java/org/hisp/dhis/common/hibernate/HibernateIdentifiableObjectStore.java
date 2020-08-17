@@ -802,6 +802,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
+        //TODO Include paging to avoid exceeding max query length
+
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
