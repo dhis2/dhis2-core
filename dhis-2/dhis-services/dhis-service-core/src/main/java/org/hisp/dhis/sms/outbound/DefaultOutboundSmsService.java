@@ -87,13 +87,22 @@ public class DefaultOutboundSmsService
     public void deleteById( Integer outboundSmsId )
     {
         OutboundSms sms = outboundSmsStore.getOutboundSmsbyId( outboundSmsId );
-        outboundSmsStore.deleteOutboundSms( sms );
+
+        if ( sms != null )
+        {
+            outboundSmsStore.deleteOutboundSms( sms );
+        }
     }
 
     @Override
     public void deleteById( String uid )
     {
-        deleteById( uid );
+        OutboundSms sms = outboundSmsStore.getByUid( uid );
+
+        if ( sms != null )
+        {
+            outboundSmsStore.deleteOutboundSms( sms );
+        }
     }
 
     @Override

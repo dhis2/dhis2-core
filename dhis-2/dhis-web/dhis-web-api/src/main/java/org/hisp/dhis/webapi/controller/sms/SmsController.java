@@ -246,34 +246,22 @@ public class SmsController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/outbound/message/{id}", method = RequestMethod.DELETE )
+    @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @PathVariable( value = "id" ) String id, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
     {
-        OutboundSms outboundSms = outboundSmsService.getOutboundSms( id );
+        ids.forEach( outboundSmsService::deleteById );
 
-        if ( outboundSms == null )
-        {
-            webMessageService.send( WebMessageUtils.notFound( "Outbound SMS with id:" + id + " does not exist" ), response, request );
-            return;
-        }
-
-        outboundSmsService.deleteById( id );
+        webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
     }
 
-    @RequestMapping( value = "/inbound/message/{id}", method = RequestMethod.DELETE )
+    @RequestMapping( value = "/inbound/message", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessage( @PathVariable( value = "id" ) Integer id, HttpServletRequest request, HttpServletResponse response )
+    public void deleteInboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
     {
-        IncomingSms incomingSms = incomingSMSService.findBy( id );
+        ids.forEach( outboundSmsService::deleteById );
 
-        if ( incomingSms == null )
-        {
-            webMessageService.send( WebMessageUtils.notFound( "Incoming SMS with id:" + id + " does not exist" ), response, request );
-            return;
-        }
-
-        incomingSMSService.deleteById( id );
+        webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
     }
 
     // -------------------------------------------------------------------------
