@@ -376,6 +376,7 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.getAllLikeName( "DataElement" ).size() );
     }
 
+    @Test
     public void testGetDataElementsByUidNoAcl()
     {
         DataElement dataElementA = createDataElement( 'A' );
