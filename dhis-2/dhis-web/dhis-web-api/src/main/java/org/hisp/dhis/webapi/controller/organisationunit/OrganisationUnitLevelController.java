@@ -28,16 +28,9 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitLevelSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -49,15 +42,4 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class OrganisationUnitLevelController
     extends AbstractCrudController<OrganisationUnitLevel>
 {
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @RequestMapping( value = "/filled" )
-    public void getFilledLevels( HttpServletResponse response )
-        throws IOException
-    {
-        List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-        renderService.toJson( response.getOutputStream(), levels );
-    }
 }
