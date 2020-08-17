@@ -30,6 +30,9 @@ package org.hisp.dhis.de.action;
 
 import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -55,6 +58,7 @@ import java.util.*;
  * @author Margrethe Store
  * @author Lars Helge Overland
  */
+@Slf4j
 public class ValidationAction
     implements Action
 {
