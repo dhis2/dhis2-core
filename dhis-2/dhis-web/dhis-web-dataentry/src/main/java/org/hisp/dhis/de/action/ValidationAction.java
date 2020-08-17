@@ -103,7 +103,7 @@ public class ValidationAction
     {
         this.validationService = validationService;
     }
-    
+
     @Autowired
     private InputUtils inputUtils;
 
@@ -249,6 +249,9 @@ public class ValidationAction
             }
 
             List<DataElementOperand> violations = validationService.validateRequiredComments( dataSet, period, organisationUnit, attributeOptionCombo );
+
+            log.info( "Validation done for data set: '{}', period: '{}', org unit: '{}', validation rule count: {}, violations found: {}",
+                dataSet.getUid(), period.getIsoDate(), organisationUnit.getUid(), params.getRules().size(), violations.size() );
 
             if ( !violations.isEmpty() )
             {
