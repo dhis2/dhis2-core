@@ -72,6 +72,7 @@ public class HibernateGenericStore<T>
 {
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+    protected static final int OBJECT_FETCH_SIZE = 2000;
 
     protected SessionFactory sessionFactory;
 
