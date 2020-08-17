@@ -40,8 +40,6 @@ public interface IncomingSmsService
 {
     String ID = IncomingSmsService.class.getName();
 
-    IncomingSms getNextUnprocessed();
-
     void update( IncomingSms sms );
 
     IncomingSms findBy( Integer id );

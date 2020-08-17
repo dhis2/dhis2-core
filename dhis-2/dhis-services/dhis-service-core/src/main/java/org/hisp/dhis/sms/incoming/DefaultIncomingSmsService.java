@@ -134,13 +134,6 @@ public class DefaultIncomingSmsService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public IncomingSms getNextUnprocessed()
-    {
-        return null;
-    }
-
-    @Override
     @Transactional
     public void update( IncomingSms incomingSms )
     {

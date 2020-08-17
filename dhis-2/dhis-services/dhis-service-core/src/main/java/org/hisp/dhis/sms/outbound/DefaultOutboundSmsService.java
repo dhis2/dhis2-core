@@ -77,12 +77,6 @@ public class DefaultOutboundSmsService
     }
 
     @Override
-    public void updateOutboundSms( OutboundSms sms )
-    {
-        outboundSmsStore.updateOutboundSms( sms );
-    }
-
-    @Override
     public long saveOutboundSms( OutboundSms sms )
     {
         outboundSmsStore.saveOutboundSms( sms );
@@ -97,9 +91,21 @@ public class DefaultOutboundSmsService
     }
 
     @Override
+    public void deleteById( String uid )
+    {
+        deleteById( uid );
+    }
+
+    @Override
     public OutboundSms getOutboundSms( long id )
     {
         return outboundSmsStore.getOutboundSmsbyId( id );
+    }
+
+    @Override
+    public OutboundSms getOutboundSms( String uid )
+    {
+        return outboundSmsStore.getByUid( uid );
     }
 
     @Override
