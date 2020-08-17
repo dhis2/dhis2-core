@@ -80,6 +80,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.Lists;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -800,6 +802,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
+        //TODO Include paging to avoid exceeding max query length
+
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
@@ -821,6 +825,36 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder, user ) )
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
+    public List<T> getByUidNoAcl( Collection<String> uids )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> objects = Lists.newArrayList();
+
+        List<List<String>> partitions = Lists.partition( Lists.newArrayList( uids ), OBJECT_FETCH_SIZE );
+
+        for ( List<String> partition : partitions )
+        {
+            objects.addAll( getByUidNoAclInternal( partition ) );
+        }
+
+        return objects;
+    }
+
+    private List<T> getByUidNoAclInternal( Collection<String> uids )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
             .addPredicate( root -> root.get( "uid" ).in( uids ) );
 
         return getList( builder, jpaQueryParameters );
@@ -881,27 +915,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllNoAcl()
     {
         return super.getAll();
-    }
-
-    @Override
-    public List<T> getByUidNoAcl( Collection<String> uids )
-    {
-        List<T> list = new ArrayList<>();
-
-        if ( uids != null )
-        {
-            for ( String uid : uids )
-            {
-                T object = getByUidNoAcl( uid );
-
-                if ( object != null )
-                {
-                    list.add( object );
-                }
-            }
-        }
-
-        return list;
     }
 
     @Override
