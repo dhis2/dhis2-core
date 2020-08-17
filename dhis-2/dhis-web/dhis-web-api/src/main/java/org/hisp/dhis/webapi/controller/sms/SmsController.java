@@ -246,19 +246,19 @@ public class SmsController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/outbound/message/{uid}", method = RequestMethod.DELETE )
+    @RequestMapping( value = "/outbound/message/{id}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @PathVariable( value = "uid" ) String uid, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @PathVariable( value = "id" ) String id, HttpServletRequest request, HttpServletResponse response )
     {
-        OutboundSms outboundSms = outboundSmsService.getOutboundSms( uid );
+        OutboundSms outboundSms = outboundSmsService.getOutboundSms( id );
 
         if ( outboundSms == null )
         {
-            webMessageService.send( WebMessageUtils.notFound( "Outbound SMS with id:" + uid + " does not exist" ), response, request );
+            webMessageService.send( WebMessageUtils.notFound( "Outbound SMS with id:" + id + " does not exist" ), response, request );
             return;
         }
 
-        outboundSmsService.deleteById( uid );
+        outboundSmsService.deleteById( id );
     }
 
     @RequestMapping( value = "/inbound/message/{id}", method = RequestMethod.DELETE )
