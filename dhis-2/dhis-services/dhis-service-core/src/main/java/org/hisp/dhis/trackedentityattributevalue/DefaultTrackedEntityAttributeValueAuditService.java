@@ -55,16 +55,16 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
     public DefaultTrackedEntityAttributeValueAuditService(
         TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
-        TrackedEntityAttributeService trackedEntityAttributeService,  
+        TrackedEntityAttributeService trackedEntityAttributeService,
         CurrentUserService currentUserService )
     {
         checkNotNull( trackedEntityAttributeValueAuditStore );
-        checkNotNull( currentUserService );
         checkNotNull( trackedEntityAttributeService );
-        
+        checkNotNull( currentUserService );
+
         this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
-        this.currentUserService = currentUserService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
+        this.currentUserService = currentUserService;
     }
 
     @Override
@@ -89,7 +89,7 @@ public class DefaultTrackedEntityAttributeValueAuditService
         return aclFilter( trackedEntityAttributeValueAuditStore.getTrackedEntityAttributeValueAudits(
             trackedEntityAttributes, trackedEntityInstances, auditType, first, max ) );
     }
-    
+
     private List<TrackedEntityAttributeValueAudit> aclFilter(
         List<TrackedEntityAttributeValueAudit> trackedEntityAttributeValueAudits )
     {
@@ -104,14 +104,14 @@ public class DefaultTrackedEntityAttributeValueAuditService
             .filter( audit -> allUserReadableTrackedEntityAttributes.contains( audit.getAttribute().getUid() ) )
             .collect( Collectors.toList() );
     }
-    
+
     @Override
     public int countTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
         return trackedEntityAttributeValueAuditStore.countTrackedEntityAttributeValueAudits( trackedEntityAttributes, trackedEntityInstances, auditType );
     }
-    
+
     @Override
     public void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance )
     {
