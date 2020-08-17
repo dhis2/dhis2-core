@@ -345,6 +345,13 @@ public abstract class PeriodType
     public abstract int getFrequencyOrder();
 
     /**
+     * Returns a string usable as the interval value in PostgreSQL queries.
+     *
+     * @return the SQL interval.
+     */
+    public abstract String getSqlInterval();
+
+    /**
      * Returns a new date rewinded from now.
      *
      * @return the Date.

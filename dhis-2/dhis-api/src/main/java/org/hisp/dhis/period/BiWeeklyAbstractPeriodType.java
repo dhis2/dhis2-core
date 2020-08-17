@@ -56,16 +56,19 @@ public class BiWeeklyAbstractPeriodType
 
     protected final int frequencyOrder;
 
+    protected final String sqlInterval;
+
     protected final String weekPrefix;
 
     protected BiWeeklyAbstractPeriodType( String name, int startOfWeek, String isoFormat, String isoDuration,
-        int frequencyOrder, String weekPrefix )
+        int frequencyOrder, String sqlInterval, String weekPrefix )
     {
         this.name = name;
         this.startOfWeek = startOfWeek;
         this.isoFormat = isoFormat;
         this.isoDuration = isoDuration;
         this.frequencyOrder = frequencyOrder;
+        this.sqlInterval = sqlInterval;
         this.weekPrefix = weekPrefix;
     }
 
@@ -90,6 +93,12 @@ public class BiWeeklyAbstractPeriodType
     public int getFrequencyOrder()
     {
         return frequencyOrder;
+    }
+
+    @Override
+    public String getSqlInterval()
+    {
+        return sqlInterval;
     }
 
     @Override

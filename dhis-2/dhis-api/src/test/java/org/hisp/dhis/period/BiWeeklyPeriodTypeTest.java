@@ -164,4 +164,14 @@ public class BiWeeklyPeriodTypeTest
         assertEquals( "2019BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
         assertEquals( "2020BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
     }
+
+    @Test
+    public void testGetRewindedDate()
+    {
+        assertEquals( new DateTime( 2020, 1, 3, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 2, 14, 0, 0 ).toDate(), 3 ) );
+
+        assertEquals( new DateTime( 2020, 1, 31, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 1, 3, 0, 0 ).toDate(), -2 ) );
+    }
 }

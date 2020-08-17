@@ -112,7 +112,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
                             if ( orgUnitOptions.containsAll( optionComboOptions ) )
                             {
                                 Date startDate = DateUtils.min( optionComboOptions.stream().map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
-                                Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getEndDate() ).collect( Collectors.toSet() ) );
+                                Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getAdjustedEndDate( dataSet ) ).collect( Collectors.toSet() ) );
 
                                 List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate );
 
