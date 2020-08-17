@@ -47,7 +47,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.external.conf.ConfigurationKey.AUDIT_DATABASE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Abyot Asalefew
@@ -105,7 +105,7 @@ public class DefaultTrackedEntityAttributeValueService
             attributeValue,
             attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        if ( config.isEnabled( AUDIT_DATABASE ) )
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
         {
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
         }
@@ -235,8 +235,7 @@ public class DefaultTrackedEntityAttributeValueService
             TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue, attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
 
-
-            if ( config.isEnabled( AUDIT_DATABASE ) )
+            if ( config.isEnabled( CHANGELOG_TRACKER ) )
             {
                 trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             }

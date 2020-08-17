@@ -31,7 +31,7 @@ package org.hisp.dhis.datavalue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.external.conf.ConfigurationKey.AUDIT_DATABASE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -186,7 +186,7 @@ public class DefaultDataValueService
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
                 dataValue.getStoredBy(), AuditType.UPDATE );
 
-            if ( config.isEnabled( AUDIT_DATABASE ) )
+            if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
             {
                 dataValueAuditService.addDataValueAudit( dataValueAudit );
             }
@@ -215,7 +215,7 @@ public class DefaultDataValueService
         DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
             currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        if ( config.isEnabled( AUDIT_DATABASE ) )
+        if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
         {
             dataValueAuditService.addDataValueAudit( dataValueAudit );
         }

@@ -126,7 +126,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.*;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.AUDIT_DATABASE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -761,7 +761,7 @@ public class DefaultDataValueSetService
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
 
-        boolean auditEnabed = config.isEnabled( AUDIT_DATABASE );
+        boolean auditEnabed = config.isEnabled( CHANGELOG_AGGREGATE );
         boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
         boolean skipAudit = ( importOptions.isSkipAudit() && hasSkipAuditAuth ) || !auditEnabed;
 
