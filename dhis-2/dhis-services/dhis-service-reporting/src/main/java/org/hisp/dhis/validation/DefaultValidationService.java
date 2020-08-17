@@ -166,7 +166,7 @@ public class DefaultValidationService
                 + ( parameters.isIncludeOrgUnitDescendants() ? " with descendants" : "" ) ) + ", "
             + ( parameters.getPeriods().size() == 1 ? "period " + Iterables.getOnlyElement( parameters.getPeriods() ).getIsoDate()
                 : parameters.getPeriods().size() + " periods" ) + ", "
-            + parameters.getRules().size() + " rules"
+            + parameters.getValidationRules().size() + " rules"
             + ( parameters.isPersistResults() ? ", persisting results" : "" )
             + ( parameters.isSendNotifications() ? ", sending notifications" : "" ) );
 
@@ -283,7 +283,7 @@ public class DefaultValidationService
         Map<PeriodType, PeriodTypeExtended> periodTypeXMap = new HashMap<>();
 
         addPeriodsToContext( periodTypeXMap, parameters.getPeriods() );
-        addRulesToContext( periodTypeXMap, parameters.getRules() );
+        addRulesToContext( periodTypeXMap, parameters.getValidationRules() );
         removeAnyUnneededPeriodTypes( periodTypeXMap );
 
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
@@ -292,7 +292,7 @@ public class DefaultValidationService
             .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
                 .getValidationResults( parameterOrgUnit,
-                    parameters.isIncludeOrgUnitDescendants(), parameters.getRules(), parameters.getPeriods()) )
+                    parameters.isIncludeOrgUnitDescendants(), parameters.getValidationRules(), parameters.getPeriods()) )
             .withSendNotifications( parameters.isSendNotifications() )
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
