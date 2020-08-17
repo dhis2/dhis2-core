@@ -63,7 +63,6 @@ import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 
 /**
  * @author Jim Grace
@@ -98,7 +97,7 @@ public class DefaultValidationService
     private final ValidationResultService validationResultService;
 
     private AnalyticsService analyticsService;
-    
+
     private CurrentUserService currentUserService;
 
     public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
@@ -160,7 +159,7 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
 
     @Override
-    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters)
+    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters )
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis"
             + ( parameters.getOrgUnit() == null ? "" : " for orgUnit " + parameters.getOrgUnit().getUid()
@@ -249,7 +248,7 @@ public class DefaultValidationService
         Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
         Collection<Period> periods = Sets.newHashSet(period);
 
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
 
     // -------------------------------------------------------------------------
@@ -370,9 +369,7 @@ public class DefaultValidationService
         {
             PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
 
-            if ( periodX == null
-                || expressionService.expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) != VALID
-                || expressionService.expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) != VALID )
+            if ( periodX == null )
             {
                 continue; // Don't include rule.
             }

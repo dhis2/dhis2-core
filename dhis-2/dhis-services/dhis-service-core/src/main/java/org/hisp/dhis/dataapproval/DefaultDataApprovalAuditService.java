@@ -93,7 +93,8 @@ public class DefaultDataApprovalAuditService
      * Used only for testing, remove when test is refactored
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
 

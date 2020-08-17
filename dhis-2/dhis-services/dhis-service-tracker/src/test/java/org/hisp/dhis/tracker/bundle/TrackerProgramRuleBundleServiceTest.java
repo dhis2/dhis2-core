@@ -90,6 +90,8 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -120,9 +122,7 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
     }
 
-    // TODO: Fix this test
     @Test
-    @Ignore( " NEED TO FIX PROGRAM RULE ISSUES FIRST" )
     public void testRunRuleEngineForEventOnBundleCreate()
         throws IOException
     {
@@ -133,8 +133,14 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() ).build() );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create(
+            TrackerBundleParams.builder()
+                .events( trackerBundle.getEvents() )
+                .enrollments( trackerBundle.getEnrollments() )
+                .trackedEntities( trackerBundle.getTrackedEntities() )
+                .build() );
+
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
         assertEquals( 1, trackerBundles.size() );
         assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
