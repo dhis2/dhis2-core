@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.*;
 
@@ -38,6 +39,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -77,21 +79,26 @@ public class DefaultProgramStageInstanceService
 
     private final FileResourceService fileResourceService;
 
+    private final DhisConfigurationProvider config;
+
     public DefaultProgramStageInstanceService( CurrentUserService currentUserService,
         ProgramInstanceService programInstanceService, ProgramStageInstanceStore programStageInstanceStore,
-        TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService )
+        TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService,
+        DhisConfigurationProvider config )
     {
         checkNotNull( currentUserService );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceStore );
         checkNotNull( dataValueAuditService );
         checkNotNull( fileResourceService );
+        checkNotNull( config );
 
         this.currentUserService = currentUserService;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceStore = programStageInstanceStore;
         this.dataValueAuditService = dataValueAuditService;
         this.fileResourceService = fileResourceService;
+        this.config = config;
     }
 
     // -------------------------------------------------------------------------
@@ -288,10 +295,6 @@ public class DefaultProgramStageInstanceService
         return programStageInstance;
     }
 
-    // -------------------------------------------------------------------------
-    // EventDataValues - Implementation methods
-    // -------------------------------------------------------------------------
-
     @Override
     @Transactional
     public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
@@ -340,10 +343,13 @@ public class DefaultProgramStageInstanceService
     }
 
     // -------------------------------------------------------------------------
-    // EventDataValues - Support methods
+    // Supportive methods
     // -------------------------------------------------------------------------
 
-    // ---- Validation ----
+    // -------------------------------------------------------------------------
+    // Validation
+    // -------------------------------------------------------------------------
+
     private String validateEventDataValue( DataElement dataElement, EventDataValue eventDataValue )
     {
 
@@ -382,7 +388,9 @@ public class DefaultProgramStageInstanceService
         }
     }
 
-    // ---- Audit ----
+    // -------------------------------------------------------------------------
+    // Audit
+    // -------------------------------------------------------------------------
 
     private void auditDataValuesChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
         Set<EventDataValue> removedDataValues, Cache<DataElement> dataElementsCache,
@@ -400,16 +408,21 @@ public class DefaultProgramStageInstanceService
     private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
         ProgramStageInstance programStageInstance, AuditType auditType )
     {
-        if ( dataElement == null )
+        if ( !config.isEnabled( CHANGELOG_TRACKER ) || dataElement == null )
         {
             return;
         }
+
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, programStageInstance,
             dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
+
         dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
     }
 
-    // ---- File Data Values Handling ----
+    // -------------------------------------------------------------------------
+    // File data values
+    // -------------------------------------------------------------------------
+
     private void handleFileDataValueChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
         Set<EventDataValue> removedDataValues, Cache<DataElement> dataElementsCache )
     {

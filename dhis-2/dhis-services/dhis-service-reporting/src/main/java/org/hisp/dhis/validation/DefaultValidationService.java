@@ -159,7 +159,7 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
 
     @Override
-    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters)
+    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters )
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis"
             + ( parameters.getOrgUnit() == null ? "" : " for orgUnit " + parameters.getOrgUnit().getUid()
@@ -248,7 +248,7 @@ public class DefaultValidationService
         Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
         Collection<Period> periods = Sets.newHashSet(period);
 
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
 
     // -------------------------------------------------------------------------
