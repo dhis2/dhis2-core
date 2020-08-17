@@ -34,8 +34,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
@@ -118,7 +116,7 @@ public class SmsController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/outbound/messages", method = RequestMethod.GET )
-    public void getOutboundMessage( @RequestParam( required = false ) OutboundSmsStatus status, HttpServletResponse response ) throws IOException
+    public void getOutboundMessages( @RequestParam( required = false ) OutboundSmsStatus status, HttpServletResponse response ) throws IOException
     {
         if ( status == null )
         {
@@ -132,8 +130,8 @@ public class SmsController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/inbound/messages", method = RequestMethod.GET )
     public void getInboundMessages( @RequestParam( required = false ) SmsMessageStatus status,
-                                    @RequestParam( required = false ) String keyword,
-                                    HttpServletResponse response ) throws IOException
+        @RequestParam( required = false ) String keyword,
+        HttpServletResponse response ) throws IOException
     {
         if ( status == null )
         {
@@ -142,24 +140,6 @@ public class SmsController
         }
 
         renderService.toJson( response.getOutputStream(), incomingSMSService.getSmsByStatus( status, keyword ) );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
-    public void getScheduledSentMessage(
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
-        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        HttpServletResponse response ) throws IOException
-    {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
-            null, page, pageSize, afterDate, null );
-
-
-        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
-
-        renderService.toJson( response.getOutputStream(), programMessages );
     }
 
     // -------------------------------------------------------------------------
@@ -266,9 +246,9 @@ public class SmsController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
+    @RequestMapping( value = "/outbound/message/{uid}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessages( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @PathVariable( value = "uid" ) String uid, HttpServletRequest request, HttpServletResponse response )
     {
         OutboundSms outboundSms = outboundSmsService.getOutboundSms( uid );
 
@@ -281,9 +261,9 @@ public class SmsController
         outboundSmsService.deleteById( uid );
     }
 
-    @RequestMapping( value = "/inbound/message", method = RequestMethod.DELETE )
+    @RequestMapping( value = "/inbound/message/{id}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessages( @RequestParam Integer id, HttpServletRequest request, HttpServletResponse response )
+    public void deleteInboundMessage( @PathVariable( value = "id" ) Integer id, HttpServletRequest request, HttpServletResponse response )
     {
         IncomingSms incomingSms = incomingSMSService.findBy( id );
 

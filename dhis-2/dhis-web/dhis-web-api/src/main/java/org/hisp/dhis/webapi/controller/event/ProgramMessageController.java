@@ -128,6 +128,24 @@ public class ProgramMessageController
         renderService.toJson( response.getOutputStream(), instances );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
+    public void getScheduledSentMessage(
+        @RequestParam( required = false ) String programInstance,
+        @RequestParam( required = false ) String programStageInstance,
+        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        HttpServletResponse response ) throws IOException
+    {
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
+                null, page, pageSize, afterDate, null );
+
+
+        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
+
+        renderService.toJson( response.getOutputStream(), programMessages );
+    }
+
     // -------------------------------------------------------------------------
     // POST
     // -------------------------------------------------------------------------
