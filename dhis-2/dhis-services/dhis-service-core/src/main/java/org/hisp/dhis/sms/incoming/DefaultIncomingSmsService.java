@@ -142,9 +142,9 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional(readOnly = true)
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator )
     {
-        return incomingSmsStore.getSmsByStatus( status, keyword );
+        return incomingSmsStore.getSmsByStatus( status, originator );
     }
 
     @Override

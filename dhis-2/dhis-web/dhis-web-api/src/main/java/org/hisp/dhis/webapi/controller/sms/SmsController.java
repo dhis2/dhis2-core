@@ -130,7 +130,7 @@ public class SmsController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/inbound/messages", method = RequestMethod.GET )
     public void getInboundMessages( @RequestParam( required = false ) SmsMessageStatus status,
-        @RequestParam( required = false ) String keyword,
+        @RequestParam( required = false ) String originator,
         HttpServletResponse response ) throws IOException
     {
         if ( status == null )
@@ -139,7 +139,7 @@ public class SmsController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), incomingSMSService.getSmsByStatus( status, keyword ) );
+        renderService.toJson( response.getOutputStream(), incomingSMSService.getSmsByStatus( status, originator ) );
     }
 
     // -------------------------------------------------------------------------
