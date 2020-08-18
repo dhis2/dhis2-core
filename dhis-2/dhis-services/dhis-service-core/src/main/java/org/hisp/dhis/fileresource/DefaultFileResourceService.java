@@ -1,5 +1,3 @@
-package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,17 +26,9 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
-import org.hisp.dhis.fileresource.events.FileDeletedEvent;
-import org.hisp.dhis.fileresource.events.FileSavedEvent;
-import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Hours;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+package org.hisp.dhis.fileresource;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +41,19 @@ import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
+import org.hisp.dhis.fileresource.events.FileSavedEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Hours;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -128,6 +130,8 @@ public class DefaultFileResourceService
     @Transactional
     public void saveFileResource( FileResource fileResource, File file )
     {
+        validateFileResource( fileResource );
+
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
@@ -197,6 +201,13 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional
+    public long getFileResourceContentLength( FileResource fileResource )
+    {
+        return fileResourceContentStore.getFileResourceContentLength( fileResource.getStorageKey() );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException
@@ -263,6 +274,26 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Validates the given {@link FileResource}. Throws an exception if not.
+     *
+     * @param fileResource the file resource.
+     * @throws IllegalQueryException if the given file resource is invalid.
+     */
+    private void validateFileResource( FileResource fileResource )
+        throws IllegalQueryException
+    {
+        if ( fileResource.getName() == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E6100 );
+        }
+
+        if ( !FileResourceBlocklist.isValid( fileResource ) )
+        {
+            throw new IllegalQueryException( ErrorCode.E6101 );
+        }
+    }
 
     private FileResource checkStorageStatus( FileResource fileResource )
     {

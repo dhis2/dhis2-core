@@ -47,6 +47,13 @@ public interface FileResourceContentStore
      * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
      */
     InputStream getFileResourceContent( String key );
+    
+    /**
+     * Get the content length of a FileResource (with dimension) from the file store.
+     * @param key the key.
+     * @return content length of the file resource
+     */
+    long getFileResourceContentLength( String key );
 
     /**
      * Save the contents of the byte array to the file store.

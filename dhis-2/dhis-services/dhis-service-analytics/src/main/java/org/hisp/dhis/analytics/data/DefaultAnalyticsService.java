@@ -236,13 +236,13 @@ public class DefaultAnalyticsService
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
         // ---------------------------------------------------------------------
-        // Security and validation
+        // Decide access, add constraints and validate
         // ---------------------------------------------------------------------
 
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
-        params = securityManager.withDimensionConstraints( params );
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
@@ -269,7 +269,7 @@ public class DefaultAnalyticsService
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
-        params = securityManager.withDimensionConstraints( params );
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
@@ -506,12 +506,8 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap.get( permKey );
-
-                    if ( valueMap == null )
-                    {
-                        continue;
-                    }
+                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap
+                        .getOrDefault( permKey, new HashMap<>() );
 
                     List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
                         : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
@@ -558,12 +554,12 @@ public class DefaultAnalyticsService
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
-        if ( !params.hasMeasureCriteria() )
+        if ( !params.hasMeasureCriteria() || value == null )
         {
             return true;
         }
 
-        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() ).doubleValue();
 
         return !params.getMeasureCriteria().entrySet().stream()
             .anyMatch( measureValue -> !measureValue.getKey()
@@ -1333,8 +1329,6 @@ public class DefaultAnalyticsService
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
-        indicators.forEach( params::removeResolvedExpressionItem );
-
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
 
         return DataQueryParams.getPermutationDimensionalItemValueMap( valueMap );
@@ -1353,8 +1347,6 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        indicators.forEach( params::addResolvedExpressionItem );
-
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
 
         if ( items.isEmpty() )
@@ -1372,7 +1364,6 @@ public class DefaultAnalyticsService
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );

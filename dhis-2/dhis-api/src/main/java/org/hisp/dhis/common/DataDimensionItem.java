@@ -28,13 +28,11 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
@@ -43,8 +41,14 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.validation.ValidationRule;
 
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -52,15 +56,29 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DataDimensionItem
 {
-    public static final Set<Class<? extends IdentifiableObject>> DATA_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
-        add( Indicator.class ).add( DataElement.class ).add( DataElementOperand.class ).add( ReportingRate.class ).
-        add( ProgramIndicator.class ).add( ProgramDataElementDimensionItem.class ).add( ProgramTrackedEntityAttributeDimensionItem.class ).add( ValidationRule.class ).build();
+    public static final Set<Class<? extends IdentifiableObject>> DATA_DIMENSION_CLASSES = ImmutableSet
+        .<Class<? extends IdentifiableObject>> builder()
+        .add( Indicator.class )
+        .add( DataElement.class )
+        .add( DataElementOperand.class )
+        .add( ReportingRate.class )
+        .add( ProgramIndicator.class )
+        .add( ProgramDataElementDimensionItem.class )
+        .add( ProgramTrackedEntityAttributeDimensionItem.class )
+        .add( ValidationRule.class )
+        .build();
 
-    public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = ImmutableMap.<DataDimensionItemType, Class<? extends NameableObject>>builder().
-        put( DataDimensionItemType.INDICATOR, Indicator.class ).put( DataDimensionItemType.DATA_ELEMENT, DataElement.class ).
-        put( DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class ).put( DataDimensionItemType.REPORTING_RATE, ReportingRate.class ).
-        put( DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class ).put( DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class ).
-        put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class ).put( DataDimensionItemType.VALIDATION_RULE, ValidationRule.class).build();
+    public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = ImmutableMap
+        .<DataDimensionItemType, Class<? extends NameableObject>> builder()
+        .put( DataDimensionItemType.INDICATOR, Indicator.class )
+        .put( DataDimensionItemType.DATA_ELEMENT, DataElement.class )
+        .put( DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class )
+        .put( DataDimensionItemType.REPORTING_RATE, ReportingRate.class )
+        .put( DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class )
+        .put( DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class )
+        .put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class )
+        .put( DataDimensionItemType.VALIDATION_RULE, ValidationRule.class )
+        .build();
 
     private int id;
 
@@ -88,6 +106,37 @@ public class DataDimensionItem
 
     public DataDimensionItem()
     {
+    }
+
+    public static List<DataDimensionItem> createWithDependencies( DimensionalItemObject object,
+        List<DataDimensionItem> items )
+    {
+
+        if ( DataElement.class.isAssignableFrom( object.getClass() ) )
+        {
+            DataDimensionItem dimension = new DataDimensionItem();
+            DataElement dataElement = (DataElement) object;
+            dimension.setDataElement( dataElement );
+
+            List<DataDimensionItem> dataElementOperands = items
+                .stream()
+                .filter( ddi -> ddi.getDataElementOperand() != null )
+                .filter( ddi -> ddi.getDataElementOperand().getDataElement().getUid().equals( dataElement.getUid() ) )
+                .collect( Collectors.toList() );
+
+            List<DataDimensionItem> programDataElements = items
+                .stream()
+                .filter( ddi -> ddi.getProgramDataElement() != null )
+                .filter( ddi -> ddi.getProgramDataElement().getDataElement().getUid().equals( dataElement.getUid() ) )
+                .collect( Collectors.toList() );
+
+            List<DataDimensionItem> dimensions = Lists.newArrayList( dimension );
+            dimensions.addAll( dataElementOperands );
+            dimensions.addAll( programDataElements );
+            return dimensions;
+        }
+
+        return Lists.newArrayList( create( object ) );
     }
 
     public static DataDimensionItem create( DimensionalItemObject object )
@@ -124,7 +173,8 @@ public class DataDimensionItem
         }
         else
         {
-            throw new IllegalArgumentException( "Not a valid data dimension: " + object.getClass().getSimpleName() + ", " + object );
+            throw new IllegalArgumentException(
+                "Not a valid data dimension: " + object.getClass().getSimpleName() + ", " + object );
         }
 
         return dimension;

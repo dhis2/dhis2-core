@@ -60,25 +60,21 @@ public class HibernateListenerConfigurer
     private EntityManagerFactory emf;
 
     private final PostInsertAuditListener postInsertAuditListener;
-    private final PostUpdateEventListener postUpdateEventListener;
-    private final PostDeleteEventListener postDeleteEventListener;
-    private final PostLoadEventListener postLoadEventListener;
+    private final PostUpdateAuditListener postUpdateEventListener;
+    private final PostDeleteAuditListener postDeleteEventListener;
 
     public HibernateListenerConfigurer(
         PostInsertAuditListener postInsertAuditListener,
-        PostUpdateEventListener postUpdateEventListener,
-        PostDeleteEventListener postDeleteEventListener,
-        PostLoadEventListener postLoadEventListener )
+        PostUpdateAuditListener postUpdateEventListener,
+        PostDeleteAuditListener postDeleteEventListener )
     {
         checkNotNull( postDeleteEventListener );
         checkNotNull( postUpdateEventListener );
         checkNotNull( postInsertAuditListener );
-        checkNotNull( postLoadEventListener );
 
         this.postInsertAuditListener = postInsertAuditListener;
         this.postUpdateEventListener = postUpdateEventListener;
         this.postDeleteEventListener = postDeleteEventListener;
-        this.postLoadEventListener = postLoadEventListener;
     }
 
     @PostConstruct
@@ -94,6 +90,5 @@ public class HibernateListenerConfigurer
 
         registry.getEventListenerGroup( EventType.POST_DELETE ).appendListener( postDeleteEventListener );
 
-        registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
     }
 }

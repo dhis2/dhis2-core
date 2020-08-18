@@ -29,14 +29,18 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
+import org.hisp.dhis.common.adapter.SectionRenderTypeDeserialize;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -49,11 +53,9 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "programSection", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramSection
-    extends BaseIdentifiableObject
+    extends BaseNameableObject
     implements MetadataObject
 {
-    private String description;
-
     private Program program;
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<TrackedEntityAttribute>();
@@ -61,8 +63,6 @@ public class ProgramSection
     private Integer sortOrder;
 
     private ObjectStyle style;
-
-    private String formName;
 
     /**
      * The renderType defines how the ProgramStageSection should be rendered on the client
@@ -92,18 +92,6 @@ public class ProgramSection
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -158,18 +146,8 @@ public class ProgramSection
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( using = DeviceRenderTypeMapSerializer.class )
+    @JsonDeserialize( using = SectionRenderTypeDeserialize.class )
     public DeviceRenderTypeMap<SectionRenderingObject> getRenderType()
     {
         return renderType;

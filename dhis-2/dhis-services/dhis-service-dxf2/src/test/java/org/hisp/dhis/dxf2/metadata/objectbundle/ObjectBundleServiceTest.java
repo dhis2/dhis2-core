@@ -180,19 +180,19 @@ public class ObjectBundleServiceTest
 
                 for ( ErrorReport errorReport : errorReports )
                 {
-                    assertTrue( PreheatErrorReport.class.isInstance( errorReport ) );
+                    assertTrue( errorReport instanceof PreheatErrorReport );
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
                     {
                         assertEquals( "p0KPaWEg3cf", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( User.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof User )
                     {
                         assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( OptionSet.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
                     {
                         assertEquals( "pQYCiuosBnZ", preheatErrorReport.getObjectReference().getUid() );
                     }
@@ -238,21 +238,21 @@ public class ObjectBundleServiceTest
 
                 for ( ErrorReport errorReport : errorReports )
                 {
-                    assertTrue( PreheatErrorReport.class.isInstance( errorReport ) );
+                    assertTrue( errorReport instanceof PreheatErrorReport );
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
                     {
-                        assertFalse( true );
+                        fail();
                     }
-                    else if ( User.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof User )
                     {
                         assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( OptionSet.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
                     {
-                        assertFalse( true );
+                        fail();
                     }
                 }
             }
@@ -1124,6 +1124,46 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    public void testCreateMetadataWithInvalidExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_invalid_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "leftSide.description", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4001, validate.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void testUpdateMetadataWithMissingExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_missing_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "rightSide", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4000, validate.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
     public void testCreateAndUpdateMetadata1() throws IOException
     {
         defaultSetup();
@@ -1557,6 +1597,92 @@ public class ObjectBundleServiceTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
+    }
+
+    @Test
+    public void testCreateUpdateOrgUnitUsingCODE() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+        assertNotNull( organisationUnits.get( 0 ).getUid() );
+
+        String objectUid = organisationUnits.get( 0 ).getUid();
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+        assertEquals( objectUid, organisationUnits.get( 0 ).getUid() );
+    }
+
+    @Test
+    public void testCreateOrUpdateOrgUnitUsingCODE() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+        assertNotNull( organisationUnits.get( 0 ).getUid() );
+
+        String objectUid = organisationUnits.get( 0 ).getUid();
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+        assertEquals( objectUid, organisationUnits.get( 0 ).getUid() );
     }
 
     private void defaultSetup()

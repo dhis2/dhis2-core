@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -76,6 +77,8 @@ public interface ProgramInstanceService
      */
     void updateProgramInstance( ProgramInstance programInstance );
 
+    void updateProgramInstance( ProgramInstance programInstance, User user );
+
     /**
      * Returns a {@link ProgramInstance}.
      *
@@ -83,7 +86,7 @@ public interface ProgramInstanceService
      * @return the ProgramInstance with the given id
      */
     ProgramInstance getProgramInstance( long id );
-    
+
     /**
      * Returns the {@link ProgramInstance} with the given UID.
      *

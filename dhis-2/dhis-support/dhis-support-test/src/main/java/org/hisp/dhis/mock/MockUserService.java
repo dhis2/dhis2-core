@@ -180,6 +180,21 @@ public class MockUserService implements UserService
     }
 
     @Override
+    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    {
+        for ( User user : users )
+        {
+            if ( user.getUsername().equals( username ) )
+            {
+                UserCredentials userCredentials = user.getUserCredentials();
+                userCredentials.getAllAuthorities();
+                return userCredentials;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
         return null;
@@ -313,6 +328,11 @@ public class MockUserService implements UserService
 
     @Override
     public void set2FA( User user, Boolean twoFA )
+    {
+    }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
     {
     }
 }

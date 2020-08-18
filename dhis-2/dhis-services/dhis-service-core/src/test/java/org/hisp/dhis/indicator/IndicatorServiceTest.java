@@ -33,9 +33,20 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingKey;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,6 +59,24 @@ public class IndicatorServiceTest
 {
     @Autowired
     private IndicatorService indicatorService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
+    private UserService injectUserService;
+
+    @Autowired
+    private IdentifiableObjectManager identifiableObjectManager;
+
+    private User user;
+
+    @Override
+    public void setUpTest()
+    {
+        this.userService = injectUserService;
+        user = createUserAndInjectSecurityContext( true );
+    }
 
     // -------------------------------------------------------------------------
     // Support methods
@@ -304,5 +333,38 @@ public class IndicatorServiceTest
         assertEquals( indicators.size(), 2 );
         assertTrue( indicators.contains( indicatorA ) );
         assertTrue( indicators.contains( indicatorB ) );
+    }
+
+    @Test
+    public void testNumeratorTranslation()
+    {
+        Locale locale = Locale.FRENCH;
+        UserContext.setUser( user );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+
+        IndicatorType type = new IndicatorType( "IndicatorType", 100, false );
+
+        indicatorService.addIndicatorType( type );
+
+        Indicator indicatorA = createIndicator( 'A', type );
+        indicatorA.setNumeratorDescription( "Numerator description" );
+        indicatorA.setDenominatorDescription( "Denominator description" );
+
+        long idA = indicatorService.addIndicator( indicatorA );
+
+        indicatorA = indicatorService.getIndicator( idA );
+
+        String numeratorTranslated = "Numerator description translated";
+        String denominatorTranslated = "Denominator description translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( indicatorA.getTranslations() );
+
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NUMERATOR_DESCRIPTION, numeratorTranslated ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.DENOMINATOR_DESCRIPTION, denominatorTranslated ) );
+
+        identifiableObjectManager.updateTranslations( indicatorA, listObjectTranslation );
+
+        assertEquals( numeratorTranslated, indicatorA.getDisplayNumeratorDescription() );
+        assertEquals( denominatorTranslated, indicatorA.getDisplayDenominatorDescription() );
     }
 }

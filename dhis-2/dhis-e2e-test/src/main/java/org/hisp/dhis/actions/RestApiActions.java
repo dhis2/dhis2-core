@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +28,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
+import java.io.File;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
+import org.hisp.dhis.dto.ObjectReport;
 
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
@@ -111,7 +123,7 @@ public class RestApiActions
      * Shortcut used in preconditions only.
      * Sends post request to specified endpoint and verifies that request was successful
      *
-     * @param object Body of reqeuest
+     * @param object Body of request
      * @return ID of generated entity.
      */
     public String create( Object object )
@@ -119,7 +131,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode( Matchers.isOneOf( 200, 201 ) );
+            .statusCode(  is(oneOf( 200, 201 ) ) );
 
         return response.extractUid();
     }
@@ -164,12 +176,13 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
+
+
     /**
      * Sends delete request to specified resource.
      * If delete request successful, removes entity from TestRunStorage.
      *
      * @param path Id of resource
-     * @return
      */
     public ApiResponse delete( String path )
     {
@@ -232,9 +245,8 @@ public class RestApiActions
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
-            importSummaries.forEach( importSummary -> {
-                TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() );
-            } );
+            importSummaries
+                .forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ) );
             return;
         }
 
@@ -242,9 +254,8 @@ public class RestApiActions
         {
             SchemasActions schemasActions = new SchemasActions();
             response.getTypeReports().stream()
-                .filter( typeReport -> {
-                    return typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0;
-                } )
+                .filter(
+                    typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0 )
                 .forEach( tr -> {
                     List<ObjectReport> objectReports = tr.getObjectReports();
 
@@ -266,7 +277,6 @@ public class RestApiActions
         {
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
-
     }
 }
 

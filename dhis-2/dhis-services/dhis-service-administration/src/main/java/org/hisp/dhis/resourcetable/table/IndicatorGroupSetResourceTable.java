@@ -60,13 +60,15 @@ public class IndicatorGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
-            "indicatorid integer not null, " +
+            "indicatorid bigint not null, " +
             "indicatorname varchar(230), ";
 
         for ( IndicatorGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueName( groupSet.getName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

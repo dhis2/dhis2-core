@@ -50,6 +50,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -61,15 +62,9 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -190,7 +185,7 @@ public class HibernateTrackedEntityInstanceStore
             }
 
             hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
-            
+
             hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
 
             if ( params.hasProgramStatus() )
@@ -279,9 +274,10 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
+        params.handleOrganisationUnits();
+
         if ( params.hasOrganisationUnits() )
         {
-            params.handleOrganisationUnits();
 
             if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
             {
@@ -583,7 +579,15 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntityType() )
+        if ( !params.hasTrackedEntityType() )
+        {
+            sql += hlp.whereAnd() + " tei.trackedentitytypeid in (" + params.getTrackedEntityTypes().stream()
+                .filter( Objects::nonNull )
+                .map( TrackedEntityType::getId )
+                .map( String::valueOf )
+                .collect( Collectors.joining(", ") ) + ") ";
+        }
+        else
         {
             sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }

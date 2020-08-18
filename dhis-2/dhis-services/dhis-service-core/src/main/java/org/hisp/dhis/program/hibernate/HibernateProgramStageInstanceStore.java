@@ -52,6 +52,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -126,15 +127,31 @@ public class HibernateProgramStageInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programstageinstance where uid=? and deleted is false)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programstageinstance where uid=?)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override

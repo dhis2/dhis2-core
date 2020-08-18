@@ -966,6 +966,21 @@ public abstract class DhisConvenienceTest
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
+        return createDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo, value, false );
+    }
+
+    /**
+     * @param dataElement          The data element.
+     * @param period               The period.
+     * @param source               The source.
+     * @param value                The value.
+     * @param categoryOptionCombo  The category option combo.
+     * @param attributeOptionCombo The attribute option combo.
+     * @param deleted              Whether the data valeu is deleted.
+     */
+    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value, boolean deleted )
+    {
         DataValue dataValue = new DataValue();
 
         dataValue.setDataElement( dataElement );
@@ -978,6 +993,7 @@ public abstract class DhisConvenienceTest
         dataValue.setStoredBy( "StoredBy" );
         dataValue.setCreated( new Date() );
         dataValue.setLastUpdated( new Date() );
+        dataValue.setDeleted( deleted );
 
         return dataValue;
     }
@@ -1235,6 +1251,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
+        credentials.setUser( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -2040,6 +2057,24 @@ public abstract class DhisConvenienceTest
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, boolean allAuth, String... auths )
     {
+        return createUserAndInjectSecurityContext( organisationUnits, dataViewOrganisationUnits, null, allAuth, auths );
+    }
+
+    /**
+     * Creates a user and injects into the security context with username
+     * "username". Requires <code>identifiableObjectManager</code> and
+     * <code>userService</code> to be injected into the test.
+     *
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
+     * @param catDimensionConstraints the category dimension constraints of the user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
+     * @return the user.
+     */
+    protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, Set<Category> catDimensionConstraints, boolean allAuth, String... auths )
+    {
         Assert.notNull( userService, "UserService must be injected in test" );
 
         Set<String> authorities = new HashSet<>();
@@ -2070,6 +2105,11 @@ public abstract class DhisConvenienceTest
         if ( dataViewOrganisationUnits != null )
         {
             user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+        }
+
+        if ( catDimensionConstraints != null )
+        {
+            user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         }
 
         user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );

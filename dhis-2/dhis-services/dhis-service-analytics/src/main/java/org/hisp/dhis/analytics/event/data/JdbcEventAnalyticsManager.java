@@ -100,9 +100,9 @@ public class JdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
 
-    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                     ProgramIndicatorService programIndicatorService,
-                                     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+        ProgramIndicatorService programIndicatorService,
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
@@ -258,6 +258,7 @@ public class JdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
+    @Override
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
@@ -400,10 +401,12 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
+        // Apply pre-authorized dimensions filtering
         for ( DimensionalObject dim : dynamicDimensions )
         {
             String col = quoteAlias( dim.getDimensionName() );
-            sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + col + " in ("
+                + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -590,6 +593,7 @@ public class JdbcEventAnalyticsManager
         return cols;
     }
 
+    @Override
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.EVENT;

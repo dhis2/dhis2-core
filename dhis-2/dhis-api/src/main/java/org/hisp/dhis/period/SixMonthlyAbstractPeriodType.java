@@ -51,6 +51,8 @@ public abstract class SixMonthlyAbstractPeriodType
 
     public static final int FREQUENCY_ORDER = 182;
 
+    public static final String SQL_INTERVAL = "6 months";
+
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
@@ -86,6 +88,12 @@ public abstract class SixMonthlyAbstractPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
+    }
+
+    @Override
+    public String getSqlInterval()
+    {
+        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------
@@ -157,7 +165,7 @@ public abstract class SixMonthlyAbstractPeriodType
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
         DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
-        cal.minusMonths( dateTimeUnit, rewindedPeriods * 6 );
+        dateTimeUnit = cal.minusMonths( dateTimeUnit, rewindedPeriods * 6 );
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
     }

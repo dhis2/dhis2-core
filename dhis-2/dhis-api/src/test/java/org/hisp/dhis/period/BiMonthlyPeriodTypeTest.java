@@ -154,4 +154,14 @@ public class BiMonthlyPeriodTypeTest
         assertEquals( periodType.createPeriod( new DateTime( 2005, 9, 1, 0, 0 ).toDate() ), periods.get( 4 ) );
         assertEquals( periodType.createPeriod( new DateTime( 2005, 11, 1, 0, 0 ).toDate() ), periods.get( 5 ) );
     }
+
+    @Test
+    public void testGetRewindedDate()
+    {
+        assertEquals( new DateTime( 2020, 1, 5, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 7, 5, 0, 0 ).toDate(), 3 ) );
+
+        assertEquals( new DateTime( 2020, 10, 10, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 6, 10, 0, 0 ).toDate(), -2 ) );
+    }
 }

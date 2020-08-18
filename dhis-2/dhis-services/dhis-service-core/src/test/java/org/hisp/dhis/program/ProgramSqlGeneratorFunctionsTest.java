@@ -283,6 +283,13 @@ public class ProgramSqlGeneratorFunctionsTest
     }
 
     @Test
+    public void testHasValueProgramVariable()
+    {
+        String sql = test( "d2:hasValue(V{creation_date})" );
+        assertThat( sql, is( "(created is not null)" ) );
+    }
+
+    @Test
     public void testMinutesBetween()
     {
         String sql = test( "d2:minutesBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
@@ -293,8 +300,8 @@ public class ProgramSqlGeneratorFunctionsTest
     public void testMonthsBetween()
     {
         String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
-        assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date)))) * 12 +" +
-                "date_part('month',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date))))" ) );
+        assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\" as date)))) * 12 + " +
+                "date_part('month',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\" as date))))" ) );
     }
 
     @Test

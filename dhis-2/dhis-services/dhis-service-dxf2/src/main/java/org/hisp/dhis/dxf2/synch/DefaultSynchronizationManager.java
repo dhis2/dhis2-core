@@ -130,7 +130,7 @@ public class DefaultSynchronizationManager
         }
 
         String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL )
-            + "api/completeDataSetRegistrations";
+            + SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS.getPath();
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 

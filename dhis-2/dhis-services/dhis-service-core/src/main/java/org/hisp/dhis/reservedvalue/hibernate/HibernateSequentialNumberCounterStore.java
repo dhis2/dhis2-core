@@ -33,6 +33,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,26 +59,18 @@ public class HibernateSequentialNumberCounterStore
     {
         Session session = sessionFactory.getCurrentSession();
 
-        int count;
+        int count = (int) session.createNativeQuery( "SELECT * FROM incrementSequentialCounter(?0, ?1, ?2)" )
+            .setParameter( 0, uid )
+            .setParameter( 1, key )
+            .setParameter( 2, length )
+            .uniqueResult();
 
-        SequentialNumberCounter counter = (SequentialNumberCounter) session
-            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ? AND key = ?" ).setParameter( 0, uid )
-            .setParameter( 1, key ).uniqueResult();
-
-        if ( counter == null )
-        {
-            counter = new SequentialNumberCounter( uid, key, 1 );
-        }
-
-        count = counter.getCounter();
-        counter.setCounter( count + length );
-        session.saveOrUpdate( counter );
-
-        return IntStream.range( count, count + length ).boxed().collect( Collectors.toList() );
+        return IntStream.range( count - length, length + (count - length) ).boxed().collect( Collectors.toList() );
 
     }
 
     @Override
+    @Transactional
     public void deleteCounter( String uid )
     {
         sessionFactory.getCurrentSession().createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )

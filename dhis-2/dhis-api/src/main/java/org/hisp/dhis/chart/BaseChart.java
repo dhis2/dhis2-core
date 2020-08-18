@@ -334,6 +334,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -358,6 +359,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -430,6 +432,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -442,7 +445,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = Integer.MIN_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;

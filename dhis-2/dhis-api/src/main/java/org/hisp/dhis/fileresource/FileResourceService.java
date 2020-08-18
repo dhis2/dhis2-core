@@ -57,6 +57,14 @@ public interface FileResourceService
 
     InputStream getFileResourceContent( FileResource fileResource );
 
+    /**
+     * Copy fileResource content to outputStream and Return File content length
+     * @param fileResource
+     * @param outputStream
+     * @return
+     * @throws IOException
+     * @throws NoSuchElementException
+     */
     void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException;
 
@@ -71,4 +79,6 @@ public interface FileResourceService
     List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
 
     List<FileResource> getAllUnProcessedImagesFiles();
+
+    long getFileResourceContentLength( FileResource fileResource );
 }

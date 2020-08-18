@@ -32,6 +32,23 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -40,7 +57,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -79,6 +95,7 @@ import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
@@ -99,6 +116,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,18 +131,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -134,6 +140,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
     protected static final String DEFAULTS = "INCLUDE";
+
+    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
+        .build();
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -200,7 +210,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, HttpServletRequest request, User currentUser ) throws QueryParserException
+        HttpServletResponse response, User currentUser ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
@@ -220,17 +230,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         List<T> entities = getEntityList( metadata, options, filters, orders );
+
         Pager pager = metadata.getPager();
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), entities.size(), options.getPageSize() );
-            entities = PagerUtils.pageCollection( entities, pager );
+            long count;
+            if ( options.getOptions().containsKey( "query" ) )
+            {
+                count = entities.size();
+                entities = entities.stream().skip( (options.getPage() - 1) * options.getPageSize() ).limit( options.getPageSize() ).collect( Collectors.toList() );
+            }
+            else
+            {
+                count = paginationCountCache.computeIfAbsent(
+                    calculatePaginationCountKey( currentUser, filters, options ),
+                    () -> count( options, filters, orders ) );
+            }
+            
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         postProcessResponseEntities( entities, options, rpParameters );
 
-        handleLinksAndAccess( entities, fields, false, currentUser );
+        handleLinksAndAccess( entities, fields, false );
 
         handleAttributeValues( entities, fields );
 
@@ -283,7 +306,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletResponse response ) throws Exception
     {
         User user = currentUserService.getCurrentUser();
 
@@ -395,7 +418,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
         List<T> entities = getEntity( pvUid, options );
@@ -439,7 +462,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
 
@@ -495,14 +518,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
         }
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
+            getPaginationData( options ), options.getRootJunction() );
         query.setUser( user );
         query.setObjects( entities );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         entities = (List<T>) queryService.query( query );
 
-        handleLinksAndAccess( entities, fields, true, user );
+        handleLinksAndAccess( entities, fields, true );
 
         handleAttributeValues( entities, fields );
 
@@ -600,7 +624,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        T parsed = deserializeXmlEntity( request, response );
+        T parsed = deserializeXmlEntity( request );
         parsed.getTranslations().clear();
 
         preCreateEntity( parsed );
@@ -765,7 +789,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T parsed = deserializeXmlEntity( request, response );
+        T parsed = deserializeXmlEntity( request );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
 
         preUpdateEntity( objects.get( 0 ), parsed );
@@ -893,7 +917,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         @PathVariable( "itemId" ) String pvItemId,
         @RequestParam Map<String, String> parameters,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletResponse response ) throws Exception
     {
         User user = currentUserService.getCurrentUser();
         setUserContext( user, translateParams );
@@ -937,7 +961,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
@@ -950,7 +974,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
@@ -963,7 +987,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
@@ -976,7 +1000,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
@@ -990,7 +1014,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
@@ -1007,7 +1031,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
@@ -1019,7 +1043,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
@@ -1032,7 +1056,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
@@ -1054,7 +1078,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return renderService.fromJson( request.getInputStream(), getEntityClass() );
     }
 
-    protected T deserializeXmlEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected T deserializeXmlEntity( HttpServletRequest request) throws IOException
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
     }
@@ -1129,12 +1153,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
+    protected Pagination getPaginationData(WebOptions options )
+    {
+        return PaginationUtils.getPaginationData( options );
+    } 
+    
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
     {
         List<T> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1148,6 +1177,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return entityList;
+    }
+
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
+    {
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction() );
+        return queryService.count( query );
     }
 
     private List<T> getEntity( String uid )
@@ -1206,7 +1242,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return fieldsContains( "access", fields );
     }
 
-    protected void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep, User user )
+    protected void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep )
     {
         boolean generateLinks = hasHref( fields );
 
@@ -1401,5 +1437,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return entitySimpleName;
+    }
+
+    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name();
     }
 }

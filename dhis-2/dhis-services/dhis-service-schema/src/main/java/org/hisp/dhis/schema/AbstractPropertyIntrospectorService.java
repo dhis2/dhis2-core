@@ -280,19 +280,19 @@ public abstract class AbstractPropertyIntrospectorService
                 }
                 else if (type instanceof IntegerType)
                 {
-                    property.setMin( 0d );
+                    property.setMin( (double) Integer.MIN_VALUE );
                     property.setMax( (double) Integer.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
                 else if (type instanceof LongType)
                 {
-                    property.setMin( 0d );
+                    property.setMin( (double) Long.MIN_VALUE );
                     property.setMax( (double) Long.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
                 else if (type instanceof DoubleType)
                 {
-                    property.setMin( 0d );
+                    property.setMin( -Double.MAX_VALUE );
                     property.setMax( Double.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }

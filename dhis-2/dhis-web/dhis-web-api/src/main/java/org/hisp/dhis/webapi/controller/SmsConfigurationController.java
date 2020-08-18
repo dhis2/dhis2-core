@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
+import org.hisp.dhis.sms.config.GenericHttpGetGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
@@ -80,7 +80,7 @@ public class SmsConfigurationController
     {
         SmsConfiguration smsConfiguration = new SmsConfiguration();
 
-        SmsGatewayConfig gatewayConfig = new GenericHttpGatewayConfig();
+        SmsGatewayConfig gatewayConfig = new GenericHttpGetGatewayConfig();
         gatewayConfig.setUrlTemplate( "http://storset.org/" );
         smsConfiguration.setGateways( Collections.singletonList( gatewayConfig ) );
 

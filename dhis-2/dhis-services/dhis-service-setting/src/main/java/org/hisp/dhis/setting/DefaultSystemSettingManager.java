@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,10 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,16 +43,15 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.system.util.SerializableOptional;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.core.env.Environment;
-import com.google.common.collect.Lists;
+import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -69,12 +65,12 @@ public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-            SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache<Serializable> settingCache;
+    private Cache<SerializableOptional> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -84,8 +80,6 @@ public class DefaultSystemSettingManager
 
     private SystemSettingStore systemSettingStore;
 
-    private TransactionTemplate transactionTemplate;
-
     private PBEStringEncryptor pbeStringEncryptor;
 
     private CacheProvider cacheProvider;
@@ -94,19 +88,17 @@ public class DefaultSystemSettingManager
 
     private List<String> flags;
 
-    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, TransactionTemplate transactionTemplate,
+    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
         Environment environment, List<String> flags )
     {
         checkNotNull( systemSettingStore );
-        checkNotNull( transactionTemplate );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
         checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
-        this.transactionTemplate = transactionTemplate;
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
@@ -120,7 +112,8 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
+        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
+            .forRegion( "systemSetting" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
     }
@@ -161,6 +154,32 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
+    public void saveSystemSettingTranslation( SettingKey key, String locale, String translation )
+    {
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
+        if ( setting == null && !translation.isEmpty() )
+        {
+            throw new IllegalStateException( "No entry found for key: " + key );
+        }
+        else if ( setting != null )
+        {
+            if ( translation.isEmpty() )
+            {
+                setting.getTranslations().remove( locale );
+            }
+            else
+            {
+                setting.getTranslations().put( locale, translation );
+            }
+
+            settingCache.invalidate( key.getName() );
+            systemSettingStore.update( setting );
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteSystemSetting( SettingKey key )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
@@ -174,39 +193,41 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getSystemSettingOptional} on cache miss.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key )
     {
-        Optional<Serializable> value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, key.getDefaultValue() ).orElse( null ) );
+        SerializableOptional value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, key.getDefaultValue() ) ).get();
 
-        return value.orElse( null );
+        return value.get();
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getSystemSettingOptional}.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
-        return getSystemSettingOptional( key.getName(), defaultValue ).orElse( null );
+        SerializableOptional value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, defaultValue ) ).get();
+
+        return value.get();
     }
 
     /**
-     * Get system setting optional. The database call is executed in a
-     * programmatic transaction.
+     * Get system setting optional.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
      * @return an optional system setting value.
      */
-    private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
+    private SerializableOptional getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
+        SystemSetting setting = systemSettingStore.getByNameTx( name );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -214,23 +235,37 @@ public class DefaultSystemSettingManager
             {
                 try
                 {
-                    return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getValue() ) );
+                    return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getValue() ) );
                 }
                 catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
-                    return Optional.empty();
+                    return SerializableOptional.empty();
                 }
             }
             else
             {
-                return Optional.of( setting.getValue() );
+                return SerializableOptional.of( setting.getValue() );
             }
         }
         else
         {
-            return Optional.ofNullable( defaultValue );
+            return SerializableOptional.of( defaultValue );
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
+    {
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
+        if ( setting != null )
+        {
+            return setting.getTranslation( locale );
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -407,5 +442,11 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean isTranslatable( final String name )
+    {
+        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
     }
 }

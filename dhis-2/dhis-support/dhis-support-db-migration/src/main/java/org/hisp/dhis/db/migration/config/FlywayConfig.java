@@ -32,12 +32,15 @@ import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.hisp.dhis.db.migration.helper.NoOpFlyway;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
+
+import java.util.HashMap;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_OUT_OF_ORDER_MIGRATION;
 
@@ -64,6 +67,13 @@ public class FlywayConfig
         classicConfiguration.setIgnoreFutureMigrations( false );
         classicConfiguration.setGroup( false );
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
+
+        /*
+         * This placeHolder is to be used by V2_33_26__Fix_encryption_issue_for_TEI_attributeValues
+         */
+        HashMap<String, String> placeHolders = new HashMap<>();
+        placeHolders.put( "encryption.password", configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ) );
+        classicConfiguration.setPlaceholders( placeHolders );
 
         return new Flyway( classicConfiguration );
 

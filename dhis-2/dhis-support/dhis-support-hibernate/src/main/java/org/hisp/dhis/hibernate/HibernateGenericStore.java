@@ -51,7 +51,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,11 +72,16 @@ public class HibernateGenericStore<T>
 
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+    protected static final int OBJECT_FETCH_SIZE = 2000;
 
     protected SessionFactory sessionFactory;
+
     protected JdbcTemplate jdbcTemplate;
+
     protected ApplicationEventPublisher publisher;
+
     protected Class<T> clazz;
+
     protected boolean cacheable;
 
     public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
@@ -481,6 +492,28 @@ public class HibernateGenericStore<T>
         List<String> result = getSession().createQuery( query ).list();
 
         return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+    }
+
+    @Override
+    public long countAllValuesByAttributes( List<Attribute> attributes )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
+        Root<T> root = query.from( getClazz() );
+        query.select( builder.countDistinct( root ) );
+
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute ->
+                builder.isNotNull(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                        builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
+
+        return getSession().createQuery( query )
+            .getSingleResult();
     }
 
     @Override

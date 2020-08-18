@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -44,15 +45,12 @@ import org.hisp.dhis.schema.annotation.Property;
  */
 @JacksonXmlRootElement( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
 public class Option
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     private OptionSet optionSet;
     
     private Integer sortOrder;
-
-    private String description;
-
-    private String formName;
 
     private ObjectStyle style;
 
@@ -128,29 +126,5 @@ public class Option
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
     }
 }

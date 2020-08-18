@@ -59,7 +59,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -133,13 +132,6 @@ public class DataQueryParams
 
     public static final int DX_INDEX = 0;
     public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
-
-    /**
-     * @see {@link org.hisp.dhis.expression.ExpressionService}
-     * @see "/dhis-2/dhis-support/dhis-support-expression-parser/src/main/antlr4/org/hisp
-     *          /dhis/parser/expression/antlr/Expression.g4"
-     */
-    private static final String NESTED_INDICATOR_PREFIX = "N{";
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of(
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, Category.class );
@@ -412,12 +404,6 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
-    /**
-     * Holds a list of {@see DimensionalItemObject} resolved during expression evaluation.
-     * The Set is used to detect cyclic dependency between items
-     */
-    protected transient Set<DimensionalItemObject> resolvedExpressionItems = new HashSet<>();
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -507,7 +493,6 @@ public class DataQueryParams
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
-        params.resolvedExpressionItems = this.resolvedExpressionItems;
         return params;
     }
 
@@ -518,38 +503,38 @@ public class DataQueryParams
     {
         QueryKey key = new QueryKey();
 
-        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        dimensions.forEach( e -> key.add( "dimension", "[" + e.getKey() + "]" ) );
+        filters.forEach( e -> key.add( "filter", "[" + e.getKey() + "]" ) );
 
-        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
-        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+        measureCriteria.forEach( ( k, v ) -> key.add( "measureCriteria", ( String.valueOf( k ) + v ) ) );
+        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( "preAggregateMeasureCriteria", ( String.valueOf( k ) + v ) ) );
 
         return key
-            .add( aggregationType )
-            .add( skipMeta )
-            .add( skipData )
-            .add( skipHeaders )
-            .add( skipRounding )
-            .add( completedOnly )
-            .add( hierarchyMeta )
-            .add( ignoreLimit )
-            .add( hideEmptyRows )
-            .add( hideEmptyColumns )
-            .add( showHierarchy )
-            .add( includeNumDen )
-            .add( includePeriodStartEndDates )
-            .add( includeMetadataDetails )
-            .add( displayProperty )
-            .add( outputIdScheme )
-            .add( outputFormat )
-            .add( duplicatesOnly )
-            .add( approvalLevel )
-            .add( startDate )
-            .add( endDate )
-            .add( order )
-            .add( timeField )
-            .add( orgUnitField )
-            .addIgnoreNull( apiVersion ).build();
+            .add( "aggregationType", aggregationType )
+            .add( "skipMeta", skipMeta )
+            .add( "skipData", skipData )
+            .add( "skipHeaders", skipHeaders )
+            .add( "skipRounding", skipRounding )
+            .add( "completedOnly", completedOnly )
+            .add( "hierarchyMeta", hierarchyMeta )
+            .add( "ignoreLimit", ignoreLimit )
+            .add( "hideEmptyRows", hideEmptyRows )
+            .add( "hideEmptyColumns", hideEmptyColumns )
+            .add( "showHierarchy", showHierarchy )
+            .add( "includeNumDen", includeNumDen )
+            .add( "includePeriodStartEndDates", includePeriodStartEndDates )
+            .add( "includeMetadataDetails", includeMetadataDetails )
+            .add( "displayProperty", displayProperty )
+            .add( "outputIdScheme", outputIdScheme )
+            .add( "outputFormat", outputFormat )
+            .add( "duplicatesOnly", duplicatesOnly )
+            .add( "approvalLevel", approvalLevel )
+            .add( "startDate", startDate )
+            .add( "endDate", endDate )
+            .add( "order", order )
+            .add( "timeField", timeField )
+            .add( "orgUnitField", orgUnitField )
+            .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -942,6 +927,19 @@ public class DataQueryParams
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
 
         return index != -1 ? filters.get( index ) : null;
+    }
+
+    /**
+     * Retrieves the options for the given dimension and dimension type.
+     * Returns an empty list if the filtering options do not match any dimension.
+     */
+    public List<DimensionalItemObject> getFilterOptions( String filter, DataDimensionItemType dataDimensionItemType )
+    {
+        int index = filters.indexOf( new BaseDimensionalObject( filter ) );
+
+        return index != -1
+                ? AnalyticsUtils.getByDataDimensionItemType( dataDimensionItemType, filters.get( index ).getItems() )
+                : new ArrayList<>();
     }
 
     /**
@@ -1701,41 +1699,6 @@ public class DataQueryParams
         }
     }
 
-    public void addResolvedExpressionItem( DimensionalItemObject item)
-    {
-        if ( !resolvedExpressionItems.contains(item) )
-        {
-            resolvedExpressionItems.add(item);
-        }
-        else
-        {
-            checkForIndicatorCyclicReference(item);
-        }
-    }
-
-    private void checkForIndicatorCyclicReference( final DimensionalItemObject item )
-    {
-        final boolean isNestedIndicator = item instanceof Indicator
-            && (((Indicator) item).getNumerator().contains( NESTED_INDICATOR_PREFIX )
-                || ((Indicator) item).getDenominator().contains( NESTED_INDICATOR_PREFIX ));
-        if ( isNestedIndicator )
-        {
-            throw new CyclicReferenceException(
-                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item.",
-                    item.getDimensionItemType().name(), item.getUid() ) );
-        }
-    }
-
-    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
-    {
-        dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
-    }
-
-    public void removeResolvedExpressionItem( DimensionalItemObject item )
-    {
-        this.resolvedExpressionItems.remove( item );
-    }
-
     // -------------------------------------------------------------------------
     // Static methods
     // -------------------------------------------------------------------------
@@ -1765,9 +1728,9 @@ public class DataQueryParams
 
             String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
-            Double value = aggregatedDataMap.get( key );
+            Number number = aggregatedDataMap.get( key );
 
-            permutationMap.putEntry( permKey, dimItemObject, value );
+            permutationMap.putEntry( permKey, dimItemObject, number != null ? number.doubleValue() : null );
         }
 
         return permutationMap;
@@ -2461,6 +2424,7 @@ public class DataQueryParams
      * Builder for {@link DataQueryParams} instances.
      */
     public static class Builder
+        implements QueryParamsBuilder
     {
         private DataQueryParams params;
 
@@ -2474,6 +2438,7 @@ public class DataQueryParams
             this.params = query.instance();
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -2511,6 +2476,7 @@ public class DataQueryParams
             return this;
         }
 
+        @Override
         public Builder removeDimensionOrFilter( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
@@ -2645,6 +2611,7 @@ public class DataQueryParams
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );
@@ -2960,12 +2927,6 @@ public class DataQueryParams
         public Builder withPeriodDimensionWithoutOptions()
         {
             this.params.setPeriodDimensionWithoutOptions();
-            return this;
-        }
-
-        public Builder withResolvedExpressionItems( List<DimensionalItemObject> items )
-        {
-            this.params.addResolvedExpressionItems( items );
             return this;
         }
 

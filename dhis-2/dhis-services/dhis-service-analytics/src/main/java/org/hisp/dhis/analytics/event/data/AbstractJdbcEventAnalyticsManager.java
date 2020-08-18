@@ -48,6 +48,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -58,6 +59,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
@@ -145,19 +147,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " desc,";
-            }
+            sql += "order by " + getSortColumns( params, SortOrder.ASC ) + getSortColumns( params, SortOrder.DESC );
 
             sql = TextUtils.removeLastComma( sql ) + " ";
+        }
+
+        return sql;
+    }
+
+    private String getSortColumns(EventQueryParams params , SortOrder order) {
+
+        String sql = "";
+
+        for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
+        {
+            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() ) )
+            {
+                sql += quote( item.getUid() );
+            }
+            else
+            {
+                sql += quoteAlias( item.getUid() );
+            }
+            sql += order.equals( SortOrder.ASC ) ? " asc," : " desc,";
         }
 
         return sql;

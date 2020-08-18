@@ -264,12 +264,13 @@ public class DefaultPredictionService
         Set<String> nonAggregates = new HashSet<>();
         expressionService.getAggregatesAndNonAggregatesInExpression( generator.getExpression(), aggregates, nonAggregates );
         Map<String, Double> constantMap = constantService.getConstantMap();
-        Set<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
+        List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
-        outputPeriods = new HashSet<>( periodService.reloadPeriods( new ArrayList<>( outputPeriods ) ) );
-        ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
+        outputPeriods = periodService.reloadPeriods( outputPeriods );
+        Set<Period> outputPeriodSet = new HashSet<>( outputPeriods );
+        ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriodSet, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<Period> existingSamplePeriods = getExistingPeriods( allSamplePeriods );
+        Set<Period> existingSamplePeriods = getExistingPeriods(  new ArrayList<>( allSamplePeriods ) );
         Set<DimensionalItemObject> aggregateDimensionItems = getDimensionItems( aggregates, skipTest );
         Set<DimensionalItemObject> nonAggregateDimensionItems = getDimensionItems( nonAggregates, null );
         User currentUser = currentUserService.getCurrentUser();
@@ -282,6 +283,7 @@ public class DefaultPredictionService
         CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
             categoryService.getDefaultCategoryOptionCombo() : predictor.getOutputCombo();
 
+        DimensionalItemObject predictionReference = getPredictionReference( outputDataElement, outputOptionCombo, aggregateDimensionItems );
         Date now = new Date();
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         String storedBy = "system-process";
@@ -314,13 +316,14 @@ public class DefaultPredictionService
 
                 Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> nonAggregateDataMap4 =
                     nonAggregateDimensionItems.isEmpty() ? emptyMap4 :
-                        getDataValues( nonAggregateDimensionItems, outputPeriods, existingOutputPeriods, orgUnits );
+                        getDataValues( nonAggregateDimensionItems, outputPeriodSet, existingOutputPeriods, orgUnits );
 
                 List<DataValue> predictions = new ArrayList<>();
 
                 for ( OrganisationUnit orgUnit : orgUnits )
                 {
-                    MapMapMap<Period, String, DimensionalItemObject, Double> aggregateDataMap = aggregateDataMap4.get( orgUnit );
+                    MapMapMap<Period, String, DimensionalItemObject, Double> aggregateDataMap =
+                        firstNonNull( aggregateDataMap4.get( orgUnit ), new MapMapMap<>() ); // New Map because carryPredictionForward may add to it.
 
                     MapMapMap<Period, String, DimensionalItemObject, Double> nonAggregateDataMap =
                         firstNonNull( nonAggregateDataMap4.get( orgUnit ), emptyMapMapMap );
@@ -361,6 +364,8 @@ public class DefaultPredictionService
                             Double value = expressionService.getExpressionValueRegEx( generator, nonAggregateValueMap,
                                 constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
+                            carryPredictionForward( value, period, predictionReference, aoc, aggregateDataMap );
+
                             if ( value != null && !value.isNaN() && !value.isInfinite() &&
                                 !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
                             {
@@ -378,7 +383,7 @@ public class DefaultPredictionService
                 }
 
                 writePredictions( predictions, outputDataElement, outputOptionCombo,
-                    outputPeriods, existingOutputPeriods, orgUnits, storedBy, predictionSummary );
+                    outputPeriodSet, existingOutputPeriods, orgUnits, storedBy, predictionSummary );
             }
         }
     }
@@ -532,7 +537,7 @@ public class DefaultPredictionService
             {
                 MapMap<String, DimensionalItemObject, Double> periodData = dataMap.get( period );
 
-                for ( String aoc : periodData.keySet() )
+                for ( String aoc : new ArrayList<String>( periodData.keySet() ) )
                 {
                     Double testValue = expressionService.getExpressionValueRegEx( skipTest, periodData.get( aoc ),
                         constantMap, null, period.getDaysInPeriod() );
@@ -549,7 +554,7 @@ public class DefaultPredictionService
     /**
      * Returns all Periods of the specified PeriodType with start date after or
      * equal the specified start date and end date before or equal the specified
-     * end date.
+     * end date. Periods are returned in ascending date order.
      *
      * The periods returned do not need to be in the database.
      *
@@ -560,9 +565,9 @@ public class DefaultPredictionService
      *         specified start date and end date before or equal the specified
      *         end date, or an empty list if no Periods match.
      */
-    private Set<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
+    private List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
-        Set<Period> periods = new HashSet<>();
+        List<Period> periods = new ArrayList<>();
 
         Period period = periodType.createPeriod( startDate );
 
@@ -643,7 +648,7 @@ public class DefaultPredictionService
      * @param periods the periods to look for
      * @return the set of periods that exist, with ids.
      */
-    private Set<Period> getExistingPeriods( Set<Period> periods )
+    private Set<Period> getExistingPeriods( List<Period> periods )
     {
         Set<Period> existingPeriods = new HashSet<>();
 
@@ -658,6 +663,73 @@ public class DefaultPredictionService
             }
         }
         return existingPeriods;
+    }
+
+    /**
+     * Checks to see if the output predicted value should be used as input
+     * to subsequent (later period) predictions. If so, returns the
+     * DimensionalItemObject that should be updated with the predicted value.
+     *
+     * Note that we make the simplifying assumption that if the output data
+     * element is sampled in an expression without a catOptionCombo, the
+     * predicted data value will be used. This is usually what the user
+     * wants, but would break if the expression assumes a sum of
+     * catOptionCombos including the predicted value and other catOptionCombos.
+     *
+     * @param outputDataElement the data element to output predicted value to.
+     * @param outputOptionCombo the option combo to output predicted value to.
+     * @param aggregateDimensionItems the aggregate items used in future predictions.
+     * @return the DimensionalItemObject, if any, for the predicted value.
+     */
+    private DimensionalItemObject getPredictionReference( DataElement outputDataElement,
+        CategoryOptionCombo outputOptionCombo, Set<DimensionalItemObject> aggregateDimensionItems )
+    {
+        for ( DimensionalItemObject item : aggregateDimensionItems )
+        {
+            if ( item == outputDataElement )
+            {
+                return item;
+            }
+
+            if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND
+                && ( (DataElementOperand) item ).getDataElement() == outputDataElement
+                && ( (DataElementOperand) item ).getCategoryOptionCombo() == outputOptionCombo )
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * If the predicted value might be used in a future period prediction,
+     * insert it into the period value map.
+     *
+     * @param value the predicted value.
+     * @param period the period the value is predicted for.
+     * @param predictionReference the item for the prediction, if any.
+     * @param aoc attribute option combo for the predicted value.
+     * @param aggregateDataMap the aggregate values data map.
+     */
+    private void carryPredictionForward( Double value, Period period,
+        DimensionalItemObject predictionReference, String aoc,
+        MapMapMap<Period, String, DimensionalItemObject, Double> aggregateDataMap )
+    {
+        if ( value == null || predictionReference == null )
+        {
+            return;
+        }
+
+        MapMap<String, DimensionalItemObject, Double> aocValueMap = aggregateDataMap.get( period );
+
+        if ( aocValueMap == null )
+        {
+            aocValueMap = new MapMap<>();
+            aggregateDataMap.put( period, aocValueMap );
+        }
+
+        aocValueMap.putEntry( aoc, predictionReference, value );
     }
 
     /**
@@ -851,7 +923,7 @@ public class DefaultPredictionService
             String dx = (String) row.get( dxInx );
             String ou = (String) row.get( ouInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
-            Double vl = (Double) row.get( vlInx );
+            Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
 
             Period period = periodLookup.get( pe );
             DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
@@ -883,6 +955,7 @@ public class DefaultPredictionService
         params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
         params.setPeriods( periods );
         params.setOrganisationUnits( new HashSet<>( orgUnits ) );
+        params.setIncludeDeleted( true );
 
         List<DeflatedDataValue> oldValueList = dataValueService.getDeflatedDataValues( params );
 
@@ -925,7 +998,7 @@ public class DefaultPredictionService
             }
             else
             {
-                if ( newValue.getValue().equals( oldValue.getValue() ) )
+                if ( newValue.getValue().equals( oldValue.getValue() ) && !oldValue.isDeleted() )
                 {
                     summary.incrementUnchanged();
                 }

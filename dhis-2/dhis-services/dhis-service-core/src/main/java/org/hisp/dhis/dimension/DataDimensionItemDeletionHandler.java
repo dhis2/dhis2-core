@@ -28,13 +28,13 @@ package org.hisp.dhis.dimension;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -68,7 +68,8 @@ public class DataDimensionItemDeletionHandler
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid=" + optionCombo.getId();
+        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid="
+            + optionCombo.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }

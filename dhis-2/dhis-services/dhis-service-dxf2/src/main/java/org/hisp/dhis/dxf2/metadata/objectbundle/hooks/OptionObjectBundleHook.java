@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -51,7 +52,7 @@ public class OptionObjectBundleHook
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( !( object instanceof Option ) ) return new ArrayList<>();
+        if ( !(object instanceof Option) ) return new ArrayList<>();
 
         final Option option = (Option) object;
 
@@ -59,15 +60,7 @@ public class OptionObjectBundleHook
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
 
-            List<Option> persistedOptions = optionSet.getOptions();
-
-            for ( Option persistedOption : persistedOptions )
-            {
-                if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) )
-                {
-                    errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
-                }
-            }
+            errors.addAll( checkDuplicateOption( optionSet, option ) );
         }
 
         return errors;
@@ -76,21 +69,60 @@ public class OptionObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !( object instanceof Option ) )
+        if ( !(object instanceof Option) )
         {
             return;
         }
 
         final Option option = (Option) object;
+
         // if the bundle contains also the option set there is no need to add the option here
         // (will be done automatically later and option set may contain raw value already)
         if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+
             if ( optionSet != null )
             {
                 optionSet.addOption( option );
             }
         }
+    }
+
+    /**
+     * Check for duplication of Option's name OR code within given OptionSet
+     *
+     * @param listOptions
+     * @param checkOption
+     * @return
+     */
+    private List<ErrorReport> checkDuplicateOption( OptionSet optionSet, Option checkOption )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( optionSet == null || optionSet.getOptions().isEmpty() || checkOption == null )
+        {
+            return errors;
+        }
+
+        for ( Option option : optionSet.getOptions() )
+        {
+            if ( option == null || option.getName() == null || option.getCode() == null )
+            {
+                continue;
+            }
+
+            if ( ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() ) && option.getUid().equals( checkOption.getUid() ) )
+            {
+                continue;
+            }
+
+            if ( option.getName().equals( checkOption.getName() ) || option.getCode().equals( checkOption.getCode() ) )
+            {
+                errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
+            }
+        }
+
+        return errors;
     }
 }

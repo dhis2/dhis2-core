@@ -190,10 +190,4 @@ public interface AppManager
      */
     boolean markAppToDelete( App app );
 
-    /**
-     * Event handler for {@link ApplicationCacheClearedEvent}.
-     *
-     * @param event the {@link ApplicationCacheClearedEvent}.
-     */
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

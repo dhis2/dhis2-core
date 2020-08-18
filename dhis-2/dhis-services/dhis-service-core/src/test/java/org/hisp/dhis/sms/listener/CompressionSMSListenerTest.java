@@ -1,5 +1,13 @@
 package org.hisp.dhis.sms.listener;
 
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsSubmissionWriter;
+import org.hisp.dhis.smscompression.models.SmsMetadata;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.user.User;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -31,31 +39,27 @@ package org.hisp.dhis.sms.listener;
 import java.util.Base64;
 import java.util.Date;
 
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.SMSSubmissionWriter;
-import org.hisp.dhis.smscompression.models.SMSMetadata;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.user.User;
-
 public abstract class CompressionSMSListenerTest
     extends
     DhisConvenienceTest
 {
     protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
+    protected static final String NOVALUES_MESSAGE = "1:2::The submission did not include any data values";
+
+    protected static final String NOATTRIBS_MESSAGE = "1:3::The submission did not include any attribute values";
+
     protected static final String ORIGINATOR = "47400000";
 
     protected static final String ATTRIBUTE_VALUE = "TEST";
 
-    protected IncomingSms createSMSFromSubmission( SMSSubmission subm )
-        throws SMSCompressionException
+    protected IncomingSms createSMSFromSubmission( SmsSubmission subm )
+        throws SmsCompressionException
     {
         User user = createUser( 'U' );
-        SMSMetadata meta = new SMSMetadata();
+        SmsMetadata meta = new SmsMetadata();
         meta.lastSyncDate = new Date();
-        SMSSubmissionWriter writer = new SMSSubmissionWriter( meta );
+        SmsSubmissionWriter writer = new SmsSubmissionWriter( meta );
         String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
 
         IncomingSms incomingSms = new IncomingSms();

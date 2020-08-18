@@ -208,6 +208,8 @@ public interface UserService
      */
     UserCredentials getUserCredentialsByUsername( String username );
 
+    UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username );
+
     /**
      * Retrieves the UserCredentials associated with the User with the given
      * OpenID.
@@ -379,4 +381,12 @@ public interface UserService
     List<User> getExpiringUsers();
 
     void set2FA( User user, Boolean twoFA );
+
+    /**
+     * Expire a user's active sessions retrieved from the Spring security's
+     * org.springframework.security.core.session.SessionRegistry
+     *
+     * @param credentials the user credentials
+     */
+    void expireActiveSessions( UserCredentials credentials );
 }

@@ -31,10 +31,19 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 
 import java.io.IOException;
-import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -55,11 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -117,7 +121,7 @@ public class OrganisationUnitController
         else if ( options.isTrue( "levelSorted" ) )
         {
             objects = new ArrayList<>( manager.getAll( getEntityClass() ) );
-            Collections.sort( objects, OrganisationUnitByLevelComparator.INSTANCE );
+            objects.sort( OrganisationUnitByLevelComparator.INSTANCE );
         }
 
         // ---------------------------------------------------------------------
@@ -141,7 +145,7 @@ public class OrganisationUnitController
         // Standard Query handling
         // ---------------------------------------------------------------------
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
         query.setUser( currentUser );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );

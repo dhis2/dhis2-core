@@ -61,6 +61,8 @@ public class DailyPeriodType
 
     public static final int FREQUENCY_ORDER = 1;
 
+    public static final String SQL_INTERVAL = "1 day";
+
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
@@ -81,6 +83,12 @@ public class DailyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
+    }
+
+    @Override
+    public String getSqlInterval()
+    {
+        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------

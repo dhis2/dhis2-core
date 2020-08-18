@@ -149,6 +149,8 @@ public class UserController
             params.setAuthSubset( true );
         }
 
+        params.setPrefetchUserGroups( filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) ) );
+
         int count = userService.getUserCount( params );
 
         if ( options.hasPaging() && filters.isEmpty() )
@@ -163,7 +165,7 @@ public class UserController
             ( orders == null ) ? null : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() ) );
 
         // keep the memory query on the result
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
@@ -555,6 +557,18 @@ public class UserController
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+    }
+
+    @Override
+    protected void postPatchEntity( User entity )
+    {
+        UserCredentials credentials = entity.getUserCredentials();
+
+        // Make sure we always expire all of the user's active sessions if we have disabled the user.
+        if ( credentials != null && credentials.isDisabled() )
+        {
+            userService.expireActiveSessions( credentials );
         }
     }
 

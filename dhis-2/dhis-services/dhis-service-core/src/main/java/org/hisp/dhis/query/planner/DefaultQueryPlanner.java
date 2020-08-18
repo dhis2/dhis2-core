@@ -28,10 +28,22 @@ package org.hisp.dhis.query.planner;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
+
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Junction;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
@@ -40,14 +52,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,19 +78,20 @@ public class DefaultQueryPlanner implements QueryPlanner
     @Override
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
-        if ( Junction.Type.OR == query.getRootJunctionType() && !persistedOnly )
+        // if only one filter, always set to Junction.Type AND
+        Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND : query.getRootJunctionType();
+        
+        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
         {
-            return new QueryPlan(
-                Query.from( query.getSchema() ).setPlannedQuery( true ),
-                Query.from( query ).setPlannedQuery( true )
-            );
+            return QueryPlan.QueryPlanBuilder.newBuilder()
+                .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
+                .nonPersistedQuery( Query.from( query ).setPlannedQuery( true ) )
+                .build();
         }
 
-        Query npQuery = Query.from( query )
-            .setUser( query.getUser() ).setPlannedQuery( true );
+        Query npQuery = Query.from( query ).setUser( query.getUser() ).setPlannedQuery( true );
 
-        Query pQuery = getQuery( npQuery, persistedOnly )
-            .setUser( query.getUser() ).setPlannedQuery( true );
+        Query pQuery = getQuery( npQuery, persistedOnly ).setUser( query.getUser() ).setPlannedQuery( true );
 
         // if there are any non persisted criterions left, we leave the paging to the in-memory engine
         if ( !npQuery.getCriterions().isEmpty() )
@@ -99,7 +104,11 @@ public class DefaultQueryPlanner implements QueryPlanner
             pQuery.setMaxResults( npQuery.getMaxResults() );
         }
 
-        return new QueryPlan( pQuery, npQuery );
+        return QueryPlan.QueryPlanBuilder
+            .newBuilder()
+            .persistedQuery( pQuery )
+            .nonPersistedQuery( npQuery )
+            .build();
     }
 
     @Override
@@ -158,7 +167,7 @@ public class DefaultQueryPlanner implements QueryPlanner
     public Path getQueryPath( Root root, Schema schema, String path )
     {
         Schema curSchema = schema;
-        Property curProperty = null;
+        Property curProperty;
         String[] pathComponents = path.split( "\\." );
 
         Path currentPath = root;
@@ -298,5 +307,37 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
+    }
+
+    /**
+     * Check if all the criteria for the given query are associated to "persisted" properties
+     *
+     * @param query a {@see Query} object
+     * @return true, if all criteria are on persisted properties
+     */
+    private boolean isFilterOnPersistedFieldOnly( Query query )
+    {
+        Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
+        for ( Criterion criterion : query.getCriterions() )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+                if ( !persistedFields.contains( restriction.getPath() ) )
+                {
+                    return false;
+                }
+            }
+        }
+
+        for ( Order order : query.getOrders() )
+        {
+
+            if ( !persistedFields.contains( order.getProperty().getName() ) )
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

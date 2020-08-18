@@ -40,6 +40,7 @@ import java.util.Map;
 import com.google.common.collect.ImmutableMap;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
@@ -121,6 +122,28 @@ public class FileResourceServiceTest
 
         assertThat( event.getFileResource(), is( "fileRes1" ) );
         assertThat( event.getFile(), is( file ) );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void verifySaveIllegalFileTypeResourceA()
+    {
+        FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
+            FileResourceDomain.USER_AVATAR );
+
+        File file = new File( "very_evil_script.html" );
+
+        subject.saveFileResource( fileResource, file );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void verifySaveIllegalFileTypeResourceB()
+    {
+        FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
+            FileResourceDomain.MESSAGE_ATTACHMENT );
+
+        File file = new File( "suspicious_program.rpm" );
+
+        subject.saveFileResource( fileResource, file );
     }
 
     @Test

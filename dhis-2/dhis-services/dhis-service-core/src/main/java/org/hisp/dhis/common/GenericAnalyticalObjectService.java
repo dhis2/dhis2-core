@@ -36,6 +36,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -57,70 +59,84 @@ public abstract class GenericAnalyticalObjectService<T extends AnalyticalObject>
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( Indicator indicator )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( indicator );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( DataElement dataElement )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( dataElement );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement )
     {
         return getAnalyticalObjectStore().getAnalyticalObjectsByDataDimension( dataElement );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute )
     {
         return getAnalyticalObjectStore().getAnalyticalObjectsByDataDimension( attribute );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( DataSet dataSet )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( dataSet );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( ProgramIndicator programIndicator )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( programIndicator );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( Period period )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( period );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( OrganisationUnit organisationUnit )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( organisationUnit );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
+    public List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup )
+    {
+        return getAnalyticalObjectStore().getAnalyticalObjects( organisationUnitGroup );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet )
+    {
+        return getAnalyticalObjectStore().getAnalyticalObjects( organisationUnitGroupSet );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( categoryOptionGroup );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<T> getAnalyticalObjects( LegendSet legendSet )
     {
         return getAnalyticalObjectStore().getAnalyticalObjects( legendSet );

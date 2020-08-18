@@ -556,7 +556,7 @@ public class EventController
 
         Events events = eventService.getEvents( params );
 
-        if ( hasHref( fields ) )
+        if ( hasHref( fields, skipEventId ) )
         {
             events.getEvents().forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
         }
@@ -687,7 +687,7 @@ public class EventController
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) Boolean skipEventId,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
-        @RequestParam Map<String, String> parameters, Model model )
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model )
         throws WebMessageException
     {
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
@@ -697,7 +697,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
-            null, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
             null, true, null, skipEventId, null, null, null,
             null, false, includeDeleted );
 
@@ -1076,9 +1076,9 @@ public class EventController
         return false;
     }
 
-    protected boolean hasHref( List<String> fields )
+    protected boolean hasHref( List<String> fields, Boolean skipEventId )
     {
-        return fieldsContains( "href", fields );
+        return (skipEventId == null || !skipEventId) && fieldsContains( "href", fields );
     }
 
     private List<Order> getOrderParams( String order )

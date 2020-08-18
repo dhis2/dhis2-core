@@ -37,6 +37,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -59,7 +60,7 @@ public class DefaultTrackedEntityAttributeValueService
     // -------------------------------------------------------------------------
 
     private final TrackedEntityAttributeValueStore attributeValueStore;
-    
+
     private final FileResourceService fileResourceService;
 
     private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
@@ -109,7 +110,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
         TrackedEntityAttribute attribute )
     {
@@ -117,28 +118,28 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance )
     {
         return attributeValueStore.get( instance );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.get( attribute );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.getCountOfAssignedTEAValues( attribute );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
         Collection<TrackedEntityInstance> instances )
     {
@@ -195,7 +196,14 @@ public class DefaultTrackedEntityAttributeValueService
 
     @Override
     @Transactional
-    public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
+    public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue existingAttributeValue )
+    {
+        updateTrackedEntityAttributeValue( existingAttributeValue, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    @Transactional
+    public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue, User user )
     {
         if ( attributeValue != null && StringUtils.isEmpty( attributeValue.getValue() ) )
         {
@@ -219,9 +227,15 @@ public class DefaultTrackedEntityAttributeValueService
                 throw new IllegalQueryException( "Value is not valid:  " + result );
             }
 
+            if ( attributeValue.getAttribute().isConfidentialBool() &&
+                !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+            {
+                throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
+            }
+
             TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue,
-                attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
+                attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
 
             trackedEntityAttributeValueAuditService
                 .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );

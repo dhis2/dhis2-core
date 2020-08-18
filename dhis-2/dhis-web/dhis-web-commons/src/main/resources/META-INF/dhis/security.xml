@@ -127,10 +127,15 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
-    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
+    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint"
+      authentication-details-source-ref="httpBasicWebAuthenticationDetailsSource"/>
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
+
+    <sec:session-management>
+      <sec:concurrency-control max-sessions="10" expired-url="/dhis-web-commons-security/logout.action" session-registry-ref="sessionRegistry" />
+    </sec:session-management>
 
     <!-- Account recovery -->
 
@@ -144,9 +149,7 @@
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/icons/*/icon.svg" method="GET" access="permitAll()" />
-    <sec:intercept-url request-matcher-ref="analyticPluginResources"
-      access="hasAnyRole('ALL,M_dhis-web-pivot,M_dhis-web-visualizer,M_dhis-web-maps' +
-      'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard,M_dhis-web-mapping')" />
+    <sec:intercept-url request-matcher-ref="analyticPluginResources" access="permitAll()" />
 
     <!-- Apps -->
 
@@ -196,6 +199,10 @@
     <property name="defaultFailureUrl" value="/dhis-web-commons/security/login.action?failed=true" />
   </bean>
 
+  <!-- Security : Listener -->
+
+  <bean id="loggerListener" class="org.hisp.dhis.security.AuthenticationLoggerListener" />
+
   <!-- Security : Action -->
 
   <bean id="restrictOrganisationUnitsAction" class="org.hisp.dhis.security.action.RestrictOrganisationUnitsAction"
@@ -213,10 +220,6 @@
       </map>
     </property>
   </bean>
-
-  <!-- Security : Listener -->
-
-  <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
 
   <!-- Security : AccessProvider -->
 
@@ -474,4 +477,6 @@
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
   <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener" />
+
+  <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
 </beans>

@@ -92,12 +92,6 @@ public class MockCurrentUserService
     }
 
     @Override
-    public Set<String> getCurrentUserAuthorities()
-    {
-        return Sets.newHashSet( currentUser.getUserCredentials().getAllAuthorities() );
-    }
-    
-    @Override
     public User getCurrentUser()
     {
         return currentUser;
@@ -132,5 +126,17 @@ public class MockCurrentUserService
     public boolean currentUserIsAuthorized( String auth )
     {
         return true;
+    }
+
+    @Override
+    public UserCredentials getCurrentUserCredentials()
+    {
+        return currentUser.getUserCredentials();
+    }
+
+    @Override
+    public void expireUserSessions()
+    {
+        currentUser = null;
     }
 }

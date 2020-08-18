@@ -44,9 +44,7 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -61,11 +59,14 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+
+import com.google.common.collect.Lists;
 
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -208,7 +209,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void save( T object, boolean clearSharing )
     {
-        User user = currentUserService.getCurrentUser();
+        User user = getCurrentUser();
 
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -270,11 +271,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
 
         getSession().save( object );
-
-        if (object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
@@ -314,17 +310,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             getSession().update( object );
         }
-
-        if ( object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
     public void delete( T object )
     {
-        this.delete( object, currentUserService.getCurrentUser() );
+        this.delete( object, getCurrentUser() );
     }
 
     @Override
@@ -351,7 +342,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         T object = getSession().get( getClazz(), id );
 
-        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        if ( !isReadAllowed( object, getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
@@ -817,6 +808,36 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public List<T> getByUidNoAcl( Collection<String> uids )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> objects = Lists.newArrayList();
+
+        List<List<String>> partitions = Lists.partition( Lists.newArrayList( uids ), OBJECT_FETCH_SIZE );
+
+        for ( List<String> partition : partitions )
+        {
+            objects.addAll( getByUidNoAclInternal( partition ) );
+        }
+
+        return objects;
+    }
+
+    private List<T> getByUidNoAclInternal( Collection<String> uids )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
     public List<T> getByCode( Collection<String> codes )
     {
         if ( codes == null || codes.isEmpty() )
@@ -871,27 +892,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllNoAcl()
     {
         return super.getAll();
-    }
-
-    @Override
-    public List<T> getByUidNoAcl( Collection<String> uids )
-    {
-        List<T> list = new ArrayList<>();
-
-        if ( uids != null )
-        {
-            for ( String uid : uids )
-            {
-                T object = getByUidNoAcl( uid );
-
-                if ( object != null )
-                {
-                    list.add( object );
-                }
-            }
-        }
-
-        return list;
     }
 
     @Override
@@ -1371,5 +1371,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void flush()
     {
         getSession().flush();
+    }
+
+    private User getCurrentUser()
+    {
+        UserCredentials userCredentials = currentUserService.getCurrentUserCredentials();
+
+        if ( userCredentials != null )
+        {
+            return userCredentials.getUserInfo();
+        }
+
+        return null;
     }
 }

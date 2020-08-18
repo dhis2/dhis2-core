@@ -38,6 +38,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -64,11 +65,15 @@ public class Indicator
 
     private String numeratorDescription;
 
+    private transient String displayNumeratorDescription;
+
     private transient String explodedNumerator;
 
     private String denominator;
 
     private String denominatorDescription;
+
+    private transient String displayDenominatorDescription;
 
     private transient String explodedDenominator;
 
@@ -228,6 +233,19 @@ public class Indicator
         this.numeratorDescription = numeratorDescription;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayNumeratorDescription()
+    {
+        displayNumeratorDescription = getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, displayNumeratorDescription );
+        return displayNumeratorDescription != null ? displayNumeratorDescription : getNumeratorDescription();
+    }
+
+    public void setDisplayNumeratorDescription( String displayNumeratorDescription )
+    {
+        this.displayNumeratorDescription = displayNumeratorDescription;
+    }
+
     @JsonIgnore
     public String getExplodedNumerator()
     {
@@ -261,6 +279,19 @@ public class Indicator
     public void setDenominatorDescription( String denominatorDescription )
     {
         this.denominatorDescription = denominatorDescription;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDenominatorDescription()
+    {
+        displayDenominatorDescription = getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, displayDenominatorDescription );
+        return displayDenominatorDescription != null ? displayDenominatorDescription : getDenominatorDescription();
+    }
+
+    public void setDisplayDenominatorDescription( String displayDenominatorDescription )
+    {
+        this.displayDenominatorDescription = displayDenominatorDescription;
     }
 
     @JsonIgnore

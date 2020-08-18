@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.33.1-SNAPSHOT</version>
+    <version>2.33.6-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-dxf2</artifactId>
@@ -100,6 +100,11 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

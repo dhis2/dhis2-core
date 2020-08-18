@@ -63,8 +63,8 @@ public class SqlViewUtils
     }
 
     /**
-     * Substitutes the given SQL query string with the given variables. SQL variables
-     * are on the format ${key}.
+     * Substitutes the given SQL query string with the given user-supplied
+     * variables. SQL variables are of the format ${key}.
      *
      * @param sql the SQL string.
      * @param variables the variables.
@@ -80,18 +80,33 @@ public class SqlViewUtils
             {
                 if ( param != null && SqlView.isValidQueryParam( param ) )
                 {
-                    final String regex = "\\$\\{(" + param + ")\\}";
-                    final String value = variables.get( param );
-
-                    if ( value != null && SqlView.isValidQueryValue( value ) )
-                    {
-                        sqlQuery = sqlQuery.replaceAll( regex, value );
-                    }
+                    sqlQuery = substituteSqlVariable( sqlQuery, param, variables.get( param ) );
                 }
             }
         }
 
         return sqlQuery;
+    }
+
+    /**
+     * Substitutes the given SQL query string with the given, single variable.
+     * SQL variables are of the format ${key}.
+     *
+     * @param sql the SQL string.
+     * @param name the variable name.
+     * @param value the variable value.
+     * @return the substituted SQL.
+     */
+    public static String substituteSqlVariable( String sql, String name, String value )
+    {
+        final String regex = "\\$\\{(" + name + ")\\}";
+
+        if ( value != null && SqlView.isValidQueryValue( value ) )
+        {
+            return sql.replaceAll( regex, value );
+        }
+
+        return sql;
     }
 
     /**
