@@ -74,7 +74,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class ProgramRuleIntegration
+public class ProgramRuleIntegrationTest
     extends IntegrationTestBase
 {
     @Override
