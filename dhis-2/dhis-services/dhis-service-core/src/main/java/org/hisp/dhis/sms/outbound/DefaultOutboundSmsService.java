@@ -84,7 +84,7 @@ public class DefaultOutboundSmsService
     }
 
     @Override
-    public void deleteById( Long outboundSmsId )
+    public void deleteById( Integer outboundSmsId )
     {
         OutboundSms sms = outboundSmsStore.getOutboundSmsbyId( outboundSmsId );
 

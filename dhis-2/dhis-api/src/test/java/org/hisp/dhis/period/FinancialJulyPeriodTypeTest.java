@@ -135,4 +135,14 @@ public class FinancialJulyPeriodTypeTest
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new DateTime(  2004, 7, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
     }
+
+    @Test
+    public void testGetRewindedDate()
+    {
+        assertEquals( new DateTime( 2020, 1, 15, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2023, 1, 15, 0, 0 ).toDate(), 3 ) );
+
+        assertEquals( new DateTime( 2022, 1, 1, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), -2 ) );
+    }
 }

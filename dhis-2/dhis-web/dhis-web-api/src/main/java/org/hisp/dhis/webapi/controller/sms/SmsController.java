@@ -241,7 +241,7 @@ public class SmsController
 
     @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @RequestParam List<Long> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
     {
         ids.forEach( outboundSmsService::deleteById );
 

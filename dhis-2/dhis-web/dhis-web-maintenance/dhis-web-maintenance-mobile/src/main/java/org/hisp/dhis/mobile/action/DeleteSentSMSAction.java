@@ -74,14 +74,14 @@ public class DeleteSentSMSAction implements Action
     {
         if ( ids != null && ids.length > 0 )
         {
-            for ( long each : ids )
+            for ( Integer each : ids )
             {
                 outboundSmsService.deleteById( each );
             }
         }
         if ( id != null )
         {
-            outboundSmsService.deleteById( (long)id );
+            outboundSmsService.deleteById( id );
         }
         return SUCCESS;
 
