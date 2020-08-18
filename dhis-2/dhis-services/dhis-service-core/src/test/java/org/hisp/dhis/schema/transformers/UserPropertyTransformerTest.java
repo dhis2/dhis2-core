@@ -173,7 +173,8 @@ public class UserPropertyTransformerTest
         assertTrue( userNode.has( "id" ) );
         assertTrue( userNode.has( "username" ) );
 
-        assertEquals( userNode.get( "id" ).textValue(), uuid.toString() );
+        // assertEquals( userNode.get( "id" ).textValue(), uuid.toString() );
+        assertEquals( userNode.get( "id" ).textValue(), "userabcdefa" );
         assertEquals( userNode.get( "username" ).textValue(), "usernamea" );
     }
 
