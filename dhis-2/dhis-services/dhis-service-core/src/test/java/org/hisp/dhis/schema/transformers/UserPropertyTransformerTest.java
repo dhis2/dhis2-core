@@ -48,6 +48,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -184,6 +186,7 @@ public class UserPropertyTransformerTest
         private int id;
         private String name;
         private User user;
+        private List<User> users = new ArrayList<>();
 
         public Simple()
         {
@@ -220,6 +223,20 @@ public class UserPropertyTransformerTest
         public void setUser( User user )
         {
             this.user = user;
+        }
+
+        @JsonProperty
+        @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
+        @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
+        @PropertyTransformer( UserPropertyTransformer.class )
+        public List<User> getUsers()
+        {
+            return users;
+        }
+
+        public void setUsers( List<User> users )
+        {
+            this.users = users;
         }
     }
 }

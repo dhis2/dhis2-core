@@ -52,8 +52,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.springframework.util.Assert.notNull;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -150,12 +148,16 @@ public class UserPropertyTransformer
         public void serialize( User user, JsonGenerator gen, SerializerProvider provider ) throws IOException
         {
             UserCredentials userCredentials = user.getUserCredentials();
-            notNull( userCredentials, "UserCredentials should never be null." );
 
             gen.writeStartObject();
             gen.writeStringField( "id", user.getUid() );
             gen.writeStringField( "code", user.getCode() );
-            gen.writeStringField( "username", userCredentials.getUsername() );
+
+            if ( userCredentials != null )
+            {
+                gen.writeStringField( "username", userCredentials.getUsername() );
+            }
+
             gen.writeEndObject();
         }
     }
