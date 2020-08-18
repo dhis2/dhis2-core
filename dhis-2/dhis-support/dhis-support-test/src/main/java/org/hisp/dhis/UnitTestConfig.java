@@ -32,7 +32,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -40,7 +39,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
-//@ImportResource( locations = { "classpath*:/META-INF/dhis/security.xml" } )
 @ComponentScan( "org.hisp.dhis" )
 public class UnitTestConfig
 {

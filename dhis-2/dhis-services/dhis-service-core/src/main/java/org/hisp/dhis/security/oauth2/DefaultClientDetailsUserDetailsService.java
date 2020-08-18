@@ -84,22 +84,4 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
         }
         return new User( username, clientSecret, clientDetails.getAuthorities() );
     }
-
-//    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
-//    {
-//        super( clientDetailsService );
-//    }
-//
-//    @Override
-//    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
-//    {
-//        try
-//        {
-//            return super.loadUserByUsername( username );
-//        }
-//        catch ( ClientRegistrationException ex )
-//        {
-//            throw new UsernameNotFoundException( ex.getMessage(), ex );
-//        }
-//    }
 }

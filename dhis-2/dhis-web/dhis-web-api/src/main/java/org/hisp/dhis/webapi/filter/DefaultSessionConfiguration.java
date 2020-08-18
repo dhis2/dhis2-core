@@ -39,7 +39,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 /**
  * Configuration registered if {@link RedisDisabledCondition} matches to true.
  * This serves as a fallback to spring-session if redis is disabled. Since
- * fartwebxmlfart has a "springSessionRepositoryFilter" mapped to all urls, the
+ * web.xml has a "springSessionRepositoryFilter" mapped to all urls, the
  * container will expect a filter bean with that name. Therefore we define a
  * dummy {@link Filter} named springSessionRepositoryFilter. Here we define a
  * {@link CharacterEncodingFilter} without setting any encoding so that requests

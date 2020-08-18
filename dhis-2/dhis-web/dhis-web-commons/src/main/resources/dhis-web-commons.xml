@@ -14,11 +14,9 @@
   <constant name="struts.multipart.parser" value="jakarta" />
   <constant name="struts.multipart.maxSize" value="1073741824" />
   <constant name="struts.directive.parse.max.depth" value="30" />
-
   <constant name="struts.objectFactory" value="spring" />
-<!--  <constant name="struts.objectFactory.spring.autoWire" value="spring" />-->
-
   <constant name="struts.devMode" value="true" />
+
   <!-- DHIS Web Commons -->
 
   <package name="dhis-web-commons" extends="struts-default" namespace="/dhis-web-commons">

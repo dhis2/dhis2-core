@@ -6,17 +6,6 @@
 
   <!-- Web Portal -->
 
-<!--  <context:component-scan base-package="org.hisp.dhis.configuration" /> -->
-<!--  <bean id="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor"-->
-<!--        class="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor">-->
-<!--    <property name="accessDecisionManager" ref="accessDecisionManager" />-->
-<!--    <property name="authenticationManager" ref="authenticationManager" />-->
-<!--    <property name="validateConfigAttributes" value="false" />-->
-<!--    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />-->
-<!--    <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />-->
-<!--    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />-->
-<!--  </bean>-->
-
   <bean id="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider"
         class="org.hisp.dhis.security.authority.DefaultRequiredAuthoritiesProvider">
     <property name="requiredAuthoritiesKey" value="requiredAuthorities" />

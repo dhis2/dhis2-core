@@ -199,13 +199,6 @@ public class UserController
     // POST
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL')" )
-    @RequestMapping( value = "{uid}/test123", method = RequestMethod.GET )
-    public String getTest()
-    {
-        return "test123!";
-    }
-
     @Override
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response ) throws Exception

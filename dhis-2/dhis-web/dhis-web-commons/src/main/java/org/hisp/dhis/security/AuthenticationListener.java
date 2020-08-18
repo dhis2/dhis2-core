@@ -99,7 +99,7 @@ public class AuthenticationListener
         if ( Objects.nonNull( credentials ) && !readOnly )
         {
             credentials.updateLastLogin();
-            //userService.updateUserCredentials( credentials );
+            userService.updateUserCredentials( credentials );
         }
 
         securityService.registerSuccessfulLogin( username );

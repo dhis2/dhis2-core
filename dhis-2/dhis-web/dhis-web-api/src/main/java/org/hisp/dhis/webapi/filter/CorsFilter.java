@@ -178,13 +178,11 @@ public class CorsFilter
     @Override
     public void init( FilterConfig filterConfig )
     {
-        log.debug( "Init CorsFilter called!" );
     }
 
     @Override
     public void destroy()
     {
-        log.debug( "Destroy CorsFilter called!" );
     }
 
     /**

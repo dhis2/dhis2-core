@@ -14,18 +14,13 @@
   <modules>
     <module>dhis-web-commons</module>
     <module>dhis-web-commons-resources</module>
-
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
-<!--    <module>dhis-web-uaa</module>-->
-
     <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
-
-<!--    <module>dhis-web-apps</module>-->
-
     <module>dhis-web-portal</module>
+    <module>dhis-web-apps</module>
 
   </modules>
 
@@ -191,6 +186,4 @@
     <maven-jetty-plugin.version>9.4.31.v20200723</maven-jetty-plugin.version>
     <tomcat.version>8.5.47</tomcat.version>
   </properties>
-
-
 </project>
