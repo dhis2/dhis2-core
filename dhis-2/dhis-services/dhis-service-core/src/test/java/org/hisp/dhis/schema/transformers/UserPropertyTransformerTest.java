@@ -102,7 +102,10 @@ public class UserPropertyTransformerTest
     public void testJsonSerializer() throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( createUser( 'a' ) );
+
+        User user = createUser( 'a' );
+
+        simple.setUser( user );
         simple.getUser().getUserCredentials().setUuid( uuid );
 
         String jsonSource = jsonMapper.writeValueAsString( simple );
@@ -117,14 +120,18 @@ public class UserPropertyTransformerTest
         assertNotNull( simple.getUser().getUserCredentials() );
 
         assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
-        assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+        assertEquals( user.getUid(), simple.getUser().getUid() );
+        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
     }
 
     @Test
     public void testXmlSerializer() throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( createUser( 'a' ) );
+
+        User user = createUser( 'a' );
+
+        simple.setUser( user );
         simple.getUser().getUserCredentials().setUuid( uuid );
 
         String xmlSource = xmlMapper.writeValueAsString( simple );
@@ -139,7 +146,8 @@ public class UserPropertyTransformerTest
         assertNotNull( simple.getUser().getUserCredentials() );
 
         assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
-        assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+        assertEquals( user.getUid(), simple.getUser().getUid() );
+        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
     }
 
     private void verifyJsonSource( String jsonSource ) throws JsonProcessingException
