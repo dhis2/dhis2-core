@@ -33,6 +33,7 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 /**
  * This access provider will put a user with all granted authorities in the database.
@@ -76,6 +77,7 @@ public class DatabaseAutomaticAccessProvider
 
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUid( "KvMx6c1eoYo" );
+        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         userCredentials.setCode( username );
         userCredentials.setUsername( username );
         userCredentials.setUserInfo( user );

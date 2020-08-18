@@ -31,7 +31,6 @@ package org.hisp.dhis;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Geometry;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
@@ -182,6 +181,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -1425,7 +1425,7 @@ public abstract class DhisConvenienceTest
         Program program = new Program();
         program.setAutoFields();
 
-        program.setUid( BASE_PR_UID + uniqueCharacter);
+        program.setUid( BASE_PR_UID + uniqueCharacter );
         program.setName( "Program" + uniqueCharacter );
         program.setCode( "ProgramCode" + uniqueCharacter );
         program.setShortName( "ProgramShort" + uniqueCharacter );
@@ -2126,7 +2126,7 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param allAuth whether to grant ALL authority to user.
-     * @param auths authorities to grant to user.
+     * @param auths   authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( boolean allAuth, String... auths )
@@ -2140,8 +2140,8 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param organisationUnits the organisation units of the user.
-     * @param allAuth whether to grant the ALL authority to user.
-     * @param auths authorities to grant to user.
+     * @param allAuth           whether to grant the ALL authority to user.
+     * @param auths             authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits, boolean allAuth, String... auths )
@@ -2154,10 +2154,10 @@ public abstract class DhisConvenienceTest
      * "username". Requires <code>identifiableObjectManager</code> and
      * <code>userService</code> to be injected into the test.
      *
-     * @param organisationUnits the organisation units of the user.
+     * @param organisationUnits         the organisation units of the user.
      * @param dataViewOrganisationUnits the data view organisation units of the user.
-     * @param allAuth whether to grant the ALL authority to the user.
-     * @param auths authorities to grant to the user.
+     * @param allAuth                   whether to grant the ALL authority to the user.
+     * @param auths                     authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
@@ -2171,11 +2171,11 @@ public abstract class DhisConvenienceTest
      * "username". Requires <code>identifiableObjectManager</code> and
      * <code>userService</code> to be injected into the test.
      *
-     * @param organisationUnits the organisation units of the user.
+     * @param organisationUnits         the organisation units of the user.
      * @param dataViewOrganisationUnits the data view organisation units of the user.
-     * @param catDimensionConstraints the category dimension constraints of the user.
-     * @param allAuth whether to grant the ALL authority to the user.
-     * @param auths authorities to grant to the user.
+     * @param catDimensionConstraints   the category dimension constraints of the user.
+     * @param allAuth                   whether to grant the ALL authority to the user.
+     * @param auths                     authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
@@ -2312,6 +2312,7 @@ public abstract class DhisConvenienceTest
 
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUid( "KvMx6c1eoYo" );
+        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         userCredentials.setCode( username );
         userCredentials.setUser( user );
         userCredentials.setUserInfo( user );
