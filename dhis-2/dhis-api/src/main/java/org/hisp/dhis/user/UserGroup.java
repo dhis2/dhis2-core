@@ -173,8 +173,6 @@ public class UserGroup
         this.user = user;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public UUID getUuid()
     {
         return uuid;
