@@ -148,7 +148,7 @@ public class SystemSettingsTests extends ApiTest
     @Test
     public void returnDefaultValueWhenUserIsNotLoggedIn()
     {
-        //TODO: 9150- Why is this allowed, can't find http ignore path for systemSettings, dont understand how this was possible
+        //TODO: 9150- Why is this allowed, can't find http ignore path for systemSettings, can't understand how this was possible
         // User is not logged in and sends request to '/systemSettings/<key>'
         prepareData();
 

@@ -6,7 +6,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
@@ -29,7 +28,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -56,28 +54,6 @@ import static org.springframework.http.MediaType.parseMediaType;
 @Slf4j
 public class HttpConfig implements WebMvcConfigurer
 {
-//    @Autowired
-//    private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
-//    @Autowired
-//    AuthenticationManager authenticationManager;
-
-//    @Bean
-//    public TokenStore tokenStore()
-//    {
-//        return new JwtTokenStore( accessTokenConverter() );
-//    }
-
-//    @Bean
-//    public JwtAccessTokenConverter accessTokenConverter()
-//    {
-//        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-//        converter.setSigningKey( "123" );
-//        return converter;
-//    }
-
-//    @Autowired
-//    private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
-
     @Bean
     public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()
     {
@@ -97,20 +73,6 @@ public class HttpConfig implements WebMvcConfigurer
         expressionHandler.setDefaultRolePrefix( "" );
         return expressionHandler;
     }
-
-//    public void configure( ClientDetailsServiceConfigurer clients )
-//        throws Exception
-//    {
-//        clients
-//            .inMemory()
-//            .withClient( "first-client" )
-//            .secret( encoder().encode( "noonewilleverguess" ) )
-//            .scopes( "resource:read" )
-//            .authorizedGrantTypes( "authorization_code" )
-//            .redirectUris( "http://localhost:8081/oauth/login/client-app" );
-//    }
-
-
 
 //  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
 //
@@ -155,23 +117,6 @@ public class HttpConfig implements WebMvcConfigurer
     {
         return new RenderServiceMessageConverter();
     }
-
-//    @Bean
-//    public ContentNegotiationManager contentNegotiationManager(
-//        CustomPathExtensionContentNegotiationStrategy customPathExtensionContentNegotiationStrategy,
-//        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy,
-//        HeaderContentNegotiationStrategy headerContentNegotiationStrategy,
-//        FixedContentNegotiationStrategy fixedContentNegotiationStrategy )
-//    {
-//        return new ContentNegotiationManager( Arrays.asList( customPathExtensionContentNegotiationStrategy,
-//            parameterContentNegotiationStrategy, headerContentNegotiationStrategy, fixedContentNegotiationStrategy ) );
-//    }
-
-//
-//    <bean id="renderServiceMessageConverter"
-//    class="org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter" />
-//
-//  <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
 
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
@@ -222,5 +167,4 @@ public class HttpConfig implements WebMvcConfigurer
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
         .put( "geojson", parseMediaType( "application/json+geojson" ) )
         .build();
-
 }

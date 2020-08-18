@@ -17,7 +17,7 @@ import javax.servlet.SessionTrackingMode;
 import java.util.EnumSet;
 
 @Order( 10 )
-public class MyWebAppInitializer implements WebApplicationInitializer
+public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
 {
 
     @Override

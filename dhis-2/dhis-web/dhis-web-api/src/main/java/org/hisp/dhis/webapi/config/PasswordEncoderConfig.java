@@ -11,9 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @Configuration
 @Order( 903 )
-public class PasswordConfig
+public class PasswordEncoderConfig
 {
-
     @Bean
     public PasswordEncoder passwordEncoder()
     {

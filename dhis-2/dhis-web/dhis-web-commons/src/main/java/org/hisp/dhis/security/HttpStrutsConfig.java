@@ -83,20 +83,8 @@ import java.util.stream.Collectors;
 @ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/beans-dataentry.xml",
     "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 @Slf4j
-public class HttpStrutsConfig   //beans-maintenace-mobile.xml
+public class HttpStrutsConfig
 {
-
-//    @Autowired
-//    @Qualifier("authenticationManagerBean")
-//    private AuthenticationManager authenticationManager;
-//
-//    @Autowired
-//    @Qualifier("authenticationManager")
-//    private AuthenticationManager authenticationManagerRefF;
-
-//    @Autowired
-//    private AuthenticationManager authenticationManagerRef;
-
     @Autowired
     public DataSource dataSource;
 
@@ -158,25 +146,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         @Autowired
         private AuthorizationServerEndpointsConfiguration endpoints;
 
-//    @Autowired
-//    public void configure( ClientDetailsServiceConfigurer clientDetails) throws Exception {
-//        for (AuthorizationServerConfigurer configurer : configurers) {
-//            configurer.configure(clientDetails);
-//        }
-//    }
-
-//        @Override
-//        protected void configure( AuthenticationManagerBuilder auth )
-//            throws Exception
-//        {
-//            // Over-riding to make sure this.disableLocalConfigureAuthenticationBldr = false
-//            // This will ensure that when this configurer builds the AuthenticationManager it will not attempt
-//            // to find another 'Global' AuthenticationManager in the ApplicationContext (if available),
-//            // and set that as the parent of this 'Local' AuthenticationManager.
-//            // This AuthenticationManager should only be wired up with an AuthenticationProvider
-//            // composed of the ClientDetailsService (wired in this configuration) for authenticating 'clients' only.
-//        }
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
@@ -189,34 +158,16 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             http.apply( configurer );
 
             String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
-            String authorizePath = handlerMapping.getServletPath( "/oauth/authorize" );
 
-//            String tokenKeyPath = handlerMapping.getServletPath( "/oauth/token_key" );
-//            String checkTokenPath = handlerMapping.getServletPath( "/oauth/check_token" );
+            http
+                .authorizeRequests()
+                .antMatchers( tokenEndpointPath ).fullyAuthenticated()
+                .and()
+                .requestMatchers()
+                .antMatchers( tokenEndpointPath )
+                .and()
+                .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
-            if ( !endpoints.getEndpointsConfigurer().isUserDetailsServiceOverride() )
-//            {
-//                UserDetailsService userDetailsService = http.getSharedObject( UserDetailsService.class );
-//                endpoints.getEndpointsConfigurer().userDetailsService( userDetailsService );
-//            }
-
-                http
-                    .authorizeRequests()
-//                    .antMatchers( authorizePath ).fullyAuthenticated()
-                    .antMatchers( tokenEndpointPath ).fullyAuthenticated()
-
-//                    .antMatchers( tokenKeyPath ).access( configurer.getTokenKeyAccess() )
-//                    .antMatchers( checkTokenPath ).access( configurer.getCheckTokenAccess() )
-
-                    .and()
-                    .requestMatchers()
-//                    .antMatchers( tokenEndpointPath, tokenKeyPath, checkTokenPath )
-//                    .antMatchers( tokenEndpointPath, authorizePath )
-                    .antMatchers( tokenEndpointPath )
-                    .and()
-                    .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
-
-//            http.setSharedObject( ClientDetailsService.class, clientDetailsService );
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
         }
 
@@ -234,33 +185,19 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
             }
         }
 
-//    protected void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-//        for (AuthorizationServerConfigurer configurer : configurers) {
-//            configurer.configure(oauthServer);
-//        }
-//    }
-
         @Autowired
         OldOauthAuthenticationProvider oldOauthAuthenticationProvider;
 
-        //
         @Override
         public void configure( AuthorizationServerSecurityConfigurer security )
             throws Exception
         {
-//            security.addAuthenticationProvider( twoFactorAuthenticationProvider );
         }
-
-//        @Autowired
-//        @Qualifier( "defaultClientDetailsService" )
-//        private ClientDetailsService clientDetailsService;
 
         @Override
         public void configure( ClientDetailsServiceConfigurer configurer )
             throws Exception
         {
-//            configurer.
-//                withClientDetails( clientDetailsService );
         }
 
         @Bean( "authorizationCodeServices" )
@@ -275,17 +212,10 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
         {
             endpoints
                 .prefix( "/uaa" )
-//                .pathMapping( "/oauth/token", "/token" )
-//                .tokenServices( tokenServices() )
-
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
                 .tokenStore( tokenStore() )
                 .authenticationManager( authenticationManager() );
-//            .setClientDetailsService( clientDetailsService );
-            // .accessTokenConverter(accessTokenConverter())
-//            .tokenEnhancer(tokenEnhancerChain)
         }
-
     }
 
     @Bean
@@ -308,7 +238,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
     @Order( 1010 )
     public class OidcSecurityConfig extends WebSecurityConfigurerAdapter
     {
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
@@ -330,25 +259,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
     @Order( 1100 )
     public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter
     {
-
-//
-//        private ResourceServerTokenServices resourceTokenServices(HttpSecurity http) {
-//            tokenServices(http);
-//            return this.resourceTokenServices;
-//        }
-//
-//        private ResourceServerTokenServices tokenServices(HttpSecurity http) {
-//            if (resourceTokenServices != null) {
-//                return resourceTokenServices;
-//            }
-//            DefaultTokenServices tokenServices = new DefaultTokenServices();
-//            tokenServices.setTokenStore(tokenStore());
-//            tokenServices.setSupportRefreshToken(true);
-//            tokenServices.setClientDetailsService(clientDetails());
-//            this.resourceTokenServices = tokenServices;
-//            return tokenServices;
-//        }
-
         @Autowired
         @Qualifier( "tokenService1" )
         public ResourceServerTokenServices tokenServices;
@@ -384,7 +294,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 }
             }
             oauthAuthenticationManager.setResourceId( resourceId );
-//            oauthAuthenticationManager.setTokenServices(resourceTokenServices(http));
             oauthAuthenticationManager.setTokenServices( tokenServices );
             oauthAuthenticationManager.setClientDetailsService( clientDetailsService );
 
@@ -423,9 +332,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
 //                .exceptionHandling()
 //                .accessDeniedHandler(accessDeniedHandler)
 //                .authenticationEntryPoint(authenticationEntryPoint);
-
-
-
 
 
             http
@@ -592,22 +498,6 @@ public class HttpStrutsConfig   //beans-maintenace-mobile.xml
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
         }
-
-//        @Bean
-//        public AppCacheFilter appCacheFilter()
-//        {
-//            return new AppCacheFilter();
-//        }
-
-//
-//    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
-//    <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
-//    <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
-//    <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
-
-//        <bean id="customAuthenticationFilter" class="org.hisp.dhis.security.filter.CustomAuthenticationFilter" />
-//  <bean id="corsFilter" class="org.hisp.dhis.security.filter.CorsFilter" />
-//  <bean id="appCacheFilter" class="org.hisp.dhis.webapi.filter.AppCacheFilter" />
 
         @Bean
         public Http401LoginUrlAuthenticationEntryPoint entryPoint()
