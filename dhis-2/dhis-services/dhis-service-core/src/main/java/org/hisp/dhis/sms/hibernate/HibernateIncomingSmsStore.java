@@ -76,7 +76,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
             parameter.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
-        if ( originator != null )
+        if ( originator != null && !originator.isEmpty() )
         {
             parameter.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), originator, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
         }
