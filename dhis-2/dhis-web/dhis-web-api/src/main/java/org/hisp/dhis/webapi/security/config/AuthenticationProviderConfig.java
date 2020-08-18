@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.webapi.security.config;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -36,15 +36,15 @@ public class AuthenticationProviderConfig
     TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
+    DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
+
+    @Autowired
     public void configureGlobal( AuthenticationManagerBuilder auth )
         throws Exception
     {
         auth.authenticationProvider( twoFactorAuthenticationProvider );
         auth.authenticationProvider( customLdapAuthenticationProvider() );
     }
-
-    @Autowired
-    DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
     @Bean
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()

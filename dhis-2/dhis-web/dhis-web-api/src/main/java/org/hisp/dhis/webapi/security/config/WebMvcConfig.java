@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.webapi.security.config;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +52,7 @@ import static org.springframework.http.MediaType.parseMediaType;
 @EnableWebMvc
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 @Slf4j
-public class HttpConfig implements WebMvcConfigurer
+public class WebMvcConfig implements WebMvcConfigurer
 {
     @Bean
     public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()

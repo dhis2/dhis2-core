@@ -10,7 +10,7 @@ import javax.servlet.ServletContext;
 import java.util.EnumSet;
 
 @Order( 12 )
-public class MyWEBSTRUTSWebAppInitializer implements WebApplicationInitializer
+public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
 {
 
     @Override

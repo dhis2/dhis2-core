@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.filter;
+package org.hisp.dhis.webapi.filter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo

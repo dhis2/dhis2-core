@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.webapi.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

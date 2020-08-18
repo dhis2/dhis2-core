@@ -39,7 +39,7 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
-import org.hisp.dhis.security.HttpStrutsConfig;
+import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -78,7 +78,7 @@ import javax.transaction.Transactional;
     LeaderElectionConfiguration.class,
     NotifierConfiguration.class,
 //    HttpConfig.class,
-    HttpStrutsConfig.class,
+    DhisWebCommonsWebSecurityConfig.class,
     org.hisp.dhis.setting.config.ServiceConfig.class,
     org.hisp.dhis.external.config.ServiceConfig.class,
     org.hisp.dhis.dxf2.config.ServiceConfig.class,

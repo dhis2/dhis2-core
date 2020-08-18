@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.oprovider;
+package org.hisp.dhis.webapi.oprovider;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -41,7 +41,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class OldOauthAuthenticationProvider extends DaoAuthenticationProvider
+public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
 {
     @Autowired
     private UserService userService;
@@ -62,7 +61,7 @@ public class OldOauthAuthenticationProvider extends DaoAuthenticationProvider
     DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
     @Autowired
-    public OldOauthAuthenticationProvider( @Qualifier( "defaultClientDetailsUserDetailsService" ) DefaultClientDetailsUserDetailsService detailsService )
+    public DhisOauthAuthenticationProvider( @Qualifier( "defaultClientDetailsUserDetailsService" ) DefaultClientDetailsUserDetailsService detailsService )
     {
 //        super();
         setUserDetailsService( detailsService );
