@@ -152,11 +152,11 @@ public class ProgramRuleIntegration
     }
 
     private TrackerImportParams build(TrackerBundleParams params) {
-        TrackerBundleParams.builder()
+        return TrackerImportParams.builder()
                 .user( params.getUser() )
                 .importMode( params.getImportMode() )
                 .importStrategy( params.getImportStrategy() )
-                .skipTextPatternValidation( params.isSkipTextPatternValidation() )
+            .skipPatternValidation( params.isSkipTextPatternValidation() )
                 .identifiers( params.getIdentifiers() )
                 .atomicMode( params.getAtomicMode() )
                 .flushMode( params.getFlushMode() )
