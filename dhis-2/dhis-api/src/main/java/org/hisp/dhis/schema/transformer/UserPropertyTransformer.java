@@ -68,7 +68,8 @@ public class UserPropertyTransformer
         Assert.notNull( userCredentials, "UserCredentials should never be null." );
 
         return UserDto.builder()
-            .id( userCredentials.getUuid().toString() )
+            .id( user.getUid() )
+            .code( user.getCode() )
             .username( userCredentials.getUsername() )
             .build();
     }
@@ -79,12 +80,20 @@ public class UserPropertyTransformer
     {
         private String id;
 
+        private String code;
+
         private String username;
 
         @JsonProperty
         public String getId()
         {
             return id;
+        }
+
+        @JsonProperty
+        public String getCode()
+        {
+            return code;
         }
 
         @JsonProperty
@@ -108,7 +117,8 @@ public class UserPropertyTransformer
             Assert.notNull( userCredentials, "UserCredentials should never be null." );
 
             gen.writeStartObject();
-            gen.writeStringField( "id", userCredentials.getUuid().toString() );
+            gen.writeStringField( "id", user.getUid() );
+            gen.writeStringField( "code", user.getCode() );
             gen.writeStringField( "username", userCredentials.getUsername() );
             gen.writeEndObject();
         }
