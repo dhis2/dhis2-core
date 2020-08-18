@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.filter;
+package org.hisp.dhis.webapi.filter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,11 +30,10 @@ package org.hisp.dhis.security.filter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-
-
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -56,17 +55,40 @@ import java.net.URLEncoder;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@Component
 public class CorsFilter
-    implements Filter
+    implements Filter, InitializingBean
 {
+    private static CorsFilter instance;
+
+    @Override
+    public void afterPropertiesSet()
+        throws Exception
+    {
+        instance = this;
+    }
+
+    public static CorsFilter get()
+    {
+        return instance;
+    }
+
     public static final String CORS_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
+
     public static final String CORS_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+
     public static final String CORS_MAX_AGE = "Access-Control-Max-Age";
+
     public static final String CORS_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+
     public static final String CORS_EXPOSE_HEADERS = "Access-Control-Expose-Headers";
+
     public static final String CORS_REQUEST_HEADERS = "Access-Control-Request-Headers";
+
     public static final String CORS_ALLOW_METHODS = "Access-Control-Allow-Methods";
+
     public static final String CORS_REQUEST_METHOD = "Access-Control-Request-Method";
+
     public static final String CORS_ORIGIN = "Origin";
 
     private static final String EXPOSED_HEADERS = "ETag, Location";
@@ -77,7 +99,8 @@ public class CorsFilter
     private ConfigurationService configurationService;
 
     @Override
-    public void doFilter( ServletRequest req, ServletResponse res, FilterChain filterChain ) throws IOException, ServletException
+    public void doFilter( ServletRequest req, ServletResponse res, FilterChain filterChain )
+        throws IOException, ServletException
     {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
@@ -136,7 +159,8 @@ public class CorsFilter
     private boolean isOriginWhitelisted( HttpServletRequest request, String origin )
     {
         HttpServletRequestEncodingWrapper encodingWrapper = new HttpServletRequestEncodingWrapper( request );
-        UriComponentsBuilder uriBuilder = ServletUriComponentsBuilder.fromContextPath( encodingWrapper ).replacePath( "" );
+        UriComponentsBuilder uriBuilder = ServletUriComponentsBuilder.fromContextPath( encodingWrapper )
+            .replacePath( "" );
 
         String forwardedProto = request.getHeader( "X-Forwarded-Proto" );
 
@@ -152,7 +176,8 @@ public class CorsFilter
     }
 
     @Override
-    public void init( FilterConfig filterConfig ) {
+    public void init( FilterConfig filterConfig )
+    {
     }
 
     @Override

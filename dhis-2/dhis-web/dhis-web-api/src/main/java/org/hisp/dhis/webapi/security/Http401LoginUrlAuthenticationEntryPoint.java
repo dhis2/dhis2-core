@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.filter;
+package org.hisp.dhis.webapi.security;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,49 +28,42 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.render.RenderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CustomAuthenticationFilter
-    implements Filter
+public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
 {
-    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
-    public static final String PARAM_AUTH_ONLY = "authOnly";
-    
-    @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
+    @Autowired
+    private RenderService renderService;
+
+    public Http401LoginUrlAuthenticationEntryPoint( String loginFormUrl )
     {
+        super( loginFormUrl );
     }
 
     @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
+    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException, ServletException
     {
-        String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
-        String authOnly = request.getParameter( PARAM_AUTH_ONLY );
-        
-        if ( mobileVersion != null )
+        if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
         {
-            request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
+            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+            renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( "Unauthorized" ) );
+            return;
         }
 
-        if ( authOnly != null )
-        {
-            request.setAttribute( PARAM_AUTH_ONLY, authOnly );
-        }
-        
-        filterChain.doFilter( request, response );
-    }
-
-    @Override
-    public void destroy()
-    {
+        super.commence( request, response, authException );
     }
 }

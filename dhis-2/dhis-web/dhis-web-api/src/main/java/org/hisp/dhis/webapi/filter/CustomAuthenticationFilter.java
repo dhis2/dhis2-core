@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.filter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,44 +28,72 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import java.io.IOException;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BasicAuthenticationEntryPoint
-    implements AuthenticationEntryPoint
+@Slf4j
+@Component
+public class CustomAuthenticationFilter implements InitializingBean, Filter
 {
-    @Autowired
-    private RenderService renderService;
+    private static CustomAuthenticationFilter instance;
 
     @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException
+    public void afterPropertiesSet()
+        throws Exception
     {
-        String message;
+        instance = this;
+    }
 
-        if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
+    public static CustomAuthenticationFilter get()
+    {
+        return instance;
+    }
+
+    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
+
+    public static final String PARAM_AUTH_ONLY = "authOnly";
+
+    @Override
+    public void init( FilterConfig filterConfig )
+        throws ServletException
+    {
+    }
+
+    @Override
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
+        throws IOException, ServletException
+    {
+        String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
+        String authOnly = request.getParameter( PARAM_AUTH_ONLY );
+
+        if ( mobileVersion != null )
         {
-            message = "Account locked" ;
-        }
-        else
-        {
-            message = "Unauthorized";
+            request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
         }
 
-        response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
+        if ( authOnly != null )
+        {
+            request.setAttribute( PARAM_AUTH_ONLY, authOnly );
+        }
+
+        filterChain.doFilter( request, response );
+    }
+
+    @Override
+    public void destroy()
+    {
     }
 }
+

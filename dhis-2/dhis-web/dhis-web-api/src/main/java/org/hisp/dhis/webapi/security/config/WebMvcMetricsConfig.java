@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.webapi.security.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,15 +28,10 @@ package org.hisp.dhis.webapi.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
-
-import java.io.IOException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.spring.web.servlet.DefaultWebMvcTagsProvider;
+import io.micrometer.spring.web.servlet.WebMvcMetricsFilter;
+import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
@@ -48,10 +43,13 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.spring.web.servlet.DefaultWebMvcTagsProvider;
-import io.micrometer.spring.web.servlet.WebMvcMetricsFilter;
-import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
 
 /**
  * @author Luciano Fiandesio
@@ -120,7 +118,7 @@ public class WebMvcMetricsConfig
         }
 
         @Override
-        public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
+        public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
         {
             return isTestRun( conditionContext ) || !getBooleanValue( MONITORING_API_ENABLED );
         }

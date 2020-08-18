@@ -1,5 +1,4 @@
-package org.hisp.dhis.configuration;
-
+package org.hisp.dhis.webapi.filter;
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,49 +27,41 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import javax.servlet.Filter;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.springframework.web.WebApplicationInitializer;
+import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
- * Configures cookies to be secure if the {@link ConfigurationKey#SERVER_HTTPS_ONLY} is enabled.
+ * Configuration registered if {@link RedisDisabledCondition} matches to true.
+ * This serves as a fallback to spring-session if redis is disabled. Since
+ * web.xml has a "springSessionRepositoryFilter" mapped to all urls, the
+ * container will expect a filter bean with that name. Therefore we define a
+ * dummy {@link Filter} named springSessionRepositoryFilter. Here we define a
+ * {@link CharacterEncodingFilter} without setting any encoding so that requests
+ * will simply pass through the filter.
  *
- * @author Lars Helge Overland
+ * @author Ameen Mohamed
+ *
  */
-@Slf4j
-public class SecureCookieConfiguration
-    implements WebApplicationInitializer
+@Configuration
+@DependsOn("dhisConfigurationProvider")
+@Conditional( RedisDisabledCondition.class )
+public class DefaultSessionConfiguration
 {
-    @Override
-    public void onStartup( ServletContext context )
-        throws ServletException
+    /**
+     * Defines a {@link CharacterEncodingFilter} named
+     * springSessionRepositoryFilter
+     *
+     * @return a {@link CharacterEncodingFilter} without specifying encoding.
+     */
+    @Bean
+    public Filter springSessionRepositoryFilter()
     {
-        boolean httpsOnly = getConfig().isEnabled( ConfigurationKey.SERVER_HTTPS );
-
-        log.debug( String.format( "Configuring cookies, HTTPS only: %b", httpsOnly ) );
-
-        if ( httpsOnly )
-        {
-            context.getSessionCookieConfig().setSecure( true );
-            context.getSessionCookieConfig().setHttpOnly( true );
-
-            log.info( "HTTPS only is enabled, cookies configured as secure" );
-        }
-    }
-
-    private DhisConfigurationProvider getConfig()
-    {
-        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
-        locationManager.init();
-        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
-        configProvider.init();
-
-        return configProvider;
+        return new CharacterEncodingFilter();
     }
 }

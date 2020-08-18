@@ -1,4 +1,4 @@
-package org.hisp.dhis.servlet.filter;
+package org.hisp.dhis.webapi.filter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -34,6 +34,8 @@ import java.util.regex.Pattern;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -55,7 +57,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  * {@code
  * <filter>
  *     <filter-name>ShallowEtagHeaderFilter</filter-name>
- *     <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+ *     <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>
  *     <init-param>
  *         <param-name>excludeUriRegex</param-name>
  *         <param-value>/api/dataValues|/api/dataValues/files</param-value>
@@ -71,6 +73,12 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@WebFilter( urlPatterns = {
+    "/api/*"
+},
+    initParams = {
+        @WebInitParam( name = "excludeUriRegex", value = "/api/(\\d{2}/)?dataValueSets|/api/(\\d{2}/)?dataValues|/api/(\\d{2}/)?fileResources" )
+    } )
 public class ExcludableShallowEtagHeaderFilter
     extends ShallowEtagHeaderFilter
 {

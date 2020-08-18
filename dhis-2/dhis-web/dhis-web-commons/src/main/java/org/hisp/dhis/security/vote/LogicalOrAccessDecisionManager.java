@@ -57,6 +57,12 @@ public class LogicalOrAccessDecisionManager
 {
     private List<AccessDecisionManager> accessDecisionManagers = Collections.emptyList();
 
+    public LogicalOrAccessDecisionManager(
+        List<AccessDecisionManager> accessDecisionManagers )
+    {
+        this.accessDecisionManagers = accessDecisionManagers;
+    }
+
     public void setAccessDecisionManagers( List<AccessDecisionManager> accessDecisionManagers )
     {
         this.accessDecisionManagers = accessDecisionManagers;
