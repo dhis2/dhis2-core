@@ -303,7 +303,7 @@ dhis2.period.PeriodGenerator.prototype.generateReversedPeriods = function(genera
  * @returns {Array} Generated periods as array
  */
 dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function(generator, periods, n, checkStartDate, checkEndDate) {
-  var max = this.generators[generator].todayPlusPeriods( n );
+  var max = this.generators[generator].datePlusPeriods( this.calendar.today(), n );
   var array = [];
   var today = this.calendar.today();
   var startDate = checkStartDate ? this.calendar.parseDate( 'yyyy-mm-dd', checkStartDate.split( " " )[0] ) : null;
@@ -323,6 +323,18 @@ dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function(generator, p
   } );
   return array;
 };
+
+/**
+ * Adds the given number of periods to a date.
+ *
+ * @param {String} generator Generator to use (String)
+ * @param {Date} d the starting date.
+ * @param {int} n number of periods to add.
+ * @returns {Date} the date, n periods later.
+ */
+dhis2.period.PeriodGenerator.prototype.datePlusPeriods = function(generator, d, periods, n) {
+  return this.generators[generator].datePlusPeriods( d, n );
+}
 
 /**
  * Convenience method to get Daily generator
@@ -581,15 +593,15 @@ $.extend( dhis2.period.BaseGenerator.prototype, {
     throw new Error( '$generate method not implemented on ' + this.name + ' generator.' );
   },
   /**
-   * Get the date calculated from current date added the given number of periods
-   * of this period type.
+   * Adds the given number of periods to a date.
    *
-   * @param {int} n number of periods.
-   * @return date object.
+   * @param {Date} d the starting date.
+   * @param {int} n number of periods to add.
+   * @returns {Date} the date, n periods later.
    */
-  todayPlusPeriods: function(n) {
+  datePlusPeriods: function( d, n) {
     n = n || 0;
-    return this.$todayPlusPeriods( n );
+    return this.$datePlusPeriods( d, n );
   }
 } );
 
@@ -633,8 +645,8 @@ $.extend( dhis2.period.DailyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'd' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'd' );
   }
 } );
 
@@ -692,8 +704,8 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -779,8 +791,8 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -839,8 +851,8 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -899,8 +911,8 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -962,8 +974,8 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -1017,8 +1029,8 @@ $.extend( dhis2.period.BiWeeklyGenerator.prototype, {
 
         return periods;
     },
-    $todayPlusPeriods: function(n) {
-        return this.calendar.today().add( n, 'w' );
+    $datePlusPeriods: function(d, n) {
+        return d.add( n, 'w' );
     }
 } );
 
@@ -1061,8 +1073,8 @@ $.extend( dhis2.period.MonthlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'm' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'm' );
   }
 } );
 
@@ -1106,7 +1118,7 @@ $.extend( dhis2.period.BiMonthlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 2, 'm' );
   }
 } );
@@ -1151,7 +1163,7 @@ $.extend( dhis2.period.QuarterlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 3, 'm' );
   }
 } );
@@ -1210,7 +1222,7 @@ $.extend( dhis2.period.SixMonthlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 6, 'm' );
   }
 } );
@@ -1269,7 +1281,7 @@ $.extend( dhis2.period.SixMonthlyAprilGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 6, 'm' );
   }
 } );
@@ -1328,7 +1340,7 @@ $.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 6, 'm' );
   }
 } );
@@ -1374,8 +1386,8 @@ $.extend( dhis2.period.YearlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'y' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'y' );
   }
 } );
 
@@ -1431,8 +1443,8 @@ $.extend( dhis2.period.FinancialBaseGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'y' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'y' );
   }
 } );
 

@@ -43,7 +43,7 @@ public interface IncomingSmsStore extends GenericStore<IncomingSms>
 
     IncomingSms get( int id );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
 
