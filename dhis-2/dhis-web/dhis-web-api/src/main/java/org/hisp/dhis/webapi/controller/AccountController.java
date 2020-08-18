@@ -41,6 +41,7 @@ import org.hisp.dhis.security.RecaptchaResponse;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -54,7 +55,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -89,7 +89,9 @@ public class AccountController
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
+
+    private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
     private final ConfigurationService configurationService;
 
     private final PasswordManager passwordManager;
@@ -106,7 +108,7 @@ public class AccountController
 
     public AccountController(
         UserService userService,
-        AuthenticationManager authenticationManager,
+        TwoFactorAuthenticationProvider authenticationManager,
         ConfigurationService configurationService,
         PasswordManager passwordManager,
         SecurityService securityService,
@@ -116,7 +118,7 @@ public class AccountController
         ObjectMapper jsonMapper )
     {
         this.userService = userService;
-        this.authenticationManager = authenticationManager;
+        this.twoFactorAuthenticationProvider = authenticationManager;
         this.configurationService = configurationService;
         this.passwordManager = passwordManager;
         this.securityService = securityService;
@@ -592,7 +594,7 @@ public class AccountController
             new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
         token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
-        Authentication auth = authenticationManager.authenticate( token );
+        Authentication auth = twoFactorAuthenticationProvider.authenticate( token );
 
         SecurityContextHolder.getContext().setAuthentication( auth );
 
