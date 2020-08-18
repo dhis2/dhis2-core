@@ -1535,13 +1535,28 @@ dhis2.de.getCurrentCategoryOptionsQueryValue = function()
 
 /**
  * Tests to see if a category option is valid during a period.
- * 
- * TODO proper date comparison
  */
 dhis2.de.optionValidWithinPeriod = function( option, period )
 {
-    return ( !option.start || option.start <= dhis2.de.periodChoices[ period ].endDate )
-        && ( !option.end || option.end >= dhis2.de.periodChoices[ period ].startDate )
+    var optionStartDate, optionEndDate;
+
+    if ( option.start ) {
+        optionStartDate = dhis2.period.calendar.parseDate( dhis2.period.format, option.start );
+    }
+
+    if ( option.end ) {
+        optionEndDate = dhis2.period.calendar.parseDate( dhis2.period.format, option.end );
+        var ds = dhis2.de.dataSets[dhis2.de.currentDataSetId];
+        if ( ds.openPeriodsAfterCoEndDate ) {
+            optionEndDate = dhis2.period.generator.datePlusPeriods( ds.periodType, optionEndDate, parseInt( ds.openPeriodsAfterCoEndDate ) );
+        }
+    }
+
+    var periodStartDate = dhis2.period.calendar.parseDate( dhis2.period.format, dhis2.de.periodChoices[ period ].startDate );
+    var periodEndDate = dhis2.period.calendar.parseDate( dhis2.period.format, dhis2.de.periodChoices[ period ].endDate );
+
+    return ( !optionStartDate || optionStartDate <= periodEndDate )
+        && ( !optionEndDate || optionEndDate >= periodStartDate )
 }
 
 /**

@@ -1157,10 +1157,12 @@ public class DefaultDataValueSetService
 
             final CategoryOptionCombo aoc = attrOptionCombo;
 
-            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange);
+            DateRange aocDateRange = dataSet != null
+                ? attrOptionComboDateRangeMap.get( attrOptionCombo.getUid() + dataSet.getUid(), () -> aoc.getDateRange( dataSet ) )
+                : attrOptionComboDateRangeMap.get( attrOptionCombo.getUid() + dataElement.getUid(), () -> aoc.getDateRange( dataElement ) );
 
-            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
-                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
+            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().after( period.getEndDate() ) )
+                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().before( period.getStartDate() ) ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
