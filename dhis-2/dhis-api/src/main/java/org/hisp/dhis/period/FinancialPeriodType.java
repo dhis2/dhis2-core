@@ -49,6 +49,8 @@ public abstract class FinancialPeriodType
 
     public static final int FREQUENCY_ORDER = 365;
 
+    public static final String SQL_INTERVAL = "1 year";
+
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
@@ -85,6 +87,12 @@ public abstract class FinancialPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
+    }
+
+    @Override
+    public String getSqlInterval()
+    {
+        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------

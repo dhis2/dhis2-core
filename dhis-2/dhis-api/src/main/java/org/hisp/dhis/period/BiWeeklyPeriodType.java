@@ -38,6 +38,6 @@ public class BiWeeklyPeriodType
 
     public BiWeeklyPeriodType()
     {
-        super( NAME, 1, "yyyyBiWn", "P14D", 14, "BiW" );
+        super( NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW" );
     }
 }

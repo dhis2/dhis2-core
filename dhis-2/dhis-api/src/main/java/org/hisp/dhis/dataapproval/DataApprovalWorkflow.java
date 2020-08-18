@@ -136,6 +136,41 @@ public class DataApprovalWorkflow
         return sortedLevels;
     }
 
+    /**
+     * Returns the SQL fragment to extend the category option end dates
+     * for this data approval workflow. This will be based on the
+     * dataset belonging to this workflow with the longest
+     * category option end date extension (if any).
+     *
+     * @return the SQL to extend the category option end dates,
+     * or an empty string if there is no such extension.
+     */
+    public String getSqlCoEndDateExtension()
+    {
+        String extension = "";
+        int maxDays = 0;
+
+        for ( DataSet ds : getDataSets() )
+        {
+            if ( ds.getOpenPeriodsAfterCoEndDate() != 0 )
+            {
+                PeriodType pt = ds.getPeriodType();
+
+                int periods = ds.getOpenPeriodsAfterCoEndDate();
+
+                if ( periods * pt.getFrequencyOrder() > maxDays )
+                {
+                    maxDays = periods * pt.getFrequencyOrder();
+
+                    extension = " + " + periods +
+                        " * INTERVAL '+ " + pt.getSqlInterval() + "'";
+                }
+            }
+        }
+
+        return extension;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and Setters
     // -------------------------------------------------------------------------

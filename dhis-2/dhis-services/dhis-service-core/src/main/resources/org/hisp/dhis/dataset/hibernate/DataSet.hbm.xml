@@ -98,6 +98,8 @@
 
     <property name="openFuturePeriods" column="openfutureperiods" />
 
+    <property name="openPeriodsAfterCoEndDate" column="openperiodsaftercoenddate" />
+
     <property name="fieldCombinationRequired" />
 
     <property name="validCompleteOnly" />

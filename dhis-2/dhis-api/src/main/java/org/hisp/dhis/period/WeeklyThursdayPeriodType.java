@@ -42,6 +42,6 @@ public class WeeklyThursdayPeriodType
 
     public WeeklyThursdayPeriodType()
     {
-        super( NAME, 4, "yyyyThuWn", "P7D", 7, "ThuW" );
+        super( NAME, 4, "yyyyThuWn", "P7D", 7, "1 week", "ThuW" );
     }
 }
