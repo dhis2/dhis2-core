@@ -40,7 +40,7 @@ public interface OutboundSmsService
 
     long saveOutboundSms( OutboundSms sms );
 
-    void deleteById( Integer outboundSmsId );
+    void deleteById( Long outboundSmsId );
 
     void deleteById( String uid );
 

@@ -29,13 +29,10 @@ package org.hisp.dhis.webapi.controller.sms;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -54,7 +51,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -80,8 +76,6 @@ public class SmsController
     private final RenderService renderService;
     private final SMSCommandService smsCommandService;
     private final UserService userService;
-    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
-    private final ProgramMessageService programMessageService;
     private final CurrentUserService currentUserService;
     private final OutboundSmsService outboundSmsService;
 
@@ -92,9 +86,6 @@ public class SmsController
         RenderService renderService,
         SMSCommandService smsCommandService,
         UserService userService,
-        @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-        IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore,
-        ProgramMessageService programMessageService,
         CurrentUserService currentUserService,
         OutboundSmsService outboundSmsService )
     {
@@ -104,8 +95,6 @@ public class SmsController
         this.renderService = renderService;
         this.smsCommandService = smsCommandService;
         this.userService = userService;
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
-        this.programMessageService = programMessageService;
         this.currentUserService = currentUserService;
         this.outboundSmsService = outboundSmsService;
     }
@@ -115,9 +104,11 @@ public class SmsController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/outbound/messages", method = RequestMethod.GET )
+    @RequestMapping( value = "/outbound/messages", method = RequestMethod.GET, produces = "application/json" )
     public void getOutboundMessages( @RequestParam( required = false ) OutboundSmsStatus status, HttpServletResponse response ) throws IOException
     {
+        response.setContentType( "application/json" );
+
         if ( status == null )
         {
             renderService.toJson( response.getOutputStream(), outboundSmsService.getAllOutboundSms() );
@@ -128,11 +119,13 @@ public class SmsController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/inbound/messages", method = RequestMethod.GET )
+    @RequestMapping( value = "/inbound/messages", method = RequestMethod.GET, produces = "application/json" )
     public void getInboundMessages( @RequestParam( required = false ) SmsMessageStatus status,
         @RequestParam( required = false ) String originator,
         HttpServletResponse response ) throws IOException
     {
+        response.setContentType( "application/json" );
+
         if ( status == null )
         {
             renderService.toJson( response.getOutputStream(), incomingSMSService.listAllMessage() );
@@ -248,7 +241,7 @@ public class SmsController
 
     @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @RequestParam List<Long> ids, HttpServletRequest request, HttpServletResponse response )
     {
         ids.forEach( outboundSmsService::deleteById );
 
@@ -259,7 +252,7 @@ public class SmsController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void deleteInboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
     {
-        ids.forEach( outboundSmsService::deleteById );
+        ids.forEach( incomingSMSService::deleteById );
 
         webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
     }
