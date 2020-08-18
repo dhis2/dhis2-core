@@ -64,17 +64,21 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     }
 
     @Override
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameter = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
         .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
 
         if ( status != null )
         {
             parameter.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
+        }
+
+        if ( originator != null && !originator.isEmpty() )
+        {
+            parameter.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), originator, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
         }
 
         return getList( builder, parameter );

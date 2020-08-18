@@ -509,10 +509,10 @@ public class DefaultDimensionService
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
-            atomicObjects.putEntries( e.getKey(),
-                idObjectManager.get( e.getKey(), e.getValue() ).stream()
+            atomicObjects.putEntries( entry.getKey(),
+                idObjectManager.get( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
@@ -524,10 +524,10 @@ public class DefaultDimensionService
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
-            atomicObjects.putEntries( e.getKey(),
-                idObjectManager.getNoAcl( e.getKey(), e.getValue() ).stream()
+            atomicObjects.putEntries( entry.getKey(),
+                idObjectManager.getNoAcl( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 

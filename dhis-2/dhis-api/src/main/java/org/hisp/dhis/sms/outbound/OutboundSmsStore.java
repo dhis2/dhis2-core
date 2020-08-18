@@ -28,9 +28,11 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectStore;
+
 import java.util.List;
 
-public interface OutboundSmsStore
+public interface OutboundSmsStore  extends IdentifiableObjectStore<OutboundSms>
 {
     void saveOutboundSms( OutboundSms sms );
 
