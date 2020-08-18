@@ -869,6 +869,7 @@
 
   <bean id="org.hisp.dhis.period.PeriodService" class="org.hisp.dhis.period.DefaultPeriodService">
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+    <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.DataSetService" class="org.hisp.dhis.dataset.DefaultDataSetService">

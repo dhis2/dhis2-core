@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -47,6 +49,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -122,6 +125,9 @@ public class DataValueSetServiceTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private SessionFactory sessionFactory;
+
     private Attribute attribute;
 
     private CategoryOptionCombo ocDef;
@@ -161,8 +167,8 @@ public class DataValueSetServiceTest
     @Override
     public void setUpTest()
     {
+        populatePeriodType();
         userService = _userService;
-
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
@@ -1220,5 +1226,40 @@ public class DataValueSetServiceTest
         Date monthEnd = DateUtils.addDays( DateUtils.addMonths( monthStart, 1 ), -1 );
 
         return createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), monthStart, monthEnd );
+    }
+
+    /**
+     * This is to fix the issue of PeriodType hasn't been inserted to H2 database
+     * but only available in Hibernate session
+     * so periodService.reloadIsoPeriodInStatelessSession() will fail
+     */
+    private void populatePeriodType()
+    {
+        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        StatelessSession session = sessionFactory.openStatelessSession();
+        session.beginTransaction();
+        try
+        {
+            periodTypes.forEach( pt -> {
+                Object periodType = session.get( PeriodType.class, pt.getId() );
+                if ( periodType == null )
+                {
+                    if ( sessionFactory.getCurrentSession().contains( pt ) )
+                    {
+                        sessionFactory.getCurrentSession().delete( pt );
+                    }
+
+                    session.insert( pt );
+                }
+            } );
+        }
+        catch ( Exception exception )
+        {
+            exception.printStackTrace();
+        }
+        finally
+        {
+            DbmsUtils.closeStatelessSession( session );
+        }
     }
 }
