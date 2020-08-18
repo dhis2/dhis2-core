@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.RuleActionValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,10 +73,20 @@ public class EnrollmentRuleValidationHook
 
         validators
             .stream()
+            .filter( v -> !v.isWarning() )
             .flatMap( v -> {
                 List<String> errors = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
                 return errors != null ? errors.stream() : Lists.newArrayList().stream();
             } )
             .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+
+        validators
+            .stream()
+            .filter( v -> v.isWarning() )
+            .flatMap( v -> {
+                List<String> warnings = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
+                return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
+            } )
+            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
     }
 }
