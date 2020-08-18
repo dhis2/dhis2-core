@@ -32,7 +32,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -84,9 +83,6 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramStageService programStageService;
-
-    @Autowired
-    private ProgramInstanceAuditStore auditStore;
 
     @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
@@ -301,26 +297,6 @@ public class ProgramInstanceStoreTest
 
         results = programInstanceStore.getWithScheduledNotifications( a3, yesterday );
         assertEquals( 0, results.size() );
-    }
-
-    @Test
-    public void testProgramInstanceAudit()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-
-        ProgramInstanceAudit auditA = new ProgramInstanceAudit( programInstanceA, "testUser", AuditType.CREATE );
-        ProgramInstanceAudit auditB = new ProgramInstanceAudit( programInstanceB, "testUser", AuditType.CREATE );
-        auditStore.addProgramInstanceAudit( auditA );
-        auditStore.addProgramInstanceAudit( auditB );
-
-        ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
-        params.setAuditType( AuditType.CREATE );
-        params.setProgramInstances( Sets.newHashSet( programInstanceA, programInstanceB ) );
-        params.setSkipPaging( true );
-
-        assertEquals( 2, auditStore.getProgramInstanceAudits( params ).size() );
-        assertEquals( 2, auditStore.getProgramInstanceAuditsCount( params ) );
     }
 
     @Test

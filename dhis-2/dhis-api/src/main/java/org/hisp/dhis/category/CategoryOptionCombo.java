@@ -41,6 +41,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Date;
@@ -201,7 +203,8 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo.
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a data set.
      * <p>
      * The earliest valid date is the latest start date (if any) from all the
      * category options associated with this option combo.
@@ -209,27 +212,30 @@ public class CategoryOptionCombo
      * The latest valid date is the earliest end date (if any) from all the
      * category options associated with this option combo.
      *
+     * @param dataSet the data set for which to check dates.
      * @return valid date range for this (attribute) category option combo.
      */
-    public DateRange getDateRange()
+    public DateRange getDateRange( DataSet dataSet )
     {
-        Date latestStartDate = null;
-        Date earliestEndDate = null;
+        return getDateRange( dataSet, null );
+    }
 
-        for ( CategoryOption option : getCategoryOptions() )
-        {
-            if ( option.getStartDate() != null && (latestStartDate == null || option.getStartDate().compareTo( latestStartDate ) > 0) )
-            {
-                latestStartDate = option.getStartDate();
-            }
-
-            if ( option.getEndDate() != null && (earliestEndDate == null || option.getStartDate().compareTo( earliestEndDate ) < 0) )
-            {
-                earliestEndDate = option.getEndDate();
-            }
-        }
-
-        return new DateRange( latestStartDate, earliestEndDate );
+    /**
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a data element (for all data sets to which the data element belongs).
+     * <p>
+     * The earliest valid date is the latest start date (if any) from all the
+     * category options associated with this option combo.
+     * <p>
+     * The latest valid date is the earliest end date (if any) from all the
+     * category options associated with this option combo.
+     *
+     * @param dataElement the data element for which to check dates.
+     * @return valid date range for this (attribute) category option combo.
+     */
+    public DateRange getDateRange( DataElement dataElement )
+    {
+        return getDateRange( null, dataElement );
     }
 
     /**
@@ -271,6 +277,13 @@ public class CategoryOptionCombo
         return orgUnits;
     }
 
+    /**
+     * Gets the latest category option start date for this category
+     * option combo. The combo is only valid between the latest start
+     * date of any options and the earliest end date of any options.
+     *
+     * @return the latest option start date for this combo.
+     */
     public Date getLatestStartDate()
     {
         Date latestStartDate = null;
@@ -287,6 +300,17 @@ public class CategoryOptionCombo
         return latestStartDate;
     }
 
+    /**
+     * Gets the earliest category option end date for this category
+     * option combo. The combo is only valid between the latest start
+     * date of any options and the earliest end date of any options.
+     * <p>
+     * Note that this end date does not take into account any possible
+     * extensions to the category end dates for aggregate data entry
+     * in data sets with openPeriodsAfterCoEndDate.
+     *
+     * @return the latest option start date for this combo.
+     */
     public Date getEarliestEndDate()
     {
         Date earliestEndDate = null;
@@ -301,6 +325,43 @@ public class CategoryOptionCombo
         }
 
         return earliestEndDate;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a data set or, if that is not present, a data element.
+     *
+     * @param dataSet the data set to get the range for, or
+     * @param dataElement the data element to get the range for
+     * @return valid date range for this (attribute) category option combo.
+     */
+    private DateRange getDateRange( DataSet dataSet, DataElement dataElement )
+    {
+        Date latestStartDate = null;
+        Date earliestEndDate = null;
+
+        for ( CategoryOption co : getCategoryOptions() )
+        {
+            if ( co.getStartDate() != null && (latestStartDate == null || co.getStartDate().after( latestStartDate ) ) )
+            {
+                latestStartDate = co.getStartDate();
+            }
+
+            Date coEndDate = dataSet != null
+                ? co.getAdjustedEndDate( dataSet )
+                : co.getAdjustedEndDate( dataElement );
+
+            if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate ) ) )
+            {
+                earliestEndDate = coEndDate;
+            }
+        }
+
+        return new DateRange( latestStartDate, earliestEndDate );
     }
 
     // -------------------------------------------------------------------------
