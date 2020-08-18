@@ -2,7 +2,6 @@ package org.hisp.dhis.webapi.controller.dataelement;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.commons.config.JacksonObjectMapperConfig.staticJsonMapper;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -18,6 +17,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.Compression;
@@ -32,7 +35,6 @@ import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.CriteriaQueryEngine;
 import org.hisp.dhis.query.DefaultQueryParser;
 import org.hisp.dhis.query.DefaultQueryService;
@@ -68,7 +70,6 @@ import com.jayway.jsonpath.JsonPath;
  */
 public class DataElementOperandControllerTest
 {
-
     private MockMvc mockMvc;
 
     @Mock
@@ -98,6 +99,7 @@ public class DataElementOperandControllerTest
     @Before
     public void setUp()
     {
+
         MockitoAnnotations.initMocks( this );
 
         rnd = new BeanRandomizer();
@@ -105,7 +107,7 @@ public class DataElementOperandControllerTest
         ContextService contextService = new DefaultContextService();
 
         QueryService _queryService = new DefaultQueryService(
-            new DefaultQueryParser( schemaService, currentUserService, mock( OrganisationUnitService.class ) ),
+            new DefaultQueryParser( schemaService ),
             new DefaultQueryPlanner( schemaService ), mock( CriteriaQueryEngine.class ),
             new InMemoryQueryEngine<>( schemaService, mock( AclService.class ), currentUserService ) );
         // Use "spy" on queryService, because we want a partial mock: we only want to
@@ -119,7 +121,7 @@ public class DataElementOperandControllerTest
 
         // Set custom Node Message converter //
         NodeService nodeService = new DefaultNodeService();
-        Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer( staticJsonMapper() );
+        Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer( );
         ReflectionTestUtils.setField( nodeService, "nodeSerializers", Lists.newArrayList( serializer ) );
         ReflectionTestUtils.invokeMethod( nodeService, "init" );
 
