@@ -64,7 +64,7 @@ public class PreCheckValidateAndGenerateUidHook
         {
             return;
         }
-        
+
         if ( uid == null )
         {
             trackedEntity.setUid( CodeGenerator.generateUid() );
@@ -84,7 +84,7 @@ public class PreCheckValidateAndGenerateUidHook
         {
             return;
         }
-        
+
         if ( uid == null )
         {
             enrollment.setUid( CodeGenerator.generateUid() );
@@ -106,7 +106,7 @@ public class PreCheckValidateAndGenerateUidHook
         {
             return;
         }
-        
+
         if ( uid == null )
         {
             event.setUid( CodeGenerator.generateUid() );
@@ -115,7 +115,7 @@ public class PreCheckValidateAndGenerateUidHook
         {
             event.setUid( uid );
         }
-        
+
         // Generate UID for notes
         validateNotesUid( event.getNotes(), reporter );
     }
@@ -139,7 +139,7 @@ public class PreCheckValidateAndGenerateUidHook
         }
 
     }
-    
+
     /**
      * Check if the given UID has a valid format. A null UID is considered valid.
      * 

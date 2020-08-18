@@ -101,6 +101,8 @@ public enum ConfigurationKey
     MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
     APPHUB_API_URL( "apphub.api.url", "https://apps.dhis2.org/api", false ),
+    CHANGELOG_AGGREGATE( "changelog.aggregate", "on" ),
+    CHANGELOG_TRACKER( "changelog.tracker", "on" ),
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "off" ),
     AUDIT_LOGGER( "audit.logger", "off", false ),
     AUDIT_DATABASE( "audit.database", "on", false ),

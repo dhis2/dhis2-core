@@ -275,7 +275,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(
-            Sets.newHashSet( programStageInstanceA, programStageInstanceB ), Optional.of( programStageInstanceA ) );
+            Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA );
 
         assertEquals( ruleEvents.size(), 1 );
         RuleEvent ruleEvent = ruleEvents.get( 0 );
@@ -301,7 +301,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
         List<RuleEvent> ruleEvents = subject
-            .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), Optional.empty() );
+            .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), null );
 
         assertEquals( ruleEvents.size(), 2 );
     }

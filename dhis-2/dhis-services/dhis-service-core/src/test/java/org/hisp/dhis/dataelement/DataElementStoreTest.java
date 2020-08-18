@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -369,14 +370,31 @@ public class DataElementStoreTest
         uids.add( dataElementB.getUid() );
 
         assertNotNull( dataElementStore.getByUidNoAcl( uids ) );
-
         assertNotNull( dataElementStore.getByName( dataElementA.getName() ) );
-
         assertNotNull( dataElementStore.getByCode( dataElementA.getCode() ) );
-
         assertEquals( 1, dataElementStore.getAllEqName( "DataElementA" ).size() );
-
         assertEquals( 2, dataElementStore.getAllLikeName( "DataElement" ).size() );
+    }
+
+    @Test
+    public void testGetDataElementsByUidNoAcl()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+
+        List<String> uids = Lists.newArrayList( dataElementA.getUid(), dataElementB.getUid(), dataElementC.getUid() );
+
+        List<DataElement> dataElements = dataElementStore.getByUidNoAcl( uids );
+
+        assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( dataElementA ) );
+        assertTrue( dataElements.contains( dataElementB ) );
+        assertTrue( dataElements.contains( dataElementC ) );
     }
 
     @Test
@@ -389,13 +407,9 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementB );
 
         assertEquals( 2, dataElementStore.getCountLikeName( "dataelement" ) );
-
         assertEquals( 2, dataElementStore.getCount() );
-
         assertEquals( 0, dataElementStore.getCountGeCreated( new Date() ) );
-
         assertEquals( 2, dataElementStore.getCountGeCreated( dataElementA.getCreated() ) );
-
         assertEquals( 2, dataElementStore.getCountGeLastUpdated( dataElementA.getLastUpdated() ) );
     }
 }
