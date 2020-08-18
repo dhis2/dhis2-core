@@ -40,8 +40,6 @@ public interface IncomingSmsService
 {
     String ID = IncomingSmsService.class.getName();
 
-    IncomingSms getNextUnprocessed();
-
     void update( IncomingSms sms );
 
     IncomingSms findBy( Integer id );
@@ -54,7 +52,7 @@ public interface IncomingSmsService
 
     int save( String message, String originator, String gateway, Date receivedTime, User user );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
 

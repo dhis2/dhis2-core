@@ -134,13 +134,6 @@ public class DefaultIncomingSmsService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public IncomingSms getNextUnprocessed()
-    {
-        return null;
-    }
-
-    @Override
     @Transactional
     public void update( IncomingSms incomingSms )
     {
@@ -149,9 +142,9 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional(readOnly = true)
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator )
     {
-        return incomingSmsStore.getSmsByStatus( status, keyword );
+        return incomingSmsStore.getSmsByStatus( status, originator );
     }
 
     @Override
