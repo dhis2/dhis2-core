@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -110,6 +111,8 @@ public class DefaultTrackerBundleService
 
     private final TrackedEntityCommentService trackedEntityCommentService;
 
+    private final TrackerObjectDeletionService deletionService;
+
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
@@ -138,7 +141,8 @@ public class DefaultTrackerBundleService
         DbmsManager dbmsManager,
         ReservedValueService reservedValueService,
         TrackerProgramRuleService trackerProgramRuleService,
-        TrackedEntityCommentService trackedEntityCommentService )
+        TrackedEntityCommentService trackedEntityCommentService,
+        TrackerObjectDeletionService deletionService )
 
     {
         this.trackerPreheatService = trackerPreheatService;
@@ -154,6 +158,7 @@ public class DefaultTrackerBundleService
         this.reservedValueService = reservedValueService;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.trackedEntityCommentService = trackedEntityCommentService;
+        this.deletionService = deletionService;
     }
 
     @Override
@@ -226,6 +231,57 @@ public class DefaultTrackerBundleService
         cacheManager.clearCache();
 
         return bundleReport;
+    }
+
+    @Override
+    @Transactional
+    public TrackerBundleReport delete( TrackerBundle bundle )
+    {
+        TrackerBundleReport bundleReport = new TrackerBundleReport();
+
+        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
+        {
+            return bundleReport;
+        }
+
+        TrackerTypeReport trackedEntityReport = deleteTrackedEntities( bundle );
+        TrackerTypeReport enrollmentReport = deleteEnrollments( bundle );
+        TrackerTypeReport eventReport = deleteEvents( bundle );
+        TrackerTypeReport relationshipReport = deleteRelationShips( bundle );
+
+        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, trackedEntityReport );
+        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, enrollmentReport );
+        bundleReport.getTypeReportMap().put( TrackerType.EVENT, eventReport );
+        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP, relationshipReport );
+
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
+
+        return bundleReport;
+    }
+
+    private TrackerTypeReport deleteTrackedEntities( TrackerBundle bundle )
+    {
+        return null;
+    }
+
+    private TrackerTypeReport deleteEnrollments( TrackerBundle bundle )
+    {
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
+
+        deletionService.deleteEnrollment( bundle, typeReport );
+
+        return typeReport;
+    }
+
+    private TrackerTypeReport deleteEvents( TrackerBundle bundle )
+    {
+        return null;
+    }
+
+    private TrackerTypeReport deleteRelationShips( TrackerBundle bundle )
+    {
+        return null;
     }
 
     private TrackerTypeReport handleTrackedEntities( Session session, TrackerBundle bundle )

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.bundle;
+package org.hisp.dhis.tracker;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +28,14 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
-import javax.sound.midi.Track;
-import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public interface TrackerBundleService
+public interface TrackerObjectDeletionService
 {
-    /**
-     * Creates and prepares tracker bundle.
-     *
-     * @param params Params object for this bundle.
-     * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
-     */
-    List<TrackerBundle> create( TrackerBundleParams params );
-
-    /**
-     * Call rule engine for tracker bundles.
-     *
-     * @return Tracker bundles populated with rule effects
-     */
-    List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles );
-
-    /**
-     * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
-     *
-     * @param bundle TrackerBundle to commit.
-     */
-    TrackerBundleReport commit( TrackerBundle bundle );
-
-    /**
-     * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.
-     *
-     * @param bundle TrackerBundle to delete.
-     */
-    TrackerBundleReport delete( TrackerBundle bundle );
+    TrackerTypeReport deleteEnrollment( TrackerBundle bundle, TrackerTypeReport report );
 }
