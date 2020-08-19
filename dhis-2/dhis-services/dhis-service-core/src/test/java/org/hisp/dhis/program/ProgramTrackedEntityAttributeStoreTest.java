@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,48 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.render.type.ValueTypeRenderingObject;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class ValueRenderTypeDeserialize
-    extends AbstractDeviceRenderTypeMapDeserializer<ValueTypeRenderingObject>
+import static org.junit.Assert.assertEquals;
+
+public class ProgramTrackedEntityAttributeStoreTest
+    extends DhisSpringTest
 {
-    public ValueRenderTypeDeserialize()
+
+    @Autowired
+    private ProgramStore programStore;
+
+    @Autowired
+    private TrackedEntityAttributeStore attributeStore;
+
+    @Autowired
+    private ProgramTrackedEntityAttributeStore teaStore;
+
+    @Test
+    public void testGetAttributesByPrograms()
     {
-        super( ValueTypeRenderingObject::new );
+        Program programA = createProgram( 'A' );
+        Program programB = createProgram( 'B' );
+        Program programC = createProgram( 'C' );
+
+        programStore.save( programB );
+        programStore.save( programA );
+        programStore.save( programC );
+
+        TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
+        attributeStore.save( attributeA );
+
+        ProgramTrackedEntityAttribute tea = createProgramTrackedEntityAttribute( programA, attributeA );
+        ProgramTrackedEntityAttribute teb = createProgramTrackedEntityAttribute( programC, attributeA );
+        teaStore.save( tea );
+        teaStore.save( teb );
+
+        assertEquals( 1, teaStore.getAttributes( Lists.newArrayList( programA ) ).size() );
+        assertEquals( 0, teaStore.getAttributes( Lists.newArrayList( programB ) ).size() );
     }
 }

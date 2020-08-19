@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,19 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.render.type.SectionRenderingObject;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.user.User;
 
-public class SectionRenderTypeDeserialize
-    extends AbstractDeviceRenderTypeMapDeserializer<SectionRenderingObject>
+import java.util.List;
+
+public interface TrackedEntityTypeAttributeStore
+    extends IdentifiableObjectStore<TrackedEntityTypeAttribute>
 {
-    public SectionRenderTypeDeserialize()
-    {
-        super( SectionRenderingObject::new );
-    }
+    /**
+     * Get all TrackedEntityAttribute filtered by given List of TrackedEntityType
+     * @param trackedEntityTypes
+     * @return List of TrackedEntityAttribute
+     */
+    List<TrackedEntityAttribute> getAttributes( List<TrackedEntityType> trackedEntityTypes );
 }
