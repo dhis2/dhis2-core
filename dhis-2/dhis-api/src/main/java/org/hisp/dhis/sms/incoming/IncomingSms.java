@@ -82,6 +82,7 @@ public class IncomingSms
         return text != null;
     }
 
+    @JsonProperty
     public Integer getId()
     {
         return id;
