@@ -48,4 +48,10 @@ public class ShowErrorImplementer
     {
         return RuleActionShowError.class;
     }
+
+    @Override
+    public boolean isWarning()
+    {
+        return false;
+    }
 }
