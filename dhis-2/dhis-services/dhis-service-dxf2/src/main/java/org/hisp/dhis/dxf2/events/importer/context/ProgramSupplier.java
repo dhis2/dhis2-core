@@ -47,6 +47,7 @@ import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -63,6 +64,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -118,6 +120,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private final ObjectMapper jsonMapper;
 
+    private final Environment env;
+
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     // @formatter:off
@@ -154,10 +158,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     // @formatter:on
 
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper, Environment env )
     {
         super( jdbcTemplate );
         this.jsonMapper = jsonMapper;
+        this.env = env;
     }
 
     @Override
@@ -167,7 +172,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         //
         // do not use cache is `skipCache` is true
         //
-        if ( importOptions.isSkipCache() )
+        if ( importOptions.isSkipCache() || SystemUtils.isTestRun( env.getActiveProfiles() ) )
         {
             programsCache.removeAll();
             userGroupCache.removeAll();
@@ -176,8 +181,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         //
         // Check if the list of incoming Events contains one or more Program uid which
-        // is
-        // not in cache. Reload the entire program cache if a Program UID is not found
+        // is not in cache. Reload the entire program cache if a Program UID is not
+        // found
         //
         if ( programMap != null )
         {
@@ -210,7 +215,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             Map<Long, Set<DataElement>> dataElementMandatoryMap = loadProgramStageDataElementMandatoryMap();
 
             //
-            // Load a Map of OrgUnits belonging to a Program (key: program id, value: Set of OrgUnits)
+            // Load a Map of OrgUnits belonging to a Program (key: program id, value: Set of
+            // OrgUnits)
             //
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
 

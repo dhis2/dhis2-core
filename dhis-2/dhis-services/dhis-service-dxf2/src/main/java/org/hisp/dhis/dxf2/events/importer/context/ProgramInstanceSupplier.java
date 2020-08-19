@@ -163,22 +163,22 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     {
         return programs.stream().filter( p -> p.getUid().equals( uid ) ).findFirst().orElse( null );
     }
-    
+
     private ProgramInstance getByTeiAndProgram( ImportOptions importOptions, Long teiId, Long programId, Event event )
     {
         final String sql = "select pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, " +
-                "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi " +
-                "join trackedentityinstance t on t.trackedentityinstanceid = pi.trackedentityinstanceid " +
-                "join organisationunit ou on t.organisationunitid = ou.organisationunitid " +
-                "where pi.programid = :programid " +
-                "and pi.status = 'ACTIVE' " +
-                "and pi.trackedentityinstanceid = :teiid";
+            "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi " +
+            "join trackedentityinstance t on t.trackedentityinstanceid = pi.trackedentityinstanceid " +
+            "join organisationunit ou on t.organisationunitid = ou.organisationunitid " +
+            "where pi.programid = :programid " +
+            "and pi.status = 'ACTIVE' " +
+            "and pi.trackedentityinstanceid = :teiid";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "programid", programId );
         parameters.addValue( "teiid", teiId );
 
-        List<ProgramInstance> query = jdbcTemplate.query(sql, parameters, (ResultSet rs) -> {
+        List<ProgramInstance> query = jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
 
             List<ProgramInstance> results = new ArrayList<>();
 
@@ -187,12 +187,14 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                 results.add( mapFromResultset( rs, importOptions, Collections.singletonList( event ) ) );
             }
             return results;
-        });
-        
-        if (query != null && query.size() == 1) {
-            
+        } );
+
+        if ( query != null && query.size() == 1 )
+        {
             return query.get( 0 );
-        } else {
+        }
+        else
+        {
             return null;
         }
     }
@@ -204,7 +206,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         {
             return new HashMap<>();
         }
-        
+
         final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
             + "left outer join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
@@ -289,6 +291,6 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     @Override
     public Map<String, ProgramInstance> get( ImportOptions importOptions, List<Event> events )
     {
-        throw new NotImplementedException("Use other get method");
+        throw new NotImplementedException( "Use other get method" );
     }
 }

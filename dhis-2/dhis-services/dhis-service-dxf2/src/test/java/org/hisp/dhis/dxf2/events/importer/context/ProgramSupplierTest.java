@@ -47,6 +47,7 @@ import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.env.Environment;
 
 @RunWith( Parameterized.class )
 public class ProgramSupplierTest extends AbstractSupplierTest<Program>
@@ -55,6 +56,9 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private Environment env;
 
     @Parameterized.Parameters
     public static Collection<String> data()
@@ -68,7 +72,8 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Before
     public void setUp()
     {
-        this.subject = new ProgramSupplier( jdbcTemplate, objectMapper );
+        this.subject = new ProgramSupplier( jdbcTemplate, objectMapper, env );
+        when( env.getActiveProfiles() ).thenReturn( new String[] { "tets" } );
     }
 
     @Override
