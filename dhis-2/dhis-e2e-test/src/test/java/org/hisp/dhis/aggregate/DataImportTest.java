@@ -59,7 +59,6 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Ignore
 public class DataImportTest
     extends ApiTest
 {
@@ -80,8 +79,7 @@ public class DataImportTest
         systemActions = new SystemActions();
 
         new LoginActions().loginAsSuperUser();
-        metadataActions.importMetadata( new File( "src/test/resources/aggregate/metadata.json" ), "async=false" ).validate()
-            .statusCode( 200 );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/aggregate/metadata.json" ), "async=false" );
     }
 
     @Test
@@ -166,6 +164,7 @@ public class DataImportTest
         response = dataValueSetActions.get( String.format( "?orgUnit=%s&period=%s&dataSet=%s", orgUnit, period, dataSet ) );
 
         response.validate()
+            .statusCode( 200 )
             .body( "dataSet", equalTo( dataSet ) )
             .body( "period", equalTo( period ) )
             .body( "orgUnit", equalTo( orgUnit ) )

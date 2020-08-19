@@ -28,26 +28,13 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.oneOf;
-
-import java.io.File;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
-import org.hisp.dhis.dto.ObjectReport;
-
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.apache.commons.collections.CollectionUtils;
-import org.hamcrest.Matchers;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
@@ -56,6 +43,9 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
