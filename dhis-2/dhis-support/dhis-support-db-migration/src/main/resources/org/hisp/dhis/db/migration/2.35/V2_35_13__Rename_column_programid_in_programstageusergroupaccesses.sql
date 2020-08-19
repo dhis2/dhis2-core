@@ -1,0 +1,1 @@
+alter table programstageusergroupaccesses rename COLUMN programid to programstageid;

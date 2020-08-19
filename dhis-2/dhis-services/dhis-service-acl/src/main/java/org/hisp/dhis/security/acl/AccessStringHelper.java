@@ -235,8 +235,8 @@ public class AccessStringHelper
         target.setExternalAccess( source.getExternalAccess() );
 
         source.getUserAccesses().forEach(
-            ua -> target.getUserAccesses().add( new UserAccess( ua.getUser(), ua.getAccess() ) ) );
+            ua -> target.getUserAccesses().add( new UserAccess( ua.getId(), ua.getAccess() ) ) );
         source.getUserGroupAccesses().forEach(
-            uga -> target.getUserGroupAccesses().add( new UserGroupAccess( uga.getUserGroup(), uga.getAccess() ) ) );
+            uga -> target.getUserGroupAccesses().add( new UserGroupAccess( uga.getId(), uga.getAccess() ) ) );
     }
 }

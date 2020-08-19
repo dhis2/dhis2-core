@@ -1,16 +1,18 @@
-package org.hisp.dhis.sharing;
+package org.hisp.dhis.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
 
 import java.io.Serializable;
 import java.util.Map;
 
-@Data
 @Builder
+@Data
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class Sharing
     implements Serializable
 {
@@ -19,17 +21,17 @@ public class Sharing
     @JsonProperty
     private String owner;
 
-    @JsonProperty
+    @JsonProperty("public")
     private String publicAccess;
 
     @JsonProperty
     private boolean external;
 
     @JsonProperty
-    private Map<String, UserSharing> users;
+    private Map<String, UserAccess> users;
 
     @JsonProperty
-    private Map<String, UserGroupSharing> userGroups;
+    private Map<String, UserGroupAccess> userGroups;
 
 }
 

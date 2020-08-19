@@ -2393,7 +2393,7 @@ public abstract class DhisConvenienceTest
         object.getUserAccesses().clear();
 
         UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
+        userAccess.setId( user.getUid() );
         userAccess.setAccess( access );
 
         object.getUserAccesses().add( userAccess );

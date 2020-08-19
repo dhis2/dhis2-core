@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import lombok.Builder;
+import lombok.Data;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 
@@ -43,34 +45,31 @@ import java.util.Objects;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
+@Builder
 public class UserAccess
-    implements Serializable, EmbeddedObject
+    implements Serializable
 {
-    private int id;
+    private String id;
 
     private String access;
-
-    private User user;
-
-    private transient String uid;
 
     public UserAccess()
     {
     }
 
-    public UserAccess( User user, String access )
+    public UserAccess( String id, String access )
     {
-        this.user = user;
+        this.id = id;
         this.access = access;
     }
 
-    public int getId()
+    public String getId()
     {
         return id;
     }
 
     @JsonIgnore
-    public void setId( int id )
+    public void setId( String id )
     {
         this.id = id;
     }
@@ -87,50 +86,6 @@ public class UserAccess
         this.access = access;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserUid()
-    {
-        return user != null ? user.getUid() : null;
-    }
-
-    @JsonProperty( "id" )
-    @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid != null ? uid : (user != null ? user.getUid() : null);
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String displayName()
-    {
-        return user != null ? user.getDisplayName() : null;
-    }
-
-    @JsonIgnore
-    public User getUser()
-    {
-        if ( user == null )
-        {
-            User user = new User();
-            user.setUid( uid );
-            return user;
-        }
-
-        return user;
-    }
-
-    @JsonProperty
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
 
     @Override
     public boolean equals( Object o )
@@ -147,13 +102,13 @@ public class UserAccess
 
         UserAccess that = (UserAccess) o;
 
-        return Objects.equals( access, that.access ) && Objects.equals( getUid(), that.getUid() );
+        return Objects.equals( access, that.access ) && Objects.equals( getId(), that.getId() );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( access, getUid() );
+        return Objects.hash( access, getId() );
     }
 
     @Override
@@ -161,7 +116,7 @@ public class UserAccess
     {
         return MoreObjects.toStringHelper( this )
             .add( "access", access )
-            .add( "uid", getUid() )
+            .add( "id", getId() )
             .toString();
     }
 }

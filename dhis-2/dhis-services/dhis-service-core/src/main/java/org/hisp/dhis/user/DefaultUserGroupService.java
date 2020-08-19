@@ -28,16 +28,23 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -60,18 +67,37 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
+    private final CacheProvider cacheProvider;
+
+    private Cache<UserGroup> userGroupCache;
+
+    private final Environment env;
+
+    @PostConstruct
+    public void init()
+    {
+        userGroupCache = cacheProvider.newCacheBuilder( UserGroup.class )
+            .forRegion( "userGroup" )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+    }
+
     public DefaultUserGroupService( @Qualifier("org.hisp.dhis.user.UserGroupStore") IdentifiableObjectStore<UserGroup> userGroupStore,
-        CurrentUserService currentUserService, AclService aclService, HibernateCacheManager cacheManager )
+        CurrentUserService currentUserService, AclService aclService, HibernateCacheManager cacheManager, CacheProvider cacheProvider, Environment env )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( cacheManager );
+        checkNotNull( cacheProvider );
+        checkNotNull( env );
 
         this.userGroupStore = userGroupStore;
         this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.cacheManager = cacheManager;
+        this.cacheProvider = cacheProvider;
+        this.env = env;
     }
 
     // -------------------------------------------------------------------------
@@ -255,5 +281,10 @@ public class DefaultUserGroupService
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max, false );
+    }
+
+    public boolean isMember( UserGroup userGroup, User user )
+    {
+
     }
 }
