@@ -51,9 +51,7 @@ import org.hisp.dhis.program.ProgramInstance;
 /**
  * @author Luciano Fiandesio
  */
-public class EventBaseCheck
-    implements
-    Checker
+public class EventBaseCheck implements Checker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
@@ -64,6 +62,7 @@ public class EventBaseCheck
         if ( !errors.isEmpty() )
         {
             importSummary.setStatus( ERROR );
+            importSummary.setReference( event.getEvent() );
             importSummary.getConflicts()
                 .addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
             importSummary.incrementIgnored();
@@ -74,11 +73,17 @@ public class EventBaseCheck
 
     private List<String> validate( ImmutableEvent event, WorkContext ctx )
     {
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        ImportOptions importOptions = ctx.getImportOptions();
-
         List<String> errors = new ArrayList<>();
 
+        validateDates( event, errors );
+
+        validateProgramInstance( event, ctx, errors);
+
+        return errors;
+    }
+
+    private void validateDates( ImmutableEvent event, List<String> errors )
+    {
         if ( event.getDueDate() != null && !dateIsValid( event.getDueDate() ) )
         {
             errors.add( "Invalid event due date: " + event.getDueDate() );
@@ -98,19 +103,24 @@ public class EventBaseCheck
         {
             errors.add( "Invalid event last updated at client date: " + event.getLastUpdatedAtClient() );
         }
+    }
+
+    private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors ) {
+
+        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+        ImportOptions importOptions = ctx.getImportOptions();
 
         if ( programInstance == null )
         {
             errors.add( "No program instance found for event: " + event.getEvent() );
-            
-            return errors;
+
         }
         else if ( COMPLETED.equals( programInstance.getStatus() ) )
         {
             if ( importOptions == null || importOptions.getUser() == null
-                || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
+                    || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
             {
-                return errors;
+                return;
             }
 
             Date referenceDate = parseDate( event.getCreated() );
@@ -125,11 +135,9 @@ public class EventBaseCheck
             if ( referenceDate.after( removeTimeStamp( programInstance.getEndDate() ) ) )
             {
                 errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate
-                    + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
-                    + " )." );
+                        + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
+                        + " )." );
             }
         }
-
-        return errors;
     }
 }

@@ -124,6 +124,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
+    private final static String PROGRAM_ID = "programid";
+    private final static String PROGRAM_STAGE_ID = "programstageid";
+    private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
+
     // @formatter:off
     private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid " +
         "from ${table_name} eua " +
@@ -274,16 +278,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             long programId = 0;
             while ( rs.next() )
             {
-                if ( programId != rs.getLong( "programid" ) )
+                if ( programId != rs.getLong( PROGRAM_ID ) )
                 {
                     Set<OrganisationUnit> ouSet = new HashSet<>();
                     ouSet.add( toOrganisationUnit( rs ) );
-                    results.put( rs.getLong( "programid" ), ouSet );
-                    programId = rs.getLong( "programid" );
+                    results.put( rs.getLong( PROGRAM_ID ), ouSet );
+                    programId = rs.getLong( PROGRAM_ID );
                 }
                 else
                 {
-                    results.get( rs.getLong( "programid" ) ).add( toOrganisationUnit( rs ) );
+                    results.get( rs.getLong( PROGRAM_ID ) ).add( toOrganisationUnit( rs ) );
                 }
             }
             return results;
@@ -292,7 +296,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<UserAccess>> loadUserAccessesForPrograms()
     {
-        return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programuseraccesses", "programid" ), "programid" );
+        return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programuseraccesses", PROGRAM_ID ), PROGRAM_ID );
     }
 
     private Map<Long, Set<UserAccess>> loadUserAccessesForProgramStages()
@@ -304,8 +308,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private Map<Long, Set<UserAccess>> loadUserAccessesForTrackedEntityTypes()
     {
         return fetchUserAccesses(
-            replaceAclQuery( USER_ACCESS_SQL, "trackedentitytypeuseraccesses", "trackedentitytypeid" ),
-            "trackedentitytypeid" );
+            replaceAclQuery( USER_ACCESS_SQL, "trackedentitytypeuseraccesses", TRACKED_ENTITY_TYPE_ID ),
+            TRACKED_ENTITY_TYPE_ID );
     }
 
     private Map<Long, Set<UserAccess>> fetchUserAccesses( String sql, String column )
@@ -334,8 +338,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForPrograms()
     {
-        return fetchUserGroupAccess( replaceAclQuery( USER_GROUP_ACCESS_SQL, "programusergroupaccesses", "programid" ),
-            "programid" );
+        return fetchUserGroupAccess( replaceAclQuery( USER_GROUP_ACCESS_SQL, "programusergroupaccesses", PROGRAM_ID ),
+            PROGRAM_ID );
     }
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
@@ -347,14 +351,14 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
             + "join usergroup ug on u.usergroupid = ug.usergroupid order by programstageid";
 
-        return fetchUserGroupAccess( sql, "programstageid" );
+        return fetchUserGroupAccess( sql, PROGRAM_STAGE_ID );
     }
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForTrackedEntityTypes()
     {
         return fetchUserGroupAccess(
-            replaceAclQuery( USER_GROUP_ACCESS_SQL, "trackedentitytypeusergroupaccesses", "trackedentitytypeid" ),
-            "trackedentitytypeid" );
+            replaceAclQuery( USER_GROUP_ACCESS_SQL, "trackedentitytypeusergroupaccesses", TRACKED_ENTITY_TYPE_ID ),
+            TRACKED_ENTITY_TYPE_ID );
     }
 
     private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
@@ -397,7 +401,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             long programStageId = 0;
             while ( rs.next() )
             {
-                if ( programStageId != rs.getLong( "programstageid" ) )
+                if ( programStageId != rs.getLong( PROGRAM_STAGE_ID ) )
                 {
                     Set<DataElement> dataElements = new HashSet<>();
                     DataElement dataElement = new DataElement();
@@ -405,7 +409,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     dataElement.setUid( rs.getString( "de_uid" ) );
                     dataElement.setCode( rs.getString( "de_code" ) );
                     dataElements.add( dataElement );
-                    results.put( rs.getLong( "programstageid" ), dataElements );
+                    results.put( rs.getLong( PROGRAM_STAGE_ID ), dataElements );
                 }
                 else
                 {
@@ -414,7 +418,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     dataElement.setUid( rs.getString( "de_uid" ) );
                     dataElement.setCode( rs.getString( "de_code" ) );
 
-                    results.get( rs.getLong( "programstageid" ) ).add( dataElement );
+                    results.get( rs.getLong( PROGRAM_STAGE_ID ) ).add( dataElement );
                 }
             }
             return results;
@@ -484,7 +488,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     categoryCombo.setCode( rs.getString( "catcombo_code" ) );
                     program.setCategoryCombo( categoryCombo );
 
-                    long tetId = rs.getLong( "trackedentitytypeid" );
+                    long tetId = rs.getLong( TRACKED_ENTITY_TYPE_ID );
                     if ( tetId != 0 )
                     {
                         TrackedEntityType trackedEntityType = new TrackedEntityType();
@@ -553,13 +557,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         ou.setName( rs.getString( "name" ) );
         ou.setCode( rs.getString( "code" ) );
 
-        final String attributeValueJson = rs.getString( "attributevalues" );
+        final String attributeValueJson = rs.getString( ATTRIBUTESCHEME_COL );
 
         if ( StringUtils.isNotEmpty( attributeValueJson ) && !attributeValueJson.equals( "{}" ) )
         {
             try
             {
-                ou.setAttributeValues( EventUtils.getAttributeValues( jsonMapper, rs.getObject( "attributevalues" ) ) );
+                ou.setAttributeValues( EventUtils.getAttributeValues( jsonMapper, rs.getObject( ATTRIBUTESCHEME_COL ) ) );
             }
             catch ( JsonProcessingException e )
             {

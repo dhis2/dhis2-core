@@ -48,7 +48,7 @@ public class EventTestUtils
     public static Event createBaseEvent()
     {
         Event event = new Event();
-        String uid = CodeGenerator.generateUid();
+        final String uid = CodeGenerator.generateUid();
         event.setUid( uid );
         event.setEvent( uid );
         return event;

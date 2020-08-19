@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createBaseEvent;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -117,6 +119,19 @@ public abstract class BaseValidationTest
         assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
         assertThat( summary.getReference(), is( event.getUid() ) );
         assertThat( summary.getDescription(), is( description ) );
+    }
+
+    protected void assertHasConflict( ImportSummary summary, Event event, String conflict ) {
+
+        final Set<ImportConflict> conflicts = summary.getConflicts();
+        for ( ImportConflict importConflict : conflicts )
+        {
+            if ( importConflict.getValue().equals( conflict ) )
+            {
+                return;
+            }
+        }
+        fail( "Conflict string [" + conflict +"] not found" );
     }
 
     protected DataElement addToDataElementMap( DataElement de )

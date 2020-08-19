@@ -73,7 +73,6 @@ public class DataValueCheckTest extends BaseValidationTest
         programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
         when( workContext.getProgramStage( IdScheme.UID, "prgstg1" ) ).thenReturn( programStageA );
-
     }
 
     @Test

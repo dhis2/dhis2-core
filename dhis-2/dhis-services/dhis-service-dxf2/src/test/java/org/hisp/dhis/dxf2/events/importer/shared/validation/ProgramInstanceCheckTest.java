@@ -73,7 +73,6 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         programMap.put( program.getUid(), program );
 
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
     }
 
     @Test
