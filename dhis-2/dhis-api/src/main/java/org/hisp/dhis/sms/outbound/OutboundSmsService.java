@@ -48,7 +48,6 @@ public interface OutboundSmsService
 
     List<OutboundSms> getAll( Integer min, Integer max );
 
-
     void delete( long id );
 
     void delete( String uid );
