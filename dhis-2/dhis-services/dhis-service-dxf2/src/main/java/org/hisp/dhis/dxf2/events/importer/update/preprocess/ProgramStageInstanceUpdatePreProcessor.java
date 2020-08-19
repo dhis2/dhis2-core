@@ -49,13 +49,12 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author maikel arabori
  */
-public class ProgramInstanceUpdatePreProcessor implements Processor
+public class ProgramStageInstanceUpdatePreProcessor implements Processor
 {
     @Override
     public void process( final Event event, final WorkContext ctx )
     {
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-        final ImportOptions importOptions = ctx.getImportOptions();
         final OrganisationUnit organisationUnit = ctx.getOrganisationUnitMap().get( event.getUid() );
         final CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
 
@@ -80,37 +79,7 @@ public class ProgramInstanceUpdatePreProcessor implements Processor
 
             final String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
 
-            if ( event.getStatus() == ACTIVE )
-            {
-                programStageInstance.setStatus( ACTIVE );
-                programStageInstance.setCompletedBy( null );
-                programStageInstance.setCompletedDate( null );
-            }
-            else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
-            {
-                final String completedBy = EventUtils.getValidUsername( event.getCompletedBy(),
-                    ctx.getImportOptions() );
-
-                programStageInstance.setCompletedBy( completedBy );
-
-                Date completedDate = new Date();
-
-                if ( event.getCompletedDate() != null )
-                {
-                    completedDate = DateUtils.parseDate( event.getCompletedDate() );
-                }
-
-                programStageInstance.setCompletedDate( completedDate );
-                programStageInstance.setStatus( COMPLETED );
-            }
-            else if ( event.getStatus() == SKIPPED )
-            {
-                programStageInstance.setStatus( SKIPPED );
-            }
-            else if ( event.getStatus() == SCHEDULE )
-            {
-                programStageInstance.setStatus( SCHEDULE );
-            }
+            setStatus( programStageInstance, event, ctx );
 
             programStageInstance.setStoredBy( storedBy );
             programStageInstance.setDueDate( dueDate );
@@ -122,6 +91,41 @@ public class ProgramInstanceUpdatePreProcessor implements Processor
             {
                 programStageInstance.setAssignedUser( ctx.getAssignedUserMap().get( event.getUid() ) );
             }
+        }
+    }
+    
+    private void setStatus( ProgramStageInstance programStageInstance, final Event event, WorkContext ctx )
+    {
+        if ( event.getStatus() == ACTIVE )
+        {
+            programStageInstance.setStatus( ACTIVE );
+            programStageInstance.setCompletedBy( null );
+            programStageInstance.setCompletedDate( null );
+        }
+        else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
+        {
+            final String completedBy = EventUtils.getValidUsername( event.getCompletedBy(),
+                ctx.getImportOptions() );
+
+            programStageInstance.setCompletedBy( completedBy );
+
+            Date completedDate = new Date();
+
+            if ( event.getCompletedDate() != null )
+            {
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
+
+            programStageInstance.setCompletedDate( completedDate );
+            programStageInstance.setStatus( COMPLETED );
+        }
+        else if ( event.getStatus() == SKIPPED )
+        {
+            programStageInstance.setStatus( SKIPPED );
+        }
+        else if ( event.getStatus() == SCHEDULE )
+        {
+            programStageInstance.setStatus( SCHEDULE );
         }
     }
 }

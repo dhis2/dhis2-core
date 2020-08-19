@@ -62,7 +62,7 @@ import org.hisp.dhis.dxf2.events.importer.update.postprocess.ProgramNotification
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.*;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceUpdatePreProcessor;
+import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
@@ -99,7 +99,6 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @Configuration( "dxf2ServiceConfig" )
-@SuppressWarnings( "unchecked" )
 public class ServiceConfig
 {
     @Autowired
@@ -280,7 +279,7 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
-            ProgramInstanceUpdatePreProcessor.class,
+            ProgramStageInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class
         ) );
         // @formatter:on
