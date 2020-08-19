@@ -167,5 +167,6 @@ public class ValidationErrorReporter
     public void merge( ValidationErrorReporter reporter )
     {
         this.reportList.addAll( reporter.getReportList() );
+        this.warningsReportList.addAll( reporter.getWarningsReportList() );
     }
 }

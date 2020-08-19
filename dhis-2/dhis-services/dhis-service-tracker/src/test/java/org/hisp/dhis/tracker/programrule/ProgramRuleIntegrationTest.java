@@ -28,51 +28,33 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.programrule.*;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.*;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.UserService;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.springframework.core.io.ClassPathResource;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
 public class ProgramRuleIntegrationTest
     extends IntegrationTestBase
@@ -104,6 +86,8 @@ public class ProgramRuleIntegrationTest
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
 
+    private User userA;
+
     @Override
     public void setUpTest()
         throws Exception
@@ -112,7 +96,8 @@ public class ProgramRuleIntegrationTest
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-                .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+            .fromMetadata( new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(),
+                RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -125,30 +110,44 @@ public class ProgramRuleIntegrationTest
 
         objectBundleService.commit( bundle );
 
-        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" );
+        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
 
         ProgramRule programRule = createProgramRule( 'A', program );
         programRuleService.addProgramRule( programRule );
 
         ProgramRuleAction programRuleActionWarning = createProgramRuleAction( 'A', programRule );
         programRuleActionWarning.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
+        programRuleActionWarning.setContent( "WARNING" );
         programRuleActionService.addProgramRuleAction( programRuleActionWarning );
 
         programRule.getProgramRuleActions().add(programRuleActionWarning);
         programRuleService.updateProgramRule( programRule );
+
+        userA = userService.getUser( "M5zQapPyTZI" );
     }
 
     @Test
     public void testImportSuccessWithWaringRaised() throws IOException {
 
-        InputStream inputStream = new ClassPathResource( "tracker/enrollment.json" ).getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
 
         TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker(build(params));
+        params.setUser( userA );
+        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
 
-        assertNotNull( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertFalse( trackerImportReport.getTrackerValidationReport().getWarningReports().isEmpty() );
+        TrackerBundleParams enrollmentParams = renderService
+            .fromJson( new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream(),
+                TrackerBundleParams.class );
+        enrollmentParams.setUser( userA );
+        TrackerImportReport trackerImportEnrollmentReport = trackerImportService
+            .importTracker( build( enrollmentParams ) );
+
+        assertNotNull( trackerImportTeiReport );
+        assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
+
+        assertNotNull( trackerImportEnrollmentReport );
+        assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
+        assertFalse( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
     }
 
     private TrackerImportParams build(TrackerBundleParams params) {
