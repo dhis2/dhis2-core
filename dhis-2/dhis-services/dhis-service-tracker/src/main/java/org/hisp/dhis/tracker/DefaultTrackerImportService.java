@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -107,8 +108,9 @@ public class DefaultTrackerImportService
         trackerBundles = preProcessBundle( trackerBundles, importReport );
 
         TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
+        updateBundles( trackerBundles, validationReport.getNotValidDtos() );
 
-        if ( validationReport.hasErrors() )
+        if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
         {
             importReport.setStatus( TrackerStatus.ERROR );
         }
@@ -131,6 +133,16 @@ public class DefaultTrackerImportService
         }
 
         return importReport;
+    }
+
+    private void updateBundles( List<TrackerBundle> trackerBundles, List<TrackerDto> notValidDTOs )
+    {
+        trackerBundles.stream().forEach( tb -> {
+            tb.getTrackedEntities().removeAll( notValidDTOs );
+            tb.getEnrollments().removeAll( notValidDTOs );
+            tb.getEvents().removeAll( notValidDTOs );
+            tb.getRelationships().removeAll( notValidDTOs );
+        } );
     }
 
     protected List<TrackerBundle> preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
