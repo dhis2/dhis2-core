@@ -164,13 +164,14 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         this.jsonMapper = jsonMapper;
         this.env = env;
     }
-
+    
     @Override
     public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
         boolean requiresReload = false;
+
         //
-        // do not use cache is `skipCache` is true
+        // do not use cache is `skipCache` is true or if running as test
         //
         if ( importOptions.isSkipCache() || SystemUtils.isTestRun( env.getActiveProfiles() ) )
         {
@@ -179,46 +180,18 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         }
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
 
-        //
-        // Check if the list of incoming Events contains one or more Program uid which
-        // is not in cache. Reload the entire program cache if a Program UID is not
-        // found
-        //
-        if ( programMap != null )
+        if ( requiresCacheReload( eventList, programMap ) )
         {
-            Set<String> programs = eventList.stream().map( Event::getProgram ).collect( Collectors.toSet() );
-
-            final Set<String> programsInCache = programMap.keySet();
-
-            for ( String program : programs )
-            {
-                if ( !programsInCache.contains( program ) )
-                {
-                    // invalidate cache and rebuild
-                    programsCache.removeAll();
-                    requiresReload = true;
-                    break;
-                }
-            }
+            programsCache.removeAll();
+            requiresReload = true;
         }
-
+        
         if ( requiresReload || programMap == null )
         {
             //
             // Load all the Programs
             //
             programMap = loadPrograms( importOptions.getIdSchemes() );
-
-            //
-            // Load all mandatory DataElements for each Program Stage
-            //
-            Map<Long, Set<DataElement>> dataElementMandatoryMap = loadProgramStageDataElementMandatoryMap();
-
-            //
-            // Load a Map of OrgUnits belonging to a Program (key: program id, value: Set of
-            // OrgUnits)
-            //
-            Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
 
             //
             // Load User Access data for all the Programs (required for ACL checks)
@@ -234,44 +207,62 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
             Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();
 
-            for ( Program program : programMap.values() )
-            {
-                program.setOrganisationUnits( ouMap.getOrDefault( program.getId(), new HashSet<>() ) );
-                program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-                program
-                    .setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-                TrackedEntityType trackedEntityType = program.getTrackedEntityType();
-                if ( trackedEntityType != null )
-                {
-                    trackedEntityType
-                        .setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-                    trackedEntityType.setUserGroupAccesses(
-                        tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-                }
-
-                for ( ProgramStage programStage : program.getProgramStages() )
-                {
-                    programStage.setUserAccesses(
-                        programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-                    programStage.setUserGroupAccesses(
-                        programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-
-                    Set<DataElement> dataElements = dataElementMandatoryMap.get( programStage.getId() );
-                    if ( dataElements != null )
-                    {
-                        programStage.setProgramStageDataElements( dataElements.stream()
-                            .map( de -> new ProgramStageDataElement( programStage, de ) )
-                            .collect( Collectors.toSet() ) );
-                    }
-                }
-            }
+            aggregateProgramAndAclData( programMap, loadOrgUnits(), programUserAccessMap, programUserGroupAccessMap,
+                tetUserAccessMap, tetUserGroupAccessMap,
+                programStageUserAccessMap, programStageUserGroupAccessMap,
+                loadProgramStageDataElementMandatoryMap() );
 
             programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
 
         return programMap;
     }
+    
+    private void aggregateProgramAndAclData( Map<String, Program> programMap, Map<Long, Set<OrganisationUnit>> ouMap,
+        Map<Long, Set<UserAccess>> programUserAccessMap,
+        Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap, Map<Long, Set<UserAccess>> tetUserAccessMap,
+        Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap, Map<Long, Set<UserAccess>> programStageUserAccessMap,
+        Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap,
+        Map<Long, Set<DataElement>> dataElementMandatoryMap )
+    {
 
+        for ( Program program : programMap.values() )
+        {
+            program.setOrganisationUnits( ouMap.getOrDefault( program.getId(), new HashSet<>() ) );
+            program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
+            program
+                .setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
+            TrackedEntityType trackedEntityType = program.getTrackedEntityType();
+            if ( trackedEntityType != null )
+            {
+                trackedEntityType
+                    .setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+                trackedEntityType.setUserGroupAccesses(
+                    tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+            }
+
+            for ( ProgramStage programStage : program.getProgramStages() )
+            {
+                programStage.setUserAccesses(
+                    programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+                programStage.setUserGroupAccesses(
+                    programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+
+                Set<DataElement> dataElements = dataElementMandatoryMap.get( programStage.getId() );
+                if ( dataElements != null )
+                {
+                    programStage.setProgramStageDataElements( dataElements.stream()
+                        .map( de -> new ProgramStageDataElement( programStage, de ) )
+                        .collect( Collectors.toSet() ) );
+                }
+            }
+        }
+    }
+
+    //
+    // Load a Map of OrgUnits belonging to a Program (key: program id, value: Set of
+    // OrgUnits)
+    //
     private Map<Long, Set<OrganisationUnit>> loadOrgUnits()
     {
         final String sql = "select p.programid, ou.organisationunitid, ou.uid, ou.code, ou.name, ou.attributevalues "
@@ -390,6 +381,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
+    //
+    // Load all mandatory DataElements for each Program Stage
+    //
     private Map<Long, Set<DataElement>> loadProgramStageDataElementMandatoryMap()
     {
         final String sql = "select psde.programstageid, de.dataelementid, de.uid as de_uid, de.code as de_code "
@@ -631,12 +625,35 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private String replaceAclQuery( String sql, String tableName, String column )
     {
-        // @formatter:off
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
-                .put( "table_name", tableName)
-                .put( "column_name", column )
-                .build() );
-        // @formatter:on
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
+            .put( "table_name", tableName )
+            .put( "column_name", column )
+            .build() );
         return sub.replace( sql );
+    }
+
+    /**
+     * Check if the list of incoming Events contains one or more Program uid which
+     * is not in cache. Reload the entire program cache if a Program UID is not
+     * found
+     */
+    private boolean requiresCacheReload( List<Event> events, Map<String, Program> programMap )
+    {
+        if ( programMap == null )
+        {
+            return false;
+        }
+        Set<String> programs = events.stream().map( Event::getProgram ).collect( Collectors.toSet() );
+
+        final Set<String> programsInCache = programMap.keySet();
+
+        for ( String program : programs )
+        {
+            if ( !programsInCache.contains( program ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

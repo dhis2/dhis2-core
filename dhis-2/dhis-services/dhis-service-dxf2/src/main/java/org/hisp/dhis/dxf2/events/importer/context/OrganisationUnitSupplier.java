@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +100,13 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             orgUnitToEvent.put( event.getOrgUnit(), event.getUid() );
         }
 
+        return fetchOu( idScheme, orgUnitUids, orgUnitToEvent );
+
+    }
+
+    private Map<String, OrganisationUnit> fetchOu( IdScheme idScheme, Set<String> orgUnitUids,
+        Multimap<String, String> orgUnitToEvent )
+    {
         String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ";
 
         if ( idScheme.isAttribute() )
@@ -134,15 +143,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
 
             while ( rs.next() )
             {
-                OrganisationUnit ou = new OrganisationUnit();
-                ou.setId( rs.getLong( "organisationunitid" ) );
-                ou.setUid( rs.getString( "uid" ) );
-                ou.setCode( rs.getString( "code" ) );
-                ou.setName( rs.getString( "name" ) );
-                String path = rs.getString( "path" );
-                ou.setPath( path );
-                ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
-                ou.setParent( SupplierUtils.getParentHierarchy( ou, path ) );
+                OrganisationUnit ou = mapFromResultSet( rs );
 
                 try
                 {
@@ -160,5 +161,21 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             }
             return results;
         } );
+    }
+
+    private OrganisationUnit mapFromResultSet( ResultSet rs )
+        throws SQLException
+    {
+        OrganisationUnit ou = new OrganisationUnit();
+        ou.setId( rs.getLong( "organisationunitid" ) );
+        ou.setUid( rs.getString( "uid" ) );
+        ou.setCode( rs.getString( "code" ) );
+        ou.setName( rs.getString( "name" ) );
+        String path = rs.getString( "path" );
+        ou.setPath( path );
+        ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
+        ou.setParent( SupplierUtils.getParentHierarchy( ou, path ) );
+
+        return ou;
     }
 }

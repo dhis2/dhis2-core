@@ -97,30 +97,18 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
                 if ( categoryOptionCombo == null )
                 {
                     categoryOptionCombo = attributeOptionComboLoader.getDefault();
-                    if ( categoryOptionCombo == null )
-                    {
-                        // TODO FAIL --> use validation rule
-                    }
                 }
             }
             else if ( programCatCombo != null && isNotEmpty( attributeCatOptions ) )
             {
-                if ( programCatCombo == null )
-                {
-
-                    // TODO FAIL --> use validation rule
-                }
                 categoryOptionCombo = attributeOptionComboLoader.getAttributeOptionCombo( programCatCombo,
                     attributeCatOptions, aoc, idScheme );
-                if ( categoryOptionCombo == null )
-                {
-                    // TODO FAIL -> use validation rule
-                }
             }
             else
             {
                 categoryOptionCombo = attributeOptionComboLoader.getDefault();
             }
+
             if ( categoryOptionCombo != null )
             {
                 eventToCocMap.put( event.getUid(), categoryOptionCombo );

@@ -62,7 +62,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Luciano Fiandesio
  */
-public class BaseValidationTest
+public abstract class BaseValidationTest
 {
     protected final IdScheme programStageIdScheme = ImportOptions.getDefaultImportOptions().getIdSchemes()
         .getProgramStageIdScheme();

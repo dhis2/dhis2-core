@@ -55,29 +55,12 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ST
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
+import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
+import static org.hisp.dhis.system.util.SqlUtils.lower;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -136,6 +119,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -180,6 +164,78 @@ public class JdbcEventStore implements EventStore
         .put( "deleted", "psi_deleted" ).put( "assignedUser", "user_assigned_username" )
         .put( "assignedUserDisplayName", "user_assigned_name" ).build();
 
+    // SQL QUERIES
+
+    private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
+        // @formatter:off
+        "programstageinstanceid, " +    // 0
+        "programinstanceid, " +         // 1
+        "programstageid, " +            // 2
+        "duedate, " +                   // 3
+        "executiondate, " +             // 4
+        "organisationunitid, " +        // 5
+        "status, " +                    // 6
+        "completeddate, " +             // 7
+        "uid, " +                       // 8
+        "created, " +                   // 9
+        "lastupdated, " +               // 10
+        "attributeoptioncomboid, " +    // 11
+        "storedby, " +                  // 12
+        "completedby, " +               // 13
+        "deleted, " +                   // 14
+        "code, " +                      // 15
+        "createdatclient, " +           // 16
+        "lastupdatedatclient, " +       // 17
+        "geometry, " +                  // 18
+        "assigneduserid, " +            // 19
+        "eventdatavalues) " +           // 20
+        // @formatter:on
+        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+
+    String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (trackedentitycommentid, " + // 0
+        "uid, " +           // 1
+        "commenttext, " +   // 2
+        "created, " +       // 3
+        "creator," +        // 4
+        "lastUpdated" +     // 5
+        ") " + "values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
+
+    private final static String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (programstageinstanceid, "
+            + "sort_order, trackedentitycommentid) values (?, ?, ?)";
+
+    private final static String UPDATE_EVENT_SQL = "update programstageinstance set " +
+        // @formatter:off
+        "programinstanceid = ?, " +         // 1
+        "programstageid = ?, " +            // 2
+        "duedate = ?, " +                   // 3
+        "executiondate = ?, " +             // 4
+        "organisationunitid = ?, " +        // 5
+        "status = ?, " +                    // 6
+        "completeddate = ?, " +             // 7
+        "lastupdated = ?, " +               // 8
+        "attributeoptioncomboid = ?, " +    // 9
+        "storedby = ?, " +                  // 10
+        "completedby = ?, " +               // 11
+        "deleted = ?, " +                   // 12
+        "code = ?, " +                      // 13
+        "createdatclient = ?, " +           // 14
+        "lastupdatedatclient = ?, " +       // 15
+        "geometry = ?, " +                  // 16
+        "assigneduserid = ?, " +            // 17
+        "eventdatavalues = ? " +            // 18
+        "where uid = ?;";                   // 19
+    // @formatter:on
+
+    /**
+     * Updates Tracked Entity Instance after an event update. In order to prevent
+     * deadlocks, SELECT ... FOR UPDATE SKIP LOCKED is used before the actual UPDATE
+     * statement. This prevents deadlocks when Postgres tries to update the same
+     * TEI.
+     */
+    String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
+            "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
+
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -201,9 +257,9 @@ public class JdbcEventStore implements EventStore
     private final Environment env;
 
     private final Cache<String, String> teiUpdateCache = new Cache2kBuilder<String, String>() {}
-            .name( "teiUpdateCache" + RandomStringUtils.randomAlphabetic(5) )
-            .expireAfterWrite( 10, TimeUnit.SECONDS )
-            .build();
+        .name( "teiUpdateCache" + RandomStringUtils.randomAlphabetic(5) )
+        .expireAfterWrite( 10, TimeUnit.SECONDS )
+        .build();
 
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
@@ -742,7 +798,7 @@ public class JdbcEventStore implements EventStore
             final String col = item.getItemId();
             final String dataValueValueSql = "psi.eventdatavalues #>> '{" + col + ", value}'";
 
-            String queryCol = item.isNumeric() ? "CAST( " + dataValueValueSql + " AS NUMERIC ) " : dataValueValueSql;
+            String queryCol = item.isNumeric() ? castToNumber( dataValueValueSql ) : dataValueValueSql;
             queryCol += " as " + col + ", ";
 
             sqlBuilder.append( queryCol );
@@ -831,8 +887,7 @@ public class JdbcEventStore implements EventStore
             final String col = item.getItemId();
             final String dataValueValueSql = "psi.eventdatavalues #>> '{" + col + ", value}'";
 
-            String queryCol = item.isNumeric() ? " CAST( " + dataValueValueSql + " AS NUMERIC)"
-                : "lower(" + dataValueValueSql + ")";
+            String queryCol = " " + (item.isNumeric() ? castToNumber( dataValueValueSql ) : lower( dataValueValueSql ));
             queryCol += " as " + col + ", ";
 
             sqlBuilder.append( queryCol );
@@ -1110,8 +1165,8 @@ public class JdbcEventStore implements EventStore
                 {
                     final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
 
-                    final String queryCol = item.isNumeric() ? " CAST( " + dataValueValueSql + " AS NUMERIC)"
-                        : "lower(" + dataValueValueSql + ")";
+                    final String queryCol = " " + ( item.isNumeric() ? castToNumber( dataValueValueSql )
+                        : lower( dataValueValueSql ) );
 
                     if ( !item.hasOptionSet() )
                     {
@@ -1630,7 +1685,6 @@ public class JdbcEventStore implements EventStore
             {
                 if ( !teiUpdateCache.containsKey( uid ) )
                 {
-
                     updatableTeiUid.add( uid );
                     teiUpdateCache.put( uid, uid );
                 }

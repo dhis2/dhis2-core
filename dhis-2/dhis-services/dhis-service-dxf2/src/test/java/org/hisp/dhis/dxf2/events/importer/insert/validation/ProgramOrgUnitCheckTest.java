@@ -80,7 +80,7 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
         // Prepare data
         Program program = createProgram( 'P' );
         // make sure that one of the generate Org Units, has the event's UID
-        program.setOrganisationUnits( create( 5, event.getOrgUnit(), IdScheme.CODE ) );
+        program.setOrganisationUnits( create( 5, event.getOrgUnit(), scheme ) );
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
 
@@ -88,7 +88,7 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
         programInstanceMap.put( event.getUid(), pi );
 
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-        importOptions.setOrgUnitIdScheme( IdScheme.CODE.name() );
+        importOptions.setOrgUnitIdScheme( scheme.name() );
 
         when( workContext.getImportOptions() ).thenReturn( importOptions );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );

@@ -49,7 +49,7 @@ import java.util.Map;
 /**
  * @author Luciano Fiandesio
  */
-public class BasePreProcessTest
+public abstract class BasePreProcessTest
 {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();

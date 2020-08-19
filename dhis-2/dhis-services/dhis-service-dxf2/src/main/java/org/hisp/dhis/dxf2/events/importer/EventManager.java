@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
@@ -60,6 +61,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ImmutableList;
 
 @Component
+@Slf4j
 public class EventManager
 {
     private final EventChecking insertValidationFactory;
@@ -75,6 +77,8 @@ public class EventManager
     private final EventProcessing postUpdateProcessorFactory;
 
     private final EventPersistenceService eventPersistenceService;
+
+    private final static String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
     public EventManager(
         @Qualifier( "eventsInsertValidationFactory" )
@@ -165,7 +169,7 @@ public class EventManager
             }
             catch ( Exception e )
             {
-                handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", CREATE );
+                handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, CREATE );
 
                 return importSummaries;
             }
@@ -225,7 +229,7 @@ public class EventManager
         }
         catch ( Exception e )
         {
-            handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
+            handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE );
         }
 
         final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
@@ -271,7 +275,7 @@ public class EventManager
         }
         catch ( Exception e )
         {
-            handleFailure( workContext, importSummaries, events, "Invalid or conflicting data", UPDATE );
+            handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE );
         }
 
         incrementSummaryTotals( events, importSummaries, DELETE );
@@ -304,7 +308,11 @@ public class EventManager
                     is.incrementDeleted();
                     is.setDescription( "Deletion of event " + event.getUid() + " was successful" );
                     break;
+
+                default:
+                    log.warn( "Invalid Import Strategy during summary increment, ignoring" );
                 }
+
 
                 importSummaries.addImportSummary( is );
             }

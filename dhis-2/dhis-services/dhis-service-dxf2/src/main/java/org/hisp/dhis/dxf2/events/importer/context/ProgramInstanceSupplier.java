@@ -79,13 +79,10 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             return new HashMap<>();
         }
 
-        // @formatter:off
         // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
-            .filter( e -> StringUtils.isNotEmpty(e.getEnrollment()) )
+            .filter( e -> StringUtils.isNotEmpty( e.getEnrollment() ) )
             .map( Event::getEnrollment ).collect( Collectors.toSet() );
-
-        // @formatter:on
 
         Map<String, ProgramInstance> programInstances = new HashMap<>();
 
@@ -103,32 +100,22 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             programInstances = getProgramInstancesByUid( importOptions, events, programInstanceToEvent,
                 programInstanceUids );
         }
-        // Collect all the Program Stage Instances by event uid
-        final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
 
-        // if the Event does not have the "enrollment" property set OR enrollment is
-        // pointing to an invalid UID
-        // use the Program Instance connected to the Event.
-        // This only makes sense if the Program Stage Instance already exist in the
-        // database (update)
-        if ( !programInstancesByEvent.isEmpty() )
-        {
-            for ( Event event : events )
-            {
-                if ( !programInstances.containsKey( event.getUid() ) )
-                {
-                    if ( programInstancesByEvent.containsKey( event.getUid() ) )
-                    {
-                        programInstances.put( event.getUid(), programInstancesByEvent.get( event.getUid() ) );
-                    }
-                }
-            }
-        }
+        mapExistingEventsToProgramInstances( importOptions, events, programInstances );
 
-        // Loop through the events and check if there is any event left without
-        // a Program Instance: for each Event without a PI, try to fetch the Program
-        // Instance by
-        // Program and Tracked Entity Instance
+        mapEventsToProgramInstanceByTei( importOptions, events, programInstances, teiMap );
+
+        return programInstances;
+    }
+
+    /**
+     * Loop through the events and check if there is any event left without a
+     * Program Instance: for each Event without a PI, try to fetch the Program
+     * Instance by Program and Tracked Entity Instance
+     */
+    private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
+        Map<String, ProgramInstance> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )
+    {
         for ( Event event : events )
         {
             if ( !programInstances.containsKey( event.getUid() ) )
@@ -147,11 +134,35 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                         programInstances.put( event.getUid(), programInstance );
                     }
                 }
-
             }
         }
+    }
 
-        return programInstances;
+    /**
+     * This method is only used if the Event already exist in the db (update) If the
+     * Event does not have the "enrollment" property set OR enrollment is pointing
+     * to an invalid UID, use the Program Instance already connected to the Event.
+     *
+     */
+    private void mapExistingEventsToProgramInstances( ImportOptions importOptions, List<Event> events,
+        Map<String, ProgramInstance> programInstances )
+    {
+        // Collect all the Program Instances by event uid
+        final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
+
+        if ( !programInstancesByEvent.isEmpty() )
+        {
+            for ( Event event : events )
+            {
+                if ( !programInstances.containsKey( event.getUid() ) )
+                {
+                    if ( programInstancesByEvent.containsKey( event.getUid() ) )
+                    {
+                        programInstances.put( event.getUid(), programInstancesByEvent.get( event.getUid() ) );
+                    }
+                }
+            }
+        }
     }
 
     private Program getProgramById( long id, Collection<Program> programs )
