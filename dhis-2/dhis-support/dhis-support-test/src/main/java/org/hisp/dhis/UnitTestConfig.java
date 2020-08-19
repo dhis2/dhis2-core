@@ -34,6 +34,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -52,5 +54,17 @@ public class UnitTestConfig
     public PasswordEncoder encoder()
     {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public LdapAuthenticator ldapAuthenticator()
+    {
+        return authentication -> null;
+    }
+
+    @Bean
+    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
+    {
+        return ( dirContextOperations, s ) -> null;
     }
 }
