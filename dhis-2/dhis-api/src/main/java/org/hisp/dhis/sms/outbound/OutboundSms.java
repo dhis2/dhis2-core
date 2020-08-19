@@ -68,6 +68,12 @@ public class OutboundSms
         Collections.addAll( this.recipients, recipients );
     }
 
+    @JsonProperty( value = "messageId" )
+    public long getMessageId()
+    {
+        return super.getId();
+    }
+
     @JsonProperty( value = "recipients" )
     @JacksonXmlProperty( localName = "recipients" )
     public Set<String> getRecipients()
@@ -80,6 +86,7 @@ public class OutboundSms
         this.recipients = recipients;
     }
 
+    @JsonProperty( value = "date" )
     public Date getDate()
     {
         return date;
@@ -102,6 +109,7 @@ public class OutboundSms
         this.message = message;
     }
 
+    @JsonProperty( value = "sender" )
     public String getSender()
     {
         return sender;
@@ -112,6 +120,7 @@ public class OutboundSms
         this.sender = sender;
     }
 
+    @JsonProperty( value = "status" )
     public OutboundSmsStatus getStatus()
     {
         return status;
@@ -145,6 +154,7 @@ public class OutboundSms
         return numbers.substring( 0, numbers.length() - 2 );
     }
 
+    @JsonProperty( value = "subject" )
     public String getSubject()
     {
         return subject;

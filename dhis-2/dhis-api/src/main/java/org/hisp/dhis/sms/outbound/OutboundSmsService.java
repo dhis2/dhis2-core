@@ -40,13 +40,15 @@ public interface OutboundSmsService
 
     long saveOutboundSms( OutboundSms sms );
 
-    void updateOutboundSms( OutboundSms sms );
-
     void deleteById( Integer outboundSmsId );
+
+    void deleteById( String uid );
 
     List<OutboundSms> getOutboundSms( OutboundSmsStatus status );
 
     List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max );
 
     OutboundSms getOutboundSms( long id );
+
+    OutboundSms getOutboundSms( String uid );
 }
