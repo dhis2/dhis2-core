@@ -42,15 +42,17 @@ public interface IncomingSmsService
 
     void update( IncomingSms sms );
 
-    IncomingSms findBy( Integer id );
+    IncomingSms get( long id );
 
-    List<IncomingSms> listAllMessage();
+    List<IncomingSms> getAll();
 
-    void deleteById( Integer id );
+    void delete( long id );
 
-    int save( IncomingSms sms );
+    void delete( String uid );
 
-    int save( String message, String originator, String gateway, Date receivedTime, User user );
+    long save( IncomingSms sms );
+
+    long save( String message, String originator, String gateway, Date receivedTime, User user );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 

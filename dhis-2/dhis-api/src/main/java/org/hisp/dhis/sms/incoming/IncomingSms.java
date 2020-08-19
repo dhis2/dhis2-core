@@ -34,15 +34,14 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
 
 @JacksonXmlRootElement( localName = "inboundsms" )
-public class IncomingSms
+public class IncomingSms extends BaseIdentifiableObject
     implements Serializable
 {
     private static final long serialVersionUID = 3954710607630454226L;
-
-    private Integer id;
 
     private SmsMessageEncoding encoding = SmsMessageEncoding.ENC7BIT;
 
@@ -72,6 +71,11 @@ public class IncomingSms
 
     private User user;
 
+    public IncomingSms()
+    {
+        setAutoFields();
+    }
+
     /**
      * Incoming smses are one of two types, text or binary.
      * 
@@ -80,17 +84,6 @@ public class IncomingSms
     public boolean isTextSms()
     {
         return text != null;
-    }
-
-    @JsonProperty
-    public Integer getId()
-    {
-        return id;
-    }
-
-    public void setId( Integer id )
-    {
-        this.id = id;
     }
 
     @JsonProperty( value = "smsencoding", defaultValue = "1" )

@@ -65,66 +65,66 @@ public class DefaultOutboundSmsService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<OutboundSms> getAllOutboundSms()
+    public List<OutboundSms> getAll()
     {
-        return outboundSmsStore.getAllOutboundSms();
+        return outboundSmsStore.getAll();
     }
 
     @Override
-    public List<OutboundSms> getOutboundSms( OutboundSmsStatus status )
+    public List<OutboundSms> get( OutboundSmsStatus status )
     {
         return outboundSmsStore.get( status );
     }
 
     @Override
-    public long saveOutboundSms( OutboundSms sms )
+    public long save( OutboundSms sms )
     {
         outboundSmsStore.saveOutboundSms( sms );
         return sms.getId();
     }
 
     @Override
-    public void deleteById( Integer outboundSmsId )
+    public void delete( long outboundSmsId )
     {
-        OutboundSms sms = outboundSmsStore.getOutboundSmsbyId( outboundSmsId );
+        OutboundSms sms = get( outboundSmsId );
 
         if ( sms != null )
         {
-            outboundSmsStore.deleteOutboundSms( sms );
+            outboundSmsStore.delete( sms );
         }
     }
 
     @Override
-    public void deleteById( String uid )
+    public void delete( String uid )
     {
         OutboundSms sms = outboundSmsStore.getByUid( uid );
 
         if ( sms != null )
         {
-            outboundSmsStore.deleteOutboundSms( sms );
+            outboundSmsStore.delete( sms );
         }
     }
 
     @Override
-    public OutboundSms getOutboundSms( long id )
+    public OutboundSms get( long id )
     {
-        return outboundSmsStore.getOutboundSmsbyId( id );
+        return outboundSmsStore.get( id );
     }
 
     @Override
-    public OutboundSms getOutboundSms( String uid )
+    public OutboundSms get( String uid )
     {
         return outboundSmsStore.getByUid( uid );
     }
 
     @Override
-    public List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max )
+    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max )
     {
         return outboundSmsStore.get( status, min, max );
     }
 
     @Override
-    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max )
+    public List<OutboundSms> getAll( Integer min, Integer max )
     {
         return outboundSmsStore.getAllOutboundSms( min, max );
     }

@@ -75,18 +75,6 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    public OutboundSms getOutboundSmsbyId( long id )
-    {
-        return get( id );
-    }
-
-    @Override
-    public List<OutboundSms> getAllOutboundSms()
-    {
-        return getAll();
-    }
-
-    @Override
     public List<OutboundSms> get( OutboundSmsStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -100,18 +88,6 @@ public class HibernateOutboundSmsStore
         }
 
         return getList( builder, parameters );
-    }
-
-    @Override
-    public void updateOutboundSms( OutboundSms sms )
-    {
-        update( sms );
-    }
-
-    @Override
-    public void deleteOutboundSms( OutboundSms sms )
-    {
-        delete( sms );
     }
 
     @Override

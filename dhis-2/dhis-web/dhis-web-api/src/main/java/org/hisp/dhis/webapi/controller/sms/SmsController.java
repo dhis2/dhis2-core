@@ -111,11 +111,11 @@ public class SmsController
 
         if ( status == null )
         {
-            renderService.toJson( response.getOutputStream(), outboundSmsService.getAllOutboundSms() );
+            renderService.toJson( response.getOutputStream(), outboundSmsService.getAll() );
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), outboundSmsService.getOutboundSms( status ) );
+        renderService.toJson( response.getOutputStream(), outboundSmsService.get( status ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
@@ -128,7 +128,7 @@ public class SmsController
 
         if ( status == null )
         {
-            renderService.toJson( response.getOutputStream(), incomingSMSService.listAllMessage() );
+            renderService.toJson( response.getOutputStream(), incomingSMSService.getAll() );
             return;
         }
 
@@ -203,7 +203,7 @@ public class SmsController
             throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
         }
 
-        int smsId = incomingSMSService.save( message, originator, gateway, receivedTime, getUserByPhoneNumber( originator, message ) );
+        long smsId = incomingSMSService.save( message, originator, gateway, receivedTime, getUserByPhoneNumber( originator, message ) );
 
         webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
     }
@@ -216,7 +216,7 @@ public class SmsController
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
         sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
 
-        int smsId = incomingSMSService.save( sms );
+        long smsId = incomingSMSService.save( sms );
 
         webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
     }
@@ -241,18 +241,18 @@ public class SmsController
 
     @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
     {
-        ids.forEach( outboundSmsService::deleteById );
+        ids.forEach( outboundSmsService::delete );
 
         webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
     }
 
     @RequestMapping( value = "/inbound/message", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessage( @RequestParam List<Integer> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteInboundMessage( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
     {
-        ids.forEach( incomingSMSService::deleteById );
+        ids.forEach( incomingSMSService::delete );
 
         webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
     }
