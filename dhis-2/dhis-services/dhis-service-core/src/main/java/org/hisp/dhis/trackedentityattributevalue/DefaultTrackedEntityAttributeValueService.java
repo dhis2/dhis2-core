@@ -47,6 +47,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Abyot Asalefew
@@ -69,27 +70,27 @@ public class DefaultTrackedEntityAttributeValueService
 
     private final CurrentUserService currentUserService;
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+    private final DhisConfigurationProvider config;
 
     public DefaultTrackedEntityAttributeValueService( TrackedEntityAttributeValueStore attributeValueStore,
         FileResourceService fileResourceService,
         TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
         ReservedValueService reservedValueService, CurrentUserService currentUserService,
-        DhisConfigurationProvider dhisConfigurationProvider )
+        DhisConfigurationProvider config )
     {
         checkNotNull( attributeValueStore );
         checkNotNull( fileResourceService );
         checkNotNull( trackedEntityAttributeValueAuditService );
         checkNotNull( reservedValueService );
         checkNotNull( currentUserService );
-        checkNotNull( dhisConfigurationProvider );
+        checkNotNull( config );
 
         this.attributeValueStore = attributeValueStore;
         this.fileResourceService = fileResourceService;
         this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
         this.reservedValueService = reservedValueService;
         this.currentUserService = currentUserService;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
+        this.config = config;
     }
 
     // -------------------------------------------------------------------------
@@ -104,7 +105,11 @@ public class DefaultTrackedEntityAttributeValueService
             attributeValue,
             attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
+        {
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+        }
+
         deleteFileValue( attributeValue );
         attributeValueStore.delete( attributeValue );
     }
@@ -162,7 +167,7 @@ public class DefaultTrackedEntityAttributeValueService
         }
 
         if ( attributeValue.getAttribute().isConfidentialBool() &&
-            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+            !config.getEncryptionStatus().isOk() )
         {
             throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
         }
@@ -228,17 +233,19 @@ public class DefaultTrackedEntityAttributeValueService
             }
 
             if ( attributeValue.getAttribute().isConfidentialBool() &&
-                !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+                !config.getEncryptionStatus().isOk() )
             {
                 throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
             }
 
-            TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
-                attributeValue,
-                attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
+            TrackedEntityAttributeValueAudit attributeValueAudit = new TrackedEntityAttributeValueAudit(
+                attributeValue, attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
 
-            trackedEntityAttributeValueAuditService
-                .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            if ( config.isEnabled( CHANGELOG_TRACKER ) )
+            {
+                trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( attributeValueAudit );
+            }
+
             attributeValueStore.update( attributeValue );
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
