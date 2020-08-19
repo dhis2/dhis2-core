@@ -20,10 +20,6 @@ import org.springframework.security.config.annotation.authentication.configurers
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -48,9 +44,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.sql.DataSource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -62,6 +55,12 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
+    /**
+     * This configuration class is responsible for setting up the OAuth2 /token endpoint and /authorize endpoint.
+     * This config is a modification to the config that is enabled by using the @EnableAuthorizationServer annotation.
+     * The spring-security-oauth2 project is deprecated but as of now 19. August 2020 there is still no other alternative ready.
+     * The candidate for replacing this is: https://github.com/spring-projects-experimental/spring-authorization-server
+     */
     @Configuration
     @Order( 1001 )
     @Import( { AuthorizationServerEndpointsConfiguration.class, AuthorizationServerEndpointsConfiguration.class } )
@@ -69,6 +68,9 @@ public class DhisWebApiWebSecurityConfig
     {
         @Autowired
         private AuthorizationServerEndpointsConfiguration endpoints;
+
+        @Autowired
+        private DhisOauthAuthenticationProvider dhisOauthAuthenticationProvider;
 
         @Override
         protected void configure( HttpSecurity http )
@@ -81,6 +83,9 @@ public class DhisWebApiWebSecurityConfig
             configure( configurer );
             http.apply( configurer );
 
+            // This is the only endpoint we need to configure.
+            // The /authorize endpoint is only accessible AFTER you have logged in,
+            // you will get redirected to the form login if you try accessing it.
             String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
 
             http
@@ -102,15 +107,15 @@ public class DhisWebApiWebSecurityConfig
             public void init( HttpSecurity builder )
                 throws Exception
             {
+                // This is a strange quirk to remove the default DaoAuthenticationConfigurer,
+                // that gets automatically assigned in the config init.
+                // We only want one auth. provider (our own...)
                 AuthenticationManagerBuilder authBuilder = builder
                     .getSharedObject( AuthenticationManagerBuilder.class );
                 authBuilder.removeConfigurer( DaoAuthenticationConfigurer.class );
                 authBuilder.authenticationProvider( dhisOauthAuthenticationProvider );
             }
         }
-
-        @Autowired
-        DhisOauthAuthenticationProvider dhisOauthAuthenticationProvider;
 
         @Override
         public void configure( AuthorizationServerSecurityConfigurer security )
@@ -158,6 +163,9 @@ public class DhisWebApiWebSecurityConfig
         return defaultTokenServices;
     }
 
+    /**
+     * This configuration class is responsible for setting up the /api endpoints
+     */
     @Configuration
     @Order( 1100 )
     public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter
@@ -170,32 +178,22 @@ public class DhisWebApiWebSecurityConfig
         @Qualifier( "defaultClientDetailsService" )
         DefaultClientDetailsService clientDetailsService;
 
-        private OAuth2AuthenticationProcessingFilter resourcesServerFilter;
+        final private SecurityExpressionHandler<FilterInvocation> expressionHandler = new OAuth2WebSecurityExpressionHandler();
 
-        private AuthenticationManager authenticationManager;
+        final private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
 
-        private SecurityExpressionHandler<FilterInvocation> expressionHandler = new OAuth2WebSecurityExpressionHandler();
+        final private AccessDeniedHandler accessDeniedHandler = new OAuth2AccessDeniedHandler();
 
-        private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
+        final private String resourceId = "oauth2-resource";
 
-        private AccessDeniedHandler accessDeniedHandler = new OAuth2AccessDeniedHandler();
-
-        private String resourceId = "oauth2-resource";
-
+        /**
+         * This AuthenticationManager is responsible for authorizing access, refresh and code
+         * OAuth2 tokens from the /token and /authorize endpoints.
+         * It is used only by the OAuth2AuthenticationProcessingFilter.
+         */
         private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
         {
             OAuth2AuthenticationManager oauthAuthenticationManager = new OAuth2AuthenticationManager();
-            if ( authenticationManager != null )
-            {
-                if ( authenticationManager instanceof OAuth2AuthenticationManager )
-                {
-                    oauthAuthenticationManager = (OAuth2AuthenticationManager) authenticationManager;
-                }
-                else
-                {
-                    return authenticationManager;
-                }
-            }
             oauthAuthenticationManager.setResourceId( resourceId );
             oauthAuthenticationManager.setTokenServices( tokenServices );
             oauthAuthenticationManager.setClientDetailsService( clientDetailsService );
@@ -206,9 +204,8 @@ public class DhisWebApiWebSecurityConfig
         protected void configure( HttpSecurity http )
             throws Exception
         {
-
             AuthenticationManager oauthAuthenticationManager = oauthAuthenticationManager( http );
-            resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
+            OAuth2AuthenticationProcessingFilter resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
             resourcesServerFilter.setAuthenticationEntryPoint( authenticationEntryPoint );
             resourcesServerFilter.setAuthenticationManager( oauthAuthenticationManager );
 

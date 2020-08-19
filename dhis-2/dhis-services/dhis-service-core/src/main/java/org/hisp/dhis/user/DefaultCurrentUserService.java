@@ -132,7 +132,7 @@ public class DefaultCurrentUserService
 
         User user = userStore.getUser( userId );
         // TODO: this is pretty ugly way to retrieve auths
-        Set<String> auths = user.getUserCredentials().getAllAuthorities();
+        user.getUserCredentials().getAllAuthorities();
         return user;
     }
 

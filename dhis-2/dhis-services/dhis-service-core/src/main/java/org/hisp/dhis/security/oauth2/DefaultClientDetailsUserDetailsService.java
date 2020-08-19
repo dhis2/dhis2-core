@@ -66,7 +66,6 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
     }
 
     public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException
     {
         ClientDetails clientDetails;
         try

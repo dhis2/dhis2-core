@@ -3,14 +3,16 @@ package org.hisp.dhis.security.config;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.MappedRedirectStrategy;
-import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
 import org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.security.vote.SimpleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
+import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
@@ -35,7 +37,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,9 +49,9 @@ import java.util.List;
     "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 public class DhisWebCommonsWebSecurityConfig
 {
-    @Autowired
-    public DataSource dataSource;
-
+    /**
+     * This configuration class is responsible for setting up the session management.
+     */
     @Configuration
     @Order( 3300 )
     public static class SessionWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
@@ -73,22 +74,17 @@ public class DhisWebCommonsWebSecurityConfig
                 .expiredUrl( "/dhis-web-commons-security/logout.action" )
                 .sessionRegistry( sessionRegistry() );
         }
-
     }
 
+    /**
+     * This configuration class is responsible for setting up the form login and everything related to the web pages.
+     */
     @Configuration
     @Order( 2200 )
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     {
-
-//        @Bean
-//        public HttpFirewall allowUrlEncodedSlashHttpFirewall()
-//        {
-//            StrictHttpFirewall firewall = new StrictHttpFirewall();
-//            firewall.setAllowUrlEncodedSlash( true );
-//            firewall.setAllowSemicolon( true );
-//            return firewall;
-//        }
+        @Autowired
+        private DhisConfigurationProvider configurationProvider;
 
         @Override
         public void configure( WebSecurity web )
@@ -96,7 +92,6 @@ public class DhisWebCommonsWebSecurityConfig
         {
             super.configure( web );
             web
-//                .httpFirewall( allowUrlEncodedSlashHttpFirewall() )
                 .ignoring()
                 .antMatchers( "/dhis-web-commons/javascripts/**" )
                 .antMatchers( "/dhis-web-commons/css/**" )
@@ -157,7 +152,6 @@ public class DhisWebCommonsWebSecurityConfig
                 .loginPage( "/dhis-web-commons/security/login.action" ).permitAll()
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-//                .defaultSuccessUrl( "/dhis-web-dashboard" )
                 .failureUrl( "/dhis-web-commons/security/login.action" )
                 .and()
 
@@ -185,31 +179,27 @@ public class DhisWebCommonsWebSecurityConfig
         }
 
         @Bean
-        public DeviceResolver deviceResolver()
+        public DefaultAuthenticationSuccessHandler authenticationSuccessHandler()
         {
-            return new LiteDeviceResolver();
+            DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
+            successHandler.setRedirectStrategy( mappedRedirectStrategy() );
+            if ( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
+            {
+                successHandler.setSessionTimeout(
+                    Integer.parseInt( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
+            }
+
+            return successHandler;
         }
 
         @Bean
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            mappedRedirectStrategy.setRedirectMap( ImmutableMap.of(
-                "/dhis-web-commons-stream/ping.action", "/"
-                )
-            );
+            mappedRedirectStrategy.setRedirectMap( ImmutableMap.of( "/dhis-web-commons-stream/ping.action", "/" ) );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
-        }
-
-        @Bean
-        public DefaultAuthenticationSuccessHandler authenticationSuccessHandler()
-        {
-            DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
-            successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-//            successHandler.setSessionTimeout( 10000 ); //TODO: FIX get real
-            return successHandler;
         }
 
         @Bean
@@ -230,6 +220,12 @@ public class DhisWebCommonsWebSecurityConfig
         }
 
         @Bean
+        public DeviceResolver deviceResolver()
+        {
+            return new LiteDeviceResolver();
+        }
+
+        @Bean
         public RequestMatcher analyticsPluginResources()
         {
             String pattern = ".*(dhis-web-mapping\\/map.js|dhis-web-visualizer\\/chart.js|dhis-web-maps\\" +
@@ -241,9 +237,9 @@ public class DhisWebCommonsWebSecurityConfig
         @Bean
         public ModuleAccessVoter moduleAccessVoter()
         {
-            ModuleAccessVoter v = new ModuleAccessVoter();
-            v.setAttributePrefix( "M_" );
-            v.setAlwaysAccessible( ImmutableSet.of(
+            ModuleAccessVoter voter = new ModuleAccessVoter();
+            voter.setAttributePrefix( "M_" );
+            voter.setAlwaysAccessible( ImmutableSet.of(
                 "dhis-web-commons-menu",
                 "dhis-web-commons-oust",
                 "dhis-web-commons-ouwt",
@@ -261,17 +257,17 @@ public class DhisWebCommonsWebSecurityConfig
                 "dhis-web-portal",
                 "dhis-web-uaa"
             ) );
-            return v;
+            return voter;
         }
 
         @Bean
         public ActionAccessVoter actionAccessVoter()
         {
-            ActionAccessVoter v = new ActionAccessVoter();
-            v.setAttributePrefix( "F_" );
-            v.setRequiredAuthoritiesKey( "requiredAuthorities" );
-            v.setAnyAuthoritiesKey( "anyAuthorities" );
-            return v;
+            ActionAccessVoter voter = new ActionAccessVoter();
+            voter.setAttributePrefix( "F_" );
+            voter.setRequiredAuthoritiesKey( "requiredAuthorities" );
+            voter.setAnyAuthoritiesKey( "anyAuthorities" );
+            return voter;
         }
 
         @Bean
@@ -279,9 +275,9 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultWebSecurityExpressionHandler h = new DefaultWebSecurityExpressionHandler();
             h.setDefaultRolePrefix( "" );
-            WebExpressionVoter v = new WebExpressionVoter();
-            v.setExpressionHandler( h );
-            return v;
+            WebExpressionVoter voter = new WebExpressionVoter();
+            voter.setExpressionHandler( h );
+            return voter;
         }
 
         @Bean

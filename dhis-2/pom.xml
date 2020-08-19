@@ -796,21 +796,6 @@
         <version>${spring-security.version}</version>
       </dependency>
 
-<!--      <dependency>-->
-<!--        <groupId>org.springframework.security</groupId>-->
-<!--        <artifactId>spring-security-openid</artifactId>-->
-<!--        <version>${spring-security.version}</version>-->
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.openid4java</groupId>-->
-<!--            <artifactId>openid4java-nodeps</artifactId>-->
-<!--          </exclusion>-->
-<!--          <exclusion>-->
-<!--            <groupId>com.google.inject</groupId>-->
-<!--            <artifactId>guice</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-ldap</artifactId>
@@ -1294,11 +1279,6 @@
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
-<!--      <dependency>-->
-<!--        <groupId>org.apache.geronimo.specs</groupId>-->
-<!--        <artifactId>geronimo-jta_1.1_spec</artifactId>-->
-<!--        <version>1.1.1</version>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>com.mchange</groupId>
         <artifactId>c3p0</artifactId>
@@ -1770,10 +1750,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-socks</artifactId>
           </exclusion>
-<!--          <exclusion>-->
-<!--            <groupId>org.jboss.logmanager</groupId>-->
-<!--            <artifactId>jboss-logmanager</artifactId>-->
-<!--          </exclusion>-->
           <exclusion>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
@@ -1922,18 +1898,6 @@
         <artifactId>jsmpp</artifactId>
         <version>2.1.0-RELEASE</version>
       </dependency>
-
-<!--      <dependency>-->
-<!--        <groupId>org.openid4java</groupId>-->
-<!--        <artifactId>openid4java</artifactId>-->
-<!--        <version>1.0.0</version>-->
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>com.google.inject</groupId>-->
-<!--            <artifactId>guice</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>org.jboss.logging</groupId>
         <artifactId>jboss-logging</artifactId>
@@ -1972,7 +1936,6 @@
         <artifactId>junit</artifactId>
         <version>4.12</version>
       </dependency>
-      <!-- https://mvnrepository.com/artifact/org.objenesis/objenesis -->
       <dependency>
         <groupId>org.objenesis</groupId>
         <artifactId>objenesis</artifactId>
@@ -1984,12 +1947,6 @@
         <artifactId>mockito-core</artifactId>
         <version>3.4.6</version>
         <scope>test</scope>
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>org.objenesis</groupId>-->
-<!--            <artifactId>objenesis</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
