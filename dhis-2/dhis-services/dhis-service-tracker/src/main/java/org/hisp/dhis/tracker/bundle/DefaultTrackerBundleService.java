@@ -262,26 +262,38 @@ public class DefaultTrackerBundleService
 
     private TrackerTypeReport deleteTrackedEntities( TrackerBundle bundle )
     {
-        return null;
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
+
+        deletionService.deleteTrackedEntityInstances( bundle, typeReport );
+
+        return typeReport;
     }
 
     private TrackerTypeReport deleteEnrollments( TrackerBundle bundle )
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
 
-        deletionService.deleteEnrollment( bundle, typeReport );
+        deletionService.deleteEnrollments( bundle, typeReport );
 
         return typeReport;
     }
 
     private TrackerTypeReport deleteEvents( TrackerBundle bundle )
     {
-        return null;
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
+
+        deletionService.deleteEvents( bundle, typeReport );
+
+        return typeReport;
     }
 
     private TrackerTypeReport deleteRelationShips( TrackerBundle bundle )
     {
-        return null;
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
+
+        deletionService.deleteRelationShips( bundle, typeReport );
+
+        return typeReport;
     }
 
     private TrackerTypeReport handleTrackedEntities( Session session, TrackerBundle bundle )
