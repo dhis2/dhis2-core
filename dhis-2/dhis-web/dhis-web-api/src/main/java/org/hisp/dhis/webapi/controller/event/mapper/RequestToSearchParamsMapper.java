@@ -222,8 +222,8 @@ public class RequestToSearchParamsMapper
         if ( assignedUsers != null )
         {
             assignedUsers = assignedUsers.stream()
-                    .filter( CodeGenerator::isValidUid )
-                    .collect( Collectors.toSet() );
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
         }
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
