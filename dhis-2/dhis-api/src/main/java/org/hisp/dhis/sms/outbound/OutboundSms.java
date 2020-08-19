@@ -68,6 +68,12 @@ public class OutboundSms
         Collections.addAll( this.recipients, recipients );
     }
 
+    @JsonProperty( value = "messageId" )
+    public long getMessageId()
+    {
+        return super.getId();
+    }
+
     @JsonProperty( value = "recipients" )
     @JacksonXmlProperty( localName = "recipients" )
     public Set<String> getRecipients()
