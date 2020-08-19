@@ -123,7 +123,10 @@ public class DefaultIncomingSmsService
     {
         IncomingSms incomingSms = incomingSmsStore.get( id );
 
-        incomingSmsStore.delete( incomingSms );
+        if ( incomingSms != null )
+        {
+            incomingSmsStore.delete( incomingSms );
+        }
     }
 
     @Override
