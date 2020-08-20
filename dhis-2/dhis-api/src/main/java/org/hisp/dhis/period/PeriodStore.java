@@ -206,6 +206,8 @@ public interface PeriodStore
     // RelativePeriods
     // -------------------------------------------------------------------------
 
+    Period insertIsoPeriodInStatelessSession( Period period );
+
     /**
      * Deletes a RelativePeriods instance.
      * 
