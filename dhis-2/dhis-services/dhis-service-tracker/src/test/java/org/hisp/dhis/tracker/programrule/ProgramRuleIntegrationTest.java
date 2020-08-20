@@ -120,7 +120,7 @@ public class ProgramRuleIntegrationTest
         programRuleActionWarning.setContent( "WARNING" );
         programRuleActionService.addProgramRuleAction( programRuleActionWarning );
 
-        programRule.getProgramRuleActions().add(programRuleActionWarning);
+        programRule.getProgramRuleActions().add( programRuleActionWarning );
         programRuleService.updateProgramRule( programRule );
 
         userA = userService.getUser( "M5zQapPyTZI" );
@@ -151,11 +151,12 @@ public class ProgramRuleIntegrationTest
     }
 
     private TrackerImportParams build(TrackerBundleParams params) {
+        // @formatter:off
         return TrackerImportParams.builder()
                 .user( params.getUser() )
                 .importMode( params.getImportMode() )
                 .importStrategy( params.getImportStrategy() )
-            .skipPatternValidation( params.isSkipTextPatternValidation() )
+                .skipPatternValidation( true )
                 .identifiers( params.getIdentifiers() )
                 .atomicMode( params.getAtomicMode() )
                 .flushMode( params.getFlushMode() )
@@ -166,5 +167,6 @@ public class ProgramRuleIntegrationTest
                 .events( params.getEvents() )
                 .relationships( params.getRelationships() )
                 .build();
+        // @formatter:on
     }
 }

@@ -81,9 +81,8 @@ public class TrackerWarningReport
 
     protected int listIndex;
 
-    public TrackerWarningReport(Class<?> mainKlass, String warningMessage, TrackerErrorCode warningCode, int line,
-                                String mainId,
-                                Class<?> warningKlass, String[] warningProperties, Object value )
+    public TrackerWarningReport( Class<?> mainKlass, String warningMessage, TrackerErrorCode warningCode, int line,
+        String mainId, Class<?> warningKlass, String[] warningProperties, Object value )
     {
         this.mainKlass = mainKlass;
         this.warningMessage = warningMessage;
@@ -119,7 +118,7 @@ public class TrackerWarningReport
             return this;
         }
 
-        public TrackerWarningReport build(TrackerBundle bundle )
+        public TrackerWarningReport build( TrackerBundle bundle )
         {
             TrackerIdScheme scheme = bundle.getIdentifier();
             TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
