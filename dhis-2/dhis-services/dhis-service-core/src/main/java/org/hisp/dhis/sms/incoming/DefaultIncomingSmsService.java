@@ -156,6 +156,13 @@ public class DefaultIncomingSmsService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public IncomingSms get( String id )
+    {
+        return incomingSmsStore.getByUid( id );
+    }
+
+    @Override
     @Transactional
     public void update( IncomingSms incomingSms )
     {

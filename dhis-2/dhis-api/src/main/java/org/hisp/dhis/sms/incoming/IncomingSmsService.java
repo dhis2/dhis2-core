@@ -44,6 +44,8 @@ public interface IncomingSmsService
 
     IncomingSms get( long id );
 
+    IncomingSms get( String uid );
+
     List<IncomingSms> getAll();
 
     List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );

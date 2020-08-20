@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.sms;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
@@ -55,6 +54,7 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,6 +66,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -250,18 +252,54 @@ public class SmsController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/outbound/message", method = RequestMethod.DELETE )
+
+    @RequestMapping( value = "/outbound/messages/{uid}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteOutboundMessage( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+        throws WebMessageException
+    {
+       OutboundSms sms = outboundSmsService.get( uid );
+
+       if ( sms == null )
+       {
+           throw new WebMessageException( notFound( "No OutboundSms with id '" + uid + "' was found." ) );
+       }
+
+       outboundSmsService.delete( uid );
+
+       webMessageService.send( WebMessageUtils.ok( "OutboundSms with "+ uid + " deleted" ), response, request );
+    }
+
+    @RequestMapping( value = "/inbound/messages/{uid}", method = RequestMethod.DELETE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
+    public void deleteInboundMessage( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+        throws WebMessageException
+    {
+        IncomingSms sms = incomingSMSService.get( uid );
+
+        if ( sms == null )
+        {
+            throw new WebMessageException( notFound( "No IncomingSms with id '" + uid + "' was found." ) );
+        }
+
+        incomingSMSService.delete( uid );
+
+        webMessageService.send( WebMessageUtils.ok( "IncomingSms with "+ uid + " deleted" ), response, request );
+    }
+
+
+    @RequestMapping( value = "/outbound/messages", method = RequestMethod.DELETE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
+    public void deleteOutboundMessages( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
     {
         ids.forEach( outboundSmsService::delete );
 
         webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
     }
 
-    @RequestMapping( value = "/inbound/message", method = RequestMethod.DELETE )
+    @RequestMapping( value = "/inbound/messages", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessage( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteInboundMessages( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
     {
         ids.forEach( incomingSMSService::delete );
 
