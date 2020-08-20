@@ -170,7 +170,7 @@ public abstract class AbstractTrackerDtoValidationHook
      * @return list of error reports
      */
     @Override
-    public List<TrackerErrorReport> validate( TrackerImportValidationContext context )
+    public ValidationErrorReporter validate( TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
 
@@ -185,7 +185,7 @@ public abstract class AbstractTrackerDtoValidationHook
             // just return as there is nothing to validate.
             if ( importStrategy.isDelete() && !this.strategy.isDelete() )
             {
-                return reporter.getReportList();
+                return reporter;
             }
         }
 
@@ -217,7 +217,7 @@ public abstract class AbstractTrackerDtoValidationHook
             validateTrackerDTOs( reporter, allValidations.get( dtoTypeClass ) );
         }
 
-        return reporter.getReportList();
+        return reporter;
     }
 
     private void validateTrackerDTOs( ValidationErrorReporter reporter,
