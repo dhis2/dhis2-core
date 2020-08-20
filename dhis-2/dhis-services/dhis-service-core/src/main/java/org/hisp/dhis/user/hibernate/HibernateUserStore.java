@@ -67,9 +67,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Nguyen Hong Duc
  */
+@Slf4j
 @Repository( "org.hisp.dhis.user.UserStore" )
 public class HibernateUserStore
     extends HibernateIdentifiableObjectStore<User>
@@ -140,7 +143,8 @@ public class HibernateUserStore
         SqlHelper hlp = new SqlHelper();
 
         List<Order> convertedOrder = null;
-        String hql;
+        String hql = null;
+
         if ( count )
         {
             hql = "select count(distinct u) ";
@@ -167,7 +171,7 @@ public class HibernateUserStore
             hql += "left join u.groups g ";
         }
 
-        if ( !params.getOrganisationUnits().isEmpty() )
+        if ( params.hasOrganisationUnits() )
         {
             hql += "left join u.organisationUnits ou ";
 
@@ -186,6 +190,11 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " ou.id in (:ouIds) ";
             }
+        }
+
+        if ( params.hasUserGroups() )
+        {
+            hql += hlp.whereAnd() + " g.id in (:userGroupIds) ";
         }
 
         if ( params.getDisabled() != null )
@@ -277,6 +286,12 @@ public class HibernateUserStore
             hql += "order by " + StringUtils.defaultString( orderExpression, "u.surname, u.firstName" );
         }
 
+        // ---------------------------------------------------------------------
+        // Query parameters
+        // ---------------------------------------------------------------------
+
+        log.warn( "User query HQL: '{}'", hql );
+
         Query query = getQuery( hql );
 
         if ( params.getQuery() != null )
@@ -330,7 +345,7 @@ public class HibernateUserStore
             query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
 
-        if ( !params.getOrganisationUnits().isEmpty() )
+        if ( params.hasOrganisationUnits() )
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
@@ -345,6 +360,13 @@ public class HibernateUserStore
 
                 query.setParameterList( "ouIds", ouIds );
             }
+        }
+
+        if ( params.hasUserGroups() )
+        {
+            Collection<Long> userGroupIds = IdentifiableObjectUtils.getIdentifiers( params.getUserGroups() );
+
+            query.setParameterList( "userGroupIds", userGroupIds );
         }
 
         if ( params.getFirst() != null )
