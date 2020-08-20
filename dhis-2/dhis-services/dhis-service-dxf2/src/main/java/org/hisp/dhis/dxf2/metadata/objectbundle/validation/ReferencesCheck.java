@@ -171,28 +171,6 @@ public class ReferencesCheck
                         identifier.getIdentifiersWithName( object ), "attributeValues" ) ) );
         }
 
-        if ( schema.havePersistedProperty( "userGroupAccesses" ) )
-        {
-            object.getUserGroupAccesses().stream()
-                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUserGroup() != null
-                    && preheat.get( identifier, userGroupAccess.getUserGroup() ) == null )
-                .forEach(
-                    userGroupAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                        ErrorCode.E5002, identifier.getIdentifiersWithName( userGroupAccesses.getUserGroup() ),
-                        identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
-        }
-
-        if ( schema.havePersistedProperty( "userAccesses" ) )
-        {
-            object.getUserAccesses().stream()
-                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUser() != null
-                    && preheat.get( identifier, userGroupAccess.getUser() ) == null )
-                .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier,
-                    object.getClass(), ErrorCode.E5002, identifier.getIdentifiersWithName( userAccesses.getUser() ),
-                    identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
-        }
-
-
         return preheatErrorReports;
     }
 

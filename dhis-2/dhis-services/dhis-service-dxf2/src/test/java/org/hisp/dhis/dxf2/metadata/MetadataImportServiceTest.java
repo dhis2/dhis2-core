@@ -284,8 +284,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getId() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getId() );
 
         Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
         assertNotNull( dataElementOperandVisualization );
@@ -311,8 +311,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getId() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getId() );
     }
 
     @Test
@@ -345,8 +345,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getId() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getId() );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),

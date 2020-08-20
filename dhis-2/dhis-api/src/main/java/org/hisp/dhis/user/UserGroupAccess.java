@@ -60,6 +60,12 @@ public class UserGroupAccess
         this.access = access;
     }
 
+    public UserGroupAccess( UserGroup userGroup, String access )
+    {
+        this.id = userGroup.getUid();
+        this.access = access;
+    }
+
     public String getId()
     {
         return id;
@@ -80,6 +86,11 @@ public class UserGroupAccess
     public void setAccess( String access )
     {
         this.access = access;
+    }
+
+    public void setUserGroup( UserGroup userGroup )
+    {
+        this.id = userGroup.getUid();
     }
 
     @Override

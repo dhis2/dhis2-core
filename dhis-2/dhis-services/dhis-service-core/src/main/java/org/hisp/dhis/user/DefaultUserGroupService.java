@@ -44,6 +44,7 @@ import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,15 +72,13 @@ public class DefaultUserGroupService
 
     private Cache<UserGroup> userGroupCache;
 
-    private final Environment env;
-
     @PostConstruct
     public void init()
     {
         userGroupCache = cacheProvider.newCacheBuilder( UserGroup.class )
             .forRegion( "userGroup" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .build();
     }
 
     public DefaultUserGroupService( @Qualifier("org.hisp.dhis.user.UserGroupStore") IdentifiableObjectStore<UserGroup> userGroupStore,
@@ -90,14 +89,12 @@ public class DefaultUserGroupService
         checkNotNull( aclService );
         checkNotNull( cacheManager );
         checkNotNull( cacheProvider );
-        checkNotNull( env );
 
         this.userGroupStore = userGroupStore;
         this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.cacheManager = cacheManager;
         this.cacheProvider = cacheProvider;
-        this.env = env;
     }
 
     // -------------------------------------------------------------------------
@@ -148,7 +145,12 @@ public class DefaultUserGroupService
     @Transactional( readOnly = true )
     public UserGroup getUserGroup( String uid )
     {
-        return userGroupStore.getByUid( uid );
+        Optional<UserGroup> userGroup = userGroupCache.get( uid, ug -> {
+            UserGroup group = userGroupStore.getByUid( uid );
+            group.getMembers();
+            return group;
+        } );
+        return userGroup.orElse( null );
     }
 
     @Override
@@ -281,10 +283,5 @@ public class DefaultUserGroupService
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max, false );
-    }
-
-    public boolean isMember( UserGroup userGroup, User user )
-    {
-
     }
 }

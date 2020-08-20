@@ -654,12 +654,13 @@ public class DefaultAclService implements AclService
             return true;
         }
 
+
+
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
             // Check if user is allowed to read this object through group access
-
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+                    && userGroupService.getUserGroup( userGroupAccess.getId() ).getMembers().contains( user ) )
             {
                 return true;
             }
@@ -670,7 +671,7 @@ public class DefaultAclService implements AclService
             // Check if user is allowed to read to this object through user access
 
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                    && user.equals( userAccess.getUser() ) )
+                    && user.getUid().equals( userAccess.getId() ) )
             {
                 return true;
             }

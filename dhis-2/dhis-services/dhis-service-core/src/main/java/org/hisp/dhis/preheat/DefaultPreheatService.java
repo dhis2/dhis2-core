@@ -307,20 +307,16 @@ public class DefaultPreheatService implements PreheatService
             {
                 User user = null;
 
-                if ( ua.getUser() != null )
+                if ( ua.getId() != null )
                 {
                     if ( PreheatIdentifier.UID == identifier )
                     {
-                        user = preheat.get( identifier, User.class, ua.getUser().getUid() );
-                    }
-                    else if ( PreheatIdentifier.CODE == identifier )
-                    {
-                        user = preheat.get( identifier, User.class, ua.getUser().getCode() );
+                        user = preheat.get( identifier, User.class, ua.getId() );
                     }
                 }
                 else
                 {
-                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
+                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getId() );
                 }
 
                 if ( user != null )
@@ -333,20 +329,16 @@ public class DefaultPreheatService implements PreheatService
             {
                 UserGroup userGroup = null;
 
-                if ( uga.getUserGroup() != null )
+                if ( uga.getId() != null )
                 {
                     if ( PreheatIdentifier.UID == identifier )
                     {
-                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getUid() );
-                    }
-                    else if ( PreheatIdentifier.CODE == identifier )
-                    {
-                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getCode() );
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getId() );
                     }
                 }
                 else
                 {
-                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
+                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getId() );
                 }
 
                 if ( userGroup != null )
@@ -529,8 +521,6 @@ public class DefaultPreheatService implements PreheatService
                 {
                     IdentifiableObject identifiableObject = (IdentifiableObject) object;
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
-                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
-                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                     addIdentifiers( map, identifiableObject );
                 }

@@ -63,6 +63,12 @@ public class UserAccess
         this.access = access;
     }
 
+    public UserAccess( User user, String access )
+    {
+        this.id = user.getUid();
+        this.access = access;
+    }
+
     public String getId()
     {
         return id;
@@ -84,6 +90,11 @@ public class UserAccess
     public void setAccess( String access )
     {
         this.access = access;
+    }
+
+    public void setUser( User user )
+    {
+        this.id = user.getUid();
     }
 
 
