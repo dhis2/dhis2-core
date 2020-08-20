@@ -68,6 +68,8 @@ public class HibernateGenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
+    protected static final int OBJECT_FETCH_SIZE = 2000;
+
     protected SessionFactory sessionFactory;
 
     @Required
