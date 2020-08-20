@@ -28,19 +28,17 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.UidGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,17 +60,26 @@ public class UidGeneratorTest
     @Test
     public void verifyEventsGetUidAssigned()
     {
+        final String uid = CodeGenerator.generateUid();
+        // Given
+
         Event event1 = new Event();
         Event event2 = new Event();
         Event event3 = new Event();
         Event event4 = new Event();
-        event4.setEvent( "aaaaaaa" );
+        event4.setEvent( uid );
 
+        // When
         List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
 
+        // Then
         assertThat( events, hasSize( 4 ) );
         events.forEach( e -> assertNotNull( e.getUid() ) );
+        // make sure we got 4 distinct UIDs
         assertThat( events.stream().collect( Collectors.toMap( Event::getUid, Function.identity() ) ).keySet(),
             hasSize( 4 ) );
+        // make sure Event4 has retained the original UID
+        assertThat( event4.getUid(), is( uid ) );
+        assertThat( event4.getEvent(), is( uid ) );
     }
 }

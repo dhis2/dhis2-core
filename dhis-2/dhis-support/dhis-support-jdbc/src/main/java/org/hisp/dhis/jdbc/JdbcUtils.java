@@ -95,7 +95,9 @@ public class JdbcUtils
                             {
                                 pss.setValues( ps, i );
                                 if ( ipss != null && ipss.isBatchExhausted( i ) )
+                                {
                                     break;
+                                }
 
                                 rowsAffected.add( ps.executeUpdate() );
                                 generatedKeys( ps, keyHolder );
@@ -114,7 +116,9 @@ public class JdbcUtils
                 finally
                 {
                     if ( pss instanceof ParameterDisposer )
+                    {
                         ((ParameterDisposer) pss).cleanupParameters();
+                    }
                 }
             } );
     }
