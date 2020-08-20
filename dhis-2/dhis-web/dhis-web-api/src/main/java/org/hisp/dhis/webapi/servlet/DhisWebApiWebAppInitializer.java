@@ -100,6 +100,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
         context.addFilter( "RequestIdentifierFilter", new DelegatingFilterProxy( "requestIdentifierFilter" ) )
             .addMappingForUrlPatterns( null, true, "/*" );
 
+        context.addFilter( "AppOverrideFilter", new DelegatingFilterProxy( "appOverrideFilter" ) )
+            .addMappingForUrlPatterns( null, true, "/*" );
+
         context.addListener( new StartupListener() );
     }
 

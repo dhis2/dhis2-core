@@ -75,7 +75,7 @@ public class RedirectAction
 
                 for ( App app : apps )
                 {
-                    if ( app.getName().equals( startModule.substring( "app:".length() ) ) )
+                    if ( app.getShortName().equals( startModule.substring( "app:".length() ) ) )
                     {
                         redirectUrl = app.getLaunchUrl();
                         return SUCCESS;
