@@ -6,6 +6,7 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 @Builder
@@ -28,10 +29,20 @@ public class Sharing
     private boolean external;
 
     @JsonProperty
-    private Map<String, UserAccess> users;
+    private Map<String, UserAccess> users = new HashMap<>();
 
     @JsonProperty
-    private Map<String, UserGroupAccess> userGroups;
+    private Map<String, UserGroupAccess> userGroups = new HashMap<>();
+
+    public Sharing copy()
+    {
+        return builder()
+            .external( this.external )
+            .publicAccess( this.publicAccess )
+            .owner( this.owner )
+            .users( new HashMap<>( users ) )
+            .userGroups( new HashMap<>( userGroups ) ).build();
+    }
 
 }
 

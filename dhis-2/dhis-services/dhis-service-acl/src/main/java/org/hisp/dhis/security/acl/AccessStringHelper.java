@@ -231,12 +231,6 @@ public class AccessStringHelper
 
     public static <T extends BaseIdentifiableObject> void copySharing( T source, T target )
     {
-        target.setPublicAccess( source.getPublicAccess() );
-        target.setExternalAccess( source.getExternalAccess() );
-
-        source.getUserAccesses().forEach(
-            ua -> target.getUserAccesses().add( new UserAccess( ua.getId(), ua.getAccess() ) ) );
-        source.getUserGroupAccesses().forEach(
-            uga -> target.getUserGroupAccesses().add( new UserGroupAccess( uga.getId(), uga.getAccess() ) ) );
+        target.setSharing( source.getSharing().copy() );
     }
 }

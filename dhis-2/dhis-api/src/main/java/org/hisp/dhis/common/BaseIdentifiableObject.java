@@ -123,12 +123,12 @@ public class BaseIdentifiableObject
     /**
      * This object is available as external read-only.
      */
-    protected boolean externalAccess;
+    protected transient boolean externalAccess;
 
     /**
      * Access string for public access.
      */
-    protected String publicAccess;
+    protected transient String publicAccess;
 
     /**
      * Owner of this object.
@@ -138,12 +138,12 @@ public class BaseIdentifiableObject
     /**
      * Access for user groups.
      */
-    protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
+    protected transient Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
      * Access for users.
      */
-    protected Set<UserAccess> userAccesses = new HashSet<>();
+    protected transient Set<UserAccess> userAccesses = new HashSet<>();
 
     /**
      * Access information for this object. Applies to current user.
@@ -165,7 +165,7 @@ public class BaseIdentifiableObject
      */
     protected User lastUpdatedBy;
 
-    protected Sharing sharing;
+    protected Sharing sharing = new Sharing();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -457,12 +457,17 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
-        return publicAccess;
+        if ( sharing != null )
+        {
+            sharing.getPublicAccess();
+        }
+
+        return null;
     }
 
     public void setPublicAccess( String publicAccess )
     {
-        this.publicAccess = publicAccess;
+        this.sharing.setPublicAccess( publicAccess );
     }
 
     @Override
@@ -470,12 +475,17 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getExternalAccess()
     {
-        return externalAccess;
+        if ( sharing != null )
+        {
+            return sharing.isExternal();
+        }
+
+        return false;
     }
 
     public void setExternalAccess( Boolean externalAccess )
     {
-        this.externalAccess = externalAccess == null ? false : externalAccess;
+        this.sharing.setExternal( externalAccess );
     }
 
     @Override
@@ -484,7 +494,14 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<UserGroupAccess> getUserGroupAccesses()
     {
-        return Sets.newHashSet( sharing.getUserGroups().values() );
+        Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
+
+        if ( sharing != null )
+        {
+            userGroupAccesses.addAll( sharing.getUserGroups().values() );
+        }
+
+        return userGroupAccesses;
     }
 
     public void setUserGroupAccesses( Set<UserGroupAccess> userGroupAccesses )
@@ -498,7 +515,14 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<UserAccess> getUserAccesses()
     {
-        return Sets.newHashSet( sharing.getUsers().values() );
+        Set<UserAccess> userAccesses = new HashSet<>();
+
+        if ( sharing != null )
+        {
+            userAccesses.addAll( sharing.getUsers().values() );
+        }
+
+        return userAccesses;
     }
 
     public void setUserAccesses( Set<UserAccess> userAccesses )
@@ -549,8 +573,7 @@ public class BaseIdentifiableObject
         return sharing;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonIgnore
     public void setSharing( Sharing sharing )
     {
         this.sharing = sharing;

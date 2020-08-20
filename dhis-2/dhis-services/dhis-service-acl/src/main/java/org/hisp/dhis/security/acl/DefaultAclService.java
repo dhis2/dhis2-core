@@ -28,6 +28,8 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -40,13 +42,15 @@ import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.UserGroupService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
@@ -61,15 +65,26 @@ public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
-    private final UserGroupService userGroupService;
+    private final CacheProvider cacheProvider;
 
-    public DefaultAclService( SchemaService schemaService, UserGroupService userGroupService )
+    private Cache<UserGroup> userGroupCache;
+
+    public DefaultAclService( SchemaService schemaService, CacheProvider cacheProvider )
     {
         checkNotNull( schemaService );
-        checkNotNull( userGroupService );
+        checkNotNull( cacheProvider );
 
         this.schemaService = schemaService;
-        this.userGroupService = userGroupService;
+        this.cacheProvider = cacheProvider;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        userGroupCache = cacheProvider.newCacheBuilder( UserGroup.class )
+            .forRegion( "userGroup" )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .build();
     }
 
     @Override
@@ -448,8 +463,8 @@ public class DefaultAclService implements AclService
             }
         }
 
-        object.getUserAccesses().clear();
-        object.getUserGroupAccesses().clear();
+        object.getSharing().getUsers().clear();
+        object.getSharing().getUserGroups().clear();
     }
 
     @Override
@@ -558,6 +573,18 @@ public class DefaultAclService implements AclService
         return errorReports;
     }
 
+    @Override
+    public Cache<UserGroup> getUserGroupCache()
+    {
+        return userGroupCache;
+    }
+
+    @Override
+    public UserGroup getUserGroupFromCache( String groupId )
+    {
+        return userGroupCache.get( groupId ).orElse( null );
+    }
+
     private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user, T object )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -654,19 +681,19 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-
-
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
         {
+            UserGroup userGroup = getUserGroupFromCache( userGroupAccess.getId() );
+
             // Check if user is allowed to read this object through group access
-            if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroupService.getUserGroup( userGroupAccess.getId() ).getMembers().contains( user ) )
+            if (  userGroup != null && AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
+                    && userGroup.getMembers().contains( user ) )
             {
                 return true;
             }
         }
 
-        for ( UserAccess userAccess : object.getUserAccesses() )
+        for ( UserAccess userAccess : object.getSharing().getUsers().values() )
         {
             // Check if user is allowed to read to this object through user access
 
