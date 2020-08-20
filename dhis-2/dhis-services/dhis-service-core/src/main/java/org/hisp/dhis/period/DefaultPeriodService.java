@@ -31,9 +31,6 @@ package org.hisp.dhis.period;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -313,24 +310,7 @@ public class DefaultPeriodService
 
         period.setPeriodType( reloadPeriodType( period.getPeriodType() ) );
 
-        StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
-        try
-        {
-            session.insert( period );
-
-            return period;
-        }
-        catch ( Exception exception )
-        {
-            log.error( DebugUtils.getStackTrace( exception ) );
-        }
-        finally
-        {
-            DbmsUtils.closeStatelessSession( session );
-        }
-
-        return null;
+        return periodStore.insertIsoPeriodInStatelessSession( period );
     }
 
     @Override
