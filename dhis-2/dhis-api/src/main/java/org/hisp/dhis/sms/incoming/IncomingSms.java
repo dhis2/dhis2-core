@@ -69,8 +69,6 @@ public class IncomingSms extends BaseIdentifiableObject
 
     private boolean parsed = false;
 
-    private User user;
-
     public IncomingSms()
     {
         setAutoFields();
@@ -153,6 +151,7 @@ public class IncomingSms extends BaseIdentifiableObject
         return text;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( localName = "user" )
     public User getUser()
@@ -160,6 +159,7 @@ public class IncomingSms extends BaseIdentifiableObject
         return user;
     }
 
+    @Override
     public void setUser( User user )
     {
         this.user = user;
