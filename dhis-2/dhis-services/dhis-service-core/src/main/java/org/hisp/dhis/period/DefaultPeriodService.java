@@ -28,29 +28,18 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 /**
  * @author Kristian Nordal
@@ -320,26 +309,9 @@ public class DefaultPeriodService
             return reloadedPeriod;
         }
 
-        StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
-        try
-        {
-            period.setPeriodType( reloadPeriodType( period.getPeriodType() ) );
+        period.setPeriodType( reloadPeriodType( period.getPeriodType() ) );
 
-            session.insert( period );
-
-            return period;
-        }
-        catch ( Exception exception )
-        {
-            log.error( DebugUtils.getStackTrace( exception ) );
-        }
-        finally
-        {
-            DbmsUtils.closeStatelessSession( session );
-        }
-
-        return null;
+        return periodStore.insertIsoPeriodInStatelessSession( period );
     }
 
     @Override
