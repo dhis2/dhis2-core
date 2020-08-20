@@ -118,14 +118,14 @@ public class DefaultOutboundSmsService
     }
 
     @Override
-    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max )
+    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination )
     {
-        return outboundSmsStore.get( status, min, max );
+        return outboundSmsStore.get( status, min, max, hasPagination );
     }
 
     @Override
-    public List<OutboundSms> getAll( Integer min, Integer max )
+    public List<OutboundSms> getAll( Integer min, Integer max, boolean hasPagination )
     {
-        return outboundSmsStore.getAllOutboundSms( min, max );
+        return outboundSmsStore.getAllOutboundSms( min, max, hasPagination );
     }
 }

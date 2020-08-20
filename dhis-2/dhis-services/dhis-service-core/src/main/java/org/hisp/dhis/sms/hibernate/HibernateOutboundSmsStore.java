@@ -91,7 +91,7 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max )
+    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -103,7 +103,7 @@ public class HibernateOutboundSmsStore
             parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
-        if ( min != null && max != null )
+        if ( hasPagination )
         {
             parameters.setFirstResult( min ).setMaxResults( max );
         }
@@ -112,14 +112,14 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max )
+    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max, boolean hasPagination )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
             .addOrder( root -> builder.desc( root.get( "date" ) ) );
 
-        if ( min != null && max != null )
+        if ( hasPagination )
         {
             parameters.setFirstResult( min ).setMaxResults( max );
         }

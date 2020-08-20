@@ -80,6 +80,21 @@ public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<
     }
 
     @Override
+    public List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<IncomingSms> parameters = new JpaQueryParameters<IncomingSms>();
+
+        if ( hasPagination )
+        {
+            parameters.setFirstResult( min ).setMaxResults( max );
+        }
+
+        return getList( builder, parameters );
+    }
+
+    @Override
     public List<IncomingSms> getSmsByOriginator( String originator )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -98,19 +113,24 @@ public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<
     }
 
     @Override
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<IncomingSms> parameters = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+        JpaQueryParameters<IncomingSms> parameters = newJpaParameters();
+
 
         if ( status != null )
         {
             parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
-        if ( min != null && max != null )
+        if ( keyword != null )
+        {
+            parameters.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+        }
+
+        if ( hasPagination )
         {
             parameters.setFirstResult( min ).setMaxResults( max );
         }

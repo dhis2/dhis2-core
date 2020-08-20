@@ -46,6 +46,8 @@ public interface IncomingSmsService
 
     List<IncomingSms> getAll();
 
+    List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
+
     void delete( long id );
 
     void delete( String uid );
@@ -56,7 +58,7 @@ public interface IncomingSmsService
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
 
     List<IncomingSms> getAllUnparsedMessages();
 }

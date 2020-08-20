@@ -73,6 +73,13 @@ public class DefaultIncomingSmsService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination )
+    {
+        return incomingSmsStore.getAll( min, max, hasPagination );
+    }
+
+    @Override
     @Transactional
     public long save( IncomingSms sms )
     {
@@ -164,9 +171,9 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional( readOnly = true )
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination )
     {
-        return incomingSmsStore.getSmsByStatus( status, keyword, min, max );
+        return incomingSmsStore.getSmsByStatus( status, keyword, min, max, hasPagination );
     }
 
     @Override

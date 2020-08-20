@@ -38,7 +38,7 @@ public interface OutboundSmsService
 
     List<OutboundSms> get( OutboundSmsStatus status );
 
-    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max );
+    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination );
 
     OutboundSms get( long id );
 
@@ -46,7 +46,7 @@ public interface OutboundSmsService
 
     List<OutboundSms> getAll();
 
-    List<OutboundSms> getAll( Integer min, Integer max );
+    List<OutboundSms> getAll( Integer min, Integer max, boolean hasPagination );
 
     void delete( long id );
 

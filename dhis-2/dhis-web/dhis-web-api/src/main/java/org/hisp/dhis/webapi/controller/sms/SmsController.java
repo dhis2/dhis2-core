@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller.sms;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -49,6 +51,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
+import org.hisp.dhis.webapi.utils.PaginationUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,6 +65,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -105,34 +110,40 @@ public class SmsController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/outbound/messages", method = RequestMethod.GET, produces = "application/json" )
-    public void getOutboundMessages( @RequestParam( required = false ) OutboundSmsStatus status, HttpServletResponse response ) throws IOException
+    public void getOutboundMessages( @RequestParam Map<String, String> rpParameters, @RequestParam( required = false ) OutboundSmsStatus status,
+        HttpServletResponse response ) throws IOException
     {
         response.setContentType( "application/json" );
 
+        Pagination pagination = getPagination( rpParameters );
+
         if ( status == null )
         {
-            renderService.toJson( response.getOutputStream(), outboundSmsService.getAll() );
+            renderService.toJson( response.getOutputStream(), outboundSmsService.getAll( pagination.getFirstResult(), pagination.getSize(), pagination.hasPagination() ) );
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), outboundSmsService.get( status ) );
+        renderService.toJson( response.getOutputStream(), outboundSmsService.get( status, pagination.getFirstResult(), pagination.getSize(), pagination.hasPagination() ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/inbound/messages", method = RequestMethod.GET, produces = "application/json" )
-    public void getInboundMessages( @RequestParam( required = false ) SmsMessageStatus status,
+    public void getInboundMessages( @RequestParam Map<String, String> rpParameters, @RequestParam( required = false ) SmsMessageStatus status,
         @RequestParam( required = false ) String originator,
         HttpServletResponse response ) throws IOException
     {
         response.setContentType( "application/json" );
 
+        Pagination pagination = getPagination( rpParameters );
+
         if ( status == null )
         {
-            renderService.toJson( response.getOutputStream(), incomingSMSService.getAll() );
+
+            renderService.toJson( response.getOutputStream(), incomingSMSService.getAll( pagination.getFirstResult(), pagination.getSize(), pagination.hasPagination() ) );
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), incomingSMSService.getSmsByStatus( status, originator ) );
+        renderService.toJson( response.getOutputStream(), incomingSMSService.getSmsByStatus( status, originator, pagination.getFirstResult(), pagination.getSize(), pagination.hasPagination() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -287,5 +298,12 @@ public class SmsController
         }
 
         return users.iterator().next();
+    }
+
+    private Pagination getPagination( Map<String, String> rpParameters )
+    {
+        WebOptions webOptions = new WebOptions( rpParameters );
+
+        return PaginationUtils.getPaginationData( webOptions );
     }
 }

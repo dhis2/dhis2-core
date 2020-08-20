@@ -118,28 +118,28 @@ public class ShowSentSMSAction
             total = outboundSmsService.get( OutboundSmsStatus.OUTBOUND ).size();
             paging = createPaging( total );
             listOutboundSMS = outboundSmsService.get( OutboundSmsStatus.OUTBOUND, paging.getStartPos(),
-                paging.getPageSize() );
+                paging.getPageSize(), true );
         }
         if ( filterStatusType != null && filterStatusType == 1 )
         {
             total = outboundSmsService.get( OutboundSmsStatus.SENT ).size();
             paging = createPaging( total );
             listOutboundSMS = outboundSmsService.get( OutboundSmsStatus.SENT, paging.getStartPos(),
-                paging.getPageSize() );
+                paging.getPageSize(), true );
         }
         if ( filterStatusType != null && filterStatusType == 2 )
         {
             total = outboundSmsService.get( OutboundSmsStatus.ERROR ).size();
             paging = createPaging( total );
             listOutboundSMS = outboundSmsService.get( OutboundSmsStatus.ERROR, paging.getStartPos(),
-                paging.getPageSize() );
+                paging.getPageSize(), true );
         }
         if ( filterStatusType != null && filterStatusType == 3 || filterStatusType == null )
         {
             filterStatusType = 3;
             total = outboundSmsService.getAll().size();
             paging = createPaging( total );
-            listOutboundSMS = outboundSmsService.getAll( paging.getStartPos(), paging.getPageSize() );
+            listOutboundSMS = outboundSmsService.getAll( paging.getStartPos(), paging.getPageSize(), true );
         }
 
         // Get the name of recipients

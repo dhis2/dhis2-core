@@ -41,7 +41,9 @@ public interface IncomingSmsStore extends IdentifiableObjectStore<IncomingSms>
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
+    List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
+
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
 
     List<IncomingSms> getSmsByOriginator( String originator );
 
