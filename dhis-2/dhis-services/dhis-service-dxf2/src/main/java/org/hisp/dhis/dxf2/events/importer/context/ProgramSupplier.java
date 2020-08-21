@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -143,13 +144,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
-        .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic(5) )
+        .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
     // Caches the User Groups and the Users belonging to each group
     private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
-        .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic(5) )
+        .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 5, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
@@ -392,11 +393,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     {
         final String sql = "select psde.programstageid, de.dataelementid, de.uid as de_uid, de.code as de_code "
             + "from programstagedataelement psde "
-            + "         join dataelement de on psde.dataelementid = de.dataelementid " + "where psde.compulsory = true "
+            + "join dataelement de on psde.dataelementid = de.dataelementid where psde.compulsory = true "
             + "order by psde.programstageid";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-
+            
             Map<Long, Set<DataElement>> results = new HashMap<>();
             long programStageId = 0;
             while ( rs.next() )
@@ -404,21 +405,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 if ( programStageId != rs.getLong( PROGRAM_STAGE_ID ) )
                 {
                     Set<DataElement> dataElements = new HashSet<>();
-                    DataElement dataElement = new DataElement();
-                    dataElement.setId( rs.getLong( "dataelementid" ) );
-                    dataElement.setUid( rs.getString( "de_uid" ) );
-                    dataElement.setCode( rs.getString( "de_code" ) );
+
+                    DataElement dataElement = toDataElement( rs );
                     dataElements.add( dataElement );
+
                     results.put( rs.getLong( PROGRAM_STAGE_ID ), dataElements );
+                    programStageId = rs.getLong( PROGRAM_STAGE_ID );
                 }
                 else
                 {
-                    DataElement dataElement = new DataElement();
-                    dataElement.setId( rs.getLong( "dataelementid" ) );
-                    dataElement.setUid( rs.getString( "de_uid" ) );
-                    dataElement.setCode( rs.getString( "de_code" ) );
-
-                    results.get( rs.getLong( PROGRAM_STAGE_ID ) ).add( dataElement );
+                    results.get( rs.getLong( PROGRAM_STAGE_ID ) ).add( toDataElement( (rs) ) );
                 }
             }
             return results;
@@ -575,8 +571,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return ou;
     }
 
-    private UserAccess toUserAccess( ResultSet rs )
-        throws SQLException
+    private UserAccess toUserAccess( ResultSet rs ) throws SQLException
     {
         UserAccess userAccess = new UserAccess();
         userAccess.setId( rs.getInt( "useraccessid" ) );
@@ -586,6 +581,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         user.setUid( rs.getString( "uid" ) );
         userAccess.setUser( user );
         return userAccess;
+    }
+    
+    private DataElement toDataElement( ResultSet rs )
+        throws SQLException
+    {
+        DataElement dataElement = new DataElement();
+        dataElement.setId( rs.getLong( "dataelementid" ) );
+        dataElement.setUid( rs.getString( "de_uid" ) );
+        dataElement.setCode( rs.getString( "de_code" ) );
+        return dataElement;
     }
 
     private UserGroupAccess toUserGroupAccess( ResultSet rs )

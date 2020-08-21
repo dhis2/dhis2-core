@@ -642,11 +642,22 @@ public abstract class AbstractEventService implements EventService
     @Transactional
     @Override
     public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions,
-                                      boolean bulkUpdate )
+        boolean bulkUpdate )
     {
-        final WorkContext workContext = workContextLoader.load( importOptions, Collections.singletonList( event ) );
+        ImportOptions localImportOptions = importOptions;
 
-        return eventManager.updateEvent( event, workContext );
+        // API allows null import options
+        if ( localImportOptions == null )
+        {
+            localImportOptions = ImportOptions.getDefaultImportOptions();
+        }
+        // TODO this doesn't make a lot of sense, but I didn't want to change the
+        // EventService interface
+        // and preserve the "singleValue" flag
+        localImportOptions.setSkipDataValueMandatoryValidationCheck( singleValue );
+
+        return eventManager.updateEvent( event,
+            workContextLoader.load( localImportOptions, Collections.singletonList( event ) ) );
     }
 
     @Transactional

@@ -102,6 +102,8 @@ public class ImportOptions
     private NotificationLevel notificationLevel;
 
     private boolean skipLastUpdated;
+    
+    private boolean skipDataValueMandatoryValidationCheck;
 
     /**
      * if true, caches for import are not used. Should only be used for testing
@@ -150,6 +152,7 @@ public class ImportOptions
         options.firstRowIsHeader = this.firstRowIsHeader;
         options.skipLastUpdated = this.skipLastUpdated;
         options.skipCache = this.skipCache;
+        options.skipDataValueMandatoryValidationCheck = this.skipDataValueMandatoryValidationCheck;
 
         return options;
     }
@@ -401,6 +404,13 @@ public class ImportOptions
         return skipCache;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipDataValueMandatoryValidationCheck()
+    {
+        return skipDataValueMandatoryValidationCheck;
+    }
+    
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -619,6 +629,11 @@ public class ImportOptions
         this.skipCache = skipCache;
     }
 
+    public void setSkipDataValueMandatoryValidationCheck( boolean skipDataValueMandatoryValidationCheck )
+    {
+        this.skipDataValueMandatoryValidationCheck = skipDataValueMandatoryValidationCheck;
+    }
+
     @Override
     public String toString()
     {
@@ -645,6 +660,7 @@ public class ImportOptions
             .add( "firstRowIsHeader", firstRowIsHeader )
             .add( "skipLastUpdated", skipLastUpdated )
             .add( "skipCache", skipCache )
+            .add( "skipDataValueMandatoryValidationCheck", skipDataValueMandatoryValidationCheck )
             .toString();
     }
 }

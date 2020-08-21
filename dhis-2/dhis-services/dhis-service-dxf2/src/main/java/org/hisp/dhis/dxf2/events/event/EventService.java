@@ -110,8 +110,27 @@ public interface EventService
     // UPDATE
     // -------------------------------------------------------------------------
 
+    /**
+     * Update an existing Program Stage Instance with the data from the Event object
+     *
+     * @param event an Event
+     * @param singleValue if true, skip the Data Value mandatory check validation
+     *        and allow the client to send only Data Values that it wishes to update
+     * @param importOptions the Import Options
+     * @param bulkUpdate TODO this can be removed
+     * @return an {@see ImportSummary} containing the outcome of the operation
+     */
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
 
+    /**
+     *
+     * @param events a List of Events to update
+     * @param importOptions the Import Options
+     * @param singleValue if true, skip the Data Value mandatory check validation
+     *        and allow the client to send only Data Values that it wishes to update
+     * @param clearSession TODO this can be removed
+     * @return an {@see ImportSummary} containing the outcome of the operation
+     */
     ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
         boolean clearSession );
 

@@ -62,7 +62,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -106,12 +105,10 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
     private ProgramStage programStageA;
 
-    private int testYear;
-
     @Override
     protected void setUpTest()
     {
-        testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
+        final int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
         userService = _userService;
 
         createUserAndInjectSecurityContext( false, "F_TRACKED_ENTITY_DATAVALUE_ADD",
@@ -429,7 +426,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
      */
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void compulsoryDataElementWithEmptyValueAndValidationOnUpdateShouldFailTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -489,7 +485,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
@@ -516,7 +511,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void emptyNonCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -540,7 +534,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnUpdateShouldFailTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -605,7 +598,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -705,7 +697,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnCompleteShouldFailTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
@@ -768,7 +759,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // FIXME luciano - fix when Single value update is sorted
     public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
