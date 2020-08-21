@@ -354,7 +354,7 @@ public class JdbcAnalyticsManager
         {
             sql += getPreMeasureCriteriaSubquerySql( params );
         }
-        else if ( params.getAggregationType().isLastAnalyticsPeriodAggregationType() )
+        else if ( params.getAggregationType().isLastInPeriodAggregationType() )
         {
             sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
         }
@@ -512,7 +512,7 @@ public class JdbcAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
 
-        if ( params.getAggregationType().isFirstOrLastOrLastAnalyticsPeriodAggregationType() )
+        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
