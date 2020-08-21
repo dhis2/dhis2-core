@@ -28,13 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -48,6 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.jfree.chart.ChartUtilities;
@@ -69,6 +70,11 @@ import java.util.Set;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 
 /**
+ * This controller is being deprecated. Please use the Visualization controller
+ * instead. Only compatibility changes should be done at this stage.
+ * <p>
+ * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
@@ -237,12 +243,18 @@ public class ChartController
     {
         chart.populateAnalyticalProperties();
 
-        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+        User currentUser = currentUserService.getCurrentUser();
 
-        for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+        if ( currentUser != null )
         {
-            chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+            for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+            {
+                chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            }
         }
+
 
         if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
         {

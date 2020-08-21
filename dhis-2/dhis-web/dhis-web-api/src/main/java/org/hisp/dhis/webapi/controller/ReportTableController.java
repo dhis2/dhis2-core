@@ -41,6 +41,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,11 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
+ * This controller is being deprecated. Please use the Visualization controller
+ * instead. Only compatibility changes should be done at this stage.
+ * <p>
+ * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
@@ -224,11 +230,16 @@ public class ReportTableController
     {
         reportTable.populateAnalyticalProperties();
 
-        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+        User currentUser = currentUserService.getCurrentUser();
 
-        for ( OrganisationUnit organisationUnit : reportTable.getOrganisationUnits() )
+        if ( currentUser != null )
         {
-            reportTable.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+            for ( OrganisationUnit organisationUnit : reportTable.getOrganisationUnits() )
+            {
+                reportTable.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            }
         }
 
         I18nFormat format = i18nManager.getI18nFormat();
