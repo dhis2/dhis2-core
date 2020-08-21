@@ -82,9 +82,10 @@ public class NoRegistrationSingleEventServiceTest
     private UserService _userService;
 
     private OrganisationUnit organisationUnitA;
+
     private DataElement dataElementA;
+
     private Program programA;
-    private ProgramStage programStageA;
 
     @Override
     protected void setUpTest()
@@ -99,7 +100,7 @@ public class NoRegistrationSingleEventServiceTest
         dataElementA.setValueType( ValueType.INTEGER );
         identifiableObjectManager.save( dataElementA );
 
-        programStageA = createProgramStage( 'A', 0 );
+        final ProgramStage programStageA = createProgramStage( 'A', 0 );
         identifiableObjectManager.save( programStageA );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -132,7 +133,6 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
-    @Ignore
     public void testGetPersonsByProgramStageInstance()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
@@ -141,7 +141,8 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( importSummary.getReference() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( importSummary.getReference() );
 
         assertNotNull( programStageInstance );
         assertNotNull( eventService.getEvent( programStageInstance ) );
@@ -160,7 +161,6 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
-    @Ignore
     public void testSaveEvent()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
@@ -169,13 +169,13 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( 0, importSummary.getConflicts().size() );
         assertNotNull( importSummary.getReference() );
 
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        event = eventService
+            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertNotNull( event );
         assertEquals( 1, event.getDataValues().size() );
     }
 
     @Test
-    @Ignore
     public void testDeleteEvent()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
