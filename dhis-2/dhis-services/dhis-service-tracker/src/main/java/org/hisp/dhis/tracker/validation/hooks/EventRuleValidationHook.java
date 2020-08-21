@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 
 import java.util.List;
 
@@ -72,10 +73,20 @@ public class EventRuleValidationHook
 
         validators
             .stream()
+            .filter( v -> !v.isWarning() )
             .flatMap( v -> {
                 List<String> errors = v.validateEvents( context.getBundle() ).get( event.getEvent() );
                 return errors != null ? errors.stream() : Lists.newArrayList().stream();
             } )
             .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+
+        validators
+            .stream()
+            .filter( v -> v.isWarning() )
+            .flatMap( v -> {
+                List<String> warnings = v.validateEvents( context.getBundle() ).get( event.getEvent() );
+                return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
+            } )
+            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
     }
 }

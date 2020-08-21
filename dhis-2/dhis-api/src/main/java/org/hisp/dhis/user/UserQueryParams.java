@@ -29,55 +29,63 @@ package org.hisp.dhis.user;
  */
 
 import com.google.common.base.MoreObjects;
+
+import lombok.Getter;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
+@Getter
 public class UserQueryParams
 {
     private String query;
-    
+
     private String phoneNumber;
-    
+
     private User user;
-    
+
     private boolean canManage;
-    
+
     private boolean authSubset;
-    
+
     private boolean disjointRoles;
-    
+
     private Date lastLogin;
-    
+
     private Date inactiveSince;
 
     private Date passwordLastUpdated;
-    
+
     private Integer inactiveMonths;
-    
+
     private boolean selfRegistered;
 
     private boolean isNot2FA;
-    
+
     private UserInvitationStatus invitationStatus;
-    
+
     private List<OrganisationUnit> organisationUnits = new ArrayList<>();
-    
+
+    private Set<UserGroup> userGroups = new HashSet<>();
+
     private Integer first;
-    
+
     private Integer max;
-    
+
     private boolean userOrgUnits;
 
     private boolean includeOrgUnitChildren;
-    
+
     private boolean prefetchUserGroups;
-    
+
     private Boolean disabled;
 
     // -------------------------------------------------------------------------
@@ -130,30 +138,30 @@ public class UserQueryParams
         this.organisationUnits.add( unit );
         return this;
     }
-    
+
+    public boolean hasOrganisationUnits()
+    {
+        return !organisationUnits.isEmpty();
+    }
+
+    public boolean hasUserGroups()
+    {
+        return !userGroups.isEmpty();
+    }
+
     public boolean hasUser()
     {
         return user != null;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    public String getQuery()
-    {
-        return query;
-    }
 
     public UserQueryParams setQuery( String query )
     {
         this.query = query;
         return this;
-    }
-
-    public String getPhoneNumber()
-    {
-        return phoneNumber;
     }
 
     public UserQueryParams setPhoneNumber( String phoneNumber )
@@ -162,20 +170,10 @@ public class UserQueryParams
         return this;
     }
 
-    public User getUser()
-    {
-        return user;
-    }
-
     public UserQueryParams setUser( User user )
     {
         this.user = user;
         return this;
-    }
-
-    public boolean isCanManage()
-    {
-        return canManage;
     }
 
     public UserQueryParams setCanManage( boolean canManage )
@@ -184,20 +182,10 @@ public class UserQueryParams
         return this;
     }
 
-    public boolean isAuthSubset()
-    {
-        return authSubset;
-    }
-
     public UserQueryParams setAuthSubset( boolean authSubset )
     {
         this.authSubset = authSubset;
         return this;
-    }
-
-    public boolean isDisjointRoles()
-    {
-        return disjointRoles;
     }
 
     public UserQueryParams setDisjointRoles( boolean disjointRoles )
@@ -206,20 +194,10 @@ public class UserQueryParams
         return this;
     }
 
-    public Date getLastLogin()
-    {
-        return lastLogin;
-    }
-
     public UserQueryParams setLastLogin( Date lastLogin )
     {
         this.lastLogin = lastLogin;
         return this;
-    }
-
-    public Date getInactiveSince()
-    {
-        return inactiveSince;
     }
 
     public UserQueryParams setInactiveSince( Date inactiveSince )
@@ -228,20 +206,10 @@ public class UserQueryParams
         return this;
     }
 
-    public Integer getInactiveMonths()
-    {
-        return inactiveMonths;
-    }
-
     public UserQueryParams setInactiveMonths( Integer inactiveMonths )
     {
         this.inactiveMonths = inactiveMonths;
         return this;
-    }
-
-    public boolean isSelfRegistered()
-    {
-        return selfRegistered;
     }
 
     public UserQueryParams setSelfRegistered( boolean selfRegistered )
@@ -250,20 +218,10 @@ public class UserQueryParams
         return this;
     }
 
-    public boolean isNot2FA()
-    {
-        return isNot2FA;
-    }
-
     public UserQueryParams setNot2FA( boolean isNot2FA )
     {
         this.isNot2FA = isNot2FA;
         return this;
-    }
-    
-    public UserInvitationStatus getInvitationStatus()
-    {
-        return invitationStatus;
     }
 
     public UserQueryParams setInvitationStatus( UserInvitationStatus invitationStatus )
@@ -272,20 +230,16 @@ public class UserQueryParams
         return this;
     }
 
-    public List<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
     public UserQueryParams setOrganisationUnits( List<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
         return this;
     }
 
-    public Integer getFirst()
+    public UserQueryParams setUserGroups( Set<UserGroup> userGroups )
     {
-        return first;
+        this.userGroups = userGroups;
+        return this;
     }
 
     public UserQueryParams setFirst( Integer first )
@@ -294,20 +248,10 @@ public class UserQueryParams
         return this;
     }
 
-    public Integer getMax()
-    {
-        return max;
-    }
-
     public UserQueryParams setMax( Integer max )
     {
         this.max = max;
         return this;
-    }
-
-    public boolean isUserOrgUnits()
-    {
-        return userOrgUnits;
     }
 
     public UserQueryParams setUserOrgUnits( boolean userOrgUnits )
@@ -316,20 +260,10 @@ public class UserQueryParams
         return this;
     }
 
-    public boolean isIncludeOrgUnitChildren()
-    {
-        return includeOrgUnitChildren;
-    }
-
     public UserQueryParams setIncludeOrgUnitChildren( boolean includeOrgUnitChildren )
     {
         this.includeOrgUnitChildren = includeOrgUnitChildren;
         return this;
-    }
-
-    public boolean isPrefetchUserGroups()
-    {
-        return prefetchUserGroups;
     }
 
     public UserQueryParams setPrefetchUserGroups( boolean prefetchUserGroups )
@@ -338,20 +272,10 @@ public class UserQueryParams
         return this;
     }
 
-    public Date getPasswordLastUpdated()
-    {
-        return passwordLastUpdated;
-    }
-
     public UserQueryParams setPasswordLastUpdated( Date passwordLastUpdated )
     {
         this.passwordLastUpdated = passwordLastUpdated;
         return this;
-    }
-
-    public Boolean getDisabled()
-    {
-        return disabled;
     }
 
     public UserQueryParams setDisabled( Boolean disabled )

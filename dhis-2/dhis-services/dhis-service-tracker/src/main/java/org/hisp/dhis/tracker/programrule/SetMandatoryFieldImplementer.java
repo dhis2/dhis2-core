@@ -85,6 +85,12 @@ public class SetMandatoryFieldImplementer
                     .map( tei -> checkMandatoryDataElement( tei, e.getValue() ) ).orElse( Lists.newArrayList() ) ) );
     }
 
+    @Override
+    public boolean isWarning()
+    {
+        return false;
+    }
+
     private List<String> checkMandatoryTeiAttribute( TrackedEntity tei, List<RuleEffect> effects )
     {
         return effects.stream()

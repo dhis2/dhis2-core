@@ -52,6 +52,10 @@ public class TrackerValidationReport
 
     @JsonProperty
     @Builder.Default
+    private List<TrackerWarningReport> warningReports = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
     //-----------------------------------------------------------------------------------
     // Utility Methods
@@ -60,7 +64,14 @@ public class TrackerValidationReport
     public void add( TrackerValidationReport validationReport )
     {
         add( validationReport.getErrorReports() );
+        this.warningReports.addAll( validationReport.getWarningReports() );
         addPerfReports( validationReport.getPerformanceReport() );
+    }
+
+    public void add( ValidationErrorReporter validationReporter )
+    {
+        this.errorReports.addAll( validationReporter.getReportList() );
+        this.warningReports.addAll( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )
