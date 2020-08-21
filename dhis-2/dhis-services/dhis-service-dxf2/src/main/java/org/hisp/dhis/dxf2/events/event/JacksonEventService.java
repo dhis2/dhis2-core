@@ -199,24 +199,10 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException
-    {
-        return jacksonEventServiceFacade.addEventsXml( inputStream, jobId, importOptions );
-    }
-
-    @Override
     public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions )
         throws IOException
     {
         return jacksonEventServiceFacade.addEventsJson( inputStream, null, importOptions );
-    }
-
-    @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException
-    {
-        return jacksonEventServiceFacade.addEventsJson( inputStream, jobId, importOptions );
     }
 
     // -------------------------------------------------------------------------

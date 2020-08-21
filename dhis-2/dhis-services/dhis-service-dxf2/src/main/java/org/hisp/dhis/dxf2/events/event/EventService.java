@@ -98,13 +98,7 @@ public interface EventService
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException;
-
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
-
-    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE
