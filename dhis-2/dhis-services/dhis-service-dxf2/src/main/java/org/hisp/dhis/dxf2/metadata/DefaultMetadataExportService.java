@@ -243,6 +243,12 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             throw new MetadataExportException( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." );
         }
+
+        if ( params.getClasses().contains( User.class )
+            && !(user == null || user.isSuper() || user.isAuthorized( "F_USER_VIEW" ) || user.isAuthorized( "F_METADATA_EXPORT" )) )
+        {
+            throw new MetadataExportException( "Exporting user metadata requires the 'F_USER_VIEW' authority." );
+        }
     }
 
     @Override
