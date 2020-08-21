@@ -28,29 +28,25 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 /**
  * @author Kristian Nordal
  * @version $Id: DefaultPeriodService.java 5983 2008-10-17 17:42:44Z larshelg $
  */
 @Service( "org.hisp.dhis.period.PeriodService" )
+@Slf4j
 public class DefaultPeriodService
     implements PeriodService
 {
@@ -60,11 +56,15 @@ public class DefaultPeriodService
 
     private PeriodStore periodStore;
 
-    public DefaultPeriodService( PeriodStore periodStore )
+    private SessionFactory sessionFactory;
+
+    public DefaultPeriodService( PeriodStore periodStore, SessionFactory sessionFactory )
     {
         checkNotNull( periodStore );
+        checkNotNull( sessionFactory );
 
         this.periodStore = periodStore;
+        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -284,7 +284,36 @@ public class DefaultPeriodService
     {
         return periodStore.reloadForceAddPeriod( period );
     }
-    
+
+    /**
+     * Fix issue DHIS2-7539
+     * If period doesn't exist in cache and database.
+     * Need to add and sync with database right away in a separate session/transaction.
+     * Otherwise will get foreign key constraint error in subsequence calls of batch.flush()
+     **/
+    @Override
+    @Transactional(readOnly = true)
+    public Period reloadIsoPeriodInStatelessSession( String isoPeriod )
+    {
+        Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
+
+        if ( period == null )
+        {
+            return null;
+        }
+
+        Period reloadedPeriod = periodStore.reloadPeriod( period );
+
+        if ( reloadedPeriod != null )
+        {
+            return reloadedPeriod;
+        }
+
+        period.setPeriodType( reloadPeriodType( period.getPeriodType() ) );
+
+        return periodStore.insertIsoPeriodInStatelessSession( period );
+    }
+
     @Override
     @Transactional
     public Period reloadIsoPeriod( String isoPeriod )

@@ -174,7 +174,7 @@ public class DataValueController
 
         dataValueValidation.validateInvalidFuturePeriod( period, dataElement );
 
-        dataValueValidation.validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, period );
+        dataValueValidation.validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
 
         value = dataValueValidation.validateAndNormalizeDataValue ( value, dataElement );
 

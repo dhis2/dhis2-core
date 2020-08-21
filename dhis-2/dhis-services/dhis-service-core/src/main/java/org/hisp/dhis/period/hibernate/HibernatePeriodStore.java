@@ -28,20 +28,23 @@ package org.hisp.dhis.period.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
-
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -52,6 +55,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +67,7 @@ import java.util.concurrent.TimeUnit;
  * @version $Id: HibernatePeriodStore.java 5983 2008-10-17 17:42:44Z larshelg $
  */
 @Repository( "org.hisp.dhis.period.PeriodStore" )
+@Slf4j
 public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
@@ -70,7 +75,7 @@ public class HibernatePeriodStore
     private Environment env;
 
     private static Cache<Long> PERIOD_ID_CACHE;
-    
+
     private CacheProvider cacheProvider;
 
     public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -305,6 +310,32 @@ public class HibernatePeriodStore
         }
 
         return reloadedPeriodType;
+    }
+
+    @Override
+    public Period insertIsoPeriodInStatelessSession( Period period )
+    {
+        StatelessSession session = sessionFactory.openStatelessSession();
+        session.beginTransaction();
+        try
+        {
+            Serializable id = session.insert( period );
+            Period storedPeriod = (Period) session.get( Period.class, id );
+
+            PERIOD_ID_CACHE.put( period.getCacheKey(), storedPeriod.getId() );
+
+            return storedPeriod;
+        }
+        catch ( Exception exception )
+        {
+            log.error( DebugUtils.getStackTrace( exception ) );
+        }
+        finally
+        {
+            DbmsUtils.closeStatelessSession( session );
+        }
+
+        return null;
     }
 
     // -------------------------------------------------------------------------

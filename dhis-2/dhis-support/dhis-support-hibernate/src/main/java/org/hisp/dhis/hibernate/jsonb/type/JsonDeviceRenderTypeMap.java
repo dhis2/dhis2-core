@@ -28,38 +28,32 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JavaType;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.RenderDevice;
+import org.hisp.dhis.render.type.RenderingObject;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 
 public class JsonDeviceRenderTypeMap extends JsonBinaryType
 {
-    private Class<? extends JsonDeserializer> deserializer;
+    private Class<? extends RenderingObject> renderType;
+
+    @Override
+    protected JavaType getResultingJavaType( Class<?> returnedClass )
+    {
+        return MAPPER.getTypeFactory().constructType( DeviceRenderTypeMap.class );
+    }
 
     @Override
     protected Object convertJsonToObject( String content )
     {
         try
         {
-            JsonDeserializer<DeviceRenderTypeMap> jsonDeserializer = deserializer.newInstance();
-            JsonParser jsonParser = reader.getFactory().createParser( content );
-            return jsonDeserializer.deserialize( jsonParser, MAPPER.getDeserializationContext() );
-        }
-        catch ( IOException | IllegalAccessException | InstantiationException e )
-        {
-            throw new RuntimeException( e );
-        }
-    }
-    @Override
-    protected DeviceRenderTypeMap readValue( JsonParser jsonParser )
-    {
-        try
-        {
-            JsonDeserializer<DeviceRenderTypeMap> jsonDeserializer = deserializer.newInstance();
-            return jsonDeserializer.deserialize( jsonParser, MAPPER.getDeserializationContext() );
+            LinkedHashMap<RenderDevice, LinkedHashMap<String,String>> map = reader.readValue( content );
+            return convertMapToObject( map );
         }
         catch ( IOException | IllegalAccessException | InstantiationException e )
         {
@@ -72,22 +66,33 @@ public class JsonDeviceRenderTypeMap extends JsonBinaryType
     {
         super.setParameterValues( parameters );
 
-        final String clazz = (String) parameters.get( "deserializer" );
+        final String renderType = (String) parameters.get( "renderType" );
 
-        if ( clazz == null )
+        if ( renderType == null )
         {
             throw new IllegalArgumentException(
-                String.format( "Required parameter '%s' is not configured", "deserializer" ) );
+                String.format( "Required parameter '%s' is not configured", "renderType" ) );
         }
 
         try
         {
-            deserializer = (Class<? extends JsonDeserializer>) classForName( clazz );
+            this.renderType = (Class<? extends RenderingObject>) classForName( renderType );
         }
         catch ( ClassNotFoundException e )
         {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
+            throw new IllegalArgumentException( "Class: " + renderType + " is not a known class type." );
         }
     }
 
+    private <T extends RenderingObject> DeviceRenderTypeMap<T> convertMapToObject( LinkedHashMap<RenderDevice,LinkedHashMap<String,String>> map ) throws IllegalAccessException, InstantiationException {
+        DeviceRenderTypeMap deviceRenderTypeMap = new DeviceRenderTypeMap<>();
+        for( RenderDevice renderDevice : map.keySet() )
+        {
+            LinkedHashMap<String,String> renderObjectMap = map.get( renderDevice );
+            RenderingObject renderingObject = renderType.newInstance();
+            renderingObject.setType( Enum.valueOf( renderingObject.getRenderTypeClass(), renderObjectMap.get( RenderingObject._TYPE ) ) );
+            deviceRenderTypeMap.put(  renderDevice , renderingObject );
+        }
+        return deviceRenderTypeMap;
+    }
 }

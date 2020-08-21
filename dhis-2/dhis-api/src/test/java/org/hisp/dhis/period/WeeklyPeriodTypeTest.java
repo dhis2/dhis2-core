@@ -347,4 +347,14 @@ public class WeeklyPeriodTypeTest
 
         return true;
     }
+
+    @Test
+    public void testGetRewindedDate()
+    {
+        assertEquals( new DateTime( 2020, 1, 3, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 1, 24, 0, 0 ).toDate(), 3 ) );
+
+        assertEquals( new DateTime( 2020, 1, 15, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), -2 ) );
+    }
 }
