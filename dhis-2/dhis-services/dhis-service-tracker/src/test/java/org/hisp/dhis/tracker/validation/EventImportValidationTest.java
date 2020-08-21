@@ -606,6 +606,24 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testInvalidDataElementForDataValue()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/event_with_wrong_de_for_data_value.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1087 ) ) ) );
+    }
+
+    @Test
     @Ignore
     public void testTeiMultipleActiveEnrollments()
         throws IOException
