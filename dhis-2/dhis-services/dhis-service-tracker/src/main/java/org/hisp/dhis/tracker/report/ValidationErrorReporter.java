@@ -49,6 +49,8 @@ public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
 
+    private final List<TrackerWarningReport> warningsReportList;
+
     private final boolean isFailFast;
 
     private final TrackerImportValidationContext validationContext;
@@ -63,6 +65,7 @@ public class ValidationErrorReporter
     {
         this.validationContext = context;
         this.reportList = new ArrayList<>();
+        this.warningsReportList = new ArrayList<>();
         this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
         this.mainKlass = mainKlass;
     }
@@ -72,6 +75,7 @@ public class ValidationErrorReporter
     {
         this.validationContext = context;
         this.reportList = new ArrayList<>();
+        this.warningsReportList = new ArrayList<>();
         this.isFailFast = isFailFast;
         this.mainKlass = mainKlass;
         this.listIndex.set( listIndex );
@@ -85,6 +89,11 @@ public class ValidationErrorReporter
     public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
     {
         return TrackerErrorReport.builder().errorCode( errorCode );
+    }
+
+    public static TrackerWarningReport.TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
+    {
+        return TrackerWarningReport.builder().warningCode( errorCode );
     }
 
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
@@ -103,6 +112,19 @@ public class ValidationErrorReporter
         {
             throw new ValidationFailFastException( getReportList() );
         }
+    }
+
+    public void addWarning( TrackerWarningReport.TrackerWarningReportBuilder builder )
+    {
+        builder.mainKlass( this.mainKlass );
+        builder.listIndex( this.listIndex.get() );
+
+        if ( this.mainId != null )
+        {
+            builder.mainId( this.mainId );
+        }
+
+        getWarningsReportList().add( builder.build( this.validationContext.getBundle() ) );
     }
 
     public ValidationErrorReporter fork()
@@ -145,5 +167,6 @@ public class ValidationErrorReporter
     public void merge( ValidationErrorReporter reporter )
     {
         this.reportList.addAll( reporter.getReportList() );
+        this.warningsReportList.addAll( reporter.getWarningsReportList() );
     }
 }

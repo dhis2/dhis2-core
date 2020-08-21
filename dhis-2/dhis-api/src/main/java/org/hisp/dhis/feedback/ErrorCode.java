@@ -135,6 +135,9 @@ public enum ErrorCode
     E6100( "Filename not present" ),
     E6101( "File type not allowed" ),
 
+    /* Users */
+    E6200( "Feedback message recipients user group not defined" ),
+
     /* Scheduling */
     E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),
