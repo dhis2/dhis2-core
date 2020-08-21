@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -74,7 +75,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 
@@ -111,7 +114,7 @@ public class DefaultTrackerBundleService
 
     private final TrackedEntityCommentService trackedEntityCommentService;
 
-    private final TrackerObjectDeletionService deletionService;
+    private TrackerObjectDeletionService deletionService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
@@ -128,6 +131,14 @@ public class DefaultTrackerBundleService
     {
         this.sideEffectHandlers = sideEffectHandlers;
     }
+
+    private final ImmutableMap<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>> DELETION_MAPPER =
+        new ImmutableMap.Builder<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>>()
+        .put( TrackerType.ENROLLMENT, ( b,t ) -> deletionService.deleteEnrollments( b, t ) )
+        .put( TrackerType.EVENT, ( b,t ) -> deletionService.deleteEvents( b, t ) )
+        .put( TrackerType.TRACKED_ENTITY, ( b,t ) -> deletionService.deleteTrackedEntityInstances( b, t ) )
+        .put( TrackerType.RELATIONSHIP, ( b,t ) -> deletionService.deleteRelationShips( b, t ) )
+        .build();
 
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
         TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService,
@@ -244,56 +255,14 @@ public class DefaultTrackerBundleService
             return bundleReport;
         }
 
-        TrackerTypeReport trackedEntityReport = deleteTrackedEntities( bundle );
-        TrackerTypeReport enrollmentReport = deleteEnrollments( bundle );
-        TrackerTypeReport eventReport = deleteEvents( bundle );
-        TrackerTypeReport relationshipReport = deleteRelationShips( bundle );
-
-        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, trackedEntityReport );
-        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, enrollmentReport );
-        bundleReport.getTypeReportMap().put( TrackerType.EVENT, eventReport );
-        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP, relationshipReport );
+        Stream.of( TrackerType.values() )
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
+            .apply( bundle, t ) ) );
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
 
         return bundleReport;
-    }
-
-    private TrackerTypeReport deleteTrackedEntities( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
-
-        deletionService.deleteTrackedEntityInstances( bundle, typeReport );
-
-        return typeReport;
-    }
-
-    private TrackerTypeReport deleteEnrollments( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
-
-        deletionService.deleteEnrollments( bundle, typeReport );
-
-        return typeReport;
-    }
-
-    private TrackerTypeReport deleteEvents( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
-
-        deletionService.deleteEvents( bundle, typeReport );
-
-        return typeReport;
-    }
-
-    private TrackerTypeReport deleteRelationShips( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
-
-        deletionService.deleteRelationShips( bundle, typeReport );
-
-        return typeReport;
     }
 
     private TrackerTypeReport handleTrackedEntities( Session session, TrackerBundle bundle )

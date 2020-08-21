@@ -97,8 +97,10 @@ public class DefaultTrackerObjectsDeletionService
     }
 
     @Override
-    public void deleteEnrollments( TrackerBundle bundle, TrackerTypeReport typeReport )
+    public TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType )
     {
+        TrackerTypeReport typeReport = new TrackerTypeReport( trackerType );
+
         List<Enrollment> enrollments = bundle.getEnrollments();
 
         for ( int idx = 0; idx < enrollments.size(); idx++ )
@@ -125,7 +127,7 @@ public class DefaultTrackerObjectsDeletionService
 
                         typeReport.addObjectReport( trackerObjectReport );
                         typeReport.getStats().incIgnored();
-                        return;
+                        return typeReport;
                     }
                 }
 
@@ -151,11 +153,15 @@ public class DefaultTrackerObjectsDeletionService
                 typeReport.getStats().incIgnored();
             }
         }
+
+        return typeReport;
     }
 
     @Override
-    public void deleteEvents( TrackerBundle bundle, TrackerTypeReport typeReport )
+    public TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType )
     {
+        TrackerTypeReport typeReport = new TrackerTypeReport( trackerType );
+
         List<Event> events = bundle.getEvents();
 
         for ( int idx = 0; idx < events.size(); idx++ )
@@ -187,7 +193,7 @@ public class DefaultTrackerObjectsDeletionService
 
                     typeReport.addObjectReport( trackerObjectReport );
                     typeReport.getStats().incIgnored();
-                    return;
+                    return typeReport;
                 }
 
                 programStageInstanceService.deleteProgramStageInstance( programStageInstance );
@@ -214,11 +220,15 @@ public class DefaultTrackerObjectsDeletionService
                 typeReport.getStats().incIgnored();
             }
         }
+
+        return typeReport;
     }
 
     @Override
-    public void deleteTrackedEntityInstances( TrackerBundle bundle, TrackerTypeReport typeReport )
+    public TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle, TrackerType trackerType )
     {
+        TrackerTypeReport typeReport = new TrackerTypeReport( trackerType );
+
         List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
 
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
@@ -246,7 +256,7 @@ public class DefaultTrackerObjectsDeletionService
 
                         typeReport.addObjectReport( trackerObjectReport );
                         typeReport.getStats().incIgnored();
-                        return;
+                        return typeReport;
                     }
                 }
 
@@ -255,8 +265,9 @@ public class DefaultTrackerObjectsDeletionService
                 List<Enrollment> enrollments = enrollmentTrackerConverterService.to( Lists.newArrayList( programInstances ) );
 
                 TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() ).build();
-                TrackerTypeReport enrollmentReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
-                deleteEnrollments( trackerBundle, enrollmentReport );
+
+                // Associated enrollments should be deleted provided user has authority for that.
+                TrackerTypeReport enrollmentReport = deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
 
                 if ( !enrollmentReport.isEmpty() )
                 {
@@ -282,11 +293,15 @@ public class DefaultTrackerObjectsDeletionService
                 typeReport.getStats().incIgnored();
             }
         }
+
+        return typeReport;
     }
 
     @Override
-    public void deleteRelationShips( TrackerBundle bundle, TrackerTypeReport typeReport )
+    public TrackerTypeReport deleteRelationShips( TrackerBundle bundle, TrackerType trackerType )
     {
+        TrackerTypeReport typeReport = new TrackerTypeReport( trackerType );
+
         List<Relationship> relationships = bundle.getRelationships();
 
         for ( int idx = 0; idx < relationships.size(); idx++ )
@@ -318,7 +333,7 @@ public class DefaultTrackerObjectsDeletionService
 
                     typeReport.addObjectReport( trackerObjectReport );
                     typeReport.getStats().incIgnored();
-                    return;
+                    return typeReport;
                 }
 
                 relationshipService.deleteRelationship( relationship );
@@ -339,6 +354,8 @@ public class DefaultTrackerObjectsDeletionService
                 typeReport.getStats().incIgnored();
             }
         }
+
+        return typeReport;
     }
 
     private List<TrackerErrorReport> isAllowedToDeleteEnrollment( int index, User user, ProgramInstance pi, TrackerBundle bundle )

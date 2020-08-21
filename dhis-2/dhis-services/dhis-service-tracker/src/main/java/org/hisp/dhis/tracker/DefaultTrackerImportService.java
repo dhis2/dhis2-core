@@ -102,16 +102,14 @@ public class DefaultTrackerImportService
             notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
         }
 
+        List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
+
         if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
         {
-            List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
-
             deleteBundle( params, importReport, trackerBundles );
         }
         else
         {
-            List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
-
             trackerBundles = preProcessBundle( trackerBundles, importReport );
 
             TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );

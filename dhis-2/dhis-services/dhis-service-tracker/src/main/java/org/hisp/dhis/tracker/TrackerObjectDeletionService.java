@@ -37,11 +37,11 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
  */
 public interface TrackerObjectDeletionService
 {
-    void deleteEnrollments( TrackerBundle bundle, TrackerTypeReport report );
+    TrackerTypeReport deleteEnrollments(TrackerBundle bundle, TrackerType trackerType );
 
-    void deleteEvents( TrackerBundle bundle, TrackerTypeReport report );
+    TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
 
-    void deleteTrackedEntityInstances( TrackerBundle bundle, TrackerTypeReport report );
+    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle, TrackerType trackerType );
 
-    void deleteRelationShips( TrackerBundle bundle, TrackerTypeReport report );
+    TrackerTypeReport deleteRelationShips( TrackerBundle bundle, TrackerType trackerType );
 }
