@@ -140,6 +140,14 @@ public class DefaultTrackerBundleService
         .put( TrackerType.RELATIONSHIP, ( b,t ) -> deletionService.deleteRelationShips( b, t ) )
         .build();
 
+    private final ImmutableMap<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>> COMMIT_MAPPER =
+        new ImmutableMap.Builder<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>>()
+        .put( TrackerType.ENROLLMENT, this::handleEnrollments )
+        .put( TrackerType.EVENT, this::handleEvents )
+        .put( TrackerType.TRACKED_ENTITY, this::handleTrackedEntities )
+        .put( TrackerType.RELATIONSHIP, this::handleRelationships )
+        .build();
+
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
         TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
@@ -226,15 +234,9 @@ public class DefaultTrackerBundleService
 
         bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
-        TrackerTypeReport trackedEntityReport = handleTrackedEntities( session, bundle );
-        TrackerTypeReport enrollmentReport = handleEnrollments( session, bundle );
-        TrackerTypeReport eventReport = handleEvents( session, bundle );
-        TrackerTypeReport relationshipReport = handleRelationships( session, bundle );
-
-        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, trackedEntityReport );
-        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, enrollmentReport );
-        bundleReport.getTypeReportMap().put( TrackerType.EVENT, eventReport );
-        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP, relationshipReport );
+        Stream.of( TrackerType.values() )
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
+            .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
