@@ -79,6 +79,7 @@ public class TrackerValidationReport
     {
         this.errorReports.addAll( validationReporter.getReportList() );
         this.warningReports.addAll( validationReporter.getWarningsReportList() );
+        this.notValidDtos.addAll( validationReporter.getNotValidDTOs() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )

@@ -174,8 +174,8 @@ public class ValidationErrorReporter
         this.warningsReportList.addAll( reporter.getWarningsReportList() );
     }
 
-    public void addDtosWithErrors( List<TrackerDto> validateTrackerDTOs )
+    public void addDtosWithErrors( List<TrackerDto> notValidDTOs )
     {
-
+        this.notValidDTOs.addAll( notValidDTOs );
     }
 }

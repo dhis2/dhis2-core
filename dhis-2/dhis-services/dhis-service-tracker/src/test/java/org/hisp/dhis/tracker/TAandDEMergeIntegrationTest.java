@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.params;
-
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -45,10 +45,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -58,7 +54,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-public class AtomicModeIntegrationTest
+public class TAandDEMergeIntegrationTest
     extends IntegrationTestBase
 {
     @Override
@@ -81,9 +77,6 @@ public class AtomicModeIntegrationTest
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
 
     private User userA;
 
@@ -113,45 +106,25 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
+    public void testImportSuccessWithWaringRaised() throws IOException {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/tei_with_attributes.json" ).getInputStream();
 
         TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
         params.setUser( userA );
-        params.setAtomicMode(AtomicMode.OBJECT);
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getTrackerValidationReport().getErrorReports().size() );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
-    }
-
-    @Test
-    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
-
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
-
-        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
-        params.setUser( userA );
-        params.setAtomicMode(AtomicMode.ALL);
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
-
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getTrackerValidationReport().getErrorReports().size() );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
     }
 
     private TrackerImportParams build(TrackerBundleParams params) {
+        // @formatter:off
         return TrackerImportParams.builder()
                 .user( params.getUser() )
                 .importMode( params.getImportMode() )
                 .importStrategy( params.getImportStrategy() )
-            .skipPatternValidation( params.isSkipTextPatternValidation() )
+                .skipPatternValidation( true )
                 .identifiers( params.getIdentifiers() )
                 .atomicMode( params.getAtomicMode() )
                 .flushMode( params.getFlushMode() )
@@ -162,5 +135,6 @@ public class AtomicModeIntegrationTest
                 .events( params.getEvents() )
                 .relationships( params.getRelationships() )
                 .build();
+        // @formatter:on
     }
 }

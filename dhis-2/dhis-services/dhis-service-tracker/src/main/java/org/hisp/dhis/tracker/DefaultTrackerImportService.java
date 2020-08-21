@@ -108,7 +108,6 @@ public class DefaultTrackerImportService
         trackerBundles = preProcessBundle( trackerBundles, importReport );
 
         TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
-        updateBundles( trackerBundles, validationReport.getNotValidDtos() );
 
         if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
         {
@@ -133,16 +132,6 @@ public class DefaultTrackerImportService
         }
 
         return importReport;
-    }
-
-    private void updateBundles( List<TrackerBundle> trackerBundles, List<TrackerDto> notValidDTOs )
-    {
-        trackerBundles.stream().forEach( tb -> {
-            tb.getTrackedEntities().removeAll( notValidDTOs );
-            tb.getEnrollments().removeAll( notValidDTOs );
-            tb.getEvents().removeAll( notValidDTOs );
-            tb.getRelationships().removeAll( notValidDTOs );
-        } );
     }
 
     protected List<TrackerBundle> preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
