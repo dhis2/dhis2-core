@@ -38,9 +38,7 @@ import org.hisp.dhis.user.User;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceAclCheck
-    extends
-    BaseEventAclCheck
+public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
     @Override
     public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,

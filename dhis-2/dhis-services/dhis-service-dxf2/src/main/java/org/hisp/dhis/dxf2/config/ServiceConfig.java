@@ -64,6 +64,7 @@ import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeome
 import org.hisp.dhis.dxf2.events.importer.insert.validation.*;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
+import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
@@ -125,7 +126,7 @@ public class ServiceConfig
         Map<Class<? extends Throwable>, Boolean> exceptionMap = new HashMap<>();
         exceptionMap.put( MetadataSyncServiceException.class, true );
         SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(
-                Integer.parseInt( (String) maxAttempts.getObject() ), exceptionMap );
+            Integer.parseInt( (String) maxAttempts.getObject() ), exceptionMap );
 
         RetryTemplate retryTemplate = new RetryTemplate();
         retryTemplate.setBackOffPolicy( backOffPolicy );
@@ -135,63 +136,49 @@ public class ServiceConfig
     }
 
     private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
-            // @formatter:off
-            DuplicateIdsCheck.class,
-            ValidationHooksCheck.class,
-            SecurityCheck.class,
-            SchemaCheck.class,
-            UniquenessCheck.class,
-            MandatoryAttributesCheck.class,
-            UniqueAttributesCheck.class,
-            ReferencesCheck.class
-            // @formatter:on
-    );
+        DuplicateIdsCheck.class,
+        ValidationHooksCheck.class,
+        SecurityCheck.class,
+        SchemaCheck.class,
+        UniquenessCheck.class,
+        MandatoryAttributesCheck.class,
+        UniqueAttributesCheck.class,
+        ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
-            // @formatter:off
-            DuplicateIdsCheck.class,
-            ValidationHooksCheck.class,
-            SecurityCheck.class,
-            CreationCheck.class,
-            SchemaCheck.class,
-            UniquenessCheck.class,
-            MandatoryAttributesCheck.class,
-            UniqueAttributesCheck.class,
-            ReferencesCheck.class
-            // @formatter:on
-    );
+        DuplicateIdsCheck.class,
+        ValidationHooksCheck.class,
+        SecurityCheck.class,
+        CreationCheck.class,
+        SchemaCheck.class,
+        UniquenessCheck.class,
+        MandatoryAttributesCheck.class,
+        UniqueAttributesCheck.class,
+        ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
-            // @formatter:off
-            DuplicateIdsCheck.class,
-            ValidationHooksCheck.class,
-            SecurityCheck.class,
-            UpdateCheck.class,
-            SchemaCheck.class,
-            UniquenessCheck.class,
-            MandatoryAttributesCheck.class,
-            UniqueAttributesCheck.class,
-            ReferencesCheck.class
-            // @formatter:on
-    );
+        DuplicateIdsCheck.class,
+        ValidationHooksCheck.class,
+        SecurityCheck.class,
+        UpdateCheck.class,
+        SchemaCheck.class,
+        UniquenessCheck.class,
+        MandatoryAttributesCheck.class,
+        UniqueAttributesCheck.class,
+        ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
-            // @formatter:off
-            SecurityCheck.class,
-            DeletionCheck.class
-            // @formatter:on
-    );
+        SecurityCheck.class,
+        DeletionCheck.class );
 
     @Bean( "validatorMap" )
     public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
     {
-        // @formatter:off
         return ImmutableMap.of(
-                ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
-                CREATE, CREATE_CHECKS,
-                ImportStrategy.UPDATE, UPDATE_CHECKS,
-                ImportStrategy.DELETE, DELETE_CHECKS );
-        // @formatter:on
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
+            CREATE, CREATE_CHECKS,
+            ImportStrategy.UPDATE, UPDATE_CHECKS,
+            ImportStrategy.DELETE, DELETE_CHECKS );
     }
 
     /*
@@ -201,7 +188,6 @@ public class ServiceConfig
     @Bean
     public Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap()
     {
-        // @formatter:off
         return ImmutableMap.of( CREATE, newArrayList(
             EventDateCheck.class,
             OrgUnitCheck.class,
@@ -218,16 +204,13 @@ public class ServiceConfig
             AttributeOptionComboDateCheck.class,
             AttributeOptionComboAclCheck.class,
             DataValueCheck.class,
-            DataValueAclCheck.class
-                )
-        );
-        // @formatter:on
+            DataValueAclCheck.class,
+            ExpirationDaysCheck.class ) );
     }
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap()
     {
-        // @formatter:off
         return ImmutableMap.of( UPDATE, newArrayList(
             EventSimpleCheck.class,
             EventBaseCheck.class,
@@ -239,19 +222,15 @@ public class ServiceConfig
             AttributeOptionComboCheck.class,
             AttributeOptionComboDateCheck.class,
             EventGeometryCheck.class,
-            DataValueCheck.class
-        ) );
-        // @formatter:on
+            DataValueCheck.class,
+            ExpirationDaysCheck.class ) );
     }
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap()
     {
-        // @formatter:off
         return ImmutableMap.of( DELETE, newArrayList(
-                org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class
-        ) );
-        // @formatter:on
+            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class ) );
     }
 
     /*
@@ -261,38 +240,29 @@ public class ServiceConfig
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorsMap()
     {
-        // @formatter:off
         return ImmutableMap.of( CREATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
-            EventGeometryPreProcessor.class
-        ) );
-        // @formatter:on
+            EventGeometryPreProcessor.class ) );
     }
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
     {
-        // @formatter:off
         return ImmutableMap.of( UPDATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
-            ProgramInstanceGeometryPreProcessor.class
-        ) );
-        // @formatter:on
+            ProgramInstanceGeometryPreProcessor.class ) );
     }
 
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap()
     {
-        // @formatter:off
         return ImmutableMap.of( UPDATE, newArrayList(
             PublishEventPostProcessor.class,
-            ProgramNotificationPostProcessor.class
-        ) );
-        // @formatter:on
+            ProgramNotificationPostProcessor.class ) );
     }
 }

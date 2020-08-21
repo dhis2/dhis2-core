@@ -42,9 +42,7 @@ import org.hisp.dhis.user.UserCredentials;
 /**
  * @author maikel arabori
  */
-public class ProgramStageInstanceAuthCheck
-    implements
-    Checker
+public class ProgramStageInstanceAuthCheck implements Checker
 {
     @Override
     public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )

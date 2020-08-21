@@ -116,7 +116,7 @@ public class EventBaseCheckTest extends BaseValidationTest
         programInstanceMap.put( event.getUid(), programInstance );
 
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        when( workContext.getImportOptions() ).thenReturn(importOptions);
+        when( workContext.getImportOptions() ).thenReturn( importOptions );
 
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );

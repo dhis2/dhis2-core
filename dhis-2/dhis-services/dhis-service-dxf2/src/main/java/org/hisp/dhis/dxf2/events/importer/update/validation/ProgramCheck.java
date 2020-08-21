@@ -36,9 +36,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramCheck
-    implements
-    Checker
+public class ProgramCheck implements Checker
 {
     @Override
     public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
