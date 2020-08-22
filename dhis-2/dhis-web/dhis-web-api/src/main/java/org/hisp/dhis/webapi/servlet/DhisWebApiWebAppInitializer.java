@@ -59,8 +59,8 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
         FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
             OpenSessionInViewFilter.class );
         openSessionInViewFilter.setInitParameter( "sessionFactoryBeanName", "sessionFactory" );
-        openSessionInViewFilter.setInitParameter( "singleSession", "true" );
-        openSessionInViewFilter.setInitParameter( "flushMode", "AUTO" );
+        openSessionInViewFilter.setInitParameter( "singleSession", "false" );
+//        openSessionInViewFilter.setInitParameter( "flushMode", "AUTO" );
         openSessionInViewFilter.addMappingForUrlPatterns( null, false, "/*" );
         openSessionInViewFilter.addMappingForServletNames( null, false, "dispatcher" );
 

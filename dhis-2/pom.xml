@@ -490,9 +490,9 @@
 
               <rules>
 <!--                <banDuplicateClasses/>-->
-                <banCircularDependencies/>
-                  <requireUpperBoundDeps/>
-                  <dependencyConvergence/>
+<!--                <banCircularDependencies/>-->
+<!--                  <requireUpperBoundDeps/>-->
+<!--                  <dependencyConvergence/>-->
 <!--                  <banTransitiveDependencies/>-->
                 <banDuplicatePomDependencyVersions/>
 
@@ -751,11 +751,6 @@
         <artifactId>cglib</artifactId>
         <version>3.2.4</version>
       </dependency>
-      <dependency>
-        <groupId>com.alibaba.spring</groupId>
-        <artifactId>spring-webmvc-velocity</artifactId>
-        <version>4.3.18.RELEASE</version>
-      </dependency>
       <!--Spring Security -->
       <dependency>
         <groupId>org.springframework.security</groupId>
@@ -960,6 +955,10 @@
         <artifactId>velocity-tools</artifactId>
         <version>2.0</version>
         <exclusions>
+          <exclusion>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>commons-digester</groupId>
             <artifactId>commons-digester</artifactId>
@@ -2075,7 +2074,7 @@
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <struts.version>2.5.22</struts.version>
-    <hibernate.version>5.2.17.Final</hibernate.version>
+    <hibernate.version>5.3.18.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
     <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>

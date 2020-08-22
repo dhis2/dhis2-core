@@ -57,7 +57,7 @@ public class DhisWebApiWebSecurityConfig
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token endpoint and /authorize endpoint.
-     * This config is a modification to the config that is enabled by using the @EnableAuthorizationServer annotation.
+     * This config is a modification of the config that is automatically enabled by using the @EnableAuthorizationServer annotation.
      * The spring-security-oauth2 project is deprecated but as of now 19. August 2020 there is still no other alternative ready.
      * The candidate for replacing this is: https://github.com/spring-projects-experimental/spring-authorization-server
      */
@@ -85,7 +85,7 @@ public class DhisWebApiWebSecurityConfig
 
             // This is the only endpoint we need to configure.
             // The /authorize endpoint is only accessible AFTER you have logged in,
-            // you will get redirected to the form login if you try accessing it.
+            // you will be redirected to the form login if you try accessing it without being authenticated.
             String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
 
             http
@@ -107,9 +107,9 @@ public class DhisWebApiWebSecurityConfig
             public void init( HttpSecurity builder )
                 throws Exception
             {
-                // This is a strange quirk to remove the default DaoAuthenticationConfigurer,
-                // that gets automatically assigned in the config init.
-                // We only want one auth. provider (our own...)
+                // This is a quirk to remove the default DaoAuthenticationConfigurer,
+                // that gets automatically assigned in the AuthorizationServerSecurityConfigurer.
+                // We only want ONE authentication provider (our own...)
                 AuthenticationManagerBuilder authBuilder = builder
                     .getSharedObject( AuthenticationManagerBuilder.class );
                 authBuilder.removeConfigurer( DaoAuthenticationConfigurer.class );

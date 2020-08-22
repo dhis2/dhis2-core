@@ -41,8 +41,12 @@ import java.util.Set;
  */
 public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
 {
-    @Autowired
     private AppManager appManager;
+
+    public AppsSystemAuthoritiesProvider( AppManager appManager )
+    {
+        this.appManager = appManager;
+    }
 
     @Override
     public Collection<String> getSystemAuthorities()
