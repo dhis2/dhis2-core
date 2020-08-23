@@ -102,7 +102,7 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
         objectBundleService.commit( bundle );
 
         TrackerBundle trackerBundle = renderService
-            .fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
+            .fromJson( new ClassPathResource( "tracker/tracked_entity_basic_data_before_deletion.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
