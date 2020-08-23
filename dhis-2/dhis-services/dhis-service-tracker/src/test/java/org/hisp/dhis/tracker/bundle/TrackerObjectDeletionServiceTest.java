@@ -124,7 +124,7 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
     }
 
     @Test
-    public void testTrackerEnrollmentDeletion() throws IOException
+    public void testTrackedEntityInstanceDeletion() throws IOException
     {
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/tracked_entity_basic_data_for_deletion.json" ).getInputStream(),
