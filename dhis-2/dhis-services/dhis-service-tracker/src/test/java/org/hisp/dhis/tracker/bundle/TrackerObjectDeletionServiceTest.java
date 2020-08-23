@@ -41,6 +41,9 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,11 +135,13 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         assertEquals( 1, trackerBundles.size() );
 
-        trackerBundleService.delete( trackerBundles.get( 0 ) );
+        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles.get( 0 ) );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+        assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
+        assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.TRACKED_ENTITY ) );
+        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getDeleted(), 9 );
 
-        // 9 tei deleted
-        assertEquals( 4, trackedEntityInstances.size() );
+        // remaining
+        assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
     }
 }
