@@ -113,6 +113,7 @@ public class Event
 
     private String assignedUserUsername;
 
+    private String assignedUserDisplayName;
 
     public Event()
     {
@@ -495,6 +496,18 @@ public class Event
     public void setAssignedUserUsername( String assignedUserUsername )
     {
         this.assignedUserUsername = assignedUserUsername;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUserDisplayName()
+    {
+        return assignedUserDisplayName;
+    }
+
+    public void setAssignedUserDisplayName( String assignedUserDisplayName )
+    {
+        this.assignedUserDisplayName = assignedUserDisplayName;
     }
 
     @Override

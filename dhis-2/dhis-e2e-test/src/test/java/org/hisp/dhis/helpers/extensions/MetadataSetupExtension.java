@@ -105,7 +105,7 @@ public class MetadataSetupExtension
         String userRoleId = "yrB6vc5Ip7r";
         String userGroupId = "OPVIvvXzNTw";
 
-        String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
+        String userId = userActions.get( "?filter=userCredentials.username:eq:" + TestConfiguration.get().superUserUsername() )
             .extractString( "users.id[0]" );
 
         userActions.addUserToUserGroup( userId, userGroupId );

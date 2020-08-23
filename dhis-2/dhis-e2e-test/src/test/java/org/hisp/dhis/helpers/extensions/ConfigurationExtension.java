@@ -52,10 +52,11 @@ public class ConfigurationExtension
     public void beforeAll( ExtensionContext context )
     {
         RestAssured.baseURI = TestConfiguration.get().baseUrl();
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         RestAssured.config = RestAssuredConfig.config()
             .jsonConfig( new JsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL ) );
+
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();

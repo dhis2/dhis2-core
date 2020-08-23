@@ -65,6 +65,13 @@ public class DataApprovalWorkflowTest
         assertEquals( 3, levels.get( 2 ).getLevel() );
     }
 
+    /**
+     * Note that as part of the following test, we are checking to be sure that the longest
+     * extension to the category option end date is returned from data sets that are
+     * successively added to the workflow. The total extension length (period length
+     * times number of periods) is always increasing as we add data sets to the workflow.
+     * The most recently-added data set always has the longest total extension so far.
+     */
     @Test
     public void testGetWorkflowSqlCoEnddateExtension()
     {
