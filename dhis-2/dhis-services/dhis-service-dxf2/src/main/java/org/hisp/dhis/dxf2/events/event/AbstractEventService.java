@@ -905,6 +905,7 @@ public abstract class AbstractEventService
         {
             event.setAssignedUser( programStageInstance.getAssignedUser().getUid() );
             event.setAssignedUserUsername( programStageInstance.getAssignedUser().getUsername() );
+            event.setAssignedUserDisplayName( programStageInstance.getAssignedUser().getName() );
         }
 
         User user = currentUserService.getCurrentUser();
