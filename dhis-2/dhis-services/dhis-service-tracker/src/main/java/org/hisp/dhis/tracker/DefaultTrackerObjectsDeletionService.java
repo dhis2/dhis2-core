@@ -105,7 +105,7 @@ public class DefaultTrackerObjectsDeletionService
 
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
-            String uid = enrollments.get( idx ).getUid();
+            String uid = enrollments.get( idx ).getEnrollment();
 
             boolean existsEnrollment = programInstanceService.programInstanceExists( uid );
 
@@ -166,7 +166,7 @@ public class DefaultTrackerObjectsDeletionService
 
         for ( int idx = 0; idx < events.size(); idx++ )
         {
-            String uid = events.get( idx ).getUid();
+            String uid = events.get( idx ).getEvent();
 
             boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
 
@@ -233,7 +233,7 @@ public class DefaultTrackerObjectsDeletionService
 
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
-            String uid = trackedEntities.get( idx ).getUid();
+            String uid = trackedEntities.get( idx ).getTrackedEntity();
 
             boolean teiExists = teiService.trackedEntityInstanceExists( uid );
 

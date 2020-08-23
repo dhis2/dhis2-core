@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -56,7 +56,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Zubair Asghar
  */
-public class TrackerObjectDeletionServiceTest extends IntegrationTestBase
+public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -79,6 +79,8 @@ public class TrackerObjectDeletionServiceTest extends IntegrationTestBase
     @Override
     protected void setUpTest() throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -102,12 +104,6 @@ public class TrackerObjectDeletionServiceTest extends IntegrationTestBase
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
-        TrackerBundleParams trackerBundleParams = TrackerBundleParams.builder()
-                .trackedEntities( trackerBundle.getTrackedEntities() )
-                .build();
-
-        trackerBundleParams.setUserId( ADMIN_USER_UID );
-
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
@@ -125,10 +121,10 @@ public class TrackerObjectDeletionServiceTest extends IntegrationTestBase
             throws IOException
     {
         TrackerBundle trackerBundle = renderService
-            .fromJson( new ClassPathResource( "tracker/tracked_entity_basic_data.json" ).getInputStream(),
+            .fromJson( new ClassPathResource( "tracker/tracked_entity_basic_data_for_deletion.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 9, trackerBundle.getTrackedEntities().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -140,14 +136,7 @@ public class TrackerObjectDeletionServiceTest extends IntegrationTestBase
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
 
-
-        System.out.println( "Tei count: " +trackedEntityInstances.size() );
-
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
+        // 9 tei deleted
+        assertEquals( 4, trackedEntityInstances.size() );
     }
 }
