@@ -512,7 +512,7 @@ public class JdbcEventStore
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramIdScheme(),
             "p.uid as p_identifier, ",
-            "pav.value as p_identifier, ",
+            "p.attributevalues -> '" + idSchemes.getProgramIdScheme().getAttribute()  + "' ->> 'value' as p_identifier, ",
             "p.code as p_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramStageIdScheme(),
@@ -536,12 +536,6 @@ public class JdbcEventStore
         {
             sql += "left join organisationunitattributevalues ouavs on ou.organisationunitid = ouavs.organisationunitid "
                 + "left join attributevalue ouav on ouavs.attributevalueid = ouav.attributevalueid ";
-        }
-
-        if ( idSchemes.getProgramIdScheme().isAttribute() )
-        {
-            sql += "left join programattributevalues pavs on p.programid = pavs.programid "
-                + "left join attributevalue pav on pavs.attributevalueid = pav.attributevalueid ";
         }
 
         if ( idSchemes.getProgramStageIdScheme().isAttribute() )
