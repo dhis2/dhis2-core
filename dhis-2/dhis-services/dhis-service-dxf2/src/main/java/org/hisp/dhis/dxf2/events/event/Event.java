@@ -513,6 +513,7 @@ public class Event
     public void setAssignedUserDisplayName( String assignedUserDisplayName )
     {
         this.assignedUserDisplayName = assignedUserDisplayName;
+    }
 
     @JsonIgnore
     public Long getId()
