@@ -167,7 +167,13 @@ public class HibernateTrackedEntityInstanceStore
     @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
-        String hql = buildTrackedEntityInstanceHql( params, true );
+        String hql = buildTrackedEntityInstanceHql( params, true )
+        .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
+        .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
+        .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
+        .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" )
+        .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
+        .replaceFirst( "order by tei.lastUpdated desc ", "" );
 
         //If it is a sync job running a query, I need to adjust an HQL a bit, because I am adding 2 joins and don't want duplicates in results
         if ( params.isSynchronizationQuery() )

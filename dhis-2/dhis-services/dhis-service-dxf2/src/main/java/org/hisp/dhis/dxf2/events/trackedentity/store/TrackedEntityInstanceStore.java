@@ -30,12 +30,14 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
 import com.google.common.collect.Multimap;
 
@@ -78,4 +80,6 @@ public interface TrackedEntityInstanceStore
      *         key a List of {@see ProgramOwner} objects
      */
     Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids );
+
+    Multimap<String, String> getOwnedTeis( List<Long> ids, TrackedEntityInstanceQueryParams queryParams, Long userId );
 }

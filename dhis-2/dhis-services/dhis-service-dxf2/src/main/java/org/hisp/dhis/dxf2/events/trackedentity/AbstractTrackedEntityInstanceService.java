@@ -198,7 +198,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             .getTrackedEntityInstances( queryParams, skipAccessValidation );
 
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
-        User user = currentUserService.getCurrentUser();
+        User user = queryParams.getUser();
 
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
             .getTrackedEntityAttributesByTrackedEntityTypes();
@@ -253,36 +253,15 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
 
         final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
+        
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
+            .getTrackedEntityAttributesByTrackedEntityTypes();
 
-        if ( queryParams.isIncludeAllAttributes() )
-        {
-            return this.trackedEntityInstanceAggregate.find( ids, params );
-        }
-        else
-        {
-            Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeStore
-                    .getTrackedEntityAttributesByTrackedEntityTypes();
+        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService
+            .getTrackedEntityAttributesByProgram();
 
-            final User user = currentUserService.getCurrentUser();
-            List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
-
-            Set<TrackedEntityAttribute> attributes = new HashSet<>( trackedEntityTypeAttributes );
-
-            if ( queryParams.hasProgram() )
-            {
-                attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
-            }
-            // FIXME: luciano this logic assumes that the variable `daoTEIs` is populated with a TrackedEntityInstance object
-            // rather than an primary key
-//            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-//            {
-//                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, queryParams.getProgram() ) )
-//                {
-//                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-//                }
-//            }
-            return dtoTeis;
-        }
+            
+        return this.trackedEntityInstanceAggregate.find( ids, params, queryParams, trackedEntityTypeAttributes, teaByProgram );
     }
 
     @Override

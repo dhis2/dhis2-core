@@ -4,13 +4,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
@@ -20,17 +24,24 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -54,12 +65,21 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
+    
+    @Autowired
+    private ProgramInstanceService enrollmentService;
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
     @Autowired
     private ProgramService programService;
+    
+    @Autowired
+    private TrackerOwnershipManager trackerOwnershipManager;
+    
+    @Autowired
+    private UserService userService;
 
     private Program programB;
 
@@ -73,9 +93,13 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     {
         User user = createUser( "testUser" );
 
-        makeUserSuper( user );
+        user.addOrganisationUnit( organisationUnitA );
+        user.getTeiSearchOrganisationUnits().add( organisationUnitA );
+        user.getTeiSearchOrganisationUnits().add( organisationUnitB );
+       // makeUserSuper( user );
 
         currentUserService = new MockCurrentUserService( user );
+        
 
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
@@ -90,61 +114,46 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     }
 
     @Test
-    public void testTrackedEntityInstanceAttributes()
+    public void testTrackedEntityInstanceIncludeAllAttributes()
     {
-        doInTransaction( () -> {
+        populatePrerequisites( false );
 
-            ProgramStage programStageA = createProgramStage( programB );
-            ProgramStage programStageB = createProgramStage( programB );
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
 
-            // Create 5 Tracked Entity Attributes (named A .. E)
-            IntStream.range( A, F ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
-                    .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
-            // Transform the Tracked Entity Attributes into a List of
-            // TrackedEntityTypeAttribute
-            List<TrackedEntityTypeAttribute> teatList = IntStream.range( A, C )
-                    .mapToObj( i -> Character.toString( (char) i ) )
-                    .map( s -> new TrackedEntityTypeAttribute( trackedEntityTypeA,
-                            attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
-                    .collect( Collectors.toList() );
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+       
 
-            // Assign 2 (A, B) TrackedEntityTypeAttribute to Tracked Entity Type A
-            trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList );
-            trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
+        assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C","E" );
+    }
 
-            programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
-            programB.setProgramType( ProgramType.WITH_REGISTRATION );
-            programB.setCategoryCombo( categoryComboA );
-            programB.setUid( CodeGenerator.generateUid() );
-            programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-            programB.setProgramStages(
-                    Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );
-            programService.addProgram( programB );
+    @Test
+    public void testTrackedEntityInstanceIncludeEnrollmentsEventsRelationshipsOwners()
+    {
+        populatePrerequisites( false );
 
-            // Assign ProgramTrackedEntityAttribute C, D, E to program B
-            List<ProgramTrackedEntityAttribute> pteaList = IntStream.range( C,  D )
-                    .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programB,
-                            attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
-                    .collect( Collectors.toList() );
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
-            programB.setProgramAttributes( pteaList );
-            programService.updateProgram( programB );
 
-            // make sure the current user does not have access to program B
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, TrackedEntityInstanceParams.TRUE, false );
+       
 
-            // Create a TEI associated to program B
-            final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
-                ImmutableMap.of( "program", programB ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getProgramOwners(), hasSize( 2 ) );
+    }
 
-            // Assign Attribute A,B,E to Tracked Entity Instance
-            attributeValueService.addTrackedEntityAttributeValue(
-                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeA"), trackedEntityInstance, "A" ) );
-            attributeValueService.addTrackedEntityAttributeValue(
-                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeB"), trackedEntityInstance, "B" ) );
-            attributeValueService.addTrackedEntityAttributeValue(
-                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeE"), trackedEntityInstance, "E" ) );
-        } );
+    
+    
+    @Test
+    public void testTrackedEntityInstanceIncludeAllAttributesInProtectedProgramNoAccess()
+    {
+        populatePrerequisites( true );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -155,16 +164,42 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, params, false );
 
-        assertThat( trackedEntityInstances.get( 0 ).getAttributes(), hasSize( 2 ) );
+        assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C" );
+        
+    }
+    
+    @Test
+    public void testTrackedEntityInstanceIncludeSpecificProtectedProgram()
+    {
+        populatePrerequisites( false );
 
-        final List<Attribute> attributes = trackedEntityInstances.get( 0 ).getAttributes();
-        Attribute attributeA = findByValue( attributes, "A" );
-        assertThat( attributeA.getAttribute(),
-            is( attributeService.getTrackedEntityAttributeByName( "AttributeA" ).getUid() ) );
-        Attribute attributeB = findByValue( attributes, "B" );
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setProgram( programB );
 
-        assertThat( attributeB.getAttribute(),
-                is( attributeService.getTrackedEntityAttributeByName( "AttributeB" ).getUid() ) );
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","E" );
+    }
+    
+    @Test
+    public void testTrackedEntityInstanceIncludeSpecificOpenProgram()
+    {
+        populatePrerequisites( false );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setProgram( programA );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C" );
     }
 
     private Attribute findByValue(List<Attribute> attributes, String val) {
@@ -172,5 +207,126 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         return attributes.stream().filter( a -> a.getValue().equals( val ) ).findFirst()
             .orElseThrow( () -> new NullPointerException( "Attribute not found!" ) );
 
+    }
+    private void assertAttributes( final List<Attribute> attributes, String... atts )
+    {
+        assertThat( attributes, hasSize( atts.length ) );
+        
+        for(String att : atts)
+        {
+            assertThat( findByValue( attributes, att ).getAttribute(),
+                is( attributeService.getTrackedEntityAttributeByName( "Attribute" + att ).getUid() ) );
+        }
+        
+    }
+    
+    private void populatePrerequisites( boolean removeOwnership )
+    {
+        doInTransaction( () -> {
+            
+            ProgramStage programStageA = createProgramStage( programB );
+            ProgramStage programStageB = createProgramStage( programB );
+            
+            ProgramStage programStageA1 = createProgramStage( programA );
+            ProgramStage programStageA2 = createProgramStage( programA );
+            
+            // Create 5 Tracked Entity Attributes (named A .. E)
+            IntStream.range( A, F ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
+                .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
+            
+            // Transform the Tracked Entity Attributes into a List of
+            // TrackedEntityTypeAttribute
+            List<TrackedEntityTypeAttribute> teatList = IntStream.range( A, C )
+                .mapToObj( i -> Character.toString( (char) i ) )
+                .map( s -> new TrackedEntityTypeAttribute( trackedEntityTypeA,
+                    attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
+                .collect( Collectors.toList() );
+            
+            // Assign 2 (A, B) TrackedEntityTypeAttribute to Tracked Entity Type A
+            trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList );
+            
+            //Make TET public
+            trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
+            
+            trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
+            
+            programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
+            programB.setProgramType( ProgramType.WITH_REGISTRATION );
+            programB.setCategoryCombo( categoryComboA );
+            programB.setAccessLevel( AccessLevel.PROTECTED );
+            programB.setUid( CodeGenerator.generateUid() );
+            programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
+            
+            Set<UserAccess> programBUserAccess = new HashSet<>();
+            programBUserAccess.add(new UserAccess( currentUserService.getCurrentUser(), AccessStringHelper.FULL ));
+            programB.setUserAccesses( programBUserAccess );
+            programB.setProgramStages(
+                Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );
+            programService.addProgram( programB );
+            
+            programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
+            programA.setProgramType( ProgramType.WITH_REGISTRATION );
+            programA.setCategoryCombo( categoryComboA );
+            programA.setUid( CodeGenerator.generateUid() );
+            programA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
+            programA.setProgramStages(
+                Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
+            
+            programService.addProgram( programA );
+            
+            //Because access strings isnt getting persisted with programService methods for some reason
+            programB.setPublicAccess( AccessStringHelper.FULL );
+            manager.update( programB );
+            
+            // Assign ProgramTrackedEntityAttribute C to program A
+            List<ProgramTrackedEntityAttribute> pteaListA = IntStream.range( C,  D )
+                .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programA,
+                    attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
+                .collect( Collectors.toList() );
+            
+            // Assign ProgramTrackedEntityAttribute D, E to program B
+            List<ProgramTrackedEntityAttribute> pteaListB = IntStream.range( D,  F )
+                .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programB,
+                    attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
+                .collect( Collectors.toList() );
+            
+            programA.setProgramAttributes( pteaListA );
+            programB.setProgramAttributes( pteaListB );
+            programService.updateProgram( programA );
+            programService.updateProgram( programB );
+            
+            
+            // Create a TEI associated to program B
+            final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
+                ImmutableMap.of( "program", programB ) );
+            
+            ProgramInstance piB = new ProgramInstance( programB, trackedEntityInstance, organisationUnitA );
+            piB.setEnrollmentDate( new Date() );
+            enrollmentService.addProgramInstance( piB );
+            
+            ProgramInstance piA = new ProgramInstance( programA, trackedEntityInstance, organisationUnitA );
+            piA.setEnrollmentDate( new Date() );
+            enrollmentService.addProgramInstance( piA );
+            
+            if ( removeOwnership )
+            {
+                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programB, organisationUnitB, true, true );
+            }
+            else
+            {
+                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programB, organisationUnitA, true, true );
+                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programA, organisationUnitA, true, true );
+            }
+            
+            // Assign Attribute A,B,E to Tracked Entity Instance
+            attributeValueService.addTrackedEntityAttributeValue(
+                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeA"), trackedEntityInstance, "A" ) );
+            attributeValueService.addTrackedEntityAttributeValue(
+                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeB"), trackedEntityInstance, "B" ) );
+            attributeValueService.addTrackedEntityAttributeValue(
+                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeC"), trackedEntityInstance, "C" ) );
+            attributeValueService.addTrackedEntityAttributeValue(
+                new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeE"), trackedEntityInstance, "E" ) );
+        } );
     }
 }

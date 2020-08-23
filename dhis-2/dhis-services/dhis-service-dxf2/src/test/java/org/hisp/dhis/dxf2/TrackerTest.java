@@ -93,6 +93,8 @@ public abstract class TrackerTest extends DhisSpringTest
     protected TrackedEntityType trackedEntityTypeA;
 
     protected OrganisationUnit organisationUnitA;
+    
+    protected OrganisationUnit organisationUnitB;
 
     protected Program programA;
 
@@ -116,6 +118,10 @@ public abstract class TrackerTest extends DhisSpringTest
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.setUid( CodeGenerator.generateUid() );
         organisationUnitA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
+        
+        organisationUnitB = createOrganisationUnit( 'B' );
+        organisationUnitB.setUid( CodeGenerator.generateUid() );
+        organisationUnitB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
 
         categoryComboA = createCategoryCombo( 'A' );
         categoryComboA.setUid( CodeGenerator.generateUid() );
@@ -150,6 +156,8 @@ public abstract class TrackerTest extends DhisSpringTest
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
 
             manager.save( organisationUnitA );
+            
+            manager.save( organisationUnitB );
 
             manager.save( categoryComboA );
 

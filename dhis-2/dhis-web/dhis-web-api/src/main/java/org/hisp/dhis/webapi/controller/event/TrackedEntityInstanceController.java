@@ -201,7 +201,7 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        if ( criteria.hasTrackedEntityInstance() )
+        if ( !criteria.hasTrackedEntityInstance() )
         {
             if ( criteria.isUseFast() ) // FIXME luciano: this has to be removed!
             {

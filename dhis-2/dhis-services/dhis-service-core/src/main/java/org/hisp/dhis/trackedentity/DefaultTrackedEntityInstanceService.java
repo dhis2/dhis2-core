@@ -258,7 +258,7 @@ public class DefaultTrackedEntityInstanceService
 //        for ( TrackedEntityInstance tei : trackedEntityInstances )
 //        {
 //            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
-//        }
+//        } 
 
         return trackedEntityInstances;
     }
