@@ -502,6 +502,7 @@ public class Event
         this.assignedUserUsername = assignedUserUsername;
     }
 
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAssignedUserDisplayName()
