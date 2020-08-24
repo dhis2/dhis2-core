@@ -37,6 +37,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -121,6 +122,9 @@ public class Event
 
     @JsonProperty
     private Geometry geometry;
+
+    @JsonProperty
+    private User assignedUser;
 
     @JsonProperty
     @Builder.Default
