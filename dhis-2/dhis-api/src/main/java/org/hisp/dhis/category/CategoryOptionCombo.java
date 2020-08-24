@@ -319,7 +319,7 @@ public class CategoryOptionCombo
         {
             if ( co.getEndDate() != null )
             {
-                earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ?
+                earliestEndDate = ( earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ?
                     co.getStartDate() : earliestEndDate);
             }
         }
