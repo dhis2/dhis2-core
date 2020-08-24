@@ -8,5 +8,5 @@ alter table incomingsms alter column id type bigint;
 alter table outbound_sms alter column id type bigint;
 
 -- update uid column with randomly generated uid values
-update incomingsms set uid = generate_uid();
-update outbound_sms set uid = generate_uid();
+update incomingsms set uid = generate_uid() where uid is null;
+update outbound_sms set uid = generate_uid() where uid is null;
