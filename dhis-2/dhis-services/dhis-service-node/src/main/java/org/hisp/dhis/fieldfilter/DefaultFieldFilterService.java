@@ -294,7 +294,17 @@ public class DefaultFieldFilterService implements FieldFilterService
                 continue;
             }
 
-            Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            Object returnValue = null;
+
+            try
+            {
+                returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            }
+            catch ( IllegalArgumentException ignored )
+            {
+                // WIP, handle transformed collections
+            }
+
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
 
@@ -685,7 +695,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     {
         if ( AttributeValue.class.isAssignableFrom( klass ) && Attribute.class.isAssignableFrom( propertyClass ) )
         {
-            returnObject = attributeService.getAttribute( ( ( Attribute ) returnObject ).getUid() );
+            returnObject = attributeService.getAttribute( ((Attribute) returnObject).getUid() );
         }
 
         return returnObject;

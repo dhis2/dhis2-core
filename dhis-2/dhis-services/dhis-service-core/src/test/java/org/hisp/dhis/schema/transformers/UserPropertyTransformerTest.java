@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.ComplexNode;
@@ -49,6 +51,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -72,6 +75,9 @@ public class UserPropertyTransformerTest
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
 
     @Test
     public void testNodeServiceSerializer() throws JsonProcessingException
@@ -101,7 +107,7 @@ public class UserPropertyTransformerTest
     }
 
     @Test
-    public void testNodeServiceSerializerCollection() throws JsonProcessingException
+    public void testFieldNodeServiceSerializer() throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
@@ -133,6 +139,12 @@ public class UserPropertyTransformerTest
 
         assertNotNull( simple.getUsers() );
         assertEquals( 4, simple.getUsers().size() );
+
+        FieldFilterParams params = new FieldFilterParams(
+            Collections.singletonList( simple ), Collections.singletonList( "id,name,user[id,code],users[id,code]" ) );
+
+        ComplexNode node = fieldFilterService.toComplexNode( params );
+        System.err.println( node );
     }
 
     @Test
