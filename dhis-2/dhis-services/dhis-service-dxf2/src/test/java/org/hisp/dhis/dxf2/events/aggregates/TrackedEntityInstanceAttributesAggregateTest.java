@@ -97,7 +97,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
        // makeUserSuper( user );
-
+        manager.update( user );
         currentUserService = new MockCurrentUserService( user );
         
 
