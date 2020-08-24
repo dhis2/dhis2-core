@@ -749,7 +749,6 @@ public abstract class AbstractEventService implements EventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-
         boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
 
         if ( existsEvent )
@@ -789,18 +788,9 @@ public abstract class AbstractEventService implements EventService
     public ImportSummaries deleteEvents( List<String> uids, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
-
         for ( String uid : uids )
         {
             importSummaries.addImportSummary( deleteEvent( uid ) );
-
-            if ( clearSession && counter % FLUSH_FREQUENCY == 0 )
-            {
-                // clearSession( user );
-            }
-
-            counter++;
         }
 
         return importSummaries;
