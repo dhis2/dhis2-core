@@ -157,7 +157,7 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
             }
         }
 
@@ -174,7 +174,7 @@ public class SimplisticHttpGetGateWay
         {
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(), parameter.getValue() );
+                valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
             }
         }
 

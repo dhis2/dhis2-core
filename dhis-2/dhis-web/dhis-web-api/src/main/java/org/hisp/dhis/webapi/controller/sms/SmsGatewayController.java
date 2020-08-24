@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -37,6 +39,7 @@ import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -84,8 +87,7 @@ public class SmsGatewayController
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
     public void getGateways( HttpServletResponse response ) throws IOException
     {
-        response.setContentType( "application/json" );
-        renderService.toJson( response.getOutputStream(), smsConfigurationManager.getSmsConfiguration() );
+        generateOutput( response, smsConfigurationManager.getSmsConfiguration() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
@@ -100,13 +102,64 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        response.setContentType( "application/json" );
-        renderService.toJson( response.getOutputStream(), gateway );
+        generateOutput( response, gateway );
     }
 
     // -------------------------------------------------------------------------
     // PUT,POST
     // -------------------------------------------------------------------------
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/clickatell", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdateClickatellConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(), ClickatellGatewayConfig.class );
+
+        if ( gatewayAdminService.addOrUpdateGateway( payLoad, ClickatellGatewayConfig.class ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/bulksms", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdatebulksmsConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        BulkSmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(), BulkSmsGatewayConfig.class );
+
+        if ( gatewayAdminService.addOrUpdateGateway( payLoad, BulkSmsGatewayConfig.class ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/generichttp", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdateGenericConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
+                GenericHttpGatewayConfig.class );
+
+        if ( gatewayAdminService.addGateway( payLoad ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/default/{uid}", method = RequestMethod.PUT )
@@ -162,7 +215,7 @@ public class SmsGatewayController
         }
 
         gatewayAdminService.addGateway( config );
-        webMessageService.send( WebMessageUtils.ok(  config.getName()  +" Gateway configuration added" ), response, request );
+        webMessageService.send( WebMessageUtils.ok( "Gateway configuration added" ), response, request );
     }
 
     // -------------------------------------------------------------------------
@@ -184,5 +237,13 @@ public class SmsGatewayController
         gatewayAdminService.removeGatewayByUid( uid );
 
         webMessageService.send( WebMessageUtils.ok( "Gateway removed successfully" ), response, request );
+    }
+
+    private void generateOutput( HttpServletResponse response, Object value ) throws IOException
+    {
+        ObjectMapper jsonMapper = new ObjectMapper();
+        jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
+        jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
+                .writeValue( response.getOutputStream(), value );
     }
 }

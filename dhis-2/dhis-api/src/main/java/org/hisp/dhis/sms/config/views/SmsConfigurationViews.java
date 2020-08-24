@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.sms.config.views;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,53 +28,20 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlRootElement;
-
-import com.fasterxml.jackson.annotation.JsonView;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 /**
- * Serializable configuration object for Sms.
+ *
+ * Json view to keep confidential parameters from exposing through API and make sure their availability
+ * while de-serialisation.
+ *
+ * @Author Zubair Asghar.
  */
-
-@XmlRootElement( name = "smsConfiguration" )
-public class SmsConfiguration
-    implements Serializable
+public class SmsConfigurationViews
 {
-    private static final long serialVersionUID = 7460688383539123303L;
-
-    private List<SmsGatewayConfig> gateways = new ArrayList<>();
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public SmsConfiguration()
+    public static class Public
     {
-        this.gateways = new ArrayList<>();
     }
 
-    public SmsConfiguration( boolean enabled )
+    public static class Internal extends Public
     {
-        this.gateways = new ArrayList<>();
-    }
-
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    @JsonView( SmsConfigurationViews.Public.class )
-    public List<SmsGatewayConfig> getGateways()
-    {
-        return gateways;
-    }
-
-    public void setGateways( List<SmsGatewayConfig> gateways )
-    {
-        this.gateways = gateways;
     }
 }
