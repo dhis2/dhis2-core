@@ -2074,7 +2074,7 @@
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <struts.version>2.5.22</struts.version>
-    <hibernate.version>5.3.18.Final</hibernate.version>
+    <hibernate.version>5.2.17.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
     <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
