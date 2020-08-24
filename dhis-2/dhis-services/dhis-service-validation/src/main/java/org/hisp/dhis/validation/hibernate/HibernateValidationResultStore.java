@@ -262,13 +262,13 @@ public class HibernateValidationResultStore
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.append( "( jsonb_extract_path_text(" + x + ".sharing, 'public') is null" +
-            " or jsonb_extract_path_text(" + x + ".sharing, 'public') like 'r%'" +
-            " or   jsonb_extract_path_text(" + x + ".sharing, 'owner')= '" + u.getUid() +"'" );
+        builder.append( "( function('jsonb_extract_path_text'," + x + ".sharing, 'public') is null" +
+            " or function('jsonb_extract_path_text'," + x + ".sharing, 'public') like 'r%'" +
+            " or   function('jsonb_extract_path_text'," + x + ".sharing, 'owner')= '" + u.getUid() +"'" );
 
         if ( groupUids != null )
         {
-            builder.append( " or jsonb_has_user_group_ids(" + x + ".sharing, '" + groupUids + "') and jsonb_check_user_groups_access(" + x + ".sharing, 'r%', '" + groupUids + "')" );
+            builder.append( " or function('jsonb_has_user_group_ids'," + x + ".sharing, '" + groupUids + "') = true and function('jsonb_check_user_groups_access'," + x + ".sharing, 'r%', '" + groupUids + "') = true" );
         }
 
         builder.append( " )  " );

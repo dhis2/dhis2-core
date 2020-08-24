@@ -31,6 +31,7 @@ package org.hisp.dhis.validation;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -86,6 +87,9 @@ public class ValidationResultStoreTest
 
     @Autowired
     private ValidationResultStore validationResultStore;
+
+    @Autowired
+    private ValidationResultService validationResultService;
 
     @Autowired
     private PeriodService periodService;
@@ -539,12 +543,7 @@ public class ValidationResultStoreTest
     @Test
     public void testCount() throws Exception
     {
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultAB );
-        validationResultStore.save( validationResultAC );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultBB );
-        validationResultStore.save( validationResultBC );
+        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA , validationResultAB, validationResultAC, validationResultBA, validationResultBB, validationResultBC ));
 
         ValidationResultQuery validationResultQuery = new ValidationResultQuery();
 
@@ -562,11 +561,7 @@ public class ValidationResultStoreTest
         count = validationResultStore.count( validationResultQuery );
         assertEquals( 3, count );
 
-
         setMockUserService( userCService );
-        System.out.println("userC : " + userCService.getCurrentUser().getGroups());
-        System.out.println(" optionA : " + optionA.getSharing());
-        System.out.println(" result : " + validationResultStore.getAll() );
         count = validationResultStore.count( validationResultQuery );
         assertEquals( 1, count );
 
