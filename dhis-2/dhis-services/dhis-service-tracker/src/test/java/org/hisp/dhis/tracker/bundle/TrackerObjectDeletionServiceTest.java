@@ -110,8 +110,8 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
                 TrackerBundleParams.class ).toTrackerBundle();
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
-        assertEquals( 1, trackerBundle.getEvents().size() );
+        assertEquals( 2, trackerBundle.getEnrollments().size() );
+        assertEquals( 2, trackerBundle.getEvents().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -125,7 +125,7 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(), manager.getAll( ProgramStageInstance.class ).size() );
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getCreated(), manager.getAll( TrackedEntityInstance.class ).size() );
-        assertEquals( 3, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
     }
 
     @Test
@@ -151,11 +151,15 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         // remaining
         assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
+        assertEquals( 2, manager.getAll( ProgramInstance.class ).size() );
     }
 
     @Test
     public void testEnrollmentDeletion() throws IOException
     {
+        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 2, manager.getAll( ProgramStageInstance.class ).size() );
+
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/enrollment_basic_data_for_deletion.json" ).getInputStream(),
                     TrackerBundleParams.class ).toTrackerBundle();
@@ -173,7 +177,10 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getStats().getDeleted(), 1 );
 
         // remaining
-        assertEquals( 2, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 3, manager.getAll( ProgramInstance.class ).size() );
+
+        // delete associated events as well
+        assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
     }
 
     @Test
@@ -196,6 +203,6 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getDeleted(), 1 );
 
         // remaining
-        assertEquals( 0, manager.getAll( ProgramStageInstance.class ).size() );
+        assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
     }
 }

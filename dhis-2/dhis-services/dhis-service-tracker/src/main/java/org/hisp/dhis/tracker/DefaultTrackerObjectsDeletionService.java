@@ -41,6 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.EnrollmentTrackerConverterService;
+import org.hisp.dhis.tracker.converter.EventTrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -77,6 +78,8 @@ public class DefaultTrackerObjectsDeletionService
 
     private final EnrollmentTrackerConverterService enrollmentTrackerConverterService;
 
+    private final EventTrackerConverterService eventTrackerConverterService;
+
     private final Notifier notifier;
 
     public DefaultTrackerObjectsDeletionService( ProgramInstanceService programInstanceService,
@@ -85,6 +88,7 @@ public class DefaultTrackerObjectsDeletionService
          RelationshipService relationshipService,
          TrackerAccessManager trackerAccessManager,
          EnrollmentTrackerConverterService enrollmentTrackerConverterService,
+         EventTrackerConverterService eventTrackerConverterService,
          Notifier notifier )
     {
         this.programInstanceService = programInstanceService;
@@ -93,6 +97,7 @@ public class DefaultTrackerObjectsDeletionService
         this.relationshipService = relationshipService;
         this.trackerAccessManager = trackerAccessManager;
         this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
+        this.eventTrackerConverterService = eventTrackerConverterService;
         this.notifier = notifier;
     }
 
@@ -129,6 +134,18 @@ public class DefaultTrackerObjectsDeletionService
                         typeReport.getStats().incIgnored();
                         return typeReport;
                     }
+                }
+
+                List<Event> events = eventTrackerConverterService.to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
+
+                TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
+
+                // Associated events should be deleted provided user has authority for that.
+                TrackerTypeReport eventReport = deleteEvents( trackerBundle, TrackerType.EVENT );
+
+                if ( !eventReport.isEmpty() )
+                {
+                    trackerObjectReport.getErrorReports().addAll( eventReport.getErrorReports() );
                 }
 
                 programInstanceService.deleteProgramInstance( programInstance );
