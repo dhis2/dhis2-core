@@ -320,11 +320,11 @@ public class PatchServiceTest
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
 
-        deA.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
-        deA.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
+        deA.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
+        deA.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
 
-        deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
-        deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
+        deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
+        deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
 
         patchService.diff( new PatchParams( deA, deB ) );
     }
@@ -344,8 +344,8 @@ public class PatchServiceTest
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
 
-        deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
-        deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
+        deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
+        deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
 
         Patch patch = patchService.diff( new PatchParams( deA, deB ) );
         patchService.apply( patch, deA );

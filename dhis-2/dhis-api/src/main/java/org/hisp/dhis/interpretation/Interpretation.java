@@ -69,8 +69,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "interpretation", namespace = DXF_2_0 )
 public class Interpretation
-    extends
-    BaseIdentifiableObject
+    extends BaseIdentifiableObject
 {
     private Visualization visualization;
 

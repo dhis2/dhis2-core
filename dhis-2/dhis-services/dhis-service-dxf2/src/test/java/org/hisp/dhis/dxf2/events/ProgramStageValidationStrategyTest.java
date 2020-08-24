@@ -116,19 +116,19 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.addUser( currentUser );
-        organisationUnitA.getUserAccesses().add( userAccess1 );
+        organisationUnitA.getSharing().addUserAccess( userAccess1 );
         currentUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
         manager.save( organisationUnitA, false );
         userService.updateUser( currentUser );
 
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityType.getUserAccesses().add( userAccess1 );
+        trackedEntityType.getSharing().addUserAccess( userAccess1 );
         manager.save( trackedEntityType, false );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
-        maleA.getUserAccesses().add( userAccess1 );
+        maleA.getSharing().addUserAccess( userAccess1 );
         maleA.setUser( currentUser );
         manager.save( maleA, false );
 
@@ -136,27 +136,27 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
-        dataElementA.getUserAccesses().add( userAccess1 );
+        dataElementA.getSharing().addUserAccess( userAccess1 );
         manager.save( dataElementA, false );
 
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.TEXT );
-        dataElementB.getUserAccesses().add( userAccess2 );
+        dataElementB.getSharing().addUserAccess( userAccess2 );
         manager.save( dataElementB, false );
 
         DataElement dataElementC = createDataElement( 'C' );
         dataElementC.setValueType( ValueType.INTEGER );
-        dataElementC.getUserAccesses().add( userAccess3 );
+        dataElementC.getSharing().addUserAccess( userAccess3 );
         manager.save( dataElementC, false );
 
         programStageA = createProgramStage( 'A', 0 );
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        programStageA.getUserAccesses().add( userAccess1 );
+        programStageA.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageA, false );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        programA.getUserAccesses().add( userAccess1 );
+        programA.getSharing().addUserAccess( userAccess1 );
         manager.save( programA, false );
 
         //Create a compulsory PSDE
@@ -164,7 +164,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementA.setDataElement( dataElementA );
         programStageDataElementA.setProgramStage( programStageA );
         programStageDataElementA.setCompulsory( true );
-        programStageDataElementA.getUserAccesses().add( userAccess1 );
+        programStageDataElementA.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementA, false );
 
         //Create a compulsory PSDE
@@ -172,7 +172,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementB.setDataElement( dataElementB );
         programStageDataElementB.setProgramStage( programStageA );
         programStageDataElementB.setCompulsory( true );
-        programStageDataElementB.getUserAccesses().add( userAccess1 );
+        programStageDataElementB.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementB, false );
 
         //Create a NON-compulsory PSDE
@@ -180,7 +180,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementC.setDataElement( dataElementC );
         programStageDataElementC.setProgramStage( programStageA );
         programStageDataElementC.setCompulsory( false );
-        programStageDataElementC.getUserAccesses().add( userAccess1 );
+        programStageDataElementC.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementC, false );
 
         //Assign all 3 created PSDEs to created ProgramStage programStageA and to created Program programA
@@ -198,21 +198,21 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setEnrollmentDate( new Date() );
         programInstance.setEntityInstance( maleA );
-        programInstance.getUserAccesses().add( userAccess1 );
+        programInstance.getSharing().addUserAccess( userAccess1 );
         maleA.getProgramInstances().add( programInstance );
 
         manager.save( programInstance, false );
         manager.update( maleA );
 
         Period periodA = createPeriod( testYear + "03" );
-        periodA.getUserAccesses().add( userAccess1 );
+        periodA.getSharing().addUserAccess( userAccess1 );
         manager.save( periodA, false );
 
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
-        categoryComboA.getUserAccesses().add( userAccess1 );
-        categoryOptionComboA.getUserAccesses().add( userAccess1 );
+        categoryComboA.getSharing().addUserAccess( userAccess1 );
+        categoryOptionComboA.getSharing().addUserAccess( userAccess1 );
         manager.save( categoryComboA, false );
         manager.save( categoryOptionComboA, false );
 

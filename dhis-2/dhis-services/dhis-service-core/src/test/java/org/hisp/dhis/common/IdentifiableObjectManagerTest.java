@@ -403,7 +403,7 @@ public class IdentifiableObjectManagerTest
 
             sessionFactory.getCurrentSession().save( userGroupAccess );
 
-            dataElement.getUserGroupAccesses().add( userGroupAccess );
+            dataElement.getSharing().addUserGroupAccess( userGroupAccess );
             sessionFactory.getCurrentSession().update( dataElement );
         }
 

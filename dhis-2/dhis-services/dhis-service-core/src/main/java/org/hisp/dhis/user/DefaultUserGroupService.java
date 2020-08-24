@@ -54,7 +54,7 @@ public class DefaultUserGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final IdentifiableObjectStore<UserGroup> userGroupStore;
+    private final UserGroupStore userGroupStore;
 
     private final CurrentUserService currentUserService;
 
@@ -62,7 +62,7 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
-    public DefaultUserGroupService( @Qualifier("org.hisp.dhis.user.UserGroupStore") IdentifiableObjectStore<UserGroup> userGroupStore,
+    public DefaultUserGroupService( UserGroupStore userGroupStore,
         CurrentUserService currentUserService, AclService aclService, HibernateCacheManager cacheManager )
     {
         checkNotNull( userGroupStore );

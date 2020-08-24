@@ -30,6 +30,7 @@ package org.hisp.dhis.security.acl;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -63,7 +64,7 @@ import static org.junit.Assert.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class AclServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private AclService aclService;
@@ -76,6 +77,12 @@ public class AclServiceTest
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest() throws Exception
@@ -406,8 +413,8 @@ public class AclServiceTest
     @Test
     public void testDataElementSharingPrivateRW()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user1 = createUser( "user1A9", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2A9", "F_DATAELEMENT_PRIVATE_ADD" );
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user1 );
@@ -422,7 +429,7 @@ public class AclServiceTest
 
         manager.save( userGroup );
 
-        dataElement.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        dataElement.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         manager.update( dataElement );
 
         assertTrue( aclService.canUpdate( user2, dataElement ) );
@@ -431,8 +438,8 @@ public class AclServiceTest
     @Test
     public void testCategoryOptionSharingPrivateRW()
     {
-        User user1 = createUser( "user1", "F_CATEGORY_OPTION_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "F_CATEGORY_OPTION_PRIVATE_ADD" );
+        User user1 = createUser( "user11", "F_CATEGORY_OPTION_PRIVATE_ADD" );
+        User user2 = createUser( "user22", "F_CATEGORY_OPTION_PRIVATE_ADD" );
 
         CategoryOption categoryOption = createCategoryOption( 'A' );
         categoryOption.setUser( user1 );
@@ -447,7 +454,7 @@ public class AclServiceTest
 
         manager.save( userGroup );
 
-        categoryOption.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        categoryOption.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         manager.update( categoryOption );
 
         assertTrue( aclService.canUpdate( user2, categoryOption ) );
@@ -502,7 +509,7 @@ public class AclServiceTest
         UserAccess userAccess = new UserAccess(  );
         userAccess.setUser( user2 );
         userAccess.setAccess( AccessStringHelper.READ_WRITE );
-        dashboard.getUserAccesses().add( userAccess );
+        dashboard.getSharing().addUserAccess( userAccess );
 
         assertTrue( aclService.canRead( user2, dashboard ) );
         assertTrue( aclService.canUpdate( user2, dashboard ) );
@@ -533,7 +540,7 @@ public class AclServiceTest
         UserAccess userAccess = new UserAccess(  );
         userAccess.setUser( user2 );
         userAccess.setAccess( AccessStringHelper.READ );
-        dashboard.getUserAccesses().add( userAccess );
+        dashboard.getSharing().addUserAccess( userAccess );
 
         assertTrue( aclService.canRead( user2, dashboard ) );
         assertFalse( aclService.canUpdate( user2, dashboard ) );
@@ -584,7 +591,7 @@ public class AclServiceTest
         manager.save( dashboard );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
-        dashboard.getUserGroupAccesses().add( userGroupAccess );
+        dashboard.getSharing().addUserGroupAccess( userGroupAccess );
         manager.update( dashboard );
 
         assertTrue( aclService.canRead( user1, dashboard ) );
@@ -607,8 +614,8 @@ public class AclServiceTest
     @Test
     public void testReadPrivateDataElementSharedThroughGroup()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user1 = createUser( "user111", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user222", "F_DATAELEMENT_PRIVATE_ADD" );
 
         manager.save( user1 );
         manager.save( user2 );
@@ -624,7 +631,7 @@ public class AclServiceTest
         manager.save( dataElement );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
-        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        dataElement.getSharing().addUserGroupAccess( userGroupAccess );
 
         assertTrue( aclService.canUpdate( user1, dataElement ) );
         manager.update( dataElement );
@@ -652,8 +659,8 @@ public class AclServiceTest
     @Test
     public void testUpdatePrivateDataElementSharedThroughGroup()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user1 = createUser( "user1A", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2A", "F_DATAELEMENT_PRIVATE_ADD" );
 
         manager.save( user1 );
         manager.save( user2 );
@@ -668,7 +675,7 @@ public class AclServiceTest
         manager.save( dataElement );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
-        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        dataElement.getSharing().addUserGroupAccess( userGroupAccess );
         manager.update( dataElement );
 
         assertTrue( aclService.canRead( user1, dataElement ) );
@@ -693,7 +700,7 @@ public class AclServiceTest
     @Test
     public void testBlockMakePublic()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user1 = createUser( "user1B", "F_DATAELEMENT_PRIVATE_ADD" );
         manager.save( user1 );
 
         DataElement dataElement = createDataElement( 'A' );
@@ -710,8 +717,8 @@ public class AclServiceTest
     @Test
     public void testAllowSuperuserMakePublic1()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "ALL" );
+        User user1 = createUser( "user1C", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2C", "ALL" );
         manager.save( user1 );
         manager.save( user2 );
 
@@ -729,7 +736,7 @@ public class AclServiceTest
     @Test
     public void testAllowMakePublic()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user1 = createUser( "user1D", "F_DATAELEMENT_PUBLIC_ADD" );
         manager.save( user1 );
 
         DataElement dataElement = createDataElement( 'A' );
@@ -758,7 +765,7 @@ public class AclServiceTest
     @Test
     public void testBlockDashboardPublic()
     {
-        User user1 = createUser( "user1" );
+        User user1 = createUser( "user1E" );
         manager.save( user1 );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
@@ -776,7 +783,7 @@ public class AclServiceTest
     @Test
     public void testAllowDashboardPublic()
     {
-        User user1 = createUser( "user1", "F_DASHBOARD_PUBLIC_ADD" );
+        User user1 = createUser( "user1F", "F_DASHBOARD_PUBLIC_ADD" );
         manager.save( user1 );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
@@ -794,9 +801,9 @@ public class AclServiceTest
     @Test
     public void testSuperuserOverride()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user3 = createUser( "user3", "ALL" );
+        User user1 = createUser( "user11A", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user22A", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user3 = createUser( "user33A", "ALL" );
 
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
@@ -808,7 +815,7 @@ public class AclServiceTest
         manager.save( dataElement );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
-        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        dataElement.getSharing().addUserGroupAccess( userGroupAccess );
         manager.update( dataElement );
 
         assertTrue( aclService.canRead( user1, dataElement ) );
@@ -847,7 +854,7 @@ public class AclServiceTest
     @Test
     public void testUpdatePrivateProgram()
     {
-        User user = createUser( "user1", "F_PROGRAM_PRIVATE_ADD", "F_PROGRAMSTAGE_ADD" );
+        User user = createUser( "user1A1", "F_PROGRAM_PRIVATE_ADD", "F_PROGRAMSTAGE_ADD" );
 
         Program program = createProgram( 'A' );
         program.setUser( user );
@@ -874,7 +881,7 @@ public class AclServiceTest
         User adminUser = createAndInjectAdminUser();
         assertEquals( adminUser, currentUserService.getCurrentUser() );
 
-        User userNoAuthorities = createUser( "user1" );
+        User userNoAuthorities = createUser( "user1A2" );
         manager.save( userNoAuthorities );
 
         Visualization visualization = new Visualization();
@@ -900,8 +907,8 @@ public class AclServiceTest
         User adminUser = createAndInjectAdminUser();
         assertEquals( adminUser, currentUserService.getCurrentUser() );
 
-        User user1 = createUser( "user1" );
-        User user2 = createUser( "user2" );
+        User user1 = createUser( "user1A3" );
+        User user2 = createUser( "user2A3" );
 
         injectSecurityContext( user1 );
         assertEquals( user1, currentUserService.getCurrentUser() );
@@ -930,7 +937,7 @@ public class AclServiceTest
         User adminUser = createAndInjectAdminUser();
         assertEquals( adminUser, currentUserService.getCurrentUser() );
 
-        User user1 = createUser( "user1" );
+        User user1 = createUser( "user1A4" );
         injectSecurityContext( user1 );
         assertEquals( user1, currentUserService.getCurrentUser() );
 
@@ -955,8 +962,8 @@ public class AclServiceTest
     @Test
     public void shouldUseAuthoritiesIfSharingPropsAreNullOrEmptyWithPublicAuth()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user1 = createUser( "user1A5", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user2 = createUser( "user2A5", "F_DATAELEMENT_PUBLIC_ADD" );
 
         injectSecurityContext( user1 );
 
@@ -993,8 +1000,8 @@ public class AclServiceTest
     @Test
     public void shouldUseAuthoritiesIfSharingPropsAreNullOrEmptyWithPrivateAuth()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user1 = createUser( "user1A6", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2A6", "F_DATAELEMENT_PRIVATE_ADD" );
 
         injectSecurityContext( user1 );
 
@@ -1030,8 +1037,8 @@ public class AclServiceTest
     @Test
     public void testDefaultShouldBlockReadsFromOtherUsers()
     {
-        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
-        User user2 = createUser( "user2", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user1 = createUser( "user1A7", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user2 = createUser( "user2A7", "F_DATAELEMENT_PUBLIC_ADD" );
 
         injectSecurityContext( user1 );
 
@@ -1091,7 +1098,7 @@ public class AclServiceTest
         userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
 
-        visualization.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
+        visualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
         manager.update( visualization );
 
         assertTrue( aclService.canUpdate( userB, visualization ) );
@@ -1150,7 +1157,7 @@ public class AclServiceTest
         User userB = createUser( 'B' );
         manager.save( userB );
 
-        visualization.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
+        visualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
         manager.update( visualization );
 
         assertTrue( aclService.canUpdate( userB, visualization ) );
@@ -1159,7 +1166,7 @@ public class AclServiceTest
     @Test
     public void testCanDataOrMetadataRead() 
     {
-        User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
+        User user1 = createUser( "user1A8", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
         manager.save( user1 );
 
         // non data shareable object //

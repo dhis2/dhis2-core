@@ -266,7 +266,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
             userGroupAccessService.addUserGroupAccess( userGroupAccess );
 
-            object.getUserGroupAccesses().add( userGroupAccess );
+            object.getSharing().addUserGroupAccess( userGroupAccess );
         }
 
         identifiableObjectManager.updateNoAcl( object );

@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.dialect;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,30 +28,13 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.function.StandardSQLFunction;
-import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
-import org.hibernate.type.StandardBasicTypes;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-import java.sql.Types;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Stian Sandvold <stian@dhis2.org>
- */
-public class DhisPostgresDialect
-    extends PostgisPG95Dialect
+public interface UserGroupStore
+    extends IdentifiableObjectStore<UserGroup>
 {
-    public DhisPostgresDialect()
-    {
-        super();
-        registerColumnType( Types.JAVA_OBJECT, "jsonb" );
-        registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( JsonbFunctions.EXTRACT_PATH, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS, new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.HAS_USER_ID, new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
-    }
+    String ID = UserGroupStore.class.getName();
+
+    @Override
+    void save( UserGroup userGroup, boolean clearSharing );
 }

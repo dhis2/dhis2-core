@@ -338,11 +338,11 @@ public class ObjectBundleServiceProgramTest
 
         UserAccess userAccess1 = new UserAccess( testUser, "rw------" );
         userAccessService.addUserAccess( userAccess1 );
-        tea1.getUserAccesses().add( userAccess1 );
+        tea1.getSharing().addUserAccess( userAccess1 );
 
         UserAccess userAccess2 = new UserAccess( testUser, "rw------" );
         userAccessService.addUserAccess( userAccess2 );
-        tea2.getUserAccesses().add( userAccess2 );
+        tea2.getSharing().addUserAccess( userAccess2 );
 
         manager.update( tea1 );
         manager.update( tea2 );

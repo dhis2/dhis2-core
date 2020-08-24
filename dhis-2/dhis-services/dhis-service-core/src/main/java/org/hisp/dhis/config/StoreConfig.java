@@ -119,13 +119,6 @@ public class StoreConfig
             Expression.class, true );
     }
 
-    @Bean( "org.hisp.dhis.user.UserGroupStore" )
-    public HibernateIdentifiableObjectStore<UserGroup> userGroupStore()
-    {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );
-    }
-
     @Bean( "org.hisp.dhis.user.UserGroupAccessStore" )
     public HibernateGenericStore<UserGroupAccess> userGroupAccessStore()
     {

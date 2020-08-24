@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.i18n.LocaleContextHolder;
 
@@ -259,6 +260,57 @@ public class JpaQueryUtils
 
             return sb.toString();
         } ).collect( Collectors.joining( "," ) ), null );
+    }
+
+    public static <T> Function<Root<T>, Predicate> getUserQueryForSharing( CriteriaBuilder builder, String userUid, String access )
+    {
+        return ( Root<T> root ) ->
+            builder.and(
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.HAS_USER_ID,
+                        Boolean.class, root.get( "sharing" ),
+                        builder.literal( userUid ) ),
+                    true ),
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.CHECK_USER_ACCESS,
+                        Boolean.class, root.get( "sharing" ),
+                        builder.literal( userUid ),
+                        builder.literal( access ) ),
+                    true )
+            );
+    }
+
+    public static <T> Function<Root<T>,Predicate> getUserGroupQueryForSharing( CriteriaBuilder builder, List<String> userGroupUids, String access )
+    {
+        return ( Root<T> root ) ->
+        {
+            if ( userGroupUids.isEmpty() )
+            {
+                return null;
+            }
+
+            String groupUuIds = "{" + String.join( ",", userGroupUids ) + "}";
+
+            return builder.and(
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.HAS_USER_GROUP_IDS,
+                        Boolean.class,
+                        root.get( "sharing" ),
+                        builder.literal( groupUuIds ) ),
+                    true ),
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
+                        Boolean.class,
+                        root.get( "sharing" ),
+                        builder.literal( access ),
+                        builder.literal( groupUuIds ) ),
+                    true )
+            );
+        };
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )

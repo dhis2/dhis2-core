@@ -480,8 +480,8 @@ public class DefaultAclService implements AclService
         baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
         baseIdentifiableObject.setExternalAccess( false );
 
-        object.getUserAccesses().clear();
-        object.getUserGroupAccesses().clear();
+        object.getSharing().resetUserAccesses();
+        object.getSharing().resetUserGroupAccesses();
     }
 
     @Override

@@ -138,7 +138,7 @@ public class HibernateDataElementStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<DataElement> param = new JpaQueryParameters<DataElement>()
-            .addPredicate( getJsonbSharingPredicates( builder, user, AclService.LIKE_READ_METADATA ) )
+            .addPredicates( getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA ) )
             .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) );
 
         return getSingleResult( builder, param );

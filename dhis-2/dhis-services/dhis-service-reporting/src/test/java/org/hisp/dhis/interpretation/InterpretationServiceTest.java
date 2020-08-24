@@ -347,7 +347,7 @@ public class InterpretationServiceTest
         manager.save( visualization );
 
         visualization.setPublicAccess( AccessStringHelper.READ_WRITE );
-        visualization.getUserGroupAccesses().add( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
+        visualization.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         manager.update( visualization );
 

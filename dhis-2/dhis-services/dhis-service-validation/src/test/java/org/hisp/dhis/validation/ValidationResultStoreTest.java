@@ -31,6 +31,7 @@ package org.hisp.dhis.validation;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -75,7 +76,7 @@ import static org.junit.Assert.assertTrue;
  * @author Jim Grace
  */
 public class ValidationResultStoreTest
-    extends DhisTest
+    extends TransactionalIntegrationTestBase
 {
     private static final String ACCESS_NONE = "--------";
     private static final String ACCESS_READ = "r-------";
@@ -191,8 +192,10 @@ public class ValidationResultStoreTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
-        object.setUser( userZ ); // Needed for sharing to work
+//        object.setPublicAccess( ACCESS_NONE );
+//        object.setUser( userZ ); // Needed for sharing to work
+        object.getSharing().setOwner( userZ );
+        object.getSharing().setPublicAccess( ACCESS_NONE );
 
         for ( UserGroup group : userGroups )
         {
@@ -202,9 +205,7 @@ public class ValidationResultStoreTest
 
             userGroupAccess.setUserGroup( group );
 
-            userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
-            object.getUserGroupAccesses().add( userGroupAccess );
+            object.getSharing().addUserGroupAccess( userGroupAccess );
         }
 
         identifiableObjectManager.updateNoAcl( object );
@@ -245,8 +246,15 @@ public class ValidationResultStoreTest
 
         UserGroup userGroupC = createUserGroup( 'A', Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = createUserGroup( 'B', Sets.newHashSet( userDService.getCurrentUser() ) );
+
         userGroupService.addUserGroup( userGroupC );
         userGroupService.addUserGroup( userGroupD );
+
+        userCService.getCurrentUser().getGroups().add( userGroupC );
+        userService.updateUser( userCService.getCurrentUser() );
+
+        userDService.getCurrentUser().getGroups().add( userGroupD );
+        userService.updateUser( userDService.getCurrentUser() );
 
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
@@ -554,7 +562,11 @@ public class ValidationResultStoreTest
         count = validationResultStore.count( validationResultQuery );
         assertEquals( 3, count );
 
+
         setMockUserService( userCService );
+        System.out.println("userC : " + userCService.getCurrentUser().getGroups());
+        System.out.println(" optionA : " + optionA.getSharing());
+        System.out.println(" result : " + validationResultStore.getAll() );
         count = validationResultStore.count( validationResultQuery );
         assertEquals( 1, count );
 

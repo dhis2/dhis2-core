@@ -84,53 +84,45 @@ public class HibernateIdentifiableObjectStoreTest
     {
         User admin = createAndInjectAdminUser();
         User user1 = new User();
-        UserCredentials userCredentials1 = new UserCredentials();
-        userCredentials1.setUuid( UUID.randomUUID() );
-        user1.setUserCredentials( userCredentials1 );
+        user1.setUid( CodeGenerator.generateUid()  );
 
         User user2 = new User();
-        UserCredentials userCredentials2 = new UserCredentials();
-        userCredentials2.setUuid( UUID.randomUUID() );
-        user2.setUserCredentials( userCredentials2 );
+        user2.setUid( CodeGenerator.generateUid()  );
 
         User user3 = new User();
-        UserCredentials userCredentials3 = new UserCredentials();
-        userCredentials3.setUuid( UUID.randomUUID() );
-        user3.setUserCredentials( userCredentials3 );
+        user3.setUid( CodeGenerator.generateUid()  );
 
         User user4 = new User();
-        UserCredentials userCredentials4 = new UserCredentials();
-        userCredentials3.setUuid( UUID.randomUUID() );
-        user4.setUserCredentials( userCredentials4 );
+        user4.setUid( CodeGenerator.generateUid()  );
 
         UserGroup userGroup1 = new UserGroup();
-        userGroup1.setUuid( UUID.randomUUID() );
+        userGroup1.setUid( CodeGenerator.generateUid() );;
 
         UserGroup userGroup2 = new UserGroup(  );
-        userGroup2.setUuid( UUID.randomUUID() );
+        userGroup2.setUid( CodeGenerator.generateUid() );;
 
         user1.getGroups().add(userGroup1);
         user1.getGroups().add(userGroup2);
         user4.getGroups().add(userGroup2);
 
         Map<String, UserAccess> userSharing = new HashMap<>();
-        userSharing.put( user1.getUserCredentials().getUuid().toString(),
-            UserAccess.builder().id( user1.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user1.getUid(),
+            UserAccess.builder().id( user1.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
-        userSharing.put( user2.getUserCredentials().getUuid().toString(),
-            UserAccess.builder().id( user2.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.READ ).build() );
+        userSharing.put( user2.getUid(),
+            UserAccess.builder().id( user2.getUid() ).access( AccessStringHelper.READ ).build() );
 
-        userSharing.put( user3.getUserCredentials().getUuid().toString(),
-                UserAccess.builder().id( user3.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user3.getUid(),
+                UserAccess.builder().id( user3.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
-        userSharing.put( user4.getUserCredentials().getUuid().toString(),
-                UserAccess.builder().id( user4.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user4.getUid(),
+                UserAccess.builder().id( user4.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
         Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
-        userGroupSharing.put( userGroup1.getUuid().toString(),
-            UserGroupAccess.builder().id( userGroup1.getUuid().toString() ).access( AccessStringHelper.READ_WRITE ).build() );
-        userGroupSharing.put( userGroup2.getUuid().toString(),
-            UserGroupAccess.builder().id( userGroup2.getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userGroupSharing.put( userGroup1.getUid(),
+            UserGroupAccess.builder().id( userGroup1.getUid() ).access( AccessStringHelper.READ_WRITE ).build() );
+        userGroupSharing.put( userGroup2.getUid(),
+            UserGroupAccess.builder().id( userGroup2.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
         DataElement dataElement = createDataElement( 'A' );
         String dataElementUid = "deabcdefghA";
@@ -147,6 +139,7 @@ public class HibernateIdentifiableObjectStoreTest
         dataElement.setSharing( sharing );
         dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
         dataElement.setExternalAccess(false);
+
         dataElementService.addDataElement( dataElement );
 
         dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -176,52 +169,52 @@ public class HibernateIdentifiableObjectStoreTest
         User admin = createAndInjectAdminUser();
         User user1 = new User();
         UserCredentials userCredentials1 = new UserCredentials();
-        userCredentials1.setUuid( UUID.randomUUID() );
+        userCredentials1.setUid( CodeGenerator.generateUid() );;
         user1.setUserCredentials( userCredentials1 );
 
         User user2 = new User();
         UserCredentials userCredentials2 = new UserCredentials();
-        userCredentials2.setUuid( UUID.randomUUID() );
+        userCredentials2.setUid( CodeGenerator.generateUid() );;
         user2.setUserCredentials( userCredentials2 );
 
         User user3 = new User();
         UserCredentials userCredentials3 = new UserCredentials();
-        userCredentials3.setUuid( UUID.randomUUID() );
+        userCredentials3.setUid( CodeGenerator.generateUid() );;
         user3.setUserCredentials( userCredentials3 );
 
         User user4 = new User();
         UserCredentials userCredentials4 = new UserCredentials();
-        userCredentials3.setUuid( UUID.randomUUID() );
+        userCredentials3.setUid( CodeGenerator.generateUid() );;
         user4.setUserCredentials( userCredentials4 );
 
         UserGroup userGroup1 = new UserGroup();
-        userGroup1.setUuid( UUID.randomUUID() );
+        userGroup1.setUid( CodeGenerator.generateUid() );;
 
         UserGroup userGroup2 = new UserGroup(  );
-        userGroup2.setUuid( UUID.randomUUID() );
+        userGroup2.setUid( CodeGenerator.generateUid() );;
 
         user1.getGroups().add(userGroup1);
         user1.getGroups().add(userGroup2);
         user4.getGroups().add(userGroup2);
 
         Map<String, UserAccess> userSharing = new HashMap<>();
-        userSharing.put( user1.getUserCredentials().getUuid().toString(),
-            UserAccess.builder().id( user1.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user1.getUid(),
+            UserAccess.builder().id( user1.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
-        userSharing.put( user2.getUserCredentials().getUuid().toString(),
-            UserAccess.builder().id( user2.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DATA_READ_WRITE ).build() );
+        userSharing.put( user2.getUid(),
+            UserAccess.builder().id( user2.getUid() ).access( AccessStringHelper.DATA_READ_WRITE ).build() );
 
-        userSharing.put( user3.getUserCredentials().getUuid().toString(),
-            UserAccess.builder().id( user3.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user3.getUid(),
+            UserAccess.builder().id( user3.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
-        userSharing.put( user4.getUserCredentials().getUuid().toString(),
-            UserAccess.builder().id( user4.getUserCredentials().getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user4.getUid(),
+            UserAccess.builder().id( user4.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
         Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
-        userGroupSharing.put( userGroup1.getUuid().toString(),
-            UserGroupAccess.builder().id( userGroup1.getUuid().toString() ).access( AccessStringHelper.DATA_READ_WRITE ).build() );
-        userGroupSharing.put( userGroup2.getUuid().toString(),
-            UserGroupAccess.builder().id( userGroup2.getUuid().toString() ).access( AccessStringHelper.DEFAULT ).build() );
+        userGroupSharing.put( userGroup1.getUid(),
+            UserGroupAccess.builder().id( userGroup1.getUid() ).access( AccessStringHelper.DATA_READ_WRITE ).build() );
+        userGroupSharing.put( userGroup2.getUid(),
+            UserGroupAccess.builder().id( userGroup2.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
         DataElement dataElement = createDataElement( 'A' );
         String dataElementUid = "deabcdefghA";

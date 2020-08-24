@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.dialect;
+package org.hisp.dhis.user.hibernate;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,30 +28,41 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.function.StandardSQLFunction;
-import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
-import org.hibernate.type.StandardBasicTypes;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import java.sql.Types;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Stian Sandvold <stian@dhis2.org>
- */
-public class DhisPostgresDialect
-    extends PostgisPG95Dialect
+@Repository( "org.hisp.dhis.user.UserGroupStore" )
+public class HibernateUserGroupStore
+    extends HibernateIdentifiableObjectStore<UserGroup>
+    implements UserGroupStore
 {
-    public DhisPostgresDialect()
+    public HibernateUserGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super();
-        registerColumnType( Types.JAVA_OBJECT, "jsonb" );
-        registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( JsonbFunctions.EXTRACT_PATH, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS, new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.HAS_USER_ID, new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        super( sessionFactory, jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true  );
+    }
+
+    @Override
+    public void save( UserGroup userGroup, boolean clearSharing )
+    {
+        super.save( userGroup, clearSharing );
+
+        aclService.getUserGroupCache().put( userGroup.getUid(), userGroup );
+    }
+
+    @Override
+    public void update( UserGroup userGroup, User user )
+    {
+        super.update( userGroup, user );
+
+        aclService.getUserGroupCache().put( userGroup.getUid(), userGroup );
     }
 }

@@ -539,7 +539,7 @@ public class DataSetServiceTest
         userAccess.setUser( user );
         userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE  );
 
-        dataSet.getUserAccesses().add( userAccess );
+        dataSet.getSharing().addUserAccess( userAccess );
 
         Access access = aclService.getAccess( dataSet, user );
         assertTrue( access.getData().isRead() );

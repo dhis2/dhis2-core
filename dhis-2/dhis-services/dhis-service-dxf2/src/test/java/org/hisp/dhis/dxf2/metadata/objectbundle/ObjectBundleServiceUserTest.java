@@ -284,8 +284,8 @@ public class ObjectBundleServiceUserTest
 
         UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
         assertNotNull(  userManagerRole );
-        userManagerRole.getUserAccesses().clear();
-        userManagerRole.getUserAccesses().add( new UserAccess( userB, "rw------" ) );
+        userManagerRole.getSharing().resetUserAccesses();
+        userManagerRole.getSharing().addUserAccess( new UserAccess( userB, "rw------" ) );
         userManagerRole.setPublicAccess( "--------" );
         userManagerRole.setUser( userB );
         manager.update( userManagerRole );

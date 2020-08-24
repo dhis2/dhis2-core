@@ -53,8 +53,17 @@ public class UserAccess
 
     private String access;
 
+    private transient User user;
+
     public UserAccess()
     {
+    }
+
+    public UserAccess( User user, String access )
+    {
+        this.access = access;
+        this.user = user;
+        this.id = user.getUid();
     }
 
     public UserAccess( String id, String access )
@@ -63,10 +72,11 @@ public class UserAccess
         this.access = access;
     }
 
-    public UserAccess( User user, String access )
+    public UserAccess( String id, String access, User user )
     {
-        this.id = user.getUid();
+        this.id = id;
         this.access = access;
+        this.user = user;
     }
 
     public String getId()
@@ -94,9 +104,15 @@ public class UserAccess
 
     public void setUser( User user )
     {
+        this.user = user;
         this.id = user.getUid();
     }
 
+    @JsonIgnore
+    public User getUser()
+    {
+        return user;
+    }
 
     @Override
     public boolean equals( Object o )

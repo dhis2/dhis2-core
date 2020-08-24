@@ -28,6 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -50,6 +51,8 @@ public class UserGroupAccess
 
     private String access;
 
+    private transient UserGroup userGroup;
+
     public UserGroupAccess()
     {
     }
@@ -62,8 +65,16 @@ public class UserGroupAccess
 
     public UserGroupAccess( UserGroup userGroup, String access )
     {
-        this.id = userGroup.getUid();
         this.access = access;
+        this.userGroup = userGroup;
+        this.id = userGroup.getUid();
+    }
+
+    public UserGroupAccess( String id, String access, UserGroup userGroup )
+    {
+        this.id = id;
+        this.access = access;
+        this.userGroup = userGroup;
     }
 
     public String getId()
@@ -91,6 +102,12 @@ public class UserGroupAccess
     public void setUserGroup( UserGroup userGroup )
     {
         this.id = userGroup.getUid();
+    }
+
+    @JsonIgnore
+    public UserGroup getUserGroup()
+    {
+        return userGroup;
     }
 
     @Override

@@ -186,10 +186,11 @@ public class SharingController
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
+            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getId() );
             SharingUserGroupAccess sharingUserGroupAccess = new SharingUserGroupAccess();
-            sharingUserGroupAccess.setId( userGroupAccess.getUserGroup().getUid() );
-            sharingUserGroupAccess.setName( userGroupAccess.getUserGroup().getDisplayName() );
-            sharingUserGroupAccess.setDisplayName( userGroupAccess.getUserGroup().getDisplayName() );
+            sharingUserGroupAccess.setId( userGroupAccess.getId() );
+            sharingUserGroupAccess.setName( userGroup.getDisplayName() );
+            sharingUserGroupAccess.setDisplayName( userGroup.getDisplayName() );
             sharingUserGroupAccess.setAccess( userGroupAccess.getAccess() );
 
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
@@ -197,11 +198,12 @@ public class SharingController
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
+            User _user = userService.getUser( userAccess.getId() );
             SharingUserAccess sharingUserAccess = new SharingUserAccess();
 
-            sharingUserAccess.setId( userAccess.getUser().getUid() );
-            sharingUserAccess.setName( userAccess.getUser().getDisplayName() );
-            sharingUserAccess.setDisplayName( userAccess.getUser().getDisplayName() );
+            sharingUserAccess.setId( userAccess.getId() );
+            sharingUserAccess.setName( _user.getDisplayName() );
+            sharingUserAccess.setDisplayName( _user.getDisplayName() );
             sharingUserAccess.setAccess( userAccess.getAccess() );
 
             sharing.getObject().getUserAccesses().add( sharingUserAccess );
@@ -321,7 +323,7 @@ public class SharingController
                 userGroupAccess.setUserGroup( userGroup );
                 userGroupAccessService.addUserGroupAccess( userGroupAccess );
 
-                object.getUserGroupAccesses().add( userGroupAccess );
+                object.getSharing().addUserGroupAccess( userGroupAccess );
             }
         }
 
@@ -361,7 +363,7 @@ public class SharingController
                 userAccess.setUser( sharingUser );
                 userAccessService.addUserAccess( userAccess );
 
-                object.getUserAccesses().add( userAccess );
+                object.getSharing().addUserAccess( userAccess );
             }
         }
 
@@ -457,8 +459,7 @@ public class SharingController
 
             for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
             {
-                builder.append( "{uid: " ).append( userGroupAccess.getUserGroup().getUid() )
-                    .append( ", name: " ).append( userGroupAccess.getUserGroup().getName() )
+                builder.append( "{uid: " ).append( userGroupAccess.getId() )
                     .append( ", access: " ).append( userGroupAccess.getAccess() )
                     .append( "} " );
             }
@@ -470,8 +471,7 @@ public class SharingController
 
             for ( UserAccess userAccess : object.getUserAccesses() )
             {
-                builder.append( "{uid: " ).append( userAccess.getUser().getUid() )
-                    .append( ", name: " ).append( userAccess.getUser().getName() )
+                builder.append( "{uid: " ).append( userAccess.getId() )
                     .append( ", access: " ).append( userAccess.getAccess() )
                     .append( "} " );
             }

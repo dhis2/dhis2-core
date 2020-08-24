@@ -39,11 +39,6 @@ public class UserKeyJsonValue
     extends BaseIdentifiableObject
 {
     /**
-     * The user which owns this UserKeyJsonValue
-     */
-    private User user;
-
-    /**
      * A namespace is a collection of keys for a given user
      */
     private String namespace;
@@ -94,17 +89,6 @@ public class UserKeyJsonValue
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
-
-    @JsonProperty
-    public User getUser()
-    {
-        return user;
-    }
-
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
 
     @JsonProperty
     public String getNamespace()

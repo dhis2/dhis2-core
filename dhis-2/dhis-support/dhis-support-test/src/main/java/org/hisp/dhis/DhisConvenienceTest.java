@@ -2390,12 +2390,12 @@ public abstract class DhisConvenienceTest
 
     protected void enableDataSharing( User user, IdentifiableObject object, String access )
     {
-        object.getUserAccesses().clear();
+        object.getSharing().resetUserAccesses();
 
         UserAccess userAccess = new UserAccess();
-        userAccess.setId( user.getUid() );
+        userAccess.setUser( user );
         userAccess.setAccess( access );
 
-        object.getUserAccesses().add( userAccess );
+        object.getSharing().addUserAccess( userAccess );
     }
 }
