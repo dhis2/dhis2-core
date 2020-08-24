@@ -105,7 +105,7 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql("desc");
+        assertExpectedSql( "desc" );
     }
 
     @Test
@@ -115,7 +115,7 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql("desc");
+        assertExpectedSql( "desc" );
     }
 
     @Test
@@ -125,7 +125,7 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedLastSql("desc");
+        assertExpectedLastSql( "desc" );
     }
 
     @Test
@@ -135,7 +135,7 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedLastSql("desc");
+        assertExpectedLastSql( "desc" );
     }
 
     private void mockRowSet()
