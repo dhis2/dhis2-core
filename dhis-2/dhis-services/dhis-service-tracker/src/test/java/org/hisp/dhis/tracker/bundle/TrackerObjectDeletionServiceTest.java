@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -109,16 +111,19 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
+        assertEquals( 1, trackerBundle.getEvents().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
             .build() );
 
         assertEquals( 1, trackerBundles.size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
 
+        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(), manager.getAll( ProgramStageInstance.class ).size() );
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getCreated(), manager.getAll( TrackedEntityInstance.class ).size() );
         assertEquals( 3, manager.getAll( ProgramInstance.class ).size() );
     }
@@ -169,5 +174,28 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         // remaining
         assertEquals( 2, manager.getAll( ProgramInstance.class ).size() );
+    }
+
+    @Test
+    public void testEventDeletion() throws IOException
+    {
+        TrackerBundle trackerBundle = renderService
+                .fromJson( new ClassPathResource( "tracker/event_basic_data_for_deletion.json" ).getInputStream(),
+                        TrackerBundleParams.class ).toTrackerBundle();
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+                .events( trackerBundle.getEvents() )
+                .build() );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles.get( 0 ) );
+
+        assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
+        assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.EVENT ) );
+        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getDeleted(), 1 );
+
+        // remaining
+        assertEquals( 0, manager.getAll( ProgramStageInstance.class ).size() );
     }
 }
