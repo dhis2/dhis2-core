@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,9 +53,6 @@ import org.junit.rules.ExpectedException;
 public class AttributeOptionComboDateCheckTest extends BaseValidationTest
 {
     private AttributeOptionComboDateCheck rule;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void setUp()
@@ -71,9 +69,9 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2020-01-01", true );
         mockContext( categoryOptionCombo );
 
-        thrown.expect( IllegalQueryException.class );
-        thrown.expectMessage( "Event date 2019-05-01 is before start date 2020-01-01 for attributeOption 'test'" );
-        rule.check( new ImmutableEvent( event ), this.workContext );
+        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
+        assertHasError( importSummary, event,
+            "Event date 2019-05-01 is before start date 2020-01-01 for attributeOption 'test'" );
     }
 
     @Test
@@ -85,9 +83,9 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2019-04-01", false );
         mockContext( categoryOptionCombo );
 
-        thrown.expect( IllegalQueryException.class );
-        thrown.expectMessage( "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test'" );
-        rule.check( new ImmutableEvent( event ), this.workContext );
+        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
+        assertHasError( importSummary, event,
+            "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test'" );
     }
 
     private void mockContext( CategoryOptionCombo categoryOptionCombo )

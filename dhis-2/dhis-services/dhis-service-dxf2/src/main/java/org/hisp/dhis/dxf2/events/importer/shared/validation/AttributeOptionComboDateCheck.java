@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -70,31 +71,23 @@ public class AttributeOptionComboDateCheck implements Checker
 
         if ( eventDate == null )
         {
-            throw new IllegalQueryException( "Event date can not be empty" );
+            return error( "Event date can not be empty", event.getEvent() );
         }
 
-        for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
+        for ( CategoryOption categoryOption : attributeOptionCombo.getCategoryOptions() )
         {
-            if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
+            if ( categoryOption.getStartDate() != null && eventDate.compareTo( categoryOption.getStartDate() ) < 0 )
             {
-                // TODO: Could we replace the exception by ImportSummary error?
-//                return error( "Event date " + getMediumDateString( date ) + " is after end date "
-//                    + getMediumDateString( option.getEndDate() ) + " for attributeOption '" + option.getName() + "'" )
-//                        .incrementIgnored();
-                throw new IllegalQueryException( "Event date " + getMediumDateString( eventDate )
-                    + " is before start date " + getMediumDateString( option.getStartDate() ) + " for attributeOption '"
-                    + option.getName() + "'" );
+                return error( "Event date " + getMediumDateString( eventDate ) + " is before start date "
+                    + getMediumDateString( categoryOption.getStartDate() ) + " for attributeOption '"
+                    + categoryOption.getName() + "'", event.getEvent() );
             }
 
-            if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
+            if ( categoryOption.getEndDate() != null && eventDate.compareTo( categoryOption.getEndDate() ) > 0 )
             {
-                // TODO: Could we replace the exception by ImportSummary error?
-//                return error( "Event date " + getMediumDateString( date ) + " is after end date "
-//                    + getMediumDateString( option.getEndDate() ) + " for attributeOption '" + option.getName() + "'" )
-//                        .incrementIgnored();
-                throw new IllegalQueryException( "Event date " + getMediumDateString( eventDate )
-                    + " is after end date " + getMediumDateString( option.getEndDate() ) + " for attributeOption '"
-                    + option.getName() + "'" );
+                return error( "Event date " + getMediumDateString( eventDate ) + " is after end date "
+                    + getMediumDateString( categoryOption.getEndDate() ) + " for attributeOption '"
+                    + categoryOption.getName() + "'", event.getEvent() );
             }
         }
 
