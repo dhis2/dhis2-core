@@ -45,8 +45,11 @@ import java.util.Locale;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ *
+ * //TODO: Make test for this if still useable, right now (24.08.2020) this is disabled after xml to java config refactor.
  */
 @Component
+@Deprecated
 public class TranslationInterceptor extends HandlerInterceptorAdapter implements InitializingBean
 {
     private static TranslationInterceptor instance;

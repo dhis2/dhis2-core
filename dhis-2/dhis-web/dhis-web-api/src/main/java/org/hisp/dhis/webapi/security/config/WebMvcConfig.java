@@ -74,21 +74,11 @@ public class WebMvcConfig implements WebMvcConfigurer
         return expressionHandler;
     }
 
-//  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
-//
-//  <bean id="defaultHandlerExceptionResolver" class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
-
     @Bean
     public NodeService nodeService()
     {
         return new DefaultNodeService();
     }
-
-//    @Override
-//    public void addInterceptors( InterceptorRegistry registry )
-//    {
-//        registry.addInterceptor( TranslationInterceptor.get() );
-//    }
 
     @Override
     public void configureMessageConverters(

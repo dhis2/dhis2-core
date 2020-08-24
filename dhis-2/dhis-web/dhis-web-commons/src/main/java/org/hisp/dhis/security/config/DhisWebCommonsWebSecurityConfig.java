@@ -162,6 +162,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .and()
 
                 .exceptionHandling()
+                .authenticationEntryPoint( entryPoint() )
                 .and()
 
                 .csrf()
