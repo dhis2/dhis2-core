@@ -42,7 +42,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityI
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,7 +65,7 @@ public class TrackedEntityInstanceRowCallbackHandler
 
     public TrackedEntityInstanceRowCallbackHandler( )
     {
-        this.items = new HashMap<>();
+        this.items = new LinkedHashMap<>();
     }
 
     private TrackedEntityInstance getTei( ResultSet rs )
