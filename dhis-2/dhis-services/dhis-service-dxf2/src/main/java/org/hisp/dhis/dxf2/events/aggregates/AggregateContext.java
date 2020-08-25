@@ -30,6 +30,9 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import java.util.List;
 
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+
 import lombok.Builder;
 import lombok.Value;
 
@@ -70,7 +73,13 @@ public class AggregateContext
      */
     List<Long> relationshipTypes;
 
-    boolean includeRelationships;
+    /**
+     * The tei params to specify depth of tei graph
+     */
+    TrackedEntityInstanceParams params;
 
-    boolean includeEvents;
+    /**
+     * The query parameters to filter teis
+     */
+    TrackedEntityInstanceQueryParams queryParams;
 }

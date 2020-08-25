@@ -83,11 +83,11 @@ public class EnrollmentAggregate
         List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
             .collect( Collectors.toList() );
 
-        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.isIncludeEvents(),
+        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.getParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ) );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.isIncludeRelationships(),
+            ctx.getParams().isIncludeRelationships(),
             () -> enrollmentStore.getRelationships( enrollmentIds ) );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
@@ -101,11 +101,11 @@ public class EnrollmentAggregate
 
             for ( Enrollment enrollment : enrollments.values() )
             {
-                if ( ctx.isIncludeEvents() )
+                if ( ctx.getParams().isIncludeEvents() )
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.isIncludeRelationships() )
+                if ( ctx.getParams().isIncludeRelationships() )
                 {
                     enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
                 }

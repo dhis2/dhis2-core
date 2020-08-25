@@ -34,16 +34,14 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -55,10 +53,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.TrackedEntityInstanceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Multimap;
@@ -116,8 +111,8 @@ public class TrackedEntityInstanceAggregate
             .toBuilder()
             .userId( userId )
             .superUser( currentUserService.getCurrentUser().isSuper() )
-            .includeRelationships( params.isIncludeRelationships() )
-            .includeEvents( params.isIncludeEvents() )
+            .params( params )
+            .queryParams( queryParams )
             .build();
 
         /*
@@ -125,21 +120,21 @@ public class TrackedEntityInstanceAggregate
          * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
-            ctx.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
+            ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
 
         /*
          * Async fetch Enrollments for the given TrackedEntityInstance id (only if
          * isIncludeEnrollments = true)
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
-            params.isIncludeEnrollments(),
+            ctx.getParams().isIncludeEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ) );
 
         /*
          * Async fetch all ProgramOwner for the given TrackedEntityInstance id
          */
         final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
-            params.isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );
+            ctx.getParams().isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );
 
         /*
          * Async Fetch TrackedEntityInstances by id
@@ -157,7 +152,7 @@ public class TrackedEntityInstanceAggregate
          * Async fetch Owned Tei mapped to the provided program attributes by TrackedEntityInstance id
          */
         CompletableFuture<Multimap<String, String>> ownedTeiAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getOwnedTeis( ids, queryParams, userId ) );
+            () -> trackedEntityInstanceStore.getOwnedTeis( ids, ctx ) );
         
         /*
          * Execute all queries and merge the results
@@ -174,39 +169,38 @@ public class TrackedEntityInstanceAggregate
             
             Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
+            Stream<String> teiUidStream = teis.keySet().parallelStream();
+           
             if ( queryParams.hasProgram() )
             {
-                return teis.keySet().parallelStream().filter( teiUid -> (ownedTeis.containsKey( teiUid )) ).map( uid -> {
-
-                    TrackedEntityInstance tei = teis.get( uid );
-                    tei.setAttributes( filterAttributes(uid, attributes.get( uid ) , ownedTeis.get( uid ) , trackedEntityTypeAttributes, teaByProgram, params) );
-                    tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
-                    tei.setEnrollments( filterEnrollments(enrollments.get( uid ),ownedTeis.get( uid )  ) );
-                    tei.setProgramOwners( new ArrayList<>( programOwners.get( uid ) ) );
-                    return tei;
-
-                } ).collect( Collectors.toList() );
+                teiUidStream = teiUidStream.filter( teiUid -> ( ownedTeis.containsKey( teiUid ) ) );
             }
 
-            else
-            {
-                return teis.keySet().parallelStream().map( uid -> {
+            return teiUidStream.map( uid -> {
 
-                    TrackedEntityInstance tei = teis.get( uid );
-                    tei.setAttributes( filterAttributes(uid, attributes.get( uid ) , ownedTeis.get( uid ) , trackedEntityTypeAttributes, teaByProgram, params) );
-                    tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
-                    tei.setEnrollments( new ArrayList<>( enrollments.get( uid ) ) );
-                    tei.setProgramOwners( new ArrayList<>( programOwners.get( uid ) ) );
-                    return tei;
+                TrackedEntityInstance tei = teis.get( uid );
+                tei.setAttributes( filterAttributes( uid, attributes.get( uid ), ownedTeis.get( uid ), trackedEntityTypeAttributes, teaByProgram, ctx ) );
+                tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
+                tei.setEnrollments( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );
+                tei.setProgramOwners( new ArrayList<>( programOwners.get( uid ) ) );
+                return tei;
 
                 } ).collect( Collectors.toList() );
-            }
+            
             
 
         } ).join();
     }
 
-    private List<Enrollment> filterEnrollments( Collection<Enrollment> enrollments, Collection<String> programs )
+    /**
+     * Filter enrollments based on ownership and super user status.
+     * 
+     * @param enrollments
+     * @param programs
+     * @param ctx
+     * @return
+     */
+    private List<Enrollment> filterEnrollments( Collection<Enrollment> enrollments, Collection<String> programs, AggregateContext ctx )
     {
         List<Enrollment> enrollmentList = new ArrayList<>();
         
@@ -215,16 +209,28 @@ public class TrackedEntityInstanceAggregate
             return enrollmentList;
         }
         
-        enrollmentList.addAll( enrollments.stream().filter( e -> programs.contains( e.getProgram() ) ).collect( Collectors.toList() ) );
+        enrollmentList.addAll( enrollments.stream().filter( e -> ( programs.contains( e.getProgram() ) || ctx.isSuperUser() ) ).collect( Collectors.toList() ) );
         
         return enrollmentList;
     }
 
+    /**
+     * Filter attributes based on queryParams, ownership and super user status
+     * 
+     * @param teiUid
+     * @param attributes
+     * @param programs
+     * @param trackedEntityTypeAttributes
+     * @param teaByProgram
+     * @param ctx
+     * @return
+     */
     private List<Attribute> filterAttributes( String teiUid, Collection<Attribute> attributes, Collection<String> programs,
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes, Map<Program, Set<TrackedEntityAttribute>> teaByProgram, TrackedEntityInstanceParams params)
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes, Map<Program, Set<TrackedEntityAttribute>> teaByProgram, AggregateContext ctx)
     {
         List<Attribute> attributeList = new ArrayList<>();
         
+        //Nothing to filter from, return empty
         if ( attributes.isEmpty() )
         {
             return attributeList;
@@ -232,35 +238,37 @@ public class TrackedEntityInstanceAggregate
         
         Set<String> allowedAttributeUids = new HashSet<>();
         
+        //Add all tet attributes. Conditionally filter out the ones marked for skipSynchronization in case this is a dataSynchronization query
         allowedAttributeUids.addAll( 
             trackedEntityTypeAttributes.stream()
-                        .filter( att -> (!params.isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-                        .map( att -> {
-                                       return att.getUid();
-                                      } )
+                        .filter( att -> ( !ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization() ) )
+                        .map( att ->  att.getUid() )
                         .collect( Collectors.toSet() ) );
 
+        //If no programs owned for this tei or no program attr requested, return
+        if ( programs.isEmpty() )
+        {
+            return attributeList;
+        }
+        
         for ( Program program : teaByProgram.keySet() )
         {
-            if ( programs.contains( program.getUid() ) )
+            if ( programs.contains( program.getUid() ) || ctx.isSuperUser() )
             {
                 allowedAttributeUids.addAll( teaByProgram.get( program ).stream()
-                         .filter( att -> (!params.isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-                         .map( att -> {
-                                        return att.getUid();
-                                       } )
+                         .filter( att -> ( !ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization() ) )
+                         .map( att -> att.getUid() )
                          .collect( Collectors.toSet() )  );
             }
         }
         
-        
-            for ( Attribute attributeValue : attributes )
+        for ( Attribute attributeValue : attributes )
+        {
+            if ( allowedAttributeUids.contains( attributeValue.getAttribute() ) )
             {
-                if ( allowedAttributeUids.contains( attributeValue.getAttribute() ) )
-                {
-                    attributeList.add( attributeValue );
-                }
+                attributeList.add( attributeValue );
             }
+        }
         
         return attributeList;
     }

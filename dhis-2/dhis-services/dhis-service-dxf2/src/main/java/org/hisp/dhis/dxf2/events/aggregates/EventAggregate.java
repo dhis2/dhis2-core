@@ -87,7 +87,7 @@ public class EventAggregate
          * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ) );
+            ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ) );
 
         /*
          * Async fetch Notes for the given Event ids
@@ -109,7 +109,7 @@ public class EventAggregate
 
             for ( Event event : events.values() )
             {
-                if ( ctx.isIncludeRelationships() )
+                if ( ctx.getParams().isIncludeRelationships() )
                 {
                     event.setRelationships( new HashSet<>( relationships.get( event.getEvent() ) ) );
                 }

@@ -30,10 +30,10 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getQuery;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
@@ -42,12 +42,12 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.OwnedTeiMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 /**
@@ -84,7 +84,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         "WHERE TPO.trackedentityinstanceid in (:ids) " + 
         "AND p.programid in (SELECT programid FROM program) " + 
         "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid " + 
-        "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%'))) " + 
+        "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) " + 
         "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
   
     private final static String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM = "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid " + 
@@ -95,7 +95,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         "WHERE TPO.trackedentityinstanceid in (:ids) " + 
         "AND p.uid = :programUid " + 
         "GROUP BY tei.uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid " + 
-        "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%'))) " + 
+        "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) " + 
         "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
 
     public DefaultTrackedEntityInstanceStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
@@ -113,7 +113,8 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
 
-        jdbcTemplate.query( withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" ),
+        String sql = withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" );
+        jdbcTemplate.query( applySortOrder(sql,StringUtils.join( ids, "," ),"trackedentityinstanceid"),
             createIdsParam( ids ).addValue( "teiTypeIds", ctx.getTrackedEntityTypes() ), handler );
 
         return handler.getItems();
@@ -131,28 +132,29 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     }
     
     @Override
-    public Multimap<String, String> getOwnedTeis( List<Long> ids, TrackedEntityInstanceQueryParams queryParams, Long userId )
+    public Multimap<String, String> getOwnedTeis( List<Long> ids, AggregateContext ctx )
     {
         OwnedTeiMapper handler = new OwnedTeiMapper();
 
-        MapSqlParameterSource paramSource = createIdsParam( ids ).addValue( "userInfoId", userId );
+        MapSqlParameterSource paramSource = createIdsParam( ids ).addValue( "userInfoId", ctx.getUserId() );
 
         String sql;
 
-        if ( queryParams.hasProgram() )
+        if ( ctx.getQueryParams().hasProgram() )
         {
             sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM;
-            paramSource.addValue( "programUid", queryParams.getProgram().getUid() );
+            paramSource.addValue( "programUid", ctx.getQueryParams().getProgram().getUid() );
         }
-        else
+        else if ( ctx.getQueryParams().isIncludeAllAttributes() )
         {
             sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM;
         }
+        else 
+        {
+            return ArrayListMultimap.create();
+        }
+        
         jdbcTemplate.query( sql, paramSource, handler );
-        
-        String testSql = null;
-        
-        List<Map<String,Object>> results = jdbcTemplate.queryForList( testSql, new HashMap<>() );
 
         return handler.getItems();
     }

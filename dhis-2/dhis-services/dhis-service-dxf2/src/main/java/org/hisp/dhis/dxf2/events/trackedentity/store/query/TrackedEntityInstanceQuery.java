@@ -22,7 +22,8 @@ public class TrackedEntityInstanceQuery
         DELETED,
         GEOMETRY,
         TYPE_UID,
-        ORGUNIT_UID
+        ORGUNIT_UID,
+        TRACKEDENTITYINSTANCEID
     }
 
     public static Map<COLUMNS, TableColumn> columnMap = ImmutableMap.<COLUMNS, TableColumn> builder()
@@ -37,6 +38,7 @@ public class TrackedEntityInstanceQuery
         .put( COLUMNS.GEOMETRY, new TableColumn( "tei", "geometry" ) )
         .put( COLUMNS.TYPE_UID, new TableColumn( "tet", "uid", "type_uid" ) )
         .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
+        .put( COLUMNS.TRACKEDENTITYINSTANCEID, new TableColumn( "tei", "trackedentityinstanceid", "trackedentityinstanceid" ) )
         .build();
 
     public static String getQuery()

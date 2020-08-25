@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -141,6 +140,22 @@ public abstract class AbstractStore
     protected String withAclCheck( String sql, AggregateContext ctx, String aclSql )
     {
         return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
+    }
+    
+    protected String applySortOrder( String sql, String sortOrderIds, String idColumn )
+    {
+        StringBuilder qb = new StringBuilder();
+        qb.append( "select * from (" );
+        qb.append(sql);
+        qb.append( ") as t JOIN unnest('{" );
+        qb.append( sortOrderIds);
+        qb.append("}'::bigint[]) WITH ORDINALITY s(");
+        qb.append(idColumn);
+        qb.append(", sortorder) USING (");
+        qb.append(idColumn);
+        qb.append(")ORDER  BY s.sortorder")
+        ;
+        return qb.toString();
     }
 
     /**
