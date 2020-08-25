@@ -35,7 +35,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -80,16 +79,13 @@ public class DefaultTrackerObjectsDeletionService
 
     private final EventTrackerConverterService eventTrackerConverterService;
 
-    private final Notifier notifier;
-
     public DefaultTrackerObjectsDeletionService( ProgramInstanceService programInstanceService,
          TrackedEntityInstanceService entityInstanceService,
          ProgramStageInstanceService stageInstanceService,
          RelationshipService relationshipService,
          TrackerAccessManager trackerAccessManager,
          EnrollmentTrackerConverterService enrollmentTrackerConverterService,
-         EventTrackerConverterService eventTrackerConverterService,
-         Notifier notifier )
+         EventTrackerConverterService eventTrackerConverterService )
     {
         this.programInstanceService = programInstanceService;
         this.teiService = entityInstanceService;
@@ -98,7 +94,6 @@ public class DefaultTrackerObjectsDeletionService
         this.trackerAccessManager = trackerAccessManager;
         this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
         this.eventTrackerConverterService = eventTrackerConverterService;
-        this.notifier = notifier;
     }
 
     @Override
@@ -112,63 +107,43 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = enrollments.get( idx ).getEnrollment();
 
-            boolean existsEnrollment = programInstanceService.programInstanceExists( uid );
-
             TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.ENROLLMENT );
 
-            if ( existsEnrollment )
+            ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+
+            if ( bundle.getUser() != null )
             {
-                ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteEnrollment( idx, bundle.getUser(), programInstance, bundle );
 
-                if ( bundle.getUser() != null )
+                if ( !trackerErrorReports.isEmpty() )
                 {
-                    List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteEnrollment( idx, bundle.getUser(), programInstance, bundle );
+                    trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
+                    trackerObjectReport.setIndex( idx );
+                    trackerObjectReport.setUid( uid );
 
-                    if ( !trackerErrorReports.isEmpty() )
-                    {
-                        trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                        trackerObjectReport.setIndex( idx );
-                        trackerObjectReport.setUid( uid );
-
-                        typeReport.addObjectReport( trackerObjectReport );
-                        typeReport.getStats().incIgnored();
-                        return typeReport;
-                    }
+                    typeReport.addObjectReport( trackerObjectReport );
+                    typeReport.getStats().incIgnored();
+                    return typeReport;
                 }
-
-                List<Event> events = eventTrackerConverterService.to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
-
-                TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
-
-                // Associated events should be deleted provided user has authority for that.
-                TrackerTypeReport eventReport = deleteEvents( trackerBundle, TrackerType.EVENT );
-
-                if ( !eventReport.isEmpty() )
-                {
-                    trackerObjectReport.getErrorReports().addAll( eventReport.getErrorReports() );
-                }
-
-                programInstanceService.deleteProgramInstance( programInstance );
-                teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incDeleted();
             }
-            else
+
+            List<Event> events = eventTrackerConverterService.to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
+
+            TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
+
+            // Associated events should be deleted provided user has authority for that.
+            TrackerTypeReport eventReport = deleteEvents( trackerBundle, TrackerType.EVENT );
+
+            if ( !eventReport.isEmpty() )
             {
-                trackerObjectReport.getErrorReports().add( TrackerErrorReport.builder()
-                    .mainKlass( ProgramInstance.class )
-                    .listIndex( idx )
-                    .errorCode( TrackerErrorCode.E1081 )
-                    .addArg( uid )
-                    .build( bundle ) );
-
-                trackerObjectReport.setIndex( idx );
-                trackerObjectReport.setUid( uid );
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incIgnored();
+                trackerObjectReport.getErrorReports().addAll( eventReport.getErrorReports() );
             }
+
+            programInstanceService.deleteProgramInstance( programInstance );
+            teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+
+            typeReport.addObjectReport( trackerObjectReport );
+            typeReport.getStats().incDeleted();
         }
 
         return typeReport;
@@ -185,57 +160,39 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = events.get( idx ).getEvent();
 
-            boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
-
             TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.EVENT );
 
-            if ( existsEvent )
+            List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
+
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+
+            List<String> errors = trackerAccessManager.canDelete( bundle.getUser(), programStageInstance, false );
+
+            if ( !errors.isEmpty() )
             {
-                List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
-
-                ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
-
-                List<String> errors = trackerAccessManager.canDelete( bundle.getUser(), programStageInstance, false );
-
-                if ( !errors.isEmpty() )
-                {
-                    errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
-                            .mainKlass( ProgramStageInstance.class )
-                            .errorMessage( error )
-                            .build( bundle ) ) );
-
-                    trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                    trackerObjectReport.setIndex( idx );
-                    trackerObjectReport.setUid( uid );
-
-                    typeReport.addObjectReport( trackerObjectReport );
-                    typeReport.getStats().incIgnored();
-                    return typeReport;
-                }
-
-                programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-
-                if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
-                {
-                    teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
-                }
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incDeleted();
-            }
-            else
-            {
-                trackerObjectReport.getErrorReports()
-                    .add( TrackerErrorReport.builder().listIndex( idx ).errorCode( TrackerErrorCode.E1032 ).addArg( uid )
+                errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
                     .mainKlass( ProgramStageInstance.class )
-                    .build( bundle ) );
+                    .errorMessage( error )
+                    .build( bundle ) ) );
 
+                trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
                 trackerObjectReport.setIndex( idx );
                 trackerObjectReport.setUid( uid );
 
                 typeReport.addObjectReport( trackerObjectReport );
                 typeReport.getStats().incIgnored();
+                return typeReport;
             }
+
+            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+
+            if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
+            {
+                teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+            }
+
+            typeReport.addObjectReport( trackerObjectReport );
+            typeReport.getStats().incDeleted();
         }
 
         return typeReport;
@@ -252,63 +209,45 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = trackedEntities.get( idx ).getTrackedEntity();
 
-            boolean teiExists = teiService.trackedEntityInstanceExists( uid );
-
             TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY );
 
-            if ( teiExists )
+            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
+                    .getTrackedEntityInstance( uid );
+
+            if ( bundle.getUser() != null )
             {
-                org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
-                        .getTrackedEntityInstance( uid );
+                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteTrackedEntity( idx, bundle.getUser(), daoEntityInstance, bundle );
 
-                if ( bundle.getUser() != null )
+                if ( !trackerErrorReports.isEmpty() )
                 {
-                    List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteTrackedEntity( idx, bundle.getUser(), daoEntityInstance, bundle );
+                    trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
+                    trackerObjectReport.setIndex( idx );
+                    trackerObjectReport.setUid( uid );
 
-                    if ( !trackerErrorReports.isEmpty() )
-                    {
-                        trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                        trackerObjectReport.setIndex( idx );
-                        trackerObjectReport.setUid( uid );
-
-                        typeReport.addObjectReport( trackerObjectReport );
-                        typeReport.getStats().incIgnored();
-                        return typeReport;
-                    }
+                    typeReport.addObjectReport( trackerObjectReport );
+                    typeReport.getStats().incIgnored();
+                    return typeReport;
                 }
-
-                Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
-
-                List<Enrollment> enrollments = enrollmentTrackerConverterService.to( Lists.newArrayList( programInstances ) );
-
-                TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() ).build();
-
-                // Associated enrollments should be deleted provided user has authority for that.
-                TrackerTypeReport enrollmentReport = deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
-
-                if ( !enrollmentReport.isEmpty() )
-                {
-                    trackerObjectReport.getErrorReports().addAll( enrollmentReport.getErrorReports() );
-                }
-
-                teiService.deleteTrackedEntityInstance( daoEntityInstance );
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incDeleted();
             }
-            else
+
+            Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
+
+            List<Enrollment> enrollments = enrollmentTrackerConverterService.to( Lists.newArrayList( programInstances ) );
+
+            TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() ).build();
+
+            // Associated enrollments should be deleted provided user has authority for that.
+            TrackerTypeReport enrollmentReport = deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
+
+            if ( !enrollmentReport.isEmpty() )
             {
-                trackerObjectReport.getErrorReports()
-                    .add( TrackerErrorReport.builder().listIndex( idx ).errorCode( TrackerErrorCode.E1063 ).addArg( uid )
-                    .mainKlass( TrackedEntityInstance.class )
-                    .build( bundle ) );
-
-                trackerObjectReport.setIndex( idx );
-                trackerObjectReport.setUid( uid );
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incIgnored();
+                trackerObjectReport.getErrorReports().addAll( enrollmentReport.getErrorReports() );
             }
+
+            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+
+            typeReport.addObjectReport( trackerObjectReport );
+            typeReport.getStats().incDeleted();
         }
 
         return typeReport;
@@ -325,51 +264,33 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = relationships.get( idx ).getRelationship();
 
-            boolean existsRelationShip = relationshipService.relationshipExists( uid );
-
             TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.RELATIONSHIP );
 
-            if ( existsRelationShip )
+            List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
+
+            org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
+
+            List<String> errors = trackerAccessManager.canWrite( bundle.getUser(), relationship );
+
+            if ( !errors.isEmpty() )
             {
-                List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
-
-                org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
-
-                List<String> errors = trackerAccessManager.canWrite( bundle.getUser(), relationship );
-
-                if ( !errors.isEmpty() )
-                {
-                    errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
-                        .mainKlass( org.hisp.dhis.relationship.Relationship.class )
-                        .errorMessage( error )
-                        .build( bundle ) ) );
-
-                    trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                    trackerObjectReport.setIndex( idx );
-                    trackerObjectReport.setUid( uid );
-
-                    typeReport.addObjectReport( trackerObjectReport );
-                    typeReport.getStats().incIgnored();
-                    return typeReport;
-                }
-
-                relationshipService.deleteRelationship( relationship );
-
-                typeReport.getStats().incDeleted();
-            }
-            else
-            {
-                trackerObjectReport.getErrorReports()
-                    .add( TrackerErrorReport.builder().listIndex( idx ).errorCode( TrackerErrorCode.E4005 ).addArg( uid )
+                errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
                     .mainKlass( org.hisp.dhis.relationship.Relationship.class )
-                    .build( bundle ) );
+                    .errorMessage( error )
+                    .build( bundle ) ) );
 
+                trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
                 trackerObjectReport.setIndex( idx );
                 trackerObjectReport.setUid( uid );
 
                 typeReport.addObjectReport( trackerObjectReport );
                 typeReport.getStats().incIgnored();
+                return typeReport;
             }
+
+            relationshipService.deleteRelationship( relationship );
+
+            typeReport.getStats().incDeleted();
         }
 
         return typeReport;
@@ -380,8 +301,8 @@ public class DefaultTrackerObjectsDeletionService
         List<TrackerErrorReport> errorReports = new ArrayList<>();
 
         Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream()
-                .filter( psi -> !psi.isDeleted() )
-                .collect( Collectors.toSet() );
+            .filter( psi -> !psi.isDeleted() )
+            .collect( Collectors.toSet() );
 
         if ( !notDeletedProgramStageInstances.isEmpty() && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
         {
@@ -414,8 +335,8 @@ public class DefaultTrackerObjectsDeletionService
         List<TrackerErrorReport> errorReports = new ArrayList<>();
 
         Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
-                .filter( pi -> !pi.isDeleted() )
-                .collect( Collectors.toSet() );
+            .filter( pi -> !pi.isDeleted() )
+            .collect( Collectors.toSet() );
 
         if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {

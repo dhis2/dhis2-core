@@ -105,19 +105,19 @@ public class DefaultTrackerImportService
 
         List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
 
-        if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+        trackerBundles = preProcessBundle( trackerBundles, importReport );
+
+        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
+
+       if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
         {
-            deleteBundle( params, importReport, trackerBundles );
+            importReport.setStatus( TrackerStatus.ERROR );
         }
         else
         {
-            trackerBundles = preProcessBundle( trackerBundles, importReport );
-
-            TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
-
-            if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
             {
-                importReport.setStatus( TrackerStatus.ERROR );
+                deleteBundle( params, importReport, trackerBundles );
             }
             else
             {
