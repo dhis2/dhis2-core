@@ -109,7 +109,7 @@ public class MetadataSetupExtension
                 .extractString( "users.id[0]" );
 
         userActions.addUserToUserGroup( userId, userGroupId );
-        userActions.addURoleToUser( userId, userRoleId );
+        userActions.addRoleToUser( userId, userRoleId );
 
         TestRunStorage.removeEntity( "/users", userId );
     }
