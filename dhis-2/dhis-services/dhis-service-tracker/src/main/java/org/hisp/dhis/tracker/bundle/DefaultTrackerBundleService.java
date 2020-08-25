@@ -319,16 +319,19 @@ public class DefaultTrackerBundleService
             // TODO: Implement support for update and delete and rollback/decrement create etc.
             typeReport.getStats().incCreated();
 
-            TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
-                .klass( ProgramInstance.class )
-                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
-                .eventRuleEffects( bundle.getEventRuleEffects() )
-                .object( programInstance )
-                .importStrategy( bundle.getImportStrategy() )
-                .accessedBy( bundle.getUsername() )
-                .build();
+            if ( !bundle.isSkipSideEffects() )
+            {
+                TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
+                    .klass( ProgramInstance.class )
+                    .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
+                    .eventRuleEffects( bundle.getEventRuleEffects() )
+                    .object( programInstance )
+                    .importStrategy( bundle.getImportStrategy() )
+                    .accessedBy( bundle.getUsername() )
+                    .build();
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+                sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+            }
         }
 
         session.flush();
@@ -382,20 +385,22 @@ public class DefaultTrackerBundleService
             // TODO: Implement support for update and delete and rollback/decrement create etc.
             typeReport.getStats().incCreated();
 
-            TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
-                .klass( ProgramStageInstance.class )
-                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
-                .eventRuleEffects( bundle.getEventRuleEffects() )
-                .object( programStageInstance )
-                .importStrategy( bundle.getImportStrategy() )
-                .accessedBy( bundle.getUsername() )
-                .build();
+            if ( !bundle.isSkipSideEffects() )
+            {
+                TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
+                    .klass( ProgramStageInstance.class )
+                    .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
+                    .eventRuleEffects( bundle.getEventRuleEffects() )
+                    .object( programStageInstance )
+                    .importStrategy( bundle.getImportStrategy() )
+                    .accessedBy( bundle.getUsername() )
+                    .build();
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+                sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+            }
         }
 
         session.flush();
-
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
 
         return typeReport;
