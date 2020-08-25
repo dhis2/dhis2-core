@@ -41,7 +41,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.user.UserLookup;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,11 +62,15 @@ public class UserLookupController
 {
     static final String API_ENDPOINT = "/userLookup";
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private ConfigurationService config;
+    private final ConfigurationService config;
+
+    public UserLookupController( UserService userService, ConfigurationService config )
+    {
+        this.userService = userService;
+        this.config = config;
+    }
 
     @GetMapping( value = "/{id}" )
     public UserLookup lookUpUser( @PathVariable String id )
