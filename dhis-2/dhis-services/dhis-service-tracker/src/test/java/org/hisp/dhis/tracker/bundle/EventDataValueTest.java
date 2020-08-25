@@ -101,9 +101,8 @@ public class EventDataValueTest
         renderService = _renderService;
         userService = _userService;
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-                .fromMetadata( new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(),
-                        RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -228,20 +227,20 @@ public class EventDataValueTest
     {
         // @formatter:off
         return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
-                .skipPatternValidation( true )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
-                .reportMode( params.getReportMode() )
-                .trackedEntities( params.getTrackedEntities() )
-                .enrollments( params.getEnrollments() )
-                .events( params.getEvents() )
-                .relationships( params.getRelationships() )
-                .build();
+            .user( params.getUser() )
+            .importMode( params.getImportMode() )
+            .importStrategy( params.getImportStrategy() )
+            .skipPatternValidation( true )
+            .identifiers( params.getIdentifiers() )
+            .atomicMode( params.getAtomicMode() )
+            .flushMode( params.getFlushMode() )
+            .validationMode( params.getValidationMode() )
+            .reportMode( params.getReportMode() )
+            .trackedEntities( params.getTrackedEntities() )
+            .enrollments( params.getEnrollments() )
+            .events( params.getEvents() )
+            .relationships( params.getRelationships() )
+            .build();
         // @formatter:on
     }
 }

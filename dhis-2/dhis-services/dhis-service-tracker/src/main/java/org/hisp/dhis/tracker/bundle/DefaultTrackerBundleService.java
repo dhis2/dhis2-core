@@ -28,11 +28,19 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -66,11 +74,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -444,8 +447,7 @@ public class DefaultTrackerBundleService
         Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
             .getTrackedEntityAttributeValues()
             .stream()
-            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(),
-                trackedEntityAttributeValue -> trackedEntityAttributeValue ) );
+            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
         for ( Attribute at : payloadAttributes )
         {
@@ -468,12 +470,18 @@ public class DefaultTrackerBundleService
             // So we need to use at.getValue()
             if ( StringUtils.isEmpty( at.getValue() ) )
             {
-                unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
+                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                {
+                    unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
+                }
                 session.remove( attributeValue );
             }
             else
             {
-                assignFileResource( session, preheat, attributeValue.getValue() );
+                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                {
+                    assignFileResource( session, preheat, attributeValue.getValue() );
+                }
                 session.persist( attributeValue );
             }
 
@@ -491,8 +499,7 @@ public class DefaultTrackerBundleService
         Map<String, EventDataValue> dataValueDBMap = psi
             .getEventDataValues()
             .stream()
-            .collect( Collectors.toMap( dv -> dv.getDataElement(),
-                dv -> dv ) );
+            .collect( Collectors.toMap( dv -> dv.getDataElement(), Function.identity() ) );
 
         for ( DataValue dv : payloadDataValues )
         {
@@ -507,14 +514,32 @@ public class DefaultTrackerBundleService
             eventDataValue.setValue( dv.getValue() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
+            try
+            {
+                eventDataValue.setCreated( new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
+                eventDataValue.setLastUpdated( new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
+            }
+            catch ( ParseException e )
+            {
+                // Created and updated dates are already validated.
+                // This catch should never be reached
+                e.printStackTrace();
+            }
+
             if ( StringUtils.isEmpty( eventDataValue.getValue() ) )
             {
-                unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
+                if ( dateElement.isFileType() )
+                {
+                    unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
+                }
                 psi.getEventDataValues().remove( eventDataValue );
             }
             else
             {
-                assignFileResource( session, preheat, eventDataValue.getValue() );
+                if ( dateElement.isFileType() )
+                {
+                    assignFileResource( session, preheat, eventDataValue.getValue() );
+                }
                 psi.getEventDataValues().add( eventDataValue );
             }
         }
