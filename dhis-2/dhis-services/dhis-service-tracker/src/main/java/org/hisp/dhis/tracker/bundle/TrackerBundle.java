@@ -92,6 +92,12 @@ public class TrackerBundle
     private boolean skipTextPatternValidation;
 
     /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
      * Should import be treated as a atomic import (all or nothing).
      */
     @Builder.Default
