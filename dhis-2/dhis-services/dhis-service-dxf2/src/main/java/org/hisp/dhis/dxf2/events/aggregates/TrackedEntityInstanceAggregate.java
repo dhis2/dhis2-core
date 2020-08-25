@@ -245,12 +245,6 @@ public class TrackedEntityInstanceAggregate
                         .map( att ->  att.getUid() )
                         .collect( Collectors.toSet() ) );
 
-        //If no programs owned for this tei or no program attr requested, return
-        if ( programs.isEmpty() )
-        {
-            return attributeList;
-        }
-        
         for ( Program program : teaByProgram.keySet() )
         {
             if ( programs.contains( program.getUid() ) || ctx.isSuperUser() )
