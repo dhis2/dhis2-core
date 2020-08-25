@@ -85,7 +85,7 @@ public class UserLookupController
             .setMax( 25 );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
-            .map( user -> UserLookup.fromUser( user ) )
+            .map( UserLookup::fromUser )
             .collect( Collectors.toList() );
 
         return new UserLookups( users );
