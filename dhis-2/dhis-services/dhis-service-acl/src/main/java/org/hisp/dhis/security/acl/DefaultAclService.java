@@ -654,7 +654,7 @@ public class DefaultAclService implements AclService
             // Check if user is allowed to read this object through group access
 
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+                    && userGroupAccess.userGroupContainsUser( user ) )
             {
                 return true;
             }

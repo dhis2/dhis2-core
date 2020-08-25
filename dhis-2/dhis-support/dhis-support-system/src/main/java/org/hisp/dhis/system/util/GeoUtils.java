@@ -128,11 +128,7 @@ public class GeoUtils
     public static Point getGeoJsonPoint( double longitude, double latitude )
         throws IOException
     {
-        Point point;
-
-        GeometryJSON gtjson = new GeometryJSON();
-
-        point = gtjson.readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
+        Point point = new GeometryJSON().readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
             + latitude + "]}" ) );
 
         point.setSRID( SRID );

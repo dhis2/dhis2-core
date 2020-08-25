@@ -529,22 +529,25 @@ public class Event
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         Event event1 = (Event) o;
 
-        if ( event != null ? !event.equals( event1.event ) : event1.event != null ) return false;
-
-        return true;
+        if ( uid != null ? !uid.equals( event1.uid ) : event1.uid != null )
+            return false;
+        return event != null ? event.equals( event1.event ) : event1.event == null;
     }
 
     @Override
     public int hashCode()
     {
-        return event != null ? event.hashCode() : 0;
+        int result = uid != null ? uid.hashCode() : 0;
+        result = 31 * result + (event != null ? event.hashCode() : 0);
+        return result;
     }
-
 
     @Override public String toString()
     {
