@@ -58,20 +58,14 @@ public class OutboundSms
 
     public OutboundSms()
     {
+        setAutoFields();
     }
 
-    public OutboundSms( String subject, String message, String... recipients )
+    public OutboundSms( String subject, String message, Set<String> recipients )
     {
         this.subject = subject;
         this.message = message;
-        this.recipients = new HashSet<>();
-        Collections.addAll( this.recipients, recipients );
-    }
-
-    @JsonProperty( value = "messageId" )
-    public long getMessageId()
-    {
-        return super.getId();
+        this.recipients = recipients;
     }
 
     @JsonProperty( value = "recipients" )

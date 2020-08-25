@@ -53,16 +53,16 @@ public class DeleteReceiveSMSAction
     // Input
     // -------------------------------------------------------------------------
 
-    private Integer[] ids;
+    private Long[] ids;
 
-    public void setIds( Integer[] ids )
+    public void setIds( Long[] ids )
     {
         this.ids = ids;
     }
 
-    private Integer id;
+    private Long id;
 
-    public void setId( Integer id )
+    public void setId( Long id )
     {
         this.id = id;
     }
@@ -77,14 +77,14 @@ public class DeleteReceiveSMSAction
     {
         if ( ids != null && ids.length > 0 )
         {
-            for ( Integer each : ids )
+            for ( Long each : ids )
             {
-                incomingSmsService.deleteById( each );
+                incomingSmsService.delete( each );
             }
         }
         if ( id != null )
         {
-            incomingSmsService.deleteById( id );
+            incomingSmsService.delete( id );
         }
         return SUCCESS;
     }
