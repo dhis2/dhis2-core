@@ -53,11 +53,6 @@
     </dependency>
 
     <!-- Web -->
-
-    <dependency>
-      <groupId>com.alibaba.spring</groupId>
-      <artifactId>spring-webmvc-velocity</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.apache.struts</groupId>
       <artifactId>struts2-core</artifactId>

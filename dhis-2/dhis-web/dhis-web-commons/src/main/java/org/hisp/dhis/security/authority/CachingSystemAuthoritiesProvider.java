@@ -48,7 +48,12 @@ public class CachingSystemAuthoritiesProvider
         this.source = source;
     }
 
-    // -------------------------------------------------------------------------
+    public CachingSystemAuthoritiesProvider( SystemAuthoritiesProvider source )
+    {
+        this.source = source;
+    }
+
+// -------------------------------------------------------------------------
     // SystemAuthoritiesProvider implementation
     // -------------------------------------------------------------------------
 
