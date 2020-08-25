@@ -28,11 +28,22 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -48,11 +59,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -67,15 +74,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -370,6 +368,8 @@ public class DefaultTrackerBundleService
                 programStageInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
+            handleDataValues( session, bundle.getPreheat(), event.getDataValues(), programStageInstance );
+
             session.persist( programStageInstance );
 
             bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
@@ -442,90 +442,46 @@ public class DefaultTrackerBundleService
     // -----------------------------------------------------------------------------------
 
     private void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
-        List<Attribute> attributes, TrackedEntityInstance trackedEntityInstance )
+        List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        List<TrackedEntityAttributeValue> attributeValues = new ArrayList<>();
-        List<String> attributeValuesForDeletion = new ArrayList<>();
-
-        List<String> assignedFileResources = new ArrayList<>();
-        List<String> unassignedFileResources = new ArrayList<>();
-
-        Map<String, TrackedEntityAttributeValue> attributeValueMap = trackedEntityInstance
+        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
             .getTrackedEntityAttributeValues()
             .stream()
-            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(),
-                trackedEntityAttributeValue -> trackedEntityAttributeValue ) );
+            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
-        for ( Attribute at : attributes )
+        for ( Attribute at : payloadAttributes )
         {
-            // TEAV.getValue has a lot of trickery behind it since its being used for
-            // encryption, so we can't rely on that to
-            // get empty/null values, instead we build a simple list here to compare with.
-            // TODO: Not sure how this will work, need to discuss, we have validations for empty value...
-            if ( StringUtils.isEmpty( at.getValue() ) )
-            {
-                attributeValuesForDeletion.add( at.getAttribute() );
-
-                if ( attributeValueMap.containsKey( at.getAttribute() )
-                    && attributeValueMap.get( at.getAttribute() ).getAttribute().getValueType().isFile() )
-                {
-                    unassignedFileResources.add( attributeValueMap.get( at.getAttribute() ).getValue() );
-                }
-            }
-
             TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class,
                 at.getAttribute() );
-            // TODO: What to do here? Should attribute == NULL this be allowed?
-            TrackedEntityAttributeValue attributeValue = null;
-
-            if ( attributeValueMap.containsKey( at.getAttribute() ) )
-            {
-                TrackedEntityAttributeValue av = attributeValueMap.get( at.getAttribute() );
-
-                av.setAttribute( attribute ).setValue( at.getValue() ).setStoredBy( at.getStoredBy() );
-
-                attributeValue = av;
-                attributeValues.add( attributeValue );
-            }
-
-            // new attribute value
-            if ( attributeValue == null )
-            {
-                attributeValue = new TrackedEntityAttributeValue();
-
-                attributeValue.setAttribute( attribute ).setValue( at.getValue() ).setStoredBy( at.getStoredBy() );
-
-                attributeValues.add( attributeValue );
-            }
-
-            checkNotNull( attributeValue.getAttribute(),
-                "Attribute should never be NULL here if validation is enforced before commit." );
-
-            // TODO: What to do here? Should this be allowed? i.e ,  attributeValue.getAttribute() != null  this makes a NP
-            if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
-                attributeValue.getAttribute().getValueType().isFile() )
-            {
-                assignedFileResources.add( at.getValue() );
-            }
-        }
-
-        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
-        {
-            // since TEAV is the owning side here, we don't bother updating the TE.teav
-            // collection
-            // as it will be reloaded on session clear
-            TrackedEntityAttribute attribute = attributeValue.getAttribute();
 
             checkNotNull( attribute,
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
-            if ( attributeValuesForDeletion.contains( attribute.getUid() ) )
+            TrackedEntityAttributeValue attributeValue = attributeValueDBMap.getOrDefault( at.getAttribute(),
+                new TrackedEntityAttributeValue() );
+
+            attributeValue
+                .setAttribute( attribute )
+                .setEntityInstance( trackedEntityInstance )
+                .setValue( at.getValue() )
+                .setStoredBy( at.getStoredBy() );
+
+            // We cannot use attributeValue.getValue() because it uses encryption logic
+            // So we need to use at.getValue()
+            if ( StringUtils.isEmpty( at.getValue() ) )
             {
+                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                {
+                    unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
+                }
                 session.remove( attributeValue );
             }
             else
             {
-                attributeValue.setEntityInstance( trackedEntityInstance );
+                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                {
+                    assignFileResource( session, preheat, attributeValue.getValue() );
+                }
                 session.persist( attributeValue );
             }
 
@@ -535,25 +491,71 @@ public class DefaultTrackerBundleService
                     attributeValue.getValue() );
             }
         }
+    }
 
-        assignedFileResources.forEach( fr -> assignFileResource( session, preheat, fr ) );
-        unassignedFileResources.forEach( fr -> unassignFileResource( session, preheat, fr ) );
+    private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
+        ProgramStageInstance psi )
+    {
+        Map<String, EventDataValue> dataValueDBMap = psi
+            .getEventDataValues()
+            .stream()
+            .collect( Collectors.toMap( dv -> dv.getDataElement(), Function.identity() ) );
+
+        for ( DataValue dv : payloadDataValues )
+        {
+            DataElement dateElement = preheat.get( TrackerIdScheme.UID, DataElement.class, dv.getDataElement() );
+
+            checkNotNull( dateElement,
+                "Data element should never be NULL here if validation is enforced before commit." );
+
+            EventDataValue eventDataValue = dataValueDBMap.getOrDefault( dv.getDataElement(), new EventDataValue() );
+
+            eventDataValue.setDataElement( dateElement.getUid() );
+            eventDataValue.setValue( dv.getValue() );
+            eventDataValue.setStoredBy( dv.getStoredBy() );
+
+            try
+            {
+                eventDataValue.setCreated( new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
+                eventDataValue.setLastUpdated( new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
+            }
+            catch ( ParseException e )
+            {
+                // Created and updated dates are already validated.
+                // This catch should never be reached
+                e.printStackTrace();
+            }
+
+            if ( StringUtils.isEmpty( eventDataValue.getValue() ) )
+            {
+                if ( dateElement.isFileType() )
+                {
+                    unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
+                }
+                psi.getEventDataValues().remove( eventDataValue );
+            }
+            else
+            {
+                if ( dateElement.isFileType() )
+                {
+                    assignFileResource( session, preheat, eventDataValue.getValue() );
+                }
+                psi.getEventDataValues().add( eventDataValue );
+            }
+        }
     }
 
     private void assignFileResource( Session session, TrackerPreheat preheat, String fr )
     {
-        FileResource fileResource = preheat.get( TrackerIdScheme.UID, FileResource.class, fr );
-
-        if ( fileResource == null )
-        {
-            return;
-        }
-
-        fileResource.setAssigned( true );
-        session.persist( fileResource );
+        assignFileResource( session, preheat, fr, true );
     }
 
     private void unassignFileResource( Session session, TrackerPreheat preheat, String fr )
+    {
+        assignFileResource( session, preheat, fr, false );
+    }
+
+    private void assignFileResource( Session session, TrackerPreheat preheat, String fr, boolean isAssign )
     {
         FileResource fileResource = preheat.get( TrackerIdScheme.UID, FileResource.class, fr );
 
@@ -562,7 +564,7 @@ public class DefaultTrackerBundleService
             return;
         }
 
-        fileResource.setAssigned( false );
+        fileResource.setAssigned( isAssign );
         session.persist( fileResource );
     }
 

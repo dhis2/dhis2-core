@@ -61,6 +61,8 @@ public class ValidationErrorReporter
 
     private String mainId;
 
+    private List<TrackerDto> invalidDTOs;
+
     public ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass )
     {
         this.validationContext = context;
@@ -68,6 +70,7 @@ public class ValidationErrorReporter
         this.warningsReportList = new ArrayList<>();
         this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
         this.mainKlass = mainKlass;
+        this.invalidDTOs = new ArrayList<>();
     }
 
     private ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass, boolean isFailFast,
@@ -79,6 +82,7 @@ public class ValidationErrorReporter
         this.isFailFast = isFailFast;
         this.mainKlass = mainKlass;
         this.listIndex.set( listIndex );
+        this.invalidDTOs = new ArrayList<>();
     }
 
     public boolean hasErrors()
@@ -168,5 +172,10 @@ public class ValidationErrorReporter
     {
         this.reportList.addAll( reporter.getReportList() );
         this.warningsReportList.addAll( reporter.getWarningsReportList() );
+    }
+
+    public void addDtosWithErrors( List<TrackerDto> notValidDTOs )
+    {
+        this.invalidDTOs.addAll( notValidDTOs );
     }
 }

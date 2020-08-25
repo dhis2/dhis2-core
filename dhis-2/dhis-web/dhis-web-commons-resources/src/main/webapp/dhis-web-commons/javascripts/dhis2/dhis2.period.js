@@ -332,7 +332,7 @@ dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function(generator, p
  * @param {int} n number of periods to add.
  * @returns {Date} the date, n periods later.
  */
-dhis2.period.PeriodGenerator.prototype.datePlusPeriods = function(generator, d, periods, n) {
+dhis2.period.PeriodGenerator.prototype.datePlusPeriods = function(generator, d, n) {
   return this.generators[generator].datePlusPeriods( d, n );
 }
 

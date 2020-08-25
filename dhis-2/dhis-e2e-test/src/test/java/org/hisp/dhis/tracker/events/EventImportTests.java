@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.events;
  */
 
 import io.restassured.http.ContentType;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.TestRunStorage;
@@ -41,10 +42,13 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import io.restassured.http.ContentType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,13 +58,14 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventsImportTests
+public class EventImportTests
     extends ApiTest
 {
     List<String> createdEvents = new ArrayList<>();
@@ -114,9 +119,7 @@ public class EventsImportTests
 
         createdEvents.addAll( importSummaries
             .stream()
-            .map( p -> {
-                return p.getReference();
-            } )
+            .map( ImportSummary::getReference )
             .collect( toList() ) );
 
         assertThat( importSummaries, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "SUCCESS" ) ) ) );
@@ -127,6 +130,8 @@ public class EventsImportTests
     {
         ApiResponse response = post( "events.json", false );
 
+        response.validate().statusCode( 200 );
+
         createdEvents = response.getImportSummaries()
             .stream()
             .map( p -> {
@@ -134,6 +139,7 @@ public class EventsImportTests
             } )
             .collect( toList() );
 
+        assertThat("Expected 4 events created", createdEvents, hasSize( 4 ) );
         eventActions.softDelete( createdEvents );
 
         response = post( "events.json", true );
