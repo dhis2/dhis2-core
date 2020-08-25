@@ -2,6 +2,8 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
+import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
 
 import com.google.common.collect.ImmutableMap;
@@ -26,7 +28,7 @@ public class TrackedEntityInstanceQuery
         TRACKEDENTITYINSTANCEID
     }
 
-    public static Map<COLUMNS, TableColumn> columnMap = ImmutableMap.<COLUMNS, TableColumn> builder()
+    public static Map<COLUMNS,  ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
         .put( COLUMNS.UID, new TableColumn( "tei", "uid", "tei_uid" ) )
         .put( COLUMNS.CREATED, new TableColumn( "tei", "created" ) )
         .put( COLUMNS.CREATEDCLIENT, new TableColumn( "tei", "createdatclient" ) )
@@ -34,8 +36,7 @@ public class TrackedEntityInstanceQuery
         .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "tei", "lastupdatedatclient" ) )
         .put( COLUMNS.INACTIVE, new TableColumn( "tei", "inactive" ) )
         .put( COLUMNS.DELETED, new TableColumn( "tei", "deleted" ) )
-        // FIXME luciano: ST_AsBinary(tei.geometry) doesn't work in H2
-        .put( COLUMNS.GEOMETRY, new TableColumn( "tei", "geometry" ) )
+        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "tei", "geometry", "geometry")  )
         .put( COLUMNS.TYPE_UID, new TableColumn( "tet", "uid", "type_uid" ) )
         .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
         .put( COLUMNS.TRACKEDENTITYINSTANCEID, new TableColumn( "tei", "trackedentityinstanceid", "trackedentityinstanceid" ) )

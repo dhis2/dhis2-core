@@ -2,6 +2,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Subselect;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
@@ -55,7 +56,7 @@ public class EventQuery
         .put( COLUMNS.UPDATED, new TableColumn( "psi", "lastupdated" ) )
         .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "psi", "lastupdatedatclient" ) )
         .put( COLUMNS.DELETED, new TableColumn( "psi", "deleted" ) )
-        .put( COLUMNS.GEOMETRY, new TableColumn( "psi", "geometry" ) )
+        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "psi", "geometry", "geometry")  )
         .put( COLUMNS.TEI_UID, new TableColumn( "tei", "uid", "tei_uid" ) )
         .put( COLUMNS.ENROLLMENT_UID, new TableColumn( "pi", "uid", "enruid" ) )
         .put( COLUMNS.ENROLLMENT_FOLLOWUP, new TableColumn( "pi", "followup", "enrfollowup" ) )

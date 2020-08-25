@@ -2,9 +2,12 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
+import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
 
 import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.query.Query;
 
 /**
  * @author Luciano Fiandesio
@@ -36,9 +39,9 @@ public class EnrollmentQuery
         ORGUNIT_NAME
     }
 
-    public static Map<COLUMNS, TableColumn> columnMap = ImmutableMap.<COLUMNS, TableColumn> builder()
+    public static Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
         .put( COLUMNS.TEI_UID, new TableColumn( "tei", "uid", "tei_uid" ) )
-        .put( COLUMNS.GEOMETRY, new TableColumn( "pi", "geometry" ) )
+        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "pi", "geometry", "geometry")  )
         .put( COLUMNS.ID, new TableColumn( "pi", "programinstanceid" ) )
         .put( COLUMNS.UID, new TableColumn( "pi", "uid" ) )
         .put( COLUMNS.CREATED, new TableColumn( "pi", "created" ) )
