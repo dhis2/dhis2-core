@@ -55,6 +55,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -126,6 +127,9 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
     @Autowired
     private TrackerOwnershipManager trackerOwnershipAccessManager;
+    
+    @Autowired
+    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
     @Autowired
     private Notifier notifier;
@@ -200,7 +204,7 @@ public class TrackerSynchronizationTest extends DhisSpringTest
             _relationshipService, relationshipService, trackedEntityAttributeValueService, manager, _userService,
             dbmsManager, enrollmentService, programInstanceService, currentUserService, schemaService, queryService,
             reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager,
-            trackedEntityInstanceAggregate, trackedEntityAttributeStore, notifier, jsonMapper, xmlMapper );
+            trackedEntityInstanceAggregate, trackedEntityAttributeStore,trackedEntityInstanceAuditService, notifier, jsonMapper, xmlMapper );
 
         prepareSyncParams();
         prepareDataForTest();

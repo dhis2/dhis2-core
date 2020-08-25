@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -87,9 +89,11 @@ import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -117,6 +121,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
     protected TrackedEntityAttributeService trackedEntityAttributeService;
+    
+    protected TrackedEntityTypeService trackedEntityTypeService;
 
     protected RelationshipService _relationshipService;
 
@@ -133,6 +139,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     protected EnrollmentService enrollmentService;
 
     protected ProgramInstanceService programInstanceService;
+    
+    protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
     protected CurrentUserService currentUserService;
 
@@ -260,8 +268,24 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService
             .getTrackedEntityAttributesByProgram();
 
-            
-        return this.trackedEntityInstanceAggregate.find( ids, params, queryParams, trackedEntityTypeAttributes, teaByProgram );
+        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params, queryParams, trackedEntityTypeAttributes, teaByProgram );
+        String accessedBy = queryParams.getUser() != null ? queryParams.getUser().getUsername() : currentUserService.getCurrentUsername();
+
+        Map<String,TrackedEntityType> tetMap= trackedEntityTypeService.getAllTrackedEntityType().stream().collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
+        for ( TrackedEntityInstance tei : trackedEntityInstances )
+        {
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH, tetMap );
+        }     
+        return trackedEntityInstances;
+    }
+    
+    protected void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, AuditType auditType, Map<String,TrackedEntityType> tetMap )
+    {
+        if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && tetMap.get( trackedEntityInstance.getTrackedEntityType() ).isAllowAuditLog() )
+        {
+            TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getTrackedEntityInstance(), user, auditType );
+            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+        }
     }
 
     @Override

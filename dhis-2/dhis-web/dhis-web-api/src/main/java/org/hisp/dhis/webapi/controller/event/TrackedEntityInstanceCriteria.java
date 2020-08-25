@@ -188,7 +188,7 @@ public class TrackedEntityInstanceCriteria
      * FIXME: luciano - temporary request attribute used to select the TEI fetching
      * implementation
      */
-    private boolean useFast;
+    private boolean useLegacy;
 
     public Set<String> getOrgUnits()
     {

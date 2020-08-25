@@ -57,22 +57,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
@@ -84,13 +68,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -251,14 +228,6 @@ public class DefaultTrackedEntityInstanceService
         params.handleCurrentUserSelectionMode();
 
         List<Long> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
-
-        // FIXME: luciano - check if READ audit can be removed, since it is now based on Hibernate listeners..
-//        String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
-//
-//        for ( TrackedEntityInstance tei : trackedEntityInstances )
-//        {
-//            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
-//        } 
 
         return trackedEntityInstances;
     }

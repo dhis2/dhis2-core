@@ -203,14 +203,14 @@ public class TrackedEntityInstanceController
 
         if ( !criteria.hasTrackedEntityInstance() )
         {
-            if ( criteria.isUseFast() ) // FIXME luciano: this has to be removed!
+            if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
             {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
+                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
                     getTrackedEntityInstanceParams( fields ), false );
             }
             else
             {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
                     getTrackedEntityInstanceParams( fields ), false );
             }
         }
