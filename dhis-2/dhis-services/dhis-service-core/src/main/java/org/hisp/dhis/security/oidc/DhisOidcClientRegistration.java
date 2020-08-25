@@ -44,7 +44,5 @@ public class DhisOidcClientRegistration
 
     private String mappingClaimKey;
 
-    private String hore;
-
     private String registrationId;
 }

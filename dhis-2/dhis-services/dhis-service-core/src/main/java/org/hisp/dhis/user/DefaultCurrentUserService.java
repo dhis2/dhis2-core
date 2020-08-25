@@ -197,17 +197,4 @@ public class DefaultCurrentUserService
     {
         return userStore.getUserCredentialsByUsername( getCurrentUsername() );
     }
-
-//    @Override
-//    @Transactional( readOnly = true )
-//    public void expireUserSessions()
-//    {
-//        UserDetails userDetails = getCurrentUserDetails();
-//
-//        if ( userDetails != null )
-//        {
-//            List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
-//            sessions.forEach( SessionInformation::expireNow );
-//        }
-//    }
 }

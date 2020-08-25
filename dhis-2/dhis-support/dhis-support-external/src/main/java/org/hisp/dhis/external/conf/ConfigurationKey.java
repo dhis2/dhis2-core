@@ -108,7 +108,6 @@ public enum ConfigurationKey
     AUDIT_DATABASE( "audit.database", "on", false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
-
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
 
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "empty", true ),
