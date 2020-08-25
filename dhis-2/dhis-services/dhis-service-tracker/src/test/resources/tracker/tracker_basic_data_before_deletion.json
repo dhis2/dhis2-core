@@ -15,14 +15,7 @@
     "completedAt": "2019-01-28T00:00:00.000",
     "attributeOptionCombo": "KKKKX50cXC0",
     "completedBy": "admin",
-    "dataValues": [{
-      "updatedAt": "2019-01-28T12:10:38.113",
-      "storedBy": "admin",
-      "createdAt": "2019-01-28T12:10:38.113",
-      "dataElement": "DSKTW8qFP0z",
-      "value": "2017-01-27T17:00:00.000Z",
-      "providedElsewhere": false
-    }]
+    "dataValues": []
   },
     {
       "event": "D9PbzJY8bJ1",
@@ -40,14 +33,7 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": "KKKKX50cXC0",
       "completedBy": "admin",
-      "dataValues": [{
-        "updatedAt": "2019-01-28T12:10:38.113",
-        "storedBy": "admin",
-        "createdAt": "2019-01-28T12:10:38.113",
-        "dataElement": "DSKTW8qFP0z",
-        "value": "2017-01-27T17:00:00.000Z",
-        "providedElsewhere": false
-      }]
+      "dataValues": []
     }],
   "enrollments": [{
     "enrollment": "TvctPPhpD8u",
