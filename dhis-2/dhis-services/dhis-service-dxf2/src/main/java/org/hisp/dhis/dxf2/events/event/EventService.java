@@ -28,27 +28,20 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.report.EventRows;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.scheduling.JobConfiguration;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.report.EventRows;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,23 +56,16 @@ public interface EventService
 
     EventRows getEventRows( EventSearchParams params );
 
-    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
-        String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
-        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
-        Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status, CategoryOptionCombo attributeCoc,
-        IdSchemes idSchemes, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
-        List<String> gridOrders, boolean includeAttributes, Set<String> events, Boolean skipEventId, AssignedUserSelectionMode assignedUserMode,
-        Set<String> assignedUserIds, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
+    Grid getEventsGrid( EventSearchParams params );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
     Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck );
 
+    // TODO remove these 2 methods and move the logic to the front-end
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
     List<Event> getEventsJson( InputStream inputStream ) throws IOException;
-
-    Grid getEventsGrid( EventSearchParams params );
 
     /**
      * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
@@ -112,22 +98,33 @@ public interface EventService
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException;
-
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
-
-    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate );
-
+    /**
+     * Update an existing Program Stage Instance with the data from the Event object
+     *
+     * @param event an Event
+     * @param singleValue if true, skip the Data Value mandatory check validation
+     *        and allow the client to send only Data Values that it wishes to update
+     * @param importOptions the Import Options
+     * @param bulkUpdate TODO this can be removed
+     * @return an {@see ImportSummary} containing the outcome of the operation
+     */
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
 
+    /**
+     *
+     * @param events a List of Events to update
+     * @param importOptions the Import Options
+     * @param singleValue if true, skip the Data Value mandatory check validation
+     *        and allow the client to send only Data Values that it wishes to update
+     * @param clearSession TODO this can be removed
+     * @return an {@see ImportSummary} containing the outcome of the operation
+     */
     ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
         boolean clearSession );
 
@@ -143,6 +140,8 @@ public interface EventService
      */
     void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
 
+    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
+
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
@@ -152,6 +151,4 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
-
-    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 }
