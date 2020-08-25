@@ -52,7 +52,7 @@ import com.google.common.collect.ImmutableMap;
  */
 public class ProgramOrgUnitCheck implements Checker
 {
-    private Map<IdScheme, BiFunction<OrganisationUnit, ImmutableEvent, Boolean>> functionMap = ImmutableMap
+    private final static Map<IdScheme, BiFunction<OrganisationUnit, ImmutableEvent, Boolean>> functionMap = ImmutableMap
         .<IdScheme, BiFunction<OrganisationUnit, ImmutableEvent, Boolean>> builder()
         .put( IdScheme.UID, ( ou, ev ) -> ou.getUid().equals( ev.getOrgUnit() ) )
         .put( IdScheme.CODE, ( ou, ev ) -> ou.getCode().equals( ev.getOrgUnit() ) )
@@ -60,7 +60,7 @@ public class ProgramOrgUnitCheck implements Checker
         .put( IdScheme.NAME, ( ou, ev ) -> ou.getName().equals( ev.getOrgUnit() ) )
         .build();
 
-    private BiFunction<OrganisationUnit, ImmutableEvent, Boolean> DEFAULT_FUNCTION = ( ou, ev ) -> false;
+    private final static BiFunction<OrganisationUnit, ImmutableEvent, Boolean> DEFAULT_FUNCTION = ( ou, ev ) -> false;
 
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
