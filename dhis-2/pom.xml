@@ -487,30 +487,15 @@
               <goal>enforce</goal>
             </goals>
             <configuration>
-
-              <rules>
-<!--                <banDuplicateClasses/>-->
-<!--                <banCircularDependencies/>-->
-<!--                  <requireUpperBoundDeps/>-->
-<!--                  <dependencyConvergence/>-->
-<!--                  <banTransitiveDependencies/>-->
-                <banDuplicatePomDependencyVersions/>
-
-                <requireMavenVersion>
-                  <version>3.6.3</version>
-                </requireMavenVersion>
-
-                <requireJavaVersion>
-                <version>1.8</version>
-                </requireJavaVersion>
-<!--                <requireEncoding>-->
-<!--                  <encoding>UTF-8</encoding>-->
-<!--                  <includes>src/main/resources/**,src/test/resources/**</includes>-->
-<!--                </requireEncoding>-->
-                <enforceBytecodeVersion>
-                  <maxJdkVersion>1.8</maxJdkVersion>
-                </enforceBytecodeVersion>
-              </rules>
+                <rules>
+                    <banDuplicatePomDependencyVersions/>
+                    <requireMavenVersion>
+                        <version>3.6.3</version>
+                    </requireMavenVersion>
+                    <requireJavaVersion>
+                        <version>1.8</version>
+                    </requireJavaVersion>
+                </rules>
             </configuration>
           </execution>
         </executions>

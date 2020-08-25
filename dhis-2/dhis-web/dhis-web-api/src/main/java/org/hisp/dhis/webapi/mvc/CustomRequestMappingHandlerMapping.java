@@ -87,9 +87,13 @@ public class CustomRequestMappingHandlerMapping
                     if ( !pattern.startsWith( version.getVersionString() ) )
                     {
                         if ( pattern.startsWith( "/" ) )
+                        {
                             patterns.add( "/" + version.getVersion() + pattern );
+                        }
                         else
+                        {
                             patterns.add( "/" + version.getVersion() + "/" + pattern );
+                        }
                     }
                     else
                     {

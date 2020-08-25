@@ -58,22 +58,19 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
     private SecurityService securityService;
 
     @Autowired
-    DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
-
-    @Autowired
-    public DhisOauthAuthenticationProvider( @Qualifier( "defaultClientDetailsUserDetailsService" ) DefaultClientDetailsUserDetailsService detailsService )
+    public DhisOauthAuthenticationProvider(
+        @Qualifier( "defaultClientDetailsUserDetailsService" ) DefaultClientDetailsUserDetailsService detailsService )
     {
-//        super();
         setUserDetailsService( detailsService );
         setPasswordEncoder( NoOpPasswordEncoder.getInstance() );
-        this.defaultClientDetailsUserDetailsService = detailsService;
     }
 
     @Override
     public Authentication authenticate( Authentication auth )
         throws AuthenticationException
     {
-        log.info( String.format( "OldOauthAuthenticationProvider Login attempt: %s", auth.getName() ) );
+        log.info( String.format( "DhisOauthAuthenticationProvider authenticate attempt Authentication.getName(): %s",
+            auth.getName() ) );
 
         String username = auth.getName();
 
@@ -83,49 +80,6 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
         {
             throw new BadCredentialsException( "Invalid username or password" );
         }
-
-        // Initialize all required properties of user credentials since these will become detached
-
-//        userCredentials.getAllAuthorities();
-//
-//        // -------------------------------------------------------------------------
-//        // Check two-factor authentication
-//        // -------------------------------------------------------------------------
-//
-//        if ( userCredentials.isTwoFA() )
-//        {
-//            TwoFactorWebAuthenticationDetails authDetails =
-//                (TwoFactorWebAuthenticationDetails) auth.getDetails();
-//
-//            // -------------------------------------------------------------------------
-//            // Check whether account is locked due to multiple failed login attempts
-//            // -------------------------------------------------------------------------
-//
-//            if ( authDetails == null )
-//            {
-//                log.info( "Missing authentication details in authentication request." );
-//                throw new PreAuthenticatedCredentialsNotFoundException(
-//                    "Missing authentication details in authentication request." );
-//            }
-//
-//            String ip = authDetails.getIp();
-//            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-//
-//            if ( securityService.isLocked( username ) )
-//            {
-//                log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
-//
-//                throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
-//            }
-//
-//            if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( userCredentials, code ) )
-//            {
-//                log.info(
-//                    String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
-//
-//                throw new BadCredentialsException( "Invalid verification code" );
-//            }
-//        }
 
         // -------------------------------------------------------------------------
         // Delegate authentication downstream, using UserCredentials as principal
@@ -137,11 +91,6 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
         // credentials must not be updated during session execution
 
         userCredentials = SerializationUtils.clone( userCredentials );
-
-        // Initialize cached authorities
-
-//        userCredentials.isSuper();
-//        userCredentials.getAllAuthorities();
 
         return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(),
             result.getAuthorities() );
