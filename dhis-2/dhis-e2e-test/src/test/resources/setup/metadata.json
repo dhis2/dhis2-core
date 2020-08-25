@@ -3513,5 +3513,29 @@
       "legendSets": [],
       "aggregationLevels": []
     }
+  ],
+  "programIndicators": [
+    {
+      "aggregationType": "SUM",
+      "code": "AAAAAAA-1234",
+      "decimals": 1,
+      "name": "Prg-Ind-Test",
+      "analyticsType": "EVENT",
+      "shortName": "prg-ind-test",
+      "program": {
+        "id": "BJ42SUrAvHo"
+      },
+      "analyticsPeriodBoundaries": [
+        {
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD",
+          "boundaryTarget": "EVENT_DATE"
+        },
+        {
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD",
+          "boundaryTarget": "EVENT_DATE"
+        }
+      ],
+      "legendSets": []
+    }
   ]
 }
