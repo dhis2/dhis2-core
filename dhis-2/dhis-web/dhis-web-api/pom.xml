@@ -112,6 +112,13 @@
       <artifactId>json-path</artifactId>
       <scope>test</scope>
     </dependency>
+
+
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+    </dependency>
+
   </dependencies>
 
 

@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.webapi.filter.RequestIdentifierFilter;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

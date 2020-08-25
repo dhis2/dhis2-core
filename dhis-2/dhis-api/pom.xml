@@ -156,7 +156,6 @@
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
       <artifactId>aerogear-otp-java</artifactId>
-      <version>1.0.0.CR1</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
