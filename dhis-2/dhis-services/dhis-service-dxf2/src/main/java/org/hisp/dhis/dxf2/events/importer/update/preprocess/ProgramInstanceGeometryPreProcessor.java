@@ -48,29 +48,30 @@ public class ProgramInstanceGeometryPreProcessor implements Processor
     @Override
     public void process( final Event event, final WorkContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        ctx.getProgramStageInstance( event.getUid() ).ifPresent( psi -> {
 
-        if ( event.getGeometry() != null )
-        {
-            if ( !programStageInstance.getProgramStage().getFeatureType().equals( NONE ) || programStageInstance
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            if ( event.getGeometry() != null )
             {
-                event.getGeometry().setSRID( SRID );
+                if ( !psi.getProgramStage().getFeatureType().equals( NONE ) || psi
+                    .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+                {
+                    event.getGeometry().setSRID( SRID );
+                }
             }
-        }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            final Coordinate coordinate = event.getCoordinate();
+            else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+            {
+                final Coordinate coordinate = event.getCoordinate();
 
-            try
-            {
-                event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+                try
+                {
+                    event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+                }
+                catch ( IOException e )
+                {
+                    // Do nothing. The validation phase, before the post process phase, will catch
+                    // it in advance. It should never happen at this stage.
+                }
             }
-            catch ( IOException e )
-            {
-                // Do nothing. The validation phase, before the post process phase, will catch
-                // it in advance. It should never happen at this stage.
-            }
-        }
+        } );
     }
 }

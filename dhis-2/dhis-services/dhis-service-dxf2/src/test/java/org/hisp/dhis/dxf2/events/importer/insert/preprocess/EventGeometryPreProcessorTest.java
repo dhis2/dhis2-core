@@ -50,7 +50,6 @@ public class EventGeometryPreProcessorTest
     @Before
     public void setUp()
     {
-
         this.subject = new EventGeometryPreProcessor();
     }
 

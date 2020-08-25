@@ -48,7 +48,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -112,7 +111,7 @@ public class DataValueCheck implements Checker
         final IdScheme dataElementIdScheme = ctx.getImportOptions().getIdSchemes().getDataElementIdScheme();
         final Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
 
-        final boolean allowSingleUpdates = ctx.getImportOptions().isSkipDataValueMandatoryValidationCheck();
+        final boolean allowSingleUpdates = ctx.getImportOptions().isMergeDataValues();
 
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, event.getProgramStage() );
 

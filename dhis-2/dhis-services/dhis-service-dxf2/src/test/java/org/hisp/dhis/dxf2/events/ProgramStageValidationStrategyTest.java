@@ -27,13 +27,19 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.stream.Stream;
 
+import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
@@ -42,6 +48,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -49,12 +56,15 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -84,6 +94,9 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
     @Autowired
     protected CurrentUserService currentUserService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
@@ -161,7 +174,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         manager.save( dataElementC, false );
 
         programStageA = createProgramStage( 'A', 0 );
-        programStageA.setUid( CodeGenerator.generateUid() );
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         programStageA.getUserAccesses().add( userAccess1 );
         manager.save( programStageA, false );
@@ -222,9 +234,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         manager.save( periodA, false );
 
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
-        categoryComboA.setUid( CodeGenerator.generateUid() );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
-        categoryOptionComboA.setUid( CodeGenerator.generateUid() );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryComboA.getUserAccesses().add( userAccess1 );
         categoryOptionComboA.getUserAccesses().add( userAccess1 );
@@ -238,8 +248,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         dataValueA = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementA.getUid(), "42" );
         dataValueB = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementB.getUid(), "Ford Prefect" );
         dataValueC = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementC.getUid(), "84" );
-        // Flush all changes to disk
-        manager.flush();
     }
 
     /*
@@ -264,72 +272,49 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
      * #######################################################
      */
 
-    @Autowired
-    private SessionFactory sessionFactory;
-
     @Test
     public void missingCompulsoryDataElementWithValidationOnUpdateShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ) );
-
-        manager.flush();
-        sessionFactory.getCurrentSession().clear();
-
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( addEvent( createDefaultEvent( dataValueA, dataValueBMissing, dataValueC ) ) );
     }
 
     @Test
     public void correctCompulsoryDataElementsWithValidationOnUpdateShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
+        Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        assertSuccessfulImport( addEvent( event ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void missingCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( addEvent( event ) );
     }
 
     @Test
     public void correctCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
+        assertSuccessfulImport( addEvent( event ) );
 
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     /*
@@ -341,65 +326,50 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     @Test
     public void missingCompulsoryDataElementWithValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ) );
+        Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
+        assertSuccessfulImport( addEvent( event ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void correctCompulsoryDataElementsWithValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
+        Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        assertSuccessfulImport( addEvent( event ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void missingCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( addEvent( event ) );
     }
 
     @Test
     public void correctCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        manager.flush();
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
 
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
+        assertSuccessfulImport( addEvent( event ) );
 
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     /*
@@ -428,197 +398,123 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     @Test
     public void compulsoryDataElementWithEmptyValueAndValidationOnUpdateShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null, false );
+        // Create event having 3 Data Values
+        Event event = addDefaultEvent();
 
         // Single value update -> should pass -> because data values are fetched from DB
         // and merged
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) ); // FIXME this should fail because
+                                                                                    // 'dataValueB' is mandatory
+        // assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA),
+        // checkDataValue( dataValueB ), checkDataValue( dataValueC ) );
 
         // NOT a single value update -> should fail -> because data values are NOT
         // fetched from DB and so NOT merged
-        updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
+        updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
 
-        importSummary = eventService.updateEvent( updatedEvent, false, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( updateEvent( updatedEvent ) );
     }
 
     @Test
     public void correctCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        // Create event
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
+        // Update Data Value value
+        dataValueB.setValue( "new value" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
 
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueAMissing, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = createDefaultEvent( dataValueAMissing, dataValueB, dataValueC );
 
-        eventService.addEvent( event, null, false );
+        assertSuccessfulImport( addEvent( event ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueB ), checkDataValue( dataValueC ) );
 
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( updateEventWithSingleValueUpdate( updatedEvent ) );
     }
 
     @Test
     public void emptyNonCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
+        // DataValueC is not mandatory - so ok to remove
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
 
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueCMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
     @Test
     public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnUpdateShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        manager.flush();
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null, false );
+        Event event = addDefaultEvent();
 
         // Single value update -> should pass -> because data values are fetched from DB
         // and merged
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
 
         // NOT a single value update -> should fail -> because data values are NOT
         // fetched from DB and so NOT merged
-        updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-        updatedEvent.setStatus( EventStatus.COMPLETED );
-
-        importSummary = eventService.updateEvent( updatedEvent, false, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( updateEvent( updatedEvent ) );
     }
 
     @Test
     public void correctCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
+        dataValueB.setValue( "new value" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        manager.update( programStageA );
+        validationOnInsertUpdate( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueCMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
     /*
@@ -630,156 +526,91 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     @Test
     public void compulsoryDataElementWithEmptyValueAndValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
 
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
     }
 
     @Test
     public void correctCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
+        dataValueB.setValue( "new value" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
 
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void emptyNonCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
 
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueCMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
     @Test
     public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnCompleteShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null, false );
+        Event event = addDefaultEvent();
 
         // Single value update -> should pass -> because data values are fetched from DB
         // and merged
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
 
         // NOT a single value update -> should fail -> because data values are NOT
         // fetched from DB and so NOT merged
-        updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-        updatedEvent.setStatus( EventStatus.COMPLETED );
-
-        importSummary = eventService.updateEvent( updatedEvent, false, null, false );
-
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertInvalidImport( updateEvent( updatedEvent ) );
     }
 
     @Test
     public void correctCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
     }
 
     @Test
     public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        manager.update( programStageA );
+        validationOnComplete( programStageA );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ) );
-        event.setEvent( "abcdefghijk" );
+        Event event = addDefaultEvent();
 
-        eventService.addEvent( event, null, false );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueCMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
+        Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
     private Event createEvent( String program, String programStage, String orgUnit, String person )
@@ -790,6 +621,114 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.setOrgUnit( orgUnit );
         event.setTrackedEntityInstance( person );
         event.setEventDate( "2013-01-01" );
+
+        return event;
+    }
+
+    private ImportSummary addEvent( Event event )
+    {
+        return eventService.addEvent( event, null, false );
+    }
+
+    private ImportSummary updateEventWithSingleValueUpdate( Event event )
+    {
+        return eventService.updateEvent( event, true, null, false );
+    }
+
+    private ImportSummary updateEvent( Event event )
+    {
+        return eventService.updateEvent( event, false, null, false );
+    }
+
+    @Autowired
+    private SessionFactory sessionFactory;
+    private ProgramStageInstance getPsi( String event )
+    {
+        sessionFactory.getCurrentSession().clear();
+        return programStageInstanceService.getProgramStageInstance( event );
+    }
+
+    private void assertDataValuesOnPsi( String event, DataValueAsserter... dataValues )
+    {
+        final ProgramStageInstance psi = getPsi( event );
+        assertEquals( print(psi, dataValues) , dataValues.length, psi.getEventDataValues().size() );
+
+        for ( DataValueAsserter dataValue : dataValues )
+        {
+            assertThat( psi.getEventDataValues(), hasItem( allOf(
+                Matchers.<EventDataValue> hasProperty( "value", is( dataValue.getValue() ) ),
+                Matchers.<EventDataValue> hasProperty( "dataElement", is( dataValue.getDataElement() ) ) ) ) );
+        }
+    }
+
+    private String print( ProgramStageInstance psi, DataValueAsserter... dataValues )
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( "PSI on database has the following Data Values: \n" );
+        psi.getEventDataValues().forEach(
+            e -> sb.append( e.getDataElement() ).append( " - value: " ).append( e.getValue() ).append( "\n" ) );
+        sb.append( "---------------\n" );
+        sb.append( "Expecting: \n" );
+        Stream.of( dataValues ).forEach( d -> sb.append( d.getDataElement() ).append( "\n" ) );
+        return sb.toString();
+    }
+
+    private void assertSuccessfulImport( ImportSummary importSummary )
+    {
+        assertEquals( importSummary.getStatus(), ImportStatus.SUCCESS );
+    }
+
+    private void assertInvalidImport( ImportSummary importSummary )
+    {
+        assertEquals( importSummary.getStatus(), ImportStatus.ERROR );
+    }
+
+    private DataValueAsserter checkDataValue( DataValue dataValue )
+    {
+        return DataValueAsserter.builder().value( dataValue.getValue() ).dataElement( dataValue.getDataElement() )
+            .build();
+    }
+
+    private void validationOnInsertUpdate( ProgramStage programStage )
+    {
+        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
+        manager.update( programStage );
+    }
+
+    private void validationOnComplete( ProgramStage programStage )
+    {
+        programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
+        manager.update( programStage );
+    }
+
+    private Event createDefaultEvent( DataValue... dataValues )
+    {
+        final String uid = CodeGenerator.generateUid();
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event.getDataValues().addAll( Arrays.asList( dataValues ) );
+        event.setUid( uid );
+        event.setEvent( uid );
+        return event;
+    }
+
+    private Event createDefaultEvent( String uid, DataValue... dataValues )
+    {
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event.getDataValues().addAll( Arrays.asList( dataValues ) );
+        event.setUid( uid );
+        event.setEvent( uid );
+        return event;
+    }
+
+    private Event addDefaultEvent()
+    {
+        Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+
+        assertSuccessfulImport( addEvent( event ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
+            checkDataValue( dataValueC ) );
 
         return event;
     }

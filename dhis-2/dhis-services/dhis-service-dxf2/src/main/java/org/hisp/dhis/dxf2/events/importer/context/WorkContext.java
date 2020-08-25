@@ -172,4 +172,9 @@ public class WorkContext
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
+    
+    public Optional<ProgramStageInstance> getProgramStageInstance( String event )
+    {
+        return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );
+    }
 }

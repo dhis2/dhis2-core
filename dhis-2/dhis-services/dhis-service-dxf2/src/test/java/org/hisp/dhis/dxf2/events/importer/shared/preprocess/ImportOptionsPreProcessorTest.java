@@ -59,16 +59,9 @@ public class ImportOptionsPreProcessorTest
 
     private ImportOptionsPreProcessor subject;
 
-    @Mock
-    private ServiceDelegator serviceDelegator;
-
-    @Mock
-    private CurrentUserService currentUserService;
-
     @Before
     public void setUp()
     {
-
         this.subject = new ImportOptionsPreProcessor();
     }
 

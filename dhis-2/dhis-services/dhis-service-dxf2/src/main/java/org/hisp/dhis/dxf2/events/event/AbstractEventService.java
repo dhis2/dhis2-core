@@ -654,7 +654,7 @@ public abstract class AbstractEventService implements EventService
         // TODO this doesn't make a lot of sense, but I didn't want to change the
         // EventService interface
         // and preserve the "singleValue" flag
-        localImportOptions.setSkipDataValueMandatoryValidationCheck( singleValue );
+        localImportOptions.setMergeDataValues( singleValue );
 
         return eventManager.updateEvent( event,
             workContextLoader.load( localImportOptions, Collections.singletonList( event ) ) );

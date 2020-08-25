@@ -37,9 +37,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 /**
  * @author Luciano Fiandesio
  */
-public class ImportOptionsPreProcessor
-    implements
-    Processor
+public class ImportOptionsPreProcessor implements Processor
 {
     @Override
     public void process( Event event, WorkContext ctx )

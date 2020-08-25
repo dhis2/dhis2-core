@@ -102,8 +102,12 @@ public class ImportOptions
     private NotificationLevel notificationLevel;
 
     private boolean skipLastUpdated;
-    
-    private boolean skipDataValueMandatoryValidationCheck;
+
+    /**
+     * This flag signals the system that the request contains Event Data Values that have to be merged
+     * with the existing Data Values (as opposed to a full replacement)
+     */
+    private boolean mergeDataValues;
 
     /**
      * if true, caches for import are not used. Should only be used for testing
@@ -152,7 +156,7 @@ public class ImportOptions
         options.firstRowIsHeader = this.firstRowIsHeader;
         options.skipLastUpdated = this.skipLastUpdated;
         options.skipCache = this.skipCache;
-        options.skipDataValueMandatoryValidationCheck = this.skipDataValueMandatoryValidationCheck;
+        options.mergeDataValues = this.mergeDataValues;
 
         return options;
     }
@@ -406,9 +410,9 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipDataValueMandatoryValidationCheck()
+    public boolean isMergeDataValues()
     {
-        return skipDataValueMandatoryValidationCheck;
+        return mergeDataValues;
     }
     
     //--------------------------------------------------------------------------
@@ -629,9 +633,9 @@ public class ImportOptions
         this.skipCache = skipCache;
     }
 
-    public void setSkipDataValueMandatoryValidationCheck( boolean skipDataValueMandatoryValidationCheck )
+    public void setMergeDataValues(boolean mergeDataValues)
     {
-        this.skipDataValueMandatoryValidationCheck = skipDataValueMandatoryValidationCheck;
+        this.mergeDataValues = mergeDataValues;
     }
 
     @Override
@@ -660,7 +664,7 @@ public class ImportOptions
             .add( "firstRowIsHeader", firstRowIsHeader )
             .add( "skipLastUpdated", skipLastUpdated )
             .add( "skipCache", skipCache )
-            .add( "skipDataValueMandatoryValidationCheck", skipDataValueMandatoryValidationCheck )
+            .add( "skipDataValueMandatoryValidationCheck", mergeDataValues)
             .toString();
     }
 }

@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -64,30 +65,32 @@ public class EventDataValueAggregatorTest
     private final ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
 
     @Test
-    public void allNew()
+    public void verifyAggregateDataValuesOnNewEvent()
     {
-        Event event1 = new Event();
-        event1.setUid( CodeGenerator.generateUid() );
-        event1.setDataValues( Sets.newHashSet( createDataValue( "abcd", "val1" ),
-            createDataValue( "efgh", "val2" ), createDataValue( "ilmn", "val3" ) ) );
+        Event event1 = createEvent(
+            createDataValue( "abcd", "val1" ),
+            createDataValue( "efgh", "val2" ),
+            createDataValue( "ilmn", "val3" ) );
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             new HashMap<>(), importOptions );
+        
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
-        // TODO assert on single elements
+
+        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
+        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
+        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
     }
 
     @Test
-    public void allExisting()
+    public void verifyAggregateDataValuesOnExistingPSI()
     {
-        Event event1 = new Event();
-        event1.setUid( CodeGenerator.generateUid() );
-        event1.setDataValues( Sets.newHashSet(
+        Event event1 = createEvent(
             createDataValue( "abcd", "val1" ),
             createDataValue( "efgh", "val2" ),
-            createDataValue( "ilmn", "val3" ) ) );
+            createDataValue( "ilmn", "val3" ) );
 
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(), createPsi( event1.getUid(),
@@ -97,95 +100,95 @@ public class EventDataValueAggregatorTest
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
+        
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
-        // TODO assert on single elements
+
+        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
+        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
+        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
     }
 
     @Test
-    public void payloadHasLess()
+    public void verifyAggregateDataValuesOnExistingPSI_PayloadHasLessDataValues()
     {
-        Event event1 = new Event();
-        event1.setUid( CodeGenerator.generateUid() );
-        event1.setDataValues( Sets.newHashSet( createDataValue( "abcd", "val1" ) ) );
+        Event event1 = createEvent( createDataValue( "abcd", "val1" ) );
 
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(), createPsi( event1.getUid(),
-            createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
+            createEventDataValue( "abcd", "val1" ),
+            createEventDataValue( "efgh", "val2" ),
             createEventDataValue( "ilmn", "val3" ) ) );
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
+
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 1 ) );
 
-        EventDataValue eventDataValue = dataValues.get( event1.getUid() ).iterator().next();
-        assertThat( eventDataValue.getValue(), is( "val1" ) );
-        assertThat( eventDataValue.getDataElement(), is( "abcd" ) );
+        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
     }
 
     @Test
-    public void payloadHasMore()
+    public void verifyAggregateDataValuesOnExistingPSI_PayloadHasMoreDataValues()
     {
-        Event event1 = new Event();
-        event1.setUid( CodeGenerator.generateUid() );
-        // @formatter:off
-        event1.setDataValues( Sets.newHashSet(
+        Event event1 = createEvent(
             createDataValue( "abcd", "val1" ),
             createDataValue( "efgh", "val2" ),
             createDataValue( "ilmn", "val3" ),
-            createDataValue( "gggg", "val4" ) ) );
-        // @formatter:on
+            createDataValue( "gggg", "val4" ) );
+
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
-        // @formatter:off
             createPsi( event1.getUid(),
             createEventDataValue( "abcd", "val1" ),
             createEventDataValue( "efgh", "val2" ),
             createEventDataValue( "ilmn", "val3" ) ) );
-            // @formatter:on
+
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
+
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 4 ) );
+
+        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val1" );
+        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
+        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
+        assertDataValue( dataValues.get( event1.getUid() ), "gggg", "val4" );
     }
 
     @Test
-    public void payloadIsEmpty()
+    public void verifyAggregateDataValuesOnExistingPSI_PayloadHasNoDataValues()
     {
         Event event1 = new Event();
         event1.setUid( CodeGenerator.generateUid() );
         event1.setDataValues( Sets.newHashSet() );
 
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
-        programStageInstanceMap.put( event1.getUid(),
-        // @formatter:off
-            createPsi( event1.getUid(),
-                createEventDataValue( "abcd", "val1" ),
-                createEventDataValue( "efgh", "val2" ),
-                createEventDataValue( "ilmn", "val3" ) ) );
-            // @formatter:on
+        programStageInstanceMap.put( event1.getUid(), createPsi( event1.getUid(),
+            createEventDataValue( "abcd", "val1" ),
+            createEventDataValue( "efgh", "val2" ),
+            createEventDataValue( "ilmn", "val3" ) ) );
+        
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
+        
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 0 ) );
     }
 
     @Test
-    public void allExistingButNoValue()
+    public void verifyAggregateDataValuesOnExistingPSI_PayloadHasEmptyDataValues()
     {
-        Event event1 = new Event();
-        event1.setUid( CodeGenerator.generateUid() );
-        event1.setDataValues( Sets.newHashSet(
-        // @formatter:off
+        Event event1 = createEvent(
             createDataValue( "abcd", "" ),
             createDataValue( "efgh", "" ),
-            createDataValue( "ilmn", "" ) ) );
-            // @formatter:on
+            createDataValue( "ilmn", "" ) );
+
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(), createPsi( event1.getUid(),
             createEventDataValue( "abcd", "val1" ),
@@ -194,17 +197,86 @@ public class EventDataValueAggregatorTest
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
+
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 0 ) );
-        // TODO assert on single elements
     }
 
-    public ProgramStageInstance createPsi( String uid, EventDataValue... eventDataValues )
+    @Test
+    public void verifyAggregateDataValuesOnExistingPSIwithMerge()
+    {
+        Event event1 = createEvent( createDataValue( "abcd", "val5" ) );
+
+        importOptions.setMergeDataValues( true );
+
+        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        programStageInstanceMap.put( event1.getUid(), createPsi( event1.getUid(),
+            createEventDataValue( "abcd", "val1" ),
+            createEventDataValue( "efgh", "val2" ),
+            createEventDataValue( "ilmn", "val3" ) ) );
+
+        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
+                programStageInstanceMap, importOptions );
+
+        assertThat( dataValues, is( notNullValue() ) );
+        assertThat( dataValues.keySet(), hasSize( 1 ) );
+        assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
+
+        assertDataValue( dataValues.get( event1.getUid() ), "abcd", "val5" );
+        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
+        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
+    }
+
+    @Test
+    public void verifyAggregateDataValuesOnExistingPSIwithMergeAndEmptyDataValue()
+    {
+        Event event1 = createEvent( createDataValue( "abcd", "" ) );
+
+        importOptions.setMergeDataValues( true );
+
+        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        programStageInstanceMap.put( event1.getUid(),
+                createPsi( event1.getUid(),
+                        createEventDataValue( "abcd", "val1" ),
+                        createEventDataValue( "efgh", "val2" ),
+                        createEventDataValue( "ilmn", "val3" ) ) );
+
+        Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
+                programStageInstanceMap, importOptions );
+
+        assertThat( dataValues, is( notNullValue() ) );
+        assertThat( dataValues.keySet(), hasSize( 1 ) );
+        assertThat( dataValues.get( event1.getUid() ), hasSize( 2 ) );
+
+        assertDataValue( dataValues.get( event1.getUid() ), "efgh", "val2" );
+        assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
+    }
+
+    private ProgramStageInstance createPsi( String uid, EventDataValue... eventDataValues )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setUid( uid );
         programStageInstance.setEventDataValues( Sets.newHashSet( eventDataValues ) );
         return programStageInstance;
+    }
+
+    private void assertDataValue( Set<EventDataValue> dataValues, String dataElement, String value )
+    {
+        dataValues.stream().filter( dv -> dv.getDataElement().equals( dataElement ) ).findFirst().ifPresent( dv -> {
+
+            assertThat( dv.getValue(), is( value ) );
+            assertThat( dv.getStoredBy(), is( nullValue() ) );
+            assertThat( dv.getLastUpdated(), is( notNullValue()  ) );
+
+        } );
+    }
+    
+    private Event createEvent( DataValue... dataValues )
+    {
+        Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        event.setDataValues( Sets.newHashSet( dataValues ) );
+        return event;
     }
 }

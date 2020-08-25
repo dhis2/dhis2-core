@@ -46,8 +46,9 @@ public class EventStoredByPreProcessor implements Processor
     @Override
     public void process( Event event, WorkContext ctx )
     {
-        String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
+        final String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
         event.setStoredBy( storedBy );
+
         Set<DataValue> dataValues = event.getDataValues();
 
         for ( DataValue dataValue : dataValues )
