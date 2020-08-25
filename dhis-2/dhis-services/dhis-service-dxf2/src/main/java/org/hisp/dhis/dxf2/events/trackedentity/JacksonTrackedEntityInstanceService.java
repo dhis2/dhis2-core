@@ -50,6 +50,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -100,6 +101,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
             TrackedEntityInstanceAggregate trackedEntityInstanceAggregate,
             TrackedEntityAttributeStore trackedEntityAttributeStore,
             TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
+            TrackedEntityTypeService trackedEntityTypeService,
             Notifier notifier,
             ObjectMapper jsonMapper,
             @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
@@ -123,6 +125,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( trackedEntityInstanceAggregate );
         checkNotNull( trackedEntityAttributeStore );
+        checkNotNull( trackedEntityTypeService );
         checkNotNull( notifier );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
@@ -147,6 +150,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.trackedEntityInstanceAggregate = trackedEntityInstanceAggregate;
         this.trackedEntityAttributeStore = trackedEntityAttributeStore;
         this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
+        this.trackedEntityTypeService = trackedEntityTypeService;
         this.notifier = notifier;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;

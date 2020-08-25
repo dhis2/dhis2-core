@@ -59,6 +59,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -130,6 +131,9 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     
     @Autowired
     private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private Notifier notifier;
@@ -200,11 +204,11 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( user );
 
-        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
-            _relationshipService, relationshipService, trackedEntityAttributeValueService, manager, _userService,
-            dbmsManager, enrollmentService, programInstanceService, currentUserService, schemaService, queryService,
-            reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager,
-            trackedEntityInstanceAggregate, trackedEntityAttributeStore,trackedEntityInstanceAuditService, notifier, jsonMapper, xmlMapper );
+        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService, _relationshipService, relationshipService,
+            trackedEntityAttributeValueService, manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,
+            schemaService, queryService, reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager,
+            trackedEntityInstanceAggregate, trackedEntityAttributeStore, trackedEntityInstanceAuditService, trackedEntityTypeService, notifier, jsonMapper,
+            xmlMapper );
 
         prepareSyncParams();
         prepareDataForTest();
