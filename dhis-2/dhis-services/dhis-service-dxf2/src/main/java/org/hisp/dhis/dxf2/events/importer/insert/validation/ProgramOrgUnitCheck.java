@@ -31,7 +31,10 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdScheme;
@@ -42,13 +45,25 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * @author Luciano Fiandesio
  */
 public class ProgramOrgUnitCheck implements Checker
 {
+    private Map<IdScheme, BiFunction<OrganisationUnit, ImmutableEvent, Boolean>> functionMap = ImmutableMap
+        .<IdScheme, BiFunction<OrganisationUnit, ImmutableEvent, Boolean>> builder()
+        .put( IdScheme.UID, ( ou, ev ) -> ou.getUid().equals( ev.getOrgUnit() ) )
+        .put( IdScheme.CODE, ( ou, ev ) -> ou.getCode().equals( ev.getOrgUnit() ) )
+        .put( IdScheme.ID, ( ou, ev ) -> String.valueOf( ou.getId() ).equals( ev.getOrgUnit() ) )
+        .put( IdScheme.NAME, ( ou, ev ) -> ou.getName().equals( ev.getOrgUnit() ) )
+        .build();
+
+    private BiFunction<OrganisationUnit, ImmutableEvent, Boolean> DEFAULT_FUNCTION = ( ou, ev ) -> false;
+
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
 
@@ -62,60 +77,48 @@ public class ProgramOrgUnitCheck implements Checker
 
             for ( OrganisationUnit ou : organisationUnits )
             {
-                if ( orgUnitIdScheme.equals( IdScheme.UID ) )
+                if ( orgUnitIdScheme.isAttribute() )
                 {
-                    if ( ou.getUid().equals( event.getOrgUnit() ) )
+                    final Optional<OrganisationUnit> ouByAttributeScheme = getByAttributeScheme( ou, event,
+                        orgUnitIdScheme );
+                    if ( ouByAttributeScheme.isPresent() )
                     {
-                        orgUnit = ou;
+                        orgUnit = ouByAttributeScheme.get();
                         break;
                     }
                 }
-                else if ( orgUnitIdScheme.equals( IdScheme.CODE ) )
+                else
                 {
-                    if ( ou.getCode().equals( event.getOrgUnit() ) )
+                    if ( functionMap.getOrDefault( orgUnitIdScheme, DEFAULT_FUNCTION ).apply( ou, event ) )
                     {
                         orgUnit = ou;
                         break;
-                    }
-                }
-                else if ( orgUnitIdScheme.equals( IdScheme.ID ) )
-                {
-                    if ( String.valueOf( ou.getId() ).equals( event.getOrgUnit() ) )
-                    {
-                        orgUnit = ou;
-                        break;
-                    }
-                }
-                else if ( orgUnitIdScheme.equals( IdScheme.NAME ) )
-                {
-                    if ( String.valueOf( ou.getName() ).equals( event.getOrgUnit() ) )
-                    {
-                        orgUnit = ou;
-                        break;
-                    }
-                }
-                else if ( orgUnitIdScheme.isAttribute() )
-                {
-                    final Set<AttributeValue> attributeValues = ou.getAttributeValues();
-                    for ( AttributeValue attributeValue : attributeValues )
-                    {
-                        if ( orgUnitIdScheme.getAttribute().equals( attributeValue.getAttribute().getUid() ) &&
-                            attributeValue.getValue().equals( event.getOrgUnit() ) )
-                        {
-                            orgUnit = ou;
-                            break;
-                        }
                     }
                 }
             }
 
             if ( orgUnit == null )
             {
-                return error( "Program is not assigned to this organisation unit: " + event.getOrgUnit(),
+                return error( "Program is not assigned to this Organisation Unit: " + event.getOrgUnit(),
                     event.getEvent() );
             }
         }
 
         return success();
+    }
+    
+    private Optional<OrganisationUnit> getByAttributeScheme( OrganisationUnit ou, ImmutableEvent event,
+        IdScheme orgUnitIdScheme )
+    {
+        final Set<AttributeValue> attributeValues = ou.getAttributeValues();
+        for ( AttributeValue attributeValue : attributeValues )
+        {
+            if ( orgUnitIdScheme.getAttribute().equals( attributeValue.getAttribute().getUid() ) &&
+                attributeValue.getValue().equals( event.getOrgUnit() ) )
+            {
+                return Optional.of( ou );
+            }
+        }
+        return Optional.empty();
     }
 }

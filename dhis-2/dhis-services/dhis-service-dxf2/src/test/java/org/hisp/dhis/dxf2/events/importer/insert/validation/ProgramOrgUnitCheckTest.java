@@ -32,14 +32,18 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
@@ -70,6 +74,7 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
         verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "ABCDE", IdScheme.CODE );
         verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( CodeGenerator.generateUid(), IdScheme.UID );
         verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "100", IdScheme.ID );
+        verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "LOPEZ", IdScheme.NAME );
     }
 
     private void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( String orgUnitId, IdScheme scheme )
@@ -86,12 +91,47 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
+        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
 
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( scheme.name() );
-
         when( workContext.getImportOptions() ).thenReturn( importOptions );
+
+        // method under test
+        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
+
+        assertNoError( summary );
+    }
+
+    @Test
+    public void verifyCheckUsingAttributeScheme()
+    {
+        event.setOrgUnit( "blue" );
+
+        // Prepare data
+        Program program = createProgram( 'P' );
+        // make sure that one of the generate Org Units, has the event's UID
+        program.setOrganisationUnits(
+            create( 3, CodeGenerator.generateUid(), IdScheme.UID ) );
+
+        OrganisationUnit ou = createOrganisationUnit( RandomStringUtils.randomAlphabetic( 1 ) );
+        Attribute attribute = new Attribute( "color", ValueType.TEXT );
+        attribute.setUid( CodeGenerator.generateUid() );
+        AttributeValue attributeValue = new AttributeValue( attribute, "blue" );
+        ou.setAttributeValues( Collections.singleton( attributeValue ) );
+
+        program.getOrganisationUnits().add( ou );
+
+        ProgramInstance pi = new ProgramInstance();
+        pi.setProgram( program );
+
+        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
+        programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
+
+        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+        importOptions.setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + attribute.getUid() );
+        when( workContext.getImportOptions() ).thenReturn( importOptions );
 
         // method under test
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
@@ -114,16 +154,12 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
-
-        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-
-        when( workContext.getImportOptions() ).thenReturn( importOptions );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
 
         // method under test
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
 
-        assertHasError( summary, event, "Program is not assigned to this organisation unit: " + event.getOrgUnit() );
+        assertHasError( summary, event, "Program is not assigned to this Organisation Unit: " + event.getOrgUnit() );
     }
 
     private Set<OrganisationUnit> create( int size, String orgUnit, IdScheme idScheme )
@@ -146,6 +182,10 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
                 else if ( idScheme.equals( IdScheme.ID ) )
                 {
                     ou.setId( Long.parseLong( orgUnit ) );
+                }
+                else if ( idScheme.equals( IdScheme.NAME ) )
+                {
+                    ou.setName( orgUnit );
                 }
             }
             result.add( ou );
