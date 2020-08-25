@@ -31,6 +31,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceCriteria;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,6 +43,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
+@Ignore
 public class TrackedEntityCriteriaMapperTest
     extends
     DhisSpringTest
