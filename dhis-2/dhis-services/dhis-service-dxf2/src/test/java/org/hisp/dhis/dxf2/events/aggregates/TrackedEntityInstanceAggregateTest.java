@@ -574,4 +574,10 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             "Timestamp is higher than expected interval. Expecting: " + milliseconds + " got: " + interval,
             Math.abs( interval ) < milliseconds );
     }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 }

@@ -122,4 +122,10 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         user.setUserCredentials( userCredentials );
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
 }
