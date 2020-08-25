@@ -81,7 +81,10 @@ public class DhisOidcUserService
             claimValue = userInfo.getClaim( mappingClaimKey );
         }
 
-        log.info( "Trying to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( "Trying to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+        }
 
         if ( claimValue != null )
         {
@@ -91,6 +94,11 @@ public class DhisOidcUserService
             {
                 return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
+        }
+
+        if ( log.isInfoEnabled() )
+        {
+            log.info( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
         }
 
         OAuth2Error oauth2Error = new OAuth2Error(
