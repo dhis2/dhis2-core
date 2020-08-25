@@ -35,16 +35,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.user.User;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore
 {
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    /**
+     * Inserts a List of {@see ProgramStageInstance}, including notes and Data
+     * Values.
+     *
+     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * 
+     */
+    void saveEvents( List<ProgramStageInstance> programStageInstances );
+
+    void updateEvents( List<ProgramStageInstance> programStageInstances );
+
+    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+
+    /**
+     * Delete list of given events to be removed. This operation also remove comments
+     * connected to each Event.
+     *
+     * @param events List to be removed
+     */
+    void delete( List<Event> events );
+
+    void updateTrackedEntityInstances( List<String> teiUid, User user );
 }

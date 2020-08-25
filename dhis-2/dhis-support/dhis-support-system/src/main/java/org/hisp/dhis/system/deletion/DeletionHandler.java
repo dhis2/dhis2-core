@@ -111,6 +111,8 @@ import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -1073,5 +1075,25 @@ public abstract class DeletionHandler
 
     public void deleteInterpretationComment ( InterpretationComment comment )
     {
+    }
+
+    public String allowDeleteIncomingSms( IncomingSms sms )
+    {
+        return null;
+    }
+
+    public void deleteIncomingSms( IncomingSms sms )
+    {
+
+    }
+
+    public String allowDeleteOutboundSms( OutboundSms sms )
+    {
+        return null;
+    }
+
+    public void deleteOutboundSms( OutboundSms sms )
+    {
+
     }
 }

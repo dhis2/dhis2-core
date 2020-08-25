@@ -1191,7 +1191,7 @@
       <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
-        <version>1.4.196</version>
+        <version>1.4.200</version>
       </dependency>
       <dependency>
         <groupId>org.hsqldb</groupId>
@@ -1272,6 +1272,11 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.2.5</version>
+      </dependency>
+      <dependency>
+        <groupId>net.postgis</groupId>
+        <artifactId>postgis-jdbc</artifactId>
+        <version>2.5.0</version>
       </dependency>
 
       <!-- Flyway -->

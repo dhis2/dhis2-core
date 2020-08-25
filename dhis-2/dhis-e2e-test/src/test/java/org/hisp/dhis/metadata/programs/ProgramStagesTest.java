@@ -58,7 +58,7 @@ public class ProgramStagesTest
     private String programStageId;
 
     @BeforeAll
-    public void preconditions()
+    public void beforeAll()
     {
         loginActions = new LoginActions();
         programActions = new ProgramActions();
