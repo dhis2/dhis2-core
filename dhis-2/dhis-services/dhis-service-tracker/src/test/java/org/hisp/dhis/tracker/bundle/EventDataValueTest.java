@@ -35,22 +35,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.*;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -90,8 +84,6 @@ public class EventDataValueTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private User userA;
-
     @Override
     protected void setUpTest()
         throws IOException
@@ -115,7 +107,7 @@ public class EventDataValueTest
 
         objectBundleService.commit( bundle );
 
-        userA = userService.getUser( "M5zQapPyTZI" );
+        final User userA = userService.getUser("M5zQapPyTZI");
 
         InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
 
@@ -214,7 +206,7 @@ public class EventDataValueTest
         assertEquals( 3, updatedPsi.getEventDataValues().size() );
         List<String> values = updatedPsi.getEventDataValues()
             .stream()
-            .map( dv -> dv.getValue() )
+            .map( EventDataValue::getValue )
             .collect( Collectors.toList() );
 
         assertThat( values, hasItem( "First" ) );
