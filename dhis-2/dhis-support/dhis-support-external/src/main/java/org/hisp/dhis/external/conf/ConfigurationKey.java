@@ -108,7 +108,19 @@ public enum ConfigurationKey
     AUDIT_DATABASE( "audit.database", "on", false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
-    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
+
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
+
+    OIDC_PROVIDER_CLIENT_ID( "oidc.provider.client.id", "empty", true ),
+    OIDC_PROVIDER_CLIENT_SECRET( "oidc.provider.client.secret", "empty", true ),
+    OIDC_PROVIDER_REDIR_BASE_URL( "oidc.provider.redir.baseurl", "empty", true ),
+    OIDC_PROVIDER_LOGOUT_URI( "oidc.provider.logout.uri", "empty", true ),
+    OIDC_IDPORTEN_ACRVALUES( "oidc.idporten.acrvalues", "Level4", true ),
+    OIDC_AUTHORIZATION_URI( "oidc.provider.authorization.uri", "empty", true ),
+    OIDC_TOKEN_URI( "oidc.provider.token.uri", "empty", true ),
+    OIDC_USER_INFO_URI( "oidc.provider.userinfo.uri", "empty", true ),
+    OIDC_JWK_URI( "oidc.provider.jwk.uri", "empty", true ),
+    OIDC_ENDSESSION_URI( "oidc.provider.endsession.uri", "empty", true );
 
     private final String key;
 

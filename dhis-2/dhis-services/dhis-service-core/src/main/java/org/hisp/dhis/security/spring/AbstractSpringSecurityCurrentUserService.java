@@ -1,5 +1,14 @@
 package org.hisp.dhis.security.spring;
 
+import org.hisp.dhis.security.oidc.DhisOidcUser;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,16 +37,10 @@ package org.hisp.dhis.security.spring;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-
 /**
  * @author Torgeir Lorange Ostby
  */
-public abstract class AbstractSpringSecurityCurrentUserService
-    implements CurrentUserService
+public abstract class AbstractSpringSecurityCurrentUserService implements CurrentUserService
 {
     @Override
     public String getCurrentUsername()
@@ -49,39 +52,55 @@ public abstract class AbstractSpringSecurityCurrentUserService
             return null;
         }
 
+        Object principal = authentication.getPrincipal();
+
         // Principal being a string implies anonymous authentication
-
-        if ( authentication.getPrincipal() instanceof String )
+        // This is the state before the user is authenticated.
+        if ( principal instanceof String )
         {
-            String principal = (String) authentication.getPrincipal();
+            String anonymousUser = (String) principal;
 
-            if ( principal.compareTo( "anonymousUser" ) != 0 )
+            if ( !anonymousUser.equals( "anonymousUser" ) )
             {
                 return null;
             }
 
-            return principal;
+            return anonymousUser;
         }
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        if ( principal instanceof UserDetails )
+        {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userDetails.getUsername();
+        }
 
-        return userDetails.getUsername();
+        if ( principal instanceof DhisOidcUser )
+        {
+            DhisOidcUser dhisOidcUser = (DhisOidcUser) authentication.getPrincipal();
+            return dhisOidcUser.getUserCredentials().getUsername();
+        }
+
+        throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
     }
 
-    /**
-     * Returns the current UserDetails, or null of there is no
-     * current user or if principal is not of type UserDetails.
-     */
-    protected UserDetails getCurrentUserDetails()
+    public Collection<? extends GrantedAuthority> getCurrentUserAuthorities()
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if ( authentication == null || !authentication.isAuthenticated() ||
-            authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof UserDetails) )
+        Object principal = authentication.getPrincipal();
+
+        if ( principal instanceof UserDetails )
         {
-            return null;
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userDetails.getAuthorities();
         }
 
-        return (UserDetails) authentication.getPrincipal();
+        if ( principal instanceof DhisOidcUser )
+        {
+            DhisOidcUser dhisOidcUser = (DhisOidcUser) authentication.getPrincipal();
+            return dhisOidcUser.getAuthorities();
+        }
+
+        throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
     }
 }
