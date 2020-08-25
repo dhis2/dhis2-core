@@ -44,9 +44,6 @@ import java.util.Set;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_AUTHORIZATION_URI;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_ENDSESSION_URI;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_JWK_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_ID;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_SECRET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_REDIR_BASE_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_TOKEN_URI;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_USER_INFO_URI;
 
@@ -68,41 +65,15 @@ public class DhisClientRegistrationRepository
     @PostConstruct
     public void init()
     {
-
-        String id = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_ID );
-        String secret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_SECRET );
-        String redirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_REDIR_BASE_URL );
-        String authorizationUri = dhisConfigurationProvider.getProperty( OIDC_AUTHORIZATION_URI );
-        String tokenUri = dhisConfigurationProvider.getProperty( OIDC_TOKEN_URI );
-        String userInfoUri = dhisConfigurationProvider.getProperty( OIDC_USER_INFO_URI );
-        String jwkSetUri = dhisConfigurationProvider.getProperty( OIDC_JWK_URI );
-        String endSessionUri = dhisConfigurationProvider.getProperty( OIDC_ENDSESSION_URI );
-
-        HashMap<String, Object> metaDataMap = new HashMap<>();
-        metaDataMap.put( "end_session_endpoint", endSessionUri );
-
-//        ClientRegistration idporten = ClientRegistration.withRegistrationId( "idporten" )
-//            .clientId( id )
-//            .clientSecret( secret )
-//            .clientAuthenticationMethod( ClientAuthenticationMethod.BASIC )
-//            .authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE )
-//            .redirectUriTemplate( redirBaseUri + "/oauth2/code/{registrationId}" )
-//            .scope( "openid", "profile" )
-//            .authorizationUri( authorizationUri )
-//            .tokenUri( tokenUri )
-//            .userInfoUri( userInfoUri )
-//            .userNameAttributeName( IdTokenClaimNames.SUB )
-//            .userInfoAuthenticationMethod( AuthenticationMethod.HEADER )
-//            .jwkSetUri( jwkSetUri )
-//            .providerConfigurationMetadata( metaDataMap )
-//            .clientName( "idporten" )
-//            .build();
+        String googleClientId = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
+        String googleClientSecret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
+        String googleClientRedirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL );
 
         String registrationId = "google";
         ClientRegistration google = CommonOAuth2Provider.GOOGLE.getBuilder( registrationId )
             .clientId( "1048735035171-0llu4vbga43qvhve4poh5chj5nqltqe5.apps.googleusercontent.com" )
             .clientSecret( "zxlkf3bg7aWXX_vphDJVdnLS" )
-            .redirectUriTemplate( "http://localhost:8080/oauth2/code/{registrationId}" )
+            .redirectUriTemplate( googleClientRedirBaseUri + "/oauth2/code/{registrationId}" )
             .build();
 
         DhisOidcClientRegistration registration = DhisOidcClientRegistration.builder()

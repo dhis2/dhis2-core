@@ -41,14 +41,13 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.function.Consumer;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_IDPORTEN_ACRVALUES;
 import static org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Component("dhisOAuth2AuthorizationRequestResolver")
+@Component( "dhisOAuth2AuthorizationRequestResolver" )
 public class DhisOAuth2AuthorizationRequestResolver
     implements OAuth2AuthorizationRequestResolver
 {
@@ -61,13 +60,9 @@ public class DhisOAuth2AuthorizationRequestResolver
     @Autowired
     public DhisConfigurationProvider dhisConfigurationProvider;
 
-    private String acrLevel;
-
     @PostConstruct
     public void init()
     {
-        this.acrLevel = dhisConfigurationProvider.getProperty( OIDC_IDPORTEN_ACRVALUES );
-
         this.resolver = new DefaultOAuth2AuthorizationRequestResolver( clientRegistrationRepository,
             DEFAULT_AUTHORIZATION_REQUEST_BASE_URI );
         this.resolver.setAuthorizationRequestCustomizer( authorizationRequestCustomizer() );
@@ -76,7 +71,6 @@ public class DhisOAuth2AuthorizationRequestResolver
     private Consumer<OAuth2AuthorizationRequest.Builder> authorizationRequestCustomizer()
     {
         Consumer<OAuth2AuthorizationRequest.Builder> builderConsumer = customizer -> {
-            customizer.additionalParameters( params -> params.put( "acr_values", acrLevel ) );
         };
         return builderConsumer;
     }
