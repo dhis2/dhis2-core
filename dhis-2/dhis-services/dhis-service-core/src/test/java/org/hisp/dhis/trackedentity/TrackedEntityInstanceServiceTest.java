@@ -162,11 +162,11 @@ public class TrackedEntityInstanceServiceTest
         enrollmentDate.withTimeAtStartOfDay();
         enrollmentDate = enrollmentDate.minusDays( 70 );
 
-        DateTime incidenDate = DateTime.now();
-        incidenDate.withTimeAtStartOfDay();
+        DateTime incidentDate = DateTime.now();
+        incidentDate.withTimeAtStartOfDay();
 
-        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidenDate.toDate(), entityInstanceA1,
-            programA );
+        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidentDate.toDate(), entityInstanceA1,
+                programA);
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnit );
 
@@ -229,8 +229,8 @@ public class TrackedEntityInstanceServiceTest
         long psIdA = programInstanceService.addProgramInstance( programInstanceA );
         long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
-        programInstanceA.setProgramStageInstances( newHashSet( programStageInstanceA ) );
-        entityInstanceA1.setProgramInstances( newHashSet( programInstanceA ) );
+        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        entityInstanceA1.setProgramInstances( Sets.newHashSet( programInstanceA ) );
 
         programInstanceService.updateProgramInstance( programInstanceA );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );

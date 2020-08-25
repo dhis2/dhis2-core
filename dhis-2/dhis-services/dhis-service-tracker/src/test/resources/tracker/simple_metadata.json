@@ -27,10 +27,91 @@
   "dataElements": [
     {
       "lastUpdated": "2020-05-31T11:41:22.404",
-      "id": "MMPRJBTw2FR",
+      "id": "DATAEL00001",
       "created": "2020-05-31T08:58:48.406",
-      "name": "test-dataelement",
-      "shortName": "test-dataelement",
+      "name": "test-dataelement1",
+      "shortName": "test-dataelement1",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.404",
+      "id": "DATAEL00002",
+      "created": "2020-05-31T08:58:48.406",
+      "name": "test-dataelement2",
+      "shortName": "test-dataelement2",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.404",
+      "id": "DATAEL00003",
+      "created": "2020-05-31T08:58:48.406",
+      "name": "test-dataelement3",
+      "shortName": "test-dataelement3",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.404",
+      "id": "DATAEL00004",
+      "created": "2020-05-31T08:58:48.406",
+      "name": "test-dataelement4",
+      "shortName": "test-dataelement4",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
@@ -81,7 +162,7 @@
   "programStages": [
     {
       "lastUpdated": "2020-05-31T11:41:22.426",
-      "id": "PD0YxBQC353",
+      "id": "NpsdDv6kKSO",
       "created": "2020-05-31T09:02:52.687",
       "name": "test-program-stage",
       "allowGenerateNextVisit": false,
@@ -140,7 +221,7 @@
             "id": "PD0YxBQC353"
           },
           "dataElement": {
-            "id": "MMPRJBTw2FR"
+            "id": "DATAEL00001"
           },
           "favorites": [],
           "translations": [],
@@ -354,44 +435,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "programTrackedEntityAttributes": [
-        {
-          "lastUpdated": "2020-05-31T11:41:22.440",
-          "id": "tRazDycN3jq",
-          "created": "2020-05-31T09:02:52.581",
-          "name": "test-program test-tei-attribute",
-          "displayName": "test-program test-tei-attribute",
-          "mandatory": false,
-          "displayShortName": "test-program test-tei-attribute",
-          "externalAccess": false,
-          "renderOptionsAsRadio": false,
-          "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
-          "sortOrder": 1,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "program": {
-            "id": "BFcipDERJnf"
-          },
-          "trackedEntityAttribute": {
-            "id": "s0n3o7m87tI"
-          },
-          "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        }
-      ],
+      "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
       "translations": [],
       "organisationUnits": [
@@ -404,7 +448,7 @@
       "attributeValues": [],
       "programStages": [
         {
-          "id": "PD0YxBQC353"
+          "id": "NpsdDv6kKSO"
         }
       ],
       "userAccesses": []
@@ -469,10 +513,10 @@
   "trackedEntityAttributes": [
     {
       "lastUpdated": "2020-05-31T11:41:22.414",
-      "id": "s0n3o7m87tI",
+      "id": "toUpdate000",
       "created": "2020-05-31T09:00:51.347",
-      "name": "test-tei-attribute",
-      "shortName": "test-tei-attribute",
+      "name": "to-update-tei-attribute",
+      "shortName": "to-update-tei-attribute",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
       "publicAccess": "rw------",
@@ -481,7 +525,69 @@
       "generated": false,
       "displayOnVisitSchedule": false,
       "valueType": "TEXT",
-      "formName": "test-tei-attribute",
+      "formName": "to-update-tei-attribute",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.414",
+      "id": "toDelete000",
+      "created": "2020-05-31T09:00:51.347",
+      "name": "to-delete-tei-attribute",
+      "shortName": "to-delete-tei-attribute",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "TEXT",
+      "formName": "to-delete-tei-attribute",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.414",
+      "id": "notUpdated0",
+      "created": "2020-05-31T09:00:51.347",
+      "name": "not-updated-tei-attribute",
+      "shortName": "not-updated-tei-attribute",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "TEXT",
+      "formName": "not-updated-tei-attribute",
       "orgunitScope": false,
       "confidential": false,
       "unique": false,

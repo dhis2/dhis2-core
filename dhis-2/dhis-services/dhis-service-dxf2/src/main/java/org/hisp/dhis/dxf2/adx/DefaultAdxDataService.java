@@ -43,6 +43,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.lang3.StringUtils;
+// TODO: XMLChar is the only used class from Xerces lib, (which is huge) try to find another lib/way to same functionality
 import org.apache.xerces.util.XMLChar;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;

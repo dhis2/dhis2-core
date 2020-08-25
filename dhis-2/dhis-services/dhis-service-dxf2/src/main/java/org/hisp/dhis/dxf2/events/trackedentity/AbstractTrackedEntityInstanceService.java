@@ -1330,7 +1330,7 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( daoTrackedEntityType == null )
         {
             importConflicts
-                .add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType" +
+                .add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType " +
                     entityInstance.getTrackedEntityType() ) );
         }
 

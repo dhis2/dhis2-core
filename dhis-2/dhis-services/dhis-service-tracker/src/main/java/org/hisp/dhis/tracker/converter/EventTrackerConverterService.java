@@ -28,6 +28,9 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
+import com.google.api.client.util.Strings;
+import com.google.common.collect.Streams;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -50,13 +53,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -221,20 +220,6 @@ public class EventTrackerConverterService
                 programStageInstance.setCompletedDate( completedDate );
                 programStageInstance.setCompletedBy( e.getCompletedBy() );
             }
-
-            // data values
-            Set<EventDataValue> eventDataValues = new HashSet<>();
-
-            e.getDataValues().forEach( dv -> {
-                EventDataValue dataValue = new EventDataValue( dv.getDataElement(), dv.getValue() );
-                dataValue.setAutoFields();
-                dataValue.setProvidedElsewhere( dv.isProvidedElsewhere() );
-                dataValue.setStoredBy( dv.getStoredBy() );
-
-                eventDataValues.add( dataValue );
-            } );
-
-            programStageInstance.setEventDataValues( eventDataValues );
 
             if ( isNotEmpty( e.getNotes() ) )
             {
