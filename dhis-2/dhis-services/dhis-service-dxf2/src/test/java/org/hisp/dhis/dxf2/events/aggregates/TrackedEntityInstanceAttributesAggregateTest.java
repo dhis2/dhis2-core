@@ -40,6 +40,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -50,6 +51,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
+@Ignore
 public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 {
     @Autowired

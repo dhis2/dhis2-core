@@ -35,6 +35,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -44,6 +45,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
+@Ignore
 public class TrackedEntityInstanceAggregateTest extends TrackerTest
 {
     @Autowired
