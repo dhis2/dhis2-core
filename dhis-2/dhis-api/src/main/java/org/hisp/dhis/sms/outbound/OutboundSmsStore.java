@@ -36,17 +36,9 @@ public interface OutboundSmsStore  extends IdentifiableObjectStore<OutboundSms>
 {
     void saveOutboundSms( OutboundSms sms );
 
-    List<OutboundSms> getAllOutboundSms();
-
-    List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
-
-    OutboundSms getOutboundSmsbyId( long id );
+    List<OutboundSms> getAllOutboundSms( Integer min, Integer max, boolean hasPagination );
 
     List<OutboundSms> get( OutboundSmsStatus status );
 
-    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max );
-
-    void updateOutboundSms( OutboundSms sms );
-
-    void deleteOutboundSms( OutboundSms sms );
+    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination );
 }
