@@ -294,16 +294,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 continue;
             }
 
-            Object returnValue = null;
-
-            try
-            {
-                returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-            }
-            catch ( IllegalArgumentException ignored )
-            {
-                // WIP, handle transformed collections
-            }
+            Object returnValue = returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
