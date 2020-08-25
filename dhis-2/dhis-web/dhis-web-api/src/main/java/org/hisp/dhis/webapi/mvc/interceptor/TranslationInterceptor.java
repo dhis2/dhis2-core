@@ -34,7 +34,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,9 +45,27 @@ import java.util.Locale;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ *
+ * //TODO: Make test for this if still useable, right now (24.08.2020) this is disabled after xml to java config refactor.
  */
-public class TranslationInterceptor extends HandlerInterceptorAdapter
+@Component
+@Deprecated
+public class TranslationInterceptor extends HandlerInterceptorAdapter implements InitializingBean
 {
+    private static TranslationInterceptor instance;
+
+    @Override
+    public void afterPropertiesSet()
+        throws Exception
+    {
+        instance = this;
+    }
+
+    public static TranslationInterceptor get()
+    {
+        return instance;
+    }
+
     private static String PARAM_TRANSLATE = "translate";
 
     private static String PARAM_LOCALE = "locale";

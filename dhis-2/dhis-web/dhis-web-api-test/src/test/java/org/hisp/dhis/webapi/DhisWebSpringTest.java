@@ -34,15 +34,18 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,21 +69,24 @@ import java.util.stream.Collectors;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration(classes = WebTestConfiguration.class)
-@ActiveProfiles("test-h2")
+@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
 {
-    @Autowired
-    protected FilterChainProxy filterChainProxy;
+    // MvcTestConfig.class,
+//    @Autowired
+//    protected FilterChainProxy filterChainProxy;
 
     @Autowired
     protected WebApplicationContext webApplicationContext;
@@ -102,16 +108,21 @@ public abstract class DhisWebSpringTest
     @Rule
     public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
 
+
     @Before
-    public void setup() throws Exception
+    public void setup()
+        throws Exception
     {
+
         userService = _userService;
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
+//            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
+
             .apply( documentationConfiguration( this.restDocumentation ) )
+
             .build();
 
         executeStartupRoutines();
@@ -119,7 +130,8 @@ public abstract class DhisWebSpringTest
         setUpTest();
     }
 
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
     }
 

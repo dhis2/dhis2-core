@@ -39,15 +39,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component( "ldapAuthenticationProvider" )
-public class CustomLdapAuthenticationProvider
-    extends LdapAuthenticationProvider
+@Component
+public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider
 {
     private final DhisConfigurationProvider configurationProvider;
 
-    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator, DhisConfigurationProvider configurationProvider )
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator,
+        LdapAuthoritiesPopulator authoritiesPopular, DhisConfigurationProvider configurationProvider )
     {
-        super( authenticator, authoritiesPopulator );
+        super( authenticator, authoritiesPopular );
 
         checkNotNull( configurationProvider );
         this.configurationProvider = configurationProvider;
