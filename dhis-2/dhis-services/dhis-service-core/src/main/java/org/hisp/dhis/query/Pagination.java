@@ -41,9 +41,9 @@ public class Pagination
 
     private boolean hasPagination = false;
 
-    public Pagination(int firstResult, int size )
+    public Pagination( int firstResult, int size )
     {
-        assert (size > 0);
+        assert ( size > 0 );
         this.firstResult = firstResult;
         this.size = size;
         this.hasPagination = true;

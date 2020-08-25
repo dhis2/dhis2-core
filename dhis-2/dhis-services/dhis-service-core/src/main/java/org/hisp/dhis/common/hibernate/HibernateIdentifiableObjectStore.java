@@ -271,24 +271,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( object != null )
         {
             object.setAutoFields();
 
-            BaseIdentifiableObject identifiableObject = object;
-            identifiableObject.setAutoFields();
-            identifiableObject.setLastUpdatedBy( user );
+            object.setAutoFields();
+            object.setLastUpdatedBy( user );
 
-            if ( identifiableObject.getUser() == null )
+            if ( object.getUser() == null )
             {
-                identifiableObject.setUser( user );
+                object.setUser( user );
             }
         }
 
         if ( !isUpdateAllowed( object, user ) )
         {
             AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );
-            throw new UpdateAccessDeniedException( object.toString() );
+            throw new UpdateAccessDeniedException( String.valueOf( object ) );
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );

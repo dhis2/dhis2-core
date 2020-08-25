@@ -66,7 +66,6 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
     public TwoFactorAuthenticationProvider( @Qualifier( "userDetailsService" ) UserDetailsService detailsService,
         PasswordEncoder passwordEncoder )
     {
-//        super();
         setUserDetailsService( detailsService );
         setPasswordEncoder( passwordEncoder );
     }

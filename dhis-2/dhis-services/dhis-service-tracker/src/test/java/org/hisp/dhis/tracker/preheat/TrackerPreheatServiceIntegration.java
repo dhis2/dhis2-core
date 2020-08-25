@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -118,6 +119,7 @@ public class TrackerPreheatServiceIntegration
     }
 
     @Test
+    @Ignore
     public void testPreheatWithDifferentIdSchemes()
     {
         TrackedEntity teA = TrackedEntity.builder()

@@ -100,8 +100,7 @@ public class RelationshipsTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ) ).validate()
-            .statusCode( 200 );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
         JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
             .replacePropertyValuesWithIds( "trackedEntityInstance" ).get( JsonObject.class );
@@ -111,7 +110,9 @@ public class RelationshipsTest
         JsonObject eventObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
-        events = eventActions.post( eventObject ).extractUids();
+        ApiResponse response = eventActions.post( eventObject );
+        response.validate().statusCode( 200 );
+        events = response.extractUids();
     }
 
     @Test

@@ -28,16 +28,19 @@ package org.hisp.dhis.dxf2.importsummary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
 public class ImportSummary extends AbstractWebMessageResponse
@@ -101,6 +104,21 @@ public class ImportSummary extends AbstractWebMessageResponse
     public boolean isStatus( ImportStatus status )
     {
         return this.status != null && this.status.equals( status );
+    }
+
+    public static ImportSummary success()
+    {
+        return new ImportSummary();
+    }
+
+    public static ImportSummary error( final String description )
+    {
+        return new ImportSummary( ERROR, description ).incrementIgnored();
+    }
+
+    public static ImportSummary error( final String description, final String reference )
+    {
+        return new ImportSummary( ERROR, description ).setReference( reference ).incrementIgnored();
     }
 
     // -------------------------------------------------------------------------

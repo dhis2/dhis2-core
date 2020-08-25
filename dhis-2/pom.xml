@@ -487,30 +487,15 @@
               <goal>enforce</goal>
             </goals>
             <configuration>
-
-              <rules>
-<!--                <banDuplicateClasses/>-->
-<!--                <banCircularDependencies/>-->
-<!--                  <requireUpperBoundDeps/>-->
-<!--                  <dependencyConvergence/>-->
-<!--                  <banTransitiveDependencies/>-->
-                <banDuplicatePomDependencyVersions/>
-
-                <requireMavenVersion>
-                  <version>3.6.3</version>
-                </requireMavenVersion>
-
-                <requireJavaVersion>
-                <version>1.8</version>
-                </requireJavaVersion>
-<!--                <requireEncoding>-->
-<!--                  <encoding>UTF-8</encoding>-->
-<!--                  <includes>src/main/resources/**,src/test/resources/**</includes>-->
-<!--                </requireEncoding>-->
-                <enforceBytecodeVersion>
-                  <maxJdkVersion>1.8</maxJdkVersion>
-                </enforceBytecodeVersion>
-              </rules>
+                <rules>
+                    <banDuplicatePomDependencyVersions/>
+                    <requireMavenVersion>
+                        <version>3.6.3</version>
+                    </requireMavenVersion>
+                    <requireJavaVersion>
+                        <version>1.8</version>
+                    </requireJavaVersion>
+                </rules>
             </configuration>
           </execution>
         </executions>
@@ -1206,7 +1191,7 @@
       <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
-        <version>1.4.196</version>
+        <version>1.4.200</version>
       </dependency>
       <dependency>
         <groupId>org.hsqldb</groupId>
@@ -1287,6 +1272,11 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.2.5</version>
+      </dependency>
+      <dependency>
+        <groupId>net.postgis</groupId>
+        <artifactId>postgis-jdbc</artifactId>
+        <version>2.5.0</version>
       </dependency>
 
       <!-- Flyway -->

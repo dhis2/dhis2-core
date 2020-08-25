@@ -41,6 +41,9 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -85,18 +88,22 @@ public class SmsMessageSender
 
     private UserSettingService userSettingService;
 
+    private OutboundSmsService outboundSmsService;
+
     public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
-        UserSettingService userSettingService )
+        UserSettingService userSettingService, OutboundSmsService outboundSmsService )
     {
 
         Preconditions.checkNotNull( gatewayAdminService );
         Preconditions.checkNotNull( smsGateways );
+        Preconditions.checkNotNull( outboundSmsService );
         Preconditions.checkNotNull( userSettingService );
         Preconditions.checkState( !smsGateways.isEmpty() );
 
         this.gatewayAdminService = gatewayAdminService;
         this.smsGateways = smsGateways;
         this.userSettingService = userSettingService;
+        this.outboundSmsService = outboundSmsService;
     }
 
     // -------------------------------------------------------------------------
@@ -232,6 +239,8 @@ public class SmsMessageSender
     {
         OutboundMessageResponse status = null;
 
+        OutboundSms outboundSms = new OutboundSms( subject, text, recipients );
+
         for ( SmsGateway smsGateway : smsGateways )
         {
             if ( smsGateway.accept( gatewayConfig ) )
@@ -246,7 +255,7 @@ public class SmsMessageSender
 
                     status = smsGateway.send( subject, text, new HashSet<>( to ), gatewayConfig );
 
-                    handleResponse( status );
+                    handleResponse( status, outboundSms );
                 }
 
                 return status;
@@ -281,7 +290,7 @@ public class SmsMessageSender
             .collect( Collectors.toList() );
     }
 
-    private void handleResponse( OutboundMessageResponse status )
+    private void handleResponse( OutboundMessageResponse status, OutboundSms sms )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
@@ -293,14 +302,17 @@ public class SmsMessageSender
             log.info( "SMS sent" );
 
             status.setOk( true );
+            sms.setStatus( OutboundSmsStatus.SENT );
         }
         else
         {
             log.error( "SMS failed, failure cause: " + gatewayResponse.getResponseMessage() );
 
             status.setOk( false );
+            sms.setStatus( OutboundSmsStatus.FAILED );
         }
 
+        outboundSmsService.save( sms );
         status.setDescription( gatewayResponse.getResponseMessage() );
         status.setResponseObject( gatewayResponse );
     }
