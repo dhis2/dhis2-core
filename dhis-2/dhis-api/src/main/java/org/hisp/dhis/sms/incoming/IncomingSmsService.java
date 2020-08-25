@@ -42,19 +42,25 @@ public interface IncomingSmsService
 
     void update( IncomingSms sms );
 
-    IncomingSms findBy( Integer id );
+    IncomingSms get( long id );
 
-    List<IncomingSms> listAllMessage();
+    IncomingSms get( String uid );
 
-    void deleteById( Integer id );
+    List<IncomingSms> getAll();
 
-    int save( IncomingSms sms );
+    List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
 
-    int save( String message, String originator, String gateway, Date receivedTime, User user );
+    void delete( long id );
+
+    void delete( String uid );
+
+    long save( IncomingSms sms );
+
+    long save( String message, String originator, String gateway, Date receivedTime, User user );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
 
     List<IncomingSms> getAllUnparsedMessages();
 }
