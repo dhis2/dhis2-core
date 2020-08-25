@@ -28,9 +28,7 @@
 
 package org.hisp.dhis.webapi.controller.user;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -50,7 +48,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The user lookup API provides a minimal user information endpoint.
@@ -95,20 +94,20 @@ public class UserLookupController
     @GetMapping( value = "/feedbackRecipients" )
     public UserLookups lookUpFeedbackRecipients( @RequestParam String query )
     {
-        UserGroup feedbackReciepients = config.getConfiguration().getFeedbackRecipients();
+        UserGroup feedbackRecipients = config.getConfiguration().getFeedbackRecipients();
 
-        if ( feedbackReciepients == null )
+        if ( feedbackRecipients == null )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E6200 ) );
         }
 
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
-            .setUserGroups( Sets.newHashSet( feedbackReciepients ) )
+            .setUserGroups( Sets.newHashSet( feedbackRecipients ) )
             .setMax( 25 );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
-            .map( user -> UserLookup.fromUser( user ) )
+            .map( UserLookup::fromUser )
             .collect( Collectors.toList() );
 
         return new UserLookups( users );
