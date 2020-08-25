@@ -41,11 +41,10 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Set;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_AUTHORIZATION_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_ENDSESSION_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_JWK_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_TOKEN_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_USER_INFO_URI;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,17 +67,18 @@ public class DhisClientRegistrationRepository
         String googleClientId = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
         String googleClientSecret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
         String googleClientRedirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL );
+        String googleClientMappingClaim = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM );
 
         String registrationId = "google";
         ClientRegistration google = CommonOAuth2Provider.GOOGLE.getBuilder( registrationId )
-            .clientId( "1048735035171-0llu4vbga43qvhve4poh5chj5nqltqe5.apps.googleusercontent.com" )
-            .clientSecret( "zxlkf3bg7aWXX_vphDJVdnLS" )
+            .clientId( googleClientId )
+            .clientSecret( googleClientSecret )
             .redirectUriTemplate( googleClientRedirBaseUri + "/oauth2/code/{registrationId}" )
             .build();
 
         DhisOidcClientRegistration registration = DhisOidcClientRegistration.builder()
             .clientRegistration( google )
-            .mappingClaimKey( "email" )
+            .mappingClaimKey( googleClientMappingClaim )
             .registrationId( registrationId )
             .build();
 

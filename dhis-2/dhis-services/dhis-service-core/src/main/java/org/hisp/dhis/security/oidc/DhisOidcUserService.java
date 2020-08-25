@@ -66,38 +66,37 @@ public class DhisOidcUserService
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
 
         OidcUser oidcUser = super.loadUser( userRequest );
+
         OidcUserInfo userInfo = oidcUser.getUserInfo();
 
         Map<String, Object> attributes = oidcUser.getAttributes();
-
-        if ( log.isInfoEnabled() )
-        {
-            attributes.forEach( ( key, value )
-                -> log.info( String.format( "oidcUser.getAttributes() Key: %s Value: %s", key, value ) )
-            );
-        }
 
         DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
 
         String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
-        String claimValue = (String) attributes.get( mappingClaimKey );
-
-        log.info( "Trying to look up DHIS2 user with OIDC mapping claim value, claim value:" + claimValue );
-
-        UserCredentials userCredentials = userService.getUserCredentialsByOpenId( claimValue );
-
-        if ( userCredentials != null )
+        Object claimValue = attributes.get( mappingClaimKey );
+        if ( claimValue == null && userInfo != null )
         {
-            return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+            claimValue = userInfo.getClaim( mappingClaimKey );
         }
-        else
+
+        log.info( "Trying to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+
+        if ( claimValue != null )
         {
-            OAuth2Error oauth2Error = new OAuth2Error(
-                "could_not_map_dhis2_user",
-                "Failed to map incoming OIDC sub to DHIS user.",
-                null );
-            throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
+            UserCredentials userCredentials = userService.getUserCredentialsByOpenId( (String) claimValue );
+
+            if ( userCredentials != null )
+            {
+                return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+            }
         }
+
+        OAuth2Error oauth2Error = new OAuth2Error(
+            "could_not_map_oidc_user_to_dhis2_user",
+            "Failed to map OidcUser to a DHIS2 user.",
+            null );
+        throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
     }
 }
