@@ -117,6 +117,8 @@ public interface TrackedEntityInstanceService
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
+    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
+
     /**
      * Return the count of the Tracked entity instances that meet the criteria specified in params
      *
@@ -126,49 +128,6 @@ public interface TrackedEntityInstanceService
      * @return the count of the Tracked entity instances that meet the criteria specified in params
      */
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
-
-    /**
-     * Returns a TrackedEntityInstanceQueryParams based on the given input.
-     *
-     * @param query                      the query string.
-     * @param attribute                  the set of attributes.
-     * @param filter                     the set of filters.
-     * @param ou                         the set of organisation unit identifiers.
-     * @param ouMode                     the OrganisationUnitSelectionMode.
-     * @param program                    the Program identifier.
-     * @param programStatus              the ProgramStatus in the given program.
-     * @param followUp                   indicates follow up status in the given Program.
-     * @param lastUpdatedStart           the start date for lastUpdated property
-     * @param lastUpdatedEndDate         the end date for lastUpdated property
-     * @param lastUpdatedDuration        the last updated duration filter.
-     * @param programEnrollmentStartDate the start date for enrollment in the given Program.
-     * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
-     * @param programIncidentStartDate   the start date for incident in the given Program.
-     * @param programIncidentEndDate     the end date for enrollment in the given Program.
-     * @param trackedEntityType          the TrackedEntityType uid.
-     * @param eventStatus                the event status for the given Program.
-     * @param eventStartDate             the event start date for the given Program.
-     * @param eventEndDate               the event end date for the given Program.
-     * @param assignedUserMode           the selection mode for assigned users of events.
-     * @param assignedUsers              list of userids for events assigned.
-     * @param skipMeta                   indicates whether to include meta data in the response.
-     * @param page                       the page number.
-     * @param pageSize                   the page size.
-     * @param totalPages                 indicates whether to include the total number of pages.
-     * @param skipPaging                 whether to skip paging.
-     * @param includeDeleted             whether to include soft deleted items
-     * @param includeAllAttributes       whether to include all user attributes that user has access
-     * @param orders                     specifies the ordering of the results
-     * @return a TrackedEntityInstanceQueryParams.
-     */
-    TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
-        Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, String lastUpdatedDuration,
-        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
-        Date programIncidentEndDate, String trackedEntityType, String programStage,  EventStatus eventStatus, Date eventStartDate,
-        Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers,
-        boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
-        boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.
