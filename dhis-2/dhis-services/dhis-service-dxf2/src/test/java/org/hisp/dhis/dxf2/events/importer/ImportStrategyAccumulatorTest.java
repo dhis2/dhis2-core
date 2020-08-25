@@ -28,22 +28,21 @@ package org.hisp.dhis.dxf2.events.importer;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
+import com.google.api.client.util.ArrayMap;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyAccumulator;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.junit.Before;
-import org.junit.Test;
-import org.olap4j.impl.ArrayMap;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 public class ImportStrategyAccumulatorTest
 {
