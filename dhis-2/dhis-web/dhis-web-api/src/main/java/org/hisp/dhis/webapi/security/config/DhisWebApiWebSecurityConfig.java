@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisOAuth2AuthorizationRequestResolver;
@@ -75,7 +74,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.sql.DataSource;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -196,7 +195,7 @@ public class DhisWebApiWebSecurityConfig
         protected void configure( HttpSecurity http )
             throws Exception
         {
-            List<String> providerIds = ImmutableList.of( "google" );
+            Set<String> providerIds = dhisClientRegistrationRepository.getAllRegistrationId();
 
             http
                 .antMatcher( "/oauth2/**" )

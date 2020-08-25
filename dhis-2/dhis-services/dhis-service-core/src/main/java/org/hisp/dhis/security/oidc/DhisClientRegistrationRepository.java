@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.Set;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_AUTHORIZATION_URI;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_ENDSESSION_URI;
@@ -124,5 +125,10 @@ public class DhisClientRegistrationRepository
     public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )
     {
         return registrationHashMap.get( registrationId );
+    }
+
+    public Set<String> getAllRegistrationId()
+    {
+        return registrationHashMap.keySet();
     }
 }
