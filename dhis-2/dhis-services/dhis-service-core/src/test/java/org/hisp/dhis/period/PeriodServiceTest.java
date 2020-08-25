@@ -33,12 +33,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,7 +55,17 @@ public class PeriodServiceTest
 {
     @Autowired
     private PeriodService periodService;
-    
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    @Override
+    protected void setUpTest()
+        throws Exception
+    {
+        populatePeriodType();
+    }
+
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
@@ -572,5 +586,69 @@ public class PeriodServiceTest
         assertNotNull( periodService.getPeriodType( periodTypeB.getId() ) );
         assertNotNull( periodService.getPeriodType( periodTypeC.getId() ) );
         assertNotNull( periodService.getPeriodType( periodTypeD.getId() ) );
+    }
+
+    @Test
+    public void testReloadPeriodInStatelessSession()
+    {
+        Period period = periodService.reloadIsoPeriodInStatelessSession( "202510" );
+
+        assertNotNull( period );
+
+        removeTestPeriod( "202510" );
+    }
+
+    private void removeTestPeriod( String period )
+    {
+        StatelessSession session = sessionFactory.openStatelessSession();
+        session.beginTransaction();
+        try
+        {
+            session.delete( periodService.getPeriod( period ) );
+            session.getTransaction().commit();
+        }
+        catch ( Exception ex )
+        {
+            session.getTransaction().rollback();
+        }
+        finally
+        {
+            session.close();
+        }
+    }
+
+    /**
+     * This is to fix the issue of PeriodType hasn't been inserted to H2 database
+     * but only available in Hibernate session
+     * so periodService.reloadIsoPeriodInStatelessSession() will fail
+     */
+    private void populatePeriodType()
+    {
+        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        StatelessSession session = sessionFactory.openStatelessSession();
+        session.beginTransaction();
+        try
+        {
+            periodTypes.forEach( pt -> {
+                Object periodType = session.get( PeriodType.class, pt.getId() );
+                if ( periodType == null )
+                {
+                    if ( sessionFactory.getCurrentSession().contains( pt ) )
+                    {
+                        sessionFactory.getCurrentSession().delete( pt );
+                    }
+
+                    session.insert( pt );
+                }
+            } );
+        }
+        catch ( Exception exception )
+        {
+            exception.printStackTrace();
+        }
+        finally
+        {
+            DbmsUtils.closeStatelessSession( session );
+        }
     }
 }

@@ -85,6 +85,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
@@ -185,7 +186,7 @@ public class DataValueController
 
         validateInvalidFuturePeriod( period, dataElement );
 
-        validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, organisationUnit, period );
+        validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
 
         String valueValid = ValidationUtils.dataValueIsValid( value, dataElement );
 
@@ -714,23 +715,23 @@ public class DataValueController
         }
     }
 
-    private void validateAttributeOptionComboWithOrgUnitAndPeriod( CategoryOptionCombo attributeOptionCombo,
-        OrganisationUnit organisationUnit, Period period )
+    private void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo,
+        Period period, DataSet dataSet, DataElement dataElement )
         throws WebMessageException
     {
         for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
         {
-            if ( option.getStartDate() != null && period.getEndDate().compareTo( option.getStartDate() ) < 0 )
+            if ( option.getStartDate() != null && period.getEndDate().before( option.getStartDate() ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Period " + period.getIsoDate()
-                    + " is before start date " + i18nManager.getI18nFormat().formatDate( option.getStartDate() )
+                throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is before start date "
+                    + i18nManager.getI18nFormat().formatDate( option.getStartDate() )
                     + " for attributeOption '" + option.getName() + "'" ) );
             }
 
-            if ( option.getEndDate() != null && period.getStartDate().compareTo( option.getEndDate() ) > 0 )
+            if ( option.getEndDate() != null && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement ) ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Period " + period.getIsoDate()
-                    + " is after end date " + i18nManager.getI18nFormat().formatDate( option.getEndDate() )
+                throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is after end date "
+                    + i18nManager.getI18nFormat().formatDate( option.getAdjustedEndDate( dataSet, dataElement ) )
                     + " for attributeOption '" + option.getName() + "'" ) );
             }
         }

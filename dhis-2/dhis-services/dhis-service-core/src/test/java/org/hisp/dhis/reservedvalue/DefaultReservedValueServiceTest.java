@@ -30,34 +30,23 @@ package org.hisp.dhis.reservedvalue;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.ListUtils;
-import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Calendar.DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DefaultReservedValueServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ReservedValueService reservedValueService;
@@ -116,7 +105,7 @@ public class DefaultReservedValueServiceTest
     }
 
     @Override
-    protected boolean emptyDatabaseAfterTest()
+    public boolean emptyDatabaseAfterTest()
     {
         return true;
     }

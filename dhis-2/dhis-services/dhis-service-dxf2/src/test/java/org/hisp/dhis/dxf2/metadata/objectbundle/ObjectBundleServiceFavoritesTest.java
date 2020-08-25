@@ -105,6 +105,12 @@ public class ObjectBundleServiceFavoritesTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( 4, dataElements.size() );
         assertEquals( 3, charts.size() );
+        assertTrue( charts.get( 0 ).getRangeAxisMinValue() < 0 );
+        assertTrue( charts.get( 1 ).getRangeAxisMinValue() < 0 );
+        assertTrue( charts.get( 2 ).getRangeAxisMinValue() < 0 );
+        assertTrue( charts.get( 0 ).getBaseLineValue() < 0 );
+        assertTrue( charts.get( 1 ).getBaseLineValue() < 0 );
+        assertTrue( charts.get( 2 ).getBaseLineValue() < 0 );
     }
 
     @Test

@@ -253,4 +253,14 @@ public class MonthlyPeriodTypeTest
         assertEquals( 6, new SixMonthlyPeriodType().createPeriod().getPeriodSpan( periodType ) );
         assertEquals( 12, new YearlyPeriodType().createPeriod().getPeriodSpan( periodType ) );
     }
+
+    @Test
+    public void testGetRewindedDate()
+    {
+        assertEquals( new DateTime( 2020, 1, 15, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 4, 15, 0, 0 ).toDate(), 3 ) );
+
+        assertEquals( new DateTime( 2020, 3, 1, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), -2 ) );
+    }
 }

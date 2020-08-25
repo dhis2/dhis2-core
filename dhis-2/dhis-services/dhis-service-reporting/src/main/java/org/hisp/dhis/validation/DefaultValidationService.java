@@ -63,7 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 
 /**
  * @author Jim Grace
@@ -99,7 +98,7 @@ public class DefaultValidationService
     private final ValidationResultService validationResultService;
 
     private AnalyticsService analyticsService;
-    
+
     private CurrentUserService currentUserService;
 
     public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
@@ -371,9 +370,7 @@ public class DefaultValidationService
         {
             PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
 
-            if ( periodX == null
-                || expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() ) != VALID
-                || expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() ) != VALID )
+            if ( periodX == null )
             {
                 continue; // Don't include rule.
             }

@@ -239,6 +239,8 @@ public interface PeriodService
      */
     Period reloadPeriod( Period period );
 
+    Period reloadIsoPeriodInStatelessSession( String isoPeriod );
+
     /**
      * Retrieves the period with the given ISO period identifier. Reloads the 
      * period in the session if found.

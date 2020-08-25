@@ -84,7 +84,6 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
             if ( dataDimensionItem.getDataElementOperand() != null )
             {
                 preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                session.save( dataDimensionItem.getDataElementOperand() );
             }
 
             if ( dataDimensionItem.getReportingRate() != null )
