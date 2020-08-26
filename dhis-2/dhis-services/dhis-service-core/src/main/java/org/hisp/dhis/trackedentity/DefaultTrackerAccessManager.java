@@ -228,7 +228,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
-        else
+        else // this branch will only happen if coming from /events
         {
             OrganisationUnit ou = programInstance.getOrganisationUnit();
             if ( ou != null )

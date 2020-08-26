@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -52,6 +53,8 @@ import com.vividsolutions.jts.geom.Geometry;
 public class Event
     extends BaseLinkableObject
 {
+    private Long eventId;
+
     private String uid;
 
     private String event;
@@ -499,6 +502,7 @@ public class Event
         this.assignedUserUsername = assignedUserUsername;
     }
 
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAssignedUserDisplayName()
@@ -509,6 +513,17 @@ public class Event
     public void setAssignedUserDisplayName( String assignedUserDisplayName )
     {
         this.assignedUserDisplayName = assignedUserDisplayName;
+    }
+
+    @JsonIgnore
+    public Long getId()
+    {
+        return eventId;
+    }
+
+    public void setId( Long eventId )
+    {
+        this.eventId = eventId;
     }
 
     @Override
