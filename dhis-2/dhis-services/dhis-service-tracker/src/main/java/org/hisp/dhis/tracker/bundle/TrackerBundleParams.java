@@ -89,6 +89,12 @@ public class TrackerBundleParams
     private boolean skipTextPatternValidation;
 
     /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
      * Sets import strategy (create, update, etc).
      */
     @JsonProperty
@@ -171,6 +177,7 @@ public class TrackerBundleParams
             .importMode( importMode )
             .importStrategy( importStrategy )
             .skipTextPatternValidation( skipTextPatternValidation )
+            .skipSideEffects( skipSideEffects )
             .flushMode( flushMode )
             .validationMode( validationMode )
             .reportMode( reportMode )

@@ -490,7 +490,7 @@
                 <rules>
                     <banDuplicatePomDependencyVersions/>
                     <requireMavenVersion>
-                        <version>3.6.3</version>
+                        <version>3.6.0</version>
                     </requireMavenVersion>
                     <requireJavaVersion>
                         <version>1.8</version>
@@ -828,10 +828,6 @@
         <artifactId>google-api-client</artifactId>
         <version>1.30.10</version>
         <exclusions>
-          <exclusion>
-            <groupId>com.google.http-client</groupId>
-            <artifactId>google-http-client-jackson2</artifactId>
-          </exclusion>
           <exclusion>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-jdk5</artifactId>
@@ -1842,7 +1838,12 @@
         <artifactId>proton-j</artifactId>
         <version>0.33.6</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.10</version>
+        <scope>provided</scope>
+      </dependency>
       <!-- SMPP -->
       <dependency>
         <groupId>org.jsmpp</groupId>
