@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vividsolutions.jts.geom.Geometry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +37,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.user.User;
 
@@ -124,6 +126,7 @@ public class Event
     private Geometry geometry;
 
     @JsonProperty
+    @JsonSerialize( using = UidJsonSerializer.class )
     private User assignedUser;
 
     @JsonProperty

@@ -29,7 +29,10 @@ package org.hisp.dhis.tracker.validation.hooks;/*
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -66,5 +69,20 @@ public class AssignedUserValidationHook
                 reporter.addError( report );
             }
         }
+    }
+
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    {
+    }
+
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+    }
+
+    @Override
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
+    {
     }
 }
