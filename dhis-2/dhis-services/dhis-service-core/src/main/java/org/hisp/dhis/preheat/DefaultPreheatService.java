@@ -29,7 +29,6 @@ package org.hisp.dhis.preheat;
  */
 
 import com.google.common.collect.Lists;
-import com.sun.tools.rngom.parse.host.Base;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
@@ -64,7 +63,10 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -288,6 +290,7 @@ public class DefaultPreheatService implements PreheatService
 
         handleAttributes( params.getObjects(), preheat );
         handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
+
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
 
@@ -300,45 +303,29 @@ public class DefaultPreheatService implements PreheatService
     {
         objects.forEach( ( klass, list ) -> list.forEach( object ->
         {
-            User user = object.getUser();
-
-            if ( user != null )
-            {
-                if ( PreheatIdentifier.UID == identifier )
-                {
-                    user = preheat.get( identifier, User.class, user.getUid() );
-                }
-                else if ( PreheatIdentifier.CODE == identifier )
-                {
-                    user = preheat.get( identifier, User.class, user.getCode() );
-                }
-
-                ( (BaseIdentifiableObject) object ).setUser( user );
-            }
-
             object.getUserAccesses().forEach( ua ->
             {
-                User userAccess = null;
+                User user = null;
 
                 if ( ua.getUser() != null )
                 {
                     if ( PreheatIdentifier.UID == identifier )
                     {
-                        userAccess = preheat.get( identifier, User.class, ua.getId() );
+                        user = preheat.get( identifier, User.class, ua.getUser().getUid() );
                     }
                     else if ( PreheatIdentifier.CODE == identifier )
                     {
-                        userAccess = preheat.get( identifier, User.class, ua.getUser().getCode() );
+                        user = preheat.get( identifier, User.class, ua.getUser().getCode() );
                     }
                 }
                 else
                 {
-                    userAccess = preheat.get( PreheatIdentifier.UID, User.class, ua.getId() );
+                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
                 }
 
-                if ( userAccess != null )
+                if ( user != null )
                 {
-                    ua.setUser( userAccess );
+                    ua.setUser( user );
                 }
             } );
 
@@ -359,7 +346,7 @@ public class DefaultPreheatService implements PreheatService
                 }
                 else
                 {
-                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getId() );
+                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
                 }
 
                 if ( userGroup != null )
@@ -542,24 +529,8 @@ public class DefaultPreheatService implements PreheatService
                 {
                     IdentifiableObject identifiableObject = (IdentifiableObject) object;
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
-                    identifiableObject.getUserGroupAccesses().forEach( uga -> {
-                        UserGroup userGroup = new UserGroup();
-                        userGroup.setUid( uga.getId() );
-                        addIdentifiers( map, userGroup );
-                        identifiableObject.getSharing().addUserGroupAccess( uga );
-                    } );
-                    identifiableObject.getUserAccesses().forEach( ua -> {
-                        User user = new User();
-                        user.setUid( ua.getId() );
-                        addIdentifiers( map, user );
-                        identifiableObject.getSharing().addUserAccess( ua );
-                    } );
-
-                    if ( identifiableObject.getUser() != null )
-                    {
-                        addIdentifiers( map, identifiableObject.getUser() );
-                        identifiableObject.getSharing().setOwner( identifiableObject.getUser() );
-                    }
+                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                     addIdentifiers( map, identifiableObject );
                 }
@@ -587,16 +558,6 @@ public class DefaultPreheatService implements PreheatService
                         reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
 
                         if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
-                        {
-                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
-                            {
-                                DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
-                                addIdentifiers( map, dataElementOperand.getDataElement() );
-                                addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
-                            } );
-                        }
-
-                        if ( Sharing.class.isAssignableFrom( p.getItemKlass() ) )
                         {
                             CollectionUtils.nullSafeForEach( reference, identifiableObject ->
                             {

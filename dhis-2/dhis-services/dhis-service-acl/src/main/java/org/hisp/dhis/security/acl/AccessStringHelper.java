@@ -29,8 +29,6 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.util.Assert;
 
 /**

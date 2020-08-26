@@ -1,9 +1,10 @@
-package org.hisp.dhis.user;
+package org.hisp.dhis.user.sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.*;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.User;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -59,23 +60,59 @@ public class Sharing
     public void setUserAccesses( Set<UserAccess> userAccesses )
     {
         this.users.clear();
-        userAccesses.forEach( ua -> this.users.put( ua.getId(), ua ) );
+        userAccesses.forEach( ua -> this.addUserAccess( ua ) );
+    }
+
+    public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
+    {
+        this.users.clear();
+
+        if ( userAccesses != null && !userAccesses.isEmpty() )
+        {
+            userAccesses.forEach( ua ->  this.addUserAccess( new UserAccess( ua ) ) );
+        }
+    }
+
+    public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
+    {
+        this.userGroups.clear();
+
+        if ( userGroupAccesses != null && !userGroupAccesses.isEmpty() )
+        {
+            userGroupAccesses.forEach( uga ->  this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
+        }
     }
 
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
         this.userGroups.clear();
-        userGroupAccesses.forEach( uga -> this.userGroups.put( uga.getId(), uga ) );
+        userGroupAccesses.forEach( uga -> this.addUserGroupAccess( uga ) );
     }
 
     public void addUserAccess( UserAccess userAccess )
     {
-        this.users.put( userAccess.getId(), userAccess );
+        if ( userAccess != null )
+        {
+            this.users.put( userAccess.getId(), userAccess );
+        }
+    }
+
+    public void addDtoUserAccess( org.hisp.dhis.user.UserAccess userAccess )
+    {
+        this.users.put( userAccess.getUid(), new UserAccess( userAccess ) );
+    }
+
+    public void addDtoUserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
+    {
+        this.userGroups.put( userGroupAccess.getUid(), new UserGroupAccess( userGroupAccess ) );
     }
 
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
-        this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        if ( userGroupAccess != null )
+        {
+            this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        }
     }
 
     public void resetUserAccesses()

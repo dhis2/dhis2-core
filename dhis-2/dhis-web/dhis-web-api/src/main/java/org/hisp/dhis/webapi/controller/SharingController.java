@@ -46,10 +46,10 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -186,7 +186,7 @@ public class SharingController
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getId() );
+            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getUserGroup().getId() );
             SharingUserGroupAccess sharingUserGroupAccess = new SharingUserGroupAccess();
             sharingUserGroupAccess.setId( userGroupAccess.getId() );
             sharingUserGroupAccess.setName( userGroup.getDisplayName() );

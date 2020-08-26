@@ -261,6 +261,8 @@ public class HibernateDbmsManager
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
         emptyTable( "programstagedataelement" );
+        emptyTable( "programstagesection_dataelements" );
+        emptyTable( "programstagesection" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );
         emptyTable( "programusergroupaccesses" );

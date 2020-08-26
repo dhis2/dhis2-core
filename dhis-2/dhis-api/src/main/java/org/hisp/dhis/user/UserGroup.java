@@ -163,6 +163,8 @@ public class UserGroup
     @JsonIgnore
     public User getUser()
     {
+        User user = new User();
+        user.setUid( this.sharing.getOwner() );
         return user;
     }
 
@@ -170,6 +172,7 @@ public class UserGroup
     @JsonIgnore
     public void setUser( User user )
     {
+        this.sharing.setOwner( user.getUid() );
         this.user = user;
     }
 

@@ -41,9 +41,9 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -512,7 +512,7 @@ public class DefaultAclService implements AclService
             }
             else
             {
-                for ( UserAccess userAccess : object.getUserAccesses() )
+                for ( UserAccess userAccess : object.getSharing().getUsers().values() )
                 {
                     if ( AccessStringHelper.hasDataSharing( userAccess.getAccess() ) )
                     {
@@ -521,7 +521,7 @@ public class DefaultAclService implements AclService
                     }
                 }
 
-                for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+                for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
                 {
                     if ( AccessStringHelper.hasDataSharing( userGroupAccess.getAccess() ) )
                     {

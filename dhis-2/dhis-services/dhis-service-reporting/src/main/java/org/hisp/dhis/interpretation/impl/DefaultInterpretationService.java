@@ -378,13 +378,13 @@ public class DefaultInterpretationService
     {
         boolean modified = false;
         IdentifiableObject interpretationObject = interpretation.getObject();
-        Set<UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
+        Set<org.hisp.dhis.user.UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
 
         for ( User user : users )
         {
             if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretationUserAccesses.add( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationObject.getSharing().addDtoUserAccess( new UserAccess( user, AccessStringHelper.READ ) );
                 modified = true;
             }
         }

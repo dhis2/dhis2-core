@@ -33,6 +33,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -106,23 +108,14 @@ public class HibernateIdentifiableObjectStoreTest
         user4.getGroups().add(userGroup2);
 
         Map<String, UserAccess> userSharing = new HashMap<>();
-        userSharing.put( user1.getUid(),
-            UserAccess.builder().id( user1.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
-
-        userSharing.put( user2.getUid(),
-            UserAccess.builder().id( user2.getUid() ).access( AccessStringHelper.READ ).build() );
-
-        userSharing.put( user3.getUid(),
-                UserAccess.builder().id( user3.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
-
-        userSharing.put( user4.getUid(),
-                UserAccess.builder().id( user4.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user1.getUid(), new UserAccess( user1, AccessStringHelper.DEFAULT ) );
+        userSharing.put( user2.getUid(), new UserAccess( user2, AccessStringHelper.READ ) );
+        userSharing.put( user3.getUid(), new UserAccess( user3, AccessStringHelper.DEFAULT ) );
+        userSharing.put( user4.getUid(), new UserAccess( user4, AccessStringHelper.DEFAULT ) );
 
         Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
-        userGroupSharing.put( userGroup1.getUid(),
-            UserGroupAccess.builder().id( userGroup1.getUid() ).access( AccessStringHelper.READ_WRITE ).build() );
-        userGroupSharing.put( userGroup2.getUid(),
-            UserGroupAccess.builder().id( userGroup2.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
+        userGroupSharing.put( userGroup1.getUid() , new UserGroupAccess( userGroup1, AccessStringHelper.READ_WRITE ) );
+        userGroupSharing.put( userGroup2.getUid() , new UserGroupAccess( userGroup2, AccessStringHelper.DEFAULT ) );
 
         DataElement dataElement = createDataElement( 'A' );
         String dataElementUid = "deabcdefghA";
@@ -198,23 +191,15 @@ public class HibernateIdentifiableObjectStoreTest
         user4.getGroups().add(userGroup2);
 
         Map<String, UserAccess> userSharing = new HashMap<>();
-        userSharing.put( user1.getUid(),
-            UserAccess.builder().id( user1.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
+        userSharing.put( user1.getUid(), new UserAccess( user1, AccessStringHelper.DEFAULT ) );
+        userSharing.put( user2.getUid(), new UserAccess( user2, AccessStringHelper.DATA_READ_WRITE ) );
+        userSharing.put( user3.getUid(), new UserAccess( user3, AccessStringHelper.DEFAULT ) );
+        userSharing.put( user4.getUid(), new UserAccess( user4, AccessStringHelper.DEFAULT ) );
 
-        userSharing.put( user2.getUid(),
-            UserAccess.builder().id( user2.getUid() ).access( AccessStringHelper.DATA_READ_WRITE ).build() );
-
-        userSharing.put( user3.getUid(),
-            UserAccess.builder().id( user3.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
-
-        userSharing.put( user4.getUid(),
-            UserAccess.builder().id( user4.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
 
         Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
-        userGroupSharing.put( userGroup1.getUid(),
-            UserGroupAccess.builder().id( userGroup1.getUid() ).access( AccessStringHelper.DATA_READ_WRITE ).build() );
-        userGroupSharing.put( userGroup2.getUid(),
-            UserGroupAccess.builder().id( userGroup2.getUid() ).access( AccessStringHelper.DEFAULT ).build() );
+        userGroupSharing.put( userGroup1.getUid() , new UserGroupAccess( userGroup1, AccessStringHelper.DATA_READ_WRITE ) );
+        userGroupSharing.put( userGroup2.getUid() , new UserGroupAccess( userGroup2, AccessStringHelper.DEFAULT ) );
 
         DataElement dataElement = createDataElement( 'A' );
         String dataElementUid = "deabcdefghA";

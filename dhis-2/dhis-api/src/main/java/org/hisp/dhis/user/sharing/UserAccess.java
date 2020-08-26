@@ -1,4 +1,4 @@
-package org.hisp.dhis.user;
+package org.hisp.dhis.user.sharing;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.user.User;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -42,37 +41,28 @@ import java.util.Objects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserGroupAccess
-    implements Serializable, EmbeddedObject
+@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
+public class UserAccess
+    implements Serializable
 {
-    private int id;
-
     private String access;
 
-    private UserGroup userGroup;
+    private String id;
 
-    private transient String uid;
-
-    public UserGroupAccess()
+    public UserAccess()
     {
     }
 
-    public UserGroupAccess( UserGroup userGroup, String access )
+    public UserAccess( User user, String access )
     {
-        this.userGroup = userGroup;
         this.access = access;
+        this.id = user.getUid();
     }
 
-    public int getId()
+    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
     {
-        return id;
-    }
-
-    @JsonIgnore
-    public void setId( int id )
-    {
-        this.id = id;
+        this.access = userAccess.getAccess();
+        this.id = userAccess.getUid();
     }
 
     @JsonProperty
@@ -87,49 +77,30 @@ public class UserGroupAccess
         this.access = access;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserGroupUid()
+    public void setUser( User user )
     {
-        return userGroup != null ? userGroup.getUid() : null;
-    }
-
-    @JsonProperty( "id" )
-    @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
+        this.id = user.getUid();
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String displayName()
+    public String getId()
     {
-        return userGroup != null ? userGroup.getDisplayName() : null;
+        return id;
     }
 
-    @JsonIgnore
-    public UserGroup getUserGroup()
+    public void setId( String id )
     {
-        if ( userGroup == null )
-        {
-            UserGroup userGroup = new UserGroup();
-            userGroup.setUid( uid );
-            return userGroup;
-        }
-
-        return userGroup;
+        this.id = id;
     }
 
-    @JsonProperty
-    public void setUserGroup( UserGroup userGroup )
+    public org.hisp.dhis.user.UserAccess toDtoObject()
     {
-        this.userGroup = userGroup;
+        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
+        userAccess.setUid( this.id );
+        userAccess.setAccess( this.access );
+
+        return userAccess;
     }
 
     @Override
@@ -145,23 +116,23 @@ public class UserGroupAccess
             return false;
         }
 
-        UserGroupAccess that = (UserGroupAccess) o;
+        UserAccess that = (UserAccess) o;
 
-        return Objects.equals( access, that.access ) && Objects.equals( getUid(), that.getUid() );
+        return Objects.equals( access, that.access ) && Objects.equals( id, that.id );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( access, getUid() );
+        return Objects.hash( access, id );
     }
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "uid", getUid() )
             .add( "access", access )
+            .add( "id", id )
             .toString();
     }
 }

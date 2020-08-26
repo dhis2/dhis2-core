@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -46,20 +45,16 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.user.Sharing;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -138,12 +133,12 @@ public class BaseIdentifiableObject
     /**
      * Access for user groups.
      */
-    protected transient Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
+    protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
      * Access for users.
      */
-    protected transient Set<UserAccess> userAccesses = new HashSet<>();
+    protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
 
     /**
      * Access information for this object. Applies to current user.
@@ -491,28 +486,41 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroupAccess> getUserGroupAccesses()
+    public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        return new HashSet<>( sharing.getUserGroups().values() );
+        if ( this.userGroupAccesses.isEmpty() && !sharing.getUserGroups().isEmpty())
+        {
+            this.userGroupAccesses.addAll( sharing.getUserGroups().values().stream().map( uag -> uag.toDtoObject() ).collect(
+                Collectors.toSet()) );
+        }
+
+        return userGroupAccesses;
     }
 
-    public void setUserGroupAccesses( Set<UserGroupAccess> userGroupAccesses )
+    public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-        this.sharing.setUserGroupAccess( userGroupAccesses );
+        this.sharing.setDtoUserGroupAccesses( userGroupAccesses );
     }
 
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserAccess> getUserAccesses()
+    public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        return new HashSet<>( sharing.getUsers().values() );
+        if ( this.userAccesses.isEmpty() && !sharing.getUsers().isEmpty())
+        {
+            this.userAccesses.addAll(  sharing.getUsers().values().stream().map( ua -> ua.toDtoObject() ).collect(
+                Collectors.toSet()) );
+        }
+
+        return userAccesses;
     }
 
-    public void setUserAccesses( Set<UserAccess> userAccesses )
+    public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-        this.sharing.setUserAccesses( userAccesses );
+        this.sharing.setDtoUserAccesses( userAccesses );
+        this.userAccesses = userAccesses;
     }
 
     @Override
