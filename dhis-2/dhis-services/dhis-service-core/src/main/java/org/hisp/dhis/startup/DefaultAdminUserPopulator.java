@@ -37,6 +37,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -128,6 +129,7 @@ public class DefaultAdminUserPopulator
 
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUid( "KvMx6c1eoYo" );
+        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         userCredentials.setCode( username );
         userCredentials.setUsername( username );
         userCredentials.setUserInfo( user );
