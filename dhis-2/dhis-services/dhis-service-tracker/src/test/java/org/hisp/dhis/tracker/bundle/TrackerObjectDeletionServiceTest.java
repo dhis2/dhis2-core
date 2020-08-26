@@ -213,7 +213,7 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.EVENT ) );
-        assertEquals( 1, bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getDeleted() )
+        assertEquals( 1, bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getDeleted() );
 
         // remaining
         assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );

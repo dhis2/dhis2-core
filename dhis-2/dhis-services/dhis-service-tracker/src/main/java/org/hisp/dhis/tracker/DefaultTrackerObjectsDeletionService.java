@@ -117,13 +117,7 @@ public class DefaultTrackerObjectsDeletionService
 
                 if ( !trackerErrorReports.isEmpty() )
                 {
-                    trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                    trackerObjectReport.setIndex( idx );
-                    trackerObjectReport.setUid( uid );
-
-                    typeReport.addObjectReport( trackerObjectReport );
-                    typeReport.getStats().incIgnored();
-                    return typeReport;
+                    return addErrorToTypeReport( typeReport, trackerObjectReport, trackerErrorReports, idx, uid );
                 }
             }
 
@@ -220,13 +214,7 @@ public class DefaultTrackerObjectsDeletionService
 
                 if ( !trackerErrorReports.isEmpty() )
                 {
-                    trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                    trackerObjectReport.setIndex( idx );
-                    trackerObjectReport.setUid( uid );
-
-                    typeReport.addObjectReport( trackerObjectReport );
-                    typeReport.getStats().incIgnored();
-                    return typeReport;
+                    return addErrorToTypeReport( typeReport, trackerObjectReport, trackerErrorReports, idx, uid );
                 }
             }
 
@@ -361,5 +349,17 @@ public class DefaultTrackerObjectsDeletionService
         }
 
         return errorReports;
+    }
+
+    private TrackerTypeReport addErrorToTypeReport( TrackerTypeReport typeReport, TrackerObjectReport trackerObjectReport,
+        List<TrackerErrorReport> trackerErrorReports  ,int index, String uid )
+    {
+        trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
+        trackerObjectReport.setIndex( index );
+        trackerObjectReport.setUid( uid );
+
+        typeReport.addObjectReport( trackerObjectReport );
+        typeReport.getStats().incIgnored();
+        return typeReport;
     }
 }
