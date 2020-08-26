@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.dataitem.DataItemActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -133,7 +134,7 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = "Zd2rkv8FsWq";
+        final String theProgramId = Constants.EVENT_PROGRAM_ID;
         final String aValidFilteringAttribute = "program.id";
         final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute + ":eq:%s";
 
@@ -192,7 +193,7 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = "Zd2rkv8FsWq";
+        final String theProgramId = Constants.EVENT_PROGRAM_ID;
         final String aNonExistingAttr = "nonExistingAttr";
         final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aNonExistingAttr
             + ":eq:%s&order=code:asc";
@@ -215,7 +216,7 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = "Zd2rkv8FsWq";
+        final String theProgramId = Constants.EVENT_PROGRAM_ID;
         final String anInvalidType = "program";
         final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + anInvalidType
             + ":eq:%s&order=code:asc";
