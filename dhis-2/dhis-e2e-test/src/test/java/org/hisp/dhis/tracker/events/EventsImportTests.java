@@ -9,6 +9,7 @@ import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,12 +59,13 @@ public class EventsImportTests
     public void eventsImportNewEventsFromFile( String fileName, String contentType )
         throws Exception
     {
-        Object file = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/" + fileName ) )
+        Object obj = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/" + fileName ) )
             .replacePropertyValuesWithIds( "event" )
             .get();
 
         ApiResponse response = eventActions
-            .post( "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&skipFirst=true&async=true", file, contentType );
+            .post( "", contentType, obj, new QueryParamsBuilder()
+                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "skipFirst=true", "async=true" ) );
 
         response
             .validate()
@@ -116,9 +118,11 @@ public class EventsImportTests
 
     private ApiResponse post( String fileName, boolean async )
     {
-        ApiResponse response = eventActions.postFile( new File( "src/test/resources/tracker/events/" + fileName ),
-            "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&async=" + String.valueOf( async ) );
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "async=" + String.valueOf( async ) );
 
+        ApiResponse response = eventActions
+            .postFile( new File( "src/test/resources/tracker/events/" + fileName ), queryParamsBuilder );
         return response;
     }
 

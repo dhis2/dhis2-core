@@ -5,12 +5,10 @@
       "lastUpdated": "2019-04-15T14:40:58.215",
       "name": "TA user group",
       "id": "OPVIvvXzNTw",
-      "publicAccess": "rwrw----",
       "userGroupAccesses": [
       ],
+      "publicAccess": "rw------",
       "attributeValues": [],
-      "users": [
-      ],
       "managedGroups": [],
       "translations": [],
       "userAccesses": []

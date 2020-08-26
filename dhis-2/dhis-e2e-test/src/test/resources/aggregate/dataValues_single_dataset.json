@@ -1,0 +1,26 @@
+{
+  "dataSet": "VEM58nY22sO",
+  "period": "201911",
+  "orgUnit": "O6uvpzGd5pu",
+  "completedDate": "2019-06-05",
+  "dataValues": [
+    {
+      "dataElement": "BjDrgVrkBI3",
+      "period": "201911",
+      "orgUnit": "O6uvpzGd5pu",
+      "categoryOptionCombo": "oPcWGgS2Liz",
+      "attributeOptionCombo": "HllvX50cXC0",
+      "value": "1000",
+      "followup": false
+    },
+    {
+      "dataElement": "BjDrgVrkBI3",
+      "period": "201911",
+      "orgUnit": "O6uvpzGd5pu",
+      "categoryOptionCombo": "rtfSaMjPyq6",
+      "attributeOptionCombo": "HllvX50cXC0",
+      "value": "2000",
+      "followup": false
+    }
+  ]
+}

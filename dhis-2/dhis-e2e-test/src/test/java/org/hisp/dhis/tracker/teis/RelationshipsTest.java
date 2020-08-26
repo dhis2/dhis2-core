@@ -36,6 +36,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -92,7 +93,7 @@ public class RelationshipsTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ), "" ).validate()
+        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ) ).validate()
             .statusCode( 200 );
 
         JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
@@ -137,7 +138,7 @@ public class RelationshipsTest
         {
         case "trackedEntityInstance":
         {
-            return trackedEntityInstanceActions.get( id, "fields=relationships" );
+            return trackedEntityInstanceActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ) );
         }
 
         case "event":

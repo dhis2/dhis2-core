@@ -67,6 +67,7 @@ import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,12 +112,11 @@ public class MetadataImportTest
         // arrange
         JsonObject exported = metadataActions.get().getBody();
 
-        String params = "?async=false" +
-            "&importReportMode=FULL" +
-            "&importStrategy=" + importStrategy;
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.addAll( "async=false", "importReportMode=FULL", "importStrategy=" + importStrategy );
 
         // act
-        ApiResponse response = metadataActions.post( params, exported );
+        ApiResponse response = metadataActions.post( exported, queryParamsBuilder );
 
         // assert
         response.validate()
@@ -138,15 +138,12 @@ public class MetadataImportTest
         throws Exception
     {
         // arrange
-        String params = "?async=false" +
-            "&importReportMode=DEBUG" +
-            "&importStrategy=CREATE";
-
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
         // act
-        ApiResponse response = metadataActions.post( params, object );
+        ApiResponse response = metadataActions
+            .post( object, new QueryParamsBuilder().addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE" ) );
 
         // assert
         response.validate()
@@ -173,16 +170,14 @@ public class MetadataImportTest
         throws Exception
     {
         // arrange
-        String params = "?async=false" +
-            "&importReportMode=DEBUG" +
-            "&importStrategy=CREATE" +
-            "&atomicMode=NONE";
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE", "atomicMode=NONE" );
 
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
         // act
-        ApiResponse response = metadataActions.post( params, object );
+        ApiResponse response = metadataActions.post( object, queryParamsBuilder );
         response.validate().statusCode( 200 );
 
         JsonObject newObj = new FileReaderUtils()
@@ -193,7 +188,7 @@ public class MetadataImportTest
             .getAsJsonArray()
             .add( object.get( "organisationUnits" ).getAsJsonArray().get( 0 ) );
 
-        response = metadataActions.post( params, newObj );
+        response = metadataActions.post( newObj, queryParamsBuilder );
 
         // assert
         response.validate()
@@ -270,19 +265,20 @@ public class MetadataImportTest
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
         // arrange
-        String params = "?async=false" +
-            "&importReportMode=DEBUG" +
-            "&importStrategy=CREATE_AND_UPDATE" +
-            "&atomicMode=NONE";
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder
+            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
 
         // import metadata so that we have references and can clean up
 
-        ApiResponse response = metadataActions.post( params, object );
-
-        params = params.replace( "async=false", "async=true" );
-
         // act
-        response = metadataActions.post( params, object );
+        ApiResponse response = metadataActions.post( object, queryParamsBuilder );
+
+        // send async request
+        queryParamsBuilder.add( "async=true" );
+
+        response = metadataActions.post( object, queryParamsBuilder );
+
         response.validate()
             .statusCode( 200 )
             .body( not( equalTo( "null" ) ) )

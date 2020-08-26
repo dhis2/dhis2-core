@@ -7,12 +7,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
-import io.restassured.mapper.ObjectMapperType;
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -118,12 +117,13 @@ public class ApiResponse
 
     public boolean containsImportSummaries()
     {
-        return !getImportSummaries().isEmpty();
+        return getContentType().contains( "json" ) ? !CollectionUtils.isEmpty( getImportSummaries() ) : false;
     }
 
     public List<ImportSummary> getImportSummaries()
     {
         String pathToImportSummaries = "";
+
         if ( this.extract( "response.responseType" ) != null )
         {
             pathToImportSummaries = "response.";
@@ -162,8 +162,14 @@ public class ApiResponse
             .collect( Collectors.toList() );
     }
 
-    public void prettyPrint() {
-        raw.prettyPrint();
+    public String prettyPrint()
+    {
+        return raw.prettyPrint();
+    }
+
+    public String getAsString()
+    {
+        return raw.asString();
     }
 
     public String getContentType() {
