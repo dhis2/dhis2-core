@@ -158,9 +158,9 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles.get( 0 ) );
 
-        assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.TRACKED_ENTITY ) );
-        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getDeleted(), 9 );
+        assertEquals( 9, bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getDeleted() );
 
         // remaining
         assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
@@ -185,9 +185,9 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles.get( 0 ) );
 
-        assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
+        assertEquals( TrackerStatus.OK , bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.ENROLLMENT ) );
-        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getStats().getDeleted(), 1 );
+        assertEquals( 1, bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getStats().getDeleted() );
 
         // remaining
         assertEquals( 3, manager.getAll( ProgramInstance.class ).size() );
@@ -211,9 +211,9 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles.get( 0 ) );
 
-        assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.EVENT ) );
-        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getDeleted(), 1 );
+        assertEquals( 1, bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getDeleted() )
 
         // remaining
         assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
@@ -240,7 +240,7 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
         assertTrue( importReport.getTrackerValidationReport().hasErrors() );
 
         List<TrackerErrorReport> trackerErrorReports = importReport.getTrackerValidationReport().getErrorReports();
-        assertEquals( trackerErrorReports.get( 0 ).getErrorCode(), TrackerErrorCode.E1081 );
+        assertEquals( TrackerErrorCode.E1081, trackerErrorReports.get( 0 ).getErrorCode() );
         assertEquals( trackerErrorReports.get( 0 ).getErrorKlass(), PreCheckExistenceValidationHook.class );
     }
 }
