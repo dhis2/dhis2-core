@@ -35,7 +35,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +43,6 @@ import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -110,7 +108,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -128,13 +126,14 @@ public class DefaultCurrentUserService
         }
 
         User user = userStore.getUser( userId );
+
         // TODO: this is pretty ugly way to retrieve auths
         user.getUserCredentials().getAllAuthorities();
         return user;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserInfo getCurrentUserInfo()
     {
         String currentUsername = getCurrentUsername();
@@ -151,11 +150,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Set<String> authorities = getCurrentUserAuthorities()
-            .stream().map( GrantedAuthority::getAuthority )
-            .collect( Collectors.toSet() );
-
-        return new UserInfo( userId, currentUsername, authorities );
+        return new UserInfo( userId, currentUsername, getCurrentUserAuthorities() );
     }
 
     private Long getUserId( String username )
@@ -166,7 +161,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -175,7 +170,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -184,7 +179,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();

@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.security.config;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisOAuth2AuthorizationRequestResolver;
+import org.hisp.dhis.security.oidc.OidcDisabledCondition;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
@@ -38,6 +39,7 @@ import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
@@ -183,6 +185,7 @@ public class DhisWebApiWebSecurityConfig
      */
     @Configuration
     @Order( 1010 )
+    @Conditional( OidcDisabledCondition.class )
     public class OidcSecurityConfig extends WebSecurityConfigurerAdapter
     {
         @Autowired
