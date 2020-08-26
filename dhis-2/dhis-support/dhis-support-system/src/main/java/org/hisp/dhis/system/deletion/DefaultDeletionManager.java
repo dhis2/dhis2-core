@@ -123,8 +123,9 @@ public class DefaultDeletionManager
                 {
                     String hint = String.valueOf( allow );
                     hint = hint.isEmpty() ? hint : ( " (" + hint + ")" );
+                    String argument = handler.getClassName() + hint;
 
-                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, handler.getClassName(), hint );
+                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, argument );
 
                     log.info( "Delete was not allowed by " + currentHandler + ": " + errorMessage.toString() );
 
