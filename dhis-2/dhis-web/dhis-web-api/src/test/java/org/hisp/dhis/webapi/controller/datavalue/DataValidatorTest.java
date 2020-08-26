@@ -28,12 +28,6 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.*;
-import static org.mockito.junit.MockitoJUnit.rule;
-
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -51,17 +45,26 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+import static org.mockito.junit.MockitoJUnit.rule;
 
 public class DataValidatorTest
-    extends DhisTest
 {
     @Mock
     private CategoryService categoryService;
@@ -81,7 +84,7 @@ public class DataValidatorTest
     @Mock
     private FileResourceService fileResourceService;
 
-    @Autowired
+    @Mock
     private I18nManager i18nManager;
 
     @Mock
@@ -97,7 +100,9 @@ public class DataValidatorTest
     public MockitoRule mockitoRule = rule();
 
     private Period periodJan;
+
     private Period periodFeb;
+
     private Period periodMar;
 
     private DataSet dataSetA;
@@ -109,6 +114,7 @@ public class DataValidatorTest
     private CategoryOptionCombo optionComboA;
 
     private Date jan15;
+
     private Date feb15;
 
     private I18nFormat i18nFormat;
@@ -116,6 +122,12 @@ public class DataValidatorTest
     @Before
     public void setUp()
     {
+        ResourceBundle globalResourceBundleName = ResourceBundle.getBundle( "i18n_global", Locale.ENGLISH );
+        I18nFormat i18nFormat = new I18nFormat( globalResourceBundleName );
+        i18nFormat.init();
+
+        when( i18nManager.getI18nFormat() ).thenReturn( i18nFormat );
+
         dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService, idObjectManager,
             inputUtils, fileResourceService, i18nManager, calendarService, accessManager );
 
@@ -135,6 +147,28 @@ public class DataValidatorTest
 
         jan15 = getDate( 2020, 1, 15 );
         feb15 = getDate( 2020, 2, 15 );
+    }
+
+    /**
+     * Creates a date.
+     *
+     * @param year  the year.
+     * @param month the month.
+     * @param day   the day of month.
+     * @return a date.
+     */
+    public static Date getDate( int year, int month, int day )
+    {
+        LocalDateTime dateTime = new LocalDateTime( year, month, day, 0, 0 );
+        return dateTime.toDate();
+    }
+
+    /**
+     * @param isoPeriod the ISO period string.
+     */
+    public static Period createPeriod( String isoPeriod )
+    {
+        return PeriodType.getPeriodFromIsoString( isoPeriod );
     }
 
     @Test

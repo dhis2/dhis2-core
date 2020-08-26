@@ -1,0 +1,125 @@
+package org.hisp.dhis.security.config;
+
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider;
+import org.hisp.dhis.security.authority.CachingSystemAuthoritiesProvider;
+import org.hisp.dhis.security.authority.CompositeSystemAuthoritiesProvider;
+import org.hisp.dhis.security.authority.DefaultRequiredAuthoritiesProvider;
+import org.hisp.dhis.security.authority.DetectingSystemAuthoritiesProvider;
+import org.hisp.dhis.security.authority.ModuleSystemAuthoritiesProvider;
+import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
+import org.hisp.dhis.security.authority.SchemaAuthoritiesProvider;
+import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
+import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
+import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.hisp.dhis.webportal.module.ModuleManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Configuration
+public class AuthoritiesProviderConfig
+{
+    @Autowired
+    private ModuleManager moduleManager;
+
+    @Autowired
+    private SchemaService schemaService;
+
+    @Autowired
+    private AppManager appManager;
+
+    @Bean( "org.hisp.dhis.security.authority.SystemAuthoritiesProvider" )
+    public SystemAuthoritiesProvider systemAuthoritiesProvider()
+    {
+        SchemaAuthoritiesProvider schemaAuthoritiesProvider = new SchemaAuthoritiesProvider( schemaService );
+        AppsSystemAuthoritiesProvider appsSystemAuthoritiesProvider = new AppsSystemAuthoritiesProvider( appManager );
+
+        DetectingSystemAuthoritiesProvider detectingSystemAuthoritiesProvider = new DetectingSystemAuthoritiesProvider();
+        detectingSystemAuthoritiesProvider.setRequiredAuthoritiesProvider( requiredAuthoritiesProvider() );
+
+        CompositeSystemAuthoritiesProvider provider = new CompositeSystemAuthoritiesProvider();
+        provider.setSources( ImmutableSet.of(
+            new CachingSystemAuthoritiesProvider( detectingSystemAuthoritiesProvider ),
+            new CachingSystemAuthoritiesProvider( moduleSystemAuthoritiesProvider() ),
+            new CachingSystemAuthoritiesProvider( simpleSystemAuthoritiesProvider() ),
+            schemaAuthoritiesProvider,
+            appsSystemAuthoritiesProvider
+        ) );
+        return provider;
+    }
+
+    private SystemAuthoritiesProvider simpleSystemAuthoritiesProvider()
+    {
+        SimpleSystemAuthoritiesProvider provider = new SimpleSystemAuthoritiesProvider();
+        provider.setAuthorities( DefaultAdminUserPopulator.ALL_AUTHORITIES );
+        return provider;
+    }
+
+    private RequiredAuthoritiesProvider requiredAuthoritiesProvider()
+    {
+        DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
+        provider.setRequiredAuthoritiesKey( "requiredAuthorities" );
+        provider.setAnyAuthoritiesKey( "anyAuthorities" );
+        provider.setGlobalAttributes( ImmutableSet.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
+        return provider;
+    }
+
+    private ModuleSystemAuthoritiesProvider moduleSystemAuthoritiesProvider()
+    {
+        ModuleSystemAuthoritiesProvider provider = new ModuleSystemAuthoritiesProvider();
+        provider.setAuthorityPrefix( "M_" );
+        provider.setModuleManager( moduleManager );
+        provider.setExcludes( ImmutableSet.of(
+            "dhis-web-commons-menu",
+            "dhis-web-commons-menu-management",
+            "dhis-web-commons-oust",
+            "dhis-web-commons-ouwt",
+            "dhis-web-commons-security",
+            "dhis-web-commons-i18n",
+            "dhis-web-commons-ajax",
+            "dhis-web-commons-ajax-json",
+            "dhis-web-commons-ajax-html",
+            "dhis-web-commons-stream",
+            "dhis-web-commons-help",
+            "dhis-web-commons-about",
+            "dhis-web-apps",
+            "dhis-web-api-mobile",
+            "dhis-web-portal"
+        ) );
+        return provider;
+    }
+}

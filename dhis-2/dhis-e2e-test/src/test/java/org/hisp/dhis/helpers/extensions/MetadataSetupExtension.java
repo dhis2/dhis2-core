@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataSetupExtension
-    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
+        implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
 {
     private static boolean started = false;
 
@@ -74,10 +74,10 @@ public class MetadataSetupExtension
             new LoginActions().loginAsDefaultUser();
 
             String[] files = {
-                "src/test/resources/setup/userGroups.json",
-                "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/users.json"
+                    "src/test/resources/setup/userGroups.json",
+                    "src/test/resources/setup/metadata.json",
+                    "src/test/resources/setup/metadata.json",
+                    "src/test/resources/setup/users.json"
             };
 
             String queryParams = "async=false";
@@ -106,10 +106,10 @@ public class MetadataSetupExtension
         String userGroupId = "OPVIvvXzNTw";
 
         String userId = userActions.get( "?filter=userCredentials.username:eq:" + TestConfiguration.get().superUserUsername() )
-            .extractString( "users.id[0]" );
+                .extractString( "users.id[0]" );
 
         userActions.addUserToUserGroup( userId, userGroupId );
-        userActions.addURoleToUser( userId, userRoleId );
+        userActions.addRoleToUser( userId, userRoleId );
 
         TestRunStorage.removeEntity( "/users", userId );
     }
@@ -127,7 +127,7 @@ public class MetadataSetupExtension
 
     @Override
     public void close()
-        throws Throwable
+            throws Throwable
     {
         TestCleanUp testCleanUp = new TestCleanUp();
 

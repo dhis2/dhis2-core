@@ -28,21 +28,23 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.vividsolutions.jts.geom.Geometry;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,6 +53,8 @@ import java.util.Set;
 public class Event
     extends BaseLinkableObject
 {
+    private Long eventId;
+
     private String uid;
 
     private String event;
@@ -498,6 +502,7 @@ public class Event
         this.assignedUserUsername = assignedUserUsername;
     }
 
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAssignedUserDisplayName()
@@ -510,25 +515,39 @@ public class Event
         this.assignedUserDisplayName = assignedUserDisplayName;
     }
 
+    @JsonIgnore
+    public Long getId()
+    {
+        return eventId;
+    }
+
+    public void setId( Long eventId )
+    {
+        this.eventId = eventId;
+    }
+
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         Event event1 = (Event) o;
 
-        if ( event != null ? !event.equals( event1.event ) : event1.event != null ) return false;
-
-        return true;
+        if ( uid != null ? !uid.equals( event1.uid ) : event1.uid != null )
+            return false;
+        return event != null ? event.equals( event1.event ) : event1.event == null;
     }
 
     @Override
     public int hashCode()
     {
-        return event != null ? event.hashCode() : 0;
+        int result = uid != null ? uid.hashCode() : 0;
+        result = 31 * result + (event != null ? event.hashCode() : 0);
+        return result;
     }
-
 
     @Override public String toString()
     {

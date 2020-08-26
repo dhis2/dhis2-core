@@ -130,7 +130,10 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        return userStore.getUser( userId );
+        User user = userStore.getUser( userId );
+        // TODO: this is pretty ugly way to retrieve auths
+        user.getUserCredentials().getAllAuthorities();
+        return user;
     }
 
     @Override
@@ -144,7 +147,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) ).orElse( null );
+        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), this::getUserId ).orElse( null );
 
         if ( userId == null )
         {
