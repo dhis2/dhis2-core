@@ -185,7 +185,7 @@ public class DhisWebApiWebSecurityConfig
      */
     @Configuration
     @Order( 1010 )
-    @Conditional( OidcDisabledCondition.class )
+    @Conditional( value = OidcDisabledCondition.class )
     public class OidcSecurityConfig extends WebSecurityConfigurerAdapter
     {
         @Autowired
