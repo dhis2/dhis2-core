@@ -109,7 +109,7 @@ public class DefaultTrackerImportService
 
         TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
 
-       if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+        if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
         {
             importReport.setStatus( TrackerStatus.ERROR );
         }
