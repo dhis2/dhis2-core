@@ -102,6 +102,10 @@ public class AppOverrideFilter
 
             jsonMapper.writeValue( response.getOutputStream(), app );
         }
+        else if ( "index.action".equals( resourcePath ) )
+        {
+            response.sendRedirect( app.getLaunchUrl() );
+        }
         // Any other resource
         else
         {
