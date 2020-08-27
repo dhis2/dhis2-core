@@ -39,9 +39,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -114,7 +112,8 @@ public class OrgUnitsRemovalTest
         orgUnitActions.delete( parentId )
             .validate()
             .statusCode( 409 )
-            .body( "message", containsStringIgnoringCase( "Object could not be deleted because it is associated with another object: OrganisationUnit" ) );
+            .body( "message", containsStringIgnoringCase( "Object could not be deleted because it is associated with another object: OrganisationUnit" ) )
+            .body( "errorCode", equalTo( "E4030" ) );
 
     }
 
