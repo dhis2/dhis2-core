@@ -416,7 +416,7 @@ public class App
             return getShortName()
                 .trim()
                 .replaceAll( "[^A-Za-z0-9\\s-]", "" )
-                .replaceAll( " ", "-" );
+                .replaceAll( "\\s+", "-" );
         }
 
         return null;
@@ -424,6 +424,7 @@ public class App
 
     public String getSeeAppAuthority()
     {
-        return SEE_APP_AUTHORITY_PREFIX + getUrlFriendlyName();
+        return SEE_APP_AUTHORITY_PREFIX
+            + getShortName().trim().replaceAll( "[^a-zA-Z0-9\\s]", "" ).replaceAll( "\\s+", "_" );
     }
 }
