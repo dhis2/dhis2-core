@@ -115,7 +115,14 @@ public class DefaultTrackerImportService
         }
         else
         {
-            commitBundle( params, importReport, trackerBundles );
+            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+            {
+                deleteBundle( params, importReport, trackerBundles );
+            }
+            else
+            {
+                commitBundle( params, importReport, trackerBundles );
+            }
         }
 
         importReport.getTimings().setTotalImport( requestTimer.toString() );
@@ -152,7 +159,7 @@ public class DefaultTrackerImportService
         List<TrackerBundle> trackerBundles = trackerBundleService.runRuleEngine( bundles );
         trackerBundles = trackerBundles
             .stream()
-            .map( tb -> trackerPreprocessService.preprocess( tb ) )
+            .map( trackerPreprocessService::preprocess )
             .collect( Collectors.toList() );
 
         importReport.getTimings().setProgramrule( preProcessTimer.toString() );
@@ -178,6 +185,26 @@ public class DefaultTrackerImportService
         {
             notifier.update( params.getJobConfiguration(),
                 "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+        }
+    }
+
+    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport, List<TrackerBundle> trackerBundles )
+    {
+        Timer commitTimer = new SystemTimer().start();
+
+        trackerBundles.forEach( tb -> importReport.getBundleReports().add( trackerBundleService.delete( tb ) ) );
+
+        if ( !importReport.isEmpty() )
+        {
+            importReport.setStatus( TrackerStatus.WARNING );
+        }
+
+        importReport.getTimings().setCommit( commitTimer.toString() );
+
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.update( params.getJobConfiguration(),
+                    "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
         }
     }
 

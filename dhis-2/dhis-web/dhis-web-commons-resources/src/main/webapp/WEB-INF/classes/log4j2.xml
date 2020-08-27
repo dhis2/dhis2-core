@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Appenders>
+        <RollingFile name="fileLogger" fileName="dhis.log" filePattern="dhis.log%i">
+            <PatternLayout>
+                <pattern>* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}</pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="25 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="3"/>
+        </RollingFile>
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.hisp.dhis" level="info" additivity="true"/>
+        <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="false"/>
+        <Logger name="org.hisp.dhis.programrule.engine" level="warn" additivity="false"/>
+        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="false"/>
+        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="false"/>
+        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="false"/>
+        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="false"/>
+        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="false"/>
+        <Root level="warn">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>
