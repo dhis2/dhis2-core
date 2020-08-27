@@ -59,6 +59,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 
 /**
  * @author Austin McGee <austin@dhis2.org>
@@ -95,7 +96,7 @@ public class AppOverrideFilter
             // If request was for manifest.webapp, check for * and replace with host
             if ( app.getActivities() != null && app.getActivities().getDhis() != null && "*".equals( app.getActivities().getDhis().getHref() ) )
             {
-                String contextPath = "../";
+                String contextPath = ContextUtils.getContextPath( request );
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
                 app.getActivities().getDhis().setHref( contextPath );
             }
