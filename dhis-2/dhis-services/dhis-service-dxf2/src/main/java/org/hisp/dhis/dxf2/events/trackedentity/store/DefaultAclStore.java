@@ -28,13 +28,13 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author Luciano Fiandesio
@@ -54,7 +54,7 @@ public class DefaultAclStore
         + USER_SQL_PARAM_NAME + ")";
 
     private final static String USERGROUPACCESS_CONDITION = "(SELECT usergroupaccessid FROM usergroupaccess "
-        + "WHERE usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :" + USER_SQL_PARAM_NAME
+        + "WHERE access LIKE '__r%' AND usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :" + USER_SQL_PARAM_NAME
         + "))";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
