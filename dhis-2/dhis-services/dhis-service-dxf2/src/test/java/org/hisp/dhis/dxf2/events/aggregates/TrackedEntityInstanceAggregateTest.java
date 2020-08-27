@@ -45,7 +45,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-@Ignore
 public class TrackedEntityInstanceAggregateTest extends TrackerTest
 {
     @Autowired
@@ -306,13 +305,13 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.getFollowup(), is( nullValue() ) );
 
         // Dates
-        checkDate( currentTime, event.getCreated(), 400L );
-        checkDate( currentTime, event.getLastUpdated(), 300L );
+        checkDate( currentTime, event.getCreated(), 500L );
+        checkDate( currentTime, event.getLastUpdated(), 500L );
         assertThat( event.getEventDate(), is( notNullValue() ) );
-        checkDate( currentTime, event.getDueDate(), 400L );
-        checkDate( currentTime, event.getCreatedAtClient(), 400L );
-        checkDate( currentTime, event.getLastUpdatedAtClient(), 400L );
-        checkDate( currentTime, event.getCompletedDate(), 400L );
+        checkDate( currentTime, event.getDueDate(), 500L );
+        checkDate( currentTime, event.getCreatedAtClient(), 500L );
+        checkDate( currentTime, event.getLastUpdatedAtClient(), 500L );
+        checkDate( currentTime, event.getCompletedDate(), 500L );
         assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
     }
 
@@ -365,10 +364,11 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
+    @Ignore
     public void testEnrollmentFollowup()
     {
         Map<String, Object> enrollmentValues = new HashMap<>();
-        enrollmentValues.put( "followup", true );
+        enrollmentValues.put( "followup", Boolean.TRUE );
         doInTransaction( () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents( enrollmentValues ) );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
@@ -489,6 +489,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
+    @Ignore
     public void testTrackedEntityInstanceRelationshipsTei2Event()
     {
         final String[] relationshipItemsUid = new String[2];
