@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import java.text.ParseException;
@@ -35,7 +36,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -74,6 +75,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -108,6 +117,8 @@ public class DefaultTrackerBundleService
 
     private final TrackedEntityCommentService trackedEntityCommentService;
 
+    private TrackerObjectDeletionService deletionService;
+
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
@@ -124,6 +135,22 @@ public class DefaultTrackerBundleService
         this.sideEffectHandlers = sideEffectHandlers;
     }
 
+    private final ImmutableMap<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>> DELETION_MAPPER =
+        new ImmutableMap.Builder<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>>()
+        .put( TrackerType.ENROLLMENT, ( b,t ) -> deletionService.deleteEnrollments( b, t ) )
+        .put( TrackerType.EVENT, ( b,t ) -> deletionService.deleteEvents( b, t ) )
+        .put( TrackerType.TRACKED_ENTITY, ( b,t ) -> deletionService.deleteTrackedEntityInstances( b, t ) )
+        .put( TrackerType.RELATIONSHIP, ( b,t ) -> deletionService.deleteRelationShips( b, t ) )
+        .build();
+
+    private final ImmutableMap<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>> COMMIT_MAPPER =
+        new ImmutableMap.Builder<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>>()
+        .put( TrackerType.ENROLLMENT, this::handleEnrollments )
+        .put( TrackerType.EVENT, this::handleEvents )
+        .put( TrackerType.TRACKED_ENTITY, this::handleTrackedEntities )
+        .put( TrackerType.RELATIONSHIP, this::handleRelationships )
+        .build();
+
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
         TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
@@ -136,7 +163,8 @@ public class DefaultTrackerBundleService
         DbmsManager dbmsManager,
         ReservedValueService reservedValueService,
         TrackerProgramRuleService trackerProgramRuleService,
-        TrackedEntityCommentService trackedEntityCommentService )
+        TrackedEntityCommentService trackedEntityCommentService,
+        TrackerObjectDeletionService deletionService )
 
     {
         this.trackerPreheatService = trackerPreheatService;
@@ -152,6 +180,7 @@ public class DefaultTrackerBundleService
         this.reservedValueService = reservedValueService;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.trackedEntityCommentService = trackedEntityCommentService;
+        this.deletionService = deletionService;
     }
 
     @Override
@@ -208,17 +237,32 @@ public class DefaultTrackerBundleService
 
         bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
-        TrackerTypeReport trackedEntityReport = handleTrackedEntities( session, bundle );
-        TrackerTypeReport enrollmentReport = handleEnrollments( session, bundle );
-        TrackerTypeReport eventReport = handleEvents( session, bundle );
-        TrackerTypeReport relationshipReport = handleRelationships( session, bundle );
-
-        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, trackedEntityReport );
-        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, enrollmentReport );
-        bundleReport.getTypeReportMap().put( TrackerType.EVENT, eventReport );
-        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP, relationshipReport );
+        Stream.of( TrackerType.values() )
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
+            .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
+
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
+
+        return bundleReport;
+    }
+
+    @Override
+    @Transactional
+    public TrackerBundleReport delete( TrackerBundle bundle )
+    {
+        TrackerBundleReport bundleReport = new TrackerBundleReport();
+
+        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
+        {
+            return bundleReport;
+        }
+
+        Stream.of( TrackerType.values() )
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
+            .apply( bundle, t ) ) );
 
         dbmsManager.clearSession();
         cacheManager.clearCache();

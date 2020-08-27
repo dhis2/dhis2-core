@@ -140,6 +140,8 @@ public enum TrackerErrorCode
     E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4003( "There are duplicated relationships. " ),
     E4004( "Missing required property: 'relationshipType'." ),
+    E4005( "RelationShip: `{0}`, do not exist." ),
+
 
     E9999( "N/A" );
 
