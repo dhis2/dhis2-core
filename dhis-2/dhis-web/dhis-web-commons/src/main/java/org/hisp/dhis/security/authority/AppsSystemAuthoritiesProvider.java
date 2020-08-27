@@ -54,7 +54,7 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
         Set<String> authorities = new HashSet<>();
 
         appManager.getApps( null ).stream()
-            .filter( app -> !StringUtils.isEmpty( app.getName() ) )
+            .filter( app -> !StringUtils.isEmpty( app.getShortName() ) && !app.getIsBundledApp() )
             .forEach( app -> {
                 authorities.add( app.getSeeAppAuthority() );
                 authorities.addAll( app.getAuthorities() );
