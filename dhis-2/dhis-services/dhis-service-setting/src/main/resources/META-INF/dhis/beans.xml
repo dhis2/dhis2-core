@@ -16,48 +16,123 @@
         <value>afghanistan</value>
         <value>africare</value>
         <value>akros</value>
+        <value>aland_islands</value>
+        <value>albania</value>
         <value>algeria</value>
+        <value>american_samoa</value>
+        <value>andorra</value>
         <value>angola</value>
+        <value>anguilla</value>
+        <value>antarctica</value>
+        <value>antigua_and_barbuda</value>
+        <value>argentina</value>
         <value>armenia</value>
+        <value>aruba</value>
+        <value>australia</value>
+        <value>austria</value>
+        <value>azerbaijan</value>
+        <value>bahamas</value>
+        <value>bahrain</value>
         <value>bangladesh</value>
+        <value>barbados</value>
+        <value>belarus</value>
+        <value>belgium</value>
+        <value>belize</value>
         <value>benin</value>
+        <value>bermuda</value>
         <value>bhutan</value>
+        <value>bolivia</value>
+        <value>bosnia_and_herzegovina</value>
         <value>botswana</value>
+        <value>bouvet_island</value>
+        <value>brazil</value>
+        <value>british_indian_ocean_territory</value>
+        <value>british_virgin_islands</value>
+        <value>brunei</value>
+        <value>bulgaria</value>
         <value>burkina_faso</value>
         <value>burkina_faso_coat_of_arms</value>
         <value>burundi</value>
         <value>cambodia</value>
         <value>cameroon</value>
+        <value>canada</value>
         <value>cape_verde</value>
+        <value>caribbean_netherlands</value>
+        <value>cayman_islands</value>
+        <value>central_african_republic</value>
         <value>chad</value>
+        <value>chile</value>
         <value>china</value>
+        <value>christmas_island</value>
         <value>cidrz</value>
+        <value>cocos_keeling_islands</value>
         <value>colombia</value>
+        <value>comoros</value>
         <value>congo_brazzaville</value>
         <value>congo_kinshasa</value>
+        <value>cook_islands</value>
         <value>cordaid</value>
+        <value>costa_rica</value>
+        <value>cote_d_ivoire_ivory_coast</value>
+        <value>croatia</value>
+        <value>cuba</value>
+        <value>curacao</value>
+        <value>cyprus</value>
+        <value>czechia</value>
         <value>demoland</value>
         <value>denmark</value>
+        <value>denmark</value>
+        <value>djibouti</value>
+        <value>dominica</value>
+        <value>dominican_republic</value>
+        <value>dr_congo</value>
         <value>ecowas</value>
         <value>ecuador</value>
         <value>east_africa_community</value>
         <value>egypt</value>
+        <value>el_salvador</value>
         <value>engender_health</value>
+        <value>england</value>
         <value>eritrea</value>
+        <value>estonia</value>
+        <value>eswatini_swaziland</value>
         <value>ethiopia</value>
         <value>equatorial_guinea</value>
+        <value>european_union</value>
+        <value>falkland_islands</value>
+        <value>faroe_islands</value>
         <value>fhi360</value>
+        <value>fiji</value>
+        <value>finland</value>
         <value>forut</value>
+        <value>france</value>
+        <value>french_guiana</value>
+        <value>french_polynesia</value>
+        <value>french_southern_and_antarctic_lands</value>
+        <value>gabon</value>
         <value>gambia</value>
+        <value>georgia</value>
+        <value>germany</value>
         <value>ghana</value>
+        <value>gibraltar</value>
         <value>global_fund</value>
+        <value>greece</value>
+        <value>greenland</value>
         <value>grenada</value>
+        <value>guadeloupe</value>
+        <value>guam</value>
         <value>guatemala</value>
+        <value>guernsey</value>
         <value>guinea</value>
         <value>guinea_bissau</value>
+        <value>guyana</value>
         <value>haiti</value>
+        <value>heard_island_and_mcdonald_islands</value>
         <value>honduras</value>
+        <value>hong_kong</value>
+        <value>hungary</value>
         <value>icap</value>
+        <value>iceland</value>
         <value>ippf</value>
         <value>ima</value>
         <value>india</value>
@@ -65,19 +140,51 @@
         <value>irc</value>
         <value>iran</value>
         <value>iraq</value>
+        <value>ireland</value>
+        <value>isle_of_man</value>
+        <value>israel</value>
+        <value>italy</value>
         <value>ivory_coast</value>
+        <value>jamaica</value>
+        <value>japan</value>
+        <value>jersey</value>
         <value>jhpiego</value>
+        <value>jordan</value>
+        <value>kazakhstan</value>
         <value>kenya</value>
         <value>kiribati</value>
+        <value>kosovo</value>
         <value>kurdistan</value>
+        <value>kuwait</value>
+        <value>kyrgyzstan</value>
         <value>laos</value>
+        <value>latvia</value>
+        <value>lebanon</value>
         <value>lesotho</value>
         <value>liberia</value>
+        <value>libya</value>
+        <value>liechtenstein</value>
+        <value>lithuania</value>
+        <value>luxembourg</value>
+        <value>macau</value>
+        <value>madagascar</value>
         <value>malawi</value>
+        <value>malaysia</value>
+        <value>malta</value>
+        <value>marshall_islands</value>
+        <value>martinique</value>
         <value>mauritania</value>
         <value>mauritius</value>
         <value>maldives</value>
+        <value>mayotte</value>
+        <value>mexico</value>
+        <value>micronesia</value>
+        <value>moldova</value>
+        <value>monaco</value>
         <value>mongolia</value>
+        <value>montenegro</value>
+        <value>montserrat</value>
+        <value>morocco</value>
         <value>mozambique</value>
         <value>myanmar</value>
         <value>mali</value>
@@ -87,49 +194,119 @@
         <value>msh_white</value>
         <value>msi</value>
         <value>namibia</value>
+        <value>nauru</value>
+        <value>netherlands</value>
+        <value>new_caledonia</value>
+        <value>new_zealand</value>
         <value>nicaragua</value>
         <value>nepal</value>
         <value>niger</value>
         <value>nigeria</value>
+        <value>niue</value>
+        <value>norfolk_island</value>
+        <value>north_korea</value>
+        <value>north_macedonia</value>
+        <value>northern_ireland</value>
+        <value>northern_mariana_islands</value>
         <value>norway</value>
+        <value>oman</value>
         <value>pakistan</value>
+        <value>palau</value>
         <value>palestine</value>
         <value>palladium</value>
+        <value>panama</value>
+        <value>papua_new_guinea</value>
         <value>pepfar</value>
         <value>paraguay</value>
         <value>pathfinder</value>
         <value>philippines</value>
+        <value>pitcairn_islands</value>
         <value>planned_parenthood</value>
         <value>peru</value>
+        <value>poland</value>
+        <value>portugal</value>
         <value>psi</value>
+        <value>puerto_rico</value>
         <value>puntland</value>
+        <value>qatar</value>
+        <value>republic_of_the_congo</value>
+        <value>reunion</value>
+        <value>romania</value>
+        <value>russia</value>
         <value>rwanda</value>
+        <value>saint_barthelemy</value>
+        <value>saint_helena_ascension_and_tristan_da_cunha</value>
+        <value>saint_kitts_and_nevis</value>
+        <value>saint_lucia</value>
+        <value>saint_martin</value>
+        <value>saint_pierre_and_miquelon</value>
+        <value>saint_vincent_and_the_grenadines</value>
+        <value>samoa</value>
+        <value>san_marino</value>
         <value>sao_tome_and_principe</value>
+        <value>saudi_arabia</value>
         <value>save_the_children</value>
+        <value>scotland</value>
         <value>senegal</value>
+        <value>serbia</value>
+        <value>seychelles</value>
         <value>sierra_leone</value>
         <value>sierra_leone_coat_of_arms</value>
+        <value>singapore</value>
+        <value>sint_maarten</value>
+        <value>slovakia</value>
+        <value>slovenia</value>
         <value>solomon_islands</value>
         <value>somalia</value>
         <value>somaliland</value>
         <value>south_africa</value>
         <value>south_africa_department_of_health</value>
+        <value>south_georgia</value>
+        <value>south_korea</value>
         <value>south_sudan</value>
+        <value>spain</value>
         <value>sri_lanka</value>
         <value>sudan</value>
+        <value>suriname</value>
+        <value>svalbard_and_jan_mayen</value>
         <value>swaziland</value>
         <value>sweden</value>
+        <value>switzerland</value>
+        <value>syria</value>
+        <value>taiwan</value>
         <value>tajikistan</value>
         <value>tanzania</value>
+        <value>thailand</value>
         <value>timor_leste</value>
         <value>republic_of_trinidad_and_tobago</value>
         <value>togo</value>
+        <value>tokelau</value>
         <value>tonga</value>
+        <value>trinidad_and_tobago</value>
+        <value>tunisia</value>
+        <value>turkey</value>
+        <value>turkmenistan</value>
+        <value>turks_and_caicos_islands</value>
+        <value>tuvalu</value>
         <value>uganda</value>
         <value>ukraine</value>
+        <value>united_arab_emirates</value>
+        <value>united_kingdom</value>
+        <value>united_nations</value>
+        <value>united_states</value>
+        <value>united_states_minor_outlying_islands</value>
+        <value>united_states_virgin_islands</value>
+        <value>uruguay</value>
         <value>usaid</value>
+        <value>uzbekistan</value>
+        <value>vatican_city_holy_see</value>
+        <value>venezuela</value>
         <value>vietnam</value>
         <value>vanuatu</value>
+        <value>wales</value>
+        <value>wallis_and_futuna</value>
+        <value>western_sahara</value>
+        <value>yemen</value>
         <value>zambia</value>
         <value>zanzibar</value>
         <value>zimbabwe</value>
