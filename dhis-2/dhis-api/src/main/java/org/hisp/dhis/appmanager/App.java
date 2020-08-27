@@ -28,16 +28,16 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Saptarshi
@@ -52,6 +52,8 @@ public class App
     private static final long serialVersionUID = -6638197841892194228L;
 
     public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
+
+    public static final String INSTALLED_APP_PATH = "api/apps/";
 
     /**
      * Required.
@@ -75,6 +77,8 @@ public class App
     /**
      * Optional.
      */
+    private String shortName;
+
     private String description;
 
     private AppIcons icons;
@@ -93,6 +97,8 @@ public class App
 
     private AppStatus appState = AppStatus.OK;
 
+    private boolean isBundledApp = false;
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -104,11 +110,15 @@ public class App
      */
     public void init( String contextPath )
     {
-        this.baseUrl = contextPath + "/api/apps";
+        isBundledApp = AppManager.BUNDLED_APPS.contains( getShortName() );
+
+        String appPathPrefix = isBundledApp ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
+
+        this.baseUrl = String.join( "/", contextPath, appPathPrefix ) + getUrlFriendlyName();
 
         if ( contextPath != null && name != null && launchPath != null )
         {
-            launchUrl = baseUrl + ("/" + getUrlFriendlyName() + "/" + launchPath).replaceAll( "//", "/" );
+            launchUrl = String.join( "/", baseUrl, launchPath.replaceFirst( "^/+", "" ) );
         }
     }
 
@@ -119,6 +129,12 @@ public class App
     public String getKey()
     {
         return getUrlFriendlyName();
+    }
+
+    @JsonProperty
+    public boolean getIsBundledApp()
+    {
+        return isBundledApp;
     }
 
     // -------------------------------------------------------------------------
@@ -135,6 +151,22 @@ public class App
     public void setVersion( String version )
     {
         this.version = version;
+    }
+
+    @JsonProperty( "short_name" )
+    @JacksonXmlProperty( localName = "short_name", namespace = DxfNamespaces.DXF_2_0 )
+    public String getShortName()
+    {
+        if ( shortName == null )
+        {
+            return name;
+        }
+        return shortName;
+    }
+
+    public void setShortName( String shortName )
+    {
+        this.shortName = shortName;
     }
 
     @JsonProperty
@@ -280,7 +312,8 @@ public class App
         this.launchUrl = launchUrl;
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getBaseUrl()
     {
         return baseUrl;
@@ -324,7 +357,7 @@ public class App
 
     public void setAppState( AppStatus appState )
     {
-         this.appState = appState;
+        this.appState = appState;
     }
 
     // -------------------------------------------------------------------------
@@ -335,7 +368,7 @@ public class App
     public int hashCode()
     {
         int hash = 7;
-        hash = 79 * hash + (this.name != null ? this.name.hashCode() : 0);
+        hash = 79 * hash + (this.getShortName() != null ? this.getShortName().hashCode() : 0);
         return hash;
     }
 
@@ -359,12 +392,8 @@ public class App
 
         final App other = (App) obj;
 
-        if ( (this.name == null) ? (other.name != null) : !this.name.equals( other.name ) )
-        {
-            return false;
-        }
-
-        return true;
+        return this.getShortName() == null ? other.getShortName() == null
+            : this.getShortName().equals( other.getShortName() );
     }
 
     @Override
@@ -373,19 +402,21 @@ public class App
         return "{" +
             "\"version:\"" + version + "\", " +
             "\"name:\"" + name + "\", " +
+            "\"shortName:\"" + getShortName() + "\", " +
             "\"appType:\"" + appType + "\", " +
+            "\"baseUrl:\"" + baseUrl + "\", " +
             "\"launchPath:\"" + launchPath + "\" " +
             "}";
     }
 
     public String getUrlFriendlyName()
     {
-        if ( name != null )
+        if ( getShortName() != null )
         {
-            return name
+            return getShortName()
                 .trim()
                 .replaceAll( "[^A-Za-z0-9\\s-]", "" )
-                .replaceAll( " ", "-" );
+                .replaceAll( "\\s+", "-" );
         }
 
         return null;
@@ -393,6 +424,7 @@ public class App
 
     public String getSeeAppAuthority()
     {
-        return SEE_APP_AUTHORITY_PREFIX + name.trim().replaceAll( "[^a-zA-Z0-9\\s]","" ).replaceAll( " ", "_" );
+        return SEE_APP_AUTHORITY_PREFIX
+            + getShortName().trim().replaceAll( "[^a-zA-Z0-9\\s]", "" ).replaceAll( "\\s+", "_" );
     }
 }
