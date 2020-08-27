@@ -532,8 +532,6 @@ public class UserCredentials
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public UUID getUuid()
     {
         return uuid;

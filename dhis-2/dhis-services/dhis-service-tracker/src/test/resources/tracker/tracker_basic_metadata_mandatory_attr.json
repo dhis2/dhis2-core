@@ -532,7 +532,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "---USER2---"
+          "id": "MbkW4Bhfw7o"
         },
         "name": "netroms netroms",
         "displayName": "netroms netroms",
@@ -561,7 +561,7 @@
       },
       "firstName": "netroms",
       "surname": "netroms",
-      "id": "---USER2---",
+      "id": "MbkW4Bhfw7o",
       "attributeValues": []
     },
     {
@@ -593,7 +593,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "---USER1---"
+          "id": "oZZ43IHxuUM"
         },
         "name": "morten morten",
         "displayName": "morten morten",
@@ -622,7 +622,7 @@
       },
       "firstName": "morten",
       "surname": "morten",
-      "id": "---USER1---",
+      "id": "oZZ43IHxuUM",
       "attributeValues": []
     },
     {
@@ -654,7 +654,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "---USER3---"
+          "id": "fY22f5N1xSy"
         },
         "name": "nils nilsen",
         "displayName": "nils nilsen",
@@ -683,7 +683,7 @@
       },
       "firstName": "nils",
       "surname": "nilsen",
-      "id": "---USER3---",
+      "id": "fY22f5N1xSy",
       "attributeValues": []
     },
     {
@@ -715,7 +715,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "---USER4---"
+          "id": "iAji3gyZYQL"
         },
         "name": "admin admin",
         "displayName": "admin admin",
@@ -744,7 +744,7 @@
       },
       "firstName": "user4",
       "surname": "user4",
-      "id": "---USER4---",
+      "id": "iAji3gyZYQL",
       "attributeValues": []
     },
     {
@@ -773,7 +773,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "---USER5---"
+          "id": "oajYcE7VMBs"
         },
         "name": "USER5 USER5",
         "displayName": "USER5 USER5",
@@ -783,7 +783,7 @@
         "externalAuth": false,
         "twoFA": false,
         "username": "---USER5---",
-        "id": "---USER5---",
+        "id": "oajYcE7VMBs",
         "userGroupAccesses": [],
         "created": "2019-03-29T08:57:41.766",
         "access": {
@@ -802,7 +802,7 @@
       },
       "firstName": "---USER5---",
       "surname": "---USER5---",
-      "id": "---USER5---",
+      "id": "oajYcE7VMBs",
       "attributeValues": []
     }
   ],
@@ -814,17 +814,17 @@
       "name": "UGA",
       "users": [
         {
-          "id": "---USER3---"
+          "id": "fY22f5N1xSy"
         },
         {
-          "id": "---USER4---"
+          "id": "iAji3gyZYQL"
         }
       ],
       "id": "hlXvBLHZwCt",
       "created": "2016-03-03T07:15:44.419+0000",
       "publicAccess": "rw------",
       "user": {
-        "id": "---USER3---"
+        "id": "fY22f5N1xSy"
       },
       "managedGroups": []
     },
@@ -835,16 +835,16 @@
       "attributeValues": [],
       "users": [
         {
-          "id": "---USER3---"
+          "id": "fY22f5N1xSy"
         },
         {
-          "id": "---USER4---"
+          "id": "iAji3gyZYQL"
         }
       ],
       "managedGroups": [],
       "publicAccess": "rw------",
       "user": {
-        "id": "---USER3---"
+        "id": "fY22f5N1xSy"
       },
       "created": "2016-03-03T07:15:52.940+0000",
       "id": "jCDKJBruqjc"

@@ -114,6 +114,9 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisConfigurationProvider configurationProvider;
 
+        @Autowired
+        private ExternalAccessVoter externalAccessVoter;
+
         @Override
         public void configure( WebSecurity web )
             throws Exception
@@ -316,7 +319,7 @@ public class DhisWebCommonsWebSecurityConfig
                 new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
                 new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
                 new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( ExternalAccessVoter.get() ) ),
+                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
                 new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) )
             );
             return new LogicalOrAccessDecisionManager( decisionVoters );

@@ -902,6 +902,16 @@ public class QueryPlannerTest
         planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST );
     }
 
+    /**
+     * Create 4 queries (one for each period) due to the LAST aggregation type.
+     */
+    @Test
+    public void planQueryForLastInPeriodAggregationType()
+    {
+        planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST_IN_PERIOD );
+    }
+
+
     private void planQueryForFirstOrLastAggregationType(AnalyticsAggregationType analyticsAggregationType)
     {
         DataQueryParams params = DataQueryParams.newBuilder()

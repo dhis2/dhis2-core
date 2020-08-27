@@ -34,6 +34,8 @@ import javassist.util.proxy.ProxyObject;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,13 +122,14 @@ public class DefaultDeletionManager
                 if ( allow != null )
                 {
                     String hint = String.valueOf( allow );
+                    hint = hint.isEmpty() ? hint : ( " (" + hint + ")" );
+                    String argument = handler.getClassName() + hint;
 
-                    String message = "Could not delete due to association with another object: " +
-                        handler.getClassName() + ( hint.isEmpty() ? hint : ( " (" + hint + ")" ) );
+                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, argument );
 
-                    log.info( "Delete was not allowed by " + currentHandler + ": " + message );
+                    log.info( "Delete was not allowed by " + currentHandler + ": " + errorMessage.toString() );
 
-                    throw new DeleteNotAllowedException( DeleteNotAllowedException.ERROR_ASSOCIATED_BY_OTHER_OBJECTS, message );
+                    throw new DeleteNotAllowedException( errorMessage );
                 }
             }
         }
