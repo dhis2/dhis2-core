@@ -64,6 +64,7 @@ public class DbmsUtils
         }
         catch ( Exception exception )
         {
+            session.getTransaction().rollback();
             DebugUtils.getStackTrace( exception );
         }
         finally

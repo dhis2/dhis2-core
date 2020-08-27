@@ -28,7 +28,10 @@ package org.hisp.dhis.security.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -38,15 +41,15 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.visualization.Visualization;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Allows certain type/uid combinations to be externally accessed (no login required).
@@ -54,6 +57,7 @@ import java.util.Map;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@Component
 public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>
 {
     // this should probably be moved somewhere else, but leaving it here for now
@@ -76,12 +80,8 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final IdentifiableObjectManager manager;
-
-    public ExternalAccessVoter( IdentifiableObjectManager manager )
-    {
-        this.manager = manager;
-    }
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     // -------------------------------------------------------------------------
     // AccessDecisionVoter Implementation
@@ -100,7 +100,8 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
     }
 
     @Override
-    public int vote( Authentication authentication, FilterInvocation filterInvocation, Collection<ConfigAttribute> attributes )
+    public int vote( Authentication authentication, FilterInvocation filterInvocation,
+        Collection<ConfigAttribute> attributes )
     {
         if ( authentication.getPrincipal().equals( "anonymousUser" ) && authentication.isAuthenticated() &&
             filterInvocation.getRequest().getMethod().equals( RequestMethod.GET.name() ) )

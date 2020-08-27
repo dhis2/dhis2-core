@@ -34,21 +34,21 @@ public interface OutboundSmsService
 {
     String ID = OutboundSmsService.class.getName();
 
-    List<OutboundSms> getAllOutboundSms();
+    long save( OutboundSms sms );
 
-    List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
+    List<OutboundSms> get( OutboundSmsStatus status );
 
-    long saveOutboundSms( OutboundSms sms );
+    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination );
 
-    void deleteById( Integer outboundSmsId );
+    OutboundSms get( long id );
 
-    void deleteById( String uid );
+    OutboundSms get( String uid );
 
-    List<OutboundSms> getOutboundSms( OutboundSmsStatus status );
+    List<OutboundSms> getAll();
 
-    List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max );
+    List<OutboundSms> getAll( Integer min, Integer max, boolean hasPagination );
 
-    OutboundSms getOutboundSms( long id );
+    void delete( long id );
 
-    OutboundSms getOutboundSms( String uid );
+    void delete( String uid );
 }

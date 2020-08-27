@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
@@ -170,7 +171,7 @@ public abstract class AbstractTrackerDtoValidationHook
      * @return list of error reports
      */
     @Override
-    public List<TrackerErrorReport> validate( TrackerImportValidationContext context )
+    public ValidationErrorReporter validate( TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
 
@@ -185,7 +186,7 @@ public abstract class AbstractTrackerDtoValidationHook
             // just return as there is nothing to validate.
             if ( importStrategy.isDelete() && !this.strategy.isDelete() )
             {
-                return reporter.getReportList();
+                return reporter;
             }
         }
 
@@ -209,20 +210,22 @@ public abstract class AbstractTrackerDtoValidationHook
         if ( dtoTypeClass == null )
         {
             allValidations.forEach( ( dtoClass, validationMethod ) ->
-                validateTrackerDTOs( reporter, validationMethod ) );
+            reporter.addDtosWithErrors( validateTrackerDTOs( reporter, validationMethod ) ) );
         }
         else
         {
             // If not dtoTypeClass == null, this hook class is run for one specific dto class only
-            validateTrackerDTOs( reporter, allValidations.get( dtoTypeClass ) );
+            reporter.addDtosWithErrors( validateTrackerDTOs( reporter, allValidations.get( dtoTypeClass ) ) );
         }
 
-        return reporter.getReportList();
+        return reporter;
     }
 
-    private void validateTrackerDTOs( ValidationErrorReporter reporter,
+    private List<TrackerDto> validateTrackerDTOs( ValidationErrorReporter reporter,
         Pair<ValidationFunction<TrackerDto>, List<? extends TrackerDto>> pair )
     {
+        List<TrackerDto> dtoWithErrors = Lists.newArrayList();
+
         Iterator<? extends TrackerDto> iterator = pair.getRight().iterator();
 
         while ( iterator.hasNext() )
@@ -240,11 +243,13 @@ public abstract class AbstractTrackerDtoValidationHook
             // This feature is used in the prehooks.
             if ( this.removeOnError && reportFork.hasErrors() )
             {
+                dtoWithErrors.add( dto );
                 iterator.remove();
             }
 
             reporter.merge( reportFork );
         }
+        return dtoWithErrors;
     }
 
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,

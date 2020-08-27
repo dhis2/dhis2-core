@@ -330,7 +330,14 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
         Date lastUpdated = dataElementStore.getLastUpdated();
-
+        try
+        {
+            Thread.sleep( 10 );
+        }
+        catch ( InterruptedException e )
+        {
+            e.printStackTrace();
+        }
         dataElementA.setDescription( "testA" );
         dataElementStore.update( dataElementA );
 

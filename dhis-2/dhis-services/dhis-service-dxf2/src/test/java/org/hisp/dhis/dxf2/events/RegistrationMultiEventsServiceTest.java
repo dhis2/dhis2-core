@@ -274,7 +274,7 @@ public class RegistrationMultiEventsServiceTest
         enrollmentService.deleteEnrollment( retrievedEnrlollment.getEnrollment() );
 
         assertNull( enrollmentService.getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() ) );
-        assertEquals( 0, eventService.getEvents( params ).getEvents().size() );
+        assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
     }
 
     @Test
@@ -363,8 +363,8 @@ public class RegistrationMultiEventsServiceTest
 
         importSummary = eventService.addEvent( event, null, false );
 
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
-        assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
         enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
         
@@ -377,7 +377,7 @@ public class RegistrationMultiEventsServiceTest
         importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
+        assertEquals( 3, eventService.getEvents( params ).getEvents().size() );
     }
 
     // -------------------------------------------------------------------------

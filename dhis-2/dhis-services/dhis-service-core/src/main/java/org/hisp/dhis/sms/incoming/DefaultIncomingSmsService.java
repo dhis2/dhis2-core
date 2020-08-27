@@ -67,14 +67,21 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional( readOnly = true )
-    public List<IncomingSms> listAllMessage()
+    public List<IncomingSms> getAll()
     {
-        return incomingSmsStore.getAllSmses();
+        return incomingSmsStore.getAll();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination )
+    {
+        return incomingSmsStore.getAll( min, max, hasPagination );
     }
 
     @Override
     @Transactional
-    public int save( IncomingSms sms )
+    public long save( IncomingSms sms )
     {
         if ( sms.getReceivedDate() != null )
         {
@@ -95,7 +102,7 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional
-    public int save( String message, String originator, String gateway, Date receivedTime, User user )
+    public long save( String message, String originator, String gateway, Date receivedTime, User user )
     {
         IncomingSms sms = new IncomingSms();
         sms.setText( message );
@@ -119,18 +126,40 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional
-    public void deleteById( Integer id )
+    public void delete( long id )
     {
         IncomingSms incomingSms = incomingSmsStore.get( id );
 
-        incomingSmsStore.delete( incomingSms );
+        if ( incomingSms != null )
+        {
+            incomingSmsStore.delete( incomingSms );
+        }
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public IncomingSms findBy( Integer id )
+    @Transactional
+    public void delete( String uid )
+    {
+        IncomingSms incomingSms = incomingSmsStore.getByUid( uid );
+
+        if ( incomingSms != null )
+        {
+            incomingSmsStore.delete( incomingSms );
+        }
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public IncomingSms get( long id )
     {
         return incomingSmsStore.get( id );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public IncomingSms get( String id )
+    {
+        return incomingSmsStore.getByUid( id );
     }
 
     @Override
@@ -141,21 +170,21 @@ public class DefaultIncomingSmsService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator )
     {
         return incomingSmsStore.getSmsByStatus( status, originator );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
+    @Transactional( readOnly = true )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination )
     {
-        return incomingSmsStore.getSmsByStatus( status, keyword, min, max );
+        return incomingSmsStore.getSmsByStatus( status, keyword, min, max, hasPagination );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IncomingSms> getAllUnparsedMessages()
     {
         return incomingSmsStore.getAllUnparsedMessages();

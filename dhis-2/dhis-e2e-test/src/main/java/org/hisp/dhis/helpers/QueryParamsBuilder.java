@@ -54,16 +54,16 @@ public class QueryParamsBuilder
      */
     public QueryParamsBuilder add( String param )
     {
-        String[] splited = param.split( "=" );
-        MutablePair pair = getByKey( splited[0] );
+        String[] split = param.split( "=" );
+        MutablePair pair = getByKey( split[0] );
 
-        if ( pair != null )
+        if ( pair != null && !pair.getKey().equals( "filter") )
         {
-            pair.setRight( splited[1] );
+            pair.setRight( split[1] );
             return this;
         }
 
-        queryParams.add( MutablePair.of( splited[0], splited[1] ) );
+        queryParams.add( MutablePair.of( split[0], split[1] ) );
 
         return this;
     }
