@@ -113,6 +113,7 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( bundle.getUser() != null )
             {
+                // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
                 List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteEnrollment( idx, bundle.getUser(), programInstance, bundle );
 
                 if ( !trackerErrorReports.isEmpty() )
@@ -160,6 +161,7 @@ public class DefaultTrackerObjectsDeletionService
 
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
 
+            // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
             List<String> errors = trackerAccessManager.canDelete( bundle.getUser(), programStageInstance, false );
 
             if ( !errors.isEmpty() )
@@ -208,6 +210,7 @@ public class DefaultTrackerObjectsDeletionService
             org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
                     .getTrackedEntityInstance( uid );
 
+            // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
             if ( bundle.getUser() != null )
             {
                 List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteTrackedEntity( idx, bundle.getUser(), daoEntityInstance, bundle );
@@ -258,6 +261,7 @@ public class DefaultTrackerObjectsDeletionService
 
             org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
 
+            // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
             List<String> errors = trackerAccessManager.canWrite( bundle.getUser(), relationship );
 
             if ( !errors.isEmpty() )
