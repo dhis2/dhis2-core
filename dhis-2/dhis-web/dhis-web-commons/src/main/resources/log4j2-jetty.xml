@@ -1,30 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn">
-
     <Appenders>
-        <Console name="CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n"/>
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout  pattern="* %-5p %d{ISO8601} %m (%F [%t])%n" />
         </Console>
     </Appenders>
-
-
     <Loggers>
+        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
+        <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="true"/>
+        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="true"/>
+        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="true"/>
+        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>
+        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>
+        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
 
-        <Logger name="org.apache.activemq" level="WARN" additivity="true"/>
-        <!--        <Logger name="org.hisp.dhis" level="WARN" additivity="true"/>-->
-        <!--        <Logger name="org.hisp.dhis.webapi.mvc" level="WARN" additivity="true"/>-->
-
-        <Logger name="org.hibernate" level="WARN" additivity="true"/>
-        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy"
-                level="ERROR" additivity="true"/>
-        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="ERROR" additivity="true"/>
-        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR" additivity="true"/>
-        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="ERROR"
-                additivity="true"/>
-        <!--        <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="true"/>-->
-
-        <Root level="INFO">
-            <AppenderRef ref="CONSOLE"/>
+        <Root level="WARN">
+            <AppenderRef ref="console"/>
         </Root>
     </Loggers>
 </Configuration>
