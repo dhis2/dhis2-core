@@ -135,13 +135,6 @@ public class AppController
         renderService.toJson( response.getOutputStream(), apps );
     }
 
-    @RequestMapping( value= "/bundledAppNames", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getBundledAppNames( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        renderService.toJson( response.getOutputStream(), AppManager.BUNDLED_APPS );
-    }
-
     @RequestMapping( method = RequestMethod.POST )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
