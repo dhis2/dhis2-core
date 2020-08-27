@@ -29,16 +29,12 @@ package org.hisp.dhis.dataitems;
  */
 
 import static java.lang.String.format;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.everyItem;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.isA;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.dataitem.DataItemActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -83,8 +79,7 @@ public class DataItemQueryTests extends ApiTest
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", isA( Object.class ) );
         response.validate().body( "dataItems", is( not( empty() ) ) );
-        response.validate().body( "dataItems.dimensionItemType", hasItem( "PROGRAM_INDICATOR" ) );
-        response.validate().body( "dataItems.dimensionItemType", hasItem( "DATA_ELEMENT" ) );
+        response.validate().body( "dataItems.dimensionItemType", ( anyOf( hasItem(  "PROGRAM_INDICATOR" ), hasItem( "DATA_ELEMENT" ) )));
     }
 
     @Test
@@ -139,7 +134,7 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = "BJ42SUrAvHo";
+        final String theProgramId = Constants.EVENT_PROGRAM_ID;
         final String aValidFilteringAttribute = "program.id";
         final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute + ":eq:%s";
 
@@ -198,7 +193,7 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = "BJ42SUrAvHo";
+        final String theProgramId = Constants.EVENT_PROGRAM_ID;
         final String aNonExistingAttr = "nonExistingAttr";
         final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aNonExistingAttr
             + ":eq:%s&order=code:asc";
@@ -221,7 +216,7 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = "BJ42SUrAvHo";
+        final String theProgramId = Constants.EVENT_PROGRAM_ID;
         final String anInvalidType = "program";
         final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + anInvalidType
             + ":eq:%s&order=code:asc";

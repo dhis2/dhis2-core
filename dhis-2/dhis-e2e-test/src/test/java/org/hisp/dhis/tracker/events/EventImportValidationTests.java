@@ -45,6 +45,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -93,7 +94,7 @@ public class EventImportValidationTests
             .body( "status", equalTo("ERROR") )
             .rootPath( "response" )
             .body( "ignored", equalTo( 1 ) )
-            .body( "importSummaries.description[0]", containsString( message ) );
+            .body( "importSummaries.description[0]", containsStringIgnoringCase( message ) );
     }
 
     @Test
