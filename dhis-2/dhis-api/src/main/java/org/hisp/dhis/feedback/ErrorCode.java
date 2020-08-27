@@ -108,6 +108,7 @@ public enum ErrorCode
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
+    E4030( "Object could not be deleted because it is associated with another object: {0}" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
