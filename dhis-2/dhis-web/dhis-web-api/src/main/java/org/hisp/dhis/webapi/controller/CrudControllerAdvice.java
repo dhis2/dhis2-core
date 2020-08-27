@@ -112,8 +112,14 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
     }
 
-    @ExceptionHandler( { DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
-    public void conflictsExceptionHandler( Exception ex, HttpServletResponse response, HttpServletRequest request )
+    @ExceptionHandler( DeleteNotAllowedException.class )
+    public void deleteNotAllowedExceptionHandler( DeleteNotAllowedException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( InvalidIdentifierReferenceException.class )
+    public void invalidIdentifierReferenceExceptionHandler( InvalidIdentifierReferenceException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
     }
