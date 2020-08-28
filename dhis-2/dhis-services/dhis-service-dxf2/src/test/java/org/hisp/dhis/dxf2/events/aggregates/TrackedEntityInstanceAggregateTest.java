@@ -364,7 +364,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    @Ignore
     public void testEnrollmentFollowup()
     {
         Map<String, Object> enrollmentValues = new HashMap<>();
