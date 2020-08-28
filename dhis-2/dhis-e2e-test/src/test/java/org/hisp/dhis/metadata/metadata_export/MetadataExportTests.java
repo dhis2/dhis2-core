@@ -51,15 +51,14 @@ public class MetadataExportTests extends ApiTest
 
     private MetadataActions metadataActions;
     private LoginActions loginActions;
-    private UserActions userActions;
 
     @BeforeAll
     public void beforeAll() {
         metadataActions = new MetadataActions();
         loginActions = new LoginActions();
-        userActions = new UserActions();
 
-        userActions.addUser( userWithoutAccessUsername, userWithoutAccessPassword );
+        new UserActions().addUser( userWithoutAccessUsername, userWithoutAccessPassword );
+        
     }
 
     @Test
@@ -72,24 +71,13 @@ public class MetadataExportTests extends ApiTest
     }
 
     @Test
-    public void shouldNotExportUserMetadataWithoutAuthority() {
-        loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
-
-        metadataActions.get( "", new QueryParamsBuilder().add( "users=true" ) )
-            .validate()
-            .statusCode( 409 )
-            .body( "message", equalTo( "Exporting user metadata requires the 'F_USER_VIEW' authority." ) );
-    }
-
-    @Test
     public void shouldExportFilteredMetadataWithoutAuthority() {
         loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
-        metadataActions.get( "", new QueryParamsBuilder().add( "dataElements=true&users=true" ) )
+        metadataActions.get( "", new QueryParamsBuilder().add( "dataElements=true" ) )
             .validate()
             .statusCode( 200 )
-            .body( "dataElements", not(emptyArray()))
-            .body( "users", not( emptyArray() ) );
+            .body( "dataElements", not(emptyArray()));
     }
 
     @Test
