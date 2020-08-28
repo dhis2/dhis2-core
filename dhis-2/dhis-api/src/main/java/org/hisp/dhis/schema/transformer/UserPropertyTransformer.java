@@ -98,7 +98,8 @@ public class UserPropertyTransformer
 
         UserDto.UserDtoBuilder builder = UserDto.builder()
             .id( user.getUid() )
-            .code( user.getCode() );
+            .code( user.getCode() )
+            .name( user.getName() );
 
         if ( userCredentials != null )
         {
@@ -116,6 +117,8 @@ public class UserPropertyTransformer
 
         private String code;
 
+        private String name;
+
         private String username;
 
         @JsonProperty
@@ -128,6 +131,12 @@ public class UserPropertyTransformer
         public String getCode()
         {
             return code;
+        }
+
+        @JsonProperty
+        public String getName()
+        {
+            return name;
         }
 
         @JsonProperty
@@ -152,6 +161,7 @@ public class UserPropertyTransformer
             gen.writeStartObject();
             gen.writeStringField( "id", user.getUid() );
             gen.writeStringField( "code", user.getCode() );
+            gen.writeStringField( "name", user.getName() );
 
             if ( userCredentials != null )
             {
