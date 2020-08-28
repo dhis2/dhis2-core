@@ -149,7 +149,6 @@ public enum SettingKey
     REMOTE_INSTANCE_USERNAME( "keyRemoteInstanceUsername", "", String.class ),
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true, false ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
-    GOOGLE_CLOUD_API_KEY( "keyGoogleCloudApiKey", "AIzaSyDWyCSemDgAxocSL7j9Dy4mi93xTTcPEek", String.class ),
     BING_MAPS_API_KEY( "keyBingMapsApiKey", "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
     METADATAVERSION_ENABLED( "keyVersionEnabled", Boolean.FALSE, Boolean.class ),
@@ -173,7 +172,7 @@ public enum SettingKey
     /**
      * Progressive caching factor definition for Analytics. In order to enable it,
      * the {@link #ANALYTICS_CACHE_TTL_MODE} has to be set to PROGRESSIVE.
-     * 
+     *
      * @see AnalyticsCacheTtlMode
      */
     ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR( "keyAnalyticsCacheProgressiveTtlFactor", 160, Integer.class ),
