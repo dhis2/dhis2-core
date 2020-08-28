@@ -68,6 +68,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -201,6 +203,8 @@ public class DhisWebCommonsWebSecurityConfig
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+
+            setHttpHeaders( http );
         }
 
         @Bean
