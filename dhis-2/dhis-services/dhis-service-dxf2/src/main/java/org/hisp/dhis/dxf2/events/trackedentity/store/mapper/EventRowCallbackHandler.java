@@ -67,7 +67,7 @@ public class EventRowCallbackHandler
         event.setEvent( rs.getString( getColumnName( COLUMNS.UID ) ) );
         event.setId( rs.getLong( getColumnName( COLUMNS.ID ) ) );
         event.setTrackedEntityInstance( rs.getString( getColumnName( COLUMNS.TEI_UID ) ) );
-        final Boolean followup = rs.getBoolean( getColumnName( COLUMNS.ENROLLMENT_FOLLOWUP ) );
+        final boolean followup = rs.getBoolean( getColumnName( COLUMNS.ENROLLMENT_FOLLOWUP ) );
         event.setFollowup( rs.wasNull() ? null : followup );
         event.setEnrollmentStatus(
             EnrollmentStatus.fromStatusString( rs.getString( getColumnName( COLUMNS.ENROLLMENT_STATUS ) ) ) );
