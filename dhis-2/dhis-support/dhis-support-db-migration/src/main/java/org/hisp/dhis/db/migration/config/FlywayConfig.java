@@ -62,7 +62,7 @@ public class FlywayConfig
             Boolean.parseBoolean( configurationProvider.getProperty( FLYWAY_OUT_OF_ORDER_MIGRATION ) ) );
         classicConfiguration.setIgnoreMissingMigrations( true );
         classicConfiguration.setIgnoreFutureMigrations( false );
-        classicConfiguration.setGroup( false );
+        classicConfiguration.setGroup( true );
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
 
         return new Flyway( classicConfiguration );
