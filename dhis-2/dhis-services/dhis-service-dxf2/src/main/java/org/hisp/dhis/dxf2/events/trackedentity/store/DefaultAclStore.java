@@ -54,7 +54,7 @@ public class DefaultAclStore
         + USER_SQL_PARAM_NAME + ")";
 
     private final static String USERGROUPACCESS_CONDITION = "(SELECT usergroupaccessid FROM usergroupaccess "
-        + "WHERE usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :" + USER_SQL_PARAM_NAME
+        + "WHERE access LIKE '__r%' AND usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :" + USER_SQL_PARAM_NAME
         + "))";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
