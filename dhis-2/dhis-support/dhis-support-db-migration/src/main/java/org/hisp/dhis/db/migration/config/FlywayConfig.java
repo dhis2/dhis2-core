@@ -64,6 +64,7 @@ public class FlywayConfig
         classicConfiguration.setIgnoreFutureMigrations( false );
         classicConfiguration.setGroup( true );
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
+        classicConfiguration.setMixed( true );
 
         return new Flyway( classicConfiguration );
 
