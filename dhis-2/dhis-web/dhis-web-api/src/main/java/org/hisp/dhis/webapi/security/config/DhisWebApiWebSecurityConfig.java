@@ -131,6 +131,8 @@ public class DhisWebApiWebSecurityConfig
                 .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
+
+            setHttpHeaders( http );
         }
 
         private class AuthorizationServerAuthenticationManagerConfigurer
@@ -221,6 +223,8 @@ public class DhisWebApiWebSecurityConfig
                 )
 
                 .csrf().disable();
+
+            setHttpHeaders( http );
         }
     }
 
@@ -317,6 +321,8 @@ public class DhisWebApiWebSecurityConfig
                 .exceptionHandling()
                 .accessDeniedHandler( accessDeniedHandler )
                 .authenticationEntryPoint( authenticationEntryPoint );
+
+            setHttpHeaders( http );
         }
 
         @Bean
@@ -324,5 +330,20 @@ public class DhisWebApiWebSecurityConfig
         {
             return new DHIS2BasicAuthenticationEntryPoint();
         }
+    }
+
+    public static void setHttpHeaders( HttpSecurity http )
+        throws Exception
+    {
+        http
+            .headers()
+            .defaultsDisabled()
+            .contentTypeOptions()
+            .and()
+            .xssProtection()
+            .and()
+            .httpStrictTransportSecurity()
+            .and()
+            .frameOptions().sameOrigin();
     }
 }
