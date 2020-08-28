@@ -27,16 +27,38 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
@@ -60,27 +82,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Stian Sandvold
@@ -90,7 +94,8 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 public class JCloudsAppStorageService
     implements AppStorageService
 {
-    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
+    private static final Pattern CONTAINER_NAME_PATTERN = Pattern
+        .compile( "^(?![.-])(?=.{1,63})([.-]?[a-zA-Z0-9]+)+$" );
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
@@ -112,8 +117,8 @@ public class JCloudsAppStorageService
 
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS =
-        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
+    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM,
+        JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -149,14 +154,12 @@ public class JCloudsAppStorageService
         config = new BlobStoreProperties(
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) );
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET ) );
 
         // ---------------------------------------------------------------------
         // Set up JClouds context
@@ -253,8 +256,7 @@ public class JCloudsAppStorageService
                 appMap.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from JClouds storage " );
-            }
-        );
+            } );
 
         if ( appList.isEmpty() )
         {
@@ -275,7 +277,7 @@ public class JCloudsAppStorageService
         App app = new App();
         log.info( "Installing new app: " + filename );
 
-        try ( ZipFile zip = new ZipFile( file ) )
+        try (ZipFile zip = new ZipFile( file ))
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.
@@ -359,9 +361,9 @@ public class JCloudsAppStorageService
             } );
 
             log.info( String.format( ""
-                    + "New app '%s' installed"
-                    + "\n\tInstall path: %s"
-                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+                + "New app '%s' installed"
+                + "\n\tInstall path: %s"
+                + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
                 app.getName(), dest, namespace ) );
 
             // -----------------------------------------------------------------
@@ -429,9 +431,24 @@ public class JCloudsAppStorageService
 
             String filepath = configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) + "/" + key;
             filepath = filepath.replaceAll( "//", "/" );
-            File res = locationManager.getFileForReading( filepath );
+            File res;
 
-            if ( res.exists() )
+            try
+            {
+                res = locationManager.getFileForReading( filepath );
+            }
+            catch ( LocationManagerException e )
+            {
+                return null;
+            }
+
+            if ( res.isDirectory() )
+            {
+                String indexPath = pageName.replaceAll( "/+$", "" ) + "/index.html";
+                log.info( "Resource " + pageName + " (" + filepath + " is a directory, serving " + indexPath );
+                return getAppResource( app, indexPath );
+            }
+            else if ( res.exists() )
             {
                 return new FileSystemResource( res );
             }
@@ -446,13 +463,12 @@ public class JCloudsAppStorageService
 
     private static Location createRegionLocation( BlobStoreProperties config, Location provider )
     {
-        return config.location != null ?
-            new LocationBuilder()
-                .scope( LocationScope.REGION )
-                .id( config.location )
-                .description( config.location )
-                .parent( provider )
-                .build() : null;
+        return config.location != null ? new LocationBuilder()
+            .scope( LocationScope.REGION )
+            .id( config.location )
+            .description( config.location )
+            .parent( provider )
+            .build() : null;
     }
 
     private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
@@ -507,8 +523,8 @@ public class JCloudsAppStorageService
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 
