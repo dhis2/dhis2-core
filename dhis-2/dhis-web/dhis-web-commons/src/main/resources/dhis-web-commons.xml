@@ -15,7 +15,7 @@
   <constant name="struts.multipart.maxSize" value="1073741824" />
   <constant name="struts.directive.parse.max.depth" value="30" />
   <constant name="struts.objectFactory" value="spring" />
-  <constant name="struts.devMode" value="true" />
+  <constant name="struts.devMode" value="false" />
 
   <!-- DHIS Web Commons -->
 
@@ -51,7 +51,7 @@
       <interceptor name="portalMenuInterceptor" class="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor" />
       <interceptor name="organisationUnitTreeInterceptor" class="org.hisp.dhis.ouwt.interceptor.OrganisationUnitTreeInterceptor" />
       <interceptor name="portalUserInterceptor" class="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor" />
-<!--      <interceptor name="securityInterceptor" class="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor" />-->
+      <interceptor name="securityInterceptor" class="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor" />
       <interceptor name="postHttpMethodInterceptor" class="org.hisp.dhis.security.intercept.HttpMethodInterceptor" />
       <interceptor name="loginInterceptor" class="org.hisp.dhis.security.intercept.LoginInterceptor" />
 
@@ -61,7 +61,7 @@
         <interceptor-ref name="i18nInterceptor" />
         <interceptor-ref name="systemSettingInterceptor" />
         <!-- The securityInterceptor is put after the i18nInterceptor so that the access denied error pages can use internationalization. -->
-<!--        <interceptor-ref name="securityInterceptor" />-->
+        <interceptor-ref name="securityInterceptor" />
         <interceptor-ref name="loginInterceptor" />
         <interceptor-ref name="userSettingInterceptor" />
         <interceptor-ref name="contextInterceptor" />

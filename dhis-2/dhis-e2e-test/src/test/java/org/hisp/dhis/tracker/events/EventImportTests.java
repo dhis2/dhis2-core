@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.events;
  */
 
 import io.restassured.http.ContentType;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.TestRunStorage;
@@ -42,13 +41,10 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import io.restassured.http.ContentType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,7 +111,7 @@ public class EventImportTests
 
         List<ImportSummary> importSummaries = systemActions.getTaskSummaries( "EVENT_IMPORT", taskId );
 
-        assertThat( "Wrong import summaries size",  importSummaries.size(), Matchers.greaterThan( 0 ) );
+        assertThat( "Wrong import summaries size", importSummaries.size(), Matchers.greaterThan( 0 ) );
 
         createdEvents.addAll( importSummaries
             .stream()
@@ -139,7 +135,7 @@ public class EventImportTests
             } )
             .collect( toList() );
 
-        assertThat("Expected 4 events created", createdEvents, hasSize( 4 ) );
+        assertThat( "Expected 4 events created", createdEvents, hasSize( 4 ) );
         eventActions.softDelete( createdEvents );
 
         response = post( "events.json", true );
@@ -159,7 +155,8 @@ public class EventImportTests
     private ApiResponse post( String fileName, boolean async )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "async=" + String.valueOf( async ) );
+        queryParamsBuilder
+            .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "async=" + String.valueOf( async ) );
 
         ApiResponse response = eventActions
             .postFile( new File( "src/test/resources/tracker/events/" + fileName ), queryParamsBuilder );
