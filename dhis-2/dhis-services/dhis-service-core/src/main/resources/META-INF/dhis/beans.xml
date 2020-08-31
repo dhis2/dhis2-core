@@ -812,7 +812,6 @@
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
-    <property name="config" ref="dhisConfigurationProvider" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
