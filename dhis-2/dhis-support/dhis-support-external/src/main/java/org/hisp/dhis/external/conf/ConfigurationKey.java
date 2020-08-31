@@ -103,7 +103,9 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
-    SERVER_HTTPS( "server.https", "off" );
+    SERVER_HTTPS( "server.https", "off" ),
+    CHANGELOG_AGGREGATE( "changelog.aggregate", "on" ),
+    CHANGELOG_TRACKER( "changelog.tracker", "on" );
 
     private final String key;
 
