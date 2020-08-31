@@ -31,6 +31,7 @@ package org.hisp.dhis.dataapproval;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -77,7 +78,7 @@ import static org.junit.Assert.*;
  */
 @Category( IntegrationTest.class )
 public class DataApprovalStoreIntegrationTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTestBase
 {
     private HibernateDataApprovalStore dataApprovalStore;
 
