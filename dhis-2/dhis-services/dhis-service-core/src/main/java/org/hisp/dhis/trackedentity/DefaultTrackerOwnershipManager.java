@@ -74,6 +74,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     @Autowired
     private CurrentUserService currentUserService;
 
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
     @Autowired
     private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
