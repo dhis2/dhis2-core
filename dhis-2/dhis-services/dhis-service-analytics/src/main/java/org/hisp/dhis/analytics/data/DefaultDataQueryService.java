@@ -93,6 +93,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -365,21 +366,23 @@ public class DefaultDataQueryService
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
             Calendar calendar = PeriodType.getCalendar();
+            I18n i18n = i18nManager.getI18n();
             List<Period> periods = new ArrayList<>();
 
             DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
-            boolean queryContainsRelativePeriods = false;
+            boolean containsRelativePeriods = false;
+
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
-                    queryContainsRelativePeriods = true;
+                    containsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
-                    dimensionalKeywords.addGroupBy( isoPeriod, this.i18nManager.getI18n().getString( isoPeriod ) );
+                    dimensionalKeywords.addGroupBy( isoPeriod, i18n.getString( isoPeriod ) );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
                     periods.addAll( relativePeriods );
@@ -397,7 +400,7 @@ public class DefaultDataQueryService
 
             periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
-            if ( queryContainsRelativePeriods )
+            if ( containsRelativePeriods )
             {
                 periods.sort( new AscendingPeriodComparator() );
             }
@@ -405,10 +408,12 @@ public class DefaultDataQueryService
             for ( Period period : periods )
             {
                 String name = format != null ? format.formatPeriod( period ) : null;
+
                 if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
                 {
                     period.setShortName( name );
                 }
+
                 period.setName( name );
 
                 if ( !calendar.isIso8601() )

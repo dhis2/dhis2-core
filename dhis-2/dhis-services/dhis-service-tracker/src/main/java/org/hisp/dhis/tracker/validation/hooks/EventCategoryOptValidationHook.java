@@ -36,7 +36,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -62,10 +61,9 @@ public class EventCategoryOptValidationHook
     @Autowired
     protected I18nManager i18nManager;
 
-    public EventCategoryOptValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EventCategoryOptValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
     }
 
     @Override

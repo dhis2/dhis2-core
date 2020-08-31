@@ -29,12 +29,10 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -46,7 +44,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -86,7 +83,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class EnrollmentSecurityImportValidationTest
     extends AbstractImportValidationTest
 {
@@ -119,12 +115,6 @@ public class EnrollmentSecurityImportValidationTest
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private EnrollmentService enrollmentService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 

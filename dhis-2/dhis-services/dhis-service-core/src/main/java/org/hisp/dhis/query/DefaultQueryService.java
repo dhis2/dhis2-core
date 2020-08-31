@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.List;
 

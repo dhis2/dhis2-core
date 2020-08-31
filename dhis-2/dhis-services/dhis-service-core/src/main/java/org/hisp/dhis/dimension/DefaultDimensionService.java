@@ -374,24 +374,27 @@ public class DefaultDimensionService
 
         Map<String, DimensionalItemObject> dios = new HashMap<>();
         
-        Function<String[], String> makeKey = strings -> Joiner.on( "-" ).useForNull("null").join( strings );
+        // Build a key out of the DimItemObject identifier. Replace missing id with "null" String
+        Function<String[], String> makeKey = strings -> Joiner.on( "-" ).useForNull( "null" ).join( strings );
 
         for ( DimensionalItemId key : map.keySet() )
         {
-            final String[] keyIds = {key.getId0(), key.getId1(), key.getId2()};
+            final String[] keyIds = { key.getId0(), key.getId1(), key.getId2() };
             final DimensionalItemObject item = map.get( key );
 
-            if ( dios.containsKey( makeKey.apply( keyIds ) ) )
+            final String dimItemIdKey = makeKey.apply( keyIds );
+            if ( dios.containsKey( dimItemIdKey ) )
             {
-                if ( dios.get( makeKey.apply( keyIds ) ).getPeriodOffset() == 0
-                    && item.getPeriodOffset() != 0 )
+                // Make sure that an Item with a Period Offset > 0 is returned,
+                // if there are multiple Items with the same key
+                if ( dios.get( dimItemIdKey ).getPeriodOffset() == 0 && item.getPeriodOffset() != 0 )
                 {
-                    dios.replace( item.getUid(), item );
+                    dios.replace( dimItemIdKey, item );
                 }
             }
             else
             {
-                dios.put( makeKey.apply( keyIds ), item );
+                dios.put( dimItemIdKey, item );
             }
         }
 
@@ -506,10 +509,10 @@ public class DefaultDimensionService
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
-            atomicObjects.putEntries( e.getKey(),
-                idObjectManager.get( e.getKey(), e.getValue() ).stream()
+            atomicObjects.putEntries( entry.getKey(),
+                idObjectManager.get( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
@@ -521,10 +524,10 @@ public class DefaultDimensionService
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
-            atomicObjects.putEntries( e.getKey(),
-                idObjectManager.getNoAcl( e.getKey(), e.getValue() ).stream()
+            atomicObjects.putEntries( entry.getKey(),
+                idObjectManager.getNoAcl( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 

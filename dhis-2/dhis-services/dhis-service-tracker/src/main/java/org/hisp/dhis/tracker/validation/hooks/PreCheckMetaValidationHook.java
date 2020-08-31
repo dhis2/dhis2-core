@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -35,7 +37,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -57,10 +59,9 @@ public class PreCheckMetaValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
-    public PreCheckMetaValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public PreCheckMetaValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
     }
 
     @Override
@@ -142,6 +143,23 @@ public class PreCheckMetaValidationHook
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
+        validateDataElementForDataValues( reporter, event, context );
+    }
+
+    private void validateDataElementForDataValues( ValidationErrorReporter reporter, Event event,
+        TrackerImportValidationContext context )
+    {
+        event.getDataValues()
+            .stream()
+            .map( dv -> dv.getDataElement() )
+            .forEach( de -> {
+                DataElement dataElement = context.getBundle().getPreheat().get( TrackerIdScheme.UID, DataElement.class,
+                    de );
+                if ( dataElement == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1087 ).addArg( event.getEvent() ).addArg( de ) );
+                }
+            } );
     }
 
     private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,

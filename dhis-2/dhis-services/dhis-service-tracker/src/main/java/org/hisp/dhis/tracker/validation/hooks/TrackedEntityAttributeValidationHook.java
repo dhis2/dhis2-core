@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
@@ -38,8 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -72,17 +69,10 @@ public class TrackedEntityAttributeValidationHook
 {
     private static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
-    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService, commentService );
+        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService  );
     }
-
-    @Autowired
-    private FileResourceService fileResourceService;
-
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
     private ReservedValueService reservedValueService;

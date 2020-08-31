@@ -37,7 +37,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
-import org.hisp.dhis.common.adapter.ValueRenderTypeDeserialize;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
@@ -211,7 +210,6 @@ public class ProgramStageDataElement
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonDeserialize( using = ValueRenderTypeDeserialize.class )
     @JsonSerialize( using = DeviceRenderTypeMapSerializer.class )
     public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
     {

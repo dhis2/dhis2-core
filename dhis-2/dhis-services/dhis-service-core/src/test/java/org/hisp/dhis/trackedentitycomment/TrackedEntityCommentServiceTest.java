@@ -29,12 +29,23 @@ package org.hisp.dhis.trackedentitycomment;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -53,7 +64,9 @@ public class TrackedEntityCommentServiceTest
     public void setUpTest()
     {
         commentA = new TrackedEntityComment( "A", "Test" );
+        commentA.setUid( CodeGenerator.generateUid() );
         commentB = new TrackedEntityComment( "B", "Test" );
+        commentB.setUid( CodeGenerator.generateUid() );
     }
 
     @Test
@@ -108,4 +121,47 @@ public class TrackedEntityCommentServiceTest
         assertEquals( commentA, commentService.getTrackedEntityComment( idA ) );
         assertEquals( commentB, commentService.getTrackedEntityComment( idB ) );
     }
+    
+    @Test
+    public void testCommentExists()
+    {
+        commentService.addTrackedEntityComment( commentA );
+
+        assertTrue( commentService.trackedEntityCommentExists( commentA.getUid() ) );
+    }
+
+    @Test
+    public void testFilterExistingNotes()
+    {
+        // create 15 comments
+        List<String> commentUids = createComments( 15 );
+        // add 3 uids to the existing comments UID
+        List<String> newUids = IntStream.rangeClosed( 1, 3 ).boxed().map( x -> CodeGenerator.generateUid() )
+            .collect( Collectors.toList() );
+        commentUids.addAll( newUids );
+
+        final List<String> filteredUid = commentService.filterExistingNotes( commentUids );
+        assertThat(filteredUid, hasSize(3));
+        for ( String uid : filteredUid )
+        {
+            assertTrue( newUids.contains( uid ) );
+        }
+    }
+    
+    private List<String> createComments( int size )
+    {
+        List<String> commentUids = new ArrayList<>( size );
+        for ( int i = 0; i < size; i++ )
+        {
+            TrackedEntityComment comment = new TrackedEntityComment();
+            comment.setUid( CodeGenerator.generateUid() );
+            comment.setCreated( new Date() );
+            comment.setCommentText( RandomStringUtils.randomAlphabetic( 20 ) );
+            commentService.addTrackedEntityComment( comment );
+            commentUids.add( comment.getUid() );
+
+        }
+        return commentUids;
+    }
+    
 }

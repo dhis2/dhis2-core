@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -53,6 +54,8 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
 public class Enrollment
 {
+    private Long enrollmentId;
+
     private String enrollment;
 
     private String created;
@@ -422,5 +425,14 @@ public class Enrollment
             ", notes=" + notes +
             ", deleted=" + deleted +
             '}';
+    }
+
+    @JsonIgnore
+    public Long getId() {
+        return enrollmentId;
+    }
+
+    public void setId(Long enrollmentId) {
+        this.enrollmentId = enrollmentId;
     }
 }

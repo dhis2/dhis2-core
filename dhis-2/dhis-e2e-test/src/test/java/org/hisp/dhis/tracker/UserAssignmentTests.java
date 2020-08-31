@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,8 +46,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -73,7 +73,7 @@ public class UserAssignmentTests
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest
@@ -119,14 +119,15 @@ public class UserAssignmentTests
         String programId = "BJ42SUrAvHo";
         String loggedInUser = loginActions.getLoggedInUserId();
 
-        enableUserAssignmentOnProgramStage( programStageId, Boolean.valueOf( userAssignmentEnabled ) );
+        enableUserAssignmentOnProgramStage( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
 
         ApiResponse eventResponse = createEvents( programId, programStageId, loggedInUser );
 
+        assertNotNull( eventResponse.getImportSummaries(), "No import summaries returned when creating event." );
         eventResponse.getImportSummaries().forEach( importSummary -> {
             ApiResponse response = eventActions.get( importSummary.getReference() );
 
-            if ( !Boolean.valueOf( userAssignmentEnabled ) )
+            if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
             {
                 assertNull( response.getBody().get( "assignedUser" ) );
                 return;
@@ -150,6 +151,9 @@ public class UserAssignmentTests
 
         JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
             .extractJsonObject( "events[0]" );
+
+        assertNotNull( body, "no events matching the query." );
+
         String eventId = body.get( "event" ).getAsString();
 
         // act
@@ -175,7 +179,10 @@ public class UserAssignmentTests
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get();
 
-        ApiResponse eventResponse = eventActions.post( file );
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.add( "skipCache=true" );
+
+        ApiResponse eventResponse = eventActions.post( file, queryParamsBuilder );
 
         eventResponse.validate().statusCode( 200 );
 

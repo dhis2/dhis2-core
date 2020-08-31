@@ -28,7 +28,25 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -39,41 +57,30 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.Every.everyItem;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class EventImportValidationTest
     extends AbstractImportValidationTest
 {
@@ -84,17 +91,12 @@ public class EventImportValidationTest
     private RenderService _renderService;
 
     @Autowired
-    private UserGroupService userGroupService;
-
-    @Autowired
     private UserService _userService;
-
-    @Autowired
-    private ProgramStageService programStageService;
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
 
+    @Override
     protected void setUpTest()
         throws IOException
     {
@@ -594,7 +596,6 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -605,6 +606,25 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testInvalidDataElementForDataValue()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/event_with_wrong_de_for_data_value.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1087 ) ) ) );
+    }
+
+    @Test
+    @Ignore
     public void testTeiMultipleActiveEnrollments()
         throws IOException
     {
@@ -613,7 +633,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -659,7 +679,7 @@ public class EventImportValidationTest
         params.setUser( user );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params,
-            TrackerImportStrategy.CREATE_AND_UPDATE );
+            CREATE_AND_UPDATE );
         assertEquals( 0, createAndUpdate.getValidationReport().getErrorReports().size() );
 
         ValidateAndCommitTestUnit delete = validateAndCommit( params,
@@ -771,5 +791,103 @@ public class EventImportValidationTest
 
         // All should be removed
         assertEquals( 0, trackerBundle.getEnrollments().size() );
+    }
+
+    @Test
+    public void testValidateAndAddNotesToEvent()
+        throws IOException
+    {
+        Date now = new Date();
+        
+        // When
+        
+        ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
+        
+        // Then
+        
+        // Fetch the UID of the newly created event
+        final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
+
+        assertThat( programStageInstance.getComments(), hasSize( 3 ) );
+        // Validate note content
+        Stream.of( "first note", "second note", "third note" ).forEach( t -> {
+
+            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
+            assertTrue( comment.getCreated().getTime() > now.getTime() );
+            assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
+            assertNull( comment.getCreator() );
+            assertNull( comment.getLastUpdatedBy() );
+        } );
+    }
+
+    @Test
+    public void testValidateAndAddNotesToUpdatedEvent() throws IOException {
+
+        Date now = new Date();
+        
+        // Given -> Creates an event with 3 notes
+        createEvent("tracker/validations/events-with-notes-data.json");
+        
+        // When -> Update the event and adds 3 more notes
+        final ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-update-data.json");
+        
+        // Then
+        final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
+
+        assertThat( programStageInstance.getComments(), hasSize( 6 ) );
+
+        // validate note content
+        Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
+
+            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            assertTrue( CodeGenerator.isValidUid( comment. getUid() ) );
+            assertTrue( comment.getCreated().getTime() > now.getTime() );
+            assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
+            assertNull( comment.getCreator() );
+            assertNull( comment.getLastUpdatedBy() );
+        } );
+
+    }
+
+    private ValidateAndCommitTestUnit createEvent( String jsonPayload )
+        throws IOException
+    {
+        // Given
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( jsonPayload );
+
+        // When
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
+
+        // Then
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        return createAndUpdate;
+    }
+
+    private TrackedEntityComment getByComment( List<TrackedEntityComment> comments, String commentText )
+    {
+        for ( TrackedEntityComment comment : comments )
+        {
+            if ( comment.getCommentText().startsWith( commentText )
+                || comment.getCommentText().endsWith( commentText ) )
+            {
+                return comment;
+            }
+        }
+        fail( "Can't find a comment starting or ending with " + commentText );
+        return null;
+    }
+    
+    private ProgramStageInstance getEventFromReport( ValidateAndCommitTestUnit createAndUpdate )
+    {
+        final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();
+        String newEvent = typeReportMap.get( TrackerType.EVENT ).getObjectReportMap().get( 0 ).getUid();
+        return programStageServiceInstance
+            .getProgramStageInstance( newEvent );
     }
 }

@@ -39,8 +39,12 @@ import java.util.Collection;
 public class SchemaAuthoritiesProvider
     implements SystemAuthoritiesProvider
 {
-    @Autowired
     private SchemaService schemaService;
+
+    public SchemaAuthoritiesProvider( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public Collection<String> getSystemAuthorities()

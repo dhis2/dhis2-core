@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -38,9 +39,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +61,7 @@ public class JdbcEventStoreTest
 
     @Mock
     private JdbcTemplate jdbcTemplate;
-
+    
     @Mock
     private CurrentUserService currentUserService;
 
@@ -68,20 +71,27 @@ public class JdbcEventStoreTest
     @Mock
     protected SqlRowSet rowSet;
 
+    @Mock
+    private Environment env;
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Before
     public void setUp()
     {
-        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, currentUserService, manager );
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
+
+        when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
+            manager, env );
     }
 
     @Test
     public void verifyEventDataValuesAreProcessedOnceForEachPSI()
     {
-
         mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
 
