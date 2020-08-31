@@ -35,11 +35,13 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -49,6 +51,7 @@ import java.util.List;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 /**
  * Data value service implementation. Note that data values are softly deleted,
@@ -94,6 +97,9 @@ public class DefaultDataValueService
     {
         this.categoryService = categoryService;
     }
+
+    @Autowired
+    private DhisConfigurationProvider config;
 
     // -------------------------------------------------------------------------
     // Basic DataValue
@@ -182,7 +188,11 @@ public class DefaultDataValueService
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
                 dataValue.getStoredBy(), AuditType.UPDATE );
 
-            dataValueAuditService.addDataValueAudit( dataValueAudit );
+            if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+            {
+                dataValueAuditService.addDataValueAudit( dataValueAudit );
+            }
+
             dataValueStore.updateDataValue( dataValue );
         }
     }
@@ -207,7 +217,10 @@ public class DefaultDataValueService
         DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
             currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        dataValueAuditService.addDataValueAudit( dataValueAudit );
+        if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+        {
+            dataValueAuditService.addDataValueAudit( dataValueAudit );
+        }
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );

@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -84,6 +85,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18n;
@@ -194,6 +196,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     private AggregateAccessManager accessManager;
+
+    @Autowired
+    private DhisConfigurationProvider config;
 
     // Set methods for test purposes
 
@@ -682,8 +687,9 @@ public class DefaultDataValueSetService
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
 
+        boolean auditEnabed = config.isEnabled( CHANGELOG_AGGREGATE );
         boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
-        boolean skipAudit = importOptions.isSkipAudit() && hasSkipAuditAuth;
+        boolean skipAudit = ( importOptions.isSkipAudit() && hasSkipAuditAuth ) || !auditEnabed;
 
         log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
 
@@ -855,7 +861,7 @@ public class DefaultDataValueSetService
         final Set<OrganisationUnit> currentOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
 
         BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
-        BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
+        BatchHandler<DataValueAudit> auditBatchHandler = skipAudit ? null : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
 
         int importCount = 0;
         int updateCount = 0;
@@ -1340,7 +1346,11 @@ public class DefaultDataValueSetService
         }
 
         dataValueBatchHandler.flush();
-        auditBatchHandler.flush();
+
+        if ( !skipAudit )
+        {
+            auditBatchHandler.flush();
+        }
 
         int ignores = totalCount - importCount - updateCount - deleteCount;
 

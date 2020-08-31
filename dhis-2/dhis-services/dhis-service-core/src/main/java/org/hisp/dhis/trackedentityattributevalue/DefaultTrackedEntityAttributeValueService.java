@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Abyot Asalefew
@@ -76,7 +77,7 @@ public class DefaultTrackedEntityAttributeValueService
     private CurrentUserService currentUserService;
 
     @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+    private DhisConfigurationProvider config;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -90,7 +91,11 @@ public class DefaultTrackedEntityAttributeValueService
             attributeValue,
             attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
+        {
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+        }
+
         deleteFileValue( attributeValue );
         attributeValueStore.delete( attributeValue );
     }
@@ -148,7 +153,7 @@ public class DefaultTrackedEntityAttributeValueService
         }
 
         if ( attributeValue.getAttribute().isConfidentialBool() &&
-            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+            !config.getEncryptionStatus().isOk() )
         {
             throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
         }
@@ -210,8 +215,12 @@ public class DefaultTrackedEntityAttributeValueService
                 attributeValue,
                 attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
 
-            trackedEntityAttributeValueAuditService
-                .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            if ( config.isEnabled( CHANGELOG_TRACKER ) )
+            {
+                trackedEntityAttributeValueAuditService
+                    .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            }
+
             attributeValueStore.update( attributeValue );
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )

@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -50,6 +51,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 /**
  * @author Ameen Mohamed
  */
@@ -65,75 +68,38 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    public void setTrackedEntityInstanceService( TrackedEntityInstanceService trackedEntityInstanceService )
-    {
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-    }
-
     private CurrentUserService currentUserService;
 
     @Autowired
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
     private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
     @Autowired
-    public void setTrackedEntityProgramOwnerService( TrackedEntityProgramOwnerService trackedEntityProgramOwnerService )
-    {
-        this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-    }
-
     private CacheProvider cacheProvider;
 
     @Autowired
-    public void setCacheProvider( CacheProvider cacheProvider )
-    {
-        this.cacheProvider = cacheProvider;
-    }
-
     private ProgramService programService;
 
     @Autowired
-    public void setProgramService( ProgramService programService )
-    {
-        this.programService = programService;
-    }
-
     private ProgramTempOwnershipAuditService programTempOwnershipAuditService;
 
     @Autowired
-    public void setProgramTempOwnershipAuditService( ProgramTempOwnershipAuditService programTempOwnershipAuditService )
-    {
-        this.programTempOwnershipAuditService = programTempOwnershipAuditService;
-    }
-
     private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
     @Autowired
-    public void setProgramOwnershipHistoryService( ProgramOwnershipHistoryService programOwnershipHistoryService )
-    {
-        this.programOwnershipHistoryService = programOwnershipHistoryService;
-    }
-
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
+    private DhisConfigurationProvider config;
 
     public void setTemporaryTrackerOwnershipCache( Cache<Boolean> temporaryTrackerOwnershipCache )
     {
         this.temporaryTrackerOwnershipCache = temporaryTrackerOwnershipCache;
     }
-   
+
     /**
      * Cache for storing temporary ownership grants.
      */
@@ -261,8 +227,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
         if (program.isProtected())
         {
-            programTempOwnershipAuditService
-                .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
+            if ( config.isEnabled( CHANGELOG_TRACKER ) )
+            {
+                programTempOwnershipAuditService.addProgramTempOwnershipAudit(
+                    new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
+            }
+
             temporaryTrackerOwnershipCache.put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
         }
     }
@@ -303,7 +273,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Generates a unique key for the tei-program-user combination to be put
      * into cache.
-     * 
+     *
      * @return A unique cache key
      */
     private String tempAccessKey( String teiUid, String programUid, String username )
@@ -314,7 +284,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Get the current owner of this tei-program combination. Fallbacks to the
      * registered OU if no owner explicitly exists for the program
-     * 
+     *
      * @param entityInstance The tei
      * @param program The program
      * @return The owning Organisation unit.
@@ -338,7 +308,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Check if the user has temporary access for a specific tei-program
      * combination
-     * 
+     *
      * @param entityInstance The tracked entity instance object
      * @param program The program object
      * @param user The user object against which the check has to be performed
@@ -357,7 +327,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Ownership check can be skipped if the user is super user or if the
      * program is without registration.
-     * 
+     *
      * @return true if ownership check can be skipped
      */
     private boolean canSkipOwnershipCheck( User user, Program program )
