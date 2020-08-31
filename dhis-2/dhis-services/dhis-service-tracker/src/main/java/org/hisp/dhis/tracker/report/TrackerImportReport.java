@@ -43,19 +43,21 @@ import java.util.List;
 public class TrackerImportReport
 {
 
+    private int ignored;
+
     private TrackerStatus status = TrackerStatus.OK;
 
     private TrackerTimingsStats timings = new TrackerTimingsStats();
 
-    private List<TrackerBundleReport> bundleReports = new ArrayList<>();
+    private TrackerBundleReport bundleReport = new TrackerBundleReport();
 
     private TrackerValidationReport trackerValidationReport;
 
     @JsonProperty
     public TrackerStats getStats()
     {
-        TrackerStats stats = new TrackerStats();
-        bundleReports.forEach( br -> stats.merge( br.getStats() ) );
+        TrackerStats stats = bundleReport.getStats();
+        stats.setIgnored( ignored );
         return stats;
     }
 
@@ -84,10 +86,10 @@ public class TrackerImportReport
     /**
      * Are there any errors present?
      *
-     * @return true or false depending on any errors found in bundle reports
+     * @return true or false depending on any errors found in bundle report
      */
     public boolean isEmpty()
     {
-        return bundleReports.stream().allMatch( TrackerBundleReport::isEmpty );
+        return bundleReport.isEmpty();
     }
 }

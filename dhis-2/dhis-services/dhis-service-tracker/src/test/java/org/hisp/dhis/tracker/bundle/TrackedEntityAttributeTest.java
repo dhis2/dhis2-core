@@ -149,15 +149,13 @@ public class TrackedEntityAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

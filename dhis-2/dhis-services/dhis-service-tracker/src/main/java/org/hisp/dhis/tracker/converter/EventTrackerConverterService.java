@@ -232,6 +232,12 @@ public class EventTrackerConverterService
         return programStageInstances;
     }
 
+    @Override
+    public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event object )
+    {
+        return null;
+    }
+
     private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
         Program program )
     {

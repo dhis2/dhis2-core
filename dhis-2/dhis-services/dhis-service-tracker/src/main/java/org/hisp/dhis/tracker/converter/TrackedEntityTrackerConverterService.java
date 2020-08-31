@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -134,5 +135,11 @@ public class TrackedEntityTrackerConverterService
         } );
 
         return trackedEntities;
+    }
+
+    @Override
+    public TrackedEntityInstance fromForRuleEngine( TrackerPreheat preheat, TrackedEntity object )
+    {
+        return null;
     }
 }

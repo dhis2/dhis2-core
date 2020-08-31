@@ -29,11 +29,9 @@ package org.hisp.dhis.tracker.report;
  */
 
 import lombok.Data;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
@@ -60,6 +58,8 @@ public class ValidationErrorReporter
     private final AtomicInteger listIndex = new AtomicInteger( 0 );
 
     private String mainId;
+
+    private TrackerType dtoType;
 
     private List<TrackerDto> invalidDTOs;
 
@@ -102,12 +102,11 @@ public class ValidationErrorReporter
 
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
     {
-        builder.mainKlass( this.mainKlass );
-        builder.listIndex( this.listIndex.get() );
+        builder.trackerType( this.dtoType );
 
         if ( this.mainId != null )
         {
-            builder.mainId( this.mainId );
+            builder.uid( this.mainId );
         }
 
         getReportList().add( builder.build( this.validationContext.getBundle() ) );
@@ -120,14 +119,12 @@ public class ValidationErrorReporter
 
     public void addWarning( TrackerWarningReport.TrackerWarningReportBuilder builder )
     {
-        builder.mainKlass( this.mainKlass );
-        builder.listIndex( this.listIndex.get() );
+        builder.trackerType( this.dtoType );
 
         if ( this.mainId != null )
         {
-            builder.mainId( this.mainId );
+            builder.uid( this.mainId );
         }
-
         getWarningsReportList().add( builder.build( this.validationContext.getBundle() ) );
     }
 
@@ -152,19 +149,27 @@ public class ValidationErrorReporter
         if ( dto instanceof TrackedEntity )
         {
             TrackedEntity trackedEntity = (TrackedEntity) dto;
-            fork.mainId = (trackedEntity.getClass().getSimpleName() + " (" + trackedEntity.getTrackedEntity() + ")");
+            fork.mainId = trackedEntity.getTrackedEntity();
+            fork.dtoType = TrackerType.TRACKED_ENTITY;
         }
         else if ( dto instanceof Enrollment )
         {
             Enrollment enrollment = (Enrollment) dto;
-            fork.mainId = (enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")");
+            fork.mainId = enrollment.getEnrollment();
+            fork.dtoType = TrackerType.ENROLLMENT;
         }
         else if ( dto instanceof Event )
         {
             Event event = (Event) dto;
-            fork.mainId = (event.getClass().getSimpleName() + " (" + event.getEvent() + ")");
+            fork.mainId = event.getEvent();
+            fork.dtoType = TrackerType.EVENT;
         }
-
+        else if ( dto instanceof Relationship )
+        {
+            Relationship relationship = (Relationship) dto;
+            fork.mainId = relationship.getRelationship();
+            fork.dtoType = TrackerType.RELATIONSHIP;
+        }
         return fork;
     }
 

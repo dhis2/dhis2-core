@@ -161,14 +161,12 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 0, report.getErrorReports().size() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -215,14 +213,12 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 0, report.getErrorReports().size() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -251,7 +247,7 @@ public class TeTaValidationTest
         bundle.setUser( user );
 
         trackerBundles = trackerBundleService.create( bundle );
-        report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -280,16 +276,14 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1084 ) ) ) );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -325,17 +319,15 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1008 ) ) ) );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -371,11 +363,9 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
         assertThat( report.getErrorReports(),
@@ -404,14 +394,12 @@ public class TeTaValidationTest
 
         build.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( build );
-
-        assertEquals( 1, trackerBundles.size() );
+        TrackerBundle trackerBundles = trackerBundleService.create( build );
 
         H2DhisConfigurationProvider dhisConfigurationProvider = (H2DhisConfigurationProvider) this.dhisConfigurationProvider;
         dhisConfigurationProvider.setEncryptionStatus( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
         assertThat( report.getErrorReports(),
@@ -440,11 +428,9 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
@@ -463,7 +449,7 @@ public class TeTaValidationTest
 
         trackerBundles = trackerBundleService.create( bundle );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
         assertThat( report.getErrorReports(),
@@ -492,11 +478,9 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
         assertThat( report.getErrorReports(),
@@ -525,10 +509,9 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
-        assertEquals( 1, trackerBundles.size() );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 2, report.getErrorReports().size() );
         printReport( report );
 
@@ -561,10 +544,9 @@ public class TeTaValidationTest
 
         bundle.setUser( user );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundle );
-        assertEquals( 1, trackerBundles.size() );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundle );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundles.get( 0 ) );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundles );
         assertEquals( 1, report.getErrorReports().size() );
         printReport( report );
 

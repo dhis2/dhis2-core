@@ -112,13 +112,11 @@ public class TrackerEventBundleServiceTest extends DhisSpringTest
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() )
             .trackedEntities( trackerBundle.getTrackedEntities() ).build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -133,19 +131,19 @@ public class TrackerEventBundleServiceTest extends DhisSpringTest
                 TrackerBundleParams.class )
             .toTrackerBundle();
 
-        List<TrackerBundle> trackerBundles = trackerBundleService
+        TrackerBundle trackerBundles = trackerBundleService
             .create( TrackerBundleParams.builder().importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
                 .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() )
                 .trackedEntities( trackerBundle.getTrackedEntities() ).build() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
         trackerBundles = trackerBundleService.create( TrackerBundleParams.builder().events( trackerBundle.getEvents() )
             .enrollments( trackerBundle.getEnrollments() ).trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }

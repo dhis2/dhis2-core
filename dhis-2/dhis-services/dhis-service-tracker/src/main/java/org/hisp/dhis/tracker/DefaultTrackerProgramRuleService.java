@@ -77,7 +77,8 @@ public class DefaultTrackerProgramRuleService
         return enrollments
             .stream()
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
-                ProgramInstance enrollment = enrollmentTrackerConverterService.from( bundle.getPreheat(), e );
+                ProgramInstance enrollment = enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(),
+                    e );
                 return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
             } ) );
     }
@@ -102,7 +103,7 @@ public class DefaultTrackerProgramRuleService
             .filter( e -> event.getEnrollment().equals( e.getEnrollment() ) )
             .findAny();
         return bundleEnrollment.isPresent()
-            ? enrollmentTrackerConverterService.from( bundle.getPreheat(), bundleEnrollment.get() )
+            ? enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(), bundleEnrollment.get() )
             : bundle.getPreheat().getEnrollment( TrackerIdScheme.UID, event.getEnrollment() );
     }
 

@@ -103,11 +103,11 @@ public class DefaultTrackerImportService
             notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
         }
 
-        List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
+        TrackerBundle trackerBundle = preheatBundle( params, importReport );
 
-        trackerBundles = preProcessBundle( trackerBundles, importReport );
+        trackerBundle = preProcessBundle( trackerBundle, importReport );
 
-        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
+        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundle );
 
         if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
         {
@@ -117,17 +117,15 @@ public class DefaultTrackerImportService
         {
             if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
             {
-                deleteBundle( params, importReport, trackerBundles );
+                deleteBundle( params, importReport, trackerBundle );
             }
             else
             {
-                commitBundle( params, importReport, trackerBundles );
+                commitBundle( params, importReport, trackerBundle );
             }
         }
 
         importReport.getTimings().setTotalImport( requestTimer.toString() );
-
-        TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
 
         if ( params.hasJobConfiguration() )
         {
@@ -138,46 +136,41 @@ public class DefaultTrackerImportService
             notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
         }
 
+        long ignored = importReport.getTrackerValidationReport().getErrorReports().stream()
+            .map( e -> e.getUid() )
+            .distinct().count();
+        importReport.setIgnored( Long.valueOf( ignored ).intValue() );
         return importReport;
     }
 
-    protected List<TrackerBundle> preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
+    protected TrackerBundle preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
     {
         Timer preheatTimer = new SystemTimer().start();
 
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
         importReport.getTimings().setPreheat( preheatTimer.toString() );
-        return trackerBundles;
+        return trackerBundle;
     }
 
-    protected List<TrackerBundle> preProcessBundle( List<TrackerBundle> bundles, TrackerImportReport importReport )
+    protected TrackerBundle preProcessBundle( TrackerBundle bundle, TrackerImportReport importReport )
     {
         Timer preProcessTimer = new SystemTimer().start();
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.runRuleEngine( bundles );
-        trackerBundles = trackerBundles
-            .stream()
-            .map( trackerPreprocessService::preprocess )
-            .collect( Collectors.toList() );
+        TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle );
+        trackerBundle = trackerPreprocessService.preprocess( trackerBundle );
 
         importReport.getTimings().setProgramrule( preProcessTimer.toString() );
-        return trackerBundles;
+        return trackerBundle;
     }
 
     protected void commitBundle( TrackerImportParams params, TrackerImportReport importReport,
-        List<TrackerBundle> trackerBundles )
+        TrackerBundle trackerBundle )
     {
         Timer commitTimer = new SystemTimer().start();
 
-        trackerBundles.forEach( tb ->
-            importReport.getBundleReports().add( trackerBundleService.commit( tb ) ) );
-
-        if ( !importReport.isEmpty() )
-        {
-            importReport.setStatus( TrackerStatus.WARNING );
-        }
+        importReport.setBundleReport( trackerBundleService.commit( trackerBundle ) );
 
         importReport.getTimings().setCommit( commitTimer.toString() );
 
@@ -188,16 +181,12 @@ public class DefaultTrackerImportService
         }
     }
 
-    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport, List<TrackerBundle> trackerBundles )
+    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport,
+        TrackerBundle trackerBundle )
     {
         Timer commitTimer = new SystemTimer().start();
 
-        trackerBundles.forEach( tb -> importReport.getBundleReports().add( trackerBundleService.delete( tb ) ) );
-
-        if ( !importReport.isEmpty() )
-        {
-            importReport.setStatus( TrackerStatus.WARNING );
-        }
+        importReport.setBundleReport( trackerBundleService.delete( trackerBundle ) );
 
         importReport.getTimings().setCommit( commitTimer.toString() );
 
@@ -209,15 +198,14 @@ public class DefaultTrackerImportService
     }
 
     protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerImportReport importReport,
-        List<TrackerBundle> trackerBundles )
+        TrackerBundle trackerBundle )
     {
         Timer validationTimer = new SystemTimer().start();
 
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         // Do all the validation
-        trackerBundles.forEach( tb ->
-            validationReport.add( trackerValidationService.validate( tb ) ) );
+        validationReport.add( trackerValidationService.validate( trackerBundle ) );
 
         importReport.getTimings().setValidation( validationTimer.toString() );
         importReport.setTrackerValidationReport( validationReport );

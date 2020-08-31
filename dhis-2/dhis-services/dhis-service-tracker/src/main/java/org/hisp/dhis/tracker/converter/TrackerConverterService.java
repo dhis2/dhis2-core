@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 import java.util.List;
@@ -44,4 +46,6 @@ public interface TrackerConverterService<From, To>
     To from( TrackerPreheat preheat, From object );
 
     List<To> from( TrackerPreheat preheat, List<From> objects );
+
+    To fromForRuleEngine( TrackerPreheat preheat, From object );
 }

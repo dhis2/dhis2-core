@@ -49,9 +49,6 @@ import java.util.Map;
 public class TrackerBundleReport
 {
     @JsonProperty
-    private TrackerBundleParams bundleParams;
-
-    @JsonProperty
     @Builder.Default
     private TrackerStatus status = TrackerStatus.OK;
 

@@ -133,7 +133,7 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create(
+        TrackerBundle trackerBundles = trackerBundleService.create(
             TrackerBundleParams.builder()
                 .events( trackerBundle.getEvents() )
                 .enrollments( trackerBundle.getEnrollments() )
@@ -142,7 +142,6 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
 
         trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        assertEquals( 1, trackerBundles.size() );
-        assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
+        assertEquals( trackerBundle.getEvents().size(), trackerBundles.getEventRuleEffects().size() );
     }
 }

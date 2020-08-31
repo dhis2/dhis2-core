@@ -59,10 +59,6 @@ public class TrackerValidationReport
     @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<TrackerDto> invalidDtos = new ArrayList<>();
-
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -72,14 +68,12 @@ public class TrackerValidationReport
         add( validationReport.getErrorReports() );
         this.warningReports.addAll( validationReport.getWarningReports() );
         addPerfReports( validationReport.getPerformanceReport() );
-        this.invalidDtos.addAll( validationReport.getInvalidDtos() );
     }
 
     public void add( ValidationErrorReporter validationReporter )
     {
         this.errorReports.addAll( validationReporter.getReportList() );
         this.warningReports.addAll( validationReporter.getWarningsReportList() );
-        this.invalidDtos.addAll( validationReporter.getInvalidDTOs() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )

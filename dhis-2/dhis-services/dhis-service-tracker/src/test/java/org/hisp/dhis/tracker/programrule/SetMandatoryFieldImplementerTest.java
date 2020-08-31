@@ -157,11 +157,11 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
     {
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundleParams );
 
         trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles.get( 0 ) );
+        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles );
 
         assertFalse( errors.isEmpty() );
 
@@ -176,11 +176,11 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
         TrackerBundleParams bundleParams = createBundleFromJson(
             "tracker/event_events_and_enrollment_with_null_data_element.json" );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
+        TrackerBundle trackerBundles = trackerBundleService.create( bundleParams );
 
         trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles.get( 0 ) );
+        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles );
 
         assertFalse( errors.isEmpty() );
 

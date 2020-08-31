@@ -131,7 +131,8 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( !eventReport.isEmpty() )
             {
-                trackerObjectReport.getErrorReports().addAll( eventReport.getErrorReports() );
+                // trackerObjectReport.getErrorReports().addAll( eventReport.getErrorReports()
+                // );
             }
 
             programInstanceService.deleteProgramInstance( programInstance );
@@ -167,7 +168,6 @@ public class DefaultTrackerObjectsDeletionService
             if ( !errors.isEmpty() )
             {
                 errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
-                    .mainKlass( ProgramStageInstance.class )
                     .errorMessage( error )
                     .build( bundle ) ) );
 
@@ -232,7 +232,8 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( !enrollmentReport.isEmpty() )
             {
-                trackerObjectReport.getErrorReports().addAll( enrollmentReport.getErrorReports() );
+                // trackerObjectReport.getErrorReports().addAll(
+                // enrollmentReport.getErrorReports() );
             }
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
@@ -267,7 +268,6 @@ public class DefaultTrackerObjectsDeletionService
             if ( !errors.isEmpty() )
             {
                 errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
-                    .mainKlass( org.hisp.dhis.relationship.Relationship.class )
                     .errorMessage( error )
                     .build( bundle ) ) );
 
@@ -299,8 +299,6 @@ public class DefaultTrackerObjectsDeletionService
         if ( !notDeletedProgramStageInstances.isEmpty() && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
         {
             TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
-                .mainKlass( ProgramInstance.class )
-                .listIndex( index )
                 .errorCode( TrackerErrorCode.E1091 )
                 .addArg( bundle.getUser().getSurname() ).addArg( pi.getUid() )
                 .build( bundle );
@@ -313,7 +311,6 @@ public class DefaultTrackerObjectsDeletionService
         if ( !errors.isEmpty() )
         {
             errors.forEach( error -> errorReports.add( TrackerErrorReport.builder()
-                .mainKlass( ProgramInstance.class )
                 .errorMessage( error )
                 .build( bundle ) ) );
         }
@@ -333,8 +330,6 @@ public class DefaultTrackerObjectsDeletionService
         if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {
             TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
-                .mainKlass( TrackedEntityInstance.class )
-                .listIndex( index )
                 .errorCode( TrackerErrorCode.E1100 )
                 .addArg( bundle.getUser().getSurname() ).addArg( tei.getUid() )
                 .build( bundle );
@@ -347,7 +342,6 @@ public class DefaultTrackerObjectsDeletionService
         if ( !errors.isEmpty() )
         {
             errors.forEach( error -> errorReports.add( TrackerErrorReport.builder()
-                .mainKlass( TrackedEntityInstance.class )
                 .errorMessage( error )
                 .build( bundle ) ) );
         }

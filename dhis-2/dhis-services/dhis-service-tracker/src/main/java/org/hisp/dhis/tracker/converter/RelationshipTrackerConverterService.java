@@ -191,4 +191,10 @@ public class RelationshipTrackerConverterService
 
         return toRelationships;
     }
+
+    @Override
+    public org.hisp.dhis.relationship.Relationship fromForRuleEngine( TrackerPreheat preheat, Relationship object )
+    {
+        return null;
+    }
 }

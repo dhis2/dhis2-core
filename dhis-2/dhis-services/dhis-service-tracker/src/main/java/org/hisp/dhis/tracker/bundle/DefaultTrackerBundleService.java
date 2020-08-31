@@ -184,8 +184,7 @@ public class DefaultTrackerBundleService
     }
 
     @Override
-    @Transactional
-    public List<TrackerBundle> create( TrackerBundleParams params )
+    public TrackerBundle create( TrackerBundleParams params )
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
         TrackerPreheatParams preheatParams = params.toTrackerPreheatParams();
@@ -194,22 +193,20 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
+        return trackerBundle;
     }
 
     @Override
-    public List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles )
+    public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
         try
         {
-            bundles.forEach( trackerBundle -> {
-                Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-                    .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-                Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-                    .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-                trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-                trackerBundle.setEventRuleEffects( eventRuleEffects );
-            } );
+            Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+                .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+            Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+                .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+            trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+            trackerBundle.setEventRuleEffects( eventRuleEffects );
         }
         catch ( Exception e )
         {
@@ -219,7 +216,7 @@ public class DefaultTrackerBundleService
             // If rule engine fails and the validation pass, a 500 code should be returned
             e.printStackTrace();
         }
-        return bundles;
+        return trackerBundle;
     }
 
     @Override
@@ -292,6 +289,15 @@ public class DefaultTrackerBundleService
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, tei.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
+            if ( tei.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( tei );
 
             bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(), Collections.singletonList( tei ) );
@@ -302,9 +308,6 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
-
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
-            typeReport.getStats().incCreated();
         }
 
         session.flush();
@@ -348,6 +351,15 @@ public class DefaultTrackerBundleService
                 programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
+            if ( programInstance.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( programInstance );
 
             bundle.getPreheat().putEnrollments( bundle.getIdentifier(), Collections.singletonList( programInstance ) );
@@ -359,9 +371,6 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
-
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
-            typeReport.getStats().incCreated();
 
             if ( !bundle.isSkipSideEffects() )
             {
@@ -417,6 +426,15 @@ public class DefaultTrackerBundleService
 
             handleDataValues( session, bundle.getPreheat(), event.getDataValues(), programStageInstance );
 
+            if ( programStageInstance.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( programStageInstance );
 
             bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
@@ -425,9 +443,6 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
-
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
-            typeReport.getStats().incCreated();
 
             if ( !bundle.isSkipSideEffects() )
             {
@@ -465,11 +480,20 @@ public class DefaultTrackerBundleService
             relationship.setLastUpdated( now );
             relationship.setLastUpdatedBy( bundle.getUser() );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, relationship.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.RELATIONSHIP, relationship.getUid(),
+                idx );
             typeReport.addObjectReport( objectReport );
 
+            if ( relationship.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( relationship );
-            typeReport.getStats().incCreated();
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
