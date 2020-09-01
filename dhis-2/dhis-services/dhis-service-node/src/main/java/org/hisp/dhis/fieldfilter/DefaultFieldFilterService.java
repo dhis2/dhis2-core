@@ -72,6 +72,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -429,11 +430,11 @@ public class DefaultFieldFilterService implements FieldFilterService
                     child = new CollectionNode( property.getCollectionName() );
                     child.setNamespace( property.getNamespace() );
 
-                    for ( Object collectionObject : (Collection<?>) returnValue )
+                    for ( Object collectionObject : (Collection<?>) Objects.requireNonNull( returnValue ) )
                     {
                         Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
 
-                        if ( !node.getChildren().isEmpty() )
+                        if ( !Objects.requireNonNull( node ).getChildren().isEmpty() )
                         {
                             child.addChild( node );
                         }
@@ -452,7 +453,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 child.setProperty( property );
 
                 // TODO fix ugly hack, will be replaced by custom field serializer/deserializer
-                if ( child.isSimple() && PeriodType.class.isInstance( (((SimpleNode) child).getValue()) ) )
+                if ( child.isSimple() && (((SimpleNode) child).getValue()) instanceof PeriodType )
                 {
                     child = new SimpleNode( child.getName(), ((PeriodType) ((SimpleNode) child).getValue()).getName() );
                 }
