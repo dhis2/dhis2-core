@@ -153,10 +153,6 @@ public class AuthoritiesProviderConfig
     @Autowired
     public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
-    @Autowired
-    @Qualifier( "formLoginAuthenticationManager" )
-    public AuthenticationManager formLoginAuthenticationManager;
-
     @Bean( "org.hisp.dhis.security.intercept.XWorkSecurityInterceptor" )
     public XWorkSecurityInterceptor xWorkSecurityInterceptor()
         throws Exception
@@ -172,7 +168,6 @@ public class AuthoritiesProviderConfig
 
         XWorkSecurityInterceptor interceptor = new XWorkSecurityInterceptor();
         interceptor.setAccessDecisionManager( accessDecisionManager );
-        interceptor.setAuthenticationManager( formLoginAuthenticationManager );
         interceptor.setValidateConfigAttributes( false );
         interceptor.setRequiredAuthoritiesProvider( provider );
         interceptor.setActionAccessResolver( resolver );
