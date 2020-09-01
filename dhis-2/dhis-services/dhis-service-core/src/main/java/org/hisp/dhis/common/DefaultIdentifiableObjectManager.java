@@ -412,14 +412,14 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
         String value )
     {
-       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUser() );
     }
 
     @SuppressWarnings("unchecked")
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
-        String value, UserInfo currentUserInfo )
+        String value, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -428,7 +428,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value, currentUserInfo );
+        return (T) store.getByUniqueAttributeValue( attribute, value, user );
     }
 
     @Override

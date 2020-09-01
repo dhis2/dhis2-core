@@ -40,6 +40,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -262,7 +263,15 @@ public class JpaQueryUtils
         } ).collect( Collectors.joining( "," ) ), null );
     }
 
-    public static <T> Function<Root<T>, Predicate> getUserQueryForSharing( CriteriaBuilder builder, String userUid, String access )
+    /**
+     * Generate JPA Predicate for checking User Access for given User Uid and access string
+     * @param builder
+     * @param userUid User Uid
+     * @param access Access string for checking
+     * @param <T>
+     * @return JPA Predicate
+     */
+    public static <T> Function<Root<T>, Predicate> checkUserAccess( CriteriaBuilder builder, String userUid, String access )
     {
         return ( Root<T> root ) ->
             builder.and(
@@ -282,7 +291,15 @@ public class JpaQueryUtils
             );
     }
 
-    public static <T> Function<Root<T>,Predicate> getUserGroupQueryForSharing( CriteriaBuilder builder, List<String> userGroupUids, String access )
+    /**
+     * Generate Predicate for checking Access for given List of UserGroup Id and access string
+     * @param builder
+     * @param userGroupUids List of User Group Uids
+     * @param access Access String
+     * @param <T>
+     * @return JPA Predicate
+     */
+    public static <T> Function<Root<T>,Predicate> checkUserGroupsAccess( CriteriaBuilder builder, List<String> userGroupUids, String access )
     {
         return ( Root<T> root ) ->
         {

@@ -124,7 +124,7 @@ public interface IdentifiableObjectStore<T>
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
 
-    T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo );
+    T getByUniqueAttributeValue( Attribute attribute, String value, User user );
 
     /**
      * Retrieves a List of all objects (sorted on name).

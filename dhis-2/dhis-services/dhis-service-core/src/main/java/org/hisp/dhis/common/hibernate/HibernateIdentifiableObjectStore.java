@@ -148,7 +148,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
-        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+        return getSharingDetachedCriteria(  user, AclService.LIKE_READ_METADATA );
     }
 
     @Override
@@ -446,7 +446,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo )
+    public T getByUniqueAttributeValue( Attribute attribute, String value, User user )
     {
         if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
         {
@@ -456,7 +456,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
-            .addPredicates( getSharingPredicates( builder, userInfo ) )
+            .addPredicates( getSharingPredicates( builder, user ) )
             .addPredicate( root ->
                 builder.equal(
                     builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
@@ -1103,43 +1103,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
     {
-        return getDataSharingPredicates( builder, currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
-    }
-
-    @Override
-    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user )
-    {
-        return getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA );
+        return getDataSharingPredicates( builder, currentUserService.getCurrentUser(), AclService.LIKE_READ_DATA );
     }
 
     @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
     {
-        return getDataSharingPredicates( builder, UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+        return getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getDataSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
-    }
-
-    @Override
-    public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
-    {
-        return getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
+        return getDataSharingPredicates( builder, currentUserService.getCurrentUser(), access );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
-    }
-
-    @Override
-    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user )
-    {
-        return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
+        return getSharingPredicates( builder, currentUserService.getCurrentUser(), AclService.LIKE_READ_METADATA );
     }
 
     /**
@@ -1152,7 +1134,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
     {
-        return getSharingPredicates( builder, UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+        return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
     }
 
     /**
@@ -1165,7 +1147,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
+        return getSharingPredicates( builder, currentUserService.getCurrentUser(), access );
     }
 
 
@@ -1183,34 +1165,36 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo, String access )
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
-        if ( !sharingEnabled( userInfo ) || userInfo == null )
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        if ( !dataSharingEnabled( user ) || user == null )
         {
-            return new ArrayList<>();
+            return predicates;
         }
 
-        User user = sessionFactory.getCurrentSession().get( User.class, userInfo.getId() );
+        List<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toList() );
 
-        return getSharingPredicates( builder, user, access );
+        return getDataSharingPredicates( builder, user.getUid(), groupIds, access );
     }
 
     /**
-     * Get sharing predicates based on given UserInfo and Access String
-     *
+     * Get Predicate for checking Sharing access for given User's uid and UserGroup Uids
      * @param builder CriteriaBuilder
-     * @param userUid    String
-     * @param access  Access String
-     * @return List of Function<Root<T>, Predicate>
+     * @param userUid User Uid for checking access
+     * @param userGroupUids List of UserGroup Uid which given user belong to
+     * @param access Access String for checking
+     * @return Predicate
      */
     private List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String userUid, List<String> userGroupUids,
         String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        Function<Root<T>, Predicate> userGroupPredicate = JpaQueryUtils.getUserGroupQueryForSharing( builder, userGroupUids, access );
+        Function<Root<T>, Predicate> userGroupPredicate = JpaQueryUtils.checkUserGroupsAccess( builder, userGroupUids, access );
 
-        Function<Root<T>,Predicate> userPredicate = JpaQueryUtils.getUserQueryForSharing( builder, userUid, access );
+        Function<Root<T>,Predicate> userPredicate = JpaQueryUtils.checkUserAccess( builder, userUid, access );
 
         predicates.add( root -> {
             Predicate disjunction = builder.or(
@@ -1234,51 +1218,41 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return predicates;
     }
 
-    @Override
-    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    /**
+     * Get Predicate for checking Data Sharing access for given User's uid and UserGroup Uids
+     * @param builder CriteriaBuilder
+     * @param userUid User Uid for checking access
+     * @param userGroupUids List of UserGroup Uid which given user belong to
+     * @param access Access String for checking
+     * @return Predicate
+     */
+    private List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String userUid, List<String> userGroupUids,
+        String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        CriteriaQuery<T> criteria = builder.createQuery( getClazz() );
-
         preProcessPredicates( builder, predicates );
 
-        if ( !dataSharingEnabled( user ) || user == null )
-        {
-            return predicates;
-        }
+        Function<Root<T>, Predicate> userGroupPredicate = JpaQueryUtils.checkUserGroupsAccess( builder, userGroupUids, access );
 
-        Function<Root<T>, Subquery<Integer>> userGroupPredicate = (( Root<T> root ) -> {
-            Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
-            Root<T> ugdc = userGroupSubQuery.from( getClazz() );
-            Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
-            userGroupSubQuery.select( uga.get( "id" ) );
+        Function<Root<T>,Predicate> userPredicate = JpaQueryUtils.checkUserAccess( builder, userUid, access );
 
-            return userGroupSubQuery.where(
-                builder.and(
-                    builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
-                    builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
-                    builder.like( uga.get( "access" ), access ) ) );
-        });
+        predicates.add( root -> {
+            Predicate disjunction = builder.or(
+                builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ) , access ) ,
+                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ),"null" ),
+                userPredicate.apply( root )
+            );
 
-        Function<Root<T>, Subquery<Integer>> userPredicate = (root -> {
-            Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
-            Root<T> udc = userSubQuery.from( getClazz() );
-            Join<T, UserAccess> ua = udc.join( "userAccesses" );
-            userSubQuery.select( ua.get( "id" ) );
+            Predicate ugPredicateWithRoot = userGroupPredicate.apply( root );
 
-            return userSubQuery.where(
-                builder.and(
-                    builder.equal( root.get( "id" ), udc.get( "id" ) ),
-                    builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
-                    builder.like( ua.get( "access" ), access ) ) );
-        });
+            if ( ugPredicateWithRoot != null )
+            {
+                return builder.or( disjunction, ugPredicateWithRoot );
+            }
 
-        predicates.add( root -> builder.or(
-            builder.like( root.get( "publicAccess" ), access ),
-            builder.isNull( root.get( "publicAccess" ) ),
-            builder.exists( userGroupPredicate.apply( root ) ),
-            builder.exists( userPredicate.apply( root ) ) ) );
+            return disjunction;
+        } );
 
         return predicates;
     }
@@ -1386,22 +1360,5 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         return null;
-    }
-
-    /**
-     * Get List of UserGroup Uid by userId
-     * @param userId
-     * @return
-     */
-    private List<String> getUserGroupIdsByUserId( long userId )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<String> query = builder.createQuery( String.class );
-        Root<UserGroup> root = query.from( UserGroup.class );
-        query.select( root.get( "uid" ) );
-        query.where( builder.equal( root.join( "members", JoinType.INNER ).get( "id" ), userId ) );
-
-        return sessionFactory.getCurrentSession().createQuery( query )
-            .setHint( QueryHints.HINT_CACHE_MODE, true ).getResultList();
     }
 }

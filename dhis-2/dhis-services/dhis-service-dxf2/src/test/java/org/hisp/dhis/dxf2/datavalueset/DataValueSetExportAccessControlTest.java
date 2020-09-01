@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -68,7 +69,7 @@ import static org.junit.Assert.*;
  * @author Lars Helge Overland
  */
 public class DataValueSetExportAccessControlTest
-    extends DhisTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private DataValueSetService dataValueSetService;
