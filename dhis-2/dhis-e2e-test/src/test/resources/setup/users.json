@@ -5,6 +5,7 @@
       "id": "PQD6wXJ2r5j",
       "created": "2019-04-23T09:35:15.027",
       "name": "TA Superuser",
+      "email": "tasuperuser@dhis2.org",
       "displayName": "TA Superuser",
       "externalAccess": false,
       "surname": "Superuser",
@@ -119,6 +120,7 @@
     {
       "lastUpdated": "2019-04-23T09:35:15.027",
       "id": "PQD6wXJ2r5k",
+      "email": "taadmin@dhis2.org",
       "created": "2019-04-23T09:35:15.027",
       "name": "TA Admin",
       "displayName": "TA admin",
