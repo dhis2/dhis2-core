@@ -262,6 +262,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
         
+        if ( ids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+        
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
             .getTrackedEntityAttributesByTrackedEntityTypes();
 

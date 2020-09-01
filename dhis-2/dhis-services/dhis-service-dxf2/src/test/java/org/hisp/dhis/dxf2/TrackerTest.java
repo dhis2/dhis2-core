@@ -19,13 +19,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.IntegrationTestConfig;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -49,6 +45,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -61,6 +58,8 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
@@ -126,14 +125,14 @@ public abstract class TrackerTest extends IntegrationTestBase
         organisationUnitB.setUid( CodeGenerator.generateUid() );
         organisationUnitB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
 
-        categoryComboA = createCategoryCombo( 'A' );
+        categoryComboA = manager.getByName( CategoryCombo.class, "default" );
         categoryComboA.setUid( CodeGenerator.generateUid() );
-        categoryComboA.setName( RandomStringUtils.randomAlphanumeric( 10 ) );
+        manager.update( categoryComboA );
 
         ProgramStage programStageA2;
 
-        programStageA1 = createProgramStage( programA );
-        programStageA2 = createProgramStage( programA );
+        programStageA1 = createProgramStage( programA, true );
+        programStageA2 = createProgramStage( programA, true );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
@@ -146,7 +145,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo( 'A' );
         defaultCategoryOptionCombo.setCategoryCombo( categoryComboA );
         defaultCategoryOptionCombo.setUid( DEF_COC_UID );
-        defaultCategoryOptionCombo.setName( "default" );
+        defaultCategoryOptionCombo.setName( "default1" );
 
         relationshipType = new RelationshipType();
         relationshipType.setFromToName( RandomStringUtils.randomAlphanumeric( 5 ) );
@@ -169,6 +168,7 @@ public abstract class TrackerTest extends IntegrationTestBase
             manager.save( programA );
 
             manager.save( relationshipType );
+            
         } );
 
         super.userService = this.userService;
@@ -321,8 +321,12 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setStatus( EventStatus.COMPLETED );
                 event1.setTrackedEntityInstance( trackedEntityInstance.getUid() );
                 event1.setOrgUnit( organisationUnitA.getUid() );
-                event1.setAttributeOptionCombo( categoryComboA.getUid() );
-
+                event1.setAttributeOptionCombo( DEF_COC_UID );
+                event1.setCreatedAtClient( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
+                event1.setLastUpdatedAtClient( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
+                event1.setCompletedDate( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
+                event1.setCompletedBy( "[Unknown]" );
+                
                 eventList.add( event1 );
             }
 
@@ -360,11 +364,17 @@ public abstract class TrackerTest extends IntegrationTestBase
         currentUserService = new MockCurrentUserService( user );
     }
 
-    protected ProgramStage createProgramStage( Program program )
+    protected ProgramStage createProgramStage( Program program, boolean publicAccess )
     {
         ProgramStage programStage = createProgramStage( '1', program );
         programStage.setUid( CodeGenerator.generateUid() );
         programStage.setRepeatable( true );
+        
+        if ( publicAccess )
+        {
+            programStage.setPublicAccess( AccessStringHelper.FULL );
+        }
+        
         doInTransaction( () -> manager.save( programStage ) );
 
         return programStage;

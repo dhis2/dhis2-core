@@ -31,7 +31,7 @@ package org.hisp.dhis.webapi.security.config;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisOAuth2AuthorizationRequestResolver;
-import org.hisp.dhis.security.oidc.OidcDisabledCondition;
+import org.hisp.dhis.security.oidc.OidcEnabledCondition;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
@@ -187,7 +187,7 @@ public class DhisWebApiWebSecurityConfig
      */
     @Configuration
     @Order( 1010 )
-    @Conditional( value = OidcDisabledCondition.class )
+    @Conditional( value = OidcEnabledCondition.class )
     public class OidcSecurityConfig extends WebSecurityConfigurerAdapter
     {
         @Autowired

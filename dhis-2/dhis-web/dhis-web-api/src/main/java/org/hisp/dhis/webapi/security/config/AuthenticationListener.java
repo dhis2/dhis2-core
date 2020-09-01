@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.security.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,6 +31,7 @@ package org.hisp.dhis.security;
 import java.util.Objects;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
