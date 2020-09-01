@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
@@ -271,7 +272,20 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
             {
-                columns.add( quote( queryItem.getItemName() + OU_NAME_COL_SUFFIX ) );
+                if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+                {
+                    String colName = quote( queryItem.getItemId() + OU_GEOMETRY_COL_SUFFIX );
+
+                    String coordSql = "'[' || round(ST_X(ST_Centroid(" + colName
+                        + "))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(" + colName + "))::numeric, 6) || ']' as "
+                        + colName;
+
+                    columns.add( coordSql );
+                }
+                else
+                {
+                    columns.add( quote( queryItem.getItemName() + OU_NAME_COL_SUFFIX ) );
+                }
             }
             else
             {
