@@ -31,6 +31,7 @@ package org.hisp.dhis.security.config;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.DefaultOrganisationUnitSelectionManager;
 import org.hisp.dhis.schema.SchemaService;
@@ -59,7 +60,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.authentication.AuthenticationManager;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,6 +68,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 @Order( 3200 )
 public class AuthoritiesProviderConfig
 {
+
     @Autowired
     private SecurityService securityService;
 
@@ -79,6 +80,21 @@ public class AuthoritiesProviderConfig
 
     @Autowired
     private AppManager appManager;
+
+    @Autowired
+    @Qualifier( "org.hisp.dhis.user.CurrentUserService" )
+    public CurrentUserService currentUserService;
+
+    @Autowired
+    @Qualifier( "accessDecisionManager" )
+    public AccessDecisionManager accessDecisionManager;
+
+    @Autowired
+    public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
+    @Autowired
+    @Qualifier( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
+    public OrganisationUnitService organisationUnitService;
 
     @Bean( "org.hisp.dhis.security.authority.SystemAuthoritiesProvider" )
     public SystemAuthoritiesProvider systemAuthoritiesProvider()
@@ -142,17 +158,6 @@ public class AuthoritiesProviderConfig
         return provider;
     }
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.user.CurrentUserService" )
-    public CurrentUserService currentUserService;
-
-    @Autowired
-    @Qualifier( "accessDecisionManager" )
-    public AccessDecisionManager accessDecisionManager;
-
-    @Autowired
-    public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
     @Bean( "org.hisp.dhis.security.intercept.XWorkSecurityInterceptor" )
     public XWorkSecurityInterceptor xWorkSecurityInterceptor()
         throws Exception
@@ -181,7 +186,9 @@ public class AuthoritiesProviderConfig
     {
         RestrictOrganisationUnitsAction unitsAction = new RestrictOrganisationUnitsAction();
         unitsAction.setCurrentUserService( currentUserService );
-        unitsAction.setSelectionManager( new DefaultOrganisationUnitSelectionManager() );
+        DefaultOrganisationUnitSelectionManager selectionManager = new DefaultOrganisationUnitSelectionManager();
+        selectionManager.setOrganisationUnitService( organisationUnitService );
+        unitsAction.setSelectionManager( selectionManager );
         unitsAction.setSelectionTreeManager( new DefaultSelectionTreeManager() );
 
         LoginInterceptor interceptor = new LoginInterceptor();
