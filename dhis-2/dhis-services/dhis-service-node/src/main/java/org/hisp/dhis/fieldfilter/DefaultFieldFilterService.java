@@ -432,7 +432,18 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                     for ( Object collectionObject : (Collection<?>) Objects.requireNonNull( returnValue ) )
                     {
-                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
+                        Node node;
+
+                        if ( property.hasPropertyTransformer() )
+                        {
+                            // if it has a transformer, re-get the schema (the item klass has probably changed)
+                            Schema sch = schemaService.getDynamicSchema( collectionObject.getClass() );
+                            node = buildNode( fieldValue, sch.getKlass(), collectionObject, user, property.getName(), defaults );
+                        }
+                        else
+                        {
+                            node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
+                        }
 
                         if ( !Objects.requireNonNull( node ).getChildren().isEmpty() )
                         {
