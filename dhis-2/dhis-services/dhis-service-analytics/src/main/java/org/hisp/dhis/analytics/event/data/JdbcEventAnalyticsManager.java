@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
@@ -45,6 +46,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +66,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -492,7 +495,9 @@ public class JdbcEventAnalyticsManager
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( params.getCoordinateField() ) + " is not null ";
+            sql += sqlHelper.whereAnd() + " "
+                + quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) )
+                + " is not null ";
         }
 
         if ( params.isCompletedOnly() )
@@ -606,5 +611,21 @@ public class JdbcEventAnalyticsManager
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.EVENT;
+    }
+
+    /**
+     * If the coordinateField points to an Item of type ORG UNIT, add the "_geom" suffix to the field name.
+     */
+    private String resolveCoordinateFieldColumnName( String coordinateField, EventQueryParams params )
+    {
+        for ( QueryItem queryItem : params.getItems() )
+        {
+            if ( queryItem.getItem().getUid().equals( coordinateField )
+                && queryItem.getValueType() == ValueType.ORGANISATION_UNIT )
+            {
+                return coordinateField + OU_GEOMETRY_COL_SUFFIX;
+            }
+        }
+        return coordinateField;
     }
 }

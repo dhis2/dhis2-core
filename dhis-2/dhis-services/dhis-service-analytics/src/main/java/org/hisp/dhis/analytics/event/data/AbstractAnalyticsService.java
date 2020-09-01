@@ -38,6 +38,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
+import org.opengis.geometry.primitive.Point;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
@@ -102,7 +104,21 @@ public abstract class AbstractAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            if ( item.getValueType() == ValueType.ORGANISATION_UNIT
+                && params.getCoordinateField().equals( item.getItem().getUid() ) )
+            {   // Special case: if the request contains an item of Org Unit value type and the item uid
+                // is linked to coordinates (coordinateField), then create an Header of ValueType
+                // COORDINATE and type "Point"
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
+                    Point.class.getName(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
+            else
+            {
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                    item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
         }
 
         // ---------------------------------------------------------------------
