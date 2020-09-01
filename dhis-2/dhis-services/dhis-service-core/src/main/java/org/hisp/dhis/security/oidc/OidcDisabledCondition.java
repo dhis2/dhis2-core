@@ -41,6 +41,10 @@ public class OidcDisabledCondition extends PropertiesAwareConfigurationCondition
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
+        if ( isTestRun( context ) )
+        {
+            return true;
+        }
         String isEnabled = getConfiguration().getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED );
         return isEnabled.equalsIgnoreCase( "on" );
     }
