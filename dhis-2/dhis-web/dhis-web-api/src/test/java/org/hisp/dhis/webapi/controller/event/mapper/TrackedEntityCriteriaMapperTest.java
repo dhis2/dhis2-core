@@ -46,7 +46,6 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @WebAppConfiguration
-@Ignore
 public class TrackedEntityCriteriaMapperTest
     extends
     DhisSpringTest
