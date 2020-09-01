@@ -52,7 +52,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -77,7 +76,6 @@ import static org.junit.Assert.*;
  * @author Jim Grace
  */
 @Category( IntegrationTest.class )
-@Ignore
 public class DataApprovalStoreIntegrationTest
     extends IntegrationTestBase
 {
