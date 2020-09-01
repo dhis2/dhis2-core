@@ -1,0 +1,153 @@
+package org.hisp.dhis.analytics.event.data;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.Lists;
+import org.opengis.geometry.primitive.Point;
+
+/**
+ * This class only tests the "shared" code of AbstractAnalyticsService, which includes Grid header generation and
+ * Grid Metadata
+ *
+ * @author Luciano Fiandesio
+ */
+public class AbstractAnalyticsServiceTest
+{
+    private Period peA;
+
+    private OrganisationUnit ouA;
+
+    private DataElement deA;
+
+    private DataElement deB;
+
+    private DataElement deC;
+
+    private DummyAnalyticsService dummyAnalyticsService;
+
+    @Mock
+    private AnalyticsSecurityManager securityManager;
+
+    @Mock
+    private EventQueryValidator eventQueryValidator;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Before
+    public void setUp()
+    {
+        dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator );
+
+        peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
+        ouA = createOrganisationUnit( 'A' );
+        deA = createDataElement( 'A', ValueType.TEXT, AggregationType.NONE );
+
+        deB = createDataElement( 'B', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
+        deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.COUNT );
+
+    }
+
+    @Test
+    public void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
+    {
+        // Given
+        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA ) );
+
+        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( ouA ) );
+
+        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
+        QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), null );
+        QueryItem qiC = new QueryItem( deC, null, deC.getValueType(), deC.getAggregationType(), null );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension( periods )
+            .addDimension( orgUnits )
+            .addItem( qiA ).addItem( qiB ).addItem( qiC )
+            .withCoordinateField( deB.getUid() )
+            .withSkipData( true )
+            .withSkipMeta( false )
+            .withApiVersion( DhisApiVersion.V33 )
+            .build();
+
+        when( securityManager.withUserConstraints( any( EventQueryParams.class ) ) ).thenReturn( params );
+
+        // When
+        Grid grid = dummyAnalyticsService.getGrid( params );
+
+        // Then
+        final List<GridHeader> headers = grid.getHeaders();
+        assertThat( headers, is( notNullValue() ) );
+        assertThat( headers, hasSize( 4 ) );
+
+        assertHeader( headers.get( 0 ), "ou", "ouA", ValueType.TEXT, String.class.getName() );
+        assertHeader( headers.get( 1 ), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName() );
+        assertHeader( headers.get( 2 ), deB.getUid(), deB.getName(), ValueType.COORDINATE, Point.class.getName() );
+        assertHeader( headers.get( 3 ), deC.getUid(), deC.getName(), ValueType.NUMBER, Double.class.getName() );
+    }
+
+    private void assertHeader( GridHeader expected, String name, String column, ValueType valueType, String type )
+    {
+        assertThat( "Header name does not match", expected.getName(), is( name ) );
+        assertThat( "Header Column name does not match", expected.getColumn(), is( column ) );
+        assertThat( "Header value type does not match", expected.getValueType(), is( valueType ) );
+        assertThat( "Header type does not match", expected.getType(), is( type ) );
+    }
+
+}
+
+class DummyAnalyticsService extends AbstractAnalyticsService
+{
+
+    public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
+    {
+        super( securityManager, queryValidator );
+    }
+
+    @Override
+    protected Grid createGridWithHeaders( EventQueryParams params )
+    {
+        return new ListGrid();
+    }
+
+    @Override
+    protected long addEventData( Grid grid, EventQueryParams params )
+    {
+        return 0;
+    }
+}
