@@ -66,7 +66,6 @@ public class AppHubController
     @Autowired
     private I18nManager i18nManager;
 
-
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<WebApp> listAppHub( HttpServletResponse response )
         throws IOException
