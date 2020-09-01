@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
@@ -41,8 +42,8 @@ import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.security.vote.SimpleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
+import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -114,6 +115,8 @@ public class DhisWebCommonsWebSecurityConfig
     @Order( 2200 )
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     {
+        @Autowired
+        private I18nManager i18nManager;
 
         @Autowired
         private DhisConfigurationProvider configurationProvider;
@@ -149,6 +152,7 @@ public class DhisWebCommonsWebSecurityConfig
 
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
+                .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
                 .antMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
                 .antMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
@@ -178,24 +182,24 @@ public class DhisWebCommonsWebSecurityConfig
                 .and()
 
                 .formLogin()
-
-                .failureHandler( authenticationFailureHandler() )
-                .successHandler( authenticationSuccessHandler() )
-
-                .loginPage( "/dhis-web-commons/security/login.action" ).permitAll()
+                .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .failureUrl( "/dhis-web-commons/security/login.action" )
+                .failureHandler( authenticationFailureHandler() )
+                .successHandler( authenticationSuccessHandler() )
+                .permitAll()
                 .and()
 
                 .logout()
                 .logoutUrl( "/dhis-web-commons-security/logout.action" )
                 .logoutSuccessUrl( "/" )
                 .deleteCookies( "JSESSIONID" )
+                .permitAll()
                 .and()
 
                 .exceptionHandling()
                 .authenticationEntryPoint( entryPoint() )
+
                 .and()
 
                 .csrf()
@@ -242,7 +246,7 @@ public class DhisWebCommonsWebSecurityConfig
         public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
         {
             CustomExceptionMappingAuthenticationFailureHandler handler =
-                new CustomExceptionMappingAuthenticationFailureHandler();
+                new CustomExceptionMappingAuthenticationFailureHandler( i18nManager );
 
             // Handles the special case when a user failed to login because it has expired...
             handler.setExceptionMappings(

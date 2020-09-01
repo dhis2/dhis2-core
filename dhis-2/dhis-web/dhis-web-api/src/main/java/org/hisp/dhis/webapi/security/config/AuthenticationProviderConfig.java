@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.security.config;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
@@ -124,5 +125,17 @@ public class AuthenticationProviderConfig
     public DefaultAuthenticationEventPublisher authenticationEventPublisher()
     {
         return new DefaultAuthenticationEventPublisher();
+    }
+
+    @Bean
+    public AuthenticationLoggerListener authenticationLoggerListener()
+    {
+        return new AuthenticationLoggerListener();
+    }
+
+    @Bean
+    public AuthenticationListener authenticationListener()
+    {
+        return new AuthenticationListener();
     }
 }
