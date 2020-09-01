@@ -140,13 +140,11 @@ public class UserPropertyTransformerTest
         assertNotNull( simple.getUsers() );
         assertEquals( 4, simple.getUsers().size() );
 
-        /*
         FieldFilterParams params = new FieldFilterParams(
             Collections.singletonList( simple ), Collections.singletonList( "id,name,user[id,code],users[id,code]" ) );
 
         ComplexNode node = fieldFilterService.toComplexNode( params );
         System.err.println( node );
-        */
     }
 
     @Test
