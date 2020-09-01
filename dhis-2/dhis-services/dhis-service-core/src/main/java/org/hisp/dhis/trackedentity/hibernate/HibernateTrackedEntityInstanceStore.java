@@ -753,7 +753,7 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' " + "and psi.status = '" + EventStatus.COMPLETED.name()
                     + "' and ";
             }
-            else if ( params.isEventStatus( EventStatus.VISITED ) )
+            else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
             {
                 sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' " + "and psi.status = '" + EventStatus.ACTIVE.name()
                     + "' and ";
@@ -814,7 +814,7 @@ public class HibernateTrackedEntityInstanceStore
                 hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' " + "and psi.status = '" + EventStatus.COMPLETED.name()
                     + "' and ";
             }
-            else if ( params.isEventStatus( EventStatus.VISITED ) )
+            else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
             {
                 hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' " + "and psi.status = '" + EventStatus.ACTIVE.name()
                     + "' and ";
