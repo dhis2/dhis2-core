@@ -55,13 +55,6 @@ public class PeriodServiceTest
     @Autowired
     private SessionFactory sessionFactory;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        populatePeriodType();
-    }
-
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
@@ -610,40 +603,6 @@ public class PeriodServiceTest
         finally
         {
             session.close();
-        }
-    }
-    /**
-     * This is to fix the issue of PeriodType hasn't been inserted to H2 database
-     * but only available in Hibernate session
-     * so periodService.reloadIsoPeriodInStatelessSession() will fail
-     */
-    private void populatePeriodType()
-    {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
-        StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
-        try
-        {
-            periodTypes.forEach( pt -> {
-                Object periodType = session.get( PeriodType.class, pt.getId() );
-                if ( periodType == null )
-                {
-                    if ( sessionFactory.getCurrentSession().contains( pt ) )
-                    {
-                        sessionFactory.getCurrentSession().delete( pt );
-                    }
-
-                    session.insert( pt );
-                }
-            } );
-        }
-        catch ( Exception exception )
-        {
-            exception.printStackTrace();
-        }
-        finally
-        {
-            DbmsUtils.closeStatelessSession( session );
         }
     }
 }
