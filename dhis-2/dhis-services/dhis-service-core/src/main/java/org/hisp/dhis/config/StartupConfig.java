@@ -28,6 +28,7 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -61,9 +62,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class StartupConfig
 {
     @Bean( "org.hisp.dhis.period.PeriodTypePopulator" )
-    public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore )
+    public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore, SessionFactory sessionFactory )
     {
-        PeriodTypePopulator populator = new PeriodTypePopulator( periodStore );
+        PeriodTypePopulator populator = new PeriodTypePopulator( periodStore, sessionFactory );
         populator.setName( "PeriodTypePopulator" );
         populator.setRunlevel( 2 );
         return populator;
