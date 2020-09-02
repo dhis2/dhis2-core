@@ -152,11 +152,7 @@ public class DhisWebCommonsWebSecurityConfig
 
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
-                .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/logo_front.png" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/login.js" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/account.action" ).permitAll()
+                .antMatchers( "/dhis-web-commons/security/*" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
                 .antMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
                 .antMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
