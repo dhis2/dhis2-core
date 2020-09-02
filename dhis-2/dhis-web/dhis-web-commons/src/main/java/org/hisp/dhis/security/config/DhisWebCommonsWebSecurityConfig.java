@@ -154,6 +154,7 @@ public class DhisWebCommonsWebSecurityConfig
 
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/logo_front.png" ).permitAll()
+                .antMatchers( "/dhis-web-commons/security/login.js" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/account.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
