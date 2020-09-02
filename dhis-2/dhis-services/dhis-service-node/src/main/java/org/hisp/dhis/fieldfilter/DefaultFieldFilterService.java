@@ -314,17 +314,12 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                 } );
 
-                if ( propertyTransformer.isPresent() )
+                if ( propertyTransformer.isPresent() && returnValue != null )
                 {
                     returnValue = propertyTransformer.get().transform( returnValue );
                     propertyClass = returnValue.getClass();
                     propertySchema = schemaService.getDynamicSchema( propertyClass );
                     updateFields( fieldValue, propertyTransformer.get().getKlass() );
-                }
-
-                if ( returnValue == null )
-                {
-                    continue;
                 }
             }
 
