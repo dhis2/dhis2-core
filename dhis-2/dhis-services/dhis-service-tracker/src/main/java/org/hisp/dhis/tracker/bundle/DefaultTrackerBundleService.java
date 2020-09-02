@@ -59,6 +59,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -101,9 +102,7 @@ public class DefaultTrackerBundleService
 
     private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
 
-    private final CurrentUserService currentUserService;
-
-    private final IdentifiableObjectManager identifiableObjectManager;
+    private final TrackerUserService trackerUserService;
 
     private final SessionFactory sessionFactory;
 
@@ -156,7 +155,7 @@ public class DefaultTrackerBundleService
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService,
-        CurrentUserService currentUserService,
+        TrackerUserService trackerUserService,
         IdentifiableObjectManager identifiableObjectManager,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
@@ -172,8 +171,7 @@ public class DefaultTrackerBundleService
         this.enrollmentConverter = enrollmentTrackerConverterService;
         this.eventConverter = eventTrackerConverterService;
         this.relationshipConverter = relationshipTrackerConverterService;
-        this.currentUserService = currentUserService;
-        this.identifiableObjectManager = identifiableObjectManager;
+        this.trackerUserService = trackerUserService;
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
@@ -189,7 +187,10 @@ public class DefaultTrackerBundleService
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
         TrackerPreheatParams preheatParams = params.toTrackerPreheatParams();
-        preheatParams.setUser( getUser( preheatParams.getUser(), preheatParams.getUserId() ) );
+        if ( preheatParams.getUser() == null )
+        {
+            preheatParams.setUser( trackerUserService.getUser( preheatParams.getUserId() ) );
+        }
 
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
@@ -615,26 +616,5 @@ public class DefaultTrackerBundleService
 
         fileResource.setAssigned( isAssign );
         session.persist( fileResource );
-    }
-
-    private User getUser( User user, String userUid )
-    {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current
-        // tx
-        {
-            return identifiableObjectManager.get( User.class, user.getUid() );
-        }
-
-        if ( !StringUtils.isEmpty( userUid ) )
-        {
-            user = identifiableObjectManager.get( User.class, userUid );
-        }
-
-        if ( user == null )
-        {
-            user = currentUserService.getCurrentUser();
-        }
-
-        return user;
     }
 }

@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.system.notification.Notifier;
@@ -47,10 +46,7 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.google.common.base.Enums;
 
@@ -67,9 +63,7 @@ public class DefaultTrackerImportService
 
     private final TrackerPreprocessService trackerPreprocessService;
 
-    private final CurrentUserService currentUserService;
-
-    private final IdentifiableObjectManager manager;
+    private final TrackerUserService trackerUserService;
 
     private final Notifier notifier;
 
@@ -77,16 +71,14 @@ public class DefaultTrackerImportService
         TrackerBundleService trackerBundleService,
         TrackerValidationService trackerValidationService,
         TrackerPreprocessService trackerPreprocessService,
-        CurrentUserService currentUserService,
-        IdentifiableObjectManager manager,
+        TrackerUserService trackerUserService,
         Notifier notifier )
     {
         this.trackerBundleService = trackerBundleService;
         this.trackerValidationService = trackerValidationService;
         this.trackerPreprocessService = trackerPreprocessService;
-        this.currentUserService = currentUserService;
-        this.manager = manager;
         this.notifier = notifier;
+        this.trackerUserService = trackerUserService;
     }
 
     @Override
@@ -94,7 +86,10 @@ public class DefaultTrackerImportService
     {
         Timer requestTimer = new SystemTimer().start();
 
-        params.setUser( getUser( params.getUser(), params.getUserId() ) );
+        if ( params.getUser() == null )
+        {
+            params.setUser( trackerUserService.getUser( params.getUserId() ) );
+        }
 
         TrackerImportReport importReport = new TrackerImportReport();
 
@@ -235,8 +230,10 @@ public class DefaultTrackerImportService
     public TrackerImportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         TrackerImportParams params = new TrackerImportParams();
-
-        params.setUser( getUser( params.getUser(), params.getUserId() ) );
+        if ( params.getUser() == null )
+        {
+            params.setUser( trackerUserService.getUser( params.getUserId() ) );
+        }
         params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, "validationMode",
             ValidationMode.FULL ) );
         params.setImportMode(
@@ -325,25 +322,5 @@ public class DefaultTrackerImportService
         }
 
         return null;
-    }
-
-    private User getUser( User user, String userUid )
-    {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current tx
-        {
-            return manager.get( User.class, user.getUid() );
-        }
-
-        if ( !StringUtils.isEmpty( userUid ) )
-        {
-            user = manager.get( User.class, userUid );
-        }
-
-        if ( user == null )
-        {
-            user = currentUserService.getCurrentUser();
-        }
-
-        return user;
     }
 }
