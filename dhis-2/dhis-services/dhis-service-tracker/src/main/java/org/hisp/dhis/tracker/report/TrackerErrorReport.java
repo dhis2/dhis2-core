@@ -28,9 +28,12 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -41,11 +44,10 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

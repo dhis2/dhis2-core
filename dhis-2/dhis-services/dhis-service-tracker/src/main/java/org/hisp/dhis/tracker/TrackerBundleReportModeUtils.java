@@ -71,7 +71,5 @@ public final class TrackerBundleReportModeUtils
                 }
             } );
         } );
-
-        return;
     }
 }

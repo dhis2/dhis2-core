@@ -121,14 +121,14 @@ public class TrackedEntityAttributeTest
     public void testTrackedAttributePreheater()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
@@ -145,14 +145,14 @@ public class TrackedEntityAttributeTest
     public void testTrackedAttributeValueBundleImporter()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
         trackerBundleService.commit( trackerBundle );

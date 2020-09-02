@@ -146,17 +146,17 @@ public class TeTaValidationTest
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -198,17 +198,17 @@ public class TeTaValidationTest
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -233,15 +233,15 @@ public class TeTaValidationTest
         fileResource = fileResourceService.getFileResource( fileResource.getUid() );
         assertTrue( fileResource.isAssigned() );
 
-        trackerBundle = renderService
+        trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -261,17 +261,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -304,17 +304,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_generated_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -348,17 +348,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_too_long_text_value.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -379,17 +379,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_encryption_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         build.setUser( user );
@@ -413,17 +413,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -432,15 +432,15 @@ public class TeTaValidationTest
 
         trackerBundleService.commit( trackerBundle );
 
-        trackerBundle = renderService
+        trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         user = userService.getUser( ADMIN_USER_UID );
@@ -463,17 +463,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_format_value.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -494,17 +494,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_image_value.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );
@@ -529,17 +529,17 @@ public class TeTaValidationTest
         String metaDataFile = "tracker/validations/te-program_with_tea_fileresource_metadata.json";
         setupMetadata( metaDataFile );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_value_isnull.json" )
                     .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
 
         TrackerBundleParams bundle = TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         bundle.setUser( user );

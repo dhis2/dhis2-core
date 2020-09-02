@@ -129,14 +129,14 @@ public class EventDataValueTest
     public void testEventDataValue()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_with_data_values.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
         TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
         trackerBundleService.commit( trackerBundle );
@@ -155,15 +155,14 @@ public class EventDataValueTest
     public void testTrackedEntityProgramAttributeValueUpdate()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_with_data_values.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                TrackerBundleParams.class );
 
         TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
 
@@ -180,15 +179,14 @@ public class EventDataValueTest
 
         // update
 
-        trackerBundle = renderService
+        trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_with_updated_data_values.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                TrackerBundleParams.class );
 
         trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
         trackerBundleService.commit( trackerBundle );

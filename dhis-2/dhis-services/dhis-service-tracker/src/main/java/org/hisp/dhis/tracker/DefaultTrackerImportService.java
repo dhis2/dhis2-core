@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -43,6 +42,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -137,9 +137,9 @@ public class DefaultTrackerImportService
         }
 
         long ignored = importReport.getTrackerValidationReport().getErrorReports().stream()
-            .map( e -> e.getUid() )
+            .map( TrackerErrorReport::getUid )
             .distinct().count();
-        importReport.setIgnored( Long.valueOf( ignored ).intValue() );
+        importReport.setIgnored( (int) ignored );
         return importReport;
     }
 

@@ -28,11 +28,9 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-
 import java.util.List;
+
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

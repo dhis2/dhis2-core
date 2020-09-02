@@ -105,19 +105,18 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
     public void testRuleEngineSideEffectHandlerService()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/event_data_with_program_rule_side_effects.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                 TrackerBundleParams.class );
 
-        assertEquals( 3, trackerBundle.getEvents().size() );
-        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
+         assertEquals( 3, trackerBundleParams.getEvents().size() );
+         assertEquals( 1, trackerBundleParams.getTrackedEntities().size() );
 
         TrackerBundleParams params = TrackerBundleParams.builder()
-            .events( trackerBundle.getEvents() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .trackedEntities( trackerBundle.getTrackedEntities() ).build();
+            .events( trackerBundleParams.getEvents() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() ).build();
 
         User user = userService.getUser( ADMIN_USER_UID );
         params.setUser( user );

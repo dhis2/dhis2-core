@@ -28,26 +28,20 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 /**
  * @author Enrico Colasante
@@ -101,100 +95,96 @@ public class RelationshipTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship relationship )
+    public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship fromRelationship )
     {
-        List<org.hisp.dhis.relationship.Relationship> relationships = from( preheat,
-            Collections.singletonList( relationship ) );
-
-        if ( relationships.isEmpty() )
-        {
-            return null;
-        }
-
-        return relationships.get( 0 );
+        org.hisp.dhis.relationship.Relationship toRelationship = preheat
+            .getRelationship( TrackerIdScheme.UID, fromRelationship.getRelationship() );
+        return from( preheat, fromRelationship, toRelationship );
     }
 
     @Override
     public List<org.hisp.dhis.relationship.Relationship> from( TrackerPreheat preheat,
         List<Relationship> fromRelationships )
     {
-        List<org.hisp.dhis.relationship.Relationship> toRelationships = new ArrayList<>();
-
-        fromRelationships.forEach( fromRelationship -> {
-            org.hisp.dhis.relationship.Relationship toRelationship = preheat
-                .getRelationship( TrackerIdScheme.UID, fromRelationship.getRelationship() );
-            org.hisp.dhis.relationship.RelationshipType relationshipType = preheat
-                .get( TrackerIdScheme.UID, RelationshipType.class, fromRelationship.getRelationshipType() );
-            org.hisp.dhis.relationship.RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
-            org.hisp.dhis.relationship.RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
-
-            if ( toRelationship == null )
-            {
-                Date now = new Date();
-
-                toRelationship = new org.hisp.dhis.relationship.Relationship();
-                toRelationship.setUid( fromRelationship.getRelationship() );
-                toRelationship.setCreated( now );
-                toRelationship.setLastUpdated( now );
-            }
-            if ( !CodeGenerator.isValidUid( toRelationship.getUid() ) )
-            {
-                toRelationship.setUid( CodeGenerator.generateUid() );
-            }
-
-            toRelationship.setRelationshipType( relationshipType );
-
-            if ( fromRelationship.getRelationship() != null )
-            {
-                toRelationship.setUid( fromRelationship.getRelationship() );
-            }
-
-            // FROM
-            if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
-            {
-                fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                    fromRelationship.getFrom().getTrackedEntity() ) );
-            }
-            else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
-            {
-                fromItem.setProgramInstance(
-                    preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
-            }
-            else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
-            {
-                fromItem.setProgramStageInstance(
-                    preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
-            }
-
-            // TO
-            if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
-            {
-                toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                    fromRelationship.getTo().getTrackedEntity() ) );
-            }
-            else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
-            {
-                toItem.setProgramInstance(
-                    preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
-            }
-            else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
-            {
-                toItem.setProgramStageInstance(
-                    preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
-            }
-
-            toRelationship.setFrom( fromItem );
-            toRelationship.setTo( toItem );
-
-            toRelationships.add( toRelationship );
-        } );
-
-        return toRelationships;
+        return fromRelationships
+            .stream()
+            .map( r -> from( preheat, r ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
-    public org.hisp.dhis.relationship.Relationship fromForRuleEngine( TrackerPreheat preheat, Relationship object )
+    public org.hisp.dhis.relationship.Relationship fromForRuleEngine( TrackerPreheat preheat,
+        Relationship relationship )
     {
-        return null;
+        return from( preheat, relationship, null );
+    }
+
+    private org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship fromRelationship,
+        org.hisp.dhis.relationship.Relationship toRelationship )
+    {
+        org.hisp.dhis.relationship.RelationshipType relationshipType = preheat
+            .get( TrackerIdScheme.UID, RelationshipType.class, fromRelationship.getRelationshipType() );
+        org.hisp.dhis.relationship.RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
+        org.hisp.dhis.relationship.RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
+
+        if ( toRelationship == null )
+        {
+            Date now = new Date();
+
+            toRelationship = new org.hisp.dhis.relationship.Relationship();
+            toRelationship.setUid( fromRelationship.getRelationship() );
+            toRelationship.setCreated( now );
+            toRelationship.setLastUpdated( now );
+        }
+        if ( !CodeGenerator.isValidUid( toRelationship.getUid() ) )
+        {
+            toRelationship.setUid( CodeGenerator.generateUid() );
+        }
+
+        toRelationship.setRelationshipType( relationshipType );
+
+        if ( fromRelationship.getRelationship() != null )
+        {
+            toRelationship.setUid( fromRelationship.getRelationship() );
+        }
+
+        // FROM
+        if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        {
+            fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
+                fromRelationship.getFrom().getTrackedEntity() ) );
+        }
+        else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        {
+            fromItem.setProgramInstance(
+                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
+        }
+        else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        {
+            fromItem.setProgramStageInstance(
+                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
+        }
+
+        // TO
+        if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        {
+            toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
+                fromRelationship.getTo().getTrackedEntity() ) );
+        }
+        else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        {
+            toItem.setProgramInstance(
+                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
+        }
+        else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        {
+            toItem.setProgramStageInstance(
+                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
+        }
+
+        toRelationship.setFrom( fromItem );
+        toRelationship.setTo( toItem );
+
+        return toRelationship;
     }
 }

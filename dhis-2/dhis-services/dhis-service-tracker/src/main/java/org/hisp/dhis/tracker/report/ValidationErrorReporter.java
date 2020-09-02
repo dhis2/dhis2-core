@@ -28,16 +28,17 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Data;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
