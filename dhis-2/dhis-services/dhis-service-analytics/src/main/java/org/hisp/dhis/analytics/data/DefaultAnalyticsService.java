@@ -66,7 +66,7 @@ import org.springframework.stereotype.Service;
  */
 @Service( "org.hisp.dhis.analytics.AnalyticsService" )
 public class DefaultAnalyticsService
-        implements AnalyticsService
+    implements AnalyticsService
 {
     private final AnalyticsSecurityManager securityManager;
 
@@ -84,7 +84,7 @@ public class DefaultAnalyticsService
 
     @Autowired
     public DefaultAnalyticsService( AnalyticsSecurityManager securityManager, QueryValidator queryValidator,
-                                    DataQueryService dataQueryService, AnalyticsCache analyticsCache, DataAggregator dataAggregator )
+        DataQueryService dataQueryService, AnalyticsCache analyticsCache, DataAggregator dataAggregator )
     {
         checkNotNull( securityManager );
         checkNotNull( queryValidator );
@@ -111,7 +111,7 @@ public class DefaultAnalyticsService
             final DataQueryParams immutableParams = newBuilder( params ).build();
 
             return analyticsCache.getOrFetch( params,
-                    p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
+                p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
         }
 
         return dataAggregator.getAggregatedDataValueGrid( params );
@@ -121,8 +121,8 @@ public class DefaultAnalyticsService
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
         return isTableLayout( columns, rows ) ?
-                getAggregatedDataValuesTableLayout( params, columns, rows ) :
-                getAggregatedDataValues( params );
+            getAggregatedDataValuesTableLayout( params, columns, rows ) :
+            getAggregatedDataValues( params );
     }
 
     @Override
@@ -139,11 +139,11 @@ public class DefaultAnalyticsService
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
         DataQueryParams query = newBuilder( params )
-                .withSkipMeta( false )
-                .withSkipData( false )
-                .withIncludeNumDen( false )
-                .withOutputFormat( DATA_VALUE_SET )
-                .build();
+            .withSkipMeta( false )
+            .withSkipData( false )
+            .withIncludeNumDen( false )
+            .withOutputFormat( DATA_VALUE_SET )
+            .build();
 
         Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
 
@@ -162,7 +162,7 @@ public class DefaultAnalyticsService
     public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
     {
         Grid grid = getAggregatedDataValues( newBuilder( params )
-                .withIncludeNumDen( false ).build() );
+            .withIncludeNumDen( false ).build() );
 
         return AnalyticsUtils.getAggregatedDataValueMapping( grid );
     }
@@ -250,9 +250,9 @@ public class DefaultAnalyticsService
         }
 
         visualization
-                .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
-                .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
-                .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
+            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
+            .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
+            .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
 
         addListIfEmpty( visualization.getGridColumns() );
         addListIfEmpty( visualization.getGridRows() );
@@ -264,6 +264,6 @@ public class DefaultAnalyticsService
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
 
         return visualization.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap,
-                params.getDisplayProperty(), false );
+            params.getDisplayProperty(), false );
     }
 }
