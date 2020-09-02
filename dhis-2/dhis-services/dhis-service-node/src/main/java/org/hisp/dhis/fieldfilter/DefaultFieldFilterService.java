@@ -287,6 +287,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             AbstractNode child = null;
             Property property = schema.getProperty( fieldKey );
+            FieldMap fieldValue = fieldMap.get( fieldKey );
 
             if ( property == null || !property.isReadable() )
             {
@@ -316,15 +317,15 @@ public class DefaultFieldFilterService implements FieldFilterService
                 if ( propertyTransformer.isPresent() )
                 {
                     returnValue = propertyTransformer.get().transform( returnValue );
+                    propertyClass = returnValue.getClass();
+                    propertySchema = schemaService.getDynamicSchema( propertyClass );
+                    updateFields( fieldValue, propertyTransformer.get().getKlass() );
                 }
 
                 if ( returnValue == null )
                 {
                     continue;
                 }
-
-                propertyClass = returnValue.getClass();
-                propertySchema = schemaService.getDynamicSchema( propertyClass );
             }
 
             if ( returnValue != null
@@ -337,8 +338,6 @@ public class DefaultFieldFilterService implements FieldFilterService
                 propertyClass = returnValue.getClass();
                 propertySchema = schemaService.getDynamicSchema( propertyClass );
             }
-
-            FieldMap fieldValue = fieldMap.get( fieldKey );
 
             if ( returnValue == null && property.isCollection() )
             {

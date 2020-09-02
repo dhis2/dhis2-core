@@ -58,6 +58,11 @@ import java.util.UUID;
 public class UserPropertyTransformer
     extends AbstractPropertyTransformer<User>
 {
+    public UserPropertyTransformer()
+    {
+        super( UserDto.class );
+    }
+
     @Override
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Object transform( Object o )
