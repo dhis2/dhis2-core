@@ -94,4 +94,21 @@ public class SqlUtils
         String[] array = (String[]) sqlArray.getArray();
         return Sets.newHashSet( array );
     }
+
+    /**
+     * Cast the given value to numeric (CAST(X) AS NUMERIC)
+     * @param value a value
+     * @return a string with the numeric cast statement
+     */
+    public static String castToNumber( String value )
+    {
+        return "CAST (" + value + ") AS NUMERIC";
+    }
+
+    public static String lower( String value )
+    {
+        return "lower(" + value + ")";
+    }
+
+
 }

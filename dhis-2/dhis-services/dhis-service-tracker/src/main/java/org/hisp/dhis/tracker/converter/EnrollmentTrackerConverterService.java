@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,11 +59,14 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
 
-    public EnrollmentTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    private final NotesConverterService notesConverterService;
+
+    public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )
     {
-        this.trackerPreheatService = trackerPreheatService;
+        checkNotNull( notesConverterService );
+
+        this.notesConverterService = notesConverterService;
     }
 
     @Override
@@ -90,19 +95,6 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public ProgramInstance from( Enrollment enrollment )
-    {
-        List<ProgramInstance> programInstances = from( Collections.singletonList( enrollment ) );
-
-        if ( programInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programInstances.get( 0 );
-    }
-
-    @Override
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
         List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
@@ -114,14 +106,8 @@ public class EnrollmentTrackerConverterService
 
         return programInstances.get( 0 );
     }
-
     @Override
-    public List<ProgramInstance> from( List<Enrollment> enrollments )
-    {
-        return from( preheat( enrollments ), enrollments );
-    }
-
-    private List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
+    public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
 
@@ -138,8 +124,6 @@ public class EnrollmentTrackerConverterService
 
             TrackedEntityInstance trackedEntityInstance = preheat
                 .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
-
-            checkNotNull( trackedEntityInstance, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
 
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
 
@@ -175,18 +159,14 @@ public class EnrollmentTrackerConverterService
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
 
+            if ( isNotEmpty( enrollment.getNotes() ) )
+            {
+                programInstance.getComments().addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
+            }
+
             programInstances.add( programInstance );
         } );
 
         return programInstances;
-    }
-
-    private TrackerPreheat preheat( List<Enrollment> enrollments )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .enrollments( enrollments )
-            .build();
-
-        return trackerPreheatService.preheat( params );
     }
 }

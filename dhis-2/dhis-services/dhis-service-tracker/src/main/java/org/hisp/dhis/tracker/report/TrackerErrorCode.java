@@ -84,6 +84,7 @@ public enum TrackerErrorCode
     E1032( "Event: `{0}`, do not exist." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
     E1086( "Event: `{0}`, has a program: `{1}`, that is a registration but its ProgramStage is not valid or missing." ),
+    E1087( "Event: `{0}`, could not find DataElement: `{1}`, linked to a data value." ),
     E1088( "Event: `{0}`, program: `{1}`, and ProgramStage: `{2}`, could not be found." ),
     E1089( "Event: `{0}`, ProgramStage Program and Event Program don't match." ),
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
@@ -96,9 +97,6 @@ public enum TrackerErrorCode
     E1103( "User: `{0}`, is lacking 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`." ),
     E1104( "User: `{0}`, has no data read access to program: `{1}`, TrackedEntityType: `{2}`." ),
     E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
-    E1118( "Note does not have a valid uuid: `{0}`." ),
-    E1119( "Note does not have a value: `{0}`." ),
-    E1121( "Note stored at date is invalid: `{0}`; Error: `{1}`." ),
     E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
     E1115( "Could not find CategoryOptionCombo: `{0}`." ),
     E1116( "Could not find CategoryOption: `{0}`." ),
@@ -111,8 +109,6 @@ public enum TrackerErrorCode
     E1082( "Event: `{0}`, is already deleted." ),
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
-    // TODO: Note persistence not impl. yet
-    E1120( "Note already exist with same uuid: `{0}`." ),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
@@ -136,6 +132,16 @@ public enum TrackerErrorCode
     E1046( "Event: `{0}`, needs to have at least one (event or schedule) date." ),
     // TODO See TODO on error usage
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
+
+    E1200( "Rule engine error: `{0}`" ),
+
+    E4000( "Relationship: `{0}` cannot link to itself" ),
+    E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
+    E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
+    E4003( "There are duplicated relationships. " ),
+    E4004( "Missing required property: 'relationshipType'." ),
+    E4005( "RelationShip: `{0}`, do not exist." ),
+
 
     E9999( "N/A" );
 

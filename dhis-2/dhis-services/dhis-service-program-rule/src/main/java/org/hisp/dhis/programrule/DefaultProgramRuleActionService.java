@@ -28,17 +28,16 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author markusbekken
  */
-@Transactional
 @Service( "org.hisp.dhis.programrule.ProgramRuleActionService" )
 public class DefaultProgramRuleActionService
     implements ProgramRuleActionService
@@ -61,6 +60,7 @@ public class DefaultProgramRuleActionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramRuleAction( ProgramRuleAction programRuleAction )
     {
         programRuleActionStore.save( programRuleAction );
@@ -69,54 +69,63 @@ public class DefaultProgramRuleActionService
     }
 
     @Override
+    @Transactional
     public void deleteProgramRuleAction( ProgramRuleAction programRuleAction )
     {
         programRuleActionStore.delete( programRuleAction );
     }
 
     @Override
+    @Transactional
     public void updateProgramRuleAction( ProgramRuleAction programRuleAction )
     {
         programRuleActionStore.update( programRuleAction );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramRuleAction getProgramRuleAction( long id )
     {
         return programRuleActionStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleAction> getAllProgramRuleAction()
     {
         return programRuleActionStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleAction> getProgramRuleAction( ProgramRule programRule )
     {
         return programRuleActionStore.get( programRule );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject()
     {
         return programRuleActionStore.getProgramActionsWithNoDataObject();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleAction> getProgramActionsWithNoLinkToNotification()
     {
         return programRuleActionStore.getProgramActionsWithNoNotification();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId()
     {
         return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDESECTION );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleAction> getProgramRuleActionsWithNoStageId()
     {
         return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDEPROGRAMSTAGE );

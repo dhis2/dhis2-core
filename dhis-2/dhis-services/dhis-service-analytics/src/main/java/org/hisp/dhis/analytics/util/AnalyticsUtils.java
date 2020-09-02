@@ -87,7 +87,6 @@ import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -909,7 +908,7 @@ public class AnalyticsUtils
 
     /**
      * Check if the given Grid's row contains a valid period iso string
-     * 
+     *
      * @param row the row as List of Object
      * @param periodIndex the index in which the period is located
      * @return true, if the rows contains a valid period iso string at the given

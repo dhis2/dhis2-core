@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,12 +52,6 @@ import java.util.stream.Collectors;
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
-
-    public TrackedEntityTrackerConverterService( TrackerPreheatService trackerPreheatService )
-    {
-        this.trackerPreheatService = trackerPreheatService;
-    }
 
     @Override
     public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
@@ -83,20 +78,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntity trackedEntityInstance )
-    {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from(
-            Collections.singletonList( trackedEntityInstance ) );
-
-        if ( trackedEntityInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return trackedEntityInstances.get( 0 );
-    }
-
-    @Override
     public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat,
         TrackedEntity trackedEntityInstance )
     {
@@ -112,12 +93,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntity> trackedEntityInstances )
-    {
-        return from( preheat( trackedEntityInstances ), trackedEntityInstances );
-    }
-
-    private List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
+    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
@@ -158,14 +134,5 @@ public class TrackedEntityTrackerConverterService
         } );
 
         return trackedEntities;
-    }
-
-    private TrackerPreheat preheat( List<TrackedEntity> trackedEntities )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .trackedEntities( trackedEntities )
-            .build();
-
-        return trackerPreheatService.preheat( params );
     }
 }

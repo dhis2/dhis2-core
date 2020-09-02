@@ -580,7 +580,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
         OutputStream outputStream = new ByteArrayOutputStream();
 
         nodeService.serialize( rootNode, "application/xml", outputStream );
-
         assertEquals( "1", xpathTest( "count(//d:programStageSection)", outputStream.toString() ) );
         assertEquals( "SEQUENTIAL", xpathTest( "//d:MOBILE/@type", outputStream.toString() ) );
         assertEquals( "LISTING", xpathTest( "//d:DESKTOP/@type", outputStream.toString() ) );

@@ -40,17 +40,22 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashSet;
 
 import static junit.framework.TestCase.assertTrue;
@@ -73,6 +78,9 @@ public class EventXmlImportTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private ProgramInstanceService programInstanceService;
 
     private OrganisationUnit organisationUnitA;
 
@@ -117,6 +125,14 @@ public class EventXmlImportTest
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programA.setUid( "A" );
         manager.save( programA );
+
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setProgram( programA );
+        programInstance.setAutoFields();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstanceService.addProgramInstance( programInstance );
 
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );

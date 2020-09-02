@@ -30,14 +30,17 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -47,10 +50,9 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckValidateAndGenerateUidHook
     extends AbstractTrackerDtoValidationHook
 {
-    public PreCheckValidateAndGenerateUidHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public PreCheckValidateAndGenerateUidHook( TrackedEntityAttributeService teAttrService )
     {
-        super( teAttrService, commentService );
+        super( teAttrService );
     }
 
     @Override
@@ -58,11 +60,8 @@ public class PreCheckValidateAndGenerateUidHook
     {
         String uid = trackedEntity.getTrackedEntity();
 
-        if ( uid != null && !CodeGenerator.isValidUid( uid ) )
+        if ( isUidInvalid( uid, reporter, trackedEntity, trackedEntity.getTrackedEntity() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1048 )
-                .addArg( trackedEntity )
-                .addArg( trackedEntity.getTrackedEntityType() ) );
             return;
         }
 
@@ -79,13 +78,10 @@ public class PreCheckValidateAndGenerateUidHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        String uid = enrollment.getEnrollment();
+        final String uid = enrollment.getEnrollment();
 
-        if ( uid != null && !CodeGenerator.isValidUid( uid ) )
+        if ( isUidInvalid( uid, reporter, enrollment, enrollment.getEnrollment() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1048 )
-                .addArg( enrollment )
-                .addArg( enrollment.getEnrollment() ) );
             return;
         }
 
@@ -97,18 +93,17 @@ public class PreCheckValidateAndGenerateUidHook
         {
             enrollment.setUid( uid );
         }
+
+        validateNotesUid( enrollment.getNotes(), reporter );
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        String uid = event.getEvent();
+        final String uid = event.getEvent();
 
-        if ( uid != null && !CodeGenerator.isValidUid( uid ) )
+        if ( isUidInvalid( uid, reporter, event, event.getEvent() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1048 )
-                .addArg( event )
-                .addArg( event.getEvent() ) );
             return;
         }
 
@@ -120,5 +115,48 @@ public class PreCheckValidateAndGenerateUidHook
         {
             event.setUid( uid );
         }
+
+        // Generate UID for notes
+        validateNotesUid( event.getNotes(), reporter );
+    }
+
+    private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter )
+    {
+        if ( isNotEmpty( notes ) )
+        {
+            for ( Note note : notes )
+            {
+                if ( isUidInvalid( note.getNote(), reporter, note, note.getNote() ) )
+                {
+                    return;
+                }
+                if ( note.getNote() == null )
+                {
+                    note.setNote( CodeGenerator.generateUid() );
+                    note.setNewNote( true );
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Check if the given UID has a valid format. A null UID is considered valid.
+     * 
+     * @param uid a UID. The UID string can be null.
+     * @param reporter a {@see ValidationErrorReporter} to which the error is added
+     * @param args list of arguments for the Error report
+     * @return true, if the UID is invalid
+     */
+    private boolean isUidInvalid( String uid, ValidationErrorReporter reporter, Object... args )
+    {
+        if ( uid != null && !CodeGenerator.isValidUid( uid ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1048 )
+                .addArg( args[0] )
+                .addArg( args[1] ) );
+            return true;
+        }
+        return false;
     }
 }

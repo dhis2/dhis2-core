@@ -1,28 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)">
-  <text id="text1512" style="word-spacing:0px;letter-spacing:0px" xml:space="preserve" font-size="7.0556px" line-height="1.25" y="270.5416565" x="44.97916794" font-family="robo" fill="#000000"><tspan id="tspan1510" y="276.9786682" x="44.97916794" stroke-width=".26458"/></text>
-  <path id="rect13351" d="m-0.013953 284.29v12.7h12.7v-12.7zm2.1306 2.1239h3.175v3.175h-3.1749zm1.0444 3.45h0.2646v0.79h-0.2646zm0 1.0583h0.2646v0.79375h-0.2646zm4.2333 0.79375h3.161v3.161h-3.1606zm-4.2333 0.26458h0.2646v0.79375h-0.2646zm0 1.0583h0.79375v0.26458h-0.79375zm1.0583 0h0.79375v0.26458h-0.79375zm1.0583 0h0.79375v0.26458h-0.79375zm1.0583 0h0.79375v0.26458h-0.7936z" fill-rule="evenodd" fill-opacity=".99608" fill="#333"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M-0.0527344 -0.0375977V47.9623H47.9473V-0.0375977H-0.0527344ZM7.99993 7.98975H19.9999V19.9897H8.00031L7.99993 7.98975ZM11.9473 21.029H12.9473V24.0149H11.9473V21.029ZM11.9473 25.029H12.9473V28.0289H11.9473V25.029ZM27.9471 28.0289H39.8942V39.9761H27.9487L27.9471 28.0289ZM11.9473 29.0289H12.9473V32.029H11.9473V29.0289ZM11.9473 33.0288H14.9473V34.0288H11.9473V33.0288ZM15.9471 33.0288H18.9471V34.0288H15.9471V33.0288ZM19.947 33.0288H22.947V34.0288H19.947V33.0288ZM23.9469 33.0288H26.9469V34.0288H23.9475L23.9469 33.0288Z" fill="#333333"/>
+</g>
+<defs>
+<clipPath id="clip0">
+<rect width="48" height="48" fill="white"/>
+</clipPath>
+</defs>
 </svg>
