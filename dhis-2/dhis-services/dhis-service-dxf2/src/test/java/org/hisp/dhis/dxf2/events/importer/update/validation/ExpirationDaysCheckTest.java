@@ -176,7 +176,7 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         // Prepare program stage instance
         Map<String, ProgramStageInstance> psiMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setExecutionDate( getTodayMinusDays( 32 ) ); // month length + two days
+        psi.setExecutionDate( getTodayMinusDays( 35 ) ); // month length + 5 days
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( psiMap );
