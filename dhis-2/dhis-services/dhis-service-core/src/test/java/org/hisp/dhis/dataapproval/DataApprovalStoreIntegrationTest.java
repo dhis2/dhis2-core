@@ -31,6 +31,7 @@ package org.hisp.dhis.dataapproval;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -52,6 +53,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -76,8 +78,9 @@ import static org.junit.Assert.*;
  * @author Jim Grace
  */
 @Category( IntegrationTest.class )
+@Ignore
 public class DataApprovalStoreIntegrationTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTestBase
 {
     private HibernateDataApprovalStore dataApprovalStore;
 
