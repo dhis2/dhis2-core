@@ -102,7 +102,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final AttributeService attributeService;
 
-    private Set<NodeTransformer> nodeTransformers;
+    private final Set<NodeTransformer> nodeTransformers;
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
@@ -110,7 +110,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    private static Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
+    private static final Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
         .forRegion( "propertyTransformerCache" )
         .expireAfterAccess( 12, TimeUnit.HOURS )
         .withInitialCapacity( 20 )
@@ -249,7 +249,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean shouldExclude( Object object, Defaults defaults )
     {
-        return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
+        return Defaults.EXCLUDE == defaults && object instanceof IdentifiableObject &&
             Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
@@ -694,7 +694,7 @@ public class DefaultFieldFilterService implements FieldFilterService
      * then we need to get full {@link Attribute} object ( from cache )
      * e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
      */
-    private Object handleJsonbObjectProperties( Class klass, Class propertyClass, Object returnObject )
+    private Object handleJsonbObjectProperties( Class<?> klass, Class<?> propertyClass, Object returnObject )
     {
         if ( AttributeValue.class.isAssignableFrom( klass ) && Attribute.class.isAssignableFrom( propertyClass ) )
         {
