@@ -100,13 +100,26 @@ public class SimplisticHttpGetGateWay
 
         ResponseEntity<String> responseEntity = null;
 
+        HttpEntity<String> requestEntity = null;
+
+        URI uri;
+
         try
         {
-            URI url = uriBuilder.build().encode().toUri();
+            if ( genericConfig.isSendUrlParameters() )
+            {
+                uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
 
-            HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
+                requestEntity = new HttpEntity<>( null, getHeaderParameters( genericConfig ) );
+            }
+            else
+            {
+                uri = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+                requestEntity = getRequestEntity( genericConfig, text, recipients );
+            }
+
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -177,6 +190,42 @@ public class SimplisticHttpGetGateWay
         }
 
         return v;
+    }
+
+    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    {
+        List<GenericGatewayParameter> parameters = config.getParameters();
+
+        Map<String, String> valueStore = new HashMap<>();
+
+        for ( GenericGatewayParameter parameter : parameters )
+        {
+            if ( !parameter.isHeader() )
+            {
+                valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
+            }
+        }
+
+        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
+
+        return valueStore;
+    }
+
+    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
+    {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : config.getParameters() )
+        {
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
+            }
+        }
+
+        return httpHeaders;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
