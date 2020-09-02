@@ -114,13 +114,13 @@ public class TrackedEntityProgramAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -142,13 +142,13 @@ public class TrackedEntityProgramAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -167,13 +167,13 @@ public class TrackedEntityProgramAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -193,13 +193,13 @@ public class TrackedEntityProgramAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -218,13 +218,13 @@ public class TrackedEntityProgramAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -241,13 +241,13 @@ public class TrackedEntityProgramAttributeTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_delete_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

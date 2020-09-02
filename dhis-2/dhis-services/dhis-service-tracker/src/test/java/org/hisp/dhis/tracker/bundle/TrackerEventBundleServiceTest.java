@@ -112,11 +112,11 @@ public class TrackerEventBundleServiceTest extends DhisSpringTest
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() )
             .trackedEntities( trackerBundle.getTrackedEntities() ).build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -131,19 +131,19 @@ public class TrackerEventBundleServiceTest extends DhisSpringTest
                 TrackerBundleParams.class )
             .toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService
+        TrackerBundle trackerBundle = trackerBundleService
             .create( TrackerBundleParams.builder().importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
                 .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() )
                 .trackedEntities( trackerBundle.getTrackedEntities() ).build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder().events( trackerBundle.getEvents() )
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder().events( trackerBundle.getEvents() )
             .enrollments( trackerBundle.getEnrollments() ).trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }

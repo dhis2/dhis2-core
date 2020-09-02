@@ -126,11 +126,11 @@ public class TrackerBundleServiceTest
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );

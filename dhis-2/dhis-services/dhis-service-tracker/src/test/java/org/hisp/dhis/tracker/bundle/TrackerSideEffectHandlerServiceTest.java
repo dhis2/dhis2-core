@@ -122,11 +122,11 @@ public class TrackerSideEffectHandlerServiceTest extends DhisSpringTest
         User user = userService.getUser( ADMIN_USER_UID );
         params.setUser( user );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( params );
+        TrackerBundle trackerBundle = trackerBundleService.create( params );
 
-        assertEquals( trackerBundle.getEvents().size(), trackerBundles.getEventRuleEffects().size() );
+        assertEquals( trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size() );
 
-        TrackerBundleReport report = trackerBundleService.commit( trackerBundles );
+        TrackerBundleReport report = trackerBundleService.commit( trackerBundle );
 
         assertEquals( report.getStatus(), TrackerStatus.OK );
     }

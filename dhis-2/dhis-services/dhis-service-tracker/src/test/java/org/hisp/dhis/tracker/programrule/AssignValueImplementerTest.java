@@ -175,11 +175,11 @@ public class AssignValueImplementerTest
     {
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( bundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
-        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
+        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
 
-        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundles );
+        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundle );
 
         Event event = updatedBundle.getEvents().stream().filter( e -> e.getEvent().equals( "D9PbzJY8bJO" ) )
             .findAny().get();
@@ -195,15 +195,15 @@ public class AssignValueImplementerTest
     {
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/enrollment.json" );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( bundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
-        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
+        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
 
-        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundles );
+        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundle );
 
         Enrollment enrollment = updatedBundle.getEnrollments().get( 0 );
         assertNotNull( enrollment );
-        Attribute attribute = trackerBundles.getTrackedEntities().get( 0 ).getAttributes().stream()
+        Attribute attribute = trackerBundle.getTrackedEntities().get( 0 ).getAttributes().stream()
             .filter( a -> a.getAttribute().equals( "sYn3tkL3XKa" ) ).findAny().get();
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.getValue() );
     }

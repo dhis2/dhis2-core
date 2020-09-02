@@ -133,13 +133,13 @@ public class EventDataValueTest
             .fromJson( new ClassPathResource( "tracker/event_with_data_values.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
@@ -160,14 +160,14 @@ public class EventDataValueTest
                 TrackerBundleParams.class )
             .toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
@@ -185,13 +185,13 @@ public class EventDataValueTest
                 TrackerBundleParams.class )
             .toTrackerBundle();
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> updatedEvents = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, updatedEvents.size() );

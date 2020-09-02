@@ -137,13 +137,13 @@ public class TrackedEntityProgramAttributeReservedValueTest
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_reserved_value_data.json" ).getInputStream(),
                 TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

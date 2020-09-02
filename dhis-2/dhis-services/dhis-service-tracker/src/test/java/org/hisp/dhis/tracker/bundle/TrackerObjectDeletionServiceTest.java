@@ -126,13 +126,13 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
         assertEquals( 2, trackerBundle.getEnrollments().size() );
         assertEquals( 2, trackerBundle.getEvents().size() );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .enrollments( trackerBundle.getEnrollments() )
             .events( trackerBundle.getEvents() )
             .build() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles );
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(), manager.getAll( ProgramStageInstance.class ).size() );
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getCreated(), manager.getAll( TrackedEntityInstance.class ).size() );
@@ -148,11 +148,11 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
 
         assertEquals( 9, trackerBundle.getTrackedEntities().size() );
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles );
+        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundle );
 
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.TRACKED_ENTITY ) );
@@ -173,11 +173,11 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
             .fromJson( new ClassPathResource( "tracker/enrollment_basic_data_for_deletion.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .enrollments( trackerBundle.getEnrollments() )
             .build() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles );
+        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundle );
 
         assertEquals( TrackerStatus.OK , bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.ENROLLMENT ) );
@@ -197,11 +197,11 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
             .fromJson( new ClassPathResource( "tracker/event_basic_data_for_deletion.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
             .events( trackerBundle.getEvents() )
             .build() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundles );
+        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundle );
 
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
         assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.EVENT ) );
