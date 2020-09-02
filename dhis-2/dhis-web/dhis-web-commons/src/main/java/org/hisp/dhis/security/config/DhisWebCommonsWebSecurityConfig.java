@@ -332,12 +332,5 @@ public class DhisWebCommonsWebSecurityConfig
             );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
-
-        @Bean( "formLoginAuthenticationManager" )
-        public AuthenticationManager formLoginAuthenticationManager()
-            throws Exception
-        {
-            return authenticationManager();
-        }
     }
 }
