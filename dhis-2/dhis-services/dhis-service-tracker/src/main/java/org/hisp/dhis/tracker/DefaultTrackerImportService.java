@@ -102,32 +102,50 @@ public class DefaultTrackerImportService
         {
             notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
         }
-
-        List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
-
-        trackerBundles = preProcessBundle( trackerBundles, importReport );
-
-        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
-
-        if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+        
+        try
         {
-            importReport.setStatus( TrackerStatus.ERROR );
-        }
-        else
-        {
-            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+
+            List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
+
+            trackerBundles = preProcessBundle( trackerBundles, importReport );
+
+            TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
+
+            if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
             {
-                deleteBundle( params, importReport, trackerBundles );
+                importReport.setStatus( TrackerStatus.ERROR );
             }
             else
             {
-                commitBundle( params, importReport, trackerBundles );
+                if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+                {
+                    deleteBundle( params, importReport, trackerBundles );
+                }
+                else
+                {
+                    commitBundle( params, importReport, trackerBundles );
+                }
             }
+
+            importReport.getTimings().setTotalImport( requestTimer.toString() );
+
+            TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
+
+        }
+        catch ( Exception e )
+        {
+
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+                importReport.setStatus( TrackerStatus.ERROR );
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
+            throw e;
+
         }
 
-        importReport.getTimings().setTotalImport( requestTimer.toString() );
-
-        TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
 
         if ( params.hasJobConfiguration() )
         {
