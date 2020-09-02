@@ -117,27 +117,17 @@
 				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.name )"/></td>
 			</tr>
 
-            <!-- new fields introduced in 2.35 -->
-            <tr>
-                <td>$i18n.getString( "useGet" ):</td>
+			<tr>
+				<td>$i18n.getString( "url_template" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="urlTemplate" id="urlTemplate" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.urlTemplate )"/></td>
+			</tr>
 
-                <td>
-                    <select id="useGet" style="width: 28em" >
-                        <option value="true" #if ( $!httpGateway.useGet == true ) selected='selected' #end>yes</option>
-                        <option value="false" #if ( $!httpGateway.useGet == false ) selected='selected' #end>no</option>
-                    </select>
-                </td>
-            </tr>
+            <!-- new fields introduced in 2.34 -->
 
             <tr>
-                <td>$i18n.getString( "sendUrlParameters" ):</td>
-
-                <td>
-                    <select id="sendUrlParameters" style="width: 28em" >
-                        <option value="true" #if ( $!httpGateway.sendUrlParameters == true ) selected='selected' #end>yes</option>
-                        <option value="false" #if ( $!httpGateway.sendUrlParameters == false ) selected='selected' #end>no</option>
-                    </select>
-                </td>
+                <td>$i18n.getString( "configurationTemplate" ):</td>
+                <td><input type="text" name="configurationTemplate" id="configurationTemplate" style="width: 28em"
+                           value="$!httpGateway.configurationTemplate"/></td>
             </tr>
 
             <tr>
@@ -151,16 +141,20 @@
                     </select>
                 </td>
             </tr>
+
             <tr>
-                <td>$i18n.getString( "configurationTemplate" ):</td>
-                <td><input type="text" name="configurationTemplate" id="configurationTemplate" style="width: 28em"
-                           value="$!httpGateway.configurationTemplate"/></td>
+                <td>$i18n.getString( "useGet" ):</td>
+                <td>
+                    <input name="useGet" class="useGet" id="useGet" type="checkbox" #if($httpGateway.useGet) checked #end />
+                </td>
             </tr>
-			
-			<tr>
-				<td>$i18n.getString( "url_template" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
-				<td><input type="text" name="urlTemplate" id="urlTemplate" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.urlTemplate )"/></td>
-			</tr>
+
+            <tr>
+                <td>$i18n.getString( "sendUrlParameters" ):</td>
+                <td>
+                    <input name="sendUrlParameters" class="sendUrlParameters" id="sendUrlParameters" type="checkbox" #if($httpGateway.sendUrlParameters) checked #end />
+                </td>
+            </tr>
 						
 			#set ($rowId = 0)
 			#foreach ($param in $httpGateway.parameters)

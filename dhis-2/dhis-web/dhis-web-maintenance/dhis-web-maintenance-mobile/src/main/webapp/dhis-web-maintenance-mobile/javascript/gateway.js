@@ -255,8 +255,8 @@ function saveSettings ()
     var data = {
         name: httpFields.find("#name")[0].value,
         type: "http",
-        useGet: httpFields.find("#useGet")[0].value,
-        sendUrlParameters: httpFields.find("#sendUrlParameters")[0].value,
+        useGet: httpFields.find("#useGet")[0].checked ? true: false,
+        sendUrlParameters: httpFields.find("#sendUrlParameters")[0].checked ? true: false,
         contentType: httpFields.find("#contentType")[0].value,
         configurationTemplate: httpFields.find("#configurationTemplate")[0].value,
         urlTemplate: httpFields.find("#urlTemplate")[0].value
