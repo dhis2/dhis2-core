@@ -43,18 +43,41 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -411,6 +434,14 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
+    /**
+     * This map holds CategoryOption's, for each Category, which the current user is
+     * not allowed to read. It's, currently, populated and used during Events
+     * queries. The key represent the UID of the Category associated. See
+     * {@link org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#extractNonAuthorizedCategoriesOptionsFrom(List)}
+     */
+    protected transient Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions = new HashMap<>();
+
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -500,6 +531,8 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
+        params.nonAuthorizedCategoryOptions = this.nonAuthorizedCategoryOptions;
+
         return params;
     }
 
@@ -2421,6 +2454,16 @@ public class DataQueryParams
         return userOrgUnitType;
     }
 
+    /**
+     * Returns the list of non-authorized category options related to the respective Program in this object.
+     * See {@link Builder#withNonAuthorizedCategoryOptions(List)}.
+     * @return the map of non authorized Category Options for each Category.
+     */
+    public Map<String, List<CategoryOption>> getNonAuthorizedCategoryOptions()
+    {
+        return nonAuthorizedCategoryOptions;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
@@ -2942,6 +2985,12 @@ public class DataQueryParams
         public Builder withUserOrgUnitType( UserOrgUnitType userOrgUnitType )
         {
             this.params.userOrgUnitType = userOrgUnitType;
+            return this;
+        }
+
+        public Builder withNonAuthorizedCategoryOptions( Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions )
+        {
+            this.params.nonAuthorizedCategoryOptions = nonAuthorizedCategoryOptions;
             return this;
         }
 

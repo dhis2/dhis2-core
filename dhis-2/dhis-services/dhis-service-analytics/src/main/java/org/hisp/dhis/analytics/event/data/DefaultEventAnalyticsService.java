@@ -195,7 +195,6 @@ public class DefaultEventAnalyticsService
         return getAggregatedEventData( params );
     }
 
-
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
@@ -514,7 +513,7 @@ public class DefaultEventAnalyticsService
 
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
-                    enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
+                    enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
                 }
                 else
                 {

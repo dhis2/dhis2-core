@@ -47,9 +47,9 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
@@ -288,6 +288,7 @@ public class EventQueryParams
         params.dataIdScheme = this.dataIdScheme;
 
         params.periodType = this.periodType;
+        params.nonAuthorizedCategoryOptions = this.nonAuthorizedCategoryOptions;
 
         return params;
     }

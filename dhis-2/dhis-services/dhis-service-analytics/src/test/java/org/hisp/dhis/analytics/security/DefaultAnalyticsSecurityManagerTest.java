@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -121,7 +122,8 @@ public class DefaultAnalyticsSecurityManagerTest
             .thenReturn( canDataReadFalse );
         when( aclService.canDataRead( currentUserService.getCurrentUser(), aCategoryOptionAllowed ) )
             .thenReturn( canDataReadTrue );
-        defaultAnalyticsSecurityManager.extractNonAuthorizedCategoriesOptionsFrom( categories );
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions = defaultAnalyticsSecurityManager
+            .extractNonAuthorizedCategoriesOptionsFrom( categories );
 
         // Then
         // Original categoryOptions list remains the same.
@@ -129,8 +131,8 @@ public class DefaultAnalyticsSecurityManagerTest
         assertThat( aCategoryB.getCategoryOptions(), hasItems( aCategoryOptionNotAllowed, aCategoryOptionAllowed ) );
 
         // And category options not allowed are in the list of non-authorized ones.
-        assertThat( aCategoryA.getNonAuthorizedCategoryOptions(), hasItems( aCategoryOptionNotAllowed ) );
-        assertThat( aCategoryB.getNonAuthorizedCategoryOptions(), hasItems( aCategoryOptionNotAllowed ) );
+        assertThat( nonAuthorizedCategoryOptions.get( aCategoryA.getUid() ), hasItems( aCategoryOptionNotAllowed ) );
+        assertThat( nonAuthorizedCategoryOptions.get( aCategoryB.getUid() ), hasItems( aCategoryOptionNotAllowed ) );
     }
 
     @Test
@@ -155,7 +157,8 @@ public class DefaultAnalyticsSecurityManagerTest
             .thenReturn( canDataReadTrue );
         when( aclService.canDataRead( currentUserService.getCurrentUser(), anotherCategoryOptionAllowed ) )
             .thenReturn( canDataReadTrue );
-        defaultAnalyticsSecurityManager.extractNonAuthorizedCategoriesOptionsFrom( categories );
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions = defaultAnalyticsSecurityManager
+            .extractNonAuthorizedCategoriesOptionsFrom( categories );
 
         // Then
         // Original categoryOptions list remains the same.
@@ -165,9 +168,9 @@ public class DefaultAnalyticsSecurityManagerTest
             hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) );
 
         // And category options allowed are not in the list of non-authorized ones.
-        assertThat( aCategoryA.getNonAuthorizedCategoryOptions(),
+        assertThat( nonAuthorizedCategoryOptions.get( aCategoryA.getUid() ),
             not( hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) ) );
-        assertThat( aCategoryB.getNonAuthorizedCategoryOptions(),
+        assertThat( nonAuthorizedCategoryOptions.get( aCategoryB.getUid() ),
             not( hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) ) );
     }
 

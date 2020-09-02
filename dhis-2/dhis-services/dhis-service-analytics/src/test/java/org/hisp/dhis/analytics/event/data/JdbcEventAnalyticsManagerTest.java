@@ -40,12 +40,14 @@ import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.Assert.assertThat;
 import static org.mockito.junit.MockitoJUnit.rule;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -62,7 +64,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class JdbcEventAnalyticsManagerTest
 {
@@ -98,13 +102,15 @@ public class JdbcEventAnalyticsManagerTest
         final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
 
         final List<CategoryOption> someCategoryOptions = newArrayList( aCategoryOptionA, aCategoryOptionB );
-        final List<CategoryOption> nonAuthorizedCategoryOptions = newArrayList( aCategoryOptionA );
+        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", someCategoryOptions );
 
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", someCategoryOptions,
-            nonAuthorizedCategoryOptions );
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions = ImmutableMap
+            .<String, List<CategoryOption>> builder()
+            .put( aCategoryA.getUid(), newArrayList( aCategoryOptionA ) )
+            .build();
 
         final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
-            newArrayList( aCategoryA ) );
+            newArrayList( aCategoryA ), nonAuthorizedCategoryOptions );
         final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A') ";
 
         // When
@@ -115,21 +121,25 @@ public class JdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testWhereClauseWhenThereAreNoDimensionsAndMultipleNonAuthorizedCategoryOptionsIsPresent()
+    public void testTheWhereClauseWhenThereAreNoDimensionsAndMultipleNonAuthorizedCategoryOptionsIsPresent()
     {
         // Given
         final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
         final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
         final List<CategoryOption> someCategoryOptions = newArrayList( aCategoryOptionA, aCategoryOptionB );
-        final List<CategoryOption> nonAuthorizedCategoryOptions = newArrayList( aCategoryOptionA, aCategoryOptionB );
 
         final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            someCategoryOptions, nonAuthorizedCategoryOptions );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", someCategoryOptions,
-            nonAuthorizedCategoryOptions );
+            someCategoryOptions );
+        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", someCategoryOptions );
+
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions = ImmutableMap
+            .<String, List<CategoryOption>> builder()
+            .put( aCategoryA.getUid(), newArrayList( aCategoryOptionA, aCategoryOptionB ) )
+            .put( aCategoryB.getUid(), newArrayList( aCategoryOptionA, aCategoryOptionB ) )
+            .build();
 
         final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
-            newArrayList( aCategoryA, aCategoryB ) );
+            newArrayList( aCategoryA, aCategoryB ), nonAuthorizedCategoryOptions );
         final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" not in ('uid-opt-A', 'uid-opt-B') ";
 
         // When
@@ -140,14 +150,16 @@ public class JdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testFilterOutNotAuthorizedCategoryOptionEventsWithNoCategories()
+    public void testFilterOutNotAuthorizedCategoryOptionEventsWithEmptyCategoryOptionsMap()
     {
         // Given
-        final List<Category> emptyCategoryList = newArrayList();
+        final Map<String, List<CategoryOption>> emptyCategoryOptionsMap = Maps.newHashMap();
+        final EventQueryParams theEventQueryParamsWithEmptyCategoryList = stubEventQueryParamsWithoutDimensions(
+            newArrayList(), emptyCategoryOptionsMap );
 
         // When
         final String actualSql = jdbcEventAnalyticsManager
-            .filterOutNotAuthorizedCategoryOptionEvents( emptyCategoryList );
+            .filterOutNotAuthorizedCategoryOptionEvents( theEventQueryParamsWithEmptyCategoryList );
 
         // Then
         assertThat( actualSql, isEmptyString() );
@@ -157,23 +169,23 @@ public class JdbcEventAnalyticsManagerTest
     public void testFilterOutNotAuthorizedCategoryOptionEventsWithNoCategoryOptions()
     {
         // Given
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", newArrayList(), newArrayList() );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", newArrayList(), newArrayList() );
+        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", newArrayList() );
+        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", newArrayList() );
+        final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
+            newArrayList( aCategoryA, aCategoryB ), new HashMap<>() );
 
         // When
         final String actualSql = jdbcEventAnalyticsManager
-            .filterOutNotAuthorizedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
+            .filterOutNotAuthorizedCategoryOptionEvents( theEventQueryParams );
 
         // Then
         assertThat( actualSql, isEmptyString() );
     }
 
-    private Category stubCategory( final String name, final String uid, final List<CategoryOption> categoryOptions,
-        final List<CategoryOption> nonAuthorizedCategoryOptions )
+    private Category stubCategory( final String name, final String uid, final List<CategoryOption> categoryOptions )
     {
         final Category category = new Category( name, ATTRIBUTE );
         category.setCategoryOptions( newArrayList( categoryOptions ) );
-        category.setNonAuthorizedCategoryOptions( nonAuthorizedCategoryOptions );
         category.setUid( uid );
         return category;
     }
@@ -185,7 +197,8 @@ public class JdbcEventAnalyticsManagerTest
         return categoryOption;
     }
 
-    private EventQueryParams stubEventQueryParamsWithoutDimensions( final List<Category> categories )
+    private EventQueryParams stubEventQueryParamsWithoutDimensions( final List<Category> categories,
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions )
     {
         final DimensionalObject doA = new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList() );
         final DimensionalObject doC = new BaseDimensionalObject( "Cz3WQznvrCM", PROGRAM_ATTRIBUTE, newArrayList() );
@@ -200,6 +213,7 @@ public class JdbcEventAnalyticsManagerTest
 
         final DataQueryParams dataQueryParams = newBuilder().addDimension( doA ).addDimension( doC )
             .withPeriods( Lists.newArrayList( period ) ).withPeriodType( period.getPeriodType().getIsoFormat() )
+            .withNonAuthorizedCategoryOptions( nonAuthorizedCategoryOptions )
             .build();
 
         final Builder eventQueryParamsBuilder = new Builder( dataQueryParams );

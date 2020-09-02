@@ -33,6 +33,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -116,15 +117,20 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Will extract, from "programCategories/Category", any CategoryOption which the
-     * current user is authorized to read. The extracted CategoryOption's will be
-     * added to the list of non-authorized CategoryOption's. See
-     * {@link Category#addNonAuthorizedCategoryOption(CategoryOption)}.
+     * Will extract, from the given "programCategories/Category" list, any
+     * CategoryOption which the current user is authorized to read. The extracted
+     * CategoryOption's will be added to the list of non-authorized
+     * CategoryOption's. See
+     * {@link DataQueryParams#getNonAuthorizedCategoryOptions()}.
      *
      * @param programCategories the list of program categories.
+     * @return the map of CategoryOption's not authorized for the current user, for
+     *         each Category.
      */
-    void extractNonAuthorizedCategoriesOptionsFrom( final List<Category> programCategories )
+    Map<String, List<CategoryOption>> extractNonAuthorizedCategoriesOptionsFrom( final List<Category> programCategories )
     {
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoriesOptionsPerCategory = new HashMap<>();
+
         if ( isNotEmpty( programCategories ) )
         {
             for ( final Category category : programCategories )
@@ -133,20 +139,24 @@ public class DefaultAnalyticsSecurityManager
 
                 if ( isNotEmpty( categoryOptions ) )
                 {
+                    final List<CategoryOption> nonAuthorizedCategoriesOptions = new ArrayList<>();
+
                     for ( final CategoryOption categoryOption : categoryOptions )
                     {
                         if ( !hasDataReadPermissionFor( categoryOption ) )
                         {
-                            // Adding to the transient collection that will hold the non-authorized program
-                            // category options.
-                            // This transient object is required to ensure that Hibernate will not reflect
-                            // any changes into DB down the execution flow.
-                            category.addNonAuthorizedCategoryOption( categoryOption );
+                            // Adding to the list that holds the non-authorized program category options.
+                            nonAuthorizedCategoriesOptions.add( categoryOption );
                         }
                     }
+
+                    // For each Category, add the list of non-authorized CategoryOption's.
+                    nonAuthorizedCategoriesOptionsPerCategory.put( category.getUid(), nonAuthorizedCategoriesOptions );
                 }
             }
         }
+        
+        return nonAuthorizedCategoriesOptionsPerCategory;
     }
 
     private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
@@ -190,7 +200,7 @@ public class DefaultAnalyticsSecurityManager
      * Checks whether the given user has data read access to all programs,
      * program stages, data sets and category options in the request.
      *
-     * @param params the {@link {@link DataQueryParams}.
+     * @param params the {@link DataQueryParams}.
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
@@ -208,7 +218,10 @@ public class DefaultAnalyticsSecurityManager
 
             if ( params.getProgram().hasCategoryCombo() )
             {
-                extractNonAuthorizedCategoriesOptionsFrom( params.getProgram().getCategoryCombo().getCategories() );
+                final Map<String, List<CategoryOption>> nonAuthorizedCategoriesOptions = extractNonAuthorizedCategoriesOptionsFrom(
+                    params.getProgram().getCategoryCombo().getCategories() );
+
+                params.getNonAuthorizedCategoryOptions().putAll( nonAuthorizedCategoriesOptions );
             }
         }
 
@@ -231,15 +244,13 @@ public class DefaultAnalyticsSecurityManager
     public void decideAccessEventQuery( EventQueryParams params )
     {
         decideAccess( params );
-        decideAccessEventAnalyticsAuthority( params );
+        decideAccessEventAnalyticsAuthority();
     }
 
     /**
      * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
-     *
-     * @param params the {@link {@link DataQueryParams}.
      */
-    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
+    private void decideAccessEventAnalyticsAuthority()
     {
         User user = currentUserService.getCurrentUser();
 
