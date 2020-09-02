@@ -189,7 +189,9 @@ public class AuthoritiesProviderConfig
         DefaultOrganisationUnitSelectionManager selectionManager = new DefaultOrganisationUnitSelectionManager();
         selectionManager.setOrganisationUnitService( organisationUnitService );
         unitsAction.setSelectionManager( selectionManager );
-        unitsAction.setSelectionTreeManager( new DefaultSelectionTreeManager() );
+        DefaultSelectionTreeManager selectionTreeManager = new DefaultSelectionTreeManager();
+        selectionTreeManager.setOrganisationUnitService( organisationUnitService );
+        unitsAction.setSelectionTreeManager( selectionTreeManager );
 
         LoginInterceptor interceptor = new LoginInterceptor();
         interceptor.setActions( ImmutableList.of( unitsAction ) );
