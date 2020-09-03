@@ -50,8 +50,13 @@ You account was successfully restored. Use your new password to
 </div>
 
 <div id="restoreErrorMessage" style="display:none">
-Sorry, your account could not be restored. The code might be invalid or expired. Try again or
-go to the <a href="login.action">login page</a> and request a new restore email.
+Sorry, your account could not be restored. You might have chosen an invalid password.
+A password must be between $minPasswordLength and $maxPasswordLength characters and
+have at least one uppercase character, number, and symbol. It may not contain your
+email address, any of your last several passwords, or certain reserved
+words.
+Also, the invite code might be invalid or expired.
+Try again or go to the <a href="login.action">login page</a> and request a new restore email.
 </div>
 
 </div>
