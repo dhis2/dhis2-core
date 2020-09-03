@@ -57,7 +57,8 @@ import org.springframework.web.client.RestTemplate;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Zubair Asghar
+ * @author Lars Helge Overland
  */
 @Slf4j
 @Service( "org.hisp.dhis.apphub.AppHubService" )

@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Zubair Asghar
  */
 @RestController
 @RequestMapping( AppHubController.RESOURCE_PATH )
@@ -91,7 +91,8 @@ public class AppHubController
     @PostMapping( value = "/{versionId}" )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromAppHub(@PathVariable String versionId ) throws WebMessageException
+    public void installAppFromAppHub( @PathVariable String versionId )
+        throws WebMessageException
     {
         AppStatus status = appHubService.installAppFromAppHub( versionId );
 
