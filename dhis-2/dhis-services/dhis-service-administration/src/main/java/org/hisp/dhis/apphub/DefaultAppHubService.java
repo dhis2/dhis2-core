@@ -91,7 +91,7 @@ public class DefaultAppHubService
 
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
 
-        log.debug( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", query, apiVersion, appHubApiUrl );
+        log.debug( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, query, apiVersion );
 
         String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
 
