@@ -31,8 +31,11 @@ package org.hisp.dhis.apphub.util;
 import org.hisp.dhis.apphub.AppHubUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.Test;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -75,5 +78,13 @@ public class AppHubUtilsTest
         assertEquals( "apps", AppHubUtils.sanitizeQuery( "apps" ) );
         assertEquals( "apps", AppHubUtils.sanitizeQuery( "/apps" ) );
         assertEquals( "apps", AppHubUtils.sanitizeQuery( "//apps" ) );
+    }
+
+    @Test
+    public void testGetJsonRequestEntity()
+    {
+        HttpEntity<String> entity = AppHubUtils.getJsonRequestEntity();
+
+        assertTrue( entity.getHeaders().getAccept().contains( MediaType.APPLICATION_JSON ) );
     }
 }

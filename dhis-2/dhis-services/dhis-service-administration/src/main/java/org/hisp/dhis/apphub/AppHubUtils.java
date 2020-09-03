@@ -36,6 +36,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -86,7 +87,7 @@ public class AppHubUtils
     public static <T> HttpEntity<T> getJsonRequestEntity()
     {
         HttpHeaders headers = new HttpHeaders();
-        headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.setAccept( Lists.newArrayList( MediaType.APPLICATION_JSON ) );
         return new HttpEntity<T>( headers );
     }
 }
