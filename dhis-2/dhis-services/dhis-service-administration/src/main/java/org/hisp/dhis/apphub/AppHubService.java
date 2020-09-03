@@ -37,6 +37,8 @@ import java.util.List;
  */
 public interface AppHubService
 {
+    String getAppHubApiResponse( String apiVersion, String path );
+
     List<WebApp> getAppHub();
 
     AppStatus installAppFromAppHub( String id );

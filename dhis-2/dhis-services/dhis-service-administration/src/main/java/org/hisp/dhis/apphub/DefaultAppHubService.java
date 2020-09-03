@@ -29,6 +29,9 @@ package org.hisp.dhis.apphub;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
+import static org.hisp.dhis.apphub.AppHubUtils.sanitizeQuery;
+import static org.hisp.dhis.apphub.AppHubUtils.validateQuery;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -45,6 +48,8 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -56,8 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service( "org.hisp.dhis.apphub.AppHubService" )
 public class DefaultAppHubService
-    implements
-        AppHubService
+    implements AppHubService
 {
     private final RestTemplate restTemplate;
 
@@ -74,6 +78,28 @@ public class DefaultAppHubService
         this.restTemplate = restTemplate;
         this.appManager = appManager;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
+    }
+
+    @Override
+    public String getAppHubApiResponse( String apiVersion, String query )
+    {
+        validateQuery( apiVersion );
+        validateQuery( query );
+
+        apiVersion = sanitizeQuery( apiVersion );
+        query = sanitizeQuery( query );
+
+        String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
+
+        log.info( "Get app hub response, base URL: '{}', API version: '{}', query: '{}'", query, apiVersion, appHubApiUrl );
+
+        String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
+
+        log.info( "App hub request URL: '{}'", url );
+
+        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(), String.class );
+
+        return response.getBody();
     }
 
     @Override

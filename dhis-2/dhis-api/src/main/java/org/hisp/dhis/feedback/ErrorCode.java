@@ -44,6 +44,10 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
+    /* Miscellaneous */
+    E1000( "API query must be specified" ),
+    E1001( "API query contains an illegal string" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
