@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -43,6 +44,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.Authorities;
 import org.springframework.util.StringUtils;
 
@@ -631,7 +634,9 @@ public class User
     }
 
     @JsonProperty( "userGroups" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlElementWrapper( localName = "userGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userGroup", namespace = DxfNamespaces.DXF_2_0 )
     public Set<UserGroup> getGroups()
