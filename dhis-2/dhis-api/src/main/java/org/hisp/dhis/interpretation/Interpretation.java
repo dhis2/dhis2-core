@@ -494,8 +494,8 @@ public class Interpretation
     }
 
     @JsonProperty( "likedBy" )
-    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
-    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlElementWrapper( localName = "likedBy", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "likeByUser", namespace = DXF_2_0 )
