@@ -73,6 +73,30 @@ public class AppHubUtilsTest
     }
 
     @Test
+    public void testValidateApiVersionA()
+    {
+        AppHubUtils.validateApiVersion( "v2" );
+    }
+
+    @Test
+    public void testValidateApiVersionB()
+    {
+        AppHubUtils.validateApiVersion( "v146" );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateInvalidApiVersionA()
+    {
+        AppHubUtils.validateApiVersion( "25" );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateInvalidApiVersionB()
+    {
+        AppHubUtils.validateApiVersion( "malicious_script.js" );
+    }
+
+    @Test
     public void testSanitizeQuery()
     {
         assertEquals( "apps", AppHubUtils.sanitizeQuery( "apps" ) );

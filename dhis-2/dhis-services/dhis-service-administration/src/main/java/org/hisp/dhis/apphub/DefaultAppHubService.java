@@ -31,6 +31,7 @@ package org.hisp.dhis.apphub;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
 import static org.hisp.dhis.apphub.AppHubUtils.sanitizeQuery;
+import static org.hisp.dhis.apphub.AppHubUtils.validateApiVersion;
 import static org.hisp.dhis.apphub.AppHubUtils.validateQuery;
 
 import java.io.BufferedInputStream;
@@ -83,7 +84,7 @@ public class DefaultAppHubService
     @Override
     public String getAppHubApiResponse( String apiVersion, String query )
     {
-        validateQuery( apiVersion );
+        validateApiVersion( apiVersion );
         validateQuery( query );
 
         apiVersion = sanitizeQuery( apiVersion );
@@ -91,7 +92,7 @@ public class DefaultAppHubService
 
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
 
-        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, query, apiVersion );
+        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion, query );
 
         String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
 

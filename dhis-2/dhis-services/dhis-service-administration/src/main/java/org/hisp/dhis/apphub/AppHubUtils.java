@@ -1,5 +1,7 @@
 package org.hisp.dhis.apphub;
 
+import java.util.regex.Pattern;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -45,8 +47,10 @@ public class AppHubUtils
 {
     private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS = ImmutableSet.of( "..", "http", "https", "//" );
 
+    private static final Pattern API_VERSION_PATTERN = Pattern.compile( "v\\d+" );
+
     /**
-     * Validates the query segment. Checks whether the query is null or
+     * Validates the path and query segment. Checks whether the query is null or
      * contains illegal strings.
      *
      * @param query the query.
@@ -63,6 +67,21 @@ public class AppHubUtils
         if ( ILLEGAL_QUERY_STRINGS.stream().anyMatch( query::contains ) )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1001 ) );
+        }
+    }
+
+    /**
+     * Validate the API version. Must start with {@code v} followed by an integer.
+     *
+     * @param apiVersion the API version string.
+     * @throws IllegalQueryException if the API version is invalid.
+     */
+    public static void validateApiVersion( String apiVersion )
+        throws IllegalQueryException
+    {
+        if ( !API_VERSION_PATTERN.matcher( apiVersion ).matches() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1002 ) );
         }
     }
 

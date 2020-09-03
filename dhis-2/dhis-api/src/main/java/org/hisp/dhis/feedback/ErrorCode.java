@@ -47,6 +47,7 @@ public enum ErrorCode
     /* Miscellaneous */
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
+    E1002( "API version is invalid" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),
