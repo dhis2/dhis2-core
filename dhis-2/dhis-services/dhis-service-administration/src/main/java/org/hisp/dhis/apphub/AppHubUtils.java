@@ -28,8 +28,6 @@ package org.hisp.dhis.apphub;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -37,13 +35,15 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
  */
 public class AppHubUtils
 {
+    private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS = ImmutableSet.of( "..", "http", "https", "//" );
+
     /**
      * Validates the query segment. Checks whether the query is null or
      * contains illegal strings.
@@ -59,9 +59,7 @@ public class AppHubUtils
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1000 ) );
         }
 
-        final List<String> illegalStrings = Lists.newArrayList( "..", "http", "https", "//" );
-
-        if ( illegalStrings.stream().anyMatch( query::contains ) )
+        if ( ILLEGAL_QUERY_STRINGS.stream().anyMatch( query::contains ) )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1001 ) );
         }
