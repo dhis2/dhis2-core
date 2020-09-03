@@ -76,14 +76,14 @@ public class AppHubController
      * Deprecated as of version 2.35 and should be removed eventually.
      */
     @GetMapping( produces = "application/json" )
-    public @ResponseBody List<WebApp> listAppHub( @RequestParam String query, HttpServletResponse response )
+    public  List<WebApp> listAppHub( @RequestParam String query, HttpServletResponse response )
         throws IOException
     {
         return appHubService.getAppHub();
     }
 
     @GetMapping( value = "/{apiVersion}/**", produces = "application/json" )
-    public @ResponseBody String getAppHubApiResponse(
+    public String getAppHubApiResponse(
         @PathVariable String apiVersion, HttpServletRequest request )
     {
         String query = ContextUtils.getWildcardPathValue( request );
