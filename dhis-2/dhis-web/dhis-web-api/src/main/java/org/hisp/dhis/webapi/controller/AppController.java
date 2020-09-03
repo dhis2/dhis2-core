@@ -90,7 +90,6 @@ public class AppController
     @Autowired
     private I18nManager i18nManager;
 
-
     @Autowired
     private ContextService contextService;
 
