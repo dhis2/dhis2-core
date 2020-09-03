@@ -506,6 +506,12 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
+
+        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
+        {
+            UserCredentials userCredentials = user.getUserCredentials();
+            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
+        }
     }
 
     private void updatePassword( User currentUser, String password ) throws WebMessageException
