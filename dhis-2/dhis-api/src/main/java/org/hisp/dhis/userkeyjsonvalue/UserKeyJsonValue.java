@@ -29,7 +29,11 @@ package org.hisp.dhis.userkeyjsonvalue;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 
 /**
@@ -81,7 +85,7 @@ public class UserKeyJsonValue
     public UserKeyJsonValue()
     {
     }
-    
+
     public UserKeyJsonValue( User user, String namespace, String key, String value, Boolean encrypted )
     {
         this.user = user;
@@ -90,12 +94,15 @@ public class UserKeyJsonValue
         this.value = value;
         this.encrypted = encrypted;
     }
-    
+
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
 
     @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
     public User getUser()
     {
         return user;
