@@ -90,6 +90,7 @@ public class AppController
     @Autowired
     private I18nManager i18nManager;
 
+
     @Autowired
     private ContextService contextService;
 
@@ -168,7 +169,7 @@ public class AppController
         throws IOException, WebMessageException
     {
         App application = appManager.getApp( app );
-        
+
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
 
@@ -180,7 +181,7 @@ public class AppController
         if ( application.getIsBundledApp() )
         {
             String redirectPath = application.getBaseUrl() + "/" + pageName;
-            
+
             log.info( String.format( "Redirecting to bundled app: %s", redirectPath ) );
 
             response.sendRedirect( redirectPath );

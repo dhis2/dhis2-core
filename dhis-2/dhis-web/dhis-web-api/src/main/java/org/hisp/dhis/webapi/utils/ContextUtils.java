@@ -56,8 +56,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * @author Lars Helge Overland
@@ -420,5 +422,21 @@ public class ContextUtils
 
         Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
         return matcher.matches() ? matcher.group( 1 ) : null;
+    }
+
+    /**
+     * Returns the value associated with a double wildcard ({@code **}) in the request mapping.
+     * <p>
+     * As an example, for a request mapping {@code /apps/**} and a request {@code /apps/data-visualizer/index.html},
+     * this method will return {@code data-visualizer/index.html}.
+     *
+     * @param request the {@link HttpServletRequest}.
+     * @return the wildcard value.
+     */
+    public static String getWildcardPathValue( HttpServletRequest request )
+    {
+        String path = (String) request.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE );
+        String bestMatchPattern = (String) request.getAttribute( HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE );
+        return new AntPathMatcher().extractPathWithinPattern( bestMatchPattern, path );
     }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.apphub.AppHubService;
@@ -42,6 +43,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,9 +82,12 @@ public class AppHubController
         return appHubService.getAppHub();
     }
 
-    @GetMapping( value = "/{apiVersion}", produces = "application/json" )
-    public @ResponseBody String getAppHubApiResponse( @PathVariable String apiVersion, @RequestParam String query )
+    @GetMapping( value = "/{apiVersion}/**", produces = "application/json" )
+    public @ResponseBody String getAppHubApiResponse(
+        @PathVariable String apiVersion, HttpServletRequest request )
     {
+        String query = ContextUtils.getWildcardPathValue( request );
+
         return appHubService.getAppHubApiResponse( apiVersion, query );
     }
 
