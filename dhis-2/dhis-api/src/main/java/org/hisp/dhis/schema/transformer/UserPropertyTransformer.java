@@ -104,7 +104,7 @@ public class UserPropertyTransformer
         UserDto.UserDtoBuilder builder = UserDto.builder()
             .id( user.getUid() )
             .code( user.getCode() )
-            .displayName( user.getName() );
+            .displayName( user.getDisplayName() );
 
         if ( userCredentials != null )
         {
