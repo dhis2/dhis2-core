@@ -35,6 +35,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
 import org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager;
@@ -42,8 +43,8 @@ import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.security.vote.SimpleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
+import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -55,7 +56,6 @@ import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -115,6 +115,9 @@ public class DhisWebCommonsWebSecurityConfig
     @Order( 2200 )
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     {
+        @Autowired
+        private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
+
         @Autowired
         private I18nManager i18nManager;
 
@@ -182,6 +185,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .and()
 
                 .formLogin()
+                .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
                 .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
