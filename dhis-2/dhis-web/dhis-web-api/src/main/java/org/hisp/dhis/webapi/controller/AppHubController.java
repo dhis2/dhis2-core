@@ -73,7 +73,6 @@ public class AppHubController
     /**
      * Deprecated as of version 2.35 and should be removed eventually.
      */
-    @Deprecated
     @GetMapping( produces = "application/json" )
     public @ResponseBody List<WebApp> listAppHub( @RequestParam String query, HttpServletResponse response )
         throws IOException
