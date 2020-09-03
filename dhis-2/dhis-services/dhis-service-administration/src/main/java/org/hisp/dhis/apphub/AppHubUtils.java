@@ -45,7 +45,8 @@ import java.util.regex.Pattern;
  */
 public class AppHubUtils
 {
-    private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS = ImmutableSet.of( "..", "http", "https", "//" );
+    private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS = ImmutableSet
+        .of( "..", "//", "http://", "https://", "file://" );
 
     private static final Pattern API_VERSION_PATTERN = Pattern.compile( "v\\d+" );
 
