@@ -56,10 +56,13 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.base.Enums;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Slf4j
 public class DefaultTrackerImportService
     implements TrackerImportService
 {
@@ -137,6 +140,7 @@ public class DefaultTrackerImportService
         }
         catch ( Exception e )
         {
+            log.error( "Exception thrown during import.",e );
             
             TrackerValidationReport tvr = importReport.getTrackerValidationReport();
             
