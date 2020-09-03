@@ -28,14 +28,13 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.user.User;
+
+import java.io.Serializable;
+import java.util.Date;
 
 @JacksonXmlRootElement( localName = "inboundsms" )
 public class IncomingSms extends BaseIdentifiableObject
@@ -76,7 +75,7 @@ public class IncomingSms extends BaseIdentifiableObject
 
     /**
      * Incoming smses are one of two types, text or binary.
-     * 
+     *
      * @return is this message a text (not binary) message?
      */
     public boolean isTextSms()
@@ -151,21 +150,7 @@ public class IncomingSms extends BaseIdentifiableObject
         return text;
     }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( localName = "user" )
-    public User getUser()
-    {
-        return user;
-    }
-
-    @Override
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
-
-    public void setText(String text )
+    public void setText( String text )
     {
         if ( bytes != null )
         {
