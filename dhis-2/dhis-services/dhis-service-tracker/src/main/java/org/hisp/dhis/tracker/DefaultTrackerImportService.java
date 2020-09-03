@@ -43,6 +43,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -139,9 +141,20 @@ public class DefaultTrackerImportService
             if ( params.hasJobConfiguration() )
             {
                 notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
-                importReport.setStatus( TrackerStatus.ERROR );
                 notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
             }
+            importReport.setStatus( TrackerStatus.ERROR );
+           
+            TrackerValidationReport tvr = importReport.getTrackerValidationReport();
+            
+            if ( tvr == null )
+            {
+                tvr = new TrackerValidationReport();
+            }
+            
+            tvr.getErrorReports().add(new TrackerErrorReport( null, "Exception:"+e.getMessage(), TrackerErrorCode.E9999, 0, null, null, null, null ));
+         
+            //TODO: Should this be rethrown in case of sync? Or is the error report added to the import report in the line above enough?
             throw e;
 
         }
