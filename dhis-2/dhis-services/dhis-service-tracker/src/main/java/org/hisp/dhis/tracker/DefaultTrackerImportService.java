@@ -158,9 +158,6 @@ public class DefaultTrackerImportService
                 notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
                 notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
             }
-            
-            //TODO: Should this be rethrown in case of sync? Or is the error report added to the import report in the above lines enough?
-            throw e;
 
         }
 
