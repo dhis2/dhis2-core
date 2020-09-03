@@ -600,12 +600,11 @@ public class JdbcEventAnalyticsManager
     String buildInFilterForCategory( final Category category, final List<CategoryOption> nonAuthorizedCategoryOptions )
     {
         final String categoryColumn = quoteAlias( category.getUid() );
-        final String inFilter = categoryColumn + " not in ("
-            + getQuotedCommaDelimitedString( getUids( nonAuthorizedCategoryOptions ) ) + ") ";
 
-        return inFilter;
+        return categoryColumn + " not in ("
+            + getQuotedCommaDelimitedString( getUids( nonAuthorizedCategoryOptions ) ) + ") ";
     }
-    
+
     /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the execution date, latest first. The events are partitioned by
