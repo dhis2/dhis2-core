@@ -45,6 +45,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -427,8 +428,8 @@ public class ContextUtils
     /**
      * Returns the value associated with a double wildcard ({@code **}) in the request mapping.
      * <p>
-     * As an example, for a request mapping {@code /apps/**} and a request {@code /apps/data-visualizer/index.html},
-     * this method will return {@code data-visualizer/index.html}.
+     * As an example, for a request mapping {@code /apps/**} and a request {@code /apps/data-visualizer/index.html?id=123},
+     * this method will return {@code data-visualizer/index.html?id=123}.
      *
      * @param request the {@link HttpServletRequest}.
      * @return the wildcard value.
@@ -437,6 +438,9 @@ public class ContextUtils
     {
         String path = (String) request.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE );
         String bestMatchPattern = (String) request.getAttribute( HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE );
-        return new AntPathMatcher().extractPathWithinPattern( bestMatchPattern, path );
+        String wildcardPath = new AntPathMatcher().extractPathWithinPattern( bestMatchPattern, path );
+        String queryString = StringUtils.trimToEmpty( request.getQueryString() );
+
+        return String.format( "%s%s", wildcardPath, queryString );
     }
 }
