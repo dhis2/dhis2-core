@@ -122,6 +122,12 @@ public class UserPropertyTransformer
 
         private String code;
 
+        private String name;
+
+        private String surname;
+
+        private String firstName;
+
         private String displayName;
 
         private String username;
@@ -136,6 +142,24 @@ public class UserPropertyTransformer
         public String getCode()
         {
             return code;
+        }
+
+        @JsonProperty
+        public String getName()
+        {
+            return name;
+        }
+
+        @JsonProperty
+        public String getSurname()
+        {
+            return surname;
+        }
+
+        @JsonProperty
+        public String getFirstName()
+        {
+            return firstName;
         }
 
         @JsonProperty
@@ -166,6 +190,9 @@ public class UserPropertyTransformer
             gen.writeStartObject();
             gen.writeStringField( "id", user.getUid() );
             gen.writeStringField( "code", user.getCode() );
+            gen.writeStringField( "firstName", user.getFirstName() );
+            gen.writeStringField( "surname", user.getSurname() );
+            gen.writeStringField( "name", user.getName() );
             gen.writeStringField( "displayName", user.getDisplayName() );
 
             if ( userCredentials != null )
