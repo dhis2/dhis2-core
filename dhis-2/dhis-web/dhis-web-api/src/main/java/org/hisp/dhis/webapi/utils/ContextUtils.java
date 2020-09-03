@@ -96,6 +96,7 @@ public class ContextUtils
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
     public static final String HEADER_ETAG = "ETag";
     private static final String QUOTE = "\"";
+    private static final String QUERY_STRING_SEP = "?";
 
     /**
      * Regular expression that extracts the attachment file name from a content disposition header value.
@@ -439,7 +440,9 @@ public class ContextUtils
         String path = (String) request.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE );
         String bestMatchPattern = (String) request.getAttribute( HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE );
         String wildcardPath = new AntPathMatcher().extractPathWithinPattern( bestMatchPattern, path );
-        String queryString = StringUtils.trimToEmpty( request.getQueryString() );
+
+        String queryString = !StringUtils.isBlank( request.getQueryString() ) ?
+            QUERY_STRING_SEP.concat( request.getQueryString() ) : StringUtils.EMPTY;
 
         return String.format( "%s%s", wildcardPath, queryString );
     }
