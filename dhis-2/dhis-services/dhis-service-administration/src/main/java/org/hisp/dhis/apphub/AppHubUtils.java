@@ -1,7 +1,5 @@
 package org.hisp.dhis.apphub;
 
-import java.util.regex.Pattern;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -39,6 +37,8 @@ import org.springframework.http.MediaType;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
