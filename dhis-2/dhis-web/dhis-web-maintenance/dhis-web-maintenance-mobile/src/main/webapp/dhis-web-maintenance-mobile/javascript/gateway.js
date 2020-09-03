@@ -262,7 +262,6 @@ function saveSettings ()
         urlTemplate: httpFields.find("#urlTemplate")[0].value
     };
 
-    alert(JSON.stringify( data ));
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);
 
 	if ( data.urltemplate == "" ) {
