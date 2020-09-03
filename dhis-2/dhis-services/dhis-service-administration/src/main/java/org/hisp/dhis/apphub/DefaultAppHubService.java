@@ -91,11 +91,11 @@ public class DefaultAppHubService
 
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
 
-        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", query, apiVersion, appHubApiUrl );
+        log.debug( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", query, apiVersion, appHubApiUrl );
 
         String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
 
-        log.info( "App Hub request URL: '{}'", url );
+        log.info( "App Hub proxy request URL: '{}'", url );
 
         ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(), String.class );
 
