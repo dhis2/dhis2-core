@@ -40,13 +40,19 @@ import static org.junit.Assert.assertEquals;
 public class AppHubUtilsTest
 {
     @Test( expected = IllegalQueryException.class )
-    public void testValidateQueryA()
+    public void testValidateInvalidQueryA()
     {
         AppHubUtils.validateQuery( "apps/../../evil/endpoint" );
     }
 
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateInvalidQueryB()
+    {
+        AppHubUtils.validateQuery( "http://evildomain" );
+    }
+
     @Test
-    public void testValidateQueryB()
+    public void testValidateQuery()
     {
         AppHubUtils.validateQuery( "apps" );
     }
