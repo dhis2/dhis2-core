@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.apphub.WebApp;
@@ -51,7 +50,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -75,7 +73,7 @@ public class AppHubController
      * Deprecated as of version 2.35 and should be removed eventually.
      */
     @GetMapping( produces = "application/json" )
-    public  List<WebApp> listAppHub( @RequestParam String query, HttpServletResponse response )
+    public  List<WebApp> listAppHub()
         throws IOException
     {
         return appHubService.getAppHub();
