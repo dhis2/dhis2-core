@@ -80,7 +80,7 @@ public class AppHubUtils
 
     /**
      * Returns an {@link HttpEntity} with {@link HttpHeaders} set to
-     * accept a JSON response.
+     * accept a {@code application/json} response.
      *
      * @return a {@link HttpEntity}.
      */
