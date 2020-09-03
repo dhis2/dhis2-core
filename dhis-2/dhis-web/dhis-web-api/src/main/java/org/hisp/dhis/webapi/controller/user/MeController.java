@@ -56,6 +56,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -490,6 +491,12 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
+
+        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
+        {
+            UserCredentials userCredentials = user.getUserCredentials();
+            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
+        }
     }
 
     private void updatePassword( User currentUser, String password ) throws WebMessageException
