@@ -39,6 +39,12 @@ import static org.junit.Assert.assertEquals;
  */
 public class AppHubUtilsTest
 {
+    @Test
+    public void testValidateQuery()
+    {
+        AppHubUtils.validateQuery( "apps" );
+    }
+
     @Test( expected = IllegalQueryException.class )
     public void testValidateInvalidQueryA()
     {
@@ -51,10 +57,16 @@ public class AppHubUtilsTest
         AppHubUtils.validateQuery( "http://evildomain" );
     }
 
-    @Test
-    public void testValidateQuery()
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateInvalidQueryC()
     {
-        AppHubUtils.validateQuery( "apps" );
+        AppHubUtils.validateQuery( "" );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateInvalidQueryD()
+    {
+        AppHubUtils.validateQuery( null );
     }
 
     @Test
