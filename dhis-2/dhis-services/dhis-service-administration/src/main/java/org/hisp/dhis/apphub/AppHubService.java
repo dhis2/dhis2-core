@@ -43,8 +43,8 @@ public interface AppHubService
      *
      * @param apiVersion the App Hub API version.
      * @param query the App Hub API query, including the path and
-     *         query parameters, excluding the "/api/" part and leading
-     *         forward slashes.
+     *        query parameters, excluding the "/api/" part and leading
+     *        forward slashes.
      * @return the App Hub API response as a string.
      */
     String getAppHubApiResponse( String apiVersion, String query );
