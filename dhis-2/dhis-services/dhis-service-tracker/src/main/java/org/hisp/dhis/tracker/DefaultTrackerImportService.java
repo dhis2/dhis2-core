@@ -137,14 +137,7 @@ public class DefaultTrackerImportService
         }
         catch ( Exception e )
         {
-
-            if ( params.hasJobConfiguration() )
-            {
-                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
-                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
-            }
-            importReport.setStatus( TrackerStatus.ERROR );
-           
+            
             TrackerValidationReport tvr = importReport.getTrackerValidationReport();
             
             if ( tvr == null )
@@ -154,8 +147,15 @@ public class DefaultTrackerImportService
             
             tvr.getErrorReports().add(new TrackerErrorReport( null, "Exception:"+e.getMessage(), TrackerErrorCode.E9999, 0, null, null, null, null ));
             importReport.setTrackerValidationReport( tvr );
+            importReport.setStatus( TrackerStatus.ERROR );
             
-            //TODO: Should this be rethrown in case of sync? Or is the error report added to the import report in the line above enough?
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
+            
+            //TODO: Should this be rethrown in case of sync? Or is the error report added to the import report in the above lines enough?
             throw e;
 
         }
