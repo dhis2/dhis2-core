@@ -153,7 +153,8 @@ public class DefaultTrackerImportService
             }
             
             tvr.getErrorReports().add(new TrackerErrorReport( null, "Exception:"+e.getMessage(), TrackerErrorCode.E9999, 0, null, null, null, null ));
-         
+            importReport.setTrackerValidationReport( tvr );
+            
             //TODO: Should this be rethrown in case of sync? Or is the error report added to the import report in the line above enough?
             throw e;
 
