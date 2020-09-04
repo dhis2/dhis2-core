@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -41,6 +42,7 @@ import lombok.NoArgsConstructor;
 public class TrackerImportReport
 {
 
+    @JsonIgnore
     private int ignored;
 
     private TrackerStatus status = TrackerStatus.OK;

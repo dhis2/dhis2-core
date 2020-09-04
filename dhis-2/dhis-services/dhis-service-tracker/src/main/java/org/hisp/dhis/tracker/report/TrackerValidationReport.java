@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.report;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -55,7 +56,7 @@ public class TrackerValidationReport
     @Builder.Default
     private List<TrackerWarningReport> warningReports = new ArrayList<>();
 
-    @JsonProperty
+    @JsonIgnore
     @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
 

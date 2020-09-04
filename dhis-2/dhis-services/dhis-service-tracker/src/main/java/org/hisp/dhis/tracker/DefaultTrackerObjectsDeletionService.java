@@ -129,12 +129,6 @@ public class DefaultTrackerObjectsDeletionService
             // Associated events should be deleted provided user has authority for that.
             TrackerTypeReport eventReport = deleteEvents( trackerBundle, TrackerType.EVENT );
 
-            if ( !eventReport.isEmpty() )
-            {
-                // trackerObjectReport.getErrorReports().addAll( eventReport.getErrorReports()
-                // );
-            }
-
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
@@ -229,12 +223,6 @@ public class DefaultTrackerObjectsDeletionService
 
             // Associated enrollments should be deleted provided user has authority for that.
             TrackerTypeReport enrollmentReport = deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
-
-            if ( !enrollmentReport.isEmpty() )
-            {
-                // trackerObjectReport.getErrorReports().addAll(
-                // enrollmentReport.getErrorReports() );
-            }
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
 
