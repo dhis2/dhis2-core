@@ -40,8 +40,7 @@ package org.hisp.dhis.schema;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@FunctionalInterface
-public interface PropertyTransformer
+public interface PropertyTransformer extends Klass
 {
     Object transform( Object o );
 }

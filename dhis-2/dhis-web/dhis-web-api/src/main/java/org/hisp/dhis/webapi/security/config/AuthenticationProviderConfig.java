@@ -35,6 +35,7 @@ import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvid
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -74,6 +75,12 @@ public class AuthenticationProviderConfig
     {
         auth.authenticationProvider( twoFactorAuthenticationProvider );
         auth.authenticationProvider( customLdapAuthenticationProvider() );
+    }
+
+    @Bean
+    public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
+    {
+        return new TwoFactorWebAuthenticationDetailsSource();
     }
 
     @Bean
