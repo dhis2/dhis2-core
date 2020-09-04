@@ -135,8 +135,9 @@ public class ContextUtilsTest
         assertEquals( "max-age=1209600, public", response.getHeader( "Cache-Control" ) );
 
         response.reset();
+        long secondsTo6Tomorrow = CACHE_6AM_TOMORROW.toSeconds();
         contextUtils.configureResponse( response, null, CACHE_6AM_TOMORROW, null, false );
-        assertEquals( "max-age=" + CACHE_6AM_TOMORROW.toSeconds() + ", public", response.getHeader( "Cache-Control" ) );
+        assertEquals( "max-age=" + secondsTo6Tomorrow + ", public", response.getHeader( "Cache-Control" ) );
 
         response.reset();
         systemSettingManager.saveSystemSetting( CACHE_STRATEGY, getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
