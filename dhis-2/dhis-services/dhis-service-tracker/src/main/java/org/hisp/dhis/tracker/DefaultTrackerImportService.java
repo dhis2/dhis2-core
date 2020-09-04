@@ -149,7 +149,7 @@ public class DefaultTrackerImportService
                 tvr = new TrackerValidationReport();
             }
             
-            tvr.getErrorReports().add( new TrackerErrorReport( null, "Exception:"+e.getMessage(), TrackerErrorCode.E9999, 0, null, null, null, null ) );
+            tvr.getErrorReports().add( new TrackerErrorReport( "Exception:" + e.getMessage(), TrackerErrorCode.E9999 ) );
             importReport.setTrackerValidationReport( tvr );
             importReport.setStatus( TrackerStatus.ERROR );
             
