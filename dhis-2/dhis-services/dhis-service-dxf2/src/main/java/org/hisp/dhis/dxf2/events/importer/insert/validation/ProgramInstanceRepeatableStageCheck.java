@@ -54,7 +54,12 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
+        TrackedEntityInstance tei = null;
+        
+        if ( program.isRegistration() )
+        {
+            tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
+        }
 
         /*
          * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
