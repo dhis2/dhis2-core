@@ -43,7 +43,7 @@ public enum ProgramRuleActionType
     DISPLAYTEXT( "displaytext" ),
     DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
     HIDEFIELD( "hidefield" ),
-    HIDEFIELDNODELETE( "hidefieldnodelete" ),
+    HIDEFIELDNODELETE( "hidefieldnodelete" ), 
     HIDESECTION( "hidesection" ),
     HIDEPROGRAMSTAGE( "hideprogramstage"),
     ASSIGN( "assign", ON_DATA_ENTRY, ON_COMPLETE ),
