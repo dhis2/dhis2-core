@@ -68,14 +68,14 @@ public class ProgramRuleController
     }
 
     @RequestMapping( value = "/condition/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void validateCondition( @RequestBody String condition, @RequestParam String programRule, HttpServletResponse response )
+    public void validateCondition( @RequestBody String condition, @RequestParam String programId, HttpServletResponse response )
     {
         I18n i18n = i18nManager.getI18n();
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
 
 
-        RuleValidationResult result = programRuleEngineService.getDescription( condition, programRule );
+        RuleValidationResult result = programRuleEngineService.getDescription( condition, programId );
 
         if ( result.isValid() )
         {

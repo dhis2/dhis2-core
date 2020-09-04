@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -155,24 +154,21 @@ public class ProgramRuleEngine
      * To getDescription rule condition in order to fetch its description
      * 
      * @param condition of program rule
-     * @param programRule {@link ProgramRule} which the condition is associated
-     *        with.
+     * @param program {@link Program} which the programRule is associated with.
      * @return RuleValidationResult contains description of program rule condition
      *         or errorMessage
      */
-    public RuleValidationResult getDescription( String condition, ProgramRule programRule )
+    public RuleValidationResult getDescription( String condition, Program program )
     {
-        if ( programRule == null )
+        if ( program == null )
         {
-            log.error( "ProgramRule cannot be null" );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( "ProgramRule cannot be null" ).build();
+            log.error( "Program cannot be null" );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
         }
-
-        Program program = programRule.getProgram();
 
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( ListUtils.newList( programRule ), programRuleVariables,
+        RuleEngine ruleEngine = ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
             RuleEngineIntent.DESCRIPTION ).build();
 
         return ruleEngine.evaluate( condition );
