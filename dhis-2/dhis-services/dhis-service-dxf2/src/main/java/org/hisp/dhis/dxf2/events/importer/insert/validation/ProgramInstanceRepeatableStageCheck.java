@@ -67,6 +67,7 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
          */
         // @formatter:off
         if ( programInstance != null && 
+             tei != null &&
              program.isRegistration() && 
              !programStage.getRepeatable() && 
              hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getId(), tei.getId() ) )
