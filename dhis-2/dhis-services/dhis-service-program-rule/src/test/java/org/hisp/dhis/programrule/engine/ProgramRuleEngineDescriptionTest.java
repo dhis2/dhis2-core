@@ -180,7 +180,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithTextTrackedEntityAttribute()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), programRuleTextAtt );
+        RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -188,7 +188,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericTrackedEntityAttribute()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleNumericAtt.getCondition(), programRuleNumericAtt );
+        RuleValidationResult result = validateRuleCondition( programRuleNumericAtt.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -196,7 +196,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericTrackedEntityAttributeWithOr()
     {
-        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithOR, programRuleNumericAtt );
+        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithOR, program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -204,7 +204,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericTrackedEntityAttributeWithAnd()
     {
-        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithAND, programRuleNumericAtt );
+        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithAND, program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -212,7 +212,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithTextDataElement()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleTextDE.getCondition(), programRuleTextDE );
+        RuleValidationResult result = validateRuleCondition( programRuleTextDE.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -220,7 +220,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericDataElement()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleNumericDE.getCondition(), programRuleNumericDE );
+        RuleValidationResult result = validateRuleCondition( programRuleNumericDE.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -228,7 +228,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithLiterals()
     {
-        RuleValidationResult result = validateRuleCondition( conditionLiteralString, programRuleNumericDE );
+        RuleValidationResult result = validateRuleCondition( conditionLiteralString, program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -236,7 +236,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testIncorrectRuleWithLiterals()
     {
-        RuleValidationResult result = validateRuleCondition( "1 > 2 +", programRuleTextAtt );
+        RuleValidationResult result = validateRuleCondition( "1 > 2 +", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
@@ -245,14 +245,14 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testIncorrectRuleWithDataElement()
     {
-        RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, programRuleTextDE );
+        RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, program );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
     }
 
-    private RuleValidationResult validateRuleCondition( String condition, ProgramRule programRule )
+    private RuleValidationResult validateRuleCondition( String condition, Program program )
     {
-       return programRuleEngineNew.getDescription( condition, programRule );
+       return programRuleEngineNew.getDescription( condition, program );
     }
 }
