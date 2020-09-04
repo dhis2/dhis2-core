@@ -155,11 +155,14 @@ public class DefaultDataSetReportService
 
     private List<Grid> getCustomDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters, boolean selectedUnitOnly )
     {
+    	
+    	I18nFormat format = i18nManager.getI18nFormat();
+        
         String html = getCustomDataSetReport( dataSet, period, unit, filters, selectedUnitOnly );
 
         try
         {
-            return GridUtils.fromHtml( html, dataSet.getName() );
+            return GridUtils.fromHtml( html, dataSet.getName(), period, unit, format );
         }
         catch ( Exception ex )
         {
