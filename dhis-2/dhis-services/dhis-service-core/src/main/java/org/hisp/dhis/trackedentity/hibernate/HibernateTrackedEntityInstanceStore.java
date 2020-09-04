@@ -821,10 +821,10 @@ public class HibernateTrackedEntityInstanceStore
             () -> "(au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and" );
 
         hql += addConditionally( params.isIncludeOnlyUnassignedEvents(),
-            () -> "(psi.assigneduserid is null) and" );
+            () -> "(psi.assignedUser is null) and" );
 
         hql += addConditionally( params.isIncludeOnlyAssignedEvents(),
-            () -> "(psi.assigneduserid is not null) and" );
+            () -> "(psi.assignedUser is not null) and" );
 
         hql += " psi.deleted=false ";
 
