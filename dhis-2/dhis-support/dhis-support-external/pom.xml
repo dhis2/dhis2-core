@@ -134,6 +134,5 @@
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
-    <sonar.sources>.</sonar.sources>
   </properties>
 </project>
