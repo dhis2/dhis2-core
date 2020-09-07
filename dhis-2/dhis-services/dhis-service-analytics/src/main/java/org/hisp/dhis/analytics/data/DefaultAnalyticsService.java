@@ -1008,6 +1008,8 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : columns )
             {
+                reportTable.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+
                 reportTable.getColumnDimensions().add( dimension );
                 tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
@@ -1017,6 +1019,8 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : rows )
             {
+                reportTable.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+
                 reportTable.getRowDimensions().add( dimension );
                 tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
