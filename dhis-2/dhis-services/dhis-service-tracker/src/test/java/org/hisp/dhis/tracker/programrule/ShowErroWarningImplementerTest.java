@@ -106,7 +106,7 @@ public class ShowErroWarningImplementerTest
     @Autowired
     private ShowWarningImplementer warningImplementer;
 
-    private List<TrackerBundle> trackerBundles;
+    private TrackerBundle trackerBundle;
 
     @Override
     protected void setUpTest()
@@ -169,15 +169,15 @@ public class ShowErroWarningImplementerTest
 
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
-        trackerBundles = trackerBundleService.create( bundleParams );
+        trackerBundle = trackerBundleService.create( bundleParams );
 
-        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
+        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
     }
 
     @Test
     public void testValidateShowErrorRuleActionForEvents()
     {
-        Map<String, List<String>> errors = errorImplementer.validateEvents( trackerBundles.get( 0 ) );
+        Map<String, List<String>> errors = errorImplementer.validateEvents( trackerBundle );
 
         assertErrors( errors );
     }
@@ -185,7 +185,7 @@ public class ShowErroWarningImplementerTest
     @Test
     public void testValidateShowErrorRuleActionForEnrollment()
     {
-        Map<String, List<String>> errors = errorImplementer.validateEnrollments( trackerBundles.get( 0 ) );
+        Map<String, List<String>> errors = errorImplementer.validateEnrollments( trackerBundle );
 
         assertErrors( errors );
     }
@@ -193,7 +193,7 @@ public class ShowErroWarningImplementerTest
     @Test
     public void testValidateShowWarningRuleActionForEvents()
     {
-        Map<String, List<String>> warnings = warningImplementer.validateEvents( trackerBundles.get( 0 ) );
+        Map<String, List<String>> warnings = warningImplementer.validateEvents( trackerBundle );
 
         assertErrors( warnings );
     }
@@ -201,7 +201,7 @@ public class ShowErroWarningImplementerTest
     @Test
     public void testValidateShowWarningRuleActionForEnrollment()
     {
-        Map<String, List<String>> warnings = warningImplementer.validateEnrollments( trackerBundles.get( 0 ) );
+        Map<String, List<String>> warnings = warningImplementer.validateEnrollments( trackerBundle );
 
         assertErrors( warnings );
     }
@@ -209,7 +209,7 @@ public class ShowErroWarningImplementerTest
     @Test
     public void testValidateShowErrorOnCompleteRuleActionForEvents()
     {
-        Map<String, List<String>> errors = errorOnCompleteImplementer.validateEvents( trackerBundles.get( 0 ) );
+        Map<String, List<String>> errors = errorOnCompleteImplementer.validateEvents( trackerBundle );
 
         assertErrors( errors );
     }
@@ -217,7 +217,7 @@ public class ShowErroWarningImplementerTest
     @Test
     public void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
-        Map<String, List<String>> errors = errorOnCompleteImplementer.validateEnrollments( trackerBundles.get( 0 ) );
+        Map<String, List<String>> errors = errorOnCompleteImplementer.validateEnrollments( trackerBundle );
 
         assertErrors( errors );
     }
@@ -225,7 +225,7 @@ public class ShowErroWarningImplementerTest
     @Test
     public void testValidateShowWarningOnCompleteRuleActionForEvents()
     {
-        Map<String, List<String>> warnings = warningOnCompleteImplementer.validateEvents( trackerBundles.get( 0 ) );
+        Map<String, List<String>> warnings = warningOnCompleteImplementer.validateEvents( trackerBundle );
 
         assertErrors( warnings );
     }
@@ -234,7 +234,7 @@ public class ShowErroWarningImplementerTest
     public void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
         Map<String, List<String>> warnings = warningOnCompleteImplementer
-            .validateEnrollments( trackerBundles.get( 0 ) );
+            .validateEnrollments( trackerBundle );
 
         assertErrors( warnings );
     }

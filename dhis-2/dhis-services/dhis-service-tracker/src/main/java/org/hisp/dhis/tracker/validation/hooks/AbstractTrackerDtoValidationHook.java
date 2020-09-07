@@ -28,9 +28,14 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -42,24 +47,15 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.core.Ordered;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
