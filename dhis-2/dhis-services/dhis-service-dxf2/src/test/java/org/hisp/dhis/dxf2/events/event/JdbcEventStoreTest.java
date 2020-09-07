@@ -60,6 +60,9 @@ public class JdbcEventStoreTest
     private JdbcEventStore subject;
 
     @Mock
+    private JdbcEventCommentStore jdbcEventCommentStore;
+
+    @Mock
     private JdbcTemplate jdbcTemplate;
     
     @Mock
@@ -85,7 +88,7 @@ public class JdbcEventStoreTest
         when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
 
         ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
+        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, jdbcEventCommentStore, objectMapper, currentUserService,
             manager, env );
     }
 
