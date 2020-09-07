@@ -28,17 +28,41 @@ package org.hisp.dhis.reporttable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.NumberType;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
@@ -50,11 +74,11 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
-import java.util.*;
-import java.util.Objects;
-
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -215,6 +239,8 @@ public class ReportTable
      * All rows.
      */
     private transient List<List<DimensionalItemObject>> gridRows = new ArrayList<>();
+
+    private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>();
 
     /**
      * The name of the reporting month based on the report param.
@@ -558,10 +584,11 @@ public class ReportTable
         Map<String, String> metaData = getMetaData();
         metaData.putAll( DimensionalObject.PRETTY_NAMES );
 
-        for ( String row : rowDimensions )
+        for ( String dimension : rowDimensions )
         {
-            String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
-            String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
+            final String dimensionId = DimensionDescriptor.getDimensionIdentifierFor( dimension, getDimensionDescriptors() );
+            final String name = defaultIfEmpty( metaData.get( dimensionId ), dimensionId );
+            final String col = defaultIfEmpty( COLUMN_NAMES.get( dimensionId ), dimensionId );
 
             grid.addHeader( new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
             grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
@@ -1109,5 +1136,29 @@ public class ReportTable
     {
         this.gridTitle = gridTitle;
         return this;
+    }
+
+    /**
+     * Returns the list of DimensionDescriptor held internally to the current
+     * Visualization object. See {@link #addDimensionDescriptor}.
+     *
+     * @return the list of DimensionDescriptor's held.
+     */
+    public List<DimensionDescriptor> getDimensionDescriptors()
+    {
+        return dimensionDescriptors;
+    }
+
+    /**
+     * This method will hold the mapping of a dimension and its respective formal
+     * type.
+     *
+     * @param dimension the dimension, which should also be found in
+     *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
+     * @param dimensionType the formal dimension type. See {@link DimensionType}
+     */
+    public void addDimensionDescriptor( final String dimension, final DimensionType dimensionType )
+    {
+        this.dimensionDescriptors.add( new DimensionDescriptor( dimension, dimensionType ) );
     }
 }
