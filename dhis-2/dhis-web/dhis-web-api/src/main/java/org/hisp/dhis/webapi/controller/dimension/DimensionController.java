@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dimension;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import java.util.ArrayList;
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
@@ -126,7 +126,7 @@ public class DimensionController
     protected List<DimensionalObject> getEntity( String uid, WebOptions options )
     {
         // This check prevents a NPE. Otherwise it will result in HTTP 500 to the client.
-        if ( StringUtils.isNotBlank( uid ) && isValidUid( uid ) )
+        if ( isNotBlank( uid ) && isValidUid( uid ) )
         {
             return newArrayList( dimensionService.getDimensionalObjectCopy( uid, true ) );
         }
