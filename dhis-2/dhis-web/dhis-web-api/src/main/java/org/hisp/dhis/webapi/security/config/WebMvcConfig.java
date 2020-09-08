@@ -64,6 +64,8 @@ import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.accept.ParameterContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -85,6 +87,12 @@ import static org.springframework.http.MediaType.parseMediaType;
 @Slf4j
 public class WebMvcConfig implements WebMvcConfigurer
 {
+    @Bean( "multipartResolver" )
+    public MultipartResolver multipartResolver()
+    {
+        return new CommonsMultipartResolver();
+    }
+
     @Bean
     public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()
     {
@@ -96,8 +104,6 @@ public class WebMvcConfig implements WebMvcConfigurer
 
     @Autowired
     public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
-
-
 
     @Override
     public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
