@@ -91,7 +91,7 @@ async function clone (name, url, clone_path, treeish) {
 async function get_sha (repo_path) {
     let refspec
     try {
-        const { stderr, stdout } = await exec(`git rev-parse --verify HEAD`, { cwd: repo_path})
+        const { stdout } = await exec(`git rev-parse --verify HEAD`, { cwd: repo_path})
         refspec = stdout.trim()
     } catch (err) {
         console.error(`[get_sha] could not fetch refspec for ${repo_path}, using fallback`, err)
@@ -103,7 +103,7 @@ async function get_sha (repo_path) {
 async function get_commit_date (repo_path, sha) {
     let date
     try {
-        const { stderr, stdout } = await exec(`git show --no-patch --no-notes --pretty='%cd' ${sha}`, { cwd: repo_path})
+        const { stdout } = await exec(`git show --no-patch --no-notes --pretty='%cd' ${sha}`, { cwd: repo_path})
         date = stdout.trim()
     } catch (err) {
         console.error(`[get_commit_date] could not fetch commit date for ${repo_path}, using fallback`, err)

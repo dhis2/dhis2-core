@@ -304,9 +304,9 @@ public class JCloudsAppStorageService
         // Check that, iff this is a bundled app, it is configured as a core app
         // -----------------------------------------------------------------
 
-        if ( app.getIsBundledApp() != app.getIsCoreApp() )
+        if ( app.isBundled() != app.isCoreApp() )
         {
-            if ( app.getIsBundledApp() )
+            if ( app.isBundled() )
             {
                 log.error(
                     String.format(

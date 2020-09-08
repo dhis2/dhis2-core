@@ -113,7 +113,7 @@ public class App
      */
     public void init( String contextPath )
     {
-        String appPathPrefix = getIsBundledApp() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
+        String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
 
         this.baseUrl = String.join( "/", contextPath, appPathPrefix ) + getUrlFriendlyName();
 
@@ -136,7 +136,7 @@ public class App
      * Determine if this app will overload a bundled app
      */
     @JsonProperty
-    public boolean getIsBundledApp()
+    public boolean isBundled()
     {
         return AppManager.BUNDLED_APPS.contains( getShortName() );
     }
@@ -147,12 +147,12 @@ public class App
      */
     @JsonProperty( "core_app" )
     @JacksonXmlProperty( localName = "core_app", namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getIsCoreApp()
+    public boolean isCoreApp()
     {
         return coreApp;
     }
 
-    public void setIsCoreApp( boolean coreApp )
+    public void setCoreApp( boolean coreApp )
     {
         this.coreApp = coreApp;
     }

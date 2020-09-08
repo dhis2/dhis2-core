@@ -183,7 +183,7 @@ public class DefaultAppManager
     {
         return apps
             .stream()
-            .filter( app -> app.getIsBundledApp() == isBundled )
+            .filter( app -> app.isBundled() == isBundled )
             .collect( Collectors.toList() );
     }
 
@@ -202,7 +202,7 @@ public class DefaultAppManager
         {
             apps.retainAll( getAppsByShortName( value, apps, operator ) );
         }
-        else if ( "isBundledApp".equalsIgnoreCase( key ) )
+        else if ( "isBundled".equalsIgnoreCase( key ) )
         {
             boolean isBundled = "true".equalsIgnoreCase( value );
             apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
@@ -230,7 +230,7 @@ public class DefaultAppManager
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
 
-            if ( "isBundledApp".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
+            if ( "isBundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
                 && !"false".equalsIgnoreCase( split[2] ) )
             {
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );
