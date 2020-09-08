@@ -88,16 +88,28 @@ async function clone (name, url, clone_path, treeish) {
     }
 }
 
-async function show_sha (repo_path) {
+async function get_sha (repo_path) {
     let refspec
     try {
         const { stderr, stdout } = await exec(`git rev-parse --verify HEAD`, { cwd: repo_path})
         refspec = stdout.trim()
     } catch (err) {
-        console.error(`[show_sha] could not fetch refspec for ${repo_path}, using fallback`, err)
+        console.error(`[get_sha] could not fetch refspec for ${repo_path}, using fallback`, err)
         refspec = 'n/a'
     }
     return refspec
+}
+
+async function get_commit_date (repo_path, sha) {
+    let date
+    try {
+        const { stderr, stdout } = await exec(`git show --no-patch --no-notes --pretty='%cd' ${sha}`, { cwd: repo_path})
+        date = stdout.trim()
+    } catch (err) {
+        console.error(`[get_commit_date] could not fetch commit date for ${repo_path}, using fallback`, err)
+        refspec = 'n/a'
+    }
+    return date
 }
 
 async function clone_app (repo, target, default_branch) {
@@ -110,16 +122,20 @@ async function clone_app (repo, target, default_branch) {
     try {
         await clone(repo_name, url, clone_path, treeish)
         const ref = await checkout(repo_name, clone_path, treeish)
-        const sha = await show_sha(clone_path)
+        const sha = await get_sha(clone_path)
+        const build_date = await get_commit_date(clone_path, sha)
 
-        const pkg_name = require(path.join(clone_path, 'package.json')).name
+        const pkg = require(path.join(clone_path, 'package.json'))
+        const pkg_name = pkg.name
         const name = scrub(pkg_name)
         const web_name = await rename_app(pkg_name, clone_path, target)
 
         return {
             ref,
             sha,
+            build_date,
             pkg_name,
+            version: pkg.version,
             name,
             web_name,
             url,
@@ -130,4 +146,4 @@ async function clone_app (repo, target, default_branch) {
     }
 }
 
-module.exports = { clone_app, show_sha }
+module.exports = { clone_app, get_sha }
