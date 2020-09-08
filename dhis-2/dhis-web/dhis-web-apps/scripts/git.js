@@ -5,6 +5,7 @@ const rename = promisify(require('fs').rename)
 const path = require('path')
 
 const {
+    scrub,
     sanitize_app_name,
     split_repo_path,
     ex_clone_path
@@ -112,12 +113,14 @@ async function clone_app (repo, target, default_branch) {
         const sha = await show_sha(clone_path)
 
         const pkg_name = require(path.join(clone_path, 'package.json')).name
+        const name = scrub(pkg_name)
         const web_name = await rename_app(pkg_name, clone_path, target)
 
         return {
             ref,
             sha,
             pkg_name,
+            name,
             web_name,
             url,
             path: path.join(target, web_name),

@@ -5,10 +5,10 @@ const read_file = promisify(require('fs').readFile)
 const write_file = promisify(require('fs').writeFile)
 const mkdir = promisify(require('fs').mkdir)
 
-function list_item (name) {
+function list_item (name, webName) {
     return `
         <li>
-            <a href="../${name}">
+            <a href="../${webName}">
                 ${name}
             </a>
         </li>`
@@ -26,7 +26,7 @@ function buildInfo (sha = 'n/a') {
 module.exports = async function generate_index (apps, core_sha, templatePath, indexPath) {
     let list = []
     for (const app of apps) {
-        list.push(list_item(app.web_name))
+        list.push(list_item(app.name, app.web_name))
     }
 
     try {

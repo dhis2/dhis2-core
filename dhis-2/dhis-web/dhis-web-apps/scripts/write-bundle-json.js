@@ -5,10 +5,10 @@ const write_file = promisify(require('fs').writeFile)
 const mkdir = promisify(require('fs').mkdir)
                  
 module.exports = async function generate_bundle (apps, jsonPath) {
-    let list = []
+    let map = {}
     for (const app of apps) {
         const lock = `${app.url}#${app.sha}`
-        list.push(lock)
+        map[app.name] = lock
     }
 
     try {
@@ -24,7 +24,7 @@ module.exports = async function generate_bundle (apps, jsonPath) {
             }
         }
 
-        const json = JSON.stringify(list, null, 4)
+        const json = JSON.stringify(map, null, 4)
         await write_file(jsonPath, json, { encoding: 'utf8' })
         console.log(`[bundle] apps-bundle.json written`)
     } catch (err) {

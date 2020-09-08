@@ -331,6 +331,33 @@ public class JCloudsAppStorageService
             }
 
             // -----------------------------------------------------------------
+            // Check that, iff this is a bundled app, it is configured as a core app
+            // -----------------------------------------------------------------
+
+            if ( app.getIsBundledApp() != app.getIsCoreApp() )
+            {
+                if ( app.getIsBundledApp() )
+                {
+                    log.error(
+                        String.format(
+                            "Failed to install app '%s': bundled app overrides muse be declared with core_app=true",
+                            app.getShortName() ) );
+                    app.setAppState( AppStatus.INVALID_BUNDLED_APP_OVERRIDE );
+                }
+                else
+                {
+                    log.error(
+                        String.format(
+                            "Failed to install app '%s': apps declared with core_app=true must override a bundled app",
+                            app.getShortName() ) );
+                    app.setAppState( AppStatus.INVALID_CORE_APP );
+                }
+
+                zip.close();
+                return app;
+            }
+
+            // -----------------------------------------------------------------
             // Unzip the app
             // -----------------------------------------------------------------
 
