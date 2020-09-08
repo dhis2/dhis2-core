@@ -95,6 +95,16 @@ public class TrackerErrorReport
         this.value = value;
 
     }
+    
+    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode )
+    {
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.mainKlass = null;
+        this.lineNumber = 0;
+        this.errorProperties = null;
+        
+    }
 
     @JsonProperty
     public TrackerErrorCode getErrorCode()

@@ -43,6 +43,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -54,10 +56,13 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.base.Enums;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Slf4j
 public class DefaultTrackerImportService
     implements TrackerImportService
 {
@@ -102,32 +107,60 @@ public class DefaultTrackerImportService
         {
             notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
         }
-
-        List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
-
-        trackerBundles = preProcessBundle( trackerBundles, importReport );
-
-        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
-
-        if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+        
+        try
         {
-            importReport.setStatus( TrackerStatus.ERROR );
-        }
-        else
-        {
-            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+
+            List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
+
+            trackerBundles = preProcessBundle( trackerBundles, importReport );
+
+            TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
+
+            if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
             {
-                deleteBundle( params, importReport, trackerBundles );
+                importReport.setStatus( TrackerStatus.ERROR );
             }
             else
             {
-                commitBundle( params, importReport, trackerBundles );
+                if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+                {
+                    deleteBundle( params, importReport, trackerBundles );
+                }
+                else
+                {
+                    commitBundle( params, importReport, trackerBundles );
+                }
             }
+
+            importReport.getTimings().setTotalImport( requestTimer.toString() );
+
+            TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
+
+        }
+        catch ( Exception e )
+        {
+            log.error( "Exception thrown during import.",e );
+            
+            TrackerValidationReport tvr = importReport.getTrackerValidationReport();
+            
+            if ( tvr == null )
+            {
+                tvr = new TrackerValidationReport();
+            }
+            
+            tvr.getErrorReports().add( new TrackerErrorReport( "Exception:" + e.getMessage(), TrackerErrorCode.E9999 ) );
+            importReport.setTrackerValidationReport( tvr );
+            importReport.setStatus( TrackerStatus.ERROR );
+            
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
+
         }
 
-        importReport.getTimings().setTotalImport( requestTimer.toString() );
-
-        TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
 
         if ( params.hasJobConfiguration() )
         {
