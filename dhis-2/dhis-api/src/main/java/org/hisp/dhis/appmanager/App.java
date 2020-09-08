@@ -133,7 +133,7 @@ public class App
     }
 
     /**
-     * Determine whether this app will overload a bundled app
+     * Determine if this app will overload a bundled app
      */
     @JsonProperty
     public boolean getIsBundledApp()
@@ -141,6 +141,10 @@ public class App
         return AppManager.BUNDLED_APPS.contains( getShortName() );
     }
 
+    /**
+     * Determine if the app is configured as a coreApp (to be served at the root
+     * namespace)
+     */
     @JsonProperty( "core_app" )
     @JacksonXmlProperty( localName = "core_app", namespace = DxfNamespaces.DXF_2_0 )
     public boolean getIsCoreApp()
