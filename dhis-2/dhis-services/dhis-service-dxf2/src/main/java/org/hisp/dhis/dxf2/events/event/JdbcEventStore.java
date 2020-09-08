@@ -233,8 +233,6 @@ public class JdbcEventStore implements EventStore
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final JdbcEventCommentStore jdbcEventCommentStore;
-
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
@@ -248,9 +246,9 @@ public class JdbcEventStore implements EventStore
         .expireAfterWrite( 10, TimeUnit.SECONDS )
         .build();
 
-    public JdbcEventStore(StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
-                          JdbcEventCommentStore jdbcEventCommentStore, @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
-                          CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env)
+    public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
+        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper,
+        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
@@ -261,7 +259,6 @@ public class JdbcEventStore implements EventStore
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
-        this.jdbcEventCommentStore = jdbcEventCommentStore;
         this.currentUserService = currentUserService;
         this.manager = identifiableObjectManager;
         this.jsonMapper = jsonMapper;
@@ -452,11 +449,11 @@ public class JdbcEventStore implements EventStore
         return events;
     }
 
-    public void saveEvents( List<ProgramStageInstance> events )
+    public List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> events )
     {
         try
         {
-            jdbcEventCommentStore.saveAllComments( saveAllEvents( events ) );
+            return saveAllEvents( events );
         }
         catch ( Exception e )
         {
@@ -466,7 +463,7 @@ public class JdbcEventStore implements EventStore
     }
 
     @Override
-    public void updateEvents( List<ProgramStageInstance> programStageInstances )
+    public List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances )
     {
         try
         {
@@ -489,7 +486,7 @@ public class JdbcEventStore implements EventStore
             throw e;
         }
 
-        jdbcEventCommentStore.saveAllComments( programStageInstances );
+        return programStageInstances;
     }
 
     @Override

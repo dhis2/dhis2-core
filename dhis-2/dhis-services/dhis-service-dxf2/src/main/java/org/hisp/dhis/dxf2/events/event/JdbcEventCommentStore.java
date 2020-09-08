@@ -52,7 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class JdbcEventCommentStore
+public class JdbcEventCommentStore implements EventCommentStore
 {
 
     private final JdbcTemplate jdbcTemplate;
@@ -74,11 +74,11 @@ public class JdbcEventCommentStore
      *
      * @param batch a List of {@see ProgramStageInstance}
      */
-    void saveAllComments( List<ProgramStageInstance> batch )
+    public void saveAllComments( List<ProgramStageInstance> batch )
     {
         try
         {
-            // List of PSI that has at least one non empty comment (i.e. PSO having comments
+            // List of PSI that has at least one non empty comment (i.e. PSI having comments
             // that can actually be saved)
             // In resulting PSI list, all comments without text are removed.
             List<ProgramStageInstance> programStageInstances = batch.stream()
