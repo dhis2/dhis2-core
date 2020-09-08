@@ -94,10 +94,6 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             if ( isNotEmpty( aoc ) )
             {
                 categoryOptionCombo = attributeOptionComboLoader.getCategoryOptionCombo( idScheme, aoc );
-                if ( categoryOptionCombo == null )
-                {
-                    categoryOptionCombo = attributeOptionComboLoader.getDefault();
-                }
             }
             else if ( programCatCombo != null && isNotEmpty( attributeCatOptions ) )
             {
