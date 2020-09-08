@@ -263,8 +263,8 @@ public class AttributeOptionComboLoader
         }
         else
         {
-            // FIXME luciano: throw an error??
-            return null;
+            throw new WorkContextLoaderException( "Expecting one Category Option Combo for option ids: [" + optionsId
+                + "], got " + categoryOptionCombos.size() );
         }
     }
 
@@ -280,7 +280,7 @@ public class AttributeOptionComboLoader
      */
     private CategoryOptionCombo loadCategoryOptionCombo( IdScheme idScheme, String id )
     {
-        String key = "categoryoptioncomboid";
+        final String key = "categoryoptioncomboid";
         // @formatter:off
         StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
             .put( "key", key )
@@ -324,7 +324,6 @@ public class AttributeOptionComboLoader
         categoryCombo.setName( rs.getString( "cc_name" ) );
         categoryOptionCombo.setCategoryCombo( categoryCombo );
         return categoryOptionCombo;
-
     }
 
     private CategoryOption loadCategoryOption( IdScheme idScheme, String id )

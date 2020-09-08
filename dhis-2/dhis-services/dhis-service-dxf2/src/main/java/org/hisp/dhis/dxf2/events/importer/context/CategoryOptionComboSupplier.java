@@ -89,7 +89,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             final String aoc = event.getAttributeOptionCombo();
             final String attributeCatOptions = event.getAttributeCategoryOptions();
 
-            CategoryOptionCombo categoryOptionCombo;
+            CategoryOptionCombo categoryOptionCombo = null;
 
             if ( isNotEmpty( aoc ) )
             {
@@ -100,11 +100,12 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
                 categoryOptionCombo = attributeOptionComboLoader.getAttributeOptionCombo( programCatCombo,
                     attributeCatOptions, aoc, idScheme );
             }
-            else
-            {
+
+            if (categoryOptionCombo == null) {
+
                 categoryOptionCombo = attributeOptionComboLoader.getDefault();
             }
-
+            
             if ( categoryOptionCombo != null )
             {
                 eventToCocMap.put( event.getUid(), categoryOptionCombo );
@@ -113,5 +114,4 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
 
         return eventToCocMap;
     }
-
 }
