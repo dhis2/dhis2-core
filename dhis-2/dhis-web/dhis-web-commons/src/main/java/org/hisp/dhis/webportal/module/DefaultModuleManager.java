@@ -157,7 +157,7 @@ public class DefaultModuleManager
         List<App> apps = appManager
             .getAccessibleApps( contextPath )
             .stream()
-            .filter( app -> app.getAppType() == AppType.APP && !app.getIsBundledApp() )
+            .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
             .collect( Collectors.toList() );
 
         modules.addAll( apps.stream().map( Module::getModule ).collect( Collectors.toList() ) );
