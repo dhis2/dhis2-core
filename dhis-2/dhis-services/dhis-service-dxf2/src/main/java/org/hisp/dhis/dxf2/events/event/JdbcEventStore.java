@@ -507,7 +507,7 @@ public class JdbcEventStore
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getOrgUnitIdScheme(),
             "ou.uid as ou_identifier, ",
-            "ouav.value as ou_identifier, ",
+            "ou.attributevalues -> '" + idSchemes.getOrgUnitIdScheme().getAttribute()  + "' ->> 'value' as ou_identifier, ",
             "ou.code as ou_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramIdScheme(),
@@ -517,12 +517,12 @@ public class JdbcEventStore
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramStageIdScheme(),
             "ps.uid as ps_identifier, ",
-            "psav.value as ps_identifier, ",
+            "ps.attributevalues -> '" + idSchemes.getProgramStageIdScheme().getAttribute()  + "' ->> 'value' as ps_identifier, ",
             "ps.code as ps_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getCategoryOptionComboIdScheme(),
             "coc.uid as coc_identifier, ",
-            "cocav.value as coc_identifier, ",
+            "coc.attributevalues -> '" + idSchemes.getCategoryOptionComboIdScheme().getAttribute()  + "' ->> 'value' as coc_identifier, ",
             "coc.code as coc_identifier, " );
 
         return sql;
@@ -733,8 +733,7 @@ public class JdbcEventStore
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
             + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) "
-            + getEventSelectJoinsByIdScheme( params.getIdSchemes() );
+            + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
