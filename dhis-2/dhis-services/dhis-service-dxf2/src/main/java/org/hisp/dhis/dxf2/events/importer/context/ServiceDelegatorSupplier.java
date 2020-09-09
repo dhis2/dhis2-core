@@ -30,11 +30,12 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.function.Supplier;
 
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,10 +43,13 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Luciano Fiandesio
  */
 @Component( "workContextServiceDelegatorSupplier" )
+@RequiredArgsConstructor
 public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 {
     private final ProgramInstanceStore programInstanceStore;
@@ -56,38 +60,27 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 
     private final ProgramRuleVariableService programRuleVariableService;
 
-    private final CurrentUserService currentUserService;
+    private final EventImporterUserService eventImporterUserService;
 
     private final ObjectMapper jsonMapper;
 
+    @Qualifier( "readOnlyJdbcTemplate" )
     private final JdbcTemplate jdbcTemplate;
 
-    public ServiceDelegatorSupplier( ProgramInstanceStore programInstanceStore,
-        TrackerAccessManager trackerAccessManager, ApplicationEventPublisher applicationEventPublisher,
-        ProgramRuleVariableService programRuleVariableService, CurrentUserService currentUserService,
-        ObjectMapper jsonMapper,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate)
-    {
-        this.programInstanceStore = programInstanceStore;
-        this.trackerAccessManager = trackerAccessManager;
-        this.applicationEventPublisher = applicationEventPublisher;
-        this.programRuleVariableService = programRuleVariableService;
-        this.currentUserService = currentUserService;
-        this.jsonMapper =jsonMapper;
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private final AuditManager auditManager;
 
     @Override
     public ServiceDelegator get()
     {
         return ServiceDelegator.builder()
-            .programInstanceStore( this.programInstanceStore )
-            .trackerAccessManager( this.trackerAccessManager )
-            .applicationEventPublisher( this.applicationEventPublisher )
-            .programRuleVariableService( this.programRuleVariableService )
-            .currentUserService( this.currentUserService )
+            .programInstanceStore( programInstanceStore )
+            .trackerAccessManager( trackerAccessManager )
+            .applicationEventPublisher( applicationEventPublisher )
+            .programRuleVariableService( programRuleVariableService )
+            .eventImporterUserService( eventImporterUserService )
             .jsonMapper( jsonMapper )
-            .jdbcTemplate( this.jdbcTemplate )
+            .jdbcTemplate( jdbcTemplate )
+            .auditManager( auditManager )
             .build();
     }
 }

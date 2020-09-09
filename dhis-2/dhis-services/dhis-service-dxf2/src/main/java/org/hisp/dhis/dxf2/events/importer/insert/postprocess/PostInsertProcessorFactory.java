@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
+package org.hisp.dhis.dxf2.events.importer.insert.postprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -42,20 +42,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio
  */
 @Getter
-@Component( "eventsPreInsertProcessorFactory" )
+@Component( "eventsPostInsertProcessorFactory" )
 @RequiredArgsConstructor
-public class PreInsertProcessorFactory extends AbstractProcessorFactory
+public class PostInsertProcessorFactory extends AbstractProcessorFactory
 {
 
-    @NonNull
-    @Qualifier( "eventInsertPreProcessorMap" )
+    @Qualifier( "eventInsertPostProcessorMap" )
     private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
 
     private final ImportStrategy importStrategy = CREATE;
