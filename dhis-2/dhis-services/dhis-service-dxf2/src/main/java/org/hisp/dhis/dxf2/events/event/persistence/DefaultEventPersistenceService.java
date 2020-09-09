@@ -39,15 +39,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventCommentStore;
 import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,22 +58,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class  DefaultEventPersistenceService
     implements
     EventPersistenceService
 {
     private final EventStore jdbcEventStore;
-
+    private final EventCommentStore jdbcEventCommentStore;
     private final IdentifiableObjectManager manager;
-
-    public DefaultEventPersistenceService( EventStore jdbcEventStore, IdentifiableObjectManager manager )
-    {
-        checkNotNull( jdbcEventStore );
-        checkNotNull( manager );
-
-        this.jdbcEventStore = jdbcEventStore;
-        this.manager = manager;
-    }
 
     @Override
     @Transactional
@@ -84,7 +76,8 @@ public class  DefaultEventPersistenceService
          */
         ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
-        jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+        List<ProgramStageInstance> programStageInstances = jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+        jdbcEventCommentStore.saveAllComments( programStageInstances );
 
         updateTeis( context, events );
     }
@@ -105,7 +98,8 @@ public class  DefaultEventPersistenceService
             final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
                 new ProgramStageInstanceMapper( context ), events );
 
-            jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
+            List<ProgramStageInstance> programStageInstances = jdbcEventStore.updateEvents(new ArrayList<>(eventProgramStageInstanceMap.values()));
+            jdbcEventCommentStore.saveAllComments( programStageInstances );
 
             updateTeis( context, events );
         }

@@ -58,6 +58,11 @@ import java.util.UUID;
 public class UserPropertyTransformer
     extends AbstractPropertyTransformer<User>
 {
+    public UserPropertyTransformer()
+    {
+        super( UserDto.class );
+    }
+
     @Override
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Object transform( Object o )
@@ -99,7 +104,7 @@ public class UserPropertyTransformer
         UserDto.UserDtoBuilder builder = UserDto.builder()
             .id( user.getUid() )
             .code( user.getCode() )
-            .name( user.getName() );
+            .displayName( user.getDisplayName() );
 
         if ( userCredentials != null )
         {
@@ -119,6 +124,8 @@ public class UserPropertyTransformer
 
         private String name;
 
+        private String displayName;
+
         private String username;
 
         @JsonProperty
@@ -137,6 +144,12 @@ public class UserPropertyTransformer
         public String getName()
         {
             return name;
+        }
+
+        @JsonProperty
+        public String getDisplayName()
+        {
+            return displayName;
         }
 
         @JsonProperty
@@ -162,6 +175,7 @@ public class UserPropertyTransformer
             gen.writeStringField( "id", user.getUid() );
             gen.writeStringField( "code", user.getCode() );
             gen.writeStringField( "name", user.getName() );
+            gen.writeStringField( "displayName", user.getDisplayName() );
 
             if ( userCredentials != null )
             {

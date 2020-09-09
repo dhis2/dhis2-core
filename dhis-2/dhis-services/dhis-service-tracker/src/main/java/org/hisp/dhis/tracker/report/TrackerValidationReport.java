@@ -28,15 +28,16 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.domain.TrackerDto;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,13 +56,9 @@ public class TrackerValidationReport
     @Builder.Default
     private List<TrackerWarningReport> warningReports = new ArrayList<>();
 
-    @JsonProperty
+    @JsonIgnore
     @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<TrackerDto> invalidDtos = new ArrayList<>();
 
     //-----------------------------------------------------------------------------------
     // Utility Methods
@@ -72,14 +69,12 @@ public class TrackerValidationReport
         add( validationReport.getErrorReports() );
         this.warningReports.addAll( validationReport.getWarningReports() );
         addPerfReports( validationReport.getPerformanceReport() );
-        this.invalidDtos.addAll( validationReport.getInvalidDtos() );
     }
 
     public void add( ValidationErrorReporter validationReporter )
     {
         this.errorReports.addAll( validationReporter.getReportList() );
         this.warningReports.addAll( validationReporter.getWarningsReportList() );
-        this.invalidDtos.addAll( validationReporter.getInvalidDTOs() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )

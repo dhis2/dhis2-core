@@ -131,7 +131,7 @@ public class EnrollmentInExistingValidationHook
                 .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() )
                 .collect( Collectors.toSet() );
 
-            if ( !activeOnly.isEmpty() )
+            if ( !activeOnly.isEmpty() && !activeOnly.contains( enrollment ) )
             {
                 // TODO: How do we do this check on an import set, this only checks when the DB already contains it
                 reporter.addError( newReport( TrackerErrorCode.E1015 )

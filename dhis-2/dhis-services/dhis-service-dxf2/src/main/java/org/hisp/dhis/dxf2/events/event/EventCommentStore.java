@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.dxf2.events.event;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,26 +28,21 @@ package org.hisp.dhis.security.oidc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import java.util.List;
+
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class OidcDisabledCondition extends PropertiesAwareConfigurationCondition
+public interface EventCommentStore
 {
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        String isEnabled = getConfiguration().getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED );
-        return isEnabled.equalsIgnoreCase( "on" );
-    }
+    /**
+     * Inserts non-empty comments from a List {@see ProgramStageInstance}
+     *
+     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * 
+     */
+    void saveAllComments( List<ProgramStageInstance> programStageInstances );
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
 }

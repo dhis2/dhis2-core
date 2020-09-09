@@ -128,7 +128,7 @@ public class EnrollmentAttrValidationTests
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data_2.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
