@@ -28,57 +28,21 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.user.User;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface EventStore
+public interface EventCommentStore
 {
     /**
-     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored
-     * at this stage.
+     * Inserts non-empty comments from a List {@see ProgramStageInstance}
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
-     *
-     * @return a list of saved program stage instances
+     * 
      */
-    List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> programStageInstances );
+    void saveAllComments( List<ProgramStageInstance> programStageInstances );
 
-    /**
-     * Updates a List of {@see ProgramStageInstance}. Notes are not stored
-     * at this stage.
-     *
-     * @param programStageInstances a List of {@see ProgramStageInstance}
-     *
-     * @return a list of saved program stage instances
-     */
-    List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances );
-
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
-        Map<String, Set<String>> psdesWithSkipSyncTrue );
-
-    List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-
-    List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-
-    int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-
-    /**
-     * Delete list of given events to be removed. This operation also remove comments
-     * connected to each Event.
-     *
-     * @param events List to be removed
-     */
-    void delete( List<Event> events );
-
-    void updateTrackedEntityInstances( List<String> teiUid, User user );
 }
