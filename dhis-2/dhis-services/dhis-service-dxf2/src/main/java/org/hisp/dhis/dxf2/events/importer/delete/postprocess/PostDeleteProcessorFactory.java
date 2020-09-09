@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
+package org.hisp.dhis.dxf2.events.importer.delete.postprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 
 import java.util.List;
 import java.util.Map;
@@ -49,17 +49,17 @@ import lombok.RequiredArgsConstructor;
  * @author Luciano Fiandesio
  */
 @Getter
-@Component( "eventsPreInsertProcessorFactory" )
+@Component( "eventsPostDeleteProcessorFactory" )
 @RequiredArgsConstructor
-public class PreInsertProcessorFactory extends AbstractProcessorFactory
+public class PostDeleteProcessorFactory extends AbstractProcessorFactory
 {
 
     @NonNull
-    @Qualifier( "eventInsertPreProcessorMap" )
+    @Qualifier( "eventDeletePostProcessorMap" )
     private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
 
-    private final ImportStrategy importStrategy = CREATE;
+    private final ImportStrategy importStrategy = DELETE;
 
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
+    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isDelete;
 
 }

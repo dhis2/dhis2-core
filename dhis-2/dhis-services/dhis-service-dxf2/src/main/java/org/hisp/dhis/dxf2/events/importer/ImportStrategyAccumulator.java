@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.importer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -72,7 +74,10 @@ public class ImportStrategyAccumulator
         }
         else if ( importStrategy.isDelete() )
         {
-            delete.addAll( events );
+            final Set<String> existingEventKeys = existingEvents.keySet();
+            delete.addAll( events.stream()
+                .filter( event -> existingEventKeys.contains( event.getUid() ) )
+                .collect( Collectors.toSet() ) );
         }
         else if ( importStrategy.isSync() )
         {
