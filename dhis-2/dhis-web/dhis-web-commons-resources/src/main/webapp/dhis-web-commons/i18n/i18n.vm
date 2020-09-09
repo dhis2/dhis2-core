@@ -140,7 +140,7 @@ var validationMessage   = {
         ,datelessthanequaltoday: '$encoder.jsEscape($i18n.getString( 'this_date_can_not_be_after_today' ) , "'")'
         ,required_group : '$encoder.jsEscape($i18n.getString( 'please_fill_out_at_least_one_of_these_fields' ) , "'")'
         ,required_select_group : '$encoder.jsEscape($i18n.getString( 'please_select_at_least_one_option_for_these_fields' ) , "'")'
-        ,password: '$encoder.jsEscape($i18n.getString( 'password_must_contain_at_least_one_capital_letter_and_one_digit' ) , "'")'
+        ,password: '$encoder.jsEscape($i18n.getString( 'password_must_contain_at_least_one_capital_letter_one_digit_and_one_special_character' ) , "'")'
         ,notOnlyDigits: '$encoder.jsEscape($i18n.getString('only_digits_are_not_allowed' ) , "'")'
         ,custome_regex: validatorFormat("{1}")
         ,greaterDate: '$encoder.jsEscape($i18n.getString('closedDate_should_be_greater_than_openDate' ) , "'")'

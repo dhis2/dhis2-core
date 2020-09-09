@@ -310,7 +310,7 @@ return flag;
 }, "");
 
 jQuery.validator.addMethod("password", function(value, element, param) {
-    return this.optional(element) || /[A-Z]+/.test(value) && /\d+/.test(value);
+    return this.optional(element) || /[A-Z]+/.test(value) && /\d+/.test(value) && /[^A-Za-z0-9]/.test(value);
 });
 
 jQuery.validator.addMethod("notOnlyDigits", function(value, element) {

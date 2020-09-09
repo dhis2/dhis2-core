@@ -39,6 +39,7 @@ function restoreSubmitHandler() {
     type: "post",
     success: function(data) {
       $("#restoreForm").hide();
+      $("#restoreErrorMessage").fadeOut();
       $("#restoreSuccessMessage").fadeIn();
     },
     error: function(jqXHR, textStatus, errorThrown) {
