@@ -33,6 +33,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -46,11 +47,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -136,15 +133,29 @@ public class TrackerController
     }
 
     @GetMapping( value = "/jobs/{uid}/report", produces = MediaType.APPLICATION_JSON_VALUE )
-    public TrackerImportReport getJobReport( @PathVariable String uid, HttpServletResponse response )
+    public TrackerImportReport getJobReport( @PathVariable String uid,
+        @RequestParam( defaultValue = "basic", required = false ) String reportmode,
+        HttpServletResponse response )
         throws HttpStatusCodeException
     {
+        TrackerBundleReportMode trackerBundleReportMode;
+        try
+        {
+            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportmode.toUpperCase() );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new HttpClientErrorException( HttpStatus.BAD_REQUEST,
+                "Value " + reportmode + " is not a valid report mode" );
+        }
+
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );
 
         if ( importReport != null )
         {
-            return (TrackerImportReport) importReport;
+            return trackerImportService.buildImportReport( (TrackerImportReport) importReport,
+                trackerBundleReportMode );
         }
 
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND );

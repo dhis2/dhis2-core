@@ -36,7 +36,6 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -114,12 +113,6 @@ public class TrackerBundle
      */
     @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
-
-    /**
-     * Give full report, or only include errors.
-     */
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Preheat bundle for all attached objects (or null if preheater not run yet).

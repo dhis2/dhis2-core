@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,48 +26,29 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerObjectReport;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
+package org.hisp.dhis.tracker.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public final class TrackerBundleReportModeUtils
-{
-    public static void filter( TrackerImportReport importReport, TrackerBundleReportMode reportMode )
+public class ImportUtils {
+    public static TrackerImportParams build(TrackerBundleParams params )
     {
-        if ( reportMode == TrackerBundleReportMode.FULL )
-        {
-            return;
-        }
-
-        TrackerBundleReport br = importReport.getBundleReport();
-        List<TrackerType> trackerTypes = new ArrayList<>( br.getTypeReportMap().keySet() );
-
-        trackerTypes.forEach( trackerType -> {
-            TrackerTypeReport typeReport = br.getTypeReportMap().get( trackerType );
-
-            if ( typeReport.getObjectReportMap().isEmpty() )
-            {
-                br.getTypeReportMap().remove( trackerType );
-                return;
-            }
-
-            List<Integer> objectReportKeys = new ArrayList<>( typeReport.getObjectReportMap().keySet() );
-
-            objectReportKeys.forEach( objectReportKey -> {
-                TrackerObjectReport trackerObjectReport = typeReport.getObjectReportMap().get( objectReportKey );
-
-                if ( trackerObjectReport.isEmpty() )
-                {
-                    typeReport.getObjectReportMap().remove( objectReportKey );
-                }
-            } );
-        } );
+        // @formatter:off
+        return TrackerImportParams.builder()
+                .user( params.getUser() )
+                .importMode( params.getImportMode() )
+                .importStrategy( params.getImportStrategy() )
+                .skipPatternValidation( true )
+                .identifiers( params.getIdentifiers() )
+                .atomicMode( params.getAtomicMode() )
+                .flushMode( params.getFlushMode() )
+                .validationMode( params.getValidationMode() )
+                .trackedEntities( params.getTrackedEntities() )
+                .enrollments( params.getEnrollments() )
+                .events( params.getEvents() )
+                .relationships( params.getRelationships() )
+                .build();
+        // @formatter:on
     }
 }
