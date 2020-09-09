@@ -30,11 +30,16 @@ package org.hisp.dhis.useraccount.action;
 
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
+
+import static java.lang.Integer.max;
+import static java.lang.Integer.min;
 
 /**
  * @author Lars Helge Overland
@@ -47,6 +52,9 @@ public class IsRestoreTokenValidAction
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // Input
@@ -77,6 +85,24 @@ public class IsRestoreTokenValidAction
     }
 
     // -------------------------------------------------------------------------
+    // Output
+    // -------------------------------------------------------------------------
+
+    private String minPasswordLength;
+
+    public String getMinPasswordLength()
+    {
+        return minPasswordLength;
+    }
+
+    private String maxPasswordLength;
+
+    public String getMaxPasswordLength()
+    {
+        return maxPasswordLength;
+    }
+
+    // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
 
@@ -84,7 +110,11 @@ public class IsRestoreTokenValidAction
     public String execute()
     {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
-        
+
+        // TODO: Remove hardcoded password length limits here and in ValidationUtils.passwordIsValid
+        minPasswordLength = String.valueOf( max(8, (Integer) systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH ) ) );
+        maxPasswordLength = String.valueOf( min(35, (Integer) systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH ) ) );
+
         if ( credentials == null )
         {
             return ERROR;
