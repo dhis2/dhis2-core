@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -53,6 +54,7 @@ import lombok.RequiredArgsConstructor;
 public class PostDeleteProcessorFactory extends AbstractProcessorFactory
 {
 
+    @NonNull
     @Qualifier( "eventDeletePostProcessorMap" )
     private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
 

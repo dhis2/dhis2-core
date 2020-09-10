@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -52,21 +53,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 {
+    @NonNull
     private final ProgramInstanceStore programInstanceStore;
 
+    @NonNull
     private final TrackerAccessManager trackerAccessManager;
 
+    @NonNull
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    @NonNull
     private final ProgramRuleVariableService programRuleVariableService;
 
+    @NonNull
     private final EventImporterUserService eventImporterUserService;
 
+    @NonNull
     private final ObjectMapper jsonMapper;
 
+    @NonNull
     @Qualifier( "readOnlyJdbcTemplate" )
     private final JdbcTemplate jdbcTemplate;
 
+    @NonNull
     private final AuditManager auditManager;
 
     @Override

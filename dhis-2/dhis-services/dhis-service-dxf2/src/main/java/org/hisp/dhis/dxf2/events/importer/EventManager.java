@@ -55,6 +55,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,17 +64,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class EventManager
 {
+    @NonNull
     @Qualifier( "eventsInsertValidationFactory" )
     private final EventChecking insertValidationFactory;
 
+    @NonNull
     @Qualifier( "eventsUpdateValidationFactory" )
     private final EventChecking updateValidationFactory;
 
+    @NonNull
     @Qualifier( "eventsDeleteValidationFactory" )
     private final EventChecking deleteValidationFactory;
 
+    @NonNull
     private final ProcessingManager processingManager;
 
+    @NonNull
     private final EventPersistenceService eventPersistenceService;
 
     private final static String IMPORT_ERROR_STRING = "Invalid or conflicting data";
