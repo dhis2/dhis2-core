@@ -130,6 +130,8 @@ public class JpaQueryUtils
                 return builder.like( path, "%" + attrValue + "%" );
             case LIKE:
                 return builder.like( path, (String) attrValue ); // assume user provide the wild cards
+            case NOT_LIKE:
+                return builder.notLike( path, (String) attrValue );
             default:
                 throw new IllegalStateException( "expecting a search mode!" );
         }
@@ -144,8 +146,11 @@ public class JpaQueryUtils
         EQUALS( "eq" ), // Match exactly
         ANYWHERE( "any" ), // Like search with '%' prefix and suffix
         STARTING_LIKE( "sl" ), // Like search and add a '%' prefix before searching
+        NOT_STARTING_LIKE( "nsl" ),
         LIKE( "li" ), // User provides the wild card
-        ENDING_LIKE( "el" ); // LIKE search and add a '%' suffix before searching
+        ENDING_LIKE( "el" ), // LIKE search and add a '%' suffix before searching
+        NOT_LIKE( "nli"),
+        NOT_ENDING_LIKE( "nel");
 
         private final String code;
 

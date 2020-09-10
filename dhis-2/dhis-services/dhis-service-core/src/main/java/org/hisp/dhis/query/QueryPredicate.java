@@ -1,38 +1,11 @@
 package org.hisp.dhis.query;
 
-/*
- * Copyright (c) 2004-2020, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.util.DateUtils;
@@ -40,27 +13,186 @@ import org.hisp.dhis.util.DateUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.*;
+import java.util.function.Function;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public final class QueryUtils
+public class QueryPredicate<T extends Comparable<? extends T>, Y>
 {
-    public static <T> T parseValue( Class<T> klass, Object objectValue )
+    private Root<Y> root;
+    private CriteriaBuilder builder;
+    private String path;
+    private Object argValue;
+    private Schema schema;
+    private String operator;
+    private Class<T> klass;
+    private Class<? extends T> propertyKlass;
+
+    private Function<Root<Y>, Predicate> getPredicate()
     {
-        return parseValue( klass, null, objectValue );
+        switch ( operator )
+        {
+        case "eq":
+        {
+            return root -> builder.equal( root.get( path ), parseValue( propertyKlass ) );
+        }
+        case "!eq":
+        {
+            return root -> builder.notEqual( root.get( path ), parseValue( propertyKlass, argValue ) );
+        }
+        case "ne":
+        {
+            return root -> builder.notEqual( root.get( path ), parseValue( propertyKlass, argValue ) );
+        }
+        case "neq":
+        {
+            return root -> builder.notEqual( root.get( path ), parseValue( propertyKlass, argValue ) );
+        }
+        case "gt":
+        {
+            return root -> builder.greaterThan( root.get( path ).as( propertyKlass ), QueryUtils.parseValue( propertyKlass, argValue ) );
+        }
+        case "lt":
+        {
+            return Restrictions.lt( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+        }
+        case "gte":
+        {
+            return Restrictions.ge( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+        }
+        case "ge":
+        {
+            return Restrictions.ge( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+        }
+        case "lte":
+        {
+            return Restrictions.le( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+        }
+        case "le":
+        {
+            return Restrictions.le( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+        }
+        case "like":
+        {
+            return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
+        }
+        case "!like":
+        {
+            return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
+        }
+        case "$like":
+        {
+            return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+        }
+        case "!$like":
+        {
+            return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+        }
+        case "like$":
+        {
+            return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
+        }
+        case "!like$":
+        {
+            return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
+        }
+        case "ilike":
+        {
+            return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
+        }
+        case "!ilike":
+        {
+            return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
+        }
+        case "startsWith":
+        case "$ilike":
+        {
+            return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+        }
+        case "!$ilike":
+        {
+            return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+        }
+        case "token":
+        {
+            return Restrictions.token( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+        }
+        case "!token":
+        {
+            return Restrictions.notToken( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+        }
+        case "endsWith":
+        case "ilike$":
+        {
+            return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
+        }
+        case "!ilike$":
+        {
+            return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
+        }
+        case "in":
+        {
+            Collection<?> values = null;
+
+            if ( property.isCollection() )
+            {
+                values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+            }
+            else
+            {
+                values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
+            }
+
+            if ( values == null || values.isEmpty() )
+            {
+                throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
+            }
+
+            return Restrictions.in( path, values );
+        }
+        case "!in":
+        {
+            Collection<?> values = null;
+
+            if ( property.isCollection() )
+            {
+                values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+            }
+            else
+            {
+                values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
+            }
+
+            if ( values == null || values.isEmpty() )
+            {
+                throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
+            }
+
+            return Restrictions.notIn( path, values );
+        }
+        case "null":
+        {
+            return Restrictions.isNull( path );
+        }
+        case "!null":
+        {
+            return Restrictions.isNotNull( path );
+        }
+        case "empty":
+        {
+            return Restrictions.isEmpty( path );
+        }
+        default:
+        {
+            throw new QueryParserException( "`" + operator + "` is not a valid operator." );
+        }
+        }
     }
 
-    @SuppressWarnings( "unchecked" )
-    public static <T> T parseValue( Class<T> klass, Class<?> secondaryKlass, Object objectValue )
+    public  T parseValue( Object objectValue )
     {
         if ( klass.isInstance( objectValue ) )
         {
@@ -71,8 +203,12 @@ public final class QueryUtils
         {
             return (T) objectValue;
         }
+        return parseValue( null, ( String ) objectValue );
+    }
 
-        String value = (String) objectValue;
+    @SuppressWarnings( "unchecked" )
+    private T parseValue( Class<?> secondaryKlass, String value )
+    {
 
         if ( Integer.class.isAssignableFrom( klass ) )
         {
@@ -197,7 +333,8 @@ public final class QueryUtils
         else
         {
             Object[] possibleValues = klass.getEnumConstants();
-            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: " + Arrays.toString( possibleValues ) );
+            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: " + Arrays
+                .toString( possibleValues ) );
         }
     }
 

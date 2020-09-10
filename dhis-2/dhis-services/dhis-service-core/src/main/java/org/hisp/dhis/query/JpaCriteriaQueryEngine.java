@@ -1,10 +1,9 @@
 package org.hisp.dhis.query;
 
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Subqueries;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
@@ -13,6 +12,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -59,7 +60,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     public List<T> query( Query query )
     {
         Schema schema = query.getSchema();
-        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );
+        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject> ) schema.getKlass() );
 
         Class<T> klass = (Class<T>) schema.getKlass();
 
@@ -89,30 +90,23 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
             return sessionFactory.getCurrentSession().createQuery( criteriaQuery.select( root.get( "id" ) ).distinct( true ) ).getResultList();
         }
 
+        store.getSharingCriteria( query.getUser() );
 
+        DetachedCriteria detachedCriteria = buildCriteria(  builder, query );
 
-
-
-
-        store.getSharingCriteria();
-
-        DetachedCriteria detachedCriteria = buildCriteria( store.getSharingDetachedCriteria( query.getUser() ), query );
-        Criteria criteria = store.getCriteria();
-
-        if ( criteria == null )
+        if ( !query.getOrders().isEmpty() )
         {
-            return new ArrayList<>();
+            criteriaQuery.orderBy( query.getOrders().stream()
+                .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getName() ) )
+                    : builder.desc( root.get( o.getProperty().getName() ) ) ).collect( Collectors.toList() ) );
         }
 
-        criteria.setFirstResult( query.getFirstResult() );
-        criteria.setMaxResults( query.getMaxResults() );
+        TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
 
-        for ( Order order : query.getOrders() )
-        {
-            criteria.addOrder( getHibernateOrder( order ) );
-        }
+        typedQuery.setFirstResult( query.getFirstResult() );
+        typedQuery.setMaxResults( query.getMaxResults() );
 
-        return criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) ).list();
+        return typedQuery.getResultList();
     }
 
     @Override
@@ -140,17 +134,17 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         return stores.get( klass );
     }
 
-    private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
-    {
-        if ( query.isEmpty() )
-        {
-            return detachedCriteria.setProjection(
-                Projections.distinct( Projections.id() )
-            );
-        }
 
-        org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunctionType() );
-        detachedCriteria.add( junction );
+    private List<Function<Root>, Predicate>> buildPredicates( CriteriaBuilder builder, Query query )
+    {
+
+    }
+
+    private DetachedCriteria buildCriteria( CriteriaBuilder builder,  Query query )
+    {
+        List<Predicate> predicates = new ArrayList<>();
+
+        Predicate junction = getHibernateJunction( builder, query.getRootJunctionType() );
 
         for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
         {
@@ -162,6 +156,53 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         return detachedCriteria.setProjection(
             Projections.distinct( Projections.id() )
         );
+    }
+
+    private Predicate getHibernateJunction( CriteriaBuilder builder, Junction.Type type )
+    {
+        switch ( type )
+        {
+            case AND:
+                return builder.conjunction();
+            case OR:
+                return builder.disjunction();
+        }
+
+        return builder.conjunction();
+    }
+
+    private void addCriterion( org.hibernate.criterion.Junction criteria, org.hisp.dhis.query.Criterion criterion )
+    {
+        if ( Restriction.class.isInstance( criterion ) )
+        {
+            Restriction restriction = (Restriction) criterion;
+            org.hibernate.criterion.Criterion hibernateCriterion = getHibernateCriterion( restriction );
+
+            if ( hibernateCriterion != null )
+            {
+                criteria.add( hibernateCriterion );
+            }
+        }
+        else if ( Junction.class.isInstance( criterion ) )
+        {
+            org.hibernate.criterion.Junction junction = null;
+
+            if ( Disjunction.class.isInstance( criterion ) )
+            {
+                junction = org.hibernate.criterion.Restrictions.disjunction();
+            }
+            else if ( Conjunction.class.isInstance( criterion ) )
+            {
+                junction = Restrictions.conjunction();
+            }
+
+            criteria.add( junction );
+
+            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
+            {
+                addJunction( junction, c );
+            }
+        }
     }
 
 }
