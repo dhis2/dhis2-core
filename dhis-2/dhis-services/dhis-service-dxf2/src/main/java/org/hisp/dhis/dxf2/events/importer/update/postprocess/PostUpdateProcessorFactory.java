@@ -32,37 +32,33 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.EventProcessing;
+import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
 import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author maikel arabori
  */
+@Getter
 @Component( "eventsPostUpdateProcessorFactory" )
-public class PostUpdateProcessorFactory implements EventProcessing
+@RequiredArgsConstructor
+public class PostUpdateProcessorFactory extends AbstractProcessorFactory
 {
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap;
+    @NonNull
+    @Qualifier( "eventUpdatePostProcessorMap" )
+    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
 
-    public PostUpdateProcessorFactory(
-        final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap )
-    {
-        this.eventUpdatePostProcessorMap = eventUpdatePostProcessorMap;
-    }
+    private final ImportStrategy importStrategy = UPDATE;
 
-    @Override
-    public void process( final WorkContext workContext, final List<Event> events )
-    {
-        final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
+    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isUpdate;
 
-        if ( ImportStrategyUtils.isUpdate( importStrategy ) )
-        {
-            new ProcessorRunner( workContext, events ).run( eventUpdatePostProcessorMap.get( UPDATE ) );
-        }
-    }
 }
