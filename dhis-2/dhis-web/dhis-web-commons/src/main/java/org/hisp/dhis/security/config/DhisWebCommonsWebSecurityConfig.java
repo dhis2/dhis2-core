@@ -179,6 +179,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
                 .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
                 .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
+                .antMatchers( "/dhis-web-sms-configuration/**" ).hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
 
                 .antMatchers( "/**" ).authenticated()
