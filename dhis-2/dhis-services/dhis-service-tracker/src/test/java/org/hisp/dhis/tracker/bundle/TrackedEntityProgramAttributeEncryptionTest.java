@@ -117,19 +117,17 @@ public class TrackedEntityProgramAttributeEncryptionTest
     public void testTrackedEntityProgramAttributeEncryptedValue()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_encryption_data.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

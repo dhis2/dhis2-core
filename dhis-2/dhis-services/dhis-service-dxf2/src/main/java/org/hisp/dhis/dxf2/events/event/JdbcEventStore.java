@@ -119,7 +119,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -130,8 +129,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -190,17 +187,6 @@ public class JdbcEventStore implements EventStore
         "eventdatavalues) " +           // 20
         // @formatter:on
         "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
-
-    String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (trackedentitycommentid, " + // 0
-        "uid, " +           // 1
-        "commenttext, " +   // 2
-        "created, " +       // 3
-        "creator," +        // 4
-        "lastUpdated" +     // 5
-        ") " + "values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
-
-    private final static String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (programstageinstanceid, "
-            + "sort_order, trackedentitycommentid) values (?, ?, ?)";
 
     private final static String UPDATE_EVENT_SQL = "update programstageinstance set " +
         // @formatter:off
@@ -261,8 +247,8 @@ public class JdbcEventStore implements EventStore
         .build();
 
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
-        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
-        IdentifiableObjectManager identifiableObjectManager, Environment env )
+        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper,
+        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
@@ -463,11 +449,11 @@ public class JdbcEventStore implements EventStore
         return events;
     }
 
-    public void saveEvents( List<ProgramStageInstance> events )
+    public List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> events )
     {
         try
         {
-            saveAllComments( saveAllEvents( events ) );
+            return saveAllEvents( events );
         }
         catch ( Exception e )
         {
@@ -477,7 +463,7 @@ public class JdbcEventStore implements EventStore
     }
 
     @Override
-    public void updateEvents( List<ProgramStageInstance> programStageInstances )
+    public List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances )
     {
         try
         {
@@ -500,7 +486,7 @@ public class JdbcEventStore implements EventStore
             throw e;
         }
 
-        saveAllComments( programStageInstances );
+        return programStageInstances;
     }
 
     @Override
@@ -1575,102 +1561,6 @@ public class JdbcEventStore implements EventStore
         }
     }
 
-    /**
-     * Save all the comments ({@see TrackedEntityComment} for the list of
-     * {@see ProgramStageInstance}
-     * 
-     * @param batch a List of {@see ProgramStageInstance}
-     */
-    private void saveAllComments( List<ProgramStageInstance> batch )
-    {
-        try
-        {
-            for ( ProgramStageInstance psi : batch )
-            {
-                int sortOrder = 1;
-                if ( psi.getId() > 0 )
-                {
-                    // if the PSI is already in the db, fetch the latest sort order for the
-                    // notes, to avoid conflicts
-                    sortOrder = jdbcTemplate.queryForObject(
-                        "select coalesce(max(sort_order) + 1, 1) from programstageinstancecomments where programstageinstanceid = "
-                            + psi.getId(),
-                        Integer.class );
-                }
-                List<TrackedEntityComment> comments = psi.getComments();
-
-                for ( TrackedEntityComment comment : comments )
-                {
-                    if ( !StringUtils.isEmpty( comment.getCommentText() ) )
-                    {
-                        Long commentId = saveComment( comment );
-                        if ( commentId != null && commentId != 0 )
-                        {
-                            saveCommentToEvent( psi.getId(), commentId, sortOrder );
-                            sortOrder++;
-                        }
-                    }
-                }
-            }
-        }
-        catch ( DataAccessException dae )
-        {
-            log.error( "An error occurred saving a Program Stage Instance comment", dae );
-            throw dae;
-        }
-    }
-
-    private Long saveComment( TrackedEntityComment comment )
-    {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        try
-        {
-            jdbcTemplate.update( connection -> {
-                PreparedStatement ps = connection.prepareStatement( INSERT_EVENT_NOTE_SQL, new String[]{"trackedentitycommentid"} );
-
-                ps.setString( 1, comment.getUid() );
-                ps.setString( 2, comment.getCommentText() );
-                ps.setTimestamp( 3, toTimestamp( comment.getCreated() ) );
-                ps.setString( 4, comment.getCreator() );
-                ps.setTimestamp( 5, toTimestamp( comment.getLastUpdated() ) );
-
-                return ps;
-            }, keyHolder );
-        }
-        catch ( DataAccessException e )
-        {
-            log.error( "An error occurred saving a TrackedEntityComment", e );
-            return null;
-        }
-
-        return (long) keyHolder.getKey();
-    }
-
-    private void saveCommentToEvent( Long programStageInstanceId, Long commentId, int sortOrder )
-    {
-        try
-        {
-            jdbcTemplate.update( connection -> {
-                PreparedStatement ps = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK );
-
-                ps.setLong( 1, programStageInstanceId );
-                ps.setInt( 2, sortOrder );
-                ps.setLong( 3, commentId );
-
-                return ps;
-            } );
-        }
-        catch ( DataAccessException e )
-        {
-            log.error(
-                "An error occurred saving a link between a TrackedEntityComment and a ProgramStageInstance with primary key: "
-                    + programStageInstanceId,
-                e );
-            throw e;
-        }
-    }
-
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
         if ( teiUids.isEmpty() )
@@ -1698,7 +1588,7 @@ public class JdbcEventStore implements EventStore
 
                 jdbcTemplate.execute( getUpdateTeiSql(), (PreparedStatementCallback<Boolean>) psc -> {
                     psc.setString( 1, result );
-                    psc.setTimestamp( 2, toTimestamp( new Date() ) );
+                    psc.setTimestamp( 2, JdbcEventSupport.toTimestamp( new Date() ) );
                     if ( user != null )
                     {
                         psc.setLong( 3, user.getId() );
@@ -1738,21 +1628,21 @@ public class JdbcEventStore implements EventStore
         // @formatter:off
         ps.setLong(         1, event.getProgramInstance().getId() );
         ps.setLong(         2, event.getProgramStage().getId() );
-        ps.setTimestamp(    3, toTimestamp( event.getDueDate() ) );
-        ps.setTimestamp(    4, toTimestamp( event.getExecutionDate() ) );
+        ps.setTimestamp(    3, JdbcEventSupport.toTimestamp( event.getDueDate() ) );
+        ps.setTimestamp(    4, JdbcEventSupport.toTimestamp( event.getExecutionDate() ) );
         ps.setLong(         5, event.getOrganisationUnit().getId() );
         ps.setString(       6, event.getStatus().toString() );
-        ps.setTimestamp(    7, toTimestamp( event.getCompletedDate() ) );
+        ps.setTimestamp(    7, JdbcEventSupport.toTimestamp( event.getCompletedDate() ) );
         ps.setString(       8, event.getUid() );
-        ps.setTimestamp(    9, toTimestamp( new Date() ) );
-        ps.setTimestamp(    10, toTimestamp( new Date() ) );
+        ps.setTimestamp(    9, JdbcEventSupport.toTimestamp( new Date() ) );
+        ps.setTimestamp(    10, JdbcEventSupport.toTimestamp( new Date() ) );
         ps.setLong(         11, event.getAttributeOptionCombo().getId() );
         ps.setString(       12, event.getStoredBy() );
         ps.setString(       13, event.getCompletedBy() );
         ps.setBoolean(      14, false );
         ps.setString(       15, event.getCode() );
-        ps.setTimestamp(    16, toTimestamp( event.getCreatedAtClient() ) );
-        ps.setTimestamp(    17, toTimestamp( event.getLastUpdatedAtClient() ) );
+        ps.setTimestamp(    16, JdbcEventSupport.toTimestamp( event.getCreatedAtClient() ) );
+        ps.setTimestamp(    17, JdbcEventSupport.toTimestamp( event.getLastUpdatedAtClient() ) );
         ps.setObject(       18, toGeometry( event.getGeometry() )  );
         if ( event.getAssignedUser() != null )
         {
@@ -1774,15 +1664,15 @@ public class JdbcEventStore implements EventStore
         ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
         ps.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
         ps.setString( 6, programStageInstance.getStatus().toString() );
-        ps.setTimestamp( 7, toTimestamp( programStageInstance.getCompletedDate() ) );
-        ps.setTimestamp( 8, toTimestamp( new Date() ) );
+        ps.setTimestamp( 7, JdbcEventSupport.toTimestamp( programStageInstance.getCompletedDate() ) );
+        ps.setTimestamp( 8, JdbcEventSupport.toTimestamp( new Date() ) );
         ps.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
         ps.setString( 10, programStageInstance.getStoredBy() );
         ps.setString( 11, programStageInstance.getCompletedBy() );
         ps.setBoolean( 12, programStageInstance.isDeleted() );
         ps.setString( 13, programStageInstance.getCode() );
-        ps.setTimestamp( 14, toTimestamp( programStageInstance.getCreatedAtClient() ) );
-        ps.setTimestamp( 15, toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
+        ps.setTimestamp( 14, JdbcEventSupport.toTimestamp( programStageInstance.getCreatedAtClient() ) );
+        ps.setTimestamp( 15, JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
         ps.setObject( 16, toGeometry( programStageInstance.getGeometry()  )  );
 
         if ( programStageInstance.getAssignedUser() != null )
@@ -1923,11 +1813,6 @@ public class JdbcEventStore implements EventStore
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
                     .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
-    }
-
-    private Timestamp toTimestamp( Date date )
-    {
-        return date != null ? new Timestamp( date.getTime() ) : null;
     }
 
     private PGgeometry toGeometry( Geometry geometry )

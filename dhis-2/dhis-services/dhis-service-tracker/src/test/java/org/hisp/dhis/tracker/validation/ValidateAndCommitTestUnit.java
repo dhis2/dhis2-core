@@ -77,7 +77,7 @@ public class ValidateAndCommitTestUnit
     {
         trackerBundleParams.setImportStrategy( trackerImportStrategy );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        trackerBundle = trackerBundleService.create( trackerBundleParams );
 
         validationReport = trackerValidationService.validate( trackerBundle );
 

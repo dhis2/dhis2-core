@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.dxf2.events.event;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +28,21 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.program.ProgramStageInstance;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class TrackerErrorMessage
+public interface EventCommentStore
 {
-    private final TrackerErrorCode errorCode;
+    /**
+     * Inserts non-empty comments from a List {@see ProgramStageInstance}
+     *
+     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * 
+     */
+    void saveAllComments( List<ProgramStageInstance> programStageInstances );
 
-    private final List<String> args = new ArrayList<>();
-
-    public TrackerErrorMessage( TrackerErrorCode errorCode )
-    {
-        this.errorCode = errorCode;
-    }
-
-    public TrackerErrorMessage of( TrackerErrorCode errorCode )
-    {
-        return new TrackerErrorMessage( errorCode );
-    }
-
-    public void addArgument( String arg )
-    {
-        args.add( arg );
-    }
-
-    public TrackerErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
-
-    public String getMessage()
-    {
-        return MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
-    }
 }

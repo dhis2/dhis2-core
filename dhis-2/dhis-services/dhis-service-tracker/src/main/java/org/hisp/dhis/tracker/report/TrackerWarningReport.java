@@ -31,13 +31,13 @@ package org.hisp.dhis.tracker.report;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -56,44 +56,21 @@ import lombok.Data;
 @Builder
 public class TrackerWarningReport
 {
-    @JsonProperty
-    private final Class<?> mainKlass;
-
     private final String warningMessage;
-
-    @JsonProperty
-    private String mainId;
-
-    @JsonProperty
-    private Class<?> warningKlass;
-
-    @JsonProperty
-    private final String[] warningProperties;
-
-    @JsonProperty
-    private Object value;
-
-    private final int lineNumber;
 
     private TrackerErrorCode warningCode;
 
-    private Object mainObject;
+    private final TrackerType trackerType;
 
-    protected int listIndex;
+    private final String uid;
 
-    public TrackerWarningReport( Class<?> mainKlass, String warningMessage, TrackerErrorCode warningCode, int line,
-        String mainId, Class<?> warningKlass, String[] warningProperties, Object value )
+    public TrackerWarningReport( String warningMessage, TrackerErrorCode warningCode, TrackerType trackerType,
+        String uid )
     {
-        this.mainKlass = mainKlass;
         this.warningMessage = warningMessage;
         this.warningCode = warningCode;
-
-        this.lineNumber = line;
-        this.mainId = mainId;
-        this.warningKlass = warningKlass;
-        this.warningProperties = warningProperties;
-        this.value = value;
-
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
     @JsonProperty
@@ -130,15 +107,9 @@ public class TrackerWarningReport
                 args.add( s );
             }
 
-            if ( this.mainObject != null )
-            {
-                this.mainId = parseArgs( identifier, this.mainObject );
-            }
-
             String warningMessage = MessageFormat.format( warningCode.getMessage(), args.toArray( new Object[0] ) );
 
-            return new TrackerWarningReport( this.mainKlass, warningMessage, this.warningCode, this.listIndex, this.mainId,
-                this.mainKlass, this.warningProperties, this.value );
+            return new TrackerWarningReport( warningMessage, this.warningCode, trackerType, uid );
         }
 
         public static String parseArgs( TrackerIdentifier identifier, Object argument )
@@ -181,12 +152,6 @@ public class TrackerWarningReport
         return "TrackerWarningReport{" +
             "message=" + warningMessage +
             ", warningCode=" + warningCode +
-            ", mainId='" + mainId + '\'' +
-            ", mainClass=" + mainKlass +
-            ", warningClass=" + warningKlass +
-            ", warningProperties=" + Arrays.toString( warningProperties ) +
-            ", value=" + value +
-            ", objectIndex=" + lineNumber +
             '}';
     }
 }
