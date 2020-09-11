@@ -28,6 +28,8 @@
 
 package org.hisp.dhis.visualization;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import java.io.Serializable;
 
 import org.hisp.dhis.common.FontStyle;
@@ -35,8 +37,6 @@ import org.hisp.dhis.common.FontStyle;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 /**
  * Class representing text styling properties for various components of
@@ -120,41 +120,49 @@ public class VisualizationFontStyle
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public FontStyle getTargetLineLabel() {
+    public FontStyle getTargetLineLabel()
+    {
         return targetLineLabel;
     }
 
-    public void setTargetLineLabel(FontStyle targetLineLabel) {
+    public void setTargetLineLabel( FontStyle targetLineLabel )
+    {
         this.targetLineLabel = targetLineLabel;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public FontStyle getBaseLineLabel() {
+    public FontStyle getBaseLineLabel()
+    {
         return baseLineLabel;
     }
 
-    public void setBaseLineLabel(FontStyle baseLineLabel) {
+    public void setBaseLineLabel( FontStyle baseLineLabel )
+    {
         this.baseLineLabel = baseLineLabel;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public FontStyle getSeriesAxisLabel() {
+    public FontStyle getSeriesAxisLabel()
+    {
         return seriesAxisLabel;
     }
 
-    public void setSeriesAxisLabel(FontStyle seriesAxisLabel) {
+    public void setSeriesAxisLabel( FontStyle seriesAxisLabel )
+    {
         this.seriesAxisLabel = seriesAxisLabel;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public FontStyle getCategoryAxisLabel() {
+    public FontStyle getCategoryAxisLabel()
+    {
         return categoryAxisLabel;
     }
 
-    public void setCategoryAxisLabel(FontStyle categoryAxisLabel) {
+    public void setCategoryAxisLabel( FontStyle categoryAxisLabel )
+    {
         this.categoryAxisLabel = categoryAxisLabel;
     }
 
