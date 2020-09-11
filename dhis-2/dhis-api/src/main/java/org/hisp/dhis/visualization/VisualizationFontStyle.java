@@ -56,6 +56,14 @@ public class VisualizationFontStyle
 
     private FontStyle verticalAxisTitle;
 
+    private FontStyle targetLineLabel;
+
+    private FontStyle baseLineLabel;
+
+    private FontStyle seriesAxisLabel;
+
+    private FontStyle categoryAxisLabel;
+
     private FontStyle legend;
 
     public VisualizationFontStyle()
@@ -108,6 +116,46 @@ public class VisualizationFontStyle
     public void setVerticalAxisTitle( FontStyle verticalAxisTitle )
     {
         this.verticalAxisTitle = verticalAxisTitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getTargetLineLabel() {
+        return targetLineLabel;
+    }
+
+    public void setTargetLineLabel(FontStyle targetLineLabel) {
+        this.targetLineLabel = targetLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getBaseLineLabel() {
+        return baseLineLabel;
+    }
+
+    public void setBaseLineLabel(FontStyle baseLineLabel) {
+        this.baseLineLabel = baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getSeriesAxisLabel() {
+        return seriesAxisLabel;
+    }
+
+    public void setSeriesAxisLabel(FontStyle seriesAxisLabel) {
+        this.seriesAxisLabel = seriesAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getCategoryAxisLabel() {
+        return categoryAxisLabel;
+    }
+
+    public void setCategoryAxisLabel(FontStyle categoryAxisLabel) {
+        this.categoryAxisLabel = categoryAxisLabel;
     }
 
     @JsonProperty
