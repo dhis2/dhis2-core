@@ -126,23 +126,21 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
     public void testRunRuleEngineForEventOnBundleCreate()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                 TrackerBundleParams.class );
 
-        assertEquals( 8, trackerBundle.getEvents().size() );
+         assertEquals( 8, trackerBundleParams.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create(
+        TrackerBundle trackerBundle = trackerBundleService.create(
             TrackerBundleParams.builder()
-                .events( trackerBundle.getEvents() )
-                .enrollments( trackerBundle.getEnrollments() )
-                .trackedEntities( trackerBundle.getTrackedEntities() )
+                .events( trackerBundleParams.getEvents() )
+                .enrollments( trackerBundleParams.getEnrollments() )
+                .trackedEntities( trackerBundleParams.getTrackedEntities() )
                 .build() );
 
-        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
+        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
 
-        assertEquals( 1, trackerBundles.size() );
-        assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
+        assertEquals( trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size() );
     }
 }

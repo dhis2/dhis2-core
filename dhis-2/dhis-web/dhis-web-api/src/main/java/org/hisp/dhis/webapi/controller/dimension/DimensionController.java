@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,7 +26,21 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+package org.hisp.dhis.webapi.controller.dimension;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -51,6 +63,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,14 +74,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -93,17 +98,22 @@ public class DimensionController
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
 
+    @Autowired
+    private DimensionItemPageHandler dimensionItemPageHandler;
+
     // -------------------------------------------------------------------------
     // Controller
     // -------------------------------------------------------------------------
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options,
+        List<String> filters, List<Order> orders )
         throws QueryParserException
     {
         List<DimensionalObject> dimensionalObjects;
-        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, getPaginationData(options), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders,
+            getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( dimensionService.getAllDimensions() );
@@ -115,34 +125,49 @@ public class DimensionController
     @Override
     protected List<DimensionalObject> getEntity( String uid, WebOptions options )
     {
-        return Lists.newArrayList( dimensionService.getDimensionalObjectCopy( uid, true ) );
+        // This check prevents a NPE. Otherwise it will result in HTTP 500 to the client.
+        if ( isNotBlank( uid ) && isValidUid( uid ) )
+        {
+            return newArrayList( dimensionService.getDimensionalObjectCopy( uid, true ) );
+        }
+
+        return emptyList();
     }
 
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/items", method = RequestMethod.GET )
-    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters, Model model,
-        OrderParams orderParams, HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
+    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters,
+        OrderParams orderParams )
+        throws QueryParserException
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> filters = newArrayList( contextService.getParameterValues( "filter" ) );
         List<Order> orders = orderParams.getOrders( getSchema( DimensionalItemObject.class ) );
+        WebOptions options = new WebOptions( parameters );
 
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.defaultPreset().getFields() );
         }
 
-        List<DimensionalItemObject> items = dimensionService.getCanReadDimensionItems( uid );
-        Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
-        query.setObjects( items );
+        // Retrieving all items available for the given uid.
+        List<DimensionalItemObject> totalItems = dimensionService.getCanReadDimensionItems( uid );
+
+        // Creating a query based on the previous items found and pagination data/rules.
+        Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders,
+            getPaginationData( options ) );
+        query.setObjects( totalItems );
         query.setDefaultOrder();
 
-        items = (List<DimensionalItemObject>) queryService.query( query );
+        // Querying the items based on the query rules built.
+        List<DimensionalItemObject> paginatedItems = (List<DimensionalItemObject>) queryService.query( query );
 
+        // Creating the response root node.
         RootNode rootNode = NodeUtils.createMetadata();
 
-        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
-            new FieldFilterParams( items, fields ) ) );
+        CollectionNode collectionNode = rootNode
+            .addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
+                new FieldFilterParams( paginatedItems, fields ) ) );
         collectionNode.setName( "items" );
 
         for ( Node node : collectionNode.getChildren() )
@@ -150,13 +175,18 @@ public class DimensionController
             ((AbstractNode) node).setName( "item" );
         }
 
+        // Adding pagination elements to the root node.
+        final int totalOfItems = isNotEmpty( totalItems ) ? totalItems.size() : 0;
+        dimensionItemPageHandler.addPaginationToNodeIfEnabled( rootNode, options, uid, totalOfItems );
+
         return rootNode;
     }
 
     @RequestMapping( value = "/constraints", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDimensionConstraints( @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links )
+    public @ResponseBody RootNode getDimensionConstraints(
+        @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
         List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
 
         if ( links )
@@ -165,7 +195,8 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensionConstraints, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( dimensionConstraints, fields ) ) );
 
         return rootNode;
     }
@@ -173,7 +204,7 @@ public class DimensionController
     @RequestMapping( value = "/recommendations", method = RequestMethod.GET )
     public @ResponseBody RootNode getRecommendedDimensions( @RequestParam Set<String> dimension )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
         DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).build();
 
         if ( fields.isEmpty() )
@@ -184,7 +215,8 @@ public class DimensionController
         List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
+        rootNode.addChild(
+            fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
 
         return rootNode;
     }
@@ -192,10 +224,11 @@ public class DimensionController
     @RequestMapping( value = "/dataSet/{uid}", method = RequestMethod.GET )
     public @ResponseBody RootNode getDimensionsForDataSet( @PathVariable String uid,
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
-        Model model, HttpServletResponse response ) throws WebMessageException
+        Model model, HttpServletResponse response )
+        throws WebMessageException
     {
         WebMetadata metadata = new WebMetadata();
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
 
         DataSet dataSet = identifiableObjectManager.get( DataSet.class, uid );
 
@@ -223,7 +256,8 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( metadata.getDimensions(), fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( metadata.getDimensions(), fields ) ) );
 
         return rootNode;
     }

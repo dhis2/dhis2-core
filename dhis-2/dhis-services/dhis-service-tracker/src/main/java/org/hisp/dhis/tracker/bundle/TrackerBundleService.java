@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -43,14 +41,14 @@ public interface TrackerBundleService
      * @param params Params object for this bundle.
      * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
      */
-    List<TrackerBundle> create( TrackerBundleParams params );
+    TrackerBundle create( TrackerBundleParams params );
 
     /**
-     * Call rule engine for tracker bundles.
+     * Call rule engine for tracker bundle.
      *
-     * @return Tracker bundles populated with rule effects
+     * @return Tracker bundle populated with rule effects
      */
-    List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles );
+    TrackerBundle runRuleEngine( TrackerBundle bundle );
 
     /**
      * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.

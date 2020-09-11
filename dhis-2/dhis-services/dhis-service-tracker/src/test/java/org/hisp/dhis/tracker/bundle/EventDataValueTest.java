@@ -129,19 +129,17 @@ public class EventDataValueTest
     public void testEventDataValue()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_with_data_values.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
@@ -157,20 +155,18 @@ public class EventDataValueTest
     public void testTrackedEntityProgramAttributeValueUpdate()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_with_data_values.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                TrackerBundleParams.class );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
-        assertEquals( 1, trackerBundles.size() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
@@ -183,20 +179,17 @@ public class EventDataValueTest
 
         // update
 
-        trackerBundle = renderService
+        trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_with_updated_data_values.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                TrackerBundleParams.class );
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> updatedEvents = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, updatedEvents.size() );

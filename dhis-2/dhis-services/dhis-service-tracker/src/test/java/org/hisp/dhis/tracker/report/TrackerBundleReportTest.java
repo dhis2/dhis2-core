@@ -45,7 +45,6 @@ public class TrackerBundleReportTest
     {
         TrackerBundleReport report = new TrackerBundleReport();
         assertEquals( TrackerStatus.OK, report.getStatus() );
-        assertNull( report.getBundleParams() );
         assertNotNull( report.getTypeReportMap() );
         assertTrue( report.isEmpty() );
     }

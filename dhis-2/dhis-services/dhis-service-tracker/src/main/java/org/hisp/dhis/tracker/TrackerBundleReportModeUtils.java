@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
@@ -47,28 +48,27 @@ public final class TrackerBundleReportModeUtils
             return;
         }
 
-        importReport.getBundleReports().forEach( br -> {
-            List<TrackerType> trackerTypes = new ArrayList<>( br.getTypeReportMap().keySet() );
+        TrackerBundleReport br = importReport.getBundleReport();
+        List<TrackerType> trackerTypes = new ArrayList<>( br.getTypeReportMap().keySet() );
 
-            trackerTypes.forEach( trackerType -> {
-                TrackerTypeReport typeReport = br.getTypeReportMap().get( trackerType );
+        trackerTypes.forEach( trackerType -> {
+            TrackerTypeReport typeReport = br.getTypeReportMap().get( trackerType );
 
-                if ( typeReport.getObjectReportMap().isEmpty() )
+            if ( typeReport.getObjectReportMap().isEmpty() )
+            {
+                br.getTypeReportMap().remove( trackerType );
+                return;
+            }
+
+            List<Integer> objectReportKeys = new ArrayList<>( typeReport.getObjectReportMap().keySet() );
+
+            objectReportKeys.forEach( objectReportKey -> {
+                TrackerObjectReport trackerObjectReport = typeReport.getObjectReportMap().get( objectReportKey );
+
+                if ( trackerObjectReport.isEmpty() )
                 {
-                    br.getTypeReportMap().remove( trackerType );
-                    return;
+                    typeReport.getObjectReportMap().remove( objectReportKey );
                 }
-
-                List<Integer> objectReportKeys = new ArrayList<>( typeReport.getObjectReportMap().keySet() );
-
-                objectReportKeys.forEach( objectReportKey -> {
-                    TrackerObjectReport trackerObjectReport = typeReport.getObjectReportMap().get( objectReportKey );
-
-                    if ( trackerObjectReport.isEmpty() )
-                    {
-                        typeReport.getObjectReportMap().remove( objectReportKey );
-                    }
-                } );
             } );
         } );
     }

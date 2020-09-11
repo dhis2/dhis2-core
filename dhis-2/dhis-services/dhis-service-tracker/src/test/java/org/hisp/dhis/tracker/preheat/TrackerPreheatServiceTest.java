@@ -214,13 +214,13 @@ public class TrackerPreheatServiceTest
     public void testPreheatValidation()
         throws IOException
     {
-        TrackerBundle bundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
-        assertTrue( bundle.getTrackedEntities().isEmpty() );
-        assertTrue( bundle.getEnrollments().isEmpty() );
-        assertFalse( bundle.getEvents().isEmpty() );
+        assertTrue( trackerBundleParams.getTrackedEntities().isEmpty() );
+        assertTrue( trackerBundleParams.getEnrollments().isEmpty() );
+        assertFalse( trackerBundleParams.getEvents().isEmpty() );
 
         TrackerPreheatParams params = new TrackerPreheatParams();
         trackerPreheatService.validate( params );
@@ -244,18 +244,18 @@ public class TrackerPreheatServiceTest
 
         objectBundleService.commit( objectBundle );
 
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                TrackerBundleParams.class );
 
-        assertTrue( trackerBundle.getTrackedEntities().isEmpty() );
-        assertTrue( trackerBundle.getEnrollments().isEmpty() );
-        assertFalse( trackerBundle.getEvents().isEmpty() );
+        assertTrue( trackerBundleParams.getTrackedEntities().isEmpty() );
+        assertTrue( trackerBundleParams.getEnrollments().isEmpty() );
+        assertFalse( trackerBundleParams.getEvents().isEmpty() );
 
         TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         trackerPreheatService.validate( trackerPreheatParams );
