@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
+package org.hisp.dhis.dxf2.events.importer;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,38 +28,40 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 /**
- * @author Luciano Fiandesio
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Getter
-@Component( "eventsPreInsertProcessorFactory" )
-@RequiredArgsConstructor
-public class PreInsertProcessorFactory extends AbstractProcessorFactory
+public abstract class AbstractProcessorFactory implements EventProcessing
 {
 
-    @NonNull
-    @Qualifier( "eventInsertPreProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    @Override
+    public void process( final WorkContext workContext, final List<Event> events )
+    {
+        final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
 
-    private final ImportStrategy importStrategy = CREATE;
+        if ( isApplicable( importStrategy ) )
+        {
+            new ProcessorRunner( workContext, events ).run( getProcessorMap().get( getImportStrategy() ) );
+        }
+    }
 
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
+    protected abstract Predicate<ImportStrategy> getImportStrategyPredicate();
+
+    protected abstract ImportStrategy getImportStrategy();
+
+    protected abstract Map<ImportStrategy, List<Class<? extends Processor>>> getProcessorMap();
+
+    private boolean isApplicable( ImportStrategy importStrategy )
+    {
+        return getImportStrategyPredicate().test( importStrategy );
+    }
 
 }
