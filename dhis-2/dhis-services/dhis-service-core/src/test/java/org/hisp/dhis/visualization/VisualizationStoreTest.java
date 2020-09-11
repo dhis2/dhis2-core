@@ -28,6 +28,11 @@
 
 package org.hisp.dhis.visualization;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Font;
 import org.hisp.dhis.common.FontStyle;
@@ -35,11 +40,6 @@ import org.hisp.dhis.common.TextAlign;
 import org.hisp.dhis.period.RelativePeriods;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -92,8 +92,8 @@ public class VisualizationStoreTest
         VisualizationFontStyle fontStyle = new VisualizationFontStyle();
         fontStyle.setVisualizationTitle( visualizationTitle );
         fontStyle.setHorizontalAxisTitle( horizontalAxisTitle );
-        fontStyle.setSeriesAxisLabel(seriesAxisLabel);
-        fontStyle.setTargetLineLabel(targetLineLabel);
+        fontStyle.setSeriesAxisLabel( seriesAxisLabel );
+        fontStyle.setTargetLineLabel( targetLineLabel );
 
         RelativePeriods relativePeriods = new RelativePeriods()
             .setLast30Days( true );
