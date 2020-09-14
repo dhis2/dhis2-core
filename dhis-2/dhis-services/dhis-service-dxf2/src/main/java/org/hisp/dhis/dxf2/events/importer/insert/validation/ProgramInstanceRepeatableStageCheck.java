@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -53,6 +54,12 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
+        TrackedEntityInstance tei = null;
+        
+        if ( program.isRegistration() )
+        {
+            tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
+        }
 
         /*
          * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
@@ -60,9 +67,10 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
          */
         // @formatter:off
         if ( programInstance != null && 
+             tei != null &&
              program.isRegistration() && 
              !programStage.getRepeatable() && 
-             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getUid() ) )
+             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getId(), tei.getId() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
@@ -73,20 +81,20 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         return success();
     }
 
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, String programStageUid )
+    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programStageId, long trackedEntityInstanceId )
     {
         // @formatter:off
         final String sql = "select exists( " +
                 "select * " +
                 "from programstageinstance psi " +
                 "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-                "  join programstage ps on psi.programstageid = ps.programstageid " +
-                "where ps.uid = ? " +
+                "where psi.programstageid = ? " +
                 "  and psi.deleted = false " +
+                "  and pi.trackedentityinstanceid = ? " +
                 "  and psi.status != 'SKIPPED'" +
                 ")";
         // @formatter:on
 
-        return jdbcTemplate.queryForObject( sql, Boolean.class, programStageUid );
+        return jdbcTemplate.queryForObject( sql, Boolean.class, programStageId, trackedEntityInstanceId );
     }
 }

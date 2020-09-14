@@ -28,11 +28,11 @@ package org.hisp.dhis.webapi.webdomain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Map;
+
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.Options;
 import org.hisp.dhis.query.Junction;
-
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,7 +65,6 @@ public class WebOptions
      * This method will return a boolean flag depending on the current paging value
      * and the given default return value. The input param will be used to force the
      * return of this method in the cases where the PAGING is not set.
-     *
      * @param defaultReturnValue is the value to be returned if the paging is not
      *        set.
      * @return the boolean flag.

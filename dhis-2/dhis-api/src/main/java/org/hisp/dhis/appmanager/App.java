@@ -95,6 +95,9 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
+    /**
+     * Generated.
+     */
     private AppStatus appState = AppStatus.OK;
 
     private boolean isBundledApp = false;
