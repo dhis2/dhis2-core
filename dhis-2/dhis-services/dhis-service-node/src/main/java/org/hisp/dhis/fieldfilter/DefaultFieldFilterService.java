@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -307,6 +308,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                 if ( property.isCollection() )
                 {
                     Collection<?> collection = (Collection<?>) returnValue;
+
+                    HibernateUtils.initializeProxy(  collection );
 
                     child = new CollectionNode( property.getCollectionName(), collection.size() );
                     child.setNamespace( property.getNamespace() );
