@@ -37,7 +37,5 @@ public enum TextAlign
 {
     LEFT,
     CENTER,
-    RIGHT,
-    TOP,
-    BOTTOM;
+    RIGHT;
 }
