@@ -77,15 +77,24 @@ public class AssignedUserValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
+        /*
+         * No implementation.
+         */
     }
 
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
+        /*
+         * No implementation.
+         */
     }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
+        /*
+         * No implementation.
+         */
     }
 }
