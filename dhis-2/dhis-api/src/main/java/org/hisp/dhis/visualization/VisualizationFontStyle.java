@@ -28,6 +28,8 @@
 
 package org.hisp.dhis.visualization;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import java.io.Serializable;
 
 import org.hisp.dhis.common.FontStyle;
@@ -36,11 +38,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-
 /**
- * Class representing text styling properties for various components of
- * a visualization.
+ * Class representing text styling properties for various components of a
+ * visualization.
  *
  * @author Lars Helge Overland
  */
@@ -55,6 +55,14 @@ public class VisualizationFontStyle
     private FontStyle horizontalAxisTitle;
 
     private FontStyle verticalAxisTitle;
+
+    private FontStyle targetLineLabel;
+
+    private FontStyle baseLineLabel;
+
+    private FontStyle seriesAxisLabel;
+
+    private FontStyle categoryAxisLabel;
 
     private FontStyle legend;
 
@@ -108,6 +116,54 @@ public class VisualizationFontStyle
     public void setVerticalAxisTitle( FontStyle verticalAxisTitle )
     {
         this.verticalAxisTitle = verticalAxisTitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getTargetLineLabel()
+    {
+        return targetLineLabel;
+    }
+
+    public void setTargetLineLabel( FontStyle targetLineLabel )
+    {
+        this.targetLineLabel = targetLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getBaseLineLabel()
+    {
+        return baseLineLabel;
+    }
+
+    public void setBaseLineLabel( FontStyle baseLineLabel )
+    {
+        this.baseLineLabel = baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getSeriesAxisLabel()
+    {
+        return seriesAxisLabel;
+    }
+
+    public void setSeriesAxisLabel( FontStyle seriesAxisLabel )
+    {
+        this.seriesAxisLabel = seriesAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public FontStyle getCategoryAxisLabel()
+    {
+        return categoryAxisLabel;
+    }
+
+    public void setCategoryAxisLabel( FontStyle categoryAxisLabel )
+    {
+        this.categoryAxisLabel = categoryAxisLabel;
     }
 
     @JsonProperty
