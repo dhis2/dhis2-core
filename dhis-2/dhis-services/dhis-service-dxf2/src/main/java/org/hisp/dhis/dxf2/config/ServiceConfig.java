@@ -63,7 +63,7 @@ import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;

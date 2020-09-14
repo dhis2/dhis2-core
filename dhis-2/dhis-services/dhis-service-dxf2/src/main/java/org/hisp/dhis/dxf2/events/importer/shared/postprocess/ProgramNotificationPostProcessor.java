@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.postprocess;
+package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
@@ -42,10 +42,6 @@ import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
 import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
-
 /**
  * @author maikel arabori
  */
@@ -58,11 +54,7 @@ public class ProgramNotificationPostProcessor implements Processor
         {
             // When this processor is invoked from insert event, then programStageInstance
             // might be null and need to be built from Event.
-            final ProgramStageInstance programStageInstance = getProgramStageInstance(
-                WorkContextWithEvent.builder()
-                    .event( event )
-                    .workContext( ctx )
-                    .build() );
+            final ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
 
             final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator()
                 .getApplicationEventPublisher();
@@ -83,30 +75,9 @@ public class ProgramNotificationPostProcessor implements Processor
         }
     }
 
-    private ProgramStageInstance getProgramStageInstance( WorkContextWithEvent workContextWithEvent )
+    private ProgramStageInstance getProgramStageInstance( WorkContext ctx, Event event )
     {
-        return Optional.ofNullable( workContextWithEvent )
-            .map( WorkContextWithEvent::getWorkContext )
-            .map( WorkContext::getProgramStageInstanceMap )
-            .map( programStageInstanceMap -> programStageInstanceMap.get( workContextWithEvent.getEvent() ) )
-            .orElseGet( () -> mapFromEvent( workContextWithEvent ) );
-    }
-
-    private ProgramStageInstance mapFromEvent( WorkContextWithEvent workContextWithEvent )
-    {
-        ProgramStageInstanceMapper programStageInstanceMapper = new ProgramStageInstanceMapper(
-            workContextWithEvent.getWorkContext() );
-        return programStageInstanceMapper.map( workContextWithEvent.getEvent() );
-    }
-
-    @Builder
-    @Data
-    private static class WorkContextWithEvent
-    {
-        @NonNull
-        private final WorkContext workContext;
-
-        @NonNull
-        private final Event event;
+        return Optional.ofNullable( ctx.getProgramStageInstanceMap().get( event.getUid() ) )
+            .orElseGet( () -> new ProgramStageInstanceMapper( ctx ).map( event ) );
     }
 }
