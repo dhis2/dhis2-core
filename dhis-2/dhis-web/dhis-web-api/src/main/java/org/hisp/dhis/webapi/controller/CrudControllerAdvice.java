@@ -64,6 +64,7 @@ import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -84,6 +85,11 @@ import com.fasterxml.jackson.core.JsonParseException;
 @ControllerAdvice
 public class CrudControllerAdvice
 {
+    //Add sensitive exceptions into this array
+    private static final Class<?>[] SENSITIVE_EXCEPTIONS = { BadSqlGrammarException.class, org.hibernate.QueryException.class };
+    
+    private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
+    
     @Autowired
     private WebMessageService webMessageService;
 
@@ -283,13 +289,42 @@ public class CrudControllerAdvice
 
     private String getExceptionMessage( Exception ex )
     {
+        boolean isMessageSensitive = false; 
+      
         String message = ex.getMessage();
+        
+        if ( isSensitiveException( ex ) )
+        {
+            isMessageSensitive = true;
+        }
 
         if ( ex.getCause() != null )
         {
             message = ex.getCause().getMessage();
+            
+            if ( isSensitiveException( ex.getCause() ) )
+            {
+                isMessageSensitive = true;
+            }
         }
 
+        if (isMessageSensitive)
+        {
+            message = GENERIC_ERROR_MESSAGE;
+        }
         return message;
+    }
+    
+    private boolean isSensitiveException( Throwable e )
+    {
+        for ( Class<?> exClass : SENSITIVE_EXCEPTIONS )
+        {
+            if ( exClass.isAssignableFrom( e.getClass() ) )
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }
