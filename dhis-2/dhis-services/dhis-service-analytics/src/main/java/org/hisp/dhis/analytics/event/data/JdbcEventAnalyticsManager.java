@@ -178,8 +178,8 @@ public class JdbcEventAnalyticsManager
             + "else ST_AsGeoJSON(ST_Centroid(ST_Collect(" + quotedClusterField + ")), 6) end as center" );
 
         columns.add( params.isIncludeClusterPoints() ?
-                "array_to_string(array_agg(psi), ',') as points" :
-                "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
+            "array_to_string(array_agg(psi), ',') as points" :
+            "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
 
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
 
