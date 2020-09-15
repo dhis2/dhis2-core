@@ -11,15 +11,15 @@ public class WorkContextLoaderException extends RuntimeException
         super();
     }
 
-    public WorkContextLoaderException(String message) {
+    public WorkContextLoaderException( String message ) {
         super( message );
     }
 
-    public WorkContextLoaderException(String message, Throwable cause) {
+    public WorkContextLoaderException( String message, Throwable cause ) {
         super( message, cause );
     }
 
-    public WorkContextLoaderException(Throwable cause) {
+    public WorkContextLoaderException( Throwable cause ) {
         super( cause );
     }
 }
