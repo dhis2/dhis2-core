@@ -36,6 +36,7 @@ import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -203,9 +204,13 @@ public class ConfigurationController
     }
 
     @RequestMapping( value = "/infrastructuralIndicators", method = RequestMethod.GET )
-    public @ResponseBody IndicatorGroup getInfrastructuralIndicators( Model model, HttpServletRequest request )
+    public @ResponseBody IndicatorGroup getInfrastructuralIndicators()
     {
-        return configurationService.getConfiguration().getInfrastructuralIndicators();
+        IndicatorGroup group = configurationService.getConfiguration().getInfrastructuralIndicators();
+
+        HibernateUtils.initializeProxy( group );
+
+        return group;
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
@@ -230,9 +235,13 @@ public class ConfigurationController
     }
 
     @RequestMapping( value = "/infrastructuralDataElements", method = RequestMethod.GET )
-    public @ResponseBody DataElementGroup getInfrastructuralDataElements( Model model, HttpServletRequest request )
+    public @ResponseBody DataElementGroup getInfrastructuralDataElements()
     {
-        return configurationService.getConfiguration().getInfrastructuralDataElements();
+        DataElementGroup group = configurationService.getConfiguration().getInfrastructuralDataElements();
+
+        HibernateUtils.initializeProxy( group );
+
+        return group;
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
