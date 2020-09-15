@@ -12,14 +12,14 @@ public class WorkContextLoaderException extends RuntimeException
     }
 
     public WorkContextLoaderException(String message) {
-        super(message);
+        super( message );
     }
 
     public WorkContextLoaderException(String message, Throwable cause) {
-        super(message, cause);
+        super( message, cause );
     }
 
     public WorkContextLoaderException(Throwable cause) {
-        super(cause);
+        super( cause );
     }
 }

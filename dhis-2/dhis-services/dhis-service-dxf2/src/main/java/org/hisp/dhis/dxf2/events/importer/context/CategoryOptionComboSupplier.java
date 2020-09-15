@@ -101,7 +101,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
                     attributeCatOptions, aoc, idScheme );
             }
 
-            if (categoryOptionCombo == null) {
+            if ( categoryOptionCombo == null ) {
 
                 categoryOptionCombo = attributeOptionComboLoader.getDefault();
             }
