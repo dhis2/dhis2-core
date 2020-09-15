@@ -55,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hisp.dhis.tracker.utils.ImportUtils.build;
 import static org.junit.Assert.*;
 
 /**
@@ -206,26 +207,5 @@ public class EventDataValueTest
         assertThat( values, hasItem( "Second" ) );
         assertThat( values, hasItem( "Fourth updated" ) );
 
-    }
-
-    private TrackerImportParams build( TrackerBundleParams params )
-    {
-        // @formatter:off
-        return TrackerImportParams.builder()
-            .user( params.getUser() )
-            .importMode( params.getImportMode() )
-            .importStrategy( params.getImportStrategy() )
-            .skipPatternValidation( true )
-            .identifiers( params.getIdentifiers() )
-            .atomicMode( params.getAtomicMode() )
-            .flushMode( params.getFlushMode() )
-            .validationMode( params.getValidationMode() )
-            .reportMode( params.getReportMode() )
-            .trackedEntities( params.getTrackedEntities() )
-            .enrollments( params.getEnrollments() )
-            .events( params.getEvents() )
-            .relationships( params.getRelationships() )
-            .build();
-        // @formatter:on
     }
 }

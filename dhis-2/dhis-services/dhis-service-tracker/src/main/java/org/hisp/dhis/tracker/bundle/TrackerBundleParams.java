@@ -36,7 +36,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -130,13 +129,6 @@ public class TrackerBundleParams
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
-     * Give full report, or only include errors.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
-
-    /**
      * Tracked entities to import.
      */
     @JsonProperty
@@ -180,7 +172,6 @@ public class TrackerBundleParams
             .skipSideEffects( skipSideEffects )
             .flushMode( flushMode )
             .validationMode( validationMode )
-            .reportMode( reportMode )
             .trackedEntities( trackedEntities )
             .enrollments( enrollments )
             .events( events )

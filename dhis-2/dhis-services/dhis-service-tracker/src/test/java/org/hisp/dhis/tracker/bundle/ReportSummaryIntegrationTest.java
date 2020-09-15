@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.utils.ImportUtils.build;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -363,23 +364,5 @@ public class ReportSummaryIntegrationTest
         assertEquals( 1, trackerImportEventReport.getStats().getUpdated() );
         assertEquals( 1, trackerImportEventReport.getStats().getIgnored() );
         assertEquals( 0, trackerImportEventReport.getStats().getDeleted() );
-    }
-
-    private TrackerImportParams build(TrackerBundleParams params) {
-        return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
-            .skipPatternValidation( params.isSkipTextPatternValidation() )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
-                .reportMode( params.getReportMode() )
-                .trackedEntities( params.getTrackedEntities() )
-                .enrollments( params.getEnrollments() )
-                .events( params.getEvents() )
-                .relationships( params.getRelationships() )
-                .build();
     }
 }
