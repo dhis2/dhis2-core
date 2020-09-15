@@ -32,7 +32,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 
 public class ImportUtils {
-    public static TrackerImportParams build(TrackerBundleParams params )
+    public static TrackerImportParams build( TrackerBundleParams params )
     {
         // @formatter:off
         return TrackerImportParams.builder()
