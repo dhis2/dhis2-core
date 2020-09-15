@@ -106,7 +106,7 @@ public class SystemSettingInterceptor
         map.put( SettingKey.FLAG_IMAGE.getName(), systemSettingManager.getFlagImage() );
         map.put( SettingKey.CREDENTIALS_EXPIRES.getName(), systemSettingManager.credentialsExpires() );
         map.put( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA.getName(), systemSettingManager.selfRegistrationNoRecaptcha() );
-        map.put( SYSPROP_PORTAL, defaultIfEmpty( System.getProperty( SYSPROP_PORTAL ), String.valueOf( false ) ) );
+        map.put( SYSPROP_PORTAL, defaultIfEmpty( System.getProperty( SYSPROP_PORTAL ), String.valueOf( true ) ) );
         
         map.putAll( systemSettingManager.getSystemSettings( SETTINGS ) );
         
