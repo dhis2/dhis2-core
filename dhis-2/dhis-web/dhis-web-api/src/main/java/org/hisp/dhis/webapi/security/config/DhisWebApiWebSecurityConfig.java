@@ -327,7 +327,7 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
         {
-            return new DHIS2BasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+            return new DHIS2BasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
         }
     }
 
