@@ -289,7 +289,6 @@ public class DhisWebApiWebSecurityConfig
             OAuth2AuthenticationProcessingFilter resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
             resourcesServerFilter.setAuthenticationEntryPoint( authenticationEntryPoint );
             resourcesServerFilter.setAuthenticationManager( oauthAuthenticationManager );
-
             resourcesServerFilter.setStateless( false );
 
             http
@@ -312,15 +311,15 @@ public class DhisWebApiWebSecurityConfig
                 )
                 .httpBasic()
                 .authenticationEntryPoint( basicAuthenticationEntryPoint() )
-                .and().csrf().disable()
+                .and()
+                .exceptionHandling()
+                .accessDeniedHandler( accessDeniedHandler )
+                .and()
+                .csrf().disable()
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class )
-
-                .addFilterAfter( resourcesServerFilter, BasicAuthenticationFilter.class )
-                .exceptionHandling()
-                .accessDeniedHandler( accessDeniedHandler )
-                .authenticationEntryPoint( authenticationEntryPoint );
+                .addFilterAfter( resourcesServerFilter, BasicAuthenticationFilter.class );
 
             setHttpHeaders( http );
         }
@@ -328,7 +327,7 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
         {
-            return new DHIS2BasicAuthenticationEntryPoint();
+            return new DHIS2BasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
         }
     }
 
