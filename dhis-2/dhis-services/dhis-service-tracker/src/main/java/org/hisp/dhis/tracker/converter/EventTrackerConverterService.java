@@ -181,7 +181,6 @@ public class EventTrackerConverterService
             programStageInstance.setCreatedAtClient( now );
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );
-
             programStageInstance.setProgramInstance(
                 getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), programStage.getProgram() ) );
         }

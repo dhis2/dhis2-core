@@ -188,7 +188,7 @@ public class DefaultTrackerImportService
         if ( params.hasJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
         }
     }
 

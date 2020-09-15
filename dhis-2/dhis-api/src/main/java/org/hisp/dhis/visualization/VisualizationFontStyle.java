@@ -39,8 +39,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Class representing text styling properties for various components of
- * a visualization.
+ * Class representing text styling properties for various components of a
+ * visualization.
  *
  * @author Lars Helge Overland
  */

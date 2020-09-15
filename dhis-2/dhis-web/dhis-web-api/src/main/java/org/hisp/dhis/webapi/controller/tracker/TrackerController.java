@@ -96,33 +96,13 @@ public class TrackerController
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
-    public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
-        throws IOException
+    public void postJsonTracker()
     {
-        TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( request.getInputStream(), TrackerBundleParams.class );
-        TrackerBundle trackerBundle = trackerBundleParams.toTrackerBundle();
-        params.setTrackedEntities( trackerBundle.getTrackedEntities() );
-        params.setEnrollments( trackerBundle.getEnrollments() );
-        params.setEvents( trackerBundle.getEvents() );
-        params.setRelationships( trackerBundle.getRelationships() );
-        params.setUser( currentUser );
-
-        String jobId = trackerMessageManager.addJob( params );
-
-        String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
-        response.setHeader( "Location", location );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        renderService.toJson( response.getOutputStream(), new WebMessage()
-            .setMessage( "Tracker job added" )
-            .setResponse(
-                TrackerJobWebMessageResponse.builder()
-                    .id( jobId ).location( location )
-                    .build()
-            ) );
+        /**
+         * Returns NOT_IMPLEMENTED for 2.35, as the importer itself is not in a complete state, and should not be
+         * used.
+         */
+        throw new HttpClientErrorException( HttpStatus.NOT_IMPLEMENTED );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
