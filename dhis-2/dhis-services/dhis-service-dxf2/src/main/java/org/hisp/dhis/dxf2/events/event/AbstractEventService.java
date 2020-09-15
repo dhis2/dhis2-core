@@ -1408,7 +1408,7 @@ public abstract class AbstractEventService
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Valid attribute option combo must be specified since program does not have the default category combo" ) );
             return importSummary.incrementIgnored();
         }
 
@@ -1844,7 +1844,7 @@ public abstract class AbstractEventService
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Valid attribute option combo must be specified since program does not have the default category combo" ) );
             importSummary.setStatus( ImportStatus.ERROR );
             return importSummary.incrementIgnored();
         }
