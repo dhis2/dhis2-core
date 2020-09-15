@@ -108,9 +108,12 @@ public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EventAnalyticsManager
 {
-    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+
+    private static final String OPEN_IN = " in (";
+
+    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+                                     ProgramIndicatorService programIndicatorService,
+                                     ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
@@ -399,7 +402,7 @@ public class JdbcEventAnalyticsManager
         {
             String alias = getPeriodAlias( params );
 
-            sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in ("
+            sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
 
@@ -411,14 +414,14 @@ public class JdbcEventAnalyticsManager
         {
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
-            sql += sqlHelper.whereAnd() + " " + orgUnitCol + " in ("
+            sql += sqlHelper.whereAnd() + " " + orgUnitCol + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
-            sql += sqlHelper.whereAnd() + " " + orgUnitCol + " in ("
+            sql += sqlHelper.whereAnd() + " " + orgUnitCol + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
@@ -450,7 +453,7 @@ public class JdbcEventAnalyticsManager
         for ( DimensionalObject dim : dynamicDimensions )
         {
             String col = quoteAlias( dim.getDimensionName() );
-            sql += sqlHelper.whereAnd() + " " + col + " in ("
+            sql += sqlHelper.whereAnd() + " " + col + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
@@ -557,7 +560,7 @@ public class JdbcEventAnalyticsManager
         if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries()
             && !params.hasTimeField() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "yearly" ) + " in (" +
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "yearly" ) + OPEN_IN +
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
