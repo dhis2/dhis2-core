@@ -29,8 +29,13 @@ package org.hisp.dhis.programrule;
  */
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -71,5 +76,32 @@ public class ProgramRuleDeletionHandler
         {
             programRuleService.deleteProgramRule( programRule );
         }
+    }
+
+    @Override
+    public String allowDeleteProgramStage( ProgramStage programStage )
+    {
+        List<ProgramRule> programRuleVariables = programRuleService
+            .getProgramRule( programStage.getProgram() )
+            .stream()
+            .filter( pr -> isLinkedToProgramStage( programStage, pr ) )
+            .collect( Collectors.toList() );
+
+        if ( programRuleVariables.isEmpty() )
+        {
+            return null;
+        }
+
+        return programRuleVariables.stream().map( prv -> prv.getName() ).collect( Collectors.joining( ", " ) );
+    }
+
+    private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )
+    {
+        return Objects.equals( programRule.getProgramStage(), programStage ) ||
+            programRule.getProgramRuleActions()
+                .stream()
+                .filter( pra -> Objects.equals( pra.getProgramStage(), programStage ) )
+                .findAny()
+                .isPresent();
     }
 }
