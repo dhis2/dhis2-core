@@ -1317,7 +1317,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         {
             daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
 
-            if (daoEntityInstance == null) {
+            if ( daoEntityInstance == null ) {
                 return;
             }
 
