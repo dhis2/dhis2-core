@@ -1330,6 +1330,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         {
             daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
 
+            if ( daoEntityInstance == null ) {
+                return;
+            }
+
             daoEntityInstance.getTrackedEntityAttributeValues().stream()
                 .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
                 .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
