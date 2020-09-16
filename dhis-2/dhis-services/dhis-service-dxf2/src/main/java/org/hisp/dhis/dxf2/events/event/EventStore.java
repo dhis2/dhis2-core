@@ -80,5 +80,12 @@ public interface EventStore
      */
     void delete( List<Event> events );
 
+    /**
+     * Updates the "last updated" and "last updated By" of the
+     * Tracked Entity Instances matching the provided list of UIDs
+     *
+     * @param teiUid a List of Tracked Entity Instance uid
+     * @param user the User to use for the last update by value. Can be null.
+     */
     void updateTrackedEntityInstances( List<String> teiUid, User user );
 }

@@ -51,7 +51,7 @@ public class TrackerImportReport
 
     private TrackerBundleReport bundleReport = new TrackerBundleReport();
 
-    private TrackerValidationReport trackerValidationReport;
+    private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
 
     @JsonProperty
     public TrackerStats getStats()
