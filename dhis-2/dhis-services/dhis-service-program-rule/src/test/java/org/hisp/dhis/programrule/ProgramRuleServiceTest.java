@@ -28,9 +28,17 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
@@ -38,16 +46,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 public class ProgramRuleServiceTest
     extends IntegrationTestBase
@@ -80,6 +85,9 @@ public class ProgramRuleServiceTest
 
     @Autowired
     private DeletedObjectStore deletedObjectStore;
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -469,17 +477,54 @@ public class ProgramRuleServiceTest
         assertNotNull( deletedObjectStore.query( new DeletedObjectQuery( programRule1 ) ) );
     }
 
-    /*TODO: Fix the functionality for 2 level cascading deletes.
-
     @Test
     public void testCascadingDeleteProgram()
     {
         programService.deleteProgram( programA );
 
         assertNull( programRuleService.getProgramRule( programRuleA.getId() ) );
-        assertNull( programRuleActonService.getProgramRuleAction( assignAction.getId() ) );
-        assertNull( programRuleActonService.getProgramRuleAction( sendMessageAction.getId() ) );
+        assertNull( programRuleActonService.getProgramRuleAction( programRuleActionA.getId() ) );
+        assertNull( programRuleActonService.getProgramRuleAction( programRuleActionB.getId() ) );
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableA.getId() ) );
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableB.getId() ) );
-    }*/
+    }
+
+    @Test
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRule()
+    {
+        expectedEx.expect( DeleteNotAllowedException.class );
+        expectedEx.expectMessage( "ProgramRuleA" );
+
+        programRuleA.setProgramStage( programStageA );
+        programRuleService.updateProgramRule( programRuleA );
+
+        programStageService.deleteProgramStage( programStageA );
+    }
+
+    @Test
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleAction()
+    {
+        expectedEx.expect( DeleteNotAllowedException.class );
+        expectedEx.expectMessage( "ProgramRuleA" );
+
+        programRuleActionA.setProgramStage( programStageA );
+        programRuleActonService.updateProgramRuleAction( programRuleActionA );
+
+        programRuleA.getProgramRuleActions().add( programRuleActionA );
+        programRuleService.updateProgramRule( programRuleA );
+
+        programStageService.deleteProgramStage( programStageA );
+    }
+
+    @Test
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleVariable()
+    {
+        expectedEx.expect( DeleteNotAllowedException.class );
+        expectedEx.expectMessage( "ProgramRuleVariableA" );
+
+        programRuleVariableA.setProgramStage( programStageA );
+        programRuleVariableService.updateProgramRuleVariable( programRuleVariableA );
+
+        programStageService.deleteProgramStage( programStageA );
+    }
 }
