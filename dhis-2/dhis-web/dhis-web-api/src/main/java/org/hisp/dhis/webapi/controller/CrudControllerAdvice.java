@@ -308,7 +308,7 @@ public class CrudControllerAdvice
             }
         }
 
-        if (isMessageSensitive)
+        if ( isMessageSensitive )
         {
             message = GENERIC_ERROR_MESSAGE;
         }
