@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -92,7 +93,9 @@ public class ProgramRuleDeletionHandler
             return null;
         }
 
-        return programRuleVariables.stream().map( prv -> prv.getName() ).collect( Collectors.joining( ", " ) );
+        return programRuleVariables.stream()
+            .map( BaseIdentifiableObject::getName )
+            .collect( Collectors.joining( ", " ) );
     }
 
     private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )
@@ -100,8 +103,6 @@ public class ProgramRuleDeletionHandler
         return Objects.equals( programRule.getProgramStage(), programStage ) ||
             programRule.getProgramRuleActions()
                 .stream()
-                .filter( pra -> Objects.equals( pra.getProgramStage(), programStage ) )
-                .findAny()
-                .isPresent();
+                .anyMatch( pra -> Objects.equals( pra.getProgramStage(), programStage ) );
     }
 }
