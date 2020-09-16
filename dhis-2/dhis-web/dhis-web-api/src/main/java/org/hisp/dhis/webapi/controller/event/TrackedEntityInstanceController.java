@@ -44,6 +44,7 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -192,8 +193,8 @@ public class TrackedEntityInstanceController
     // READ
     // -------------------------------------------------------------------------
 
-    @GetMapping
-    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria )
+    @GetMapping(  produces = { ContextUtils.CONTENT_TYPE_JSON, "text/json", "application/xml", "text/xml", "application/csv", "text/csv" } )
+    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
     {
         List<TrackedEntityInstance> trackedEntityInstances;
 
@@ -231,6 +232,12 @@ public class TrackedEntityInstanceController
             int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+        
+        if ( !StringUtils.isEmpty( criteria.getAttachment() ) )
+        {
+                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + criteria.getAttachment() );
+                response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
