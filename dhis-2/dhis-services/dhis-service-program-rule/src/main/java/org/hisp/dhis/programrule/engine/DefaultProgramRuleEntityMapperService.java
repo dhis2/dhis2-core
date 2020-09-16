@@ -224,7 +224,7 @@ public class DefaultProgramRuleEntityMapperService
                 RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit,
                 orgUnitCode,psi.getEventDataValues().stream().filter( Objects::nonNull )
                 .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
-                .collect( Collectors.toList() ), psi.getProgramStage().getName() );
+                .collect( Collectors.toList() ), psi.getProgramStage().getName(), psi.getCompletedDate() );
 
             } ).collect( Collectors.toList() );
     }
@@ -243,7 +243,7 @@ public class DefaultProgramRuleEntityMapperService
         return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
             psi.getDueDate(), orgUnit,orgUnitCode, psi.getEventDataValues().stream().filter( Objects::nonNull )
             .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
-            .collect( Collectors.toList() ), psi.getProgramStage().getName() );
+            .collect( Collectors.toList() ), psi.getProgramStage().getName(), psi.getCompletedDate() );
     }
 
     @Override
@@ -258,7 +258,7 @@ public class DefaultProgramRuleEntityMapperService
                 return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
             RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit, orgUnitCode,psi.getEventDataValues().stream().filter( Objects::nonNull )
             .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
-            .collect( Collectors.toList() ), psi.getProgramStage().getName() );
+            .collect( Collectors.toList() ), psi.getProgramStage().getName(), psi.getCompletedDate() );
 
             }).collect( Collectors.toList() );
     }
