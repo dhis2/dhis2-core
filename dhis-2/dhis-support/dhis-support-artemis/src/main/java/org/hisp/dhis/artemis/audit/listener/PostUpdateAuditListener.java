@@ -29,6 +29,7 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -53,9 +54,10 @@ public class PostUpdateAuditListener
     public PostUpdateAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     @Override
@@ -67,7 +69,7 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        Object entity = postUpdateEvent.getEntity();
+        Object entity = initHibernateProxy( postUpdateEvent.getPersister().getFactory(), postUpdateEvent.getEntity() );
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
@@ -91,4 +93,5 @@ public class PostUpdateAuditListener
     {
         log.warn( "onPostUpdateCommitFailed: " + event );
     }
+
 }
