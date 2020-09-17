@@ -185,6 +185,11 @@ public class TrackedEntityInstanceCriteria
     private String order;
 
     /**
+     * The file name in case of exporting as file
+     */
+    private String attachment;
+
+    /**
      * FIXME: luciano - temporary request attribute used to select the TEI fetching
      * implementation
      */
