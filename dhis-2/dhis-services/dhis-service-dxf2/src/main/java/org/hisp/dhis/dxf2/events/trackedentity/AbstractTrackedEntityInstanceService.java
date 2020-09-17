@@ -34,6 +34,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -41,8 +42,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
@@ -104,9 +103,12 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -251,48 +253,53 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
         if ( queryParams == null )
         {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
         
         if ( ids.isEmpty() )
         {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByTrackedEntityTypes();
+        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params, queryParams );
 
-        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByProgram();
-
-        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params, queryParams, trackedEntityTypeAttributes, teaByProgram );
-        String accessedBy = queryParams.getUser() != null ? queryParams.getUser().getUsername() : currentUserService.getCurrentUsername();
-
-        Map<String,TrackedEntityType> tetMap= trackedEntityTypeService.getAllTrackedEntityType().stream().collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
-        for ( TrackedEntityInstance tei : trackedEntityInstances )
-        {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH, tetMap );
-        }     
+        addSearchAudit( trackedEntityInstances, queryParams.getUser() );
+           
         return trackedEntityInstances;
     }
     
-    protected void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, AuditType auditType, Map<String,TrackedEntityType> tetMap )
+    private void addSearchAudit( List<TrackedEntityInstance> trackedEntityInstances, User user )
     {
-        if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && tetMap.get( trackedEntityInstance.getTrackedEntityType() ).isAllowAuditLog() )
+        if ( trackedEntityInstances.isEmpty() )
         {
-            TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getTrackedEntityInstance(), user, auditType );
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+            return;
+        }
+        final String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
+        Map<String, TrackedEntityType> tetMap = trackedEntityTypeService.getAllTrackedEntityType().stream()
+            .collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
+
+        List<TrackedEntityInstanceAudit> auditable = trackedEntityInstances
+            .stream()
+            .filter( Objects::nonNull )
+            .filter( tei -> tei.getTrackedEntityType() != null )
+            .filter( tei -> tetMap.get( tei.getTrackedEntityType() ).isAllowAuditLog() )
+            .map(
+                tei -> new TrackedEntityInstanceAudit( tei.getTrackedEntityInstance(), accessedBy, AuditType.SEARCH ) )
+            .collect( Collectors.toList() );
+
+        if ( !auditable.isEmpty() )
+        {
+            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
         }
     }
-
+    
     @Override
     @Transactional( readOnly = true )
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
