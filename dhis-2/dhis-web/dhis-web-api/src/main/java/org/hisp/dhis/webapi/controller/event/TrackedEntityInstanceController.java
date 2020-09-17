@@ -193,7 +193,7 @@ public class TrackedEntityInstanceController
     // READ
     // -------------------------------------------------------------------------
 
-    @GetMapping(  produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
     public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
     {
         List<TrackedEntityInstance> trackedEntityInstances;
