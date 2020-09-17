@@ -35,6 +35,9 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
+import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
+import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
@@ -47,6 +50,7 @@ import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureH
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -56,6 +60,7 @@ import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -127,6 +132,23 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
 
+        @Autowired
+        TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
+        @Autowired
+        private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
+
+        @Autowired
+        @Qualifier( "customLdapAuthenticationProvider" )
+        CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+
+        public void configure( AuthenticationManagerBuilder auth )
+            throws Exception
+        {
+            auth.authenticationProvider( twoFactorAuthenticationProvider );
+            auth.authenticationProvider( customLdapAuthenticationProvider );
+        }
+
         @Override
         public void configure( WebSecurity web )
             throws Exception
@@ -179,7 +201,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
                 .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
                 .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
-                .antMatchers( "/dhis-web-sms-configuration/**" ).hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
+                .antMatchers( "/dhis-web-sms-configuration/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
 
                 .antMatchers( "/**" ).authenticated()
@@ -198,6 +221,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .logout()
                 .logoutUrl( "/dhis-web-commons-security/logout.action" )
                 .logoutSuccessUrl( "/" )
+                .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                 .deleteCookies( "JSESSIONID" )
                 .permitAll()
                 .and()
