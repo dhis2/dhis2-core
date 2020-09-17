@@ -30,15 +30,10 @@ package org.hisp.dhis.dxf2.events.importer.update.preprocess;
 
 import static org.hisp.dhis.organisationunit.FeatureType.NONE;
 import static org.hisp.dhis.system.util.GeoUtils.SRID;
-import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
 
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author maikel arabori
@@ -56,20 +51,6 @@ public class ProgramInstanceGeometryPreProcessor implements Processor
                     .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
                 {
                     event.getGeometry().setSRID( SRID );
-                }
-            }
-            else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-            {
-                final Coordinate coordinate = event.getCoordinate();
-
-                try
-                {
-                    event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-                }
-                catch ( IOException e )
-                {
-                    // Do nothing. The validation phase, before the post process phase, will catch
-                    // it in advance. It should never happen at this stage.
                 }
             }
         } );

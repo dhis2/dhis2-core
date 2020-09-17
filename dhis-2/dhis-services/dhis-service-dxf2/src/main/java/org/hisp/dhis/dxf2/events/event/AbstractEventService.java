@@ -495,13 +495,6 @@ public abstract class AbstractEventService implements EventService
         event.setGeometry( programStageInstance.getGeometry() );
         event.setDeleted( programStageInstance.isDeleted() );
 
-        // Lat and lnt deprecated in 2.30, remove by 2.33
-        if ( event.getGeometry() != null && event.getGeometry().getGeometryType().equals( "Point" ) )
-        {
-            com.vividsolutions.jts.geom.Coordinate geometryCoordinate = event.getGeometry().getCoordinate();
-            event.setCoordinate( new Coordinate( geometryCoordinate.x, geometryCoordinate.y ) );
-        }
-
         if ( programStageInstance.getAssignedUser() != null )
         {
             event.setAssignedUser( programStageInstance.getAssignedUser().getUid() );

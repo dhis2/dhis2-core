@@ -85,16 +85,9 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( rs.getString( getColumnName( UID ) ) );
 
-        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) );
-        if ( geo.isPresent() )
-        {
-            enrollment.setGeometry( geo.get() );
-            if ( rs.getString( "program_feature_type" ).equalsIgnoreCase( FeatureType.POINT.value() ) )
-            {
-                com.vividsolutions.jts.geom.Coordinate co = enrollment.getGeometry().getCoordinate();
-                enrollment.setCoordinate( new org.hisp.dhis.dxf2.events.event.Coordinate( co.x, co.y ) );
-            }
-        }
+        MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) )
+                .ifPresent(enrollment::setGeometry);
+
         enrollment.setTrackedEntityType( rs.getString( getColumnName( TEI_TYPE_UID ) ) );
         enrollment.setTrackedEntityInstance( rs.getString( getColumnName( TEI_UID ) ) );
         enrollment.setOrgUnit( rs.getString( getColumnName( ORGUNIT_UID ) ) );

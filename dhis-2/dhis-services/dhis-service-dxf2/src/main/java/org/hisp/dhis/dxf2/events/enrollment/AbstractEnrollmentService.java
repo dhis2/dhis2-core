@@ -47,7 +47,6 @@ import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -275,12 +274,6 @@ public abstract class AbstractEnrollmentService
         if ( programInstance.getGeometry() != null )
         {
             enrollment.setGeometry( programInstance.getGeometry() );
-
-            if ( programInstance.getProgram().getFeatureType().equals( FeatureType.POINT ) )
-            {
-                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
-                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
-            }
         }
 
         enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
@@ -1152,12 +1145,6 @@ public abstract class AbstractEnrollmentService
             if ( enrollment.getGeometry() != null && !program.getFeatureType().equals( FeatureType.NONE ) )
             {
                 programInstance.setGeometry( enrollment.getGeometry() );
-            }
-            else if ( program.getFeatureType().equals( FeatureType.POINT ) && enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
-            {
-                GeometryFactory gf = new GeometryFactory();
-                com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate( enrollment.getCoordinate().getLongitude(), enrollment.getCoordinate().getLatitude() );
-                programInstance.setGeometry( gf.createPoint( co ) );
             }
             else
             {

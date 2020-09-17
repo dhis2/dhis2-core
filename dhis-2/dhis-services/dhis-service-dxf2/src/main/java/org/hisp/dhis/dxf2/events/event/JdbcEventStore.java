@@ -357,7 +357,6 @@ public class JdbcEventStore implements EventStore
                         Geometry geom = new WKTReader().read( rowSet.getString( "psi_geometry" ) );
 
                         event.setGeometry( geom );
-                        event.setCoordinate( new Coordinate( geom.getCoordinate().x, geom.getCoordinate().y ) );
                     }
                     catch ( ParseException e )
                     {
