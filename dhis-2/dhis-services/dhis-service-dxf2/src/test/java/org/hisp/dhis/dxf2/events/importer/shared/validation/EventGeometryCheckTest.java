@@ -83,26 +83,6 @@ public class EventGeometryCheckTest extends BaseValidationTest
                 + programStage.getUid() );
     }
 
-    /**
-     * The system at the moment, accepts invalid Point coordinates
-     */
-    @Test
-    public void failOnInvalidCoordinates()
-    {
-        // Create invalid geo-coordinates
-        org.hisp.dhis.dxf2.events.event.Coordinate coordinate = new org.hisp.dhis.dxf2.events.event.Coordinate();
-        coordinate.setLatitude( 91.0 );
-        coordinate.setLongitude( 181.0 );
-
-        event.setCoordinate( coordinate );
-        ProgramStage programStage = createProgramStage();
-        programStage.setFeatureType( FeatureType.NONE );
-        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
-
-        rule.check( new ImmutableEvent( event ), workContext );
-
-    }
-
     private ProgramStage createProgramStage()
     {
         Program program = createProgram( 'P' );

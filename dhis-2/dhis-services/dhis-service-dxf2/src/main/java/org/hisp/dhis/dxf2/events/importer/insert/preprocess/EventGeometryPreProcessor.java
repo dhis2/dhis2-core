@@ -28,9 +28,6 @@
 
 package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -49,19 +46,6 @@ public class EventGeometryPreProcessor implements Processor
         if ( event.getGeometry() != null )
         {
             event.getGeometry().setSRID( GeoUtils.SRID );
-        }
-
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            Coordinate coordinate = event.getCoordinate();
-            try
-            {
-                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                // do nothing..it will be caught later during validation
-            }
         }
     }
 }

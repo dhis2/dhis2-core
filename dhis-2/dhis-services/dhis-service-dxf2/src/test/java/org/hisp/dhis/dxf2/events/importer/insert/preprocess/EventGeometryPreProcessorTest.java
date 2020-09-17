@@ -5,7 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.system.util.GeoUtils;
@@ -65,15 +64,4 @@ public class EventGeometryPreProcessorTest
         assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
     }
 
-    @Test
-    public void verifyEventWithCoordinateHasGeometrySet()
-    {
-        Event event = new Event();
-        event.setCoordinate( new Coordinate( 20.0, 22.0 ) );
-        subject.process( event, WorkContext.builder().build() );
-
-        assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
-        assertThat( event.getGeometry().getCoordinate().x, is( 20.0 ) );
-        assertThat( event.getGeometry().getCoordinate().y, is( 22.0 ) );
-    }
 }
