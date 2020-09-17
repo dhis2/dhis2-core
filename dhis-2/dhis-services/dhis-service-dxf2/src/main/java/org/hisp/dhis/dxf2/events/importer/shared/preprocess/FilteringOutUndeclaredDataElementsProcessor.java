@@ -40,6 +40,9 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
+ * Remove data elements from event which are not present in the program stage
+ * that is linked to it.
+ *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 public class FilteringOutUndeclaredDataElementsProcessor implements Processor
