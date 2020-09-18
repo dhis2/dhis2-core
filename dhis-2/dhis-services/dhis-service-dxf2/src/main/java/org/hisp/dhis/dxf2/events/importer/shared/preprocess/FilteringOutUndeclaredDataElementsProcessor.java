@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,10 +67,12 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, programStageUid );
-        return programStage.getDataElements()
-            .stream()
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
+        return Optional.ofNullable(programStage)
+                .map(ProgramStage::getDataElements)
+                .orElse(Collections.emptySet())
+                .stream()
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() );
     }
 
 }
