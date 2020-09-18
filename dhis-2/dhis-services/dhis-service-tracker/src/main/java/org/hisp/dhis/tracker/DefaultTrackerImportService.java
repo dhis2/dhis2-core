@@ -35,6 +35,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
@@ -188,7 +189,7 @@ public class DefaultTrackerImportService
         if ( params.hasJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
         }
     }
 
@@ -233,6 +234,42 @@ public class DefaultTrackerImportService
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
 
         return params;
+    }
+
+    @Override
+    public TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode )
+    {
+
+        TrackerImportReport filteredTrackerImportReport = new TrackerImportReport();
+        TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
+        filteredTrackerImportReport.setTrackerValidationReport( trackerValidationReport );
+        filteredTrackerImportReport.setTimings( importReport.getTimings() );
+        filteredTrackerImportReport.getTrackerValidationReport()
+            .setErrorReports( importReport.getTrackerValidationReport().getErrorReports() );
+        filteredTrackerImportReport.getTrackerValidationReport()
+            .setWarningReports( importReport.getTrackerValidationReport().getWarningReports() );
+        filteredTrackerImportReport.setBundleReport( importReport.getBundleReport() );
+
+        switch ( reportMode )
+        {
+        case BASIC:
+            filteredTrackerImportReport.setTrackerValidationReport( null );
+            filteredTrackerImportReport.setTimings( null );
+            break;
+        case ERRORS:
+            filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
+            filteredTrackerImportReport.getTrackerValidationReport().setWarningReports( null );
+            filteredTrackerImportReport.setTimings( null );
+            break;
+        case WARNINGS:
+            filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
+            filteredTrackerImportReport.setTimings( null );
+            break;
+        case FULL:
+            break;
+        }
+
+        return filteredTrackerImportReport;
     }
 
     //-----------------------------------------------------------------------------------

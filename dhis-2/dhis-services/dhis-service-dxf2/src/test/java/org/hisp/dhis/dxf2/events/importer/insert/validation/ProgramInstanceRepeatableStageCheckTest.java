@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  */
 
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityInstance;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,6 +39,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
@@ -44,6 +47,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -67,9 +71,12 @@ public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
     {
         // Data preparation
         Program program = createProgram( 'P' );
+        
+        TrackedEntityInstance tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
 
         event.setProgramStage( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
+        event.setTrackedEntityInstance( tei.getUid() );
         ProgramStage programStage = createProgramStage( 'A', program );
         programStage.setRepeatable( false );
 
@@ -77,17 +84,22 @@ public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
 
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         ProgramInstance programInstance = new ProgramInstance();
         programInstanceMap.put( event.getUid(), programInstance );
-
+        
+        Pair<TrackedEntityInstance,Boolean> teiPair = Pair.of( tei, true );
+        
+        Map<String,Pair<TrackedEntityInstance,Boolean> > teiMap = new HashMap<>();
+        teiMap.put( event.getUid(), teiPair );
+       
+        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
         when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( programStage.getUid() ) ) )
+        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( programStage.getId() ), eq( tei.getId() ) ) )
             .thenReturn( true );
 
         // Method under test

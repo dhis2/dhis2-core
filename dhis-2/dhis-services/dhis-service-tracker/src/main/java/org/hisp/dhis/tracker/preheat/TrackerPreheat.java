@@ -136,6 +136,13 @@ public class TrackerPreheat
     private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
 
     /**
+     * A map of user uid and preheated {@see User}. The value is a User object.
+     * These users are primarily used to represent the "assignedUser" of events, used in validation and persisting
+     * events.
+     */
+    private Map<String, User> users = new HashMap<>();
+
+    /**
      * Identifier map
      */
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();

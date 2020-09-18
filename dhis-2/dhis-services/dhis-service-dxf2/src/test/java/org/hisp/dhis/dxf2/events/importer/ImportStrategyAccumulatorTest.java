@@ -28,7 +28,15 @@ package org.hisp.dhis.dxf2.events.importer;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.ArrayMap;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -36,13 +44,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
+import com.google.api.client.util.ArrayMap;
 
 public class ImportStrategyAccumulatorTest
 {
@@ -110,15 +112,47 @@ public class ImportStrategyAccumulatorTest
     @Test
     public void verifyDeleteOnly()
     {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.DELETE, new ArrayMap<>() );
+        List<Event> events = createEvents( 5 );
+
+        accumulator.partitionEvents( events, ImportStrategy.DELETE, existingEventsFromEvents( events ) );
 
         assertAccumulator( 0, 0, 5 );
 
         reset();
 
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.DELETES, new ArrayMap<>() );
+        events = createEvents( 5 );
+
+        accumulator.partitionEvents( events, ImportStrategy.DELETES, existingEventsFromEvents( events ) );
 
         assertAccumulator( 0, 0, 5 );
+    }
+
+    @Test
+    public void verifyDeleteSome()
+    {
+        List<Event> events = createEvents( 5 );
+
+        reset();
+
+        events = createEvents( 5 );
+
+        accumulator.partitionEvents( events, ImportStrategy.DELETES, existingEventsFromEvents( events, 3 ) );
+
+        assertAccumulator( 0, 0, 3 );
+    }
+
+    private Map<String, ProgramStageInstance> existingEventsFromEvents( List<Event> events )
+    {
+        return existingEventsFromEvents( events, events.size() );
+    }
+
+    private Map<String, ProgramStageInstance> existingEventsFromEvents( List<Event> events, Integer limit )
+    {
+        return events.stream()
+            .limit( limit )
+            .collect( Collectors.toMap(
+                Event::getEvent,
+                event -> createProgramStageInstance( event.getEvent() ) ) );
     }
 
     @Test
@@ -166,7 +200,9 @@ public class ImportStrategyAccumulatorTest
     private Event createEvent()
     {
         Event e = new Event();
-        e.setEvent( CodeGenerator.generateUid() );
+        String eventUid = CodeGenerator.generateUid();
+        e.setEvent( eventUid );
+        e.setUid( eventUid );
         return e;
     }
 

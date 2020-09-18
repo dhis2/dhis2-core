@@ -36,7 +36,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.hibernate.HibernateUtils;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -153,7 +152,7 @@ public class WorkContextLoader
     {
         if ( importOptions.getUser() == null )
         {
-            final User currentUser = this.serviceDelegatorSupplier.get().getCurrentUserService().getCurrentUser();
+            final User currentUser = this.serviceDelegatorSupplier.get().getEventImporterUserService().getCurrentUser();
 
             //
             // This should never really happen!

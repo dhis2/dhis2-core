@@ -68,6 +68,7 @@ import org.springframework.security.access.AccessDecisionManager;
 @Order( 3200 )
 public class AuthoritiesProviderConfig
 {
+
     @Autowired
     private SecurityService securityService;
 

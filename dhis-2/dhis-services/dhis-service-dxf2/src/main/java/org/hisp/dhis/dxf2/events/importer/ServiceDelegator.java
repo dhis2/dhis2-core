@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.importer;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -58,9 +58,11 @@ public class ServiceDelegator
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    private final CurrentUserService currentUserService;
+    private final EventImporterUserService eventImporterUserService;
 
     private final ObjectMapper jsonMapper;
 
     private final JdbcTemplate jdbcTemplate;
+
+    private final AuditManager auditManager;
 }
