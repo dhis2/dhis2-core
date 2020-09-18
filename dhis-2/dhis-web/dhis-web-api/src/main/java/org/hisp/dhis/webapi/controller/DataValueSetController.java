@@ -390,6 +390,7 @@ public class DataValueSetController
      * given {@link Compression} argument.
      *
      * @param response the {@link HttpServletResponse}.
+     * @param attachment the file download attachment name.
      * @param compression the Compression {@link Compression}
      * @param format the file format, can be json, xml or csv.
      * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
