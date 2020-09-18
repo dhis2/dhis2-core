@@ -66,34 +66,34 @@ public class AttributeOptionComboLoader
     private final static String KEY_SEPARATOR = "-";
 
     public final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.categoryoptioncomboid, "
-            + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
-            + "string_agg(dec.categoryid::text, ',') as cat_ids from categoryoptioncombo coc "
-            + "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid "
-            + "join categorycombo c on co.categorycomboid = c.categorycomboid "
-            + "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid "
-            + "join dataelementcategory dec on cc.categoryid = dec.categoryid where coc."
-            + "${resolvedScheme} "
-            + "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name";
+        + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
+        + "string_agg(dec.categoryid::text, ',') as cat_ids from categoryoptioncombo coc "
+        + "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid "
+        + "join categorycombo c on co.categorycomboid = c.categorycomboid "
+        + "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid "
+        + "join dataelementcategory dec on cc.categoryid = dec.categoryid where coc."
+        + "${resolvedScheme} "
+        + "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name";
 
     public final static String SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS = "select * from ( " +
-            "select coc.categoryoptioncomboid, " +
-            "coc.uid, " +
-            "coc.code, " +
-            "coc.ignoreapproval, " +
-            "coc.name, " +
-            "c.uid as cc_uid, " +
-            "c.name as cc_name," +
-            "string_agg( dec.categoryid::text, ',') as cat_ids " +
-            "from categoryoptioncombo coc " +
-            "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
-            "join categorycombo c on co.categorycomboid = c.categorycomboid " +
-            "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid " +
-            "join dataelementcategory dec on cc.categoryid = dec.categoryid " +
-            "where c.${resolvedScheme} " +
-            "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name " +
-            ") as catoptcombo where " +
-            "array_length(regexp_split_to_array(cat_ids, ','),1) = array_length(ARRAY[${option_ids}],1) AND " +
-            "regexp_split_to_array(cat_ids, ',') @> ARRAY[${option_ids}]";
+        "select coc.categoryoptioncomboid, " +
+        "coc.uid, " +
+        "coc.code, " +
+        "coc.ignoreapproval, " +
+        "coc.name, " +
+        "c.uid as cc_uid, " +
+        "c.name as cc_name," +
+        "string_agg( dec.categoryid::text, ',') as cat_ids " +
+        "from categoryoptioncombo coc " +
+        "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
+        "join categorycombo c on co.categorycomboid = c.categorycomboid " +
+        "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid " +
+        "join dataelementcategory dec on cc.categoryid = dec.categoryid " +
+        "where c.${resolvedScheme} " +
+        "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name " +
+        ") as catoptcombo where " +
+        "array_length(regexp_split_to_array(cat_ids, ','),1) = array_length(ARRAY[${option_ids}],1) AND " +
+        "regexp_split_to_array(cat_ids, ',') @> ARRAY[${option_ids}]";
 
     public AttributeOptionComboLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
@@ -249,13 +249,11 @@ public class AttributeOptionComboLoader
             .map( s -> "'" + s + "'" )
             .collect( Collectors.joining( "," ) );
 
-        // @formatter:off
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
-                .put( "resolvedScheme", Objects.requireNonNull( categoryComboKey ) )
-                .put( "option_ids", optionsId )
-                .build() );
-        // @formatter:on
-        
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
+            .put( "resolvedScheme", Objects.requireNonNull( categoryComboKey ) )
+            .put( "option_ids", optionsId )
+            .build() );
+
         // TODO use cache
         List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
             .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( key, rs ) );

@@ -1733,12 +1733,21 @@ public class JdbcEventStore implements EventStore
         // @formatter:on
     }
 
-    private void bindEventParamsForUpdate( PreparedStatement ps, ProgramStageInstance programStageInstance  ) throws SQLException, JsonProcessingException {
-
+    private void bindEventParamsForUpdate( PreparedStatement ps, ProgramStageInstance programStageInstance )
+        throws SQLException,
+        JsonProcessingException
+    {
         ps.setLong( 1, programStageInstance.getProgramInstance().getId() );
         ps.setLong( 2, programStageInstance.getProgramStage().getId() );
         ps.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
-        ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
+        if ( programStageInstance.getExecutionDate() != null )
+        {
+            ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
+        }
+        else
+        {
+            ps.setObject( 4, null );
+        }
         ps.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
         ps.setString( 6, programStageInstance.getStatus().toString() );
         ps.setTimestamp( 7, toTimestamp( programStageInstance.getCompletedDate() ) );
@@ -1750,7 +1759,7 @@ public class JdbcEventStore implements EventStore
         ps.setString( 13, programStageInstance.getCode() );
         ps.setTimestamp( 14, toTimestamp( programStageInstance.getCreatedAtClient() ) );
         ps.setTimestamp( 15, toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
-        ps.setObject( 16, toGeometry( programStageInstance.getGeometry()  )  );
+        ps.setObject( 16, toGeometry( programStageInstance.getGeometry() ) );
 
         if ( programStageInstance.getAssignedUser() != null )
         {
@@ -1763,7 +1772,6 @@ public class JdbcEventStore implements EventStore
 
         ps.setObject( 18, eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper ) );
         ps.setString( 19, programStageInstance.getUid() );
-
     }
 
     private boolean userHasAccess( SqlRowSet rowSet )
