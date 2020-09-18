@@ -85,6 +85,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -106,6 +108,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramRule programRuleC;
 
     private ProgramRule programRuleS;
+
+    private ProgramRule programRuleCD;
 
     private DataElement dataElementA;
 
@@ -139,11 +143,15 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String expressionS = "A{ProgramRuleVariableS}=='xmen'";
 
+    private String completedDateExpression = "d2:hasValue(V{completed_date})";
+
     private String dataExpression = "d2:addDays('2018-04-15', '2')";
 
     private String calculatedDateExpression = "true";
 
     private Date psEventDate;
+
+    private Date completedDate;
 
     @Autowired
     ProgramRuleEngine programRuleEngine;
@@ -232,8 +240,32 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         psEventDate = cal.getTime();
 
+        cal.add( Calendar.YEAR, 20 );
+
+        completedDate = cal.getTime();
+
         setupEvents();
         setupProgramRuleEngine();
+    }
+
+    @Test
+    public void testCompletedDateVariable()
+    {
+        setUpCompletedDateVariable();
+
+        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionSendMessage );
+
+        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
+
+        assertEquals( "PNT-1", ruleActionSendMessage.notification() );
     }
 
     @Test
@@ -456,6 +488,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setExecutionDate( new Date() );
         programStageInstanceA.setUid( "UID-PS1" );
+        programStageInstanceA.setCompletedDate( completedDate );
         programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
         eventDataValueDate = new EventDataValue();
@@ -517,6 +550,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
 
+        programRuleCD = createProgramRule( 'S', programA );
+        programRuleCD.setCondition( completedDateExpression );
+        programRuleService.addProgramRule( programRuleCD );
+
         ProgramRuleVariable programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableA.setDataElement( dataElementA );
@@ -553,6 +590,29 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableS.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableS.setAttribute( attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableS );
+    }
+
+    private void setUpCompletedDateVariable()
+    {
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        ProgramRuleAction programRuleActionForSendMessage = createProgramRuleAction( 'D', programRuleCD );
+        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForSendMessage.setTemplateUid( pnt.getUid() );
+        programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
+        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+
+        programRuleCD.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
+        programRuleService.updateProgramRule( programRuleCD );
     }
 
     private void setUpSendMessageForEnrollment()
