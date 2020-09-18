@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.utils.ImportUtils.build;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -148,25 +149,5 @@ public class ProgramRuleIntegrationTest
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
         assertFalse( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
-    }
-
-    private TrackerImportParams build(TrackerBundleParams params) {
-        // @formatter:off
-        return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
-                .skipPatternValidation( true )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
-                .reportMode( params.getReportMode() )
-                .trackedEntities( params.getTrackedEntities() )
-                .enrollments( params.getEnrollments() )
-                .events( params.getEvents() )
-                .relationships( params.getRelationships() )
-                .build();
-        // @formatter:on
     }
 }

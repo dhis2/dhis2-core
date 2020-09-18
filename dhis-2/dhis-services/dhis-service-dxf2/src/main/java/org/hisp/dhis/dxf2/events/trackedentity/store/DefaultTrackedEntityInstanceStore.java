@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -106,6 +107,12 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
 
+        if ( !ctx.isSuperUser() && ctx.getTrackedEntityTypes().isEmpty() )
+        {
+            //If not super user and no tets are accessible. then simply return empty list.
+            return new HashMap<>();
+        }
+        
         String sql = withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" );
         jdbcTemplate.query( applySortOrder(sql,StringUtils.join( ids, "," ),"trackedentityinstanceid"),
             createIdsParam( ids ).addValue( "teiTypeIds", ctx.getTrackedEntityTypes() ), handler );

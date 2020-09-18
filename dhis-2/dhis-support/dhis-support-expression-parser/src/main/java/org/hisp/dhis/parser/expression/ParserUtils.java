@@ -34,13 +34,7 @@ import java.util.List;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
-import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
-import org.hisp.dhis.parser.expression.function.FunctionGreatest;
-import org.hisp.dhis.parser.expression.function.FunctionIf;
-import org.hisp.dhis.parser.expression.function.FunctionIsNotNull;
-import org.hisp.dhis.parser.expression.function.FunctionIsNull;
-import org.hisp.dhis.parser.expression.function.FunctionLeast;
-import org.hisp.dhis.parser.expression.function.PeriodOffset;
+import org.hisp.dhis.parser.expression.function.*;
 import org.hisp.dhis.parser.expression.operator.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -93,6 +87,8 @@ public class ParserUtils
         .put( IS_NOT_NULL, new FunctionIsNotNull() )
         .put( IS_NULL, new FunctionIsNull() )
         .put( LEAST, new FunctionLeast() )
+        .put( LOG, new FunctionLog() )
+        .put( LOG10, new FunctionLog10() )
         .put( PERIOD_OFFSET, new PeriodOffset() )
 
         // Data items

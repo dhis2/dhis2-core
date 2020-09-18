@@ -78,7 +78,9 @@ public class TrackerImportValidationConfig
         RelationshipsValidationHook.class,
 
         EnrollmentRuleValidationHook.class,
-        EventRuleValidationHook.class
+        EventRuleValidationHook.class,
+
+        AssignedUserValidationHook.class
     );
 
     /**
