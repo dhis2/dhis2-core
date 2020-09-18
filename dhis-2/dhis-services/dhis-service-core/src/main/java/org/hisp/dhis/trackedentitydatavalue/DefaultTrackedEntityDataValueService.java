@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentitydatavalue;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -44,6 +45,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
 /**
@@ -68,6 +70,9 @@ public class DefaultTrackedEntityDataValueService
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private DhisConfigurationProvider config;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -217,8 +222,11 @@ public class DefaultTrackedEntityDataValueService
 
     private void createAndAddAudit( TrackedEntityDataValue dataValue, String username, AuditType auditType )
     {
-        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataValue, dataValue.getAuditValue(), username, auditType );
-        dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
+        {
+            TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataValue, dataValue.getAuditValue(), username, auditType );
+            dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
+        }
     }
 
     private void handleFileDataValueUpdate( TrackedEntityDataValue dataValue )
