@@ -46,23 +46,26 @@ import java.util.Properties;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class AzureAdProvider
+public class AzureAdProvider extends DhisOidcProvider
 {
-    public static String ID = "azure";
+    public static final String PROVIDER_PREFIX = "oidc.provider.azure.";
 
-    public static String PROVIDER_PREFIX = "oidc.provider.azure.";
+    public static final String AZURE_TENANT = ".tenant";
 
-    public static String AZURE_TENANT = ".tenant";
+    public static final String AZURE_CLIENT_ID = ".client_id";
 
-    public static String AZURE_CLIENT_ID = ".client_id";
+    public static final String AZURE_CLIENT_SECRET = ".client_secret";
 
-    public static String AZURE_CLIENT_SECRET = ".client_secret";
+    public static final String AZURE_REDIRECT_BASE_URL = ".redirect_baseurl";
 
-    public static String AZURE_REDIRECT_BASE_URL = ".redirect_baseurl";
+    public static final String AZURE_MAPPING_CLAIM = ".mapping_claim";
 
-    public static String AZURE_MAPPING_CLAIM = ".mapping_claim";
+    public static final String AZURE_SUPPORT_LOGOUT = ".support_logout";
 
-    private static final String DEFAULT_REDIRECT_URL = "{baseUrl}/{action}/oauth2/code/{registrationId}";
+    private AzureAdProvider()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
 
     public static List<DhisOidcClientRegistration> buildList( DhisConfigurationProvider config )
     {
@@ -71,6 +74,7 @@ public class AzureAdProvider
         ImmutableList.Builder<DhisOidcClientRegistration> clients = ImmutableList.builder();
 
         int i = 0;
+
         while ( true )
         {
             Properties properties = config.getProperties();
@@ -101,35 +105,39 @@ public class AzureAdProvider
             String mappingClaims = MoreObjects.firstNonNull( config.getProperties()
                 .getProperty( PROVIDER_PREFIX + i + AZURE_MAPPING_CLAIM ), "email" );
 
-            ClientRegistration.Builder builder = getBuilder( tenant, ClientAuthenticationMethod.BASIC,
-                DEFAULT_REDIRECT_URL );
-
-
+            // Well known url for reference. In a perfect world we would dynamically parse this.
             // https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
 
+            String baseUrl = "https://login.microsoftonline.com/";
+
+            ClientRegistration.Builder builder = getBuilder( tenant );
             builder.scope( "openid", "profile", "email" );
-            builder.authorizationUri( "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/authorize" );
-            builder.tokenUri( "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token" );
-            builder.jwkSetUri( "https://login.microsoftonline.com/" + tenant + "/discovery/v2.0/keys" );
+            builder.authorizationUri( baseUrl + tenant + "/oauth2/v2.0/authorize" );
+            builder.tokenUri( baseUrl + tenant + "/oauth2/v2.0/token" );
+            builder.jwkSetUri( baseUrl + tenant + "/discovery/v2.0/keys" );
             builder.userInfoUri( "https://graph.microsoft.com/oidc/userinfo" );
 
             builder.clientName( tenant );
-            builder.redirectUriTemplate( redirectBaseUrl + "/oauth2/code/{registrationId}" );
             builder.clientId( clientId );
             builder.clientSecret( clientSecret );
 
+            builder.redirectUriTemplate( redirectBaseUrl + DEFAULT_CODE_URL_TEMPLATE );
             builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
             builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
-            HashMap<String, Object> metaDataMap = new HashMap<>();
-            metaDataMap.put( "end_session_endpoint",
-                "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/logout" );
-            builder.providerConfigurationMetadata( metaDataMap );
+            boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull( config.getProperties()
+                .getProperty( PROVIDER_PREFIX + i + AZURE_MAPPING_CLAIM ), "TRUE" ) );
 
-            ClientRegistration client = builder.build();
+            if ( supportLogout )
+            {
+                HashMap<String, Object> metadata = new HashMap<>();
+                metadata.put( "end_session_endpoint",
+                    baseUrl + tenant + "/oauth2/v2.0/logout" );
+                builder.providerConfigurationMetadata( metadata );
+            }
 
             DhisOidcClientRegistration dhisClient = DhisOidcClientRegistration.builder()
-                .clientRegistration( client )
+                .clientRegistration( builder.build() )
                 .mappingClaimKey( mappingClaims )
                 .registrationId( tenant )
                 .build();
@@ -142,13 +150,12 @@ public class AzureAdProvider
         return clients.build();
     }
 
-    protected static final ClientRegistration.Builder getBuilder( String registrationId,
-        ClientAuthenticationMethod method, String redirectUri )
+    private static ClientRegistration.Builder getBuilder( String registrationId )
     {
         ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( registrationId );
-        builder.clientAuthenticationMethod( method );
+        builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
         builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
-        builder.redirectUriTemplate( redirectUri );
+        builder.redirectUriTemplate( DEFAULT_REDIRECT_URL );
         return builder;
     }
 }

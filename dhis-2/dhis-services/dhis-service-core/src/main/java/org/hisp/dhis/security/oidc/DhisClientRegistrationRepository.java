@@ -35,7 +35,6 @@ import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
