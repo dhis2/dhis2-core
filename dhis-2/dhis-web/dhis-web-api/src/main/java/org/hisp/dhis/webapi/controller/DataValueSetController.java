@@ -30,8 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-
-
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -122,6 +121,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
@@ -132,7 +132,7 @@ public class DataValueSetController
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
-        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "xml" );
+        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
 
         dataValueSetService.writeDataValueSetXml( params, outputStream );
     }
@@ -148,6 +148,7 @@ public class DataValueSetController
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException, AdxException
     {
@@ -157,7 +158,7 @@ public class DataValueSetController
         DataExportParams params = adxDataService.getFromUrl( dataSet, period,
             startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, limit, idSchemes );
 
-        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "xml" );
+        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
 
         adxDataService.writeDataValueSet( params, outputStream );
     }
@@ -177,6 +178,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
@@ -187,8 +189,8 @@ public class DataValueSetController
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
-        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "json" );
-
+        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
+        
         dataValueSetService.writeDataValueSetJson( params, outputStream );
     }
 
@@ -207,6 +209,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes,
         HttpServletResponse response ) throws IOException
@@ -218,8 +221,8 @@ public class DataValueSetController
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
-        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "csv" );
-
+        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
+        
         PrintWriter printWriter = new PrintWriter( outputStream );
 
         dataValueSetService.writeDataValueSetCsv( params, printWriter );
@@ -391,28 +394,34 @@ public class DataValueSetController
      * @param format the file format, can be json, xml or csv.
      * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
      */
-    private OutputStream compress( HttpServletResponse response, Compression compression, String format )
+    private OutputStream compress( HttpServletResponse response, String attachment, Compression compression, String format )
         throws IOException,
         HttpMessageNotWritableException
     {
+        String fileName = StringUtils.isEmpty( attachment ) ? "datavalue" : attachment;
         if ( Compression.GZIP == compression )
         {
-            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=datavalue." + format + ".gzip" );
+            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + fileName + "." + format + ".gzip" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             return new GZIPOutputStream( response.getOutputStream() );
         }
         else if ( Compression.ZIP == compression )
         {
-            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=datavalue." + format + ".zip" );
+            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + fileName + "." + format + ".zip" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
 
             ZipOutputStream outputStream = new ZipOutputStream( response.getOutputStream() );
-            outputStream.putNextEntry( new ZipEntry( "datavalue" ) );
+            outputStream.putNextEntry( new ZipEntry( fileName ) );
 
             return outputStream;
         }
         else
-        {
+        {   //file download only if attachment is explicitly specified for no-compression option. 
+            if ( !StringUtils.isEmpty( attachment ) )
+            {
+                    response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
+                    response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            }
             return response.getOutputStream();
         }
     }
