@@ -52,14 +52,10 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.util.DateUtils;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

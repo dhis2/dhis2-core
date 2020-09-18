@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import java.util.Objects;
+
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -50,17 +52,21 @@ public class EventGeometryCheck implements Checker
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
 
-        if ( event.getGeometry() != null )
+        if ( Objects.nonNull( event.getGeometry() )
+            && programStageFeatureCompatibleWithEventGeometry( event, programStage ) )
         {
-            if ( programStage.getFeatureType().equals( FeatureType.NONE )
-                || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
-                        + programStage.getFeatureType().value() + ") specified for the program stage: "
-                        + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
-            }
+            return new ImportSummary( ImportStatus.ERROR,
+                "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
+                    + programStage.getFeatureType().value() + ") specified for the program stage: "
+                    + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
         }
+
         return success();
+    }
+
+    private boolean programStageFeatureCompatibleWithEventGeometry(ImmutableEvent event, ProgramStage programStage )
+    {
+        return programStage.getFeatureType().equals( FeatureType.NONE )
+            || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() );
     }
 }
