@@ -45,13 +45,10 @@ public class ProgramInstanceGeometryPreProcessor implements Processor
     {
         ctx.getProgramStageInstance( event.getUid() ).ifPresent( psi -> {
 
-            if ( event.getGeometry() != null )
+            if ( event.getGeometry() != null && (!psi.getProgramStage().getFeatureType().equals( NONE ) || psi
+                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() )) )
             {
-                if ( !psi.getProgramStage().getFeatureType().equals( NONE ) || psi
-                    .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-                {
-                    event.getGeometry().setSRID( SRID );
-                }
+                event.getGeometry().setSRID( SRID );
             }
         } );
     }
