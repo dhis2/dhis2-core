@@ -302,7 +302,7 @@ public class CrudControllerAdvice
         {
             message = ex.getCause().getMessage();
             
-            if ( isSensitiveException( ex ) )
+            if ( isSensitiveException( ex.getCause() ) )
             {
                 isMessageSensitive = true;
             }
