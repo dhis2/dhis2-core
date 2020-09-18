@@ -192,8 +192,10 @@ public class DhisWebApiWebSecurityConfig
         {
             ProviderManager providerManager = new ProviderManager(
                 ImmutableList.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
-            providerManager.setAuthenticationEventPublisher( authenticationEventPublisher );
-
+            if ( authenticationEventPublisher != null )
+            {
+                providerManager.setAuthenticationEventPublisher( authenticationEventPublisher );
+            }
             endpoints
                 .prefix( "/uaa" )
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
