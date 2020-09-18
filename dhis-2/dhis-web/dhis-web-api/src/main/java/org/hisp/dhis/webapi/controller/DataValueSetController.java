@@ -419,8 +419,8 @@ public class DataValueSetController
         {   //file download only if attachment is explicitly specified for no-compression option. 
             if ( !StringUtils.isEmpty( attachment ) )
             {
-                    response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
-                    response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
+                response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
             return response.getOutputStream();
         }
