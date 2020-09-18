@@ -126,13 +126,6 @@ public class TrackerImportParams
     private String filename;
 
     /**
-     * Give full report, or only include errors.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
-
-    /**
      * Job id to use for threaded imports.
      */
     private JobConfiguration jobConfiguration;
@@ -200,7 +193,6 @@ public class TrackerImportParams
             .atomicMode( atomicMode )
             .flushMode( flushMode )
             .validationMode( validationMode )
-            .reportMode( reportMode )
             .trackedEntities( trackedEntities )
             .enrollments( enrollments )
             .events( events )

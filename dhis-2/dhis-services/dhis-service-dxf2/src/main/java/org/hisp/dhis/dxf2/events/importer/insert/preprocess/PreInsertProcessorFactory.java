@@ -28,39 +28,38 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.EventProcessing;
+import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
 import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio
  */
+@Getter
 @Component( "eventsPreInsertProcessorFactory" )
-public class PreInsertProcessorFactory implements EventProcessing
+@RequiredArgsConstructor
+public class PreInsertProcessorFactory extends AbstractProcessorFactory
 {
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap;
 
-    public PreInsertProcessorFactory(
-        final Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorsMap )
-    {
-        this.eventPreProcessorsMap = eventInsertPreProcessorsMap;
-    }
+    @NonNull
+    @Qualifier( "eventInsertPreProcessorMap" )
+    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
 
-    @Override
-    public void process( final WorkContext workContext, final List<Event> events )
-    {
-        ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
+    private final ImportStrategy importStrategy = CREATE;
 
-        if ( ImportStrategyUtils.isInsert( importStrategy ) )
-        {
-            new ProcessorRunner( workContext, events ).run( eventPreProcessorsMap.get( ImportStrategy.CREATE ) );
-        }
-    }
+    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
+
 }

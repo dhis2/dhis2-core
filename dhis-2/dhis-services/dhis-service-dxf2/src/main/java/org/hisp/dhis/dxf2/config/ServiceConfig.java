@@ -39,36 +39,39 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.DataValueAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.EventDateCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.OrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.update.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.*;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -238,7 +241,7 @@ public class ServiceConfig
      */
 
     @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorsMap()
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorMap()
     {
         return ImmutableMap.of( CREATE, newArrayList(
             ImportOptionsPreProcessor.class,
@@ -246,6 +249,14 @@ public class ServiceConfig
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class ) );
+    }
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPostProcessorMap()
+    {
+        return ImmutableMap.of( CREATE, newArrayList(
+            ProgramNotificationPostProcessor.class,
+            EventInsertAuditPostProcessor.class ) );
     }
 
     @Bean
@@ -263,6 +274,27 @@ public class ServiceConfig
     {
         return ImmutableMap.of( UPDATE, newArrayList(
             PublishEventPostProcessor.class,
-            ProgramNotificationPostProcessor.class ) );
+            ProgramNotificationPostProcessor.class,
+            EventUpdateAuditPostProcessor.class ) );
+    }
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventDeletePreProcessorMap()
+    {
+        return ImmutableMap.of( DELETE, newArrayList(
+        /*
+         * Intentionally left empty since we don't have pre-delete processors at the
+         * moment, so at the moment this is a placeholder where to add pre-delete
+         * processors when we will need it (if ever). Remove this comment if you add a
+         * pre-delete processor.
+         */
+        ) );
+    }
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventDeletePostProcessorMap()
+    {
+        return ImmutableMap.of( DELETE, newArrayList(
+            EventDeleteAuditPostProcessor.class ) );
     }
 }

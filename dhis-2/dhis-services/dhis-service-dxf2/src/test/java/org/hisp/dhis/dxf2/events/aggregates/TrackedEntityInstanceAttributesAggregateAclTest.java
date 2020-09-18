@@ -19,7 +19,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -30,7 +29,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-@Ignore
 public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 {
     @Autowired

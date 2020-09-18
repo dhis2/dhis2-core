@@ -108,6 +108,9 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
 
         psi.setStoredBy( event.getStoredBy() );
         psi.setCompletedBy( event.getCompletedBy() );
+        
+        // STATUS
+        psi.setStatus( fromInt( event.getStatus().getValue() ) );
 
         if ( psi.isCompleted() )
         {
@@ -118,10 +121,6 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
             }
             psi.setCompletedDate( completedDate );
         }
-
-        // STATUS
-
-        psi.setStatus( fromInt( event.getStatus().getValue() ) );
 
         // ATTRIBUTE OPTION COMBO
 

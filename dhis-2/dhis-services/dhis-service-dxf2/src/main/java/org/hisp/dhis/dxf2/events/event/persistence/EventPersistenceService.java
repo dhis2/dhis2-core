@@ -30,21 +30,38 @@ package org.hisp.dhis.dxf2.events.event.persistence;
 
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
+ * Wrapper service for Event-related operations. This service acts as a
+ * transactional wrapper for insert/update/delete operations on Events.
+ *
  * @author Luciano Fiandesio
  */
 public interface EventPersistenceService
 {
+    /**
+     * Add the list of given events.
+     *
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
+     */
     void save( WorkContext context, List<Event> events );
 
+    /**
+     * Updates the list of given events.
+     *
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
+     */
     void update( WorkContext context, List<Event> events );
 
-    void delete( WorkContext context, Event event );
-
+    /**
+     * Deletes the provided list of events.
+     *
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
+     */
     void delete( WorkContext context, List<Event> events );
 }
