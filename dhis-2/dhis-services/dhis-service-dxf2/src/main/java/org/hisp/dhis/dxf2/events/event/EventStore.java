@@ -54,8 +54,8 @@ public interface EventStore
     List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> programStageInstances );
 
     /**
-     * Updates a List of {@see ProgramStageInstance}. Notes are not stored
-     * at this stage.
+     * Updates a List of {@see ProgramStageInstance}.
+     * Notes are not stored at this stage.
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
      *
