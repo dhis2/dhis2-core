@@ -124,7 +124,7 @@
 
     <action name="login" class="org.hisp.dhis.security.action.LoginAction">
       <result name="standard" type="velocity">/dhis-web-commons/security/login.vm</result>
-      <result name="mobile" type="velocity">/dhis-web-commons/security/login_mobile.vm</result>
+      <result name="mobile" type="velocity">/dhis-web-commons/security/login.vm</result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
