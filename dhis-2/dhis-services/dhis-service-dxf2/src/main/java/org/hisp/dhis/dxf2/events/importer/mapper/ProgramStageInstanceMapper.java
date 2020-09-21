@@ -81,11 +81,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         // Org Unit
         getOrganisationUnit( event ).ifPresent( psi::setOrganisationUnit );
 
-        // Status
-        if ( event.getStatus() != null && !psi.getStatus().equals( event.getStatus() ) )
-        {
-            psi.setStatus( event.getStatus() );
-        }
+        // Status and completed date are set in the Update Preprocessor //
 
         // Attribute Option Combo
         psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
@@ -102,9 +98,12 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         // Data Values
         psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ) );
 
-        setDueDate( event, psi );
+        if ( event.getDueDate() != null )
+        {
+            psi.setDueDate( parseDate( event.getDueDate() ) );
+        }
+
         setExecutionDate( event, psi );
-        setCompletedDate( event, psi );
 
         if ( psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment() )
         {
@@ -161,7 +160,14 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         // Data Values
         psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ) );
 
-        setDueDate( event, psi );
+        Date dueDate = new Date();
+
+        if ( event.getDueDate() != null )
+        {
+            dueDate = parseDate( event.getDueDate() );
+        }
+
+        psi.setDueDate( dueDate );
         setCompletedDate( event, psi );
         // Note that execution date can be null
         setExecutionDate( event, psi );
@@ -203,14 +209,6 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         return Optional.ofNullable( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
     }
 
-    private void setDueDate( Event event, ProgramStageInstance psi )
-    {
-        if ( event.getDueDate() != null )
-        {
-            psi.setDueDate( parseDate( event.getDueDate() ) );
-        }
-    }
-
     private void setExecutionDate( Event event, ProgramStageInstance psi )
     {
         if ( event.getEventDate() != null )
@@ -221,8 +219,8 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
     
     private void setCompletedDate( Event event, ProgramStageInstance psi )
     {
-        // Completed Date
-        if ( psi.isCompleted() && event.getStatus() != COMPLETED )
+        // Completed Date // FIXME this logic should be moved to a preprocessor
+        if ( psi.isCompleted() )
         {
             Date completedDate = new Date();
             if ( event.getCompletedDate() != null )

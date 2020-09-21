@@ -508,11 +508,11 @@ public class EventImportTest
 
     @Test
     public void testVerifyEventCanBeUpdatedUsingProgramOnly2()
-            throws IOException
+        throws IOException
     {
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-                organisationUnitB.getUid(), null, dataElementB, "10" );
+            organisationUnitB.getUid(), null, dataElementB, "10" );
 
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -579,50 +579,6 @@ public class EventImportTest
 
     @Test
     public void testVerifyEventUncompleteSetsCompletedDateToNull()
-            throws IOException
-    {
-        // CREATE A NEW EVENT
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-                organisationUnitB.getUid(), null, dataElementB, "10" );
-
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-
-        // FETCH NEWLY CREATED EVENT
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
-
-        // UPDATE EVENT (no actual changes, except for empty data value and status change)
-        // USE ONLY PROGRAM
-        Event event = new Event();
-        event.setEvent( uid );
-        event.setProgram( programB.getUid() );
-        event.setStatus( EventStatus.ACTIVE );
-
-        assertEquals( ImportStatus.SUCCESS,
-                eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
-
-        cleanSession();
-
-        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
-
-        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
-        assertThat( psi.getCreated(), is( psi2.getCreated() ) );
-        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
-        assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
-        assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
-        assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
-        assertThat( psi2.getStatus(), is( EventStatus.ACTIVE ) );
-        assertThat( psi.getExecutionDate(), is( psi2.getExecutionDate() ) );
-        assertThat( psi.getCompletedDate(), is( nullValue() ) );
-        assertThat( psi.getCompletedBy(), is( psi2.getCompletedBy() ) );
-        assertThat( psi.isDeleted(), is( psi2.isDeleted() ) );
-        assertThat( psi.getEventDataValues().size(), is( 1 ) );
-        assertThat( psi2.getEventDataValues().size(), is( 0 ) );
-    }
-
-    @Test
-    public void testVerifyEventUpdateCoc()
         throws IOException
     {
         // CREATE A NEW EVENT
@@ -638,12 +594,10 @@ public class EventImportTest
 
         // UPDATE EVENT (no actual changes, except for empty data value and status
         // change)
-        // USE ONLY PROGRAM
         Event event = new Event();
         event.setEvent( uid );
         event.setProgram( programB.getUid() );
-        event.setStatus( EventStatus.COMPLETED );
-        event.setAttributeOptionCombo( "123456" );
+        event.setStatus( EventStatus.ACTIVE );
 
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
@@ -658,9 +612,9 @@ public class EventImportTest
         assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
         assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
         assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
-        assertThat( psi2.getStatus(), is( EventStatus.COMPLETED ) );
+        assertThat( psi2.getStatus(), is( EventStatus.ACTIVE ) );
         assertThat( psi.getExecutionDate(), is( psi2.getExecutionDate() ) );
-        assertThat( psi.getCompletedDate(), is( nullValue() ) );
+        assertThat( psi2.getCompletedDate(), is( nullValue() ) );
         assertThat( psi.getCompletedBy(), is( psi2.getCompletedBy() ) );
         assertThat( psi.isDeleted(), is( psi2.isDeleted() ) );
         assertThat( psi.getEventDataValues().size(), is( 1 ) );
