@@ -1,9 +1,14 @@
 package org.hisp.dhis.dxf2.events.event;
 
-import lombok.experimental.UtilityClass;
-
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+
+import org.postgis.PGgeometry;
+
+import com.vividsolutions.jts.geom.Geometry;
+
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 class JdbcEventSupport
@@ -12,5 +17,10 @@ class JdbcEventSupport
     Timestamp toTimestamp( Date date )
     {
         return date != null ? new Timestamp( date.getTime() ) : null;
+    }
+
+    PGgeometry toGeometry( Geometry geometry ) throws SQLException
+    {
+        return geometry != null ? new PGgeometry( geometry.toText() ) : null;
     }
 }
