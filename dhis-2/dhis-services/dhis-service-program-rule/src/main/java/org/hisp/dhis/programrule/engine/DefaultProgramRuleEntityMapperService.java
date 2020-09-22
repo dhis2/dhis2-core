@@ -243,7 +243,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .build() ) );
 
         // program variables
-        RuleEngineUtils.ENV_VARIABLES.entrySet().stream().forEach( var -> itemStore.put( var.getKey(), DataItem.builder()
+        RuleEngineUtils.ENV_VARIABLES.entrySet().forEach( var -> itemStore.put( var.getKey(), DataItem.builder()
             .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var.getKey() ), var.getKey() ) )
             .valueType( var.getValue() )
             .build() ) );
