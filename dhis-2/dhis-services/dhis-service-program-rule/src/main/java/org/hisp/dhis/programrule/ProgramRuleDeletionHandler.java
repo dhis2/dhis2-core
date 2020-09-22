@@ -82,20 +82,14 @@ public class ProgramRuleDeletionHandler
     @Override
     public String allowDeleteProgramStage( ProgramStage programStage )
     {
-        List<ProgramRule> programRuleVariables = programRuleService
+        String programRuleVariables = programRuleService
             .getProgramRule( programStage.getProgram() )
             .stream()
             .filter( pr -> isLinkedToProgramStage( programStage, pr ) )
-            .collect( Collectors.toList() );
-
-        if ( programRuleVariables.isEmpty() )
-        {
-            return null;
-        }
-
-        return programRuleVariables.stream()
             .map( BaseIdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
+
+        return StringUtils.isBlank( programRuleVariables ) ? null : programRuleVariables;
     }
 
     private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )
