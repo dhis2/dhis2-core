@@ -67,6 +67,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     private String incorrectConditionTextDE = "#{Program_Rule_Variable_Text_DE} == 'text_de' +";
     private String conditionNumericDE = "#{Program_Rule_Variable_Numeric_DE} == 14";
     private String conditionLiteralString = "1 > 2 ";
+    private String conditionWithD2DaysBetween = "d2:daysBetween(V{completed_date},V{current_date}) > 0";
 
     private DataElement textDataElement;
     private DataElement numericDataElement;
@@ -229,6 +230,14 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     public void testProgramRuleWithLiterals()
     {
         RuleValidationResult result = validateRuleCondition( conditionLiteralString, program );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithD2DaysBetween()
+    {
+        RuleValidationResult result = validateRuleCondition( conditionWithD2DaysBetween, program );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
