@@ -49,12 +49,9 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -123,7 +120,7 @@ public class BaseIdentifiableObject
     /**
      * Access string for public access.
      */
-    protected transient String publicAccess;
+    protected String publicAccess;
 
     /**
      * Owner of this object.
@@ -437,7 +434,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( using = UidJsonSerializer.class )
+//    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {
@@ -447,7 +444,6 @@ public class BaseIdentifiableObject
     public void setUser( User user )
     {
         this.user = user;
-        this.sharing.setOwner( user );
     }
 
     public void setOwner( String userId )
@@ -488,11 +484,13 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        if ( this.userGroupAccesses.isEmpty() && !sharing.getUserGroups().isEmpty())
+        if ( sharing.getUserGroups() == null || sharing.getUserGroups().isEmpty() )
         {
-            this.userGroupAccesses.addAll( sharing.getUserGroups().values().stream().map( uag -> uag.toDtoObject() ).collect(
-                Collectors.toSet()) );
+            return null;
         }
+
+        this.userGroupAccesses.addAll( sharing.getUserGroups().values().stream().map( uag -> uag.toDtoObject() ).collect(
+            Collectors.toSet()) );
 
         return userGroupAccesses;
     }
@@ -508,11 +506,13 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        if ( this.userAccesses.isEmpty() && !sharing.getUsers().isEmpty())
+        if ( sharing.getUsers() == null || sharing.getUsers().isEmpty() )
         {
-            this.userAccesses.addAll(  sharing.getUsers().values().stream().map( ua -> ua.toDtoObject() ).collect(
-                Collectors.toSet()) );
+            return  null;
         }
+
+        this.userAccesses.addAll(  sharing.getUsers().values().stream().map( ua -> ua.toDtoObject() ).collect(
+            Collectors.toSet()) );
 
         return userAccesses;
     }

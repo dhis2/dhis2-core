@@ -79,11 +79,11 @@ public class UserKeyJsonValue
     
     public UserKeyJsonValue( User user, String namespace, String key, String value, Boolean encrypted )
     {
-        this.user = user;
         this.namespace = namespace;
         this.key = key;
         this.value = value;
         this.encrypted = encrypted;
+        this.setUser( user );
     }
     
     // -------------------------------------------------------------------------

@@ -54,13 +54,13 @@ import java.util.Map;
  */
 public final class QueryUtils
 {
-    public static <T> T parseValue( Class<T> klass, Object objectValue )
+    public static <T> T parseValue( Class<?> klass, Object objectValue )
     {
         return parseValue( klass, null, objectValue );
     }
 
     @SuppressWarnings( "unchecked" )
-    public static <T> T parseValue( Class<T> klass, Class<?> secondaryKlass, Object objectValue )
+    public static <T> T parseValue( Class<?> klass, Class<?> secondaryKlass, Object objectValue )
     {
         if ( klass.isInstance( objectValue ) )
         {
@@ -186,7 +186,7 @@ public final class QueryUtils
      * @param value the enum value.
      */
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public static <T> T getEnumValue( Class<T> klass, String value )
+    public static <T> T getEnumValue( Class<?> klass, String value )
     {
         Optional<? extends Enum<?>> enumValue = Enums.getIfPresent( (Class<? extends Enum>) klass, value );
 

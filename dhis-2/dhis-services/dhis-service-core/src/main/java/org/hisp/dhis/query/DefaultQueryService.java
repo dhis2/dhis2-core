@@ -37,6 +37,7 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,14 +56,14 @@ public class DefaultQueryService
 
     private final QueryPlanner queryPlanner;
 
-    private final CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
+    private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
     private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
-    public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
-        CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
+    public DefaultQueryService( @Qualifier("org.hisp.dhis.query.JpaQueryParser") QueryParser queryParser, QueryPlanner queryPlanner,
+        JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
         InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
     {
         checkNotNull( queryParser );

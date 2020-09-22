@@ -1,9 +1,6 @@
 package org.hisp.dhis.query;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
@@ -11,6 +8,7 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -21,11 +19,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
+@Component
 public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
@@ -38,8 +35,6 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     private final SessionFactory sessionFactory;
 
     private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
-
-
 
     @Autowired
     public JpaCriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
@@ -90,9 +85,9 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
             return sessionFactory.getCurrentSession().createQuery( criteriaQuery.select( root.get( "id" ) ).distinct( true ) ).getResultList();
         }
 
-        store.getSharingCriteria( query.getUser() );
+        Predicate predicate = buildPredicates( builder, root, query );
 
-        DetachedCriteria detachedCriteria = buildCriteria(  builder, query );
+        criteriaQuery.where( predicate );
 
         if ( !query.getOrders().isEmpty() )
         {
@@ -134,31 +129,21 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         return stores.get( klass );
     }
 
-
-    private List<Function<Root>, Predicate>> buildPredicates( CriteriaBuilder builder, Query query )
+    private <Y> Predicate buildPredicates( CriteriaBuilder builder, Root<Y> root, Query query )
     {
-
-    }
-
-    private DetachedCriteria buildCriteria( CriteriaBuilder builder,  Query query )
-    {
-        List<Predicate> predicates = new ArrayList<>();
-
-        Predicate junction = getHibernateJunction( builder, query.getRootJunctionType() );
+        Predicate junction = getJpaJunction( builder, query.getRootJunctionType() );
 
         for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
         {
-            addCriterion( junction, criterion );
+            addPredicate( builder, root, junction, criterion );
         }
 
-        query.getAliases().forEach( alias -> detachedCriteria.createAlias( alias, alias ) );
+        query.getAliases().forEach( alias -> root.get( alias ).alias( alias ) );
 
-        return detachedCriteria.setProjection(
-            Projections.distinct( Projections.id() )
-        );
+        return junction;
     }
 
-    private Predicate getHibernateJunction( CriteriaBuilder builder, Junction.Type type )
+    private Predicate getJpaJunction( CriteriaBuilder builder, Junction.Type type )
     {
         switch ( type )
         {
@@ -171,38 +156,84 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         return builder.conjunction();
     }
 
-    private void addCriterion( org.hibernate.criterion.Junction criteria, org.hisp.dhis.query.Criterion criterion )
+
+
+    private <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, Restriction restriction )
+    {
+        if ( restriction == null || restriction.getOperator() == null )
+        {
+            return null;
+        }
+
+        return restriction.getOperator().getPredicate( builder, root, restriction.getQueryPath() );
+    }
+
+
+    private <Y> void addPredicate( CriteriaBuilder builder, Root<Y> root, Predicate predicateJunction, org.hisp.dhis.query.Criterion criterion )
     {
         if ( Restriction.class.isInstance( criterion ) )
         {
             Restriction restriction = (Restriction) criterion;
-            org.hibernate.criterion.Criterion hibernateCriterion = getHibernateCriterion( restriction );
+            Predicate predicate = getPredicate( builder, root, restriction );
 
-            if ( hibernateCriterion != null )
+            if ( predicate != null )
             {
-                criteria.add( hibernateCriterion );
+                predicateJunction.getExpressions().add( predicate );
             }
         }
         else if ( Junction.class.isInstance( criterion ) )
         {
-            org.hibernate.criterion.Junction junction = null;
+            Predicate junction = null;
 
             if ( Disjunction.class.isInstance( criterion ) )
             {
-                junction = org.hibernate.criterion.Restrictions.disjunction();
+                junction = builder.disjunction();
             }
             else if ( Conjunction.class.isInstance( criterion ) )
             {
-                junction = Restrictions.conjunction();
+                junction = builder.conjunction();
             }
 
-            criteria.add( junction );
+            predicateJunction.getExpressions().add( junction );
 
             for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
             {
-                addJunction( junction, c );
+                addJunction( builder, root, junction, c );
             }
         }
     }
 
+    private <Y> void addJunction( CriteriaBuilder builder, Root<Y> root, Predicate junction, org.hisp.dhis.query.Criterion criterion )
+    {
+        if ( Restriction.class.isInstance( criterion ) )
+        {
+            Restriction restriction = (Restriction) criterion;
+            Predicate predicate = getPredicate( builder, root, restriction );
+
+            if ( predicate != null )
+            {
+                junction.getExpressions().add( predicate );
+            }
+        }
+        else if ( Junction.class.isInstance( criterion ) )
+        {
+            Predicate j = null;
+
+            if ( Disjunction.class.isInstance( criterion ) )
+            {
+                j = builder.disjunction();
+            }
+            else if ( Conjunction.class.isInstance( criterion ) )
+            {
+                j = builder.conjunction();
+            }
+
+            junction.getExpressions().add( j );
+
+            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
+            {
+                addJunction( builder, root, junction, c );
+            }
+        }
+    }
 }

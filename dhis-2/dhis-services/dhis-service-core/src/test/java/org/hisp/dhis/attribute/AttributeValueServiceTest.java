@@ -39,7 +39,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -82,7 +82,7 @@ public class AttributeValueServiceTest
     private Attribute attribute1;
     private Attribute attribute2;
     private Attribute attribute3;
-    private UserInfo currentUserInfo;
+    private User currentUser;
 
 
     @Override
@@ -98,7 +98,7 @@ public class AttributeValueServiceTest
         categoryService = _categoryService;
         createAndInjectAdminUser();
 
-        currentUserInfo = currentUserService.getCurrentUserInfo();
+        currentUser = currentUserService.getCurrentUser();
 
         attribute1 = new Attribute( "attribute 1", ValueType.TEXT );
         attribute1.setDataElementAttribute( true );
@@ -293,15 +293,15 @@ public class AttributeValueServiceTest
         attributeService.addAttributeValue( dataElementB, attributeValueB );
         attributeService.addAttributeValue( dataElementC, attributeValueC );
 
-        DataElement deA = dataElementStore.getByUniqueAttributeValue(  attribute, "CID1", currentUserInfo );
-        DataElement deB = dataElementStore.getByUniqueAttributeValue(  attribute, "CID2", currentUserInfo );
-        DataElement deC = dataElementStore.getByUniqueAttributeValue(  attribute, "CID3", currentUserInfo );
+        DataElement deA = dataElementStore.getByUniqueAttributeValue(  attribute, "CID1", currentUser );
+        DataElement deB = dataElementStore.getByUniqueAttributeValue(  attribute, "CID2", currentUser );
+        DataElement deC = dataElementStore.getByUniqueAttributeValue(  attribute, "CID3", currentUser );
 
         assertNotNull( deA );
         assertNotNull( deB );
         assertNotNull( deC );
-        assertNull( dataElementStore.getByUniqueAttributeValue(  attribute, "CID4", currentUserInfo ) );
-        assertNull( dataElementStore.getByUniqueAttributeValue(  attribute, "CID5", currentUserInfo ) );
+        assertNull( dataElementStore.getByUniqueAttributeValue(  attribute, "CID4", currentUser ) );
+        assertNull( dataElementStore.getByUniqueAttributeValue(  attribute, "CID5", currentUser ) );
 
         assertEquals( "DataElementA", deA.getName() );
         assertEquals( "DataElementB", deB.getName() );
@@ -338,9 +338,9 @@ public class AttributeValueServiceTest
         assertEquals( 1, dataElementB.getAttributeValues().size() );
         assertEquals( 1, dataElementC.getAttributeValues().size() );
 
-        DataElement de1 = dataElementStore.getByUniqueAttributeValue( attributeA, "VALUE", currentUserInfo );
-        DataElement de2 = dataElementStore.getByUniqueAttributeValue( attributeB, "VALUE", currentUserInfo );
-        DataElement de3 = dataElementStore.getByUniqueAttributeValue( attributeC, "VALUE", currentUserInfo );
+        DataElement de1 = dataElementStore.getByUniqueAttributeValue( attributeA, "VALUE", currentUser );
+        DataElement de2 = dataElementStore.getByUniqueAttributeValue( attributeB, "VALUE", currentUser );
+        DataElement de3 = dataElementStore.getByUniqueAttributeValue( attributeC, "VALUE", currentUser );
 
         assertNotNull( de1 );
         assertNotNull( de2 );

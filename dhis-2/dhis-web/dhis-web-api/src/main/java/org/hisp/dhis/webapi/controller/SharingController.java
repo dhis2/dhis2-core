@@ -184,7 +184,7 @@ public class SharingController
             sharing.getObject().getUser().setName( object.getUser().getDisplayName() );
         }
 
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
             UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getUserGroup().getId() );
             SharingUserGroupAccess sharingUserGroupAccess = new SharingUserGroupAccess();
@@ -196,7 +196,7 @@ public class SharingController
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
         }
 
-        for ( UserAccess userAccess : object.getUserAccesses() )
+        for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
         {
             User _user = userService.getUser( userAccess.getId() );
             SharingUserAccess sharingUserAccess = new SharingUserAccess();
@@ -287,15 +287,15 @@ public class SharingController
             object.setUser( user );
         }
 
-        Iterator<UserGroupAccess> userGroupAccessIterator = object.getUserGroupAccesses().iterator();
+        object.getSharing().getUserGroups().clear();
 
-        while ( userGroupAccessIterator.hasNext() )
-        {
-            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
-            userGroupAccessIterator.remove();
-
-            userGroupAccessService.deleteUserGroupAccess( userGroupAccess );
-        }
+//        while ( userGroupAccessIterator.hasNext() )
+//        {
+////            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
+//            userGroupAccessIterator.remove();
+//
+////            userGroupAccessService.deleteUserGroupAccess( userGroupAccess );
+//        }
 
         for ( SharingUserGroupAccess sharingUserGroupAccess : sharing.getObject().getUserGroupAccesses() )
         {
@@ -321,21 +321,22 @@ public class SharingController
             if ( userGroup != null )
             {
                 userGroupAccess.setUserGroup( userGroup );
-                userGroupAccessService.addUserGroupAccess( userGroupAccess );
+//                userGroupAccessService.addUserGroupAccess( userGroupAccess );
 
                 object.getSharing().addUserGroupAccess( userGroupAccess );
             }
         }
 
-        Iterator<UserAccess> userAccessIterator = object.getUserAccesses().iterator();
-
-        while ( userAccessIterator.hasNext() )
-        {
-            UserAccess userAccess = userAccessIterator.next();
-            userAccessIterator.remove();
-
-            userAccessService.deleteUserAccess( userAccess );
-        }
+        object.getSharing().getUsers().clear();
+//        Iterator<UserAccess> userAccessIterator = object.getUserAccesses().iterator();
+//
+//        while ( userAccessIterator.hasNext() )
+//        {
+//            UserAccess userAccess = userAccessIterator.next();
+//            userAccessIterator.remove();
+//
+//            userAccessService.deleteUserAccess( userAccess );
+//        }
 
         for ( SharingUserAccess sharingUserAccess : sharing.getObject().getUserAccesses() )
         {
@@ -361,7 +362,7 @@ public class SharingController
             if ( sharingUser != null )
             {
                 userAccess.setUser( sharingUser );
-                userAccessService.addUserAccess( userAccess );
+//                userAccessService.addUserAccess( userAccess );
 
                 object.getSharing().addUserAccess( userAccess );
             }
@@ -457,7 +458,7 @@ public class SharingController
         {
             builder.append( ", userGroupAccesses: " );
 
-            for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+            for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
             {
                 builder.append( "{uid: " ).append( userGroupAccess.getId() )
                     .append( ", access: " ).append( userGroupAccess.getAccess() )
@@ -469,7 +470,7 @@ public class SharingController
         {
             builder.append( ", userAccesses: " );
 
-            for ( UserAccess userAccess : object.getUserAccesses() )
+            for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
             {
                 builder.append( "{uid: " ).append( userAccess.getId() )
                     .append( ", access: " ).append( userAccess.getAccess() )

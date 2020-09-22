@@ -1,5 +1,6 @@
 package org.hisp.dhis.user.sharing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.*;
@@ -57,15 +58,26 @@ public class Sharing
         this.owner = userId;
     }
 
+    @JsonIgnore
+    public User getUserOwner()
+    {
+        User user = new User();
+        user.setUid( this.owner );
+        return user;
+    }
+
     public void setUserAccesses( Set<UserAccess> userAccesses )
     {
-        this.users.clear();
+        if ( this.users != null ) this.users.clear();
+        else this.users = new HashMap<>();
+
         userAccesses.forEach( ua -> this.addUserAccess( ua ) );
     }
 
     public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-        this.users.clear();
+        if ( this.users != null ) this.users.clear();
+        else this.users = new HashMap<>();
 
         if ( userAccesses != null && !userAccesses.isEmpty() )
         {
@@ -75,7 +87,8 @@ public class Sharing
 
     public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-        this.userGroups.clear();
+        if ( this.userGroups != null ) this.userGroups.clear();
+        else this.userGroups = new HashMap<>();
 
         if ( userGroupAccesses != null && !userGroupAccesses.isEmpty() )
         {
@@ -85,7 +98,8 @@ public class Sharing
 
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
-        this.userGroups.clear();
+        if ( this.userGroups != null ) this.userGroups.clear();
+        else this.userGroups = new HashMap<>();
         userGroupAccesses.forEach( uga -> this.addUserGroupAccess( uga ) );
     }
 

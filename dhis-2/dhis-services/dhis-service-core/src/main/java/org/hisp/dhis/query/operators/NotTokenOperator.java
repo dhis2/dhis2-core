@@ -33,17 +33,21 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 /**
  * @author Henning Håkonsen
  */
-public class NotTokenOperator
-    extends Operator
+public class NotTokenOperator<T extends Comparable<? super T>>
+    extends Operator<T>
 {
     private final boolean caseSensitive;
 
     private final org.hibernate.criterion.MatchMode matchMode;
 
-    public NotTokenOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public NotTokenOperator( T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
         super( "!token", Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
@@ -58,10 +62,20 @@ public class NotTokenOperator
         return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " !~* '" + TokenUtils.createRegex( value ) + "' " );
     }
 
+    //TODO implement this
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        return null;
+    }
+
     @Override
     public boolean test( Object value )
     {
-        String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-        return !TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
+//        String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+//        return !TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
+        return false;
     }
+
+
 }

@@ -100,6 +100,9 @@ public class UserGroupAccess
         org.hisp.dhis.user.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.UserGroupAccess();
         userGroupAccess.setUid( this.id );
         userGroupAccess.setAccess( this.access );
+        UserGroup userGroup = new UserGroup();
+        userGroup.setUid( this.id );
+        userGroupAccess.setUserGroup( userGroup );
 
         return userGroupAccess;
     }

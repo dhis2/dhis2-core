@@ -132,12 +132,9 @@ public class HibernateMessageConversationStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( Collection<String> uids )
     {
-        return getSharingCriteria()
-            .add( Restrictions.in( "uid", uids ) )
-            .list();
+        return getList( getCriteriaBuilder(), newJpaParameters().addPredicate( root -> root.get( "uid" ).in( uids ) ) );
     }
 
     @Override

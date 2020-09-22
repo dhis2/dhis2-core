@@ -37,9 +37,9 @@ import java.util.Collection;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotInOperator extends InOperator
+public class NotInOperator<T extends Comparable<? super T>> extends InOperator<T>
 {
-    public NotInOperator( Collection<?> arg )
+    public NotInOperator( Collection<T> arg )
     {
         super( "!in", arg );
     }

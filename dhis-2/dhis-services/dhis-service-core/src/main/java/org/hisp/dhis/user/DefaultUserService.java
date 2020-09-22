@@ -171,7 +171,7 @@ public class DefaultUserService
     @Transactional(readOnly = true)
     public User getUser( String uid )
     {
-        return userStore.getByUid( uid );
+        return userStore.getByUidNoAcl( uid );
     }
 
     @Override

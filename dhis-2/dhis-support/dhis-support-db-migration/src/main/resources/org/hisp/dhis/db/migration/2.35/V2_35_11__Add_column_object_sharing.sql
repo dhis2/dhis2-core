@@ -43,3 +43,4 @@ alter table predictorgroup add column if not exists sharing jsonb default '{}'::
 alter table dashboard add column if not exists sharing jsonb default '{}'::jsonb;
 alter table interpretation add column if not exists sharing jsonb default '{}'::jsonb;
 alter table programstageinstancefilter add column if not exists sharing jsonb default '{}'::jsonb;
+alter table keyjsonvalue add column if not exists sharing jsonb default '{}'::jsonb;

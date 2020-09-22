@@ -187,7 +187,7 @@ public class Interpretation
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public User getUser()
     {
-        return user;
+        return this.sharing.getUserOwner();
     }
 
     @JsonProperty

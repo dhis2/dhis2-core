@@ -86,6 +86,8 @@ public interface IdentifiableObject
 
     User getUser();
 
+    void setUser( User user );
+
     String getPublicAccess();
 
     boolean getExternalAccess();

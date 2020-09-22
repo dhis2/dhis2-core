@@ -378,8 +378,9 @@ public class DefaultPatchService implements PatchService
         }
     }
 
+    // TODO fix type cast from object to T
     @SuppressWarnings( "unchecked" )
-    private void applyMutation( Mutation mutation, Property property, Object target )
+    private <T extends Comparable<? super T>> void applyMutation( Mutation mutation, Property property, Object target )
     {
         Object value = mutation.getValue();
 
@@ -407,7 +408,9 @@ public class DefaultPatchService implements PatchService
                     Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
 
                     Query query = Query.from( schema );
-                    query.add( Restrictions.eq( "id", object ) ); // optimize by using .in(..) query
+
+
+                    query.add( Restrictions.eq( "id", (T) object ) ); // optimize by using .in(..) query
 
                     List<? extends IdentifiableObject> objects = queryService.query( query );
 
@@ -453,7 +456,7 @@ public class DefaultPatchService implements PatchService
             Schema schema = schemaService.getDynamicSchema( property.getKlass() );
 
             Query query = Query.from( schema );
-            query.add( Restrictions.eq( "id", value ) );
+            query.add( Restrictions.eq( "id", (T) value ) );
 
             List<? extends IdentifiableObject> objects = queryService.query( query );
 

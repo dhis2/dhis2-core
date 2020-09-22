@@ -101,10 +101,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -211,6 +208,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Qualifier( "xmlMapper" )
     protected ObjectMapper xmlMapper;
 
+    @Autowired
+    protected UserService userService;
+
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
@@ -262,6 +262,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         handleLinksAndAccess( entities, fields, false );
 
         handleAttributeValues( entities, fields );
+
+        handleSharingAttributes( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -535,6 +537,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         handleLinksAndAccess( entities, fields, true );
 
         handleAttributeValues( entities, fields );
+
+        handleSharingAttributes( entities, fields );
 
         for ( T entity : entities )
         {
@@ -1268,6 +1272,23 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             attributeService.generateAttributes( entityList );
         }
+    }
+
+    protected void handleSharingAttributes(  List<T> entityList, List<String> fields )
+    {
+        List<String> hasUser = fields.stream().filter( field -> field.contains( "user" ) || fields.contains( ":all" ) )
+            .collect( Collectors.toList() );
+
+        if ( !hasUser.isEmpty() )
+        {
+            entityList.forEach( entity -> {
+                System.out.println( "entity.getSharing().getOwner() = " + entity.getSharing().getOwner() );
+                User user = userService.getUser( entity.getSharing().getOwner() );
+                System.out.println( "userService.getUser( entity.getSharing().getOwner() ) = " + user );
+                entity.setUser( user );
+            } );
+        }
+
     }
 
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )

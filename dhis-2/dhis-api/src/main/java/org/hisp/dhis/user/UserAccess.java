@@ -46,13 +46,11 @@ import java.util.Objects;
 public class UserAccess
     implements Serializable, EmbeddedObject
 {
-    private int id;
-
     private String access;
 
-    private User user;
+    private transient User user;
 
-    private transient String uid;
+    private String uid;
 
     public UserAccess()
     {
@@ -64,15 +62,9 @@ public class UserAccess
         this.access = access;
     }
 
-    public int getId()
+    public String getId()
     {
-        return id;
-    }
-
-    @JsonIgnore
-    public void setId( int id )
-    {
-        this.id = id;
+        return uid;
     }
 
     @JsonProperty

@@ -106,7 +106,7 @@ public class JpaQueryUtils
      * @param caseSesnitive is case sensitive
      * @return a {@link Predicate}.
      */
-    private static Predicate stringPredicate( CriteriaBuilder builder,
+    public static Predicate stringPredicate( CriteriaBuilder builder,
         Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode, boolean caseSesnitive )
     {
         Expression<String> path = expressionPath;
@@ -124,8 +124,12 @@ public class JpaQueryUtils
                 return builder.equal( path, attrValue );
             case ENDING_LIKE:
                 return builder.like( path, "%" + attrValue );
+            case NOT_ENDING_LIKE:
+                return builder.notLike( path, "%" + attrValue );
             case STARTING_LIKE:
                 return builder.like( path, attrValue + "%" );
+            case NOT_STARTING_LIKE:
+                return builder.notLike(  path, attrValue + "%" );
             case ANYWHERE:
                 return builder.like( path, "%" + attrValue + "%" );
             case LIKE:
@@ -186,7 +190,7 @@ public class JpaQueryUtils
         switch ( operator )
         {
             case "in" :
-                return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+                return path.in( (Collection<?>) QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
             case "eq" :
                 return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
             default:

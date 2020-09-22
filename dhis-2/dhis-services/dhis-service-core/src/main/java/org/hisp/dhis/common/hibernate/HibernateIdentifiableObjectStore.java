@@ -116,46 +116,46 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // InternalHibernateGenericStore implementation
     // -------------------------------------------------------------------------
 
-    public final Criteria getDataSharingCriteria()
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
-    }
-
-    @Override
-    public final Criteria getSharingCriteria( User user )
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria()
-    {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria( String access )
-    {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-    }
-
-    @Override
-    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
-    {
-        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-    }
-
+//    public final Criteria getDataSharingCriteria()
+//    {
+//        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+//    }
+//
+//    @Override
+//    public final Criteria getSharingCriteria( User user )
+//    {
+//        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
+//    }
+//
+//    @Override
+//    public final DetachedCriteria getSharingDetachedCriteria()
+//    {
+//        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+//    }
+//
+//    @Override
+//    public final DetachedCriteria getSharingDetachedCriteria( String access )
+//    {
+//        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+//    }
+//
+//    @Override
+//    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
+//    {
+//        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+//    }
+//
     @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
-        return getSharingDetachedCriteria(  user, AclService.LIKE_READ_METADATA );
+        return getSharingDetachedCriteria(  UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
     }
-
-    @Override
-    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
-    {
-        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
-    }
+//
+//    @Override
+//    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+//    {
+//        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+//    }
 
     // -------------------------------------------------------------------------
     // IdentifiableObjectStore implementation
@@ -206,12 +206,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 }
             }
 
-            if ( identifiableObject.getUser() == null )
+            if ( identifiableObject.getSharing().getOwner() == null )
             {
-                identifiableObject.setUser( user );
+                identifiableObject.getSharing().setOwner( user );
             }
-
-            identifiableObject.getSharing().setOwner( identifiableObject.getUser() );
         }
 
         if ( user != null && aclService.isShareable( clazz ) )
@@ -224,12 +222,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 {
                     if ( aclService.defaultPublic( identifiableObject.getClass() ) )
                     {
-                        identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+                        identifiableObject.getSharing().setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
                 else if ( aclService.canMakePrivate( user, identifiableObject.getClass() ) )
                 {
-                    identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
+                    identifiableObject.getSharing().setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
             }
 
@@ -256,24 +254,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( object != null )
         {
             object.setAutoFields();
 
-            BaseIdentifiableObject identifiableObject = object;
-            identifiableObject.setAutoFields();
-            identifiableObject.setLastUpdatedBy( user );
+            object.setAutoFields();
+            object.setLastUpdatedBy( user );
 
-            if ( identifiableObject.getUser() == null )
+            if ( object.getSharing().getOwner() == null )
             {
-                identifiableObject.setUser( user );
+                object.getSharing().setOwner( user );
             }
         }
 
         if ( !isUpdateAllowed( object, user ) )
         {
             AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );
-            throw new UpdateAccessDeniedException( object.toString() );
+            throw new UpdateAccessDeniedException( String.valueOf( object ) );
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
@@ -974,69 +971,69 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // Supportive methods
     //----------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Creates a criteria with sharing restrictions relative to the given
-     * user and access string.
-     */
-    @Override
-    public final Criteria getSharingCriteria()
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
-    }
+//    /**
+//     * Creates a criteria with sharing restrictions relative to the given
+//     * user and access string.
+//     */
+//    @Override
+//    public final Criteria getSharingCriteria()
+//    {
+//        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
+//    }
 
-    /**
-     * Creates a detached criteria with data sharing restrictions relative to the
-     * given user and access string.
-     *
-     * @param user the user.
-     * @param access the access string.
-     * @return a DetachedCriteria.
-     */
-    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
-    {
-        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
-
-        if ( user == null || !dataSharingEnabled( user ) )
-        {
-            return criteria;
-        }
-
-        Assert.notNull( user, "User argument can't be null." );
-
-        Disjunction disjunction = Restrictions.disjunction();
-
-        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
-        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
-
-        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
-        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
-        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
-        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
-
-        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
-        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
-        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
-
-        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
-
-        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
-
-        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
-        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
-        userDetachedCriteria.createCriteria( "ua.user", "u" );
-
-        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
-        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
-        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
-
-        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
-
-        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
-
-        criteria.add( disjunction );
-
-        return criteria;
-    }
+//    /**
+//     * Creates a detached criteria with data sharing restrictions relative to the
+//     * given user and access string.
+//     *
+//     * @param user the user.
+//     * @param access the access string.
+//     * @return a DetachedCriteria.
+//     */
+//    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+//    {
+//        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+//
+//        if ( user == null || !dataSharingEnabled( user ) )
+//        {
+//            return criteria;
+//        }
+//
+//        Assert.notNull( user, "User argument can't be null." );
+//
+//        Disjunction disjunction = Restrictions.disjunction();
+//
+//        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+//        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
+//
+//        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+//        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+//        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+//        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+//
+//        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+//        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+//        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+//
+//        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+//
+//        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+//
+//        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+//        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+//        userDetachedCriteria.createCriteria( "ua.user", "u" );
+//
+//        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+//        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+//        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+//
+//        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+//
+//        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+//
+//        criteria.add( disjunction );
+//
+//        return criteria;
+//    }
 
     /**
      * Creates a detached criteria with sharing restrictions relative to the given

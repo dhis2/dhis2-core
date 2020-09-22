@@ -46,13 +46,11 @@ import java.util.Objects;
 public class UserGroupAccess
     implements Serializable, EmbeddedObject
 {
-    private int id;
-
     private String access;
 
-    private UserGroup userGroup;
+    private transient UserGroup userGroup;
 
-    private transient String uid;
+    private String uid;
 
     public UserGroupAccess()
     {
@@ -64,15 +62,9 @@ public class UserGroupAccess
         this.access = access;
     }
 
-    public int getId()
+    public String getId()
     {
-        return id;
-    }
-
-    @JsonIgnore
-    public void setId( int id )
-    {
-        this.id = id;
+        return uid;
     }
 
     @JsonProperty

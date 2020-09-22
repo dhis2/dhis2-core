@@ -66,7 +66,7 @@ public class DefaultQueryServiceTest
     private QueryParser queryParser;
 
     @Mock
-    private CriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
+    private JpaCriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
 
     @Mock
     private InMemoryQueryEngine<OrganisationUnit> inMemoryQueryEngine;

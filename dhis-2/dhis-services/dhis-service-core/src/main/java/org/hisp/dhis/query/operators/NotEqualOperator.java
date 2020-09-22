@@ -35,9 +35,9 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotEqualOperator extends EqualOperator
+public class NotEqualOperator<T extends Comparable<? super T>> extends EqualOperator<T>
 {
-    public NotEqualOperator( Object arg )
+    public NotEqualOperator( T arg )
     {
         super( "ne", arg );
     }

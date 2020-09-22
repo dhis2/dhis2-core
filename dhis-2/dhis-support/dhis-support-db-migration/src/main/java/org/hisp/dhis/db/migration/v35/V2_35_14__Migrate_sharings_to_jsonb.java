@@ -25,7 +25,7 @@ public class V2_35_14__Migrate_sharings_to_jsonb
             "dataapprovallevel","dataapprovalworkflow","validationrule","validationrulegroup","trackedentityattribute",
             "trackedentitytype","programstage","program","eventreport","eventchart","programindicator",
             "programindicatorgroup","relationshiptype","externalmapLayer","map","report","document","visualization",
-            "predictorgroup","dashboard","interpretation","programstageinstancefilter"};
+            "predictorgroup","dashboard","interpretation","programstageinstancefilter", "keyjsonvalue"};
 
         String[] tablePkNames = {"attributeid","userroleid","usergroupid","sqlviewid","constantid","optionsetid",
             "optiongroupid","optiongroupsetid","maplegendsetid","orgunitgroupid","orgunitgroupsetid","categoryoptionid",
@@ -35,7 +35,7 @@ public class V2_35_14__Migrate_sharings_to_jsonb
             "trackedentityattributeid","trackedentitytypeid","programstageid","programid","eventreportid",
             "eventchartid","programindicatorid","programindicatorgroupid","relationshiptypeid","externalmapLayerid",
             "mapid","reportid","documentid","visualizationid","predictorgroupid","dashboardid","interpretationid",
-            "programstageinstancefilterid" };
+            "programstageinstancefilterid", "keyjsonvalueid" };
 
         String[] tableUserAccesses = {"attributeuseraccesses","userroleuseraccesses","usergroupuseraccesses",
             "sqlviewuseraccesses","constantuseraccesses","optionsetuseraccesses","optiongroupuseraccesses",
@@ -48,7 +48,7 @@ public class V2_35_14__Migrate_sharings_to_jsonb
             "programuseraccesses","eventreportuseraccesses","eventchartuseraccesses","programindicatoruseraccesses","programindicatorgroupuseraccesses",
             "relationshiptypeuseraccesses","externalmapLayeruseraccesses","mapuseraccesses","reportuseraccesses","documentuseraccesses",
             "visualization_useraccesses","predictorgroupuseraccesses","dashboarduseraccesses","interpretationuseraccesses",
-            "programstageinstancefilteruseraccesses"};
+            "programstageinstancefilteruseraccesses", "keyjsonvalueuseraccesses"};
 
         String[] tableUserGroupAccesses = {"attributeusergroupaccesses","userroleusergroupaccesses","usergroupusergroupaccesses",
             "sqlviewusergroupaccesses","constantusergroupaccesses","optionsetusergroupaccesses","optiongroupusergroupaccesses",
@@ -64,7 +64,7 @@ public class V2_35_14__Migrate_sharings_to_jsonb
             "programindicatorgroupusergroupaccesses","relationshiptypeusergroupaccesses","externalmapLayerusergroupaccesses",
             "mapusergroupaccesses","reportusergroupaccesses","documentusergroupaccesses","visualization_usergroupaccesses",
             "predictorgroupusergroupaccesses","dashboardusergroupaccesses","interpretationusergroupaccesses",
-            "programstageinstancefilterusergroupaccesses"};
+            "programstageinstancefilterusergroupaccesses", "keyjsonvalueusergroupaccesses"};
 
             for ( int i=0; i < tableNames.length; i++ )
             {
