@@ -143,7 +143,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String expressionS = "A{ProgramRuleVariableS}=='xmen'";
 
-    private String completedDateExpression = "d2:hasValue(V{completed_date})";
+    private String completedDateExpression = "V{completed_date} == V{current_date}";
 
     private String dataExpression = "d2:addDays('2018-04-15', '2')";
 
@@ -242,7 +242,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         cal.add( Calendar.YEAR, 20 );
 
-        completedDate = cal.getTime();
+        completedDate = new Date();
 
         setupEvents();
         setupProgramRuleEngine();
