@@ -67,9 +67,9 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, programStageUid );
-        return Optional.ofNullable(programStage)
-                .map(ProgramStage::getDataElements)
-                .orElse(Collections.emptySet())
+        return Optional.ofNullable( programStage )
+                .map( ProgramStage::getDataElements )
+                .orElse( Collections.emptySet() )
                 .stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toSet() );
