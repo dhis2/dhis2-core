@@ -1383,7 +1383,8 @@ public abstract class AbstractEnrollmentService
                 TrackedEntityComment comment = new TrackedEntityComment();
                 comment.setUid( noteUid );
                 comment.setCommentText( note.getValue() );
-                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? Constants.UNKNOWN : note.getStoredBy() );
+                comment
+                    .setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? user.getUsername() : note.getStoredBy() );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
 
