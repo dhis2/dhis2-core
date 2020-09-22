@@ -26,13 +26,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.postprocess;
+package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
+
+import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
@@ -49,7 +52,10 @@ public class ProgramNotificationPostProcessor implements Processor
     {
         if ( !ctx.getImportOptions().isSkipNotifications() )
         {
-            final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+            // When this processor is invoked from insert event, then programStageInstance
+            // might be null and need to be built from Event.
+            final ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
+
             final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator()
                 .getApplicationEventPublisher();
 
@@ -67,5 +73,11 @@ public class ProgramNotificationPostProcessor implements Processor
                     .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
             }
         }
+    }
+
+    private ProgramStageInstance getProgramStageInstance( WorkContext ctx, Event event )
+    {
+        return Optional.ofNullable( ctx.getProgramStageInstanceMap().get( event.getUid() ) )
+            .orElseGet( () -> new ProgramStageInstanceMapper( ctx ).map( event ) );
     }
 }
