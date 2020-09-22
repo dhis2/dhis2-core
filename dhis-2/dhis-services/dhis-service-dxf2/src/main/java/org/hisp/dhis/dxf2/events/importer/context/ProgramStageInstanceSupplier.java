@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,10 +40,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -89,8 +93,14 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
             return new HashMap<>();
         }
 
-        final String sql = "select psi.programinstanceid, psi.programstageid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted, "
-            + "psi.eventdatavalues from programstageinstance psi where psi.uid in (:ids)";
+        final String sql = "select psi.programinstanceid, psi.programstageid, psi.programstageinstanceid, " +
+            "psi.uid, psi.status, psi.deleted, psi.eventdatavalues, psi.duedate, psi.executiondate, " +
+            "psi.completeddate, psi.attributeoptioncomboid, psi.geometry, " +
+            "ou.organisationunitid, ou.uid, ou.code, ou.name, psi.attributeoptioncomboid,  c.uid as coc_uid  " +
+            "from programstageinstance psi join organisationunit ou on psi.organisationunitid = ou.organisationunitid " +
+            "join categoryoptioncombo c on psi.attributeoptioncomboid = c.categoryoptioncomboid " +
+            "where psi.uid in (:ids)";
+
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", psiUid );
 
@@ -106,6 +116,11 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
                 psi.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
                 psi.setDeleted( rs.getBoolean( "deleted" ) );
                 psi.setProgramStage( getProgramStage( importOptions, rs.getLong( "programstageid" ) ) );
+                psi.setOrganisationUnit( getOu( rs ) );
+                psi.setDueDate( rs.getDate( "duedate" ) );
+                psi.setExecutionDate( rs.getDate( "executiondate" ) );
+                psi.setCompletedDate( rs.getDate( "completeddate" ) );
+                psi.setAttributeOptionCombo( getCatOptionCombo ( rs ));
                 try
                 {
                     psi.setEventDataValues( EventUtils.jsonToEventDataValues( jsonMapper, rs.getObject(
@@ -118,12 +133,33 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
                         e );
                 }
                 results.put( psi.getUid(), psi );
-
             }
             return results;
         } );
     }
-    
+
+    private CategoryOptionCombo getCatOptionCombo( ResultSet rs )
+        throws SQLException
+    {
+        CategoryOptionCombo coc = new CategoryOptionCombo();
+
+        coc.setUid( rs.getString( "coc_uid" ) );
+
+        return coc;
+    }
+
+    private OrganisationUnit getOu( ResultSet rs )
+        throws SQLException
+    {
+        OrganisationUnit ou = new OrganisationUnit();
+        ou.setId( rs.getLong( "organisationunitid" ) );
+        ou.setUid( rs.getString( "uid" ) );
+        ou.setCode( rs.getString( "code" ) );
+        ou.setName( rs.getString( "name" ) );
+
+        return ou;
+    }
+
     private ProgramStage getProgramStage( ImportOptions importOptions, Long programStageId )
     {
         Collection<Program> programs = this.programSupplier.get( importOptions, new ArrayList<>() ).values();

@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -42,7 +44,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -120,6 +124,9 @@ public class EventImportTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
@@ -493,6 +500,131 @@ public class EventImportTest
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+    }
+
+    //
+    // UPDATE EVENT TESTS
+    //
+
+    @Test
+    public void testVerifyEventCanBeUpdatedUsingProgramOnly2()
+        throws IOException
+    {
+        // CREATE A NEW EVENT
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // FETCH NEWLY CREATED EVENT
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+
+        // UPDATE EVENT - Program is not specified
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setStatus( EventStatus.COMPLETED );
+
+        final ImportSummary summary = eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(),
+            false );
+        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
+        assertThat( summary.getDescription(), is( "Event.program does not point to a valid program: null" ) );
+        assertThat( summary.getReference(), is( uid ) );
+    }
+
+    @Test
+    public void testVerifyEventCanBeUpdatedUsingProgramOnly()
+        throws IOException
+    {
+        // CREATE A NEW EVENT
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // FETCH NEWLY CREATED EVENT
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+
+        // UPDATE EVENT (no actual changes, except for empty data value)
+        // USE ONLY PROGRAM
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setProgram( programB.getUid() );
+        event.setStatus( EventStatus.COMPLETED );
+
+        assertEquals( ImportStatus.SUCCESS,
+            eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
+
+        cleanSession();
+
+        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+
+        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
+        assertThat( psi.getCreated(), is( psi2.getCreated() ) );
+        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
+        assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
+        assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
+        assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
+        assertThat( psi.getStatus().getValue(), is( psi2.getStatus().getValue() ) );
+        assertThat( psi.getExecutionDate(), is( psi2.getExecutionDate() ) );
+        assertThat( psi.getCompletedDate(), is( psi2.getCompletedDate() ) );
+        assertThat( psi.getCompletedBy(), is( psi2.getCompletedBy() ) );
+        assertThat( psi.isDeleted(), is( psi2.isDeleted() ) );
+        assertThat( psi.getEventDataValues().size(), is( 1 ) );
+        assertThat( psi2.getEventDataValues().size(), is( 0 ) );
+    }
+
+    @Test
+    public void testVerifyEventUncompleteSetsCompletedDateToNull()
+        throws IOException
+    {
+        // CREATE A NEW EVENT
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // FETCH NEWLY CREATED EVENT
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+
+        // UPDATE EVENT (no actual changes, except for empty data value and status
+        // change)
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setProgram( programB.getUid() );
+        event.setStatus( EventStatus.ACTIVE );
+
+        assertEquals( ImportStatus.SUCCESS,
+            eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
+
+        cleanSession();
+
+        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+
+        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
+        assertThat( psi.getCreated(), is( psi2.getCreated() ) );
+        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
+        assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
+        assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
+        assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
+        assertThat( psi2.getStatus(), is( EventStatus.ACTIVE ) );
+        assertThat( psi.getExecutionDate(), is( psi2.getExecutionDate() ) );
+        assertThat( psi2.getCompletedDate(), is( nullValue() ) );
+        assertThat( psi.getCompletedBy(), is( psi2.getCompletedBy() ) );
+        assertThat( psi.isDeleted(), is( psi2.isDeleted() ) );
+        assertThat( psi.getEventDataValues().size(), is( 1 ) );
+        assertThat( psi2.getEventDataValues().size(), is( 0 ) );
+    }
+
+    private void cleanSession()
+    {
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().clear();
     }
 
     @SuppressWarnings( "unchecked" )
