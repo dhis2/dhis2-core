@@ -117,8 +117,6 @@ public class DataValidatorTest
 
     private Date feb15;
 
-    private I18nFormat i18nFormat;
-
     @Before
     public void setUp()
     {

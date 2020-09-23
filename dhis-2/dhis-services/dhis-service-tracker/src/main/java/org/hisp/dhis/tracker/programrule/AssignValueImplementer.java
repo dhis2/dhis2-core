@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -47,7 +45,6 @@ import org.springframework.stereotype.Component;
 /**
  * @Author Enrico Colasante
  */
-@Slf4j
 @Component
 public class AssignValueImplementer
     implements RuleActionApplier

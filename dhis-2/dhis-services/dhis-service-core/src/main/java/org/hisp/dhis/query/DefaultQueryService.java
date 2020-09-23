@@ -29,7 +29,6 @@ package org.hisp.dhis.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.List;
 
@@ -131,10 +130,10 @@ public class DefaultQueryService
             query.setFirstResult( pagination.getFirstResult() );
             query.setMaxResults( pagination.getSize() );
         }
-        
+
         return query;
     }
-    
+
     @Override
     public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
     {

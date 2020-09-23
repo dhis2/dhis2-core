@@ -35,9 +35,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.RuleActionValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;

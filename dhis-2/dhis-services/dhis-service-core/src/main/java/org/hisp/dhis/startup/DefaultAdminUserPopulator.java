@@ -29,7 +29,6 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.ImmutableSet;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -44,7 +43,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class DefaultAdminUserPopulator
     extends TransactionContextStartupRoutine
 {

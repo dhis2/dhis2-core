@@ -30,7 +30,6 @@ package org.hisp.dhis.security.authority;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.HashSet;

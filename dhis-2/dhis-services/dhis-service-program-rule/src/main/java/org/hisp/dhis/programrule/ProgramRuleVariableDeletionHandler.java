@@ -35,7 +35,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -46,7 +45,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Component( "org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler" )
 public class ProgramRuleVariableDeletionHandler
-    extends DeletionHandler 
+    extends DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -81,7 +80,7 @@ public class ProgramRuleVariableDeletionHandler
 
         return StringUtils.isBlank( programRuleVariables ) ? null : programRuleVariables;
     }
-    
+
     @Override
     public void deleteProgram( Program program )
     {
