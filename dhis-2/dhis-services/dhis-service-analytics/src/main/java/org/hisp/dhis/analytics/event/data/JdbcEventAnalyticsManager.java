@@ -111,7 +111,7 @@ public class JdbcEventAnalyticsManager
 
     private static final String OPEN_IN = " in (";
 
-    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
                                      ProgramIndicatorService programIndicatorService,
                                      ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
