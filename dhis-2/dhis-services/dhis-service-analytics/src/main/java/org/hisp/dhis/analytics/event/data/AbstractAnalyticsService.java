@@ -99,7 +99,8 @@ public abstract class AbstractAnalyticsService
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT, String.class.getName(), false, true ) );
+            //dimension.getDisplayProperty( params.getDisplayProperty() )
+            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDimensionDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         for ( QueryItem item : params.getItems() )
