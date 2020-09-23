@@ -289,12 +289,6 @@ public class BaseIdentifiableObject
         return displayName != null ? displayName : getName();
     }
 
-    @JsonIgnore
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
     @Override
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )

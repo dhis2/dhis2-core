@@ -221,11 +221,6 @@ public class BaseNameableObject
         return displayShortName != null ? displayShortName : getShortName();
     }
 
-    public void setDisplayShortName( String displayShortName )
-    {
-        this.displayShortName = displayShortName;
-    }
-
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -247,11 +242,6 @@ public class BaseNameableObject
     {
         displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
         return displayDescription != null ? displayDescription : getDescription();
-    }
-
-    public void setDisplayDescription( String displayDescription )
-    {
-        this.displayDescription = displayDescription;
     }
 
     @JsonProperty
