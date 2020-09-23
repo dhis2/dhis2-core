@@ -28,17 +28,23 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 @Component
 public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook
@@ -52,6 +58,34 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, this::processDataElementWithStage )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    {
+        if ( !(object instanceof ProgramRuleVariable) )
+        {
+            return super.validate( object, bundle );
+        }
+        Session session = sessionFactory.getCurrentSession();
+        ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
+
+        Query<ProgramRuleVariable> query = session.createQuery(
+            " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid",
+            ProgramRuleVariable.class );
+
+        query.setParameter( "name", programRuleVariable.getName() );
+        query.setParameter( "programUid", programRuleVariable.getProgram().getUid() );
+
+        if ( !query.getResultList().isEmpty() )
+        {
+            return ImmutableList.of(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
+                    programRuleVariable.getProgram().getUid() ) );
+        }
+
+        return super.validate( object, bundle );
+
+    }
 
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )

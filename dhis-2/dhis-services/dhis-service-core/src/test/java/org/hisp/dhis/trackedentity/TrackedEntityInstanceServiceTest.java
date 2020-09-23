@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

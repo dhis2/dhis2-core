@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.dxf2.events.importer;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -389,7 +389,6 @@ public class EventManager
                 {
                     eventPersistenceService.delete( workContext, singletonList( event ) );
                 }
-
             }
             catch ( Exception e )
             {

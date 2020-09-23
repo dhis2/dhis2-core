@@ -31,8 +31,6 @@ package org.hisp.dhis.tracker.report;
 import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerType;

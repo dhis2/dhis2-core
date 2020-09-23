@@ -114,6 +114,8 @@ public enum ErrorCode
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
+    E4031( "A program rule with name `{0}` and program uid `{1}` already exists" ),
+    E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

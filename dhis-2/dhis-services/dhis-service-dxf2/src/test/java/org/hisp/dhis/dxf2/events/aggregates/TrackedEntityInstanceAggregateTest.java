@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
@@ -38,7 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -52,7 +50,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
-    
+
     @Autowired
     private SessionFactory  sessionFactory;
 
@@ -414,7 +412,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
-        
+
         assertNotNull( enrollment );
         assertNotNull( event );
 
@@ -510,9 +508,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             this.persistRelationship( t1, psi );
             relationshipItemsUid[0] = t1.getUid();
             relationshipItemsUid[1] = psi.getUid();
-            
+
         } );
-       
+
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setIncludeAllAttributes( true );

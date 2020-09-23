@@ -73,7 +73,7 @@ public class HeaderHandler
         {
             for ( DimensionalObject col : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader( col.getDimension(), col.getDisplayName(), TEXT,
+                grid.addHeader( new GridHeader( col.getDimension(), col.getDimensionDisplayName(), TEXT,
                     String.class.getName(), false, true ) );
             }
 
@@ -81,7 +81,7 @@ public class HeaderHandler
             {
                 for ( DimensionalObject level : params.getOrgUnitLevelsAsDimensions() )
                 {
-                    grid.addHeader( new GridHeader( level.getDimension(), level.getDisplayName(), TEXT,
+                    grid.addHeader( new GridHeader( level.getDimension(), level.getDimensionDisplayName(), TEXT,
                         String.class.getName(), false, true ) );
                 }
             }

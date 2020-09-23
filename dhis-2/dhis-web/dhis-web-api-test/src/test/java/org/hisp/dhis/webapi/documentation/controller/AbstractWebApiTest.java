@@ -376,7 +376,6 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
             map.setName( "Map" + uniqueName );
-            map.setDisplayName( "DisplayName" + uniqueName );
             map.setLatitude( 952175.62553525 );
             map.setLongitude( -1378543.6774686 );
             return (T) map;
