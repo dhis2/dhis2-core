@@ -72,7 +72,12 @@ public class BaseDimensionalObject
      * to dimension identifier. For the period dimension, this will reflect the
      * period type. For the org unit dimension, this will reflect the level.
      */
-    private String dimensionName;
+    private transient String dimensionName;
+
+    /**
+     * The display name to use for this dimension.
+     */
+    private transient String dimensionDisplayName;
 
     /**
      * The dimensional items for this dimension.
@@ -140,39 +145,37 @@ public class BaseDimensionalObject
         this.items = new ArrayList<>( items );
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String displayName, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionDisplayName, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
-        this.displayName = displayName;
+        this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
-        this.displayName = displayName;
+        this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items, DimensionalKeywords dimensionalKeywords )
     {
-        this( dimension, dimensionType, items );
-        this.dimensionName = dimensionName;
-        this.displayName = displayName;
+        this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.dimensionalKeywords = dimensionalKeywords;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, boolean allItems )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items, boolean allItems )
     {
-        this( dimension, dimensionType, dimensionName, displayName, items );
+        this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.allItems = allItems;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, ProgramStage programStage, String filter )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
-        this.uid = dimension;
+        this( dimension );
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName;
-        this.displayName = displayName;
+        this.dimensionDisplayName = dimensionDisplayName;
         this.legendSet = legendSet;
         this.programStage = programStage;
         this.filter = filter;
@@ -187,7 +190,7 @@ public class BaseDimensionalObject
     public DimensionalObject instance()
     {
         BaseDimensionalObject object = new BaseDimensionalObject( this.uid,
-            this.dimensionType, this.dimensionName, this.displayName, this.items, this.allItems );
+            this.dimensionType, this.dimensionName, this.dimensionDisplayName, this.items, this.allItems );
 
         object.legendSet = this.legendSet;
         object.aggregationType = this.aggregationType;
@@ -327,6 +330,13 @@ public class BaseDimensionalObject
         this.dataDimension = dataDimension;
     }
 
+    @JsonIgnore
+    @Override
+    public String getDimensionDisplayName()
+    {
+        return dimensionDisplayName;
+    }
+
     @Override
     @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalItemObject.class )
@@ -444,9 +454,9 @@ public class BaseDimensionalObject
             .collect( Collectors.toList() );
 
         return MoreObjects.toStringHelper( this )
-            .add( "Dimension", uid )
+            .add( "dimension", uid )
             .add( "type", dimensionType )
-            .add( "display name", displayName )
+            .add( "dimension display name", dimensionDisplayName )
             .add( "items", itemStr )
             .toString();
     }
