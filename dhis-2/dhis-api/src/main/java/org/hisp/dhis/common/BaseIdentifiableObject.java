@@ -285,8 +285,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayName()
     {
-        displayName = getTranslation( TranslationProperty.NAME, displayName );
-        return displayName != null ? displayName : getName();
+        return getTranslation( TranslationProperty.NAME, getName() );
     }
 
     @Override
