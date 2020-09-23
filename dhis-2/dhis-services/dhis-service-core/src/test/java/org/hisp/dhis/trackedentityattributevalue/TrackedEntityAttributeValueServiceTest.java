@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -261,5 +261,30 @@ public class TrackedEntityAttributeValueServiceTest
 
         assertTrue( fileResourceA.isAssigned() );
         assertTrue( fileResourceB.isAssigned() );
+    }
+
+    @Test
+    public void testAttributeValueWithNullValue()
+    {
+        attributeService.updateTrackedEntityAttribute( attributeA );
+
+        attributeValueA = createTrackedEntityAttributeValue( 'A', entityInstanceA, attributeA );
+        attributeValueA.setValue( "any value" );
+
+        attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
+
+        TrackedEntityAttributeValue retrievedValue = attributeValueService
+            .getTrackedEntityAttributeValue( entityInstanceA, attributeA );
+
+        assertEquals( "any value", retrievedValue.getValue() );
+
+        attributeValueA.setValue( null );
+
+        attributeValueService.updateTrackedEntityAttributeValue( attributeValueA );
+
+        retrievedValue = attributeValueService
+            .getTrackedEntityAttributeValue( entityInstanceA, attributeA );
+
+        assertNull( retrievedValue );
     }
 }
