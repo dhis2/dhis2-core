@@ -30,10 +30,7 @@ package org.hisp.dhis.dxf2.events.event.persistence;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -70,18 +67,19 @@ public class  DefaultEventPersistenceService
     @Transactional
     public void save( WorkContext context, List<Event> events )
     {
-        /*
-         * Save Events, Notes and Data Values
-         */
-        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
-
-        List<ProgramStageInstance> programStageInstances = jdbcEventStore
-            .saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
-        jdbcEventCommentStore.saveAllComments( programStageInstances );
-
-        if ( !context.getImportOptions().isSkipLastUpdated() )
+        if ( isNotEmpty( events ) )
         {
-            updateTeis( context, events );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+
+            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+                .saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+
+            jdbcEventCommentStore.saveAllComments( programStageInstances );
+
+            if ( !context.getImportOptions().isSkipLastUpdated() )
+            {
+                updateTeis( context, events );
+            }
         }
     }
 
@@ -97,11 +95,11 @@ public class  DefaultEventPersistenceService
     {
         if ( isNotEmpty( events ) )
         {
-            final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
-                new ProgramStageInstanceMapper( context ), events );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
             List<ProgramStageInstance> programStageInstances = jdbcEventStore
-                .updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
+                .updateEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+
             jdbcEventCommentStore.saveAllComments( programStageInstances );
 
             if ( !context.getImportOptions().isSkipLastUpdated() )
@@ -125,19 +123,6 @@ public class  DefaultEventPersistenceService
         {
             jdbcEventStore.delete( events );
         }
-    }
-
-    private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        Map<Event, ProgramStageInstance> map = new HashMap<>();
-        for ( Event event : events )
-        {
-            ProgramStageInstance psi = mapper.map( event );
-            map.put( event, psi );
-        }
-
-        return map;
     }
 
     /**

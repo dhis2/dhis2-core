@@ -210,6 +210,7 @@ public class DefaultTrackedEntityInstanceService
         }
 
         decideAccess( params );
+
         //AccessValidation should be skipped only and only if it is internal service that runs the task (for example sync job)
         if ( !skipAccessValidation )
         {
@@ -227,9 +228,7 @@ public class DefaultTrackedEntityInstanceService
 
         params.handleCurrentUserSelectionMode();
 
-        List<Long> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
-
-        return trackedEntityInstances;
+        return trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
     }
 
     @Override

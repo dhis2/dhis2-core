@@ -29,60 +29,51 @@ package org.hisp.dhis.security.oidc;
  *
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
-import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Set;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-
-@Component( "dhisClientRegistrationRepository" )
-public class DhisClientRegistrationRepository
-    implements ClientRegistrationRepository
+@Slf4j
+@Component
+public class DhisOidcLogoutSuccessHandler
+    implements LogoutSuccessHandler
 {
-    @Autowired
-    private DhisConfigurationProvider config;
+    private OidcClientInitiatedLogoutSuccessHandler handler;
 
-    private static final HashMap<String, DhisOidcClientRegistration> registrationHashMap = new HashMap<>();
+    @Autowired
+    private DhisClientRegistrationRepository dhisClientRegistrationRepository;
+
+    @Autowired
+    public DhisConfigurationProvider dhisConfigurationProvider;
 
     @PostConstruct
     public void init()
     {
-        addRegistration( GoogleProvider.build( config ) );
-        AzureAdProvider.buildList( config ).forEach( this::addRegistration );
-    }
-
-    public void addRegistration( DhisOidcClientRegistration registration )
-    {
-        if ( registration == null )
-        {
-            return;
-        }
-        registrationHashMap.put( registration.getRegistrationId(), registration );
+        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
+        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisClientRegistrationRepository );
+        this.handler.setPostLogoutRedirectUri( logoutUri );
     }
 
     @Override
-    public ClientRegistration findByRegistrationId( String registrationId )
+    public void onLogoutSuccess( HttpServletRequest request, HttpServletResponse response,
+        Authentication authentication )
+        throws IOException, ServletException
     {
-        return registrationHashMap.get( registrationId ).getClientRegistration();
-    }
-
-    public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )
-    {
-        return registrationHashMap.get( registrationId );
-    }
-
-    public Set<String> getAllRegistrationId()
-    {
-        return registrationHashMap.keySet();
+        handler.onLogoutSuccess( request, response, authentication );
     }
 }
