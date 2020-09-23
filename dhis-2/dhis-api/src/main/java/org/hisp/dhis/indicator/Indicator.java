@@ -65,15 +65,11 @@ public class Indicator
 
     private String numeratorDescription;
 
-    private transient String displayNumeratorDescription;
-
     private transient String explodedNumerator;
 
     private String denominator;
 
     private String denominatorDescription;
-
-    private transient String displayDenominatorDescription;
 
     private transient String explodedDenominator;
 
@@ -157,7 +153,7 @@ public class Indicator
     {
         return DimensionItemType.INDICATOR;
     }
-    
+
     /**
      * A denominator value of "1" implies that there is no denominator
      * and that the indicator represents a sum.
@@ -167,7 +163,7 @@ public class Indicator
     {
         return "1".equals( denominator ) ? TotalAggregationType.SUM : TotalAggregationType.AVERAGE;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -237,13 +233,7 @@ public class Indicator
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayNumeratorDescription()
     {
-        displayNumeratorDescription = getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, displayNumeratorDescription );
-        return displayNumeratorDescription != null ? displayNumeratorDescription : getNumeratorDescription();
-    }
-
-    public void setDisplayNumeratorDescription( String displayNumeratorDescription )
-    {
-        this.displayNumeratorDescription = displayNumeratorDescription;
+        return getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, getNumeratorDescription() );
     }
 
     @JsonIgnore
@@ -285,13 +275,7 @@ public class Indicator
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDenominatorDescription()
     {
-        displayDenominatorDescription = getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, displayDenominatorDescription );
-        return displayDenominatorDescription != null ? displayDenominatorDescription : getDenominatorDescription();
-    }
-
-    public void setDisplayDenominatorDescription( String displayDenominatorDescription )
-    {
-        this.displayDenominatorDescription = displayDenominatorDescription;
+        return getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, getDenominatorDescription() );
     }
 
     @JsonIgnore
@@ -358,6 +342,7 @@ public class Indicator
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -365,6 +350,7 @@ public class Indicator
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;
