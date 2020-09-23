@@ -217,7 +217,7 @@ public class JdbcEventStore implements EventStore
      * statement. This prevents deadlocks when Postgres tries to update the same
      * TEI.
      */
-    String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
+    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
         "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
 
 
