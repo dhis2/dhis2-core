@@ -83,12 +83,12 @@ public class AttributeOptionComboLoader
         "coc.name, " +
         "c.uid as cc_uid, " +
         "c.name as cc_name," +
-        "string_agg( dec.categoryid::text, ',') as cat_ids " +
+        "string_agg( coco.categoryoptionid::text, ',') as cat_ids " +
         "from categoryoptioncombo coc " +
         "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
         "join categorycombo c on co.categorycomboid = c.categorycomboid " +
         "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid " +
-        "join dataelementcategory dec on cc.categoryid = dec.categoryid " +
+        "join categoryoptioncombos_categoryoptions coco on coc.categoryoptioncomboid = coco.categoryoptioncomboid " +
         "where c.${resolvedScheme} " +
         "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name " +
         ") as catoptcombo where " +
@@ -256,7 +256,7 @@ public class AttributeOptionComboLoader
 
         // TODO use cache
         List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
-            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( key, rs ) );
+            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
 
         if ( categoryOptionCombos.size() == 1 )
         {
@@ -282,12 +282,12 @@ public class AttributeOptionComboLoader
     private CategoryOptionCombo loadCategoryOptionCombo( IdScheme idScheme, String id )
     {
         String key = "categoryoptioncomboid";
-        // @formatter:off
+
         StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
             .put( "key", key )
             .put( "resolvedScheme", Objects.requireNonNull( resolveId( idScheme, key, id ) ) )
             .build() );
-        // @formatter:on
+
         try
         {
             return jdbcTemplate.queryForObject( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO ),
