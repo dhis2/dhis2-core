@@ -158,11 +158,6 @@ public class BaseIdentifiableObject
     protected Set<String> favorites = new HashSet<>();
 
     /**
-     * The i18n variant of the name. Not persisted.
-     */
-    protected transient String displayName;
-
-    /**
      * Last user updated this object.
      */
     protected User lastUpdatedBy;
