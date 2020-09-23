@@ -121,7 +121,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
                 psi.setDueDate( rs.getDate( "duedate" ) );
                 psi.setExecutionDate( rs.getDate( "executiondate" ) );
                 psi.setCompletedDate( rs.getDate( "completeddate" ) );
-                psi.setAttributeOptionCombo( getCatOptionCombo ( rs ));
+                psi.setAttributeOptionCombo( getCatOptionCombo ( rs ) );
                 try
                 {
                     psi.setEventDataValues( EventUtils.jsonToEventDataValues( jsonMapper, rs.getObject(
