@@ -37,6 +37,7 @@ import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -69,21 +70,13 @@ public class AuthenticationProviderConfig
     @Autowired
     DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
-    @Autowired
-    public void configureGlobal( @Lazy AuthenticationManagerBuilder auth )
-        throws Exception
-    {
-        auth.authenticationProvider( twoFactorAuthenticationProvider );
-        auth.authenticationProvider( customLdapAuthenticationProvider() );
-    }
-
     @Bean
     public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
     {
         return new TwoFactorWebAuthenticationDetailsSource();
     }
 
-    @Bean
+    @Bean(name ="customLdapAuthenticationProvider")
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
