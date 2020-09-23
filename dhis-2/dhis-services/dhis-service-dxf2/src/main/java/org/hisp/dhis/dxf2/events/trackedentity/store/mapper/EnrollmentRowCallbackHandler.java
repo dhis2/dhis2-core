@@ -82,7 +82,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         enrollment.setEnrollment( rs.getString( getColumnName( UID ) ) );
 
         MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) )
-                .ifPresent(enrollment::setGeometry);
+                .ifPresent( enrollment::setGeometry );
 
         enrollment.setTrackedEntityType( rs.getString( getColumnName( TEI_TYPE_UID ) ) );
         enrollment.setTrackedEntityInstance( rs.getString( getColumnName( TEI_UID ) ) );
