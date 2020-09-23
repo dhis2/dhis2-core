@@ -330,7 +330,6 @@ public class BaseDimensionalObject
         this.dataDimension = dataDimension;
     }
 
-    @JsonIgnore
     @Override
     public String getDimensionDisplayName()
     {
