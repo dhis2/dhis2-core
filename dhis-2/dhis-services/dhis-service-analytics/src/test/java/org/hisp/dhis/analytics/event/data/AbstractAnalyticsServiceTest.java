@@ -78,7 +78,6 @@ public class AbstractAnalyticsServiceTest
 
         deB = createDataElement( 'B', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.COUNT );
-
     }
 
     @Test
@@ -124,16 +123,14 @@ public class AbstractAnalyticsServiceTest
     private void assertHeader( GridHeader expected, String name, String column, ValueType valueType, String type )
     {
         assertThat( "Header name does not match", expected.getName(), is( name ) );
-        assertThat( "Header Column name does not match", expected.getColumn(), is( column ) );
+        assertThat( "Header column name does not match", expected.getColumn(), is( column ) );
         assertThat( "Header value type does not match", expected.getValueType(), is( valueType ) );
         assertThat( "Header type does not match", expected.getType(), is( type ) );
     }
-
 }
 
 class DummyAnalyticsService extends AbstractAnalyticsService
 {
-
     public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
     {
         super( securityManager, queryValidator );
