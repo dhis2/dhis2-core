@@ -1646,7 +1646,7 @@ public class JdbcEventStore implements EventStore
         ps.setString(       15, event.getCode() );
         ps.setTimestamp(    16, JdbcEventSupport.toTimestamp( event.getCreatedAtClient() ) );
         ps.setTimestamp(    17, JdbcEventSupport.toTimestamp( event.getLastUpdatedAtClient() ) );
-        ps.setObject(       18, toGeometry( event.getGeometry() )  );
+        ps.setObject(       18, JdbcEventSupport.toGeometry( event.getGeometry() )  );
         if ( event.getAssignedUser() != null )
         {
             ps.setLong(     19, event.getAssignedUser().getId() );
@@ -1667,7 +1667,14 @@ public class JdbcEventStore implements EventStore
         ps.setLong( 1, programStageInstance.getProgramInstance().getId() );
         ps.setLong( 2, programStageInstance.getProgramStage().getId() );
         ps.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
-        ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
+        if ( programStageInstance.getExecutionDate() != null )
+        {
+            ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
+        }
+        else
+        {
+            ps.setObject( 4, null );
+        }
         ps.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
         ps.setString( 6, programStageInstance.getStatus().toString() );
         ps.setTimestamp( 7, JdbcEventSupport.toTimestamp( programStageInstance.getCompletedDate() ) );
@@ -1679,7 +1686,7 @@ public class JdbcEventStore implements EventStore
         ps.setString( 13, programStageInstance.getCode() );
         ps.setTimestamp( 14, JdbcEventSupport.toTimestamp( programStageInstance.getCreatedAtClient() ) );
         ps.setTimestamp( 15, JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
-        ps.setObject( 16, toGeometry( programStageInstance.getGeometry() ) );
+        ps.setObject( 16, JdbcEventSupport.toGeometry( programStageInstance.getGeometry() ) );
 
         if ( programStageInstance.getAssignedUser() != null )
         {
@@ -1692,7 +1699,6 @@ public class JdbcEventStore implements EventStore
 
         ps.setObject( 18, eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper ) );
         ps.setString( 19, programStageInstance.getUid() );
-
     }
 
     private boolean userHasAccess( SqlRowSet rowSet )
@@ -1819,11 +1825,5 @@ public class JdbcEventStore implements EventStore
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
                 .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
-    }
-
-    private PGgeometry toGeometry( Geometry geometry )
-        throws SQLException
-    {
-        return geometry != null ? new PGgeometry( geometry.toText() ) : null;
     }
 }

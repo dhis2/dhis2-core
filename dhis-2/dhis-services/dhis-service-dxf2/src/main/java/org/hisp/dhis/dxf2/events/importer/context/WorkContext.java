@@ -177,4 +177,9 @@ public class WorkContext
     {
         return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );
     }
+
+    public Optional<ProgramInstance> getProgramInstance( String event )
+    {
+        return Optional.ofNullable( this.getProgramInstanceMap().get( event ) );
+    }
 }
