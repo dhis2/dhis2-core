@@ -47,7 +47,14 @@ public interface TrackedEntityInstanceAuditStore
      * @param trackedEntityInstanceAudit the audit to add
      */
     void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
-    
+
+    /**
+     * Adds multiple {@see TrackedEntityInstanceAudit} instances to the database
+     *
+     * @param trackedEntityInstanceAudit the audit to add
+     */
+    void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit );
+
     /**
      * Deletes tracked entity instance audit for the given tracked entity instance
      * 

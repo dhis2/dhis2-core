@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  */
 
 import static java.util.concurrent.CompletableFuture.allOf;
+import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -49,19 +52,16 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class EnrollmentAggregate
     extends
     AbstractAggregate
 {
+    @NonNull
     private final EnrollmentStore enrollmentStore;
 
+    @NonNull
     private final EventAggregate eventAggregate;
-
-    public EnrollmentAggregate( EnrollmentStore enrollmentStore, EventAggregate eventAggregate )
-    {
-        this.enrollmentStore = enrollmentStore;
-        this.eventAggregate = eventAggregate;
-    }
 
     /**
      * Key: tei uid , value Enrollment
@@ -84,16 +84,16 @@ public class EnrollmentAggregate
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.getParams().isIncludeEvents(),
-            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ) );
+            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(),
-            () -> enrollmentStore.getRelationships( enrollmentIds ) );
+            () -> enrollmentStore.getRelationships( enrollmentIds ), getPool() );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
-            () -> enrollmentStore.getNotes( enrollmentIds ) );
+            () -> enrollmentStore.getNotes( enrollmentIds ), getPool() );
 
-        return allOf( eventAsync, notesAsync, relationshipAsync ).thenApplyAsync( dummy -> {
+        return allOf( eventAsync, notesAsync, relationshipAsync ).thenApplyAsync( fn -> {
 
             Multimap<String, Event> events = eventAsync.join();
             Multimap<String, Note> notes = notesAsync.join();
@@ -115,6 +115,6 @@ public class EnrollmentAggregate
 
             return enrollments;
 
-        } ).join();
+        }, getPool() ).join();
     }
 }

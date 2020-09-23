@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -51,16 +54,13 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class EventAggregate
     extends
     AbstractAggregate
 {
+    @NonNull
     private final EventStore eventStore;
-
-    public EventAggregate( EventStore eventStore )
-    {
-        this.eventStore = eventStore;
-    }
 
     /**
      * Key: enrollment uid -> Value: Event
@@ -87,21 +87,21 @@ public class EventAggregate
          * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ) );
+            ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ), getPool() );
 
         /*
          * Async fetch Notes for the given Event ids
          */
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
-            () -> eventStore.getNotes( eventIds ) );
+            () -> eventStore.getNotes( eventIds ), getPool() );
 
         /*
          * Async fetch DataValues for the given Event ids
          */
         final CompletableFuture<Map<String, List<DataValue>>> dataValuesAsync = supplyAsync(
-            () -> eventStore.getDataValues( eventIds ) );
+            () -> eventStore.getDataValues( eventIds ), getPool() );
 
-        return allOf( dataValuesAsync, notesAsync, relationshipAsync ).thenApplyAsync( dummy -> {
+        return allOf( dataValuesAsync, notesAsync, relationshipAsync ).thenApplyAsync( fn -> {
 
             Map<String, List<DataValue>> dataValues = dataValuesAsync.join();
             Multimap<String, Note> notes = notesAsync.join();
@@ -124,6 +124,6 @@ public class EventAggregate
 
             return events;
 
-        } ).join();
+        }, getPool() ).join();
     }
 }
