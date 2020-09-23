@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -169,7 +168,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         this.jsonMapper = jsonMapper;
         this.env = env;
     }
-    
+
     @Override
     public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
@@ -190,7 +189,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             programsCache.removeAll();
             requiresReload = true;
         }
-        
+
         if ( requiresReload || programMap == null )
         {
             //
@@ -222,7 +221,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         return programMap;
     }
-    
+
     private void aggregateProgramAndAclData( Map<String, Program> programMap, Map<Long, Set<OrganisationUnit>> ouMap,
         Map<Long, Set<UserAccess>> programUserAccessMap,
         Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap, Map<Long, Set<UserAccess>> tetUserAccessMap,
@@ -397,7 +396,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             + "order by psde.programstageid";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-            
+
             Map<Long, Set<DataElement>> results = new HashMap<>();
             long programStageId = 0;
             while ( rs.next() )
@@ -582,7 +581,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         userAccess.setUser( user );
         return userAccess;
     }
-    
+
     private DataElement toDataElement( ResultSet rs )
         throws SQLException
     {
