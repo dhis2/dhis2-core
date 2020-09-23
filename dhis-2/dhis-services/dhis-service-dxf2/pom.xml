@@ -115,6 +115,10 @@
       <artifactId>hamcrest-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.exparity</groupId>
+      <artifactId>hamcrest-date</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
     </dependency>
