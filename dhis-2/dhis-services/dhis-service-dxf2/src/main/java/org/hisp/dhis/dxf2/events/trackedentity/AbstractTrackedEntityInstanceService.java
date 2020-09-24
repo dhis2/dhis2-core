@@ -720,6 +720,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 String message = "Tracked entity instance " + dtoEntityInstance.getTrackedEntityInstance()
                     + " does not exist";
+
+                if ( teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
+                {
+                    message = "You are trying to add or update tracked entity instance "
+                        + dtoEntityInstance.getTrackedEntityInstance() + " that has already been deleted";
+                }
                 importConflicts.add( new ImportConflict( "TrackedEntityInstance", message ) );
             }
             else if ( !errors.isEmpty() )
