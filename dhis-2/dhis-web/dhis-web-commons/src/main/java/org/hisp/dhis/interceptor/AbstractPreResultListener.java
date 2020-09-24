@@ -28,9 +28,6 @@ package org.hisp.dhis.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-
-
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 import com.opensymphony.xwork2.interceptor.PreResultListener;
@@ -39,9 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * The intention of this class is to stop execution of the pre result listener
  * when an exception is thrown in the action invocation.
- * 
+ *
  * @author Torgeir Lorange Ostby
- * @version $Id: AbstractPreResultListener.java 2869 2007-02-20 14:26:09Z andegje $
  */
 @Slf4j
 public abstract class AbstractPreResultListener
