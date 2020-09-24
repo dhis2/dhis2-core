@@ -40,6 +40,7 @@ import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -104,6 +105,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     @Bean( "multipartResolver" )
     public MultipartResolver multipartResolver()
@@ -207,7 +211,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Override
     public void addInterceptors( InterceptorRegistry registry )
     {
-        registry.addInterceptor( new UserContextInterceptor( currentUserService ) );
+        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()
