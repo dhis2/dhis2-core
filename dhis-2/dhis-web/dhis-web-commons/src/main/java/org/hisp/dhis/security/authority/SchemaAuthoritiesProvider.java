@@ -29,7 +29,6 @@ package org.hisp.dhis.security.authority;
  */
 
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 

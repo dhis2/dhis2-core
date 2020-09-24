@@ -321,11 +321,11 @@ public class HibernateTrackedEntityInstanceStore
         // If sync job, fetch only TEAVs that are supposed to be synchronized
 
         hql += addConditionally( params.isSynchronizationQuery(),
-                () -> "left join tei.trackedEntityAttributeValues teav1 " +
-                "left join teav1.attribute as attr" + hlp.whereAnd() + " attr.skipSynchronization = false" );
+            () -> "left join tei.trackedEntityAttributeValues teav1 " +
+            "left join teav1.attribute as attr" + hlp.whereAnd() + " attr.skipSynchronization = false" );
 
         hql += addWhereConditionally( hlp, params.hasTrackedEntityType(), () ->
-                "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
+            "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
 
         if ( params.hasLastUpdatedDuration() )
         {

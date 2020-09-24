@@ -70,8 +70,6 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

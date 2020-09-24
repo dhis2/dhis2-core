@@ -37,15 +37,12 @@ import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /**
  * @author Luciano Fiandesio

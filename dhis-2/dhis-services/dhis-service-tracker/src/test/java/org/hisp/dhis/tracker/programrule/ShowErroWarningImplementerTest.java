@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
