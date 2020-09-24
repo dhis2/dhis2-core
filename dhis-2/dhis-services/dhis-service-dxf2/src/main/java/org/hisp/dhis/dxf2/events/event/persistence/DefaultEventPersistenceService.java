@@ -28,13 +28,9 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,10 +38,11 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,31 +50,26 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class DefaultEventPersistenceService implements EventPersistenceService
 {
+    @NonNull
     private final EventStore jdbcEventStore;
-
-    public DefaultEventPersistenceService( EventStore jdbcEventStore )
-    {
-        checkNotNull( jdbcEventStore );
-
-        this.jdbcEventStore = jdbcEventStore;
-    }
 
     @Override
     @Transactional
     public void save( WorkContext context, List<Event> events )
     {
-        /*
-         * Save Events, Notes and Data Values
-         */
-        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
-
-        jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
-
-        if ( !context.getImportOptions().isSkipLastUpdated() )
+        if ( isNotEmpty( events ) )
         {
-            updateTeis( context, events );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+
+            jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+
+            if ( !context.getImportOptions().isSkipLastUpdated() )
+            {
+                updateTeis( context, events );
+            }
         }
     }
 
@@ -87,10 +79,9 @@ public class DefaultEventPersistenceService implements EventPersistenceService
     {
         if ( isNotEmpty( events ) )
         {
-            final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
-                new ProgramStageInstanceMapper( context ), events );
-
-            jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+            
+            jdbcEventStore.updateEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
             if ( !context.getImportOptions().isSkipLastUpdated() )
             {
@@ -113,19 +104,6 @@ public class DefaultEventPersistenceService implements EventPersistenceService
         {
             jdbcEventStore.delete( events );
         }
-    }
-
-    private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        Map<Event, ProgramStageInstance> map = new HashMap<>();
-        for ( Event event : events )
-        {
-            ProgramStageInstance psi = mapper.map( event );
-            map.put( event, psi );
-        }
-
-        return map;
     }
 
     /**

@@ -33,15 +33,19 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdScheme.CODE;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.event.EventStatus.COMPLETED;
 import static org.hisp.dhis.event.EventStatus.fromInt;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
@@ -61,39 +65,100 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
     @Override
     public ProgramStageInstance map( Event event )
     {
-        ImportOptions importOptions = workContext.getImportOptions();
+        ProgramStageInstance psi = workContext.getProgramStageInstanceMap().get( event.getUid() );
         
-        ProgramStageInstance psi = new ProgramStageInstance();
-        
-        ProgramStageInstance programStageInstance = this.workContext.getProgramStageInstanceMap().get( event.getUid() );
-        if ( programStageInstance != null )
+        return psi == null ? mapForInsert( event ) : mapForUpdate( event, psi );
+    }
+
+    private ProgramStageInstance mapForUpdate( Event event, ProgramStageInstance psi )
+    {
+        // Program Instance
+        workContext.getProgramInstance( event.getUid() ).ifPresent( psi::setProgramInstance );
+
+        // Program Stage
+        getProgramStage( event ).ifPresent( psi::setProgramStage );
+
+        // Org Unit
+        getOrganisationUnit( event ).ifPresent( psi::setOrganisationUnit );
+
+        // Status and completed date are set in the Update Preprocessor //
+
+        // Attribute Option Combo
+        psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
+
+        // Geometry
+        psi.setGeometry( event.getGeometry() );
+
+        // Notes
+        if ( !event.getNotes().isEmpty() )
         {
-            psi.setId( programStageInstance.getId() );
+            psi.setComments( convertNotes( event, this.workContext ) );
         }
+
+        // Data Values
+        psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ) );
+
+        if ( event.getDueDate() != null )
+        {
+            psi.setDueDate( parseDate( event.getDueDate() ) );
+        }
+
+        setExecutionDate( event, psi );
+
+        if ( psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment() )
+        {
+            psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
+        }
+
+        // CREATED AT CLIENT + UPDATED AT CLIENT
+        psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
+        psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
+
+        psi.setStoredBy( event.getStoredBy() );
+        psi.setCompletedBy( event.getCompletedBy() );
+
+        return psi;
+    }
+
+    private ProgramStageInstance mapForInsert( Event event )
+    {
+        ImportOptions importOptions = workContext.getImportOptions();
+
+        ProgramStageInstance psi = new ProgramStageInstance();
 
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( CODE ) )
         {
-            // TODO: Is this really correct?
-            psi.setCode( event.getUid() );
+            psi.setCode( event.getEvent() );
         }
         else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( UID ) )
         {
             psi.setUid( event.getUid() );
         }
 
-        // FKs
+        // Program Instance
         psi.setProgramInstance( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
+
+        // Program Stage
         psi.setProgramStage( this.workContext.getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
             event.getProgramStage() ) );
+
+        // Org Unit
         psi.setOrganisationUnit( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
 
-        // EXECUTION + DUE DATE
-        Date executionDate = null;
+        // Status
+        psi.setStatus( fromInt( event.getStatus().getValue() ) );
 
-        if ( event.getEventDate() != null )
-        {
-            executionDate = parseDate( event.getEventDate() );
-        }
+        // Attribute Option Combo
+        psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
+
+        // Geometry
+        psi.setGeometry( event.getGeometry() );
+
+        // Notes
+        psi.setComments( convertNotes( event, this.workContext ) );
+
+        // Data Values
+        psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ) );
 
         Date dueDate = new Date();
 
@@ -103,47 +168,22 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         }
 
         psi.setDueDate( dueDate );
+        setCompletedDate( event, psi );
         // Note that execution date can be null
-        psi.setExecutionDate( executionDate );
-
-        psi.setStoredBy( event.getStoredBy() );
-        psi.setCompletedBy( event.getCompletedBy() );
-        
-        // STATUS
-        psi.setStatus( fromInt( event.getStatus().getValue() ) );
-
-        if ( psi.isCompleted() )
-        {
-            Date completedDate = new Date();
-            if ( event.getCompletedDate() != null )
-            {
-                completedDate = parseDate( event.getCompletedDate() );
-            }
-            psi.setCompletedDate( completedDate );
-        }
-
-        // ATTRIBUTE OPTION COMBO
-
-        psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
-
-        // GEOMETRY
-
-        psi.setGeometry( event.getGeometry() );
-
-        // CREATED AT CLIENT + UPDATED AT CLIENT
-
-        psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
-        psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
+        setExecutionDate( event, psi );
 
         if ( psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment() )
         {
             psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
         }
 
-        // COMMENTS
-        psi.setComments( convertNotes( event, this.workContext ) );
+        // CREATED AT CLIENT + UPDATED AT CLIENT
+        psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
+        psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
 
-        psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ));
+        psi.setStoredBy( event.getStoredBy() );
+        psi.setCompletedBy( event.getCompletedBy() );
+
         return psi;
     }
 
@@ -156,5 +196,38 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         }
 
         return emptyList();
+    }
+
+    private Optional<ProgramStage> getProgramStage( Event event )
+    {
+        return Optional.ofNullable( this.workContext.getProgramStage(
+            this.workContext.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() ) );
+    }
+
+    private Optional<OrganisationUnit> getOrganisationUnit( Event event )
+    {
+        return Optional.ofNullable( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
+    }
+
+    private void setExecutionDate( Event event, ProgramStageInstance psi )
+    {
+        if ( event.getEventDate() != null )
+        {
+            psi.setExecutionDate( parseDate( event.getEventDate() ) );
+        }
+    }
+    
+    private void setCompletedDate( Event event, ProgramStageInstance psi )
+    {
+        // Completed Date // FIXME this logic should be moved to a preprocessor
+        if ( psi.isCompleted() )
+        {
+            Date completedDate = new Date();
+            if ( event.getCompletedDate() != null )
+            {
+                completedDate = parseDate( event.getCompletedDate() );
+            }
+            psi.setCompletedDate( completedDate );
+        }
     }
 }

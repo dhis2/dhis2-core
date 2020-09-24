@@ -83,7 +83,10 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor
 
             programStageInstance.setStoredBy( storedBy );
             programStageInstance.setDueDate( dueDate );
-            programStageInstance.setOrganisationUnit( organisationUnit );
+            if ( organisationUnit != null )
+            {
+                programStageInstance.setOrganisationUnit( organisationUnit );
+            }
             programStageInstance.setGeometry( event.getGeometry() );
 
             if ( programStageInstance.getProgramStage() != null

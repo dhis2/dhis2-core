@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.dxf2.events.aggregates;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,53 +28,34 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-import java.util.List;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * Exposes a static method to fetch an Executor for the Aggregates operations
  *
+ * @author Luciano Fiandesio
  */
-public interface TrackedEntityInstanceAuditService
+public class ThreadPoolManager
 {
-    
-    String ID = TrackedEntityInstanceAuditService.class.getName();
-    
-    /**
-     * Adds tracked entity instance audit
-     * 
-     * @param trackedEntityInstanceAudit the audit to add
-     */
-    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    // Thread factory that sets a user-defined thread name (useful for debugging purposes)
+
+    private final static ThreadFactory threadFactory = new ThreadFactoryBuilder()
+        .setNameFormat( "TRACKER-TEI-FETCH-%d" )
+        .setDaemon( true )
+        .build();
 
     /**
-     * Adds multipe tracked entity instance audit
-     *
+     * Cached thread pool: not bound to a size, but can reuse existing threads.
      */
-    void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits );
+    private final static Executor AGGREGATE_THREAD_POOL = Executors.newCachedThreadPool( threadFactory );
 
-    /**
-     * Deletes tracked entity instance audit for the given tracked entity instance
-     * 
-     * @param trackedEntityInstance the tracked entity instance
-     */
-    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );    
-    
-    /**
-     * Returns tracked entity instance audits matching query params
-     * 
-     * @param params tracked entity instance audit query params 
-     * @return matching TrackedEntityInstanceAudits
-     */
-    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
-    
-    /**
-     * Returns count of tracked entity instance audits matching query params
-     * 
-     * @param params tracked entity instance audit query params
-     * @return count of TrackedEntityInstanceAudits
-     */
-    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
+    static Executor getPool()
+    {
+        return AGGREGATE_THREAD_POOL;
+    }
 
 }

@@ -28,6 +28,11 @@
 
 package org.hisp.dhis.visualization;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Font;
 import org.hisp.dhis.common.FontStyle;
@@ -35,11 +40,6 @@ import org.hisp.dhis.common.TextAlign;
 import org.hisp.dhis.period.RelativePeriods;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -71,9 +71,29 @@ public class VisualizationStoreTest
         horizontalAxisTitle.setTextColor( "#2b2b2b" );
         horizontalAxisTitle.setTextAlign( TextAlign.CENTER );
 
+        FontStyle seriesAxisLabel = new FontStyle();
+        seriesAxisLabel.setFont( Font.ARIAL );
+        seriesAxisLabel.setFontSize( 12 );
+        seriesAxisLabel.setBold( false );
+        seriesAxisLabel.setItalic( false );
+        seriesAxisLabel.setUnderline( true );
+        seriesAxisLabel.setTextColor( "#cdcdcd" );
+        seriesAxisLabel.setTextAlign( TextAlign.RIGHT );
+
+        FontStyle targetLineLabel = new FontStyle();
+        targetLineLabel.setFont( Font.VERDANA );
+        targetLineLabel.setFontSize( 10 );
+        targetLineLabel.setBold( true );
+        targetLineLabel.setItalic( false );
+        targetLineLabel.setUnderline( false );
+        targetLineLabel.setTextColor( "#dddddd" );
+        targetLineLabel.setTextAlign( TextAlign.CENTER );
+
         VisualizationFontStyle fontStyle = new VisualizationFontStyle();
         fontStyle.setVisualizationTitle( visualizationTitle );
         fontStyle.setHorizontalAxisTitle( horizontalAxisTitle );
+        fontStyle.setSeriesAxisLabel( seriesAxisLabel );
+        fontStyle.setTargetLineLabel( targetLineLabel );
 
         RelativePeriods relativePeriods = new RelativePeriods()
             .setLast30Days( true );
@@ -98,6 +118,12 @@ public class VisualizationStoreTest
         assertNotNull( vA.getFontStyle().getHorizontalAxisTitle() );
         assertEquals( Font.ARIAL, vA.getFontStyle().getHorizontalAxisTitle().getFont() );
         assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getItalic() );
+        assertNotNull( vA.getFontStyle().getSeriesAxisLabel() );
+        assertEquals( Font.ARIAL, vA.getFontStyle().getSeriesAxisLabel().getFont() );
+        assertTrue( vA.getFontStyle().getSeriesAxisLabel().getUnderline() );
+        assertNotNull( vA.getFontStyle().getTargetLineLabel() );
+        assertEquals( Font.VERDANA, vA.getFontStyle().getTargetLineLabel().getFont() );
+        assertTrue( vA.getFontStyle().getTargetLineLabel().getBold() );
 
         assertNotNull( vA.getRelatives() );
         assertTrue( vA.getRelatives().isLast30Days() );
@@ -106,4 +132,3 @@ public class VisualizationStoreTest
         assertNull( vB.getFontStyle() );
     }
 }
-
