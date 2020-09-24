@@ -385,7 +385,7 @@ public class BaseIdentifiableObject
      */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE, Locale.class );
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 
