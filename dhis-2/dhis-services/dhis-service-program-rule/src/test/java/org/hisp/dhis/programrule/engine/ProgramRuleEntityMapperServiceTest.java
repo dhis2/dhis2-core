@@ -370,7 +370,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         attribute.setName( "Tracked_entity_attribute_A" );
 
         DataElement dataElement1 = createDataElement( 'E' );
-        dataElement1.setDisplayFormName( "DateElement_E" );
+        dataElement1.setFormName( "DateElement_E" );
 
         programRuleVariableA = createProgramRuleVariable( 'A', program );
         programRuleVariableB = createProgramRuleVariable( 'B', program );

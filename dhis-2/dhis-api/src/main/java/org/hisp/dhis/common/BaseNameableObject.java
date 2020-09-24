@@ -53,19 +53,7 @@ public class BaseNameableObject
      */
     protected String description;
 
-    /**
-     * The i18n variant of the short name. Should not be persisted.
-     */
-    protected transient String displayShortName;
-
-    /**
-     * The i18n variant of the description. Should not be persisted.
-     */
-    protected transient String displayDescription;
-
     protected String formName;
-
-    protected transient String displayFormName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -217,8 +205,7 @@ public class BaseNameableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayShortName()
     {
-        displayShortName = getTranslation( TranslationProperty.SHORT_NAME, displayShortName );
-        return displayShortName != null ? displayShortName : getShortName();
+        return getTranslation( TranslationProperty.SHORT_NAME, getShortName() );
     }
 
     @Override
@@ -240,16 +227,14 @@ public class BaseNameableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDescription()
     {
-        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
-        return displayDescription != null ? displayDescription : getDescription();
+        return getTranslation( TranslationProperty.DESCRIPTION, getDescription() );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayFormName()
     {
-        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
-        return displayFormName != null ? displayFormName : getFormNameFallback();
+        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
     }
 
     /**
