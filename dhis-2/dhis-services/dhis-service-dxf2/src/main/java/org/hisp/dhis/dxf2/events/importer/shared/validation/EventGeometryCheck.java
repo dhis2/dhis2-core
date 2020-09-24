@@ -30,10 +30,9 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import java.io.IOException;
+import java.util.Objects;
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
@@ -41,7 +40,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.GeoUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -54,32 +52,21 @@ public class EventGeometryCheck implements Checker
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
 
-        if ( event.getGeometry() != null )
+        if ( Objects.nonNull( event.getGeometry() )
+            && programStageFeatureCompatibleWithEventGeometry( event, programStage ) )
         {
-            if ( programStage.getFeatureType().equals( FeatureType.NONE )
-                || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
-                        + programStage.getFeatureType().value() + ") specified for the program stage: "
-                        + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
-            }
+            return new ImportSummary( ImportStatus.ERROR,
+                "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
+                    + programStage.getFeatureType().value() + ") specified for the program stage: "
+                    + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
         }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            Coordinate coordinate = event.getCoordinate();
 
-            try
-            {
-                GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() );
-            }
-            catch ( IOException e )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() )
-                        .incrementIgnored();
-            }
-        }
         return success();
+    }
+
+    private boolean programStageFeatureCompatibleWithEventGeometry(ImmutableEvent event, ProgramStage programStage )
+    {
+        return programStage.getFeatureType().equals( FeatureType.NONE )
+            || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() );
     }
 }
