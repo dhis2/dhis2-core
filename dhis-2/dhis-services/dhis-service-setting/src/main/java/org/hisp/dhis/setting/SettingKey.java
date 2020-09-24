@@ -168,6 +168,7 @@ public enum SettingKey
     ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
+    GATHER_ANALYTICAL_OBJECT_STATISTICS_IN_DASHBOARD_VIEWS( "keyGatherAnalyticalObjectStatisticsInDashboardViews", Boolean.FALSE, Boolean.class ),
 
     /**
      * Progressive caching factor definition for Analytics. In order to enable it,

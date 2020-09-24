@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -116,11 +115,6 @@ public class ImmutableEvent
     public String getStoredBy()
     {
         return event.getStoredBy();
-    }
-
-    public Coordinate getCoordinate()
-    {
-        return event.getCoordinate();
     }
 
     public Set<DataValue> getDataValues()

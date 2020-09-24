@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,28 +28,59 @@ package org.hisp.dhis.dxf2.events.importer.update.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
+import static org.hisp.dhis.common.UserContext.reset;
+import static org.hisp.dhis.common.UserContext.setUser;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import lombok.RequiredArgsConstructor;
 
 /**
+ * This interceptor is ONLY responsible for setting the current user into the
+ * current request cycle/thread. The intention is to leave it as simple as
+ * possible. Any user settings or rules, if need to be set should be done
+ * outside (in another interceptor or filter).
+ *
  * @author maikel arabori
  */
-public class ProgramInstanceGeometryPreProcessor implements Processor
+@Component
+@RequiredArgsConstructor
+public class UserContextInterceptor extends HandlerInterceptorAdapter implements InitializingBean
 {
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        ctx.getProgramStageInstance( event.getUid() ).ifPresent( psi -> {
+    private static UserContextInterceptor instance;
 
-            if ( event.getGeometry() != null && (!psi.getProgramStage().getFeatureType().equals( NONE ) || psi
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() )) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
-        } );
+    private final CurrentUserService currentUserService;
+
+    @Override
+    public void afterPropertiesSet()
+    {
+        instance = this;
+    }
+
+    public static UserContextInterceptor get()
+    {
+        return instance;
+    }
+
+    @Override
+    public boolean preHandle( final HttpServletRequest request, final HttpServletResponse response,
+        final Object handler )
+    {
+        setUser( currentUserService.getCurrentUser() );
+
+        return true;
+    }
+
+    @Override
+    public void afterCompletion( final HttpServletRequest request, final HttpServletResponse response,
+        final Object handler, final Exception ex )
+    {
+        reset();
     }
 }
