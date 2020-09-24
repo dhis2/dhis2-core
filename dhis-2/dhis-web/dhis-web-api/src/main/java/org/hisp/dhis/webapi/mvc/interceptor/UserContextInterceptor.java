@@ -38,6 +38,7 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -56,8 +57,7 @@ import lombok.RequiredArgsConstructor;
  *
  * @author maikel arabori
  */
-@Component
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UserContextInterceptor extends HandlerInterceptorAdapter implements InitializingBean
 {
     private static UserContextInterceptor instance;
