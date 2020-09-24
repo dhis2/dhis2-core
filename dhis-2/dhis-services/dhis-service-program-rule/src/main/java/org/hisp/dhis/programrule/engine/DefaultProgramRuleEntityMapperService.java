@@ -243,9 +243,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .build() ) );
 
         // program variables
-        RuleEngineUtils.ENV_VARIABLES.forEach( var -> itemStore.put( var, DataItem.builder()
-            .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var ), var ) )
-            .valueType( ItemValueType.TEXT )
+        RuleEngineUtils.ENV_VARIABLES.entrySet().forEach( var -> itemStore.put( var.getKey(), DataItem.builder()
+            .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var.getKey() ), var.getKey() ) )
+            .valueType( var.getValue() )
             .build() ) );
 
         return itemStore;

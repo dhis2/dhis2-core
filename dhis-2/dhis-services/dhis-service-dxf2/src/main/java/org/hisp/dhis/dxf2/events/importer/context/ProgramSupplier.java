@@ -129,11 +129,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String PROGRAM_STAGE_ID = "programstageid";
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
-    // @formatter:off
-    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid " +
+    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid, ui.code, ui.surname, ui.firstname " +
         "from ${table_name} eua " +
         "join useraccess ua on eua.useraccessid = ua.useraccessid " +
-        "join userinfo ui on ui.userinfoid = ua.useraccessid " +
+        "join userinfo ui on ui.userinfoid = ua.userid " +
         "order by eua.${column_name}";
 
     private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
@@ -160,8 +159,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 return loadUserGroups( userGroupId );
             }
         } ).build() ;
-
-    // @formatter:on
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper, Environment env )
     {
@@ -579,6 +576,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         User user = new User();
         user.setId( rs.getLong( "userid" ) );
         user.setUid( rs.getString( "uid" ) );
+        user.setCode( rs.getString( "code" ) );
+        user.setSurname( rs.getString( "surname" ) );
+        user.setFirstName( rs.getString( "firstName" ) );
         userAccess.setUser( user );
         return userAccess;
     }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.dxf2.events.event;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,53 +28,21 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-
 import java.util.List;
 
+import org.hisp.dhis.program.ProgramStageInstance;
+
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface TrackedEntityInstanceAuditService
+public interface EventCommentStore
 {
-    
-    String ID = TrackedEntityInstanceAuditService.class.getName();
-    
     /**
-     * Adds tracked entity instance audit
-     * 
-     * @param trackedEntityInstanceAudit the audit to add
-     */
-    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
-
-    /**
-     * Adds multipe tracked entity instance audit
+     * Inserts non-empty comments from a List {@see ProgramStageInstance}
      *
-     */
-    void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits );
-
-    /**
-     * Deletes tracked entity instance audit for the given tracked entity instance
+     * @param programStageInstances a List of {@see ProgramStageInstance}
      * 
-     * @param trackedEntityInstance the tracked entity instance
      */
-    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );    
-    
-    /**
-     * Returns tracked entity instance audits matching query params
-     * 
-     * @param params tracked entity instance audit query params 
-     * @return matching TrackedEntityInstanceAudits
-     */
-    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
-    
-    /**
-     * Returns count of tracked entity instance audits matching query params
-     * 
-     * @param params tracked entity instance audit query params
-     * @return count of TrackedEntityInstanceAudits
-     */
-    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
+    void saveAllComments( List<ProgramStageInstance> programStageInstances );
 
 }
