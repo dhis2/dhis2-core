@@ -103,6 +103,7 @@ public final class UserContext
     public static <T> T getUserSetting( UserSettingKey key )
     {
         Map<String, Serializable> settings = threadUserSettings.get();
+        System.out.println( "Setting key " + key + " value " + settings.get( key.getName() ) );
 
         return settings != null ? (T) settings.get( key.getName() ) : null;
     }
