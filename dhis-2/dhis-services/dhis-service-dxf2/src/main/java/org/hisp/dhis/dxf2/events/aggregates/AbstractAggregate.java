@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -41,30 +42,31 @@ import com.google.common.collect.Multimap;
  */
 public abstract class AbstractAggregate
 {
-
     /**
-     * Executes the Supplier asynchronously
+     * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
      *
-     * @param condition A condition that, if true, executes the Suppier, if false, returns an empty Multimap
+     * @param condition A condition that, if true, executes the Supplier, if false, returns an empty Multimap
      * @param supplier The Supplier to execute
+     * @param executor an Executor instance
+     *                 
      * @return A CompletableFuture with the result of the Supplier
      */
     <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
-        Supplier<Multimap<String, T>> supplier )
+        Supplier<Multimap<String, T>> supplier, Executor executor )
     {
-        return (condition ? supplyAsync( supplier ) : supplyAsync( ArrayListMultimap::create ));
+        return (condition ? supplyAsync( supplier, executor ) : supplyAsync( ArrayListMultimap::create, executor ));
     }
 
     /**
-     * Executes the Supplier asynchronously
+     * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
      *
      * @param supplier The Supplier to execute
      *
      * @return A CompletableFuture with the result of the Supplier
      */
-    <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier )
+    <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier, Executor executor )
     {
-        return supplyAsync( supplier );
+        return supplyAsync( supplier, executor );
     }
 
 }

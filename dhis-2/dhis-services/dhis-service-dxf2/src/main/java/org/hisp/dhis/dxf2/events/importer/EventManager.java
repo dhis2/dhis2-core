@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.dxf2.events.importer;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -126,34 +126,37 @@ public class EventManager
             return importSummaries;
         }
 
-        // fetch persistable events //
-        List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
-            : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
-
-        if ( isNotEmpty( eventsToInsert ) )
+        if ( !workContext.getImportOptions().isDryRun() )
         {
-            try
-            {
-                // save the entire batch in one transaction
-                eventPersistenceService.save( workContext, eventsToInsert );
-            }
-            catch ( Exception e )
-            {
-                handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, CREATE );
+            // fetch persistable events //
+            List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
+                : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
 
+            if ( isNotEmpty( eventsToInsert ) )
+            {
+                try
+                {
+                    // save the entire batch in one transaction
+                    eventPersistenceService.save( workContext, eventsToInsert );
+                }
+                catch ( Exception e )
+                {
+                    handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, CREATE );
+
+                }
             }
+
+            final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
+                .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
+
+            // Post processing only the events that passed validation and were persisted
+            // correctly.
+            processingManager.getPostInsertProcessorFactory().process( workContext, events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+
+            incrementSummaryTotals( events, importSummaries, CREATE );
+
         }
-
-        final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
-            .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
-
-        // Post processing only the events that passed validation and were persisted
-        // correctly.
-        processingManager.getPostInsertProcessorFactory().process( workContext, events.stream()
-            .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
-
-        incrementSummaryTotals( events, importSummaries, CREATE );
-
         return importSummaries;
     }
 
@@ -194,27 +197,31 @@ public class EventManager
             return importSummaries;
         }
 
-        try
+        if ( !workContext.getImportOptions().isDryRun() )
         {
-            eventPersistenceService.update( workContext,
-                eventValidationFailedUids.isEmpty() ? events
-                    : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
-                        .collect( toList() ) );
+            try
+            {
+                eventPersistenceService.update( workContext,
+                    eventValidationFailedUids.isEmpty() ? events
+                        : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
+                            .collect( toList() ) );
+            }
+            catch ( Exception e )
+            {
+                handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE );
+            }
+
+            final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
+                .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
+
+            // Post processing only the events that passed validation and were persisted
+            // correctly.
+            processingManager.getPostUpdateProcessorFactory().process( workContext, events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+
+            incrementSummaryTotals( events, importSummaries, UPDATE );
+
         }
-        catch ( Exception e )
-        {
-            handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE );
-        }
-
-        final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
-            .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
-
-        // Post processing only the events that passed validation and were persisted
-        // correctly.
-        processingManager.getPostUpdateProcessorFactory().process( workContext, events.stream()
-            .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
-
-        incrementSummaryTotals( events, importSummaries, UPDATE );
 
         return importSummaries;
     }
@@ -240,27 +247,32 @@ public class EventManager
             return importSummaries;
         }
 
-        try
+        if ( !workContext.getImportOptions().isDryRun() )
         {
-            eventPersistenceService.delete( workContext,
-                eventValidationFailedUids.isEmpty() ? events
-                    : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
-                        .collect( toList() ) );
+
+            try
+            {
+                eventPersistenceService.delete( workContext,
+                    eventValidationFailedUids.isEmpty() ? events
+                        : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
+                            .collect( toList() ) );
+            }
+            catch ( Exception e )
+            {
+                handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, DELETE );
+            }
+
+            final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
+                .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
+
+            // Post processing only the events that passed validation and were persisted
+            // correctly.
+            processingManager.getPostDeleteProcessorFactory().process( workContext, events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+
+            incrementSummaryTotals( events, importSummaries, DELETE );
+
         }
-        catch ( Exception e )
-        {
-            handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, DELETE );
-        }
-
-        final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
-            .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
-
-        // Post processing only the events that passed validation and were persisted
-        // correctly.
-        processingManager.getPostDeleteProcessorFactory().process( workContext, events.stream()
-            .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
-
-        incrementSummaryTotals( events, importSummaries, DELETE );
 
         return importSummaries;
     }
@@ -377,7 +389,6 @@ public class EventManager
                 {
                     eventPersistenceService.delete( workContext, singletonList( event ) );
                 }
-
             }
             catch ( Exception e )
             {

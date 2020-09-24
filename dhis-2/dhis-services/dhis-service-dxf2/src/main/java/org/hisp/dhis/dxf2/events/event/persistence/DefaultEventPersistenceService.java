@@ -28,9 +28,12 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventCommentStore;
 import org.hisp.dhis.dxf2.events.event.EventStore;
@@ -40,10 +43,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -55,38 +57,49 @@ public class  DefaultEventPersistenceService
     implements
     EventPersistenceService
 {
+    @NonNull
     private final EventStore jdbcEventStore;
+
+    @NonNull
     private final EventCommentStore jdbcEventCommentStore;
-    private final IdentifiableObjectManager manager;
 
     @Override
     @Transactional
     public void save( WorkContext context, List<Event> events )
     {
-        /*
-         * Save Events, Notes and Data Values
-         */
-        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
-
-        List<ProgramStageInstance> programStageInstances = jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
-        jdbcEventCommentStore.saveAllComments( programStageInstances );
-
-        if ( !context.getImportOptions().isSkipLastUpdated() )
+        if ( isNotEmpty( events ) )
         {
-            updateTeis( context, events );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+
+            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+                .saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+
+            jdbcEventCommentStore.saveAllComments( programStageInstances );
+
+            if ( !context.getImportOptions().isSkipLastUpdated() )
+            {
+                updateTeis( context, events );
+            }
         }
     }
 
+    /**
+     * Updates the list of given events using a single transaction.
+     *
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
+     */
     @Override
     @Transactional
     public void update( final WorkContext context, final List<Event> events )
     {
         if ( isNotEmpty( events ) )
         {
-            final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
-                new ProgramStageInstanceMapper( context ), events );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
-            List<ProgramStageInstance> programStageInstances = jdbcEventStore.updateEvents(new ArrayList<>(eventProgramStageInstanceMap.values()));
+            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+                .updateEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+
             jdbcEventCommentStore.saveAllComments( programStageInstances );
 
             if ( !context.getImportOptions().isSkipLastUpdated() )
@@ -110,19 +123,6 @@ public class  DefaultEventPersistenceService
         {
             jdbcEventStore.delete( events );
         }
-    }
-
-    private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        Map<Event, ProgramStageInstance> map = new HashMap<>();
-        for ( Event event : events )
-        {
-            ProgramStageInstance psi = mapper.map( event );
-            map.put( event, psi );
-        }
-
-        return map;
     }
 
     /**

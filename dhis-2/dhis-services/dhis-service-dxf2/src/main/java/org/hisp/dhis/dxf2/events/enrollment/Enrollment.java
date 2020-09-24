@@ -36,7 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -95,8 +94,6 @@ public class Enrollment
     private String completedBy;
 
     private Date completedDate;
-
-    private Coordinate coordinate;
 
     private Boolean deleted = false;
 
@@ -346,18 +343,6 @@ public class Enrollment
     public void setCompletedDate( Date completedDate )
     {
         this.completedDate = completedDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Coordinate getCoordinate()
-    {
-        return coordinate;
-    }
-
-    public void setCoordinate( Coordinate coordinate )
-    {
-        this.coordinate = coordinate;
     }
 
     @JsonProperty

@@ -28,6 +28,11 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -35,11 +40,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.User;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,6 +59,19 @@ public interface TrackedEntityInstanceService
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation );
 
+    /**
+     * Fetches a List of {@see TrackedEntityInstance} based on the specified
+     * parameters. This methods beh
+     * 
+     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance with
+     *        the query parameters
+     * @param params a {@see TrackedEntityInstanceParams} instance containing the
+     *        directives for how much data should be fetched (e.g. Enrollments,
+     *        Events, Relationships)
+     * @param skipAccessValidation whether access validation should be ignored
+     *
+     * @return a List of {@see TrackedEntityInstance}
+     */
     List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation );
 

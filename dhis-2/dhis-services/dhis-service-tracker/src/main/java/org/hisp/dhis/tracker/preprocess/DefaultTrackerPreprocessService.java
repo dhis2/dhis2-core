@@ -31,17 +31,8 @@ package org.hisp.dhis.tracker.preprocess;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.programrule.RuleActionApplier;
-import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationConfig;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.tracker.validation.ValidationFailFastException;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
