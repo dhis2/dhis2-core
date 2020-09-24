@@ -385,11 +385,7 @@ public class BaseIdentifiableObject
      */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
-        System.out.println( "-----" );
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-
-        System.out.println( "Locale " + locale );
-        System.out.println( "Property " + property );
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 
@@ -401,9 +397,6 @@ public class BaseIdentifiableObject
         loadTranslationsCacheIfEmpty();
 
         String cacheKey = Translation.getCacheKey( locale.toString(), property );
-
-        System.out.println( "Cache key " + cacheKey );
-        System.out.println( "Cache " + translationCache );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }

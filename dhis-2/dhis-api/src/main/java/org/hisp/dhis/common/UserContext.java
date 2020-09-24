@@ -102,10 +102,7 @@ public final class UserContext
     @SuppressWarnings( "unchecked" )
     public static <T> T getUserSetting( UserSettingKey key )
     {
-        Map<String, Serializable> settings = threadUserSettings.get();
-        System.out.println( "Setting key " + key + " value " + settings.get( key.getName() ) );
-
-        return settings != null ? (T) settings.get( key.getName() ) : null;
+        return threadUserSettings.get() != null ? (T) threadUserSettings.get().get( key.getName() ) : null;
     }
 
     public static void setUserSettings( List<UserSetting> userSettings )
