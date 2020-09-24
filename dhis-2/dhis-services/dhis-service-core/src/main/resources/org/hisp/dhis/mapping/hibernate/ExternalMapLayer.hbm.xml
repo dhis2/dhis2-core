@@ -32,6 +32,8 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
       column="legendsetid" foreign-key="fk_externalmaplayer_legendsetid" />
 
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_externalmaplayer_userid" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 

@@ -210,6 +210,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             {
                 identifiableObject.getSharing().setOwner( user );
             }
+
+            if ( identifiableObject.getUser() == null )
+            {
+                identifiableObject.setUser( user );
+            }
         }
 
         if ( user != null && aclService.isShareable( clazz ) )
@@ -264,6 +269,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             if ( object.getSharing().getOwner() == null )
             {
                 object.getSharing().setOwner( user );
+            }
+
+            if ( object.getUser() == null )
+            {
+                object.setUser( user );
             }
         }
 

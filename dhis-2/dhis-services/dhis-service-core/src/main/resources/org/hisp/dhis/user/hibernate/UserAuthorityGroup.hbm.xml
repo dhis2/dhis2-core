@@ -32,6 +32,8 @@
       <element type="string" column="authority" />
     </set>
 
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_userrole_userid" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 

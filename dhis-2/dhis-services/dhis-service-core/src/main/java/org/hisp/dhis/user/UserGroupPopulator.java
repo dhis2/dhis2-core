@@ -11,7 +11,6 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Slf4j
-@Component( "org.hisp.dhis.user.UserGroupPopulator" )
 public class UserGroupPopulator
     extends TransactionContextStartupRoutine
 {
@@ -39,14 +38,14 @@ public class UserGroupPopulator
     @Override
     public void executeInTransaction()
     {
-        aclService.getUserGroupCache().invalidateAll();
-
-        List<UserGroup> groups = userGroupStore.getAllNoAcl();
-        groups.forEach( group -> {
-            group.getMembers();
-            aclService.getUserGroupCache().put( group.getUid(), group );
-        } );
-
-        log.info( "Added " + groups.size() + " UserGroups into UserGroupCache" );
+//        aclService.getUserGroupCache().invalidateAll();
+//
+//        List<UserGroup> groups = userGroupStore.getAllNoAcl();
+//        groups.forEach( group -> {
+//            group.getMembers();
+//            aclService.getUserGroupCache().put( group.getUid(), group );
+//        } );
+//
+//        log.info( "Added " + groups.size() + " UserGroups into UserGroupCache" );
     }
 }

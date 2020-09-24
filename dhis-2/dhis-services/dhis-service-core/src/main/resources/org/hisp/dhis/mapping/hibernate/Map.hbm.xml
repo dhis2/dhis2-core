@@ -44,6 +44,8 @@
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
     </set>
 
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_mapview_userid" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 

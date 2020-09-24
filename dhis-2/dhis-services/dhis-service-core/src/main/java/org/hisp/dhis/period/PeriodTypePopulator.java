@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Component( "org.hisp.dhis.period.PeriodTypePopulator" )
 public class PeriodTypePopulator
     extends TransactionContextStartupRoutine
 {
@@ -66,21 +65,21 @@ public class PeriodTypePopulator
     @Override
     public void executeInTransaction()
     {
-        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
-
-        Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
-
-        types.removeAll( storedTypes );
-
-        // ---------------------------------------------------------------------
-        // Populate missing
-        // ---------------------------------------------------------------------
-
-        for ( PeriodType type : types )
-        {
-            periodStore.addPeriodType( type );
-
-            log.debug( "Added PeriodType: " + type.getName() );
-        }
+//        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+//
+//        Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
+//
+//        types.removeAll( storedTypes );
+//
+//        // ---------------------------------------------------------------------
+//        // Populate missing
+//        // ---------------------------------------------------------------------
+//
+//        for ( PeriodType type : types )
+//        {
+//            periodStore.addPeriodType( type );
+//
+//            log.debug( "Added PeriodType: " + type.getName() );
+//        }
     }
 }

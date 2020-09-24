@@ -434,7 +434,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-//    @JsonSerialize( using = UidJsonSerializer.class )
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {

@@ -35,6 +35,8 @@
       </type>
     </property>
 
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_sqlview_userid" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 

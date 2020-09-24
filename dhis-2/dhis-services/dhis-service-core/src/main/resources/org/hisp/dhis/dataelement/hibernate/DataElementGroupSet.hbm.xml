@@ -33,6 +33,8 @@
         foreign-key="fk_dataelementgroupset_dataelementgroupid" />
     </list>
 
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelementgroupset_userid" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 
