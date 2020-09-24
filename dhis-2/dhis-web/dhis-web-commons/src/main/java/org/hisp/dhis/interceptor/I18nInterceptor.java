@@ -54,8 +54,7 @@ import ognl.Ognl;
  * {@link org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor}.
  *
  * @author Nguyen Dang Quang
- * @version $Id: WebWorkI18nInterceptor.java 6335 2008-11-20 11:11:26Z larshelg
- *          $
+ * @version $Id: WebWorkI18nInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 @Deprecated
 public class I18nInterceptor
