@@ -140,7 +140,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
+    private static Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
