@@ -82,8 +82,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -91,7 +89,6 @@ import lombok.extern.slf4j.Slf4j;
 @Order( 1000 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
 @EnableGlobalMethodSecurity( prePostEnabled = true )
-@Slf4j
 public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
     @Autowired
