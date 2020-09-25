@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -67,7 +67,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityAttributeTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -94,8 +94,11 @@ public class TrackedEntityAttributeTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -114,22 +117,18 @@ public class TrackedEntityAttributeTest
         objectBundleService.commit( bundle );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
-    public void testTrackedAttributePreheater() throws IOException
+    public void testTrackedAttributePreheater()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
+                TrackerBundleParams.class );
 
         TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build();
 
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
@@ -143,28 +142,29 @@ public class TrackedEntityAttributeTest
     }
 
     @Test
-    public void testTrackedAttributeValueBundleImporter() throws IOException
+    public void testTrackedAttributeValueBundleImporter()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
+                TrackerBundleParams.class );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .events( trackerBundle.getEvents() )
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
             .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
-            trackedEntityInstance );
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
+            .getTrackedEntityAttributeValues(
+                trackedEntityInstance );
 
         assertEquals( 3, attributeValues.size() );
     }

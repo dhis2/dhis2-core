@@ -78,7 +78,11 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( DataElement dataElement )
     {
         String hql = "select distinct c from " + clazz.getName()
-            + " c join c.dataDimensionItems d where d.dataElement = :dataElement";
+            + " c join c.dataDimensionItems d" +
+            " where d.dataElement = :dataElement" +
+            " or d.dataElementOperand.dataElement = :dataElement" +
+            " or d.programDataElement.dataElement = :dataElement";
+
         return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 

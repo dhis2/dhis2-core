@@ -40,8 +40,7 @@ import java.util.Objects;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class SimpleNode
-    extends
-    AbstractNode
+    extends AbstractNode
 {
     /**
      * Value of this node.

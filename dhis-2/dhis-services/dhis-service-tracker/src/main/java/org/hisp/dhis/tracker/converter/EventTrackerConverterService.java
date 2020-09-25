@@ -28,35 +28,26 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,11 +56,14 @@ import java.util.stream.Collectors;
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
 
-    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    private final NotesConverterService notesConverterService;
+
+    public EventTrackerConverterService( NotesConverterService notesConverterService )
     {
-        this.trackerPreheatService = trackerPreheatService;
+        checkNotNull( notesConverterService );
+
+        this.notesConverterService = notesConverterService;
     }
 
     @Override
@@ -86,7 +80,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
@@ -110,8 +103,6 @@ public class EventTrackerConverterService
             event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
             event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
             event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
-            event.setClientCreatedAt( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
-            event.setClientUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -120,8 +111,6 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
-                // TODO do we need this? this is not even the translated name..
-                // event.setOrgUnitName( ou.getName() );
             }
 
             Program program = psi.getProgramInstance().getProgram();
@@ -155,113 +144,84 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public ProgramStageInstance from( Event event )
-    {
-        List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
-
-        if ( programStageInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programStageInstances.get( 0 );
-    }
-
-    @Override
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
-        List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
-
-        if ( programStageInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programStageInstances.get( 0 );
+        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        return from( preheat, event, programStageInstance );
     }
 
     @Override
-    public List<ProgramStageInstance> from( List<Event> events )
-    {
-        return from( preheat( events ), events );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
-        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
-
-        events.forEach( e -> {
-            ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, e.getEvent() );
-            ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, e.getProgramStage() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
-
-            if ( programStageInstance == null )
-            {
-                Date now = new Date();
-
-                programStageInstance = new ProgramStageInstance();
-                programStageInstance.setUid( !StringUtils.isEmpty( e.getEvent() ) ? e.getEvent() : e.getUid() );
-                programStageInstance.setCreated( now );
-                programStageInstance.setCreatedAtClient( now );
-                programStageInstance.setLastUpdated( now );
-                programStageInstance.setLastUpdatedAtClient( now );
-
-                programStageInstance.setProgramInstance(
-                    getProgramInstance( preheat, TrackerIdScheme.UID, e.getEnrollment(), programStage.getProgram() ) );
-            }
-
-            if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
-            {
-                programStageInstance.setUid( CodeGenerator.generateUid() );
-            }
-
-            programStageInstance.setProgramStage( programStage );
-            programStageInstance.setOrganisationUnit( organisationUnit );
-            programStageInstance.setExecutionDate( DateUtils.parseDate( e.getOccurredAt() ) );
-            programStageInstance.setDueDate( DateUtils.parseDate( e.getScheduledAt() ) );
-            programStageInstance.setAttributeOptionCombo(
-                preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
-            programStageInstance.setGeometry( e.getGeometry() );
-            programStageInstance.setStatus( e.getStatus() );
-            programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getClientCreatedAt() ) );
-            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( e.getClientUpdatedAt() ) );
-
-            if ( programStageInstance.isCompleted() )
-            {
-                Date completedDate = DateUtils.parseDate( e.getCompletedAt() );
-
-                if ( completedDate == null )
-                {
-                    completedDate = new Date();
-                }
-
-                programStageInstance.setCompletedDate( completedDate );
-                programStageInstance.setCompletedBy( e.getCompletedBy() );
-            }
-
-            // data values
-            Set<EventDataValue> eventDataValues = new HashSet<>();
-
-            e.getDataValues().forEach( dv -> {
-                EventDataValue dataValue = new EventDataValue( dv.getDataElement(), dv.getValue() );
-                dataValue.setAutoFields();
-                dataValue.setProvidedElsewhere( dv.isProvidedElsewhere() );
-                dataValue.setStoredBy( dv.getStoredBy() );
-
-                eventDataValues.add( dataValue );
-            } );
-
-            programStageInstance.setEventDataValues( eventDataValues );
-
-            programStageInstances.add( programStageInstance );
-        } );
-
-        return programStageInstances;
+        return events
+            .stream()
+            .map( e -> from( preheat, e ) )
+            .collect( Collectors.toList() );
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment, Program program )
+    @Override
+    public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event event )
+    {
+        return from( preheat, event, null );
+    }
+
+    private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
+    {
+        ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, event.getProgramStage() );
+        OrganisationUnit organisationUnit = preheat
+            .get( TrackerIdScheme.UID, OrganisationUnit.class, event.getOrgUnit() );
+
+        if ( programStageInstance == null )
+        {
+            Date now = new Date();
+
+            programStageInstance = new ProgramStageInstance();
+            programStageInstance.setUid( !StringUtils.isEmpty( event.getEvent() ) ? event.getEvent() : event.getUid() );
+            programStageInstance.setCreated( now );
+            programStageInstance.setCreatedAtClient( now );
+            programStageInstance.setLastUpdated( now );
+            programStageInstance.setLastUpdatedAtClient( now );
+            programStageInstance.setProgramInstance(
+                getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), programStage.getProgram() ) );
+        }
+
+        if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
+        {
+            programStageInstance.setUid( CodeGenerator.generateUid() );
+        }
+
+        programStageInstance.setProgramStage( programStage );
+        programStageInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
+        programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
+        programStageInstance.setAttributeOptionCombo(
+            preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+        programStageInstance.setGeometry( event.getGeometry() );
+        programStageInstance.setStatus( event.getStatus() );
+
+        if ( programStageInstance.isCompleted() )
+        {
+            Date completedDate = DateUtils.parseDate( event.getCompletedAt() );
+
+            if ( completedDate == null )
+            {
+                completedDate = new Date();
+            }
+
+            programStageInstance.setCompletedDate( completedDate );
+            programStageInstance.setCompletedBy( event.getCompletedBy() );
+        }
+
+        if ( isNotEmpty( event.getNotes() ) )
+        {
+            programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
+        }
+
+        return programStageInstance;
+    }
+
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
+        Program program )
     {
         if ( !StringUtils.isEmpty( enrollment ) )
         {
@@ -275,14 +235,5 @@ public class EventTrackerConverterService
 
         // no valid enrollment given and program not single event, just return null
         return null;
-    }
-
-    private TrackerPreheat preheat( List<Event> events )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .events( events )
-            .build();
-
-        return trackerPreheatService.preheat( params );
     }
 }

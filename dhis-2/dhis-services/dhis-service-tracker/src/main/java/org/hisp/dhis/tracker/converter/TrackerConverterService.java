@@ -28,9 +28,9 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-
 import java.util.List;
+
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,11 +41,9 @@ public interface TrackerConverterService<From, To>
 
     List<From> to( List<To> objects );
 
-    To from( From object );
-
     To from( TrackerPreheat preheat, From object );
 
-    List<To> from( List<From> objects );
-
     List<To> from( TrackerPreheat preheat, List<From> objects );
+
+    To fromForRuleEngine( TrackerPreheat preheat, From object );
 }

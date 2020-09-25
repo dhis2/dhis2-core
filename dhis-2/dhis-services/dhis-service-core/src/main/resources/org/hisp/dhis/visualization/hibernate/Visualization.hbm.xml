@@ -21,24 +21,22 @@
 
     <property name="cumulativeValues" column="cumulative" />
 
-    <list name="dataElementGroupSetDimensions" table="visualization_dataelementgroupsetdimensions"
-          cascade="all-delete-orphan">
+    <list name="dataElementGroupSetDimensions" table="visualization_dataelementgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write"/>
       <key column="visualizationid" foreign-key="fk_visualization_dataelementgroupsetdimensions_visualizationid"/>
       <list-index column="sort_order"/>
       <many-to-many column="dataelementgroupsetdimensionid"
-                    class="org.hisp.dhis.dataelement.DataElementGroupSetDimension"
-                    foreign-key="fk_visualization_dimensions_dataelementgroupsetdimensionid"/>
+        class="org.hisp.dhis.dataelement.DataElementGroupSetDimension"
+        foreign-key="fk_visualization_dimensions_dataelementgroupsetdimensionid"/>
     </list>
 
-    <list name="organisationUnitGroupSetDimensions" table="visualization_orgunitgroupsetdimensions"
-          cascade="all-delete-orphan">
+    <list name="organisationUnitGroupSetDimensions" table="visualization_orgunitgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write"/>
       <key column="visualizationid" foreign-key="fk_visualization_orgunitgroupsetdimensions_visualizationid"/>
       <list-index column="sort_order"/>
       <many-to-many column="orgunitgroupsetdimensionid"
-                    class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
-                    foreign-key="fk_visualization_dimensions_orgunitgroupsetdimensionid"/>
+        class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+        foreign-key="fk_visualization_dimensions_orgunitgroupsetdimensionid"/>
     </list>
 
     <list name="columnDimensions" table="visualization_columns">
@@ -117,13 +115,15 @@
         <param name="type">12</param>
       </type>
     </property>
+    
+    <property name="series" type="jbSeries"/>
 
     <list name="dataDimensionItems" table="visualization_datadimensionitems" cascade="all, delete-orphan">
       <cache usage="read-write"/>
       <key column="visualizationid" foreign-key="fk_visualization_datadimensionitems_visualizationid"/>
       <list-index column="sort_order" base="0"/>
       <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
-                    foreign-key="fk_visualization_datadimensionitems_datadimensionitemid"/>
+        foreign-key="fk_visualization_datadimensionitems_datadimensionitemid"/>
     </list>
 
     <list name="organisationUnits" table="visualization_organisationunits">
@@ -131,17 +131,16 @@
       <key column="visualizationid" foreign-key="fk_visualization_organisationunits_visualizationid"/>
       <list-index column="sort_order" base="0"/>
       <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-                    foreign-key="fk_visualization_organisationunits_organisationunitid"/>
+        foreign-key="fk_visualization_organisationunits_organisationunitid"/>
     </list>
 
-    <list name="categoryOptionGroupSetDimensions" table="visualization_categoryoptiongroupsetdimensions"
-          cascade="all-delete-orphan">
+    <list name="categoryOptionGroupSetDimensions" table="visualization_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write"/>
       <key column="visualizationid" foreign-key="fk_visualization_catoptiongroupsetdimensions_visualizationid"/>
       <list-index column="sort_order"/>
       <many-to-many column="categoryoptiongroupsetdimensionid"
-                    class="org.hisp.dhis.category.CategoryOptionGroupSetDimension"
-                    foreign-key="fk_visualization_dimensions_catoptiongroupsetdimensionid"/>
+        class="org.hisp.dhis.category.CategoryOptionGroupSetDimension"
+        foreign-key="fk_visualization_dimensions_catoptiongroupsetdimensionid"/>
     </list>
 
     <list name="organisationUnitLevels" table="visualization_orgunitlevels">
@@ -156,7 +155,7 @@
       <key column="visualizationid" foreign-key="fk_visualization_itemorgunitunitgroups_visualizationid"/>
       <list-index column="sort_order" base="0"/>
       <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
-                    foreign-key="fk_visualization_itemorgunitgroups_orgunitgroupid"/>
+        foreign-key="fk_visualization_itemorgunitgroups_orgunitgroupid"/>
     </list>
 
     <property name="aggregationType" length="40">
@@ -215,6 +214,10 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
+    <property name="fontStyle" type="jbVisualizationFontStyle"/>
+    
+    <property name="colorSet"/>
+
     <property name="percentStackedValues"/>
 
     <property name="rangeAxisMaxValue"/>
@@ -257,11 +260,8 @@
 
     <property name="rangeAxisLabel"/>
 
-    <many-to-one name="colorSet" class="org.hisp.dhis.color.ColorSet" column="colorsetid"
-                 foreign-key="fk_visualization_colorsetid"/>
-
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-                 foreign-key="fk_visualization_legendsetid"/>
+      foreign-key="fk_visualization_legendsetid"/>
 
     <property name="showHierarchy"/>
 

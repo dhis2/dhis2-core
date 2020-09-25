@@ -287,6 +287,13 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
+        Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
+        assertNotNull( dataElementOperandVisualization );
+        assertEquals( 2, dataElementOperandVisualization.getDataDimensionItems().size() );
+        dataElementOperandVisualization.getDataDimensionItems()
+            .stream()
+            .forEach( item -> assertNotNull( item.getDataElementOperand() ) );
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -573,7 +580,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
         OutputStream outputStream = new ByteArrayOutputStream();
 
         nodeService.serialize( rootNode, "application/xml", outputStream );
-
         assertEquals( "1", xpathTest( "count(//d:programStageSection)", outputStream.toString() ) );
         assertEquals( "SEQUENTIAL", xpathTest( "//d:MOBILE/@type", outputStream.toString() ) );
         assertEquals( "LISTING", xpathTest( "//d:DESKTOP/@type", outputStream.toString() ) );

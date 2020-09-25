@@ -80,6 +80,7 @@ import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
@@ -1089,7 +1090,7 @@ public abstract class ReportTableFacadeController
         throws QueryParserException
     {
         List<Visualization> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, PaginationUtils.getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 

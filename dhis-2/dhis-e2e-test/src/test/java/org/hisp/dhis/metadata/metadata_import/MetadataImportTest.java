@@ -148,7 +148,7 @@ public class MetadataImportTest
     {
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE", "atomicMode=NONE" );
+        queryParamsBuilder.addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE", "atomicMode=OBJECT" );
 
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
@@ -193,7 +193,7 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE" );
+            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=OBJECT" );
 
         JsonObject metadata = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
@@ -244,7 +244,7 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
+            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=OBJECT" );
 
         // import metadata so that we have references and can clean up
 

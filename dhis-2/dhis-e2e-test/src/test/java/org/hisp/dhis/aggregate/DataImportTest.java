@@ -55,7 +55,6 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Disabled
 public class DataImportTest
     extends ApiTest
 {
@@ -89,7 +88,7 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "conflicts", nullValue() )
+            .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )
@@ -149,7 +148,7 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "conflicts", nullValue() )
+            .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )

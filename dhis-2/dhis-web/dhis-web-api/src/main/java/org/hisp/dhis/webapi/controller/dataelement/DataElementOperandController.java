@@ -31,12 +31,14 @@ package org.hisp.dhis.webapi.controller.dataelement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -55,6 +57,8 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -68,6 +72,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -84,11 +90,26 @@ public class DataElementOperandController
     private final ContextService contextService;
     private final SchemaService schemaService;
     private final CategoryService dataElementCategoryService;
+    private final CurrentUserService currentUserService;
+
+    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
+        .build();
 
     public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
-        FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService, SchemaService schemaService,
-        CategoryService dataElementCategoryService )
+        FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService,
+        SchemaService schemaService,
+        CategoryService dataElementCategoryService, CurrentUserService currentUserService )
     {
+        checkNotNull( manager );
+        checkNotNull( queryService );
+        checkNotNull( fieldFilterService );
+        checkNotNull( linkService );
+        checkNotNull( contextService );
+        checkNotNull( schemaService );
+        checkNotNull( dataElementCategoryService );
+        checkNotNull( currentUserService );
+
         this.manager = manager;
         this.queryService = queryService;
         this.fieldFilterService = fieldFilterService;
@@ -96,12 +117,13 @@ public class DataElementOperandController
         this.contextService = contextService;
         this.schemaService = schemaService;
         this.dataElementCategoryService = dataElementCategoryService;
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping
     @SuppressWarnings( "unchecked" )
     public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
-        throws QueryParserException
+            throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( DataElementOperand.class );
 
@@ -153,16 +175,17 @@ public class DataElementOperandController
         query.setDefaultOrder();
         query.setObjects( dataElementOperands );
 
-
         dataElementOperands = (List<DataElementOperand>) queryService.query( query );
         Pager pager = metadata.getPager();
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), dataElementOperands.size(), options.getPageSize() );
+            // fetch the count for the current query from a short-lived cache
+            int count = paginationCountCache.computeIfAbsent(
+                calculatePaginationCountKey( currentUserService.getCurrentUser(), filters, options ),
+                () -> queryService.count( query ) );
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
             linkService.generatePagerLinks( pager, DataElementOperand.class );
-
-            dataElementOperands = PagerUtils.pageCollection( dataElementOperands, pager );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -176,5 +199,11 @@ public class DataElementOperandController
             new FieldFilterParams( dataElementOperands, fields ) ) );
 
         return rootNode;
+    }
+
+    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + "DataElementOperand" + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
 }

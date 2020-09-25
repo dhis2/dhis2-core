@@ -319,16 +319,9 @@ public class DefaultQueryPlanner implements QueryPlanner
     private boolean isFilterOnPersistedFieldOnly( Query query )
     {
         Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
-        for ( Criterion criterion : query.getCriterions() )
+        if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
         {
-            if ( criterion instanceof Restriction )
-            {
-                Restriction restriction = (Restriction) criterion;
-                if ( !persistedFields.contains( restriction.getPath() ) )
-                {
-                    return false;
-                }
-            }
+            return false;
         }
 
         for ( Order order : query.getOrders() )
@@ -340,5 +333,35 @@ public class DefaultQueryPlanner implements QueryPlanner
             }
         }
         return true;
+    }
+    
+    /**
+     * Recursive function that checks if any of the criterions or subcriterions are associated with fields that are not persisted. 
+     *
+     * @param persistedFields The set of persistedFields in the schema
+     * @param criterions List of criterions
+     * @return true if there is any non persisted field in any of the criteria at any level. false otherwise.
+     */
+    private boolean nonPersistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
+    {
+        for ( Criterion criterion : criterions )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+                if ( !persistedFields.contains( restriction.getPath() ) )
+                {
+                    return true;
+                }
+            }
+            else if ( criterion instanceof Junction )
+            {
+                if ( nonPersistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

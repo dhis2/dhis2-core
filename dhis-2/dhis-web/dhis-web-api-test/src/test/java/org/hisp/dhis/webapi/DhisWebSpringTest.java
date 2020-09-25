@@ -47,7 +47,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,7 +57,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
-import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -66,21 +64,24 @@ import java.util.stream.Collectors;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration(classes = WebTestConfiguration.class)
-@ActiveProfiles("test-h2")
+@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
 {
-    @Autowired
-    protected FilterChainProxy filterChainProxy;
+    // MvcTestConfig.class,
+//    @Autowired
+//    protected FilterChainProxy filterChainProxy;
 
     @Autowired
     protected WebApplicationContext webApplicationContext;
@@ -102,16 +103,21 @@ public abstract class DhisWebSpringTest
     @Rule
     public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
 
+
     @Before
-    public void setup() throws Exception
+    public void setup()
+        throws Exception
     {
+
         userService = _userService;
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
+//            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
+
             .apply( documentationConfiguration( this.restDocumentation ) )
+
             .build();
 
         executeStartupRoutines();
@@ -119,7 +125,8 @@ public abstract class DhisWebSpringTest
         setUpTest();
     }
 
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
     }
 

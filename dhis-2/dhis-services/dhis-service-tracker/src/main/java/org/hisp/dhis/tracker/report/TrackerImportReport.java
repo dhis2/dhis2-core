@@ -28,12 +28,11 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,17 +41,42 @@ import java.util.List;
 @NoArgsConstructor
 public class TrackerImportReport
 {
+
+    @JsonIgnore
+    private int ignored;
+
     private TrackerStatus status = TrackerStatus.OK;
 
-    private List<TrackerBundleReport> bundleReports = new ArrayList<>();
+    private TrackerTimingsStats timings = new TrackerTimingsStats();
+
+    private TrackerBundleReport bundleReport = new TrackerBundleReport();
+
+    private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
 
     @JsonProperty
     public TrackerStats getStats()
     {
-        TrackerStats stats = new TrackerStats();
-        bundleReports.forEach( br -> stats.merge( br.getStats() ) );
-
+        TrackerStats stats = bundleReport.getStats();
+        stats.setIgnored( ignored );
         return stats;
+    }
+
+    @JsonProperty
+    public TrackerStatus getStatus()
+    {
+        return status;
+    }
+
+    @JsonProperty
+    public TrackerTimingsStats getTimings()
+    {
+        return timings;
+    }
+
+    @JsonProperty
+    public TrackerValidationReport getTrackerValidationReport()
+    {
+        return trackerValidationReport;
     }
 
     //-----------------------------------------------------------------------------------
@@ -62,10 +86,10 @@ public class TrackerImportReport
     /**
      * Are there any errors present?
      *
-     * @return true or false depending on any errors found in bundle reports
+     * @return true or false depending on any errors found in bundle report
      */
     public boolean isEmpty()
     {
-        return bundleReports.stream().allMatch( TrackerBundleReport::isEmpty );
+        return bundleReport.isEmpty();
     }
 }

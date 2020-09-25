@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.events.enrollment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
@@ -47,7 +46,6 @@ import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -219,7 +217,8 @@ public abstract class AbstractEnrollmentService
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && trackerOwnershipAccessManager.hasAccess( user, programInstance ) )
+            if ( programInstance != null && trackerOwnershipAccessManager
+                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
             }
@@ -274,12 +273,6 @@ public abstract class AbstractEnrollmentService
         if ( programInstance.getGeometry() != null )
         {
             enrollment.setGeometry( programInstance.getGeometry() );
-
-            if ( programInstance.getProgram().getFeatureType().equals( FeatureType.POINT ) )
-            {
-                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
-                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
-            }
         }
 
         enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
@@ -1152,12 +1145,6 @@ public abstract class AbstractEnrollmentService
             {
                 programInstance.setGeometry( enrollment.getGeometry() );
             }
-            else if ( program.getFeatureType().equals( FeatureType.POINT ) && enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
-            {
-                GeometryFactory gf = new GeometryFactory();
-                com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate( enrollment.getCoordinate().getLongitude(), enrollment.getCoordinate().getLatitude() );
-                programInstance.setGeometry( gf.createPoint( co ) );
-            }
             else
             {
                 programInstance.setGeometry( null );
@@ -1377,7 +1364,8 @@ public abstract class AbstractEnrollmentService
                 TrackedEntityComment comment = new TrackedEntityComment();
                 comment.setUid( noteUid );
                 comment.setCommentText( note.getValue() );
-                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? Constants.UNKNOWN : note.getStoredBy() );
+                comment
+                    .setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? user.getUsername() : note.getStoredBy() );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
 

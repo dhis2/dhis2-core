@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -872,5 +873,50 @@ public class AnalyticsUtils
     public static void throwIllegalQueryEx( ErrorCode errorCode, Object... args )
     {
         throw new IllegalQueryException( new ErrorMessage( errorCode, args ) );
+    }
+
+    /**
+     * Checks of the given Period string (iso) matches at least one Periods in the
+     * given list
+     *
+     * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
+     * @param periods a List of DimensionalItemObject of type Period
+     * @return true, if the Period is found in the list
+     */
+    public static boolean isPeriodInPeriods( String period, List<DimensionalItemObject> periods )
+    {
+        return periods.stream().map( d -> (Period) d ).map( Period::getIsoDate )
+            .anyMatch( date -> date.equals( period ) );
+    }
+
+    /**
+     * Filters a List by Dimensional Item Object identifier and returns one ore more
+     * {@see DimensionalItemObject} matching the given identifier
+     *
+     * @param dimensionIdentifier a uid to filter {@see DimensionalItemObject} on
+     * @param items the filtered List
+     * @return a List only containing the {@see DimensionalItemObject} matching the
+     *         uid
+     */
+    public static List<DimensionalItemObject> findDimensionalItems( String dimensionIdentifier,
+        List<DimensionalItemObject> items )
+    {
+        return items.stream()
+            .filter( dio -> dio.getDimensionItem() != null && dio.getDimensionItem().equals( dimensionIdentifier ) )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Check if the given Grid's row contains a valid period iso string
+     *
+     * @param row the row as List of Object
+     * @param periodIndex the index in which the period is located
+     * @return true, if the rows contains a valid period iso string at the given
+     *         index
+     */
+    public static boolean hasPeriod( List<Object> row, int periodIndex )
+    {
+        return periodIndex < row.size() && row.get( periodIndex ) instanceof String
+            && PeriodType.getPeriodFromIsoString( (String) row.get( periodIndex ) ) != null;
     }
 }

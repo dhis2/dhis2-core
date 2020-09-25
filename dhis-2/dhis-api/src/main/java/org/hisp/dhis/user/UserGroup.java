@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -37,9 +38,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
@@ -53,6 +57,11 @@ public class UserGroup
     public static final String AUTH_USER_VIEW = "F_USER_VIEW";
     public static final String AUTH_USER_ADD_IN_GROUP = "F_USER_ADD_WITHIN_MANAGED_GROUP";
     public static final String AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS = "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS";
+
+    /**
+     * Global unique identifier for UserGroup (to be used for sharing etc)
+     */
+    private UUID uuid;
 
     /**
      * Set of related users
@@ -77,11 +86,12 @@ public class UserGroup
 
     public UserGroup()
     {
-
+        this.setAutoFields();
     }
 
     public UserGroup( String name )
     {
+        this();
         this.name = name;
     }
 
@@ -89,6 +99,17 @@ public class UserGroup
     {
         this( name );
         this.members = members;
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        if ( uuid == null )
+        {
+            uuid = UUID.randomUUID();
+        }
+
+        super.setAutoFields();
     }
 
     // -------------------------------------------------------------------------
@@ -155,8 +176,20 @@ public class UserGroup
         this.user = user;
     }
 
+    public UUID getUuid()
+    {
+        return uuid;
+    }
+
+    public void setUuid( UUID uuid )
+    {
+        this.uuid = uuid;
+    }
+
     @JsonProperty( "users" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
     public Set<User> getMembers()

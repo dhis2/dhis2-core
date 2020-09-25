@@ -105,7 +105,7 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql("desc");
+        assertExpectedSql( "desc" );
     }
 
     @Test
@@ -115,7 +115,27 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql("desc");
+        assertExpectedSql( "desc" );
+    }
+
+    @Test
+    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        assertExpectedLastSql( "desc" );
+    }
+
+    @Test
+    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        assertExpectedLastSql( "desc" );
     }
 
     private void mockRowSet()
@@ -145,6 +165,18 @@ public class JdbcAnalyticsManagerTest
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "
             + "from analytics as ax where pestartdate >= '2005-01-31' and pestartdate <= '2015-01-31' "
+            + "and (value is not null or textvalue is not null))";
+
+        assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
+    }
+
+    private void assertExpectedLastSql(String sortOrder) {
+
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
+            + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
+            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
+            + sortOrder + ") as pe_rank "
+            + "from analytics as ax where pestartdate >= '2015-01-01' and pestartdate <= '2015-01-31' "
             + "and (value is not null or textvalue is not null))";
 
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );

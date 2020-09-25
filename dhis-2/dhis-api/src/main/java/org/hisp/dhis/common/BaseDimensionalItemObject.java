@@ -59,6 +59,12 @@ public class BaseDimensionalItemObject
      */
     protected AggregationType aggregationType;
 
+    /**
+     * A value representing a period offset that can be applied to Dimensional Item
+     * Object within a Indicator formula
+     */
+    protected transient int periodOffset = 0;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -103,7 +109,7 @@ public class BaseDimensionalItemObject
     {
         return getPropertyValue( idScheme );
     }
-    
+
     @Override
     public TotalAggregationType getTotalAggregationType()
     {
@@ -160,5 +166,39 @@ public class BaseDimensionalItemObject
     public void setAggregationType( AggregationType aggregationType )
     {
         this.aggregationType = aggregationType;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPeriodOffset()
+    {
+        return periodOffset;
+    }
+
+    public void setPeriodOffset( int periodOffset )
+    {
+        this.periodOffset = periodOffset;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+
+        final BaseDimensionalItemObject that = (BaseDimensionalItemObject) o;
+
+        return periodOffset == that.periodOffset;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = super.hashCode();
+        result = 31 * result + periodOffset;
+        return result;
     }
 }

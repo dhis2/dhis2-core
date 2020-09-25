@@ -28,14 +28,16 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,7 +83,7 @@ public class TrackerTypeReport
         this.objectReportMap.put( objectReport.getIndex(), objectReport );
     }
 
-    public List<TrackerErrorReport> getErrorReports()
+    private List<TrackerErrorReport> getErrorReports()
     {
         List<TrackerErrorReport> errorReports = new ArrayList<>();
         objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );

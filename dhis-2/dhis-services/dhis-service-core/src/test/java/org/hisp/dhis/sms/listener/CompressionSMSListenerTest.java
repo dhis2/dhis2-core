@@ -30,10 +30,10 @@ package org.hisp.dhis.sms.listener;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.SMSSubmissionWriter;
-import org.hisp.dhis.smscompression.models.SMSMetadata;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsSubmissionWriter;
+import org.hisp.dhis.smscompression.models.SmsMetadata;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.user.User;
 
 import java.util.Base64;
@@ -53,13 +53,13 @@ public abstract class CompressionSMSListenerTest
 
     protected static final String ATTRIBUTE_VALUE = "TEST";
 
-    protected IncomingSms createSMSFromSubmission( SMSSubmission subm )
-        throws SMSCompressionException
+    protected IncomingSms createSMSFromSubmission( SmsSubmission subm )
+        throws SmsCompressionException
     {
         User user = createUser( 'U' );
-        SMSMetadata meta = new SMSMetadata();
+        SmsMetadata meta = new SmsMetadata();
         meta.lastSyncDate = new Date();
-        SMSSubmissionWriter writer = new SMSSubmissionWriter( meta );
+        SmsSubmissionWriter writer = new SmsSubmissionWriter( meta );
         String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
 
         IncomingSms incomingSms = new IncomingSms();

@@ -1,5 +1,3 @@
-package org.hisp.dhis.visualization;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,19 +26,49 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.visualization;
+
+import static com.google.common.base.Verify.verify;
+import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PRETTY_NAMES;
+import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -61,30 +89,9 @@ import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Verify.verify;
-import static java.util.Arrays.asList;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
@@ -169,6 +176,12 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items in the
+     * first dimension of the "columns" list by dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -199,7 +212,15 @@ public class Visualization
 
     private LegendDisplayStrategy legendDisplayStrategy;
 
-    private ColorSet colorSet;
+    /**
+     * The font style for various components of the visualization.
+     */
+    private VisualizationFontStyle fontStyle;
+
+    /**
+     * The key of the color set to use for visualization items, like columns and bars.
+     */
+    private String colorSet;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
@@ -338,6 +359,8 @@ public class Visualization
     private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
     private transient List<List<DimensionalItemObject>> gridRows = new ArrayList<>();
+
+    private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>();
 
     public Visualization()
     {
@@ -817,6 +840,19 @@ public class Visualization
         this.regressionType = regressionType;
     }
 
+    @JsonProperty( "series" )
+    @JacksonXmlElementWrapper( localName = "series", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DXF_2_0 )
+    public List<Series> getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( List<Series> series )
+    {
+        this.series = series;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
@@ -915,12 +951,24 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ColorSet getColorSet()
+    public VisualizationFontStyle getFontStyle()
+    {
+        return fontStyle;
+    }
+
+    public void setFontStyle( VisualizationFontStyle fontStyle )
+    {
+        this.fontStyle = fontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public String getColorSet()
     {
         return colorSet;
     }
 
-    public void setColorSet( ColorSet colorSet )
+    public void setColorSet( String colorSet )
     {
         this.colorSet = colorSet;
     }
@@ -939,6 +987,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -951,6 +1000,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -975,6 +1025,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -987,6 +1038,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
@@ -1032,6 +1084,30 @@ public class Visualization
     public void setYearlySeries( List<String> yearlySeries )
     {
         this.yearlySeries = yearlySeries;
+    }
+
+    /**
+     * Returns the list of DimensionDescriptor held internally to the current Visualization object.
+     * See {@link #addDimensionDescriptor}.
+     *
+     * @return the list of DimensionDescriptor's held.
+     */
+    public List<DimensionDescriptor> getDimensionDescriptors()
+    {
+        return dimensionDescriptors;
+    }
+
+    /**
+     * This method will hold the mapping of a dimension and its respective formal
+     * type.
+     *
+     * @param dimension the dimension, which should also be found in
+     *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
+     * @param dimensionType the formal dimension type. See {@link DimensionType}
+     */
+    public void addDimensionDescriptor( final String dimension, final DimensionType dimensionType )
+    {
+        this.dimensionDescriptors.add( new DimensionDescriptor( dimension, dimensionType ) );
     }
 
     @Override
@@ -1391,10 +1467,11 @@ public class Visualization
         final Map<String, String> metaData = getMetaData();
         metaData.putAll( PRETTY_NAMES );
 
-        for ( String row : rowDimensions )
+        for ( String dimension : rowDimensions )
         {
-            final String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
-            final String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
+            final String dimensionId = getDimensionIdentifierFor( dimension, getDimensionDescriptors() );
+            final String name = defaultIfEmpty( metaData.get( dimensionId ), dimensionId );
+            final String col = defaultIfEmpty( COLUMN_NAMES.get( dimensionId ), dimensionId );
 
             grid.addHeader( new GridHeader( name + " ID", col + "id", TEXT, String.class.getName(), true, true ) );
             grid.addHeader( new GridHeader( name, col + "name", TEXT, String.class.getName(), false, true ) );

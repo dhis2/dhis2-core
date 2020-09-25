@@ -326,24 +326,14 @@ public class DefaultEventDataQueryService
 
         if ( dataElement != null )
         {
-            if ( ValueType.COORDINATE != dataElement.getValueType() )
-            {
-                throwIllegalQueryEx( ErrorCode.E7129, coordinateField );
-            }
-
-            return dataElement.getUid();
+            return getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField, ErrorCode.E7219 );
         }
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
         if ( attribute != null )
         {
-            if ( ValueType.COORDINATE != attribute.getValueType() )
-            {
-                throwIllegalQueryEx( ErrorCode.E7130, coordinateField );
-            }
-
-            return attribute.getUid();
+            return getCoordinateFieldOrFail( attribute.getValueType(), coordinateField, ErrorCode.E7220 );
         }
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
@@ -428,5 +418,14 @@ public class DefaultEventDataQueryService
         }
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
+    }
+
+    private String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
+    {
+        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
+        {
+            throwIllegalQueryEx( errorCode, field );
+        }
+        return field;
     }
 }

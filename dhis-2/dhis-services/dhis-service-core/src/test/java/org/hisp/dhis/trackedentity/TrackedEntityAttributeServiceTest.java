@@ -32,6 +32,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
@@ -81,6 +82,12 @@ public class TrackedEntityAttributeServiceTest
     @Mock
     private UserService userService;
 
+    @Mock
+    private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
+
+    @Mock
+    private ProgramTrackedEntityAttributeStore programAttributeStore;
+
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
     private TrackedEntityInstance teiPassedInPayload;
@@ -98,7 +105,7 @@ public class TrackedEntityAttributeServiceTest
     {
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
             trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityAttributeStore );
+            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 

@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -43,9 +46,16 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -77,6 +87,12 @@ public class TrackedEntityInstanceServiceTest
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
     private ProgramStageInstance programStageInstanceA;
 
     private ProgramInstance programInstanceA;
@@ -90,6 +106,15 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityAttribute entityInstanceAttribute;
 
     private OrganisationUnit organisationUnit;
+
+    private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+    private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+    private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+    private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+    private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @Override
     public void setUpTest()
@@ -124,17 +149,31 @@ public class TrackedEntityInstanceServiceTest
         enrollmentDate.withTimeAtStartOfDay();
         enrollmentDate = enrollmentDate.minusDays( 70 );
 
-        DateTime incidenDate = DateTime.now();
-        incidenDate.withTimeAtStartOfDay();
+        DateTime incidentDate = DateTime.now();
+        incidentDate.withTimeAtStartOfDay();
 
-        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidenDate.toDate(), entityInstanceA1,
-            programA );
+        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidentDate.toDate(), entityInstanceA1,
+                programA);
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnit );
 
         programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
         programInstanceA.setUid( "UID-PSI-A" );
         programInstanceA.setOrganisationUnit( organisationUnit );
+
+        trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
+        attributeService.addTrackedEntityAttribute( attrD );
+        attributeService.addTrackedEntityAttribute( attrE );
+        attributeService.addTrackedEntityAttribute( filtF );
+        attributeService.addTrackedEntityAttribute( filtG );
+
+        super.userService = this.userService;
+        User user = createUser( "testUser" );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
     }
 
     @Test

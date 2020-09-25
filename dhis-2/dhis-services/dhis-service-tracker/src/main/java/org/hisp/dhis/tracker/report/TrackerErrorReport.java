@@ -28,55 +28,132 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.util.ObjectUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerErrorMessage;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+@Builder
 public class TrackerErrorReport
 {
-    @JsonProperty
-    private final Class<?> mainKlass;
+    private final String errorMessage;
 
-    private final TrackerErrorMessage message;
+    private final TrackerErrorCode errorCode;
 
-    @JsonProperty
-    private String mainId;
+    private final TrackerType trackerType;
 
-    @JsonProperty
-    private Class<?> errorKlass;
+    private final String uid;
 
-    @JsonProperty
-    private String errorProperty;
-
-    @JsonProperty
-    private Object value;
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
+    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode, TrackerType trackerType, String uid )
     {
-        this.mainKlass = mainKlass;
-        this.message = new TrackerErrorMessage( errorCode, args );
-    }
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message )
-    {
-        this.mainKlass = mainKlass;
-        this.message = message;
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
-        return message.getErrorCode();
+        return errorCode;
     }
 
     @JsonProperty
     public String getMessage()
     {
-        return message.getMessage();
+        return errorMessage;
+    }
+
+    public static class TrackerErrorReportBuilder
+    {
+        private final List<Object> arguments = new ArrayList<>();
+
+        public TrackerErrorReportBuilder addArg( Object arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReport build( TrackerBundle bundle )
+        {
+            TrackerIdScheme scheme = bundle.getIdentifier();
+            TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
+
+            List<String> args = new ArrayList<>();
+            for ( Object argument : this.arguments )
+            {
+                String s = parseArgs( identifier, argument );
+                args.add( s );
+            }
+
+            String errorMessage = MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
+
+            return new TrackerErrorReport( errorMessage, this.errorCode, this.trackerType, this.uid );
+        }
+
+        public static String parseArgs( TrackerIdentifier identifier, Object argument )
+        {
+            if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
+            {
+                return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
+            }
+            else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return identifier.getIdAndName( (IdentifiableObject) argument );
+            }
+            else if ( Date.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return (DateFormat.getInstance().format( argument ));
+            }
+            else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Enrollment enrollment = (Enrollment) argument;
+                return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
+            }
+            else if ( Event.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Event event = (Event) argument;
+                return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
+            }
+            else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
+            {
+                TrackedEntity entity = (TrackedEntity) argument;
+                return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
+            }
+
+            return "";
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerErrorReport{" +
+            "message=" + errorMessage +
+            ", errorCode=" + errorCode +
+            ", trackerEntityType=" + trackerType +
+            ", uid=" + uid +
+            '}';
     }
 }
