@@ -521,8 +521,10 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Filters out analytics table columns which were created
-     * after the time of the last successful resource table update.
+     * Filters out analytics table columns which were created after the
+     * time of the last successful resource table update. This so that
+     * the the create table query does not refer to columns not present
+     * in resource tables.
      *
      * @param columns the analytics table columns.
      * @return a list of {@link AnalyticsTableColumn}.
