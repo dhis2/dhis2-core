@@ -150,8 +150,6 @@ public interface SystemSettingManager
 
     boolean hideUnapprovedDataInAnalytics();
 
-    boolean isOpenIdConfigured();
-
     String googleAnalyticsUA();
 
     Integer credentialsExpires();
