@@ -564,7 +564,7 @@ public abstract class AbstractJdbcTableManager
      * @param prefix the prefix to use for the column name
      * @return a List of {@link AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addPeriodColumns(String prefix)
+    protected List<AnalyticsTableColumn> addPeriodColumns(String prefix)
     {
         return PeriodType.getAvailablePeriodTypes().stream()
             .map( pt -> {
@@ -579,7 +579,7 @@ public abstract class AbstractJdbcTableManager
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addOrganisationUnitLevels()
+    protected List<AnalyticsTableColumn> addOrganisationUnitLevels()
     {
         return organisationUnitService.getFilledOrganisationUnitLevels().stream()
             .map( lv -> {
