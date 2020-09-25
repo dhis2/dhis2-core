@@ -366,26 +366,38 @@ public class EventManager
                 else
                 {
                     ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, eventToImport.getProgramStage() );
-                    String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
 
-                    if ( programStage.getRepeatable() )
+                    if ( programStage == null )
                     {
-                        importableEvents.add( eventToImport );
+                        final ImportSummary is = new ImportSummary( ERROR,
+                            "ProgramStage " + eventToImport.getProgramStage() + " does not exist" )
+                                .setReference( eventToImport.getUid() ).incrementIgnored();
+
+                        importSummaries.addImportSummary( is );
                     }
                     else
                     {
-                        if ( !importableStageEvents.contains( eventContextId ) )
+                        String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
+
+                        if ( programStage.getRepeatable() )
                         {
-                            importableStageEvents.add( eventContextId );
                             importableEvents.add( eventToImport );
                         }
                         else
                         {
-                            final ImportSummary is = new ImportSummary( ERROR,
-                                "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
-                                    .setReference( eventToImport.getUid() ).incrementIgnored();
+                            if ( !importableStageEvents.contains( eventContextId ) )
+                            {
+                                importableStageEvents.add( eventContextId );
+                                importableEvents.add( eventToImport );
+                            }
+                            else
+                            {
+                                final ImportSummary is = new ImportSummary( ERROR,
+                                    "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
+                                        .setReference( eventToImport.getUid() ).incrementIgnored();
 
-                            importSummaries.addImportSummary( is );
+                                importSummaries.addImportSummary( is );
+                            }
                         }
                     }
                 }
