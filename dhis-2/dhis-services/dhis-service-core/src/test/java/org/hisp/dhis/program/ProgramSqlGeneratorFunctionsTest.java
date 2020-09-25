@@ -475,23 +475,6 @@ public class ProgramSqlGeneratorFunctionsTest
     }
 
     @Test
-    public void testLog()
-    {
-        String sql = test( "log(V{enrollment_count})" );
-        assertThat( sql, is( "ln(distinct pi)" ) );
-
-        sql = test( "log(V{event_count},3)" );
-        assertThat( sql, is( "log(3,distinct psi)" ) );
-    }
-
-    @Test
-    public void testLog10()
-    {
-        String sql = test( "log10(V{org_unit_count})" );
-        assertThat( sql, is( "log(distinct ou)" ) );
-    }
-
-    @Test
     public void testIllegalFunction()
     {
         thrown.expect( ParserException.class );

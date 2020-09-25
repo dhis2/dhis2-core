@@ -29,6 +29,7 @@ package org.hisp.dhis.security.authority;
  */
 
 import org.hisp.dhis.schema.SchemaService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 
@@ -38,12 +39,8 @@ import java.util.Collection;
 public class SchemaAuthoritiesProvider
     implements SystemAuthoritiesProvider
 {
+    @Autowired
     private SchemaService schemaService;
-
-    public SchemaAuthoritiesProvider( SchemaService schemaService )
-    {
-        this.schemaService = schemaService;
-    }
 
     @Override
     public Collection<String> getSystemAuthorities()

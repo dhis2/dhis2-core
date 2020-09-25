@@ -86,14 +86,8 @@ public class CustomRequestMappingHandlerMapping
                 {
                     if ( !pattern.startsWith( version.getVersionString() ) )
                     {
-                        if ( pattern.startsWith( "/" ) )
-                        {
-                            patterns.add( "/" + version.getVersion() + pattern );
-                        }
-                        else
-                        {
-                            patterns.add( "/" + version.getVersion() + "/" + pattern );
-                        }
+                        if ( pattern.startsWith( "/" ) ) patterns.add( "/" + version.getVersion() + pattern );
+                        else patterns.add( "/" + version.getVersion() + "/" + pattern );
                     }
                     else
                     {
@@ -103,11 +97,10 @@ public class CustomRequestMappingHandlerMapping
         }
 
         PatternsRequestCondition patternsRequestCondition = new PatternsRequestCondition(
-            patterns.toArray( new String[] {} ), null, null, true, true, null );
+            patterns.toArray( new String[]{} ), null, null, true, true, null );
 
         return new RequestMappingInfo(
-            null, patternsRequestCondition, methodsCondition, info.getParamsCondition(), info.getHeadersCondition(),
-            info.getConsumesCondition(),
+            null, patternsRequestCondition, methodsCondition, info.getParamsCondition(), info.getHeadersCondition(), info.getConsumesCondition(),
             info.getProducesCondition(), info.getCustomCondition()
         );
     }

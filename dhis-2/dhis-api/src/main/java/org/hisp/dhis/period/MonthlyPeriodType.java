@@ -63,8 +63,6 @@ public class MonthlyPeriodType
 
     public static final int FREQUENCY_ORDER = 30;
 
-    public static final String SQL_INTERVAL = "1 month";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
@@ -91,12 +89,6 @@ public class MonthlyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
-    }
-
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------

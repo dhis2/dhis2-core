@@ -93,12 +93,6 @@ public class DefaultDocumentService
     }
 
     @Override
-    public void deleteDocument( Document document )
-    {
-        documentStore.delete( document );
-    }
-
-    @Override
     public List<Document> getAllDocuments()
     {
         return documentStore.getAll();

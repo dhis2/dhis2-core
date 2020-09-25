@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.UserService;
@@ -213,13 +214,13 @@ public class TrackerPreheatServiceTest
     public void testPreheatValidation()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerBundle bundle = renderService
             .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerBundleParams.class ).toTrackerBundle();
 
-        assertTrue( trackerBundleParams.getTrackedEntities().isEmpty() );
-        assertTrue( trackerBundleParams.getEnrollments().isEmpty() );
-        assertFalse( trackerBundleParams.getEvents().isEmpty() );
+        assertTrue( bundle.getTrackedEntities().isEmpty() );
+        assertTrue( bundle.getEnrollments().isEmpty() );
+        assertFalse( bundle.getEvents().isEmpty() );
 
         TrackerPreheatParams params = new TrackerPreheatParams();
         trackerPreheatService.validate( params );
@@ -243,18 +244,18 @@ public class TrackerPreheatServiceTest
 
         objectBundleService.commit( objectBundle );
 
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerBundleParams.class ).toTrackerBundle();
 
-        assertTrue( trackerBundleParams.getTrackedEntities().isEmpty() );
-        assertTrue( trackerBundleParams.getEnrollments().isEmpty() );
-        assertFalse( trackerBundleParams.getEvents().isEmpty() );
+        assertTrue( trackerBundle.getTrackedEntities().isEmpty() );
+        assertTrue( trackerBundle.getEnrollments().isEmpty() );
+        assertFalse( trackerBundle.getEvents().isEmpty() );
 
         TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
-            .trackedEntities( trackerBundleParams.getTrackedEntities() )
-            .enrollments( trackerBundleParams.getEnrollments() )
-            .events( trackerBundleParams.getEvents() )
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
             .build();
 
         trackerPreheatService.validate( trackerPreheatParams );

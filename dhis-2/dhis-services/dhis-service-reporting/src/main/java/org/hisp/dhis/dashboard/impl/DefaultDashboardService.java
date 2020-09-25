@@ -411,65 +411,58 @@ public class DefaultDashboardService
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getVisualizationDashboardItems( Visualization visualization )
+    public int countChartDashboardItems( Chart chart )
     {
-        return dashboardItemStore.getVisualizationDashboardItems( visualization );
+        return dashboardItemStore.countChartDashboardItems( chart );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable )
+    public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        return dashboardItemStore.getReportTableDashboardItems( reportTable );
+        return dashboardItemStore.countReportTableDashboardItems( reportTable );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getChartDashboardItems( Chart chart )
+    public int countMapDashboardItems( Map map )
     {
-        return dashboardItemStore.getChartDashboardItems( chart );
+        return dashboardItemStore.countMapDashboardItems( map );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getEventChartDashboardItems( EventChart eventChart )
+    public int countEventChartDashboardItems( EventChart eventChart )
     {
-        return dashboardItemStore.getEventChartDashboardItems( eventChart );
-    };
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<DashboardItem> getMapDashboardItems( Map map )
-    {
-        return dashboardItemStore.getMapDashboardItems( map );
+        return dashboardItemStore.countEventChartDashboardItems( eventChart );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getEventReportDashboardItems( EventReport eventReport )
+    public int countVisualizationDashboardItems( Visualization visualization )
     {
-        return dashboardItemStore.getEventReportDashboardItems( eventReport );
+        return dashboardItemStore.countVisualizationDashboardItems( visualization );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getUserDashboardItems( User user )
+    public int countReportDashboardItems( Report report )
     {
-        return dashboardItemStore.getUserDashboardItems( user );
+        return dashboardItemStore.countReportDashboardItems( report );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getReportDashboardItems( Report report )
+    public int countDocumentDashboardItems( Document document )
     {
-        return dashboardItemStore.getReportDashboardItems( report );
+        return dashboardItemStore.countDocumentDashboardItems( document );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DashboardItem> getDocumentDashboardItems( Document document )
+    public int countUserDashboardItems( User user )
     {
-        return dashboardItemStore.getDocumentDashboardItems( document );
+        return dashboardItemStore.countUserDashboardItems( user );
     }
 
     // -------------------------------------------------------------------------

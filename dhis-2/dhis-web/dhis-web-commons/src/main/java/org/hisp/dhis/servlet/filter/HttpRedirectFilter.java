@@ -37,8 +37,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletResponse;
 
 
@@ -49,13 +47,6 @@ import javax.servlet.http.HttpServletResponse;
  * @version $Id: HttpRedirectFilter.java 2869 2007-02-20 14:26:09Z andegje $
  */
 @Slf4j
-@WebFilter( urlPatterns = {
-    "/"
-},
-    initParams = {
-        @WebInitParam( name = "redirectPath", value = "dhis-web-commons-about/redirect.action" ),
-        @WebInitParam( name = "urlPattern", value = "index\\.html|/$" )
-    } )
 public class HttpRedirectFilter
     implements Filter
 {

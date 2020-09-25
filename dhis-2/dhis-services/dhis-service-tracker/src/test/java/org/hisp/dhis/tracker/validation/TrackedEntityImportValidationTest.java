@@ -315,7 +315,7 @@ public class TrackedEntityImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         // Validate first time, should contain no errors.
@@ -364,7 +364,7 @@ public class TrackedEntityImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -374,7 +374,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        TrackerBundle updateBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle updateBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
 
         report = trackerValidationService.validate( updateBundle );
         TrackerBundleReport bundleReport2 = trackerBundleService.commit( updateBundle );
@@ -386,7 +386,7 @@ public class TrackedEntityImportValidationTest
         trackerBundleParamsUpdate.setUser( user );
 
         trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategy.UPDATE );
-        TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate );
+        TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate ).get( 0 );
         assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
 
         TrackerValidationReport reportUpdate = trackerValidationService.validate( trackerBundleUpdate );
@@ -409,7 +409,7 @@ public class TrackedEntityImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -423,7 +423,7 @@ public class TrackedEntityImportValidationTest
         trackerBundleParamsUpdate.setUser( user );
 
         trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate );
+        TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate ).get( 0 );
         assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
 
         TrackerValidationReport reportUpdate = trackerValidationService.validate( trackerBundleUpdate );
@@ -492,7 +492,7 @@ public class TrackedEntityImportValidationTest
         params.setUser( user2 );
 
         params.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerBundle trackerBundle = trackerBundleService.create( params );
+        TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
         assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         report = trackerValidationService.validate( trackerBundle );

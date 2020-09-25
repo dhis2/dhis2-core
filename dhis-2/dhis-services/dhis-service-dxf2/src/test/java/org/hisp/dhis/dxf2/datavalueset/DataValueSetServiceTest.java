@@ -78,8 +78,6 @@ import org.hisp.dhis.user.UserService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -97,7 +95,6 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
-@Ignore
 public class DataValueSetServiceTest
     extends TransactionalIntegrationTestBase
 {

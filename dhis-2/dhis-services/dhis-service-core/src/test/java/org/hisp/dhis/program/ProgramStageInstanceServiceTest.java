@@ -28,7 +28,9 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,9 +38,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.cache.Cache;
@@ -97,6 +97,9 @@ public class ProgramStageInstanceServiceTest
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
+
+//    @Autowired
+//    private EventDataValueService eventDataValueService;
 
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
@@ -459,7 +462,7 @@ public class ProgramStageInstanceServiceTest
 
         //Update PSI: create 0, update 3, delete 1
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), updatedEventDataValues, Collections.singleton( eventDataValueD ),
-            convertToMap( dataElementMap ), programStageInstanceA, false );
+            dataElementMap, programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 3 EventDataValues
@@ -504,7 +507,7 @@ public class ProgramStageInstanceServiceTest
         eventDataValueB.setValue( "22" );
 
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), Collections.singleton( eventDataValueB ), Collections.emptySet(),
-        convertToMap( dataElementMap ), programStageInstanceA, true );
+            dataElementMap, programStageInstanceA, true );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 4 EventDataValues
@@ -540,12 +543,6 @@ public class ProgramStageInstanceServiceTest
         assertEquals( "3", eventDataValueCValue );
     }
 
-    private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
-    {
-        return dataElementMap.getAll().stream()
-            .collect( Collectors.toMap( DataElement::getUid, d -> d ) );
-    }
-
     private void addInitialEventDataValues()
     {
         //Check that there are no EventDataValues assigned to PSI
@@ -555,7 +552,7 @@ public class ProgramStageInstanceServiceTest
         //Prepare EventDataValues -> save 4 of them to PSI
         Set<EventDataValue> newEventDataValues = new HashSet<>( Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD ));
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newEventDataValues, Collections.emptySet(), Collections.emptySet(),
-        convertToMap( dataElementMap ), programStageInstanceA, false );
+            dataElementMap, programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
 }

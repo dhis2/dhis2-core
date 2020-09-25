@@ -84,14 +84,6 @@ public class DefaultTrackedEntityInstanceAuditService
     }
 
     @Override
-    @Async
-    @Transactional
-    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits )
-    {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
-    }
-
-    @Override
     @Transactional
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {

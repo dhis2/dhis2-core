@@ -75,7 +75,6 @@ public abstract class SmsGateway
         .put( HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405 )
         .put( HttpStatus.GONE, GatewayResponse.RESULT_CODE_410 )
         .put( HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503 )
-        .put( HttpStatus.FORBIDDEN, GatewayResponse.RESULT_CODE_403 )
         .put( HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504 ).build();
 
     @Autowired

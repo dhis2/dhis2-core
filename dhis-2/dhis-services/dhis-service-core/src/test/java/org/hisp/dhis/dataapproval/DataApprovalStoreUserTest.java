@@ -96,7 +96,6 @@ public class DataApprovalStoreUserTest
     private OrganisationUnit orgUnitD;
 
     private CurrentUserService mockCurrentUserService;
-
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------

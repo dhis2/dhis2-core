@@ -8,15 +8,7 @@ module.exports = async function generate_bundle (apps, jsonPath) {
     let list = []
     for (const app of apps) {
         const lock = `${app.url}#${app.sha}`
-        list.push({
-            name: app.name,
-            webName: app.web_name,
-            version: app.version,
-            buildDate: app.build_date,
-            sourceRepo: app.url,
-            sourceRef: app.ref,
-            source: lock
-        })
+        list.push(lock)
     }
 
     try {

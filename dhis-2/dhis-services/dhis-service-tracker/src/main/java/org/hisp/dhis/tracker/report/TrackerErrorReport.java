@@ -28,26 +28,24 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Builder;
-import lombok.Data;
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,20 +55,45 @@ import lombok.Data;
 @Builder
 public class TrackerErrorReport
 {
+    @JsonProperty
+    private final Class<?> mainKlass;
+
     private final String errorMessage;
 
-    private final TrackerErrorCode errorCode;
+    @JsonProperty
+    private String mainId;
 
-    private final TrackerType trackerType;
+    @JsonProperty
+    private Class<?> errorKlass;
 
-    private final String uid;
+    @JsonProperty
+    private final String[] errorProperties;
 
-    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode, TrackerType trackerType, String uid )
+    @JsonProperty
+    private Object value;
+
+    private final int lineNumber;
+
+    private TrackerErrorCode errorCode;
+
+    private Object mainObject;
+
+    protected int listIndex;
+
+    public TrackerErrorReport( Class<?> mainKlass, String errorMessage, TrackerErrorCode errorCode, int line,
+        String mainId,
+        Class<?> errorKlass, String[] errorProperties, Object value )
     {
+        this.mainKlass = mainKlass;
         this.errorMessage = errorMessage;
         this.errorCode = errorCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
+
+        this.lineNumber = line;
+        this.mainId = mainId;
+        this.errorKlass = errorKlass;
+        this.errorProperties = errorProperties;
+        this.value = value;
+
     }
 
     @JsonProperty
@@ -107,9 +130,15 @@ public class TrackerErrorReport
                 args.add( s );
             }
 
+            if ( this.mainObject != null )
+            {
+                this.mainId = parseArgs( identifier, this.mainObject );
+            }
+
             String errorMessage = MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
 
-            return new TrackerErrorReport( errorMessage, this.errorCode, this.trackerType, this.uid );
+            return new TrackerErrorReport( this.mainKlass, errorMessage, this.errorCode, this.listIndex, this.mainId,
+                this.mainKlass, this.errorProperties, this.value );
         }
 
         public static String parseArgs( TrackerIdentifier identifier, Object argument )
@@ -152,8 +181,12 @@ public class TrackerErrorReport
         return "TrackerErrorReport{" +
             "message=" + errorMessage +
             ", errorCode=" + errorCode +
-            ", trackerEntityType=" + trackerType +
-            ", uid=" + uid +
+            ", mainId='" + mainId + '\'' +
+            ", mainClass=" + mainKlass +
+            ", errorClass=" + errorKlass +
+            ", errorProperties=" + Arrays.toString( errorProperties ) +
+            ", value=" + value +
+            ", objectIndex=" + lineNumber +
             '}';
     }
 }

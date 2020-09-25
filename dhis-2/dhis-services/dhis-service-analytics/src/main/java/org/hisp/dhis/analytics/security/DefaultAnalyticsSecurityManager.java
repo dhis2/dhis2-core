@@ -374,7 +374,7 @@ public class DefaultAnalyticsSecurityManager
             builder.removeDimensionOrFilter( dimension.getDimension() );
 
             DimensionalObject constraint = new BaseDimensionalObject( dimension.getDimension(),
-                dimension.getDimensionType(), null, dimension.getDimensionDisplayName(), canReadItems );
+                dimension.getDimensionType(), null, dimension.getDisplayName(), canReadItems );
 
             builder.addFilter( constraint );
 

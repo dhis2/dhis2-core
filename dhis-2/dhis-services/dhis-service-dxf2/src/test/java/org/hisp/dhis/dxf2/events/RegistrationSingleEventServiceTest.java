@@ -158,8 +158,6 @@ public class RegistrationSingleEventServiceTest
         manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
-
-        manager.flush();
     }
 
     @Test
@@ -184,7 +182,6 @@ public class RegistrationSingleEventServiceTest
     }
     
     @Test
-    @Ignore // FIXME luciano -> re-enable after delete has been implemented
     public void testDeleteEventShouldReturnReference()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );

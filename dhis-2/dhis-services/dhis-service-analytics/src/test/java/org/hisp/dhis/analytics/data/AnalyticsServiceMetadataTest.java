@@ -91,14 +91,14 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 // FILTERS (OU)
                 .withFilters( Collections.singletonList(
                     new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                        ImmutableList.of(
-                            new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                            new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
                         new DimensionalKeywords(
                             Lists.newArrayList(
                                 buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
                                 buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
-
+                            ),
+                            ImmutableList.of(
+                                new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                                new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
                         )
                     ) )
                 )
@@ -134,14 +134,14 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             .withDimensions( Lists.newArrayList(
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ) ) ) )
+                    new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
+                        Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
+                            createDataElement( 'B', new CategoryCombo() ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                    ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                ) ) ) )
+                    ) ) ) )
             .withIgnoreLimit( true )
             .withSkipData( true )
             .build();
@@ -171,11 +171,10 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // FILTERS (OU)
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
                     new DimensionalKeywords(
-                        Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) )
-                    ) ) )
+                        Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ),
+                        ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
                 .build();
 
         initMock(params);
@@ -202,17 +201,16 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             .withDimensions( Lists.newArrayList(
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    ImmutableList.of(
+                new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
+                    Lists.newArrayList(
                         createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionalKeywords( Collections.singletonList( dataElementGroup ) )
-                    ) ) )
-            .withFilters( Collections.singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
-            .withIgnoreLimit( true )
-            .withSkipData( true )
-            .build();
+                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+                .withFilters( Collections.singletonList(
+                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                        ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
+                .withIgnoreLimit( true )
+                .withSkipData( true )
+                .build();
 
         initMock(params);
 

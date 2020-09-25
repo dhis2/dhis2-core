@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -36,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -53,8 +53,6 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
 public class Enrollment
 {
-    private Long enrollmentId;
-
     private String enrollment;
 
     private String created;
@@ -94,6 +92,8 @@ public class Enrollment
     private String completedBy;
 
     private Date completedDate;
+
+    private Coordinate coordinate;
 
     private Boolean deleted = false;
 
@@ -347,6 +347,18 @@ public class Enrollment
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Coordinate getCoordinate()
+    {
+        return coordinate;
+    }
+
+    public void setCoordinate( Coordinate coordinate )
+    {
+        this.coordinate = coordinate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isDeleted()
     {
         return deleted;
@@ -410,14 +422,5 @@ public class Enrollment
             ", notes=" + notes +
             ", deleted=" + deleted +
             '}';
-    }
-
-    @JsonIgnore
-    public Long getId() {
-        return enrollmentId;
-    }
-
-    public void setId(Long enrollmentId) {
-        this.enrollmentId = enrollmentId;
     }
 }

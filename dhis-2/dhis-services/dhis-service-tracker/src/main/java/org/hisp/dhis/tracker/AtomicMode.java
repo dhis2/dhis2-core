@@ -41,5 +41,6 @@ public enum AtomicMode
     /**
      * Legacy mode. Allow non-valid references when importing.
      */
-    OBJECT
+    // TODO: Not implemented
+    NONE
 }

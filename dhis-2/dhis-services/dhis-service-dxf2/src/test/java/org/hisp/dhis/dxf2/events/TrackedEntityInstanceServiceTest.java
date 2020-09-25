@@ -28,27 +28,15 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
@@ -114,9 +102,6 @@ public class TrackedEntityInstanceServiceTest
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -218,9 +203,6 @@ public class TrackedEntityInstanceServiceTest
         programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
-
-        manager.flush();
-
     }
 
     @Test
@@ -375,11 +357,6 @@ public class TrackedEntityInstanceServiceTest
 
     }
 
-    /**
-     * FIXME luciano: this is ignored because there is a bug in tracker, so that new events that fail
-     * to validate are reported as success.
-     */
-    @Ignore
     @Test
     public void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
     {
@@ -400,19 +377,14 @@ public class TrackedEntityInstanceServiceTest
         event1.setStatus( EventStatus.ACTIVE );
         event1.setTrackedEntityInstance( maleA.getUid() );
 
-        enrollment1.setEvents( singletonList( event1 ) );
+        enrollment1.setEvents( Arrays.asList( event1 ) );
 
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
 
-        // This is required because the Event creation takes place using JDBC, therefore Hibernate does not
-        // "see" the new event in the context of this session
-        sessionFactory.getCurrentSession().clear();
-
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
 
@@ -439,9 +411,6 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
     {
-        // Making program stage repeatable
-        programStageA2.setRepeatable( true );
-
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
@@ -473,9 +442,6 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
 
-        manager.flush();
-        sessionFactory.getCurrentSession().clear();
-
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
@@ -505,7 +471,6 @@ public class TrackedEntityInstanceServiceTest
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, importOptions, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
     }
 

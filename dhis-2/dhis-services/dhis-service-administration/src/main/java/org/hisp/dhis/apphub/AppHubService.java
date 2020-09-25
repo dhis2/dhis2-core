@@ -37,18 +37,6 @@ import java.util.List;
  */
 public interface AppHubService
 {
-    /**
-     * Proxy method for the App Hub API. Returns the response from
-     * the given query for the given API version.
-     *
-     * @param apiVersion the App Hub API version.
-     * @param query the App Hub API query, including the path and
-     *        query parameters, excluding the "/api/" part and leading
-     *        forward slashes.
-     * @return the App Hub API response as a string.
-     */
-    String getAppHubApiResponse( String apiVersion, String query );
-
     List<WebApp> getAppHub();
 
     AppStatus installAppFromAppHub( String id );

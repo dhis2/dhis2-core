@@ -64,11 +64,6 @@ public class OrderParams
         return QueryUtils.convertOrderStrings( order, schema );
     }
 
-    public Set<String> getOrders()
-    {
-        return order;
-    }
-
     @Override
     public int hashCode()
     {

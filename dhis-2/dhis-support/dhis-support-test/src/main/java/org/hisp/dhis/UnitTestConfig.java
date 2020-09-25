@@ -32,15 +32,13 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import org.springframework.context.annotation.ImportResource;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
+@ImportResource( locations = { "classpath*:/META-INF/dhis/security.xml" } )
 @ComponentScan( "org.hisp.dhis" )
 public class UnitTestConfig
 {
@@ -48,23 +46,5 @@ public class UnitTestConfig
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         return new H2DhisConfigurationProvider();
-    }
-
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
-
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
     }
 }

@@ -35,14 +35,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -108,7 +113,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -125,32 +130,32 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        User user = userStore.getUser( userId );
-
-        // TODO: this is pretty ugly way to retrieve auths
-        user.getUserCredentials().getAllAuthorities();
-        return user;
+        return userStore.getUser( userId );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public UserInfo getCurrentUserInfo()
     {
-        String currentUsername = getCurrentUsername();
+        UserDetails userDetails = getCurrentUserDetails();
 
-        if ( currentUsername == null )
+        if ( userDetails == null )
         {
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( currentUsername, this::getUserId ).orElse( null );
+        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) ).orElse( null );
 
         if ( userId == null )
         {
             return null;
         }
 
-        return new UserInfo( userId, currentUsername, getCurrentUserAuthorities() );
+        Set<String> authorities = userDetails.getAuthorities()
+            .stream().map( GrantedAuthority::getAuthority )
+            .collect( Collectors.toSet() );
+
+        return new UserInfo( userId, userDetails.getUsername(), authorities );
     }
 
     private Long getUserId( String username )
@@ -161,7 +166,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -170,7 +175,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -179,7 +184,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
@@ -191,5 +196,18 @@ public class DefaultCurrentUserService
     public UserCredentials getCurrentUserCredentials()
     {
         return userStore.getUserCredentialsByUsername( getCurrentUsername() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public void expireUserSessions()
+    {
+        UserDetails userDetails = getCurrentUserDetails();
+
+        if ( userDetails != null )
+        {
+            List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
+            sessions.forEach( SessionInformation::expireNow );
+        }
     }
 }

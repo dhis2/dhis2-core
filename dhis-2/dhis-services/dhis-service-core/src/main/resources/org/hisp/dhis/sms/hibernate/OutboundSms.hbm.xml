@@ -10,8 +10,6 @@
       <generator class="native" />
     </id>
 
-    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
-
     <set name="recipients" table="outbound_sms_recipients" fetch="join">
       <key column="outbound_sms_id" />
       <element type="text"/>

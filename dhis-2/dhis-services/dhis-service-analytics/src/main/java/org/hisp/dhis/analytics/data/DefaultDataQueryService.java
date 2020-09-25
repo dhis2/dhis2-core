@@ -93,7 +93,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -350,7 +349,7 @@ public class DefaultDataQueryService
                 throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.DATA_X_DIM_ID );
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dataDimensionItems, dimensionalKeywords );
+            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dimensionalKeywords, dataDimensionItems );
         }
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
@@ -366,23 +365,21 @@ public class DefaultDataQueryService
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
             Calendar calendar = PeriodType.getCalendar();
-            I18n i18n = i18nManager.getI18n();
             List<Period> periods = new ArrayList<>();
 
             DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
-            boolean containsRelativePeriods = false;
-
+            boolean queryContainsRelativePeriods = false;
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
-                    containsRelativePeriods = true;
+                    queryContainsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
-                    dimensionalKeywords.addGroupBy( isoPeriod, i18n.getString( isoPeriod ) );
+                    dimensionalKeywords.addGroupBy( isoPeriod, this.i18nManager.getI18n().getString( isoPeriod ) );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
                     periods.addAll( relativePeriods );
@@ -400,7 +397,7 @@ public class DefaultDataQueryService
 
             periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
-            if ( containsRelativePeriods )
+            if ( queryContainsRelativePeriods )
             {
                 periods.sort( new AscendingPeriodComparator() );
             }
@@ -408,12 +405,10 @@ public class DefaultDataQueryService
             for ( Period period : periods )
             {
                 String name = format != null ? format.formatPeriod( period ) : null;
-
                 if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
                 {
                     period.setShortName( name );
                 }
-
                 period.setName( name );
 
                 if ( !calendar.isIso8601() )
@@ -423,7 +418,7 @@ public class DefaultDataQueryService
             }
 
             return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD,
-                asList( periods ), dimensionalKeywords );
+                dimensionalKeywords, asList( periods ) );
         }
 
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
@@ -525,7 +520,7 @@ public class DefaultDataQueryService
             orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
             return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    orgUnits, dimensionalKeywords );
+                    dimensionalKeywords, orgUnits );
         }
 
         else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )

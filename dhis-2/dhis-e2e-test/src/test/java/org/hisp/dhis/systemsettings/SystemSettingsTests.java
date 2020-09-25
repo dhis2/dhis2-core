@@ -40,7 +40,6 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
@@ -147,9 +146,9 @@ public class SystemSettingsTests extends ApiTest
     }
 
     @Test
-    @Disabled("This test is broken and will only return 200 OK because the servlet redirects to the login page. //TODO: Remove")
     public void returnDefaultValueWhenUserIsNotLoggedIn()
     {
+        // User is not logged in and sends request to '/systemSetting/<key>'
         prepareData();
 
         //I need to log out
@@ -186,6 +185,9 @@ public class SystemSettingsTests extends ApiTest
     @Test
     public void returnTranslationForUsersLocale()
     {
+        // User is logged in and translation for user's default locale is different than default value. Request sent to
+        // /systemSetting/<key>
+
         prepareData();
 
         ApiResponse response = systemSettingActions.get(
@@ -195,7 +197,7 @@ public class SystemSettingsTests extends ApiTest
             new QueryParamsBuilder() );
 
         response
-            .validate().log().all()
+            .validate()
             .statusCode( 200 )
             .body( containsString( ENGLISH_INTRO ) );
     }

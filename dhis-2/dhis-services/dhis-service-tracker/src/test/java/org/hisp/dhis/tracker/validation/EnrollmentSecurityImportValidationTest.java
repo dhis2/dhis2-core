@@ -243,7 +243,7 @@ public class EnrollmentSecurityImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );

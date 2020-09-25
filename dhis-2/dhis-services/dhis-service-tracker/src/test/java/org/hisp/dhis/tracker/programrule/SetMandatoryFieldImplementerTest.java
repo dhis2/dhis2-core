@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -57,6 +58,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,11 +157,11 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
     {
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundle );
+        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles.get( 0 ) );
 
         assertFalse( errors.isEmpty() );
 
@@ -174,11 +176,11 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
         TrackerBundleParams bundleParams = createBundleFromJson(
             "tracker/event_events_and_enrollment_with_null_data_element.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundle );
+        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundles.get( 0 ) );
 
         assertFalse( errors.isEmpty() );
 

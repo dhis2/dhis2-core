@@ -49,10 +49,4 @@ public class ShowErrorOnCompleteImplementer
     {
         return RuleActionErrorOnCompletion.class;
     }
-
-    @Override
-    public boolean isWarning()
-    {
-        return false;
-    }
 }

@@ -34,22 +34,12 @@ package org.hisp.dhis.tracker;
 public enum TrackerBundleReportMode
 {
     /**
-     * Gives full tracker bundle report.
+     * Gives full tracker bundle report, including object reports for valid objects.
      */
     FULL,
 
     /**
-     * Returns tracker bundle report with errors and warnings but without timings.
+     * Returns tracker bundle report where valid object report has been filtered out.
      */
-    ERRORS,
-
-    /**
-     * Returns tracker bundle report with warnings but without errors and timings.
-     */
-    WARNINGS,
-
-    /**
-     * Returns tracker bundle report only with stats.
-     */
-    BASIC;
+    ERRORS
 }

@@ -36,7 +36,6 @@ import org.opengis.geometry.primitive.Point;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 
@@ -212,12 +211,5 @@ public enum ValueType
         {
             return ValueType.TEXT;
         }
-    }
-
-    public static ValueType fromString( String valueType )
-        throws IllegalArgumentException
-    {
-        return Arrays.stream( ValueType.values() ).filter( v -> v.toString().equals( valueType ) ).findFirst()
-            .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
     }
 }

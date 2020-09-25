@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -174,11 +175,11 @@ public class AssignValueImplementerTest
     {
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundle );
+        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundles.get( 0 ) );
 
         Event event = updatedBundle.getEvents().stream().filter( e -> e.getEvent().equals( "D9PbzJY8bJO" ) )
             .findAny().get();
@@ -194,15 +195,15 @@ public class AssignValueImplementerTest
     {
         TrackerBundleParams bundleParams = createBundleFromJson( "tracker/enrollment.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundle );
+        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundles.get( 0 ) );
 
         Enrollment enrollment = updatedBundle.getEnrollments().get( 0 );
         assertNotNull( enrollment );
-        Attribute attribute = trackerBundle.getTrackedEntities().get( 0 ).getAttributes().stream()
+        Attribute attribute = trackerBundles.get( 0 ).getTrackedEntities().get( 0 ).getAttributes().stream()
             .filter( a -> a.getAttribute().equals( "sYn3tkL3XKa" ) ).findAny().get();
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.getValue() );
     }

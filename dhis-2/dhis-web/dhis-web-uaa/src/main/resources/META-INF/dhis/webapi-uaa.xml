@@ -3,15 +3,36 @@
        xmlns="http://www.springframework.org/schema/beans"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
 
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
-    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd">
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+    http://www.springframework.org/schema/security/oauth2 https://www.springframework.org/schema/security/spring-security-oauth2.xsd">
 
-    <context:annotation-config/>
+  <bean id="velocityConfig" class="org.springframework.web.servlet.view.velocity.VelocityConfigurer">
+    <property name="resourceLoaderPath" value="/WEB-INF/dhis-web-uaa/" />
+  </bean>
 
-    <mvc:annotation-driven/>
+  <bean id="viewResolver" class="org.springframework.web.servlet.view.velocity.VelocityViewResolver">
+    <property name="cache" value="true" />
+    <property name="prefix" value="" />
+    <property name="suffix" value=".vm" />
+  </bean>
 
-    <context:component-scan base-package="org.hisp.dhis.web.uaa"/>
+  <context:annotation-config />
+
+  <mvc:annotation-driven />
+
+  <context:component-scan base-package="org.hisp.dhis.web.uaa" />
+
+  <!-- OAuth2 -->
+  <oauth:authorization-server client-details-service-ref="clientDetailsService" token-services-ref="tokenServices"
+    user-approval-page="forward:/uaa/oauth/confirm_access" error-page="forward:/uaa/oauth/error">
+    <oauth:authorization-code authorization-code-services-ref="authorizationCodeServices" />
+    <oauth:refresh-token />
+    <oauth:password authentication-manager-ref="authenticationManager" />
+  </oauth:authorization-server>
+  <!-- End OAuth2 -->
 
 </beans>

@@ -176,7 +176,6 @@ public class UserServiceTest
     @Test
     public void testUserByOrgUnits()
     {
-        // Set to avoid the "disjoint" user role constraint internally
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
         User userA = createUser( 'A' );
@@ -223,63 +222,6 @@ public class UserServiceTest
         assertEquals( 2, users.size() );
         assertTrue( users.contains( userA ) );
         assertTrue( users.contains( userC ) );
-    }
-
-    @Test
-    public void testUserByUserGroups()
-    {
-        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
-
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
-
-        UserGroup ugA = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
-        UserGroup ugB = createUserGroup( 'B', Sets.newHashSet( userB, userC ) );
-        UserGroup ugC = createUserGroup( 'C', Sets.newHashSet( userD ) );
-
-        userGroupService.addUserGroup( ugA );
-        userGroupService.addUserGroup( ugB );
-        userGroupService.addUserGroup( ugC );
-
-        List<User> users = userService.getUsers( new UserQueryParams()
-            .setUserGroups( Sets.newHashSet( ugA ) ) );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-
-        users = userService.getUsers( new UserQueryParams()
-            .setUserGroups( Sets.newHashSet( ugA, ugB ) ) );
-
-        assertEquals( 3, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-        assertTrue( users.contains( userC ) );
-
-        users = userService.getUsers( new UserQueryParams()
-            .setUserGroups( Sets.newHashSet( ugA, ugC ) ) );
-
-        assertEquals( 3, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-        assertTrue( users.contains( userD ) );
     }
 
     @Test

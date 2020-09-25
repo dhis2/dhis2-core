@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import com.google.api.client.repackaged.com.google.common.base.Objects;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -129,8 +129,7 @@ public class TrackerIdentifierCollector
                 event.getProgramStage() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
 
-            Stream
-                .of( MoreObjects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
+            Stream.of( Objects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
                 .forEach(
                     s -> addIdentifier( map, CategoryOption.class, params.getCategoryOption().getIdScheme(), s ) );
 

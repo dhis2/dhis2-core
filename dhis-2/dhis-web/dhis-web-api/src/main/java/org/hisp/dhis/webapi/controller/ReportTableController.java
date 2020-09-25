@@ -28,6 +28,17 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -40,7 +51,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -54,21 +64,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
-
 /**
  * This controller is being deprecated. Please use the Visualization controller
  * instead. Only compatibility changes should be done at this stage.
- * <p>
- * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
@@ -233,16 +231,11 @@ public class ReportTableController
     {
         reportTable.populateAnalyticalProperties();
 
-        User currentUser = currentUserService.getCurrentUser();
+        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-        if ( currentUser != null )
+        for ( OrganisationUnit organisationUnit : reportTable.getOrganisationUnits() )
         {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : reportTable.getOrganisationUnits() )
-            {
-                reportTable.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
+            reportTable.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
         }
 
         I18nFormat format = i18nManager.getI18nFormat();

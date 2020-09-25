@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -77,7 +76,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 
@@ -141,7 +139,7 @@ public class DefaultTrackerPreheatService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public TrackerPreheat preheat( TrackerPreheatParams params )
     {
         Timer timer = new SystemTimer().start();
@@ -260,14 +258,6 @@ public class DefaultTrackerPreheatService
 
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
-
-        Set<String> userUids = params.getEvents().stream()
-            .filter( event -> event.getAssignedUser() != null )
-            .map( event -> event.getAssignedUser().getUid() )
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
-
-        preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
 
         preheatHooks.forEach( hook -> hook.preheat( params, preheat ) );
 

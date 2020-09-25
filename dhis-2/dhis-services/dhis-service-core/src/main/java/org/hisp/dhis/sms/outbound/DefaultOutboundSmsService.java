@@ -65,67 +65,52 @@ public class DefaultOutboundSmsService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<OutboundSms> getAll()
+    public List<OutboundSms> getAllOutboundSms()
     {
-        return outboundSmsStore.getAll();
+        return outboundSmsStore.getAllOutboundSms();
     }
 
     @Override
-    public List<OutboundSms> get( OutboundSmsStatus status )
+    public List<OutboundSms> getOutboundSms( OutboundSmsStatus status )
     {
         return outboundSmsStore.get( status );
     }
 
     @Override
-    public long save( OutboundSms sms )
+    public void updateOutboundSms( OutboundSms sms )
+    {
+        outboundSmsStore.updateOutboundSms( sms );
+    }
+
+    @Override
+    public long saveOutboundSms( OutboundSms sms )
     {
         outboundSmsStore.saveOutboundSms( sms );
         return sms.getId();
     }
 
     @Override
-    public void delete( long outboundSmsId )
+    public void deleteById( Integer outboundSmsId )
     {
-        OutboundSms sms = get( outboundSmsId );
-
-        if ( sms != null )
-        {
-            outboundSmsStore.delete( sms );
-        }
+        OutboundSms sms = outboundSmsStore.getOutboundSmsbyId( outboundSmsId );
+        outboundSmsStore.deleteOutboundSms( sms );
     }
 
     @Override
-    public void delete( String uid )
+    public OutboundSms getOutboundSms( long id )
     {
-        OutboundSms sms = outboundSmsStore.getByUid( uid );
-
-        if ( sms != null )
-        {
-            outboundSmsStore.delete( sms );
-        }
+        return outboundSmsStore.getOutboundSmsbyId( id );
     }
 
     @Override
-    public OutboundSms get( long id )
+    public List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max )
     {
-        return outboundSmsStore.get( id );
+        return outboundSmsStore.get( status, min, max );
     }
 
     @Override
-    public OutboundSms get( String uid )
+    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max )
     {
-        return outboundSmsStore.getByUid( uid );
-    }
-
-    @Override
-    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination )
-    {
-        return outboundSmsStore.get( status, min, max, hasPagination );
-    }
-
-    @Override
-    public List<OutboundSms> getAll( Integer min, Integer max, boolean hasPagination )
-    {
-        return outboundSmsStore.getAllOutboundSms( min, max, hasPagination );
+        return outboundSmsStore.getAllOutboundSms( min, max );
     }
 }

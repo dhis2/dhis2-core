@@ -48,6 +48,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -125,21 +126,23 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
     public void testRunRuleEngineForEventOnBundleCreate()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
-                 TrackerBundleParams.class );
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
-         assertEquals( 8, trackerBundleParams.getEvents().size() );
+        assertEquals( 8, trackerBundle.getEvents().size() );
 
-        TrackerBundle trackerBundle = trackerBundleService.create(
+        List<TrackerBundle> trackerBundles = trackerBundleService.create(
             TrackerBundleParams.builder()
-                .events( trackerBundleParams.getEvents() )
-                .enrollments( trackerBundleParams.getEnrollments() )
-                .trackedEntities( trackerBundleParams.getTrackedEntities() )
+                .events( trackerBundle.getEvents() )
+                .enrollments( trackerBundle.getEnrollments() )
+                .trackedEntities( trackerBundle.getTrackedEntities() )
                 .build() );
 
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
+        trackerBundles = trackerBundleService.runRuleEngine( trackerBundles );
 
-        assertEquals( trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size() );
+        assertEquals( 1, trackerBundles.size() );
+        assertEquals( trackerBundle.getEvents().size(), trackerBundles.get( 0 ).getEventRuleEffects().size() );
     }
 }

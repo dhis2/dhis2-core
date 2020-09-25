@@ -147,7 +147,7 @@ public class RelationshipTrackerConverterServiceTest
                 .user( adminUser )
                 .build();
 
-        trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() );
+        trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() ).get( 0 );
     }
 
     @Test

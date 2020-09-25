@@ -211,7 +211,7 @@ public class DefaultVisualizationServiceTest
     private BaseDimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem )
     {
         final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDescription( "display " + dimensionItem );
+        baseDimensionalItemObject.setDisplayDescription( "display " + dimensionItem );
         return baseDimensionalItemObject;
     }
 }

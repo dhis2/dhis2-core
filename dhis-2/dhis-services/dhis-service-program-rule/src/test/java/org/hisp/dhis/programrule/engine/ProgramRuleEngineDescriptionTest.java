@@ -67,7 +67,6 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     private String incorrectConditionTextDE = "#{Program_Rule_Variable_Text_DE} == 'text_de' +";
     private String conditionNumericDE = "#{Program_Rule_Variable_Numeric_DE} == 14";
     private String conditionLiteralString = "1 > 2 ";
-    private String conditionWithD2DaysBetween = "d2:daysBetween(V{completed_date},V{current_date}) > 0";
 
     private DataElement textDataElement;
     private DataElement numericDataElement;
@@ -181,7 +180,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithTextTrackedEntityAttribute()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), program );
+        RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), programRuleTextAtt );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -189,7 +188,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericTrackedEntityAttribute()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleNumericAtt.getCondition(), program );
+        RuleValidationResult result = validateRuleCondition( programRuleNumericAtt.getCondition(), programRuleNumericAtt );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -197,7 +196,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericTrackedEntityAttributeWithOr()
     {
-        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithOR, program );
+        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithOR, programRuleNumericAtt );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -205,7 +204,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericTrackedEntityAttributeWithAnd()
     {
-        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithAND, program );
+        RuleValidationResult result = validateRuleCondition( conditionNumericAttWithAND, programRuleNumericAtt );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -213,7 +212,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithTextDataElement()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleTextDE.getCondition(), program );
+        RuleValidationResult result = validateRuleCondition( programRuleTextDE.getCondition(), programRuleTextDE );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -221,7 +220,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithNumericDataElement()
     {
-        RuleValidationResult result = validateRuleCondition( programRuleNumericDE.getCondition(), program );
+        RuleValidationResult result = validateRuleCondition( programRuleNumericDE.getCondition(), programRuleNumericDE );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -229,15 +228,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithLiterals()
     {
-        RuleValidationResult result = validateRuleCondition( conditionLiteralString, program );
-        assertNotNull( result );
-        assertTrue( result.isValid() );
-    }
-
-    @Test
-    public void testProgramRuleWithD2DaysBetween()
-    {
-        RuleValidationResult result = validateRuleCondition( conditionWithD2DaysBetween, program );
+        RuleValidationResult result = validateRuleCondition( conditionLiteralString, programRuleNumericDE );
         assertNotNull( result );
         assertTrue( result.isValid() );
     }
@@ -245,7 +236,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testIncorrectRuleWithLiterals()
     {
-        RuleValidationResult result = validateRuleCondition( "1 > 2 +", program );
+        RuleValidationResult result = validateRuleCondition( "1 > 2 +", programRuleTextAtt );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
@@ -254,14 +245,14 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testIncorrectRuleWithDataElement()
     {
-        RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, program );
+        RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, programRuleTextDE );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
     }
 
-    private RuleValidationResult validateRuleCondition( String condition, Program program )
+    private RuleValidationResult validateRuleCondition( String condition, ProgramRule programRule )
     {
-       return programRuleEngineNew.getDescription( condition, program );
+       return programRuleEngineNew.getDescription( condition, programRule );
     }
 }

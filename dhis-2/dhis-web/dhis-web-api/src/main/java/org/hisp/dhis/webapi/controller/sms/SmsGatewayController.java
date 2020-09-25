@@ -28,20 +28,20 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.common.DhisApiVersion;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
+import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
+import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,8 +50,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -107,6 +108,58 @@ public class SmsGatewayController
     // -------------------------------------------------------------------------
     // PUT,POST
     // -------------------------------------------------------------------------
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/clickatell", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdateClickatellConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(), ClickatellGatewayConfig.class );
+
+        if ( gatewayAdminService.addOrUpdateGateway( payLoad, ClickatellGatewayConfig.class ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/bulksms", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdatebulksmsConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        BulkSmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(), BulkSmsGatewayConfig.class );
+
+        if ( gatewayAdminService.addOrUpdateGateway( payLoad, BulkSmsGatewayConfig.class ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/generichttp", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdateGenericConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
+                GenericHttpGatewayConfig.class );
+
+        if ( gatewayAdminService.addGateway( payLoad ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/default/{uid}", method = RequestMethod.PUT )
@@ -188,8 +241,6 @@ public class SmsGatewayController
 
     private void generateOutput( HttpServletResponse response, Object value ) throws IOException
     {
-        response.setContentType( "application/json" );
-
         ObjectMapper jsonMapper = new ObjectMapper();
         jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
         jsonMapper.writerWithView( SmsConfigurationViews.Public.class )

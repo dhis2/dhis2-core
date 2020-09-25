@@ -188,7 +188,7 @@ public class EventSecurityImportValidationTest
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -204,7 +204,7 @@ public class EventSecurityImportValidationTest
 
         trackerBundleParams.setUser( user );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 4, trackerBundle.getEnrollments().size() );
 
         report = trackerValidationService.validate( trackerBundle );
@@ -320,7 +320,7 @@ public class EventSecurityImportValidationTest
         User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -370,7 +370,7 @@ public class EventSecurityImportValidationTest
         trackerBundleParams.setUser( user );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
         report = trackerValidationService.validate( trackerBundle );
 

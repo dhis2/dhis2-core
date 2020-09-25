@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -135,15 +134,5 @@ public class FinancialAprilPeriodTypeTest
         
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new LocalDateTime( 2004, 4, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
-    }
-
-    @Test
-    public void testGetRewindedDate()
-    {
-        assertEquals( new DateTime( 2020, 1, 15, 0, 0 ).toDate(),
-            periodType.getRewindedDate( new DateTime( 2023, 1, 15, 0, 0 ).toDate(), 3 ) );
-
-        assertEquals( new DateTime( 2022, 1, 1, 0, 0 ).toDate(),
-            periodType.getRewindedDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), -2 ) );
     }
 }

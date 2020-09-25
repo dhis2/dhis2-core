@@ -40,7 +40,6 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
@@ -95,15 +94,11 @@ public class ValidationNotificationServiceTest
     @Mock
     private PeriodStore periodStore;
 
-    @Mock
-    private SessionFactory sessionFactory;
-
     private DefaultPeriodService periodService;
 
     private DefaultValidationNotificationService subject;
 
     private List<MockMessage> sentMessages;
-
 
     // -------------------------------------------------------------------------
     // Test fixtures
@@ -139,7 +134,7 @@ public class ValidationNotificationServiceTest
 
         subject = new DefaultValidationNotificationService(renderer, messageService, validationResultService);
 
-        this.periodService = new DefaultPeriodService(periodStore, sessionFactory);
+        this.periodService = new DefaultPeriodService(periodStore);
 
         sentMessages = new ArrayList<>();
 

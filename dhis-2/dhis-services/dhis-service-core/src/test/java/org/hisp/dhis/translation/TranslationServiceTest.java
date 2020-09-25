@@ -84,26 +84,20 @@ public class TranslationServiceTest
     }
 
     @Test
-    public void testGetTranslation()
+    public void testOK()
     {
         DataElement dataElementA = createDataElement( 'A' );
         manager.save( dataElementA );
 
-        String translatedName = "translatedName";
-        String translatedShortName = "translatedShortName";
-        String translatedDescription = "translatedDescription";
+        String translatedValue = "translated";
 
-        Set<Translation> translations = new HashSet<>( dataElementA.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( dataElementA.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedName ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.SHORT_NAME, translatedShortName ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.DESCRIPTION, translatedDescription ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedValue ) );
 
-        manager.updateTranslations( dataElementA, translations );
+        manager.updateTranslations( dataElementA, listObjectTranslation );
 
-        assertEquals( translatedName, dataElementA.getDisplayName() );
-        assertEquals( translatedShortName, dataElementA.getDisplayShortName() );
-        assertEquals( translatedDescription, dataElementA.getDisplayDescription() );
+        assertEquals( translatedValue, dataElementA.getDisplayName() );
     }
 
     @Test
@@ -115,14 +109,13 @@ public class TranslationServiceTest
         Option option = createOption( 'A' );
         option.setOptionSet( optionSet );
         manager.save( option );
-
-        Set<Translation> translations = new HashSet<>( option.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( option.getTranslations() );
 
         String translatedValue = "Option FormName Translated";
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
-        manager.updateTranslations( option, translations );
+        manager.updateTranslations( option, listObjectTranslation );
 
         assertEquals( translatedValue, option.getDisplayFormName() );
     }
@@ -153,11 +146,11 @@ public class TranslationServiceTest
 
         String translatedValue = "RelationShip FormName Translated";
 
-        Set<Translation> translations = new HashSet<>( relationship.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( relationship.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
-        manager.updateTranslations( relationship, translations );
+        manager.updateTranslations( relationship, listObjectTranslation );
 
         assertEquals( translatedValue, relationship.getDisplayFormName() );
     }
@@ -170,11 +163,11 @@ public class TranslationServiceTest
 
         String translatedValue = "ProgramStageSection FormName Translated";
 
-        Set<Translation> translations = new HashSet<>( programStageSection.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( programStageSection.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
-        manager.updateTranslations( programStageSection, translations );
+        manager.updateTranslations( programStageSection, listObjectTranslation );
 
         assertEquals( translatedValue, programStageSection.getDisplayFormName() );
     }
@@ -187,11 +180,11 @@ public class TranslationServiceTest
 
         String translatedValue = "ProgramStage FormName Translated";
 
-        Set<Translation> translations = new HashSet<>( programStage.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( programStage.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
-        manager.updateTranslations( programStage, translations );
+        manager.updateTranslations( programStage, listObjectTranslation );
 
         assertEquals( translatedValue, programStage.getDisplayFormName() );
     }
@@ -208,11 +201,11 @@ public class TranslationServiceTest
 
         String translatedValue = "ProgramSection FormName Translated";
 
-        Set<Translation> translations = new HashSet<>( programSection.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( programSection.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
-        manager.updateTranslations( programSection, translations );
+        manager.updateTranslations( programSection, listObjectTranslation );
 
         assertEquals( translatedValue, programSection.getDisplayFormName() );
     }
@@ -228,11 +221,12 @@ public class TranslationServiceTest
         manager.save( relationshipType );
 
         String fromToNameTranslated = "From to name translated";
+
         String toFromNameTranslated = "To from name translated";
 
         Set<Translation> translations = new HashSet<>();
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME, toFromNameTranslated ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME, fromToNameTranslated ) );
+        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME, toFromNameTranslated ) );
+        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME, fromToNameTranslated ) );
 
         manager.updateTranslations( relationshipType, translations );
 

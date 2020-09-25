@@ -29,12 +29,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 
 import java.util.List;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.RuleActionValidator;
@@ -71,20 +71,10 @@ public class EnrollmentRuleValidationHook
 
         validators
             .stream()
-            .filter( v -> !v.isWarning() )
             .flatMap( v -> {
                 List<String> errors = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
                 return errors != null ? errors.stream() : Lists.newArrayList().stream();
             } )
             .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
-
-        validators
-            .stream()
-            .filter( v -> v.isWarning() )
-            .flatMap( v -> {
-                List<String> warnings = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
-                return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
     }
 }

@@ -92,7 +92,6 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -240,15 +239,9 @@ public class DefaultMetadataExportService implements MetadataExportService
         User user = params.getUser();
 
         if ( params.getClasses().isEmpty()
-            && !(user == null || user.isSuper() || user.isAuthorized( Authorities.F_METADATA_EXPORT )) )
+            && !(user == null || user.isSuper() || user.isAuthorized( "F_METADATA_EXPORT" )) )
         {
             throw new MetadataExportException( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." );
-        }
-
-        if ( params.getClasses().contains( User.class )
-            && !(user == null || user.isSuper() || user.isAuthorized( Authorities.F_USER_VIEW ) || user.isAuthorized( Authorities.F_METADATA_EXPORT )) )
-        {
-            throw new MetadataExportException( "Exporting user metadata requires the 'F_USER_VIEW' authority." );
         }
     }
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preprocess;
  */
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
  * @author Enrico Colasante

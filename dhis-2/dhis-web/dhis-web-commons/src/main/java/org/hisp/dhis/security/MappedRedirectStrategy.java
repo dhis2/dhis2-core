@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.webapi.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
+import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
 
 /**
  * @author mortenoh

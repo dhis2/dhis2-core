@@ -47,7 +47,7 @@ import java.util.Objects;
 public class TrackedEntityAttributeValueAudit
     implements Serializable
 {
-    private long id;
+    private int id;
 
     private TrackedEntityAttribute attribute;
 
@@ -114,12 +114,12 @@ public class TrackedEntityAttributeValueAudit
             && Objects.equals( this.auditType, other.auditType );
     }
 
-    public long getId()
+    public int getId()
     {
         return id;
     }
 
-    public void setId( long id )
+    public void setId( int id )
     {
         this.id = id;
     }

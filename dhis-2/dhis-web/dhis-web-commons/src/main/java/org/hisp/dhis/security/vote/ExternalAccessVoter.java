@@ -28,10 +28,8 @@ package org.hisp.dhis.security.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -39,17 +37,17 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Allows certain type/uid combinations to be externally accessed (no login required).
@@ -57,7 +55,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Component
 public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>
 {
     // this should probably be moved somewhere else, but leaving it here for now
@@ -65,10 +62,9 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
 
     static
     {
-        // TODO charts/reportTables APIs are deprecated and will be removed, clean this up when they are
-        externalClasses.put( "charts", Visualization.class );
-        externalClasses.put( "reportTables", Visualization.class );
+        externalClasses.put( "charts", Chart.class );
         externalClasses.put( "maps", org.hisp.dhis.mapping.Map.class );
+        externalClasses.put( "reportTables", ReportTable.class );
         externalClasses.put( "reports", Report.class );
         externalClasses.put( "documents", Document.class );
         externalClasses.put( "sqlViews", SqlView.class );
@@ -80,8 +76,12 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
+
+    public ExternalAccessVoter( IdentifiableObjectManager manager )
+    {
+        this.manager = manager;
+    }
 
     // -------------------------------------------------------------------------
     // AccessDecisionVoter Implementation
@@ -100,8 +100,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
     }
 
     @Override
-    public int vote( Authentication authentication, FilterInvocation filterInvocation,
-        Collection<ConfigAttribute> attributes )
+    public int vote( Authentication authentication, FilterInvocation filterInvocation, Collection<ConfigAttribute> attributes )
     {
         if ( authentication.getPrincipal().equals( "anonymousUser" ) && authentication.isAuthenticated() &&
             filterInvocation.getRequest().getMethod().equals( RequestMethod.GET.name() ) )

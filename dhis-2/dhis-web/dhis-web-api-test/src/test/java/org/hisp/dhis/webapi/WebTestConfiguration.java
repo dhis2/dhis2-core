@@ -29,25 +29,13 @@ package org.hisp.dhis.webapi;
  */
 
 import org.hisp.dhis.H2DhisConfigurationProvider;
-import org.hisp.dhis.config.EncryptionConfig;
-import org.hisp.dhis.config.HibernateConfig;
-import org.hisp.dhis.config.ServiceConfig;
-import org.hisp.dhis.config.StartupConfig;
-import org.hisp.dhis.config.StoreConfig;
-import org.hisp.dhis.configuration.NotifierConfiguration;
+import org.hisp.dhis.config.*;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
-import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.*;
 import org.springframework.context.annotation.ComponentScan.Filter;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
@@ -56,18 +44,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
-@ComponentScan( basePackages = { "org.hisp.dhis" }, useDefaultFilters = false, includeFilters = {
-    @Filter( type = FilterType.ANNOTATION, value = Service.class ),
-    @Filter( type = FilterType.ANNOTATION, value = Component.class ),
-    @Filter( type = FilterType.ANNOTATION, value = Repository.class )
+@ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml"} )
+@ComponentScan(basePackages = {"org.hisp.dhis"}, useDefaultFilters = false, includeFilters = {
+        @Filter(type=FilterType.ANNOTATION, value= Service.class),
+        @Filter(type=FilterType.ANNOTATION, value= Component.class),
+        @Filter(type=FilterType.ANNOTATION, value= Repository.class)
 
-}, excludeFilters = @Filter( Configuration.class ) )
+}, excludeFilters = @Filter(Configuration.class))
 @Import( {
     JdbcConfig.class,
     HibernateConfig.class,
@@ -76,9 +63,6 @@ import javax.transaction.Transactional;
     ServiceConfig.class,
     StoreConfig.class,
     LeaderElectionConfiguration.class,
-    NotifierConfiguration.class,
-//    HttpConfig.class,
-    DhisWebCommonsWebSecurityConfig.class,
     org.hisp.dhis.setting.config.ServiceConfig.class,
     org.hisp.dhis.external.config.ServiceConfig.class,
     org.hisp.dhis.dxf2.config.ServiceConfig.class,
@@ -88,11 +72,7 @@ import javax.transaction.Transactional;
     org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
-    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class,
-
-    StartupConfig.class
-} )
-@Transactional
+    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class } )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )
@@ -108,28 +88,22 @@ public class WebTestConfiguration
     }
 
     @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
+    public LdapAuthenticator ldapAuthenticator() {
         return authentication -> null;
     }
 
     @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
+    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+        return (dirContextOperations, s) -> null;
     }
-
-    @Bean( "oAuth2AuthenticationManager" )
-    public AuthenticationManager oAuth2AuthenticationManager()
-    {
+    @Bean("oAuth2AuthenticationManager")
+    public AuthenticationManager oAuth2AuthenticationManager() {
         return authentication -> null;
     }
 
-    @Bean( "authenticationManager" )
+    @Bean("authenticationManager")
     @Primary
-    public AuthenticationManager authenticationManager()
-    {
+    public AuthenticationManager authenticationManager() {
         return authentication -> null;
     }
-
 }

@@ -28,14 +28,16 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.util.ClassUtils;
+
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -56,8 +58,7 @@ public class AuthenticationLoggerListener
 
             Object details = event.getAuthentication().getDetails();
 
-            if ( details != null &&
-                ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
+            if ( ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
             {
                 ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) details;
                 String ip = authDetails.getIp();

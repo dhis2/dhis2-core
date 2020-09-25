@@ -133,17 +133,19 @@ public class TrackedEntityProgramAttributeReservedValueTest
 
         assertTrue( reservedValueService.isReserved( attribute.getTextPattern(), "A100" ) );
 
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_reserved_value_data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerBundleParams.class ).toTrackerBundle();
 
-        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundleParams.getTrackedEntities() )
-            .enrollments( trackerBundleParams.getEnrollments() )
-            .events( trackerBundleParams.getEvents() )
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
             .build() );
 
-        trackerBundleService.commit( trackerBundle );
+        assertEquals( 1, trackerBundles.size() );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

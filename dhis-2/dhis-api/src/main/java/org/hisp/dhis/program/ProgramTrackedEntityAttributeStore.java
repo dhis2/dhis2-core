@@ -31,6 +31,7 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.User;
 
 import java.util.List;
 

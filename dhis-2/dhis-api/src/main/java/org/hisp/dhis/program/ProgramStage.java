@@ -50,6 +50,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -250,7 +251,6 @@ public class ProgramStage
         this.dataEntryForm = dataEntryForm;
     }
 
-    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -259,10 +259,22 @@ public class ProgramStage
         return description;
     }
 
-    @Override
     public void setDescription( String description )
     {
         this.description = description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
+    public void setDisplayDescription( String displayDescription )
+    {
+        this.displayDescription = displayDescription;
     }
 
     @JsonProperty( "programStageSections" )
@@ -503,7 +515,6 @@ public class ProgramStage
         this.style = style;
     }
 
-    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -511,7 +522,6 @@ public class ProgramStage
         return formName;
     }
 
-    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

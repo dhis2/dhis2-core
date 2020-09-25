@@ -43,8 +43,6 @@ public class OrgUnit
 
     private String openingDate;
 
-    private String code;
-
     @Expose( serialize = false, deserialize = false )
     private String parent;
 
@@ -108,15 +106,5 @@ public class OrgUnit
     public void setLevel( Integer level )
     {
         this.level = level;
-    }
-
-    public String getCode()
-    {
-        return code;
-    }
-
-    public void setCode( String code )
-    {
-        this.code = code;
     }
 }

@@ -28,10 +28,14 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,7 +45,8 @@ import java.util.stream.IntStream;
  */
 @Repository( "org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" )
 public class HibernateSequentialNumberCounterStore
-    implements SequentialNumberCounterStore
+    implements
+    SequentialNumberCounterStore
 {
     protected SessionFactory sessionFactory;
 

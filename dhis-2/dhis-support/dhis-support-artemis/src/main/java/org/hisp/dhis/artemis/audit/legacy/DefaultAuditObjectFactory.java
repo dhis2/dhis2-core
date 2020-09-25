@@ -40,7 +40,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -68,7 +67,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
      */
     private final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
-    public DefaultAuditObjectFactory( @Qualifier("jsonMapper") ObjectMapper objectMapper )
+    public DefaultAuditObjectFactory( ObjectMapper objectMapper )
     {
         this.objectMapper = objectMapper;
 

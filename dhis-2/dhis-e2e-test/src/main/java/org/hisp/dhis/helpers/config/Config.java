@@ -50,10 +50,4 @@ public interface Config
 
     @Key( "user.default.password" )
     String defaultUSerPassword();
-
-    @Key( "user.admin.username" )
-    String adminUserUsername();
-
-    @Key( "user.admin.password" )
-    String adminUserPassword();
 }

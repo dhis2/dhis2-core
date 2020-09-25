@@ -115,31 +115,31 @@ public class ShowSentSMSAction
 
         if ( filterStatusType != null && filterStatusType == 0 )
         {
-            total = outboundSmsService.get( OutboundSmsStatus.OUTBOUND ).size();
+            total = outboundSmsService.getOutboundSms( OutboundSmsStatus.OUTBOUND ).size();
             paging = createPaging( total );
-            listOutboundSMS = outboundSmsService.get( OutboundSmsStatus.OUTBOUND, paging.getStartPos(),
-                paging.getPageSize(), true );
+            listOutboundSMS = outboundSmsService.getOutboundSms( OutboundSmsStatus.OUTBOUND, paging.getStartPos(),
+                paging.getPageSize() );
         }
         if ( filterStatusType != null && filterStatusType == 1 )
         {
-            total = outboundSmsService.get( OutboundSmsStatus.SENT ).size();
+            total = outboundSmsService.getOutboundSms( OutboundSmsStatus.SENT ).size();
             paging = createPaging( total );
-            listOutboundSMS = outboundSmsService.get( OutboundSmsStatus.SENT, paging.getStartPos(),
-                paging.getPageSize(), true );
+            listOutboundSMS = outboundSmsService.getOutboundSms( OutboundSmsStatus.SENT, paging.getStartPos(),
+                paging.getPageSize() );
         }
         if ( filterStatusType != null && filterStatusType == 2 )
         {
-            total = outboundSmsService.get( OutboundSmsStatus.ERROR ).size();
+            total = outboundSmsService.getOutboundSms( OutboundSmsStatus.ERROR ).size();
             paging = createPaging( total );
-            listOutboundSMS = outboundSmsService.get( OutboundSmsStatus.ERROR, paging.getStartPos(),
-                paging.getPageSize(), true );
+            listOutboundSMS = outboundSmsService.getOutboundSms( OutboundSmsStatus.ERROR, paging.getStartPos(),
+                paging.getPageSize() );
         }
         if ( filterStatusType != null && filterStatusType == 3 || filterStatusType == null )
         {
             filterStatusType = 3;
-            total = outboundSmsService.getAll().size();
+            total = outboundSmsService.getAllOutboundSms().size();
             paging = createPaging( total );
-            listOutboundSMS = outboundSmsService.getAll( paging.getStartPos(), paging.getPageSize(), true );
+            listOutboundSMS = outboundSmsService.getAllOutboundSms( paging.getStartPos(), paging.getPageSize() );
         }
 
         // Get the name of recipients

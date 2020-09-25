@@ -113,7 +113,7 @@ public class ReimportSMSAction
     public String execute()
         throws Exception
     {
-        incomingSMS = incomingSmsService.get( Long.parseLong( incomingSMSId ) );
+        incomingSMS = incomingSmsService.findBy( Integer.parseInt( incomingSMSId ) );        
 
         if ( incomingSMS == null )
         {

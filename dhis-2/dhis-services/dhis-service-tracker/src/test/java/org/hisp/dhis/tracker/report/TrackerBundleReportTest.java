@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -44,6 +45,7 @@ public class TrackerBundleReportTest
     {
         TrackerBundleReport report = new TrackerBundleReport();
         assertEquals( TrackerStatus.OK, report.getStatus() );
+        assertNull( report.getBundleParams() );
         assertNotNull( report.getTypeReportMap() );
         assertTrue( report.isEmpty() );
     }

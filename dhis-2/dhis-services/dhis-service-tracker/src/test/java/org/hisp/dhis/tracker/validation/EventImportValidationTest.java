@@ -126,7 +126,7 @@ public class EventImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -142,7 +142,7 @@ public class EventImportValidationTest
 
         trackerBundleParams.setUser( user );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 4, trackerBundle.getEnrollments().size() );
 
         report = trackerValidationService.validate( trackerBundle );
@@ -324,7 +324,7 @@ public class EventImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         // Validate first time, should contain no errors.
@@ -336,7 +336,7 @@ public class EventImportValidationTest
         trackerBundleService.commit( trackerBundle );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         // Re-validate, should now contain 13 errors...
         report = trackerValidationService.validate( trackerBundle );
         printReport( report );
@@ -359,7 +359,7 @@ public class EventImportValidationTest
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -606,24 +606,6 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testInvalidDataElementForDataValue()
-        throws IOException
-    {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/event_with_wrong_de_for_data_value.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-
-        assertEquals( 1, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1087 ) ) ) );
-    }
-
-    @Test
     @Ignore
     public void testTeiMultipleActiveEnrollments()
         throws IOException
@@ -655,7 +637,7 @@ public class EventImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -709,7 +691,7 @@ public class EventImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -736,7 +718,7 @@ public class EventImportValidationTest
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         // Validate first time, should contain no errors.
@@ -750,7 +732,7 @@ public class EventImportValidationTest
         programStageServiceInstance.deleteProgramStageInstance( psi );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         report = trackerValidationService.validate( trackerBundle );
 
         printReport( report );
@@ -779,7 +761,7 @@ public class EventImportValidationTest
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );

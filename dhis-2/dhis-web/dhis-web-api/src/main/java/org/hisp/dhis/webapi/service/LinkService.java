@@ -49,15 +49,6 @@ public interface LinkService
     void generatePagerLinks( Pager pager, Class<?> klass );
 
     /**
-     * Generates next/prev links for Pager class based on the API endpoint
-     *
-     * @param pager Pager instance to update with prev/next links
-     * @param relativeApiEndpoint API endpoint to be paged
-     * @see org.hisp.dhis.common.Pager
-     */
-    void generatePagerLinks( Pager pager, String relativeApiEndpoint );
-
-    /**
      * Generate HREF and set it using reflection, required a setHref(String) method in your class.
      * <p/>
      * Uses hrefBase from ContextService.getServletPath().

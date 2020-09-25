@@ -28,15 +28,6 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -46,9 +37,20 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -95,49 +97,47 @@ public class EnrollmentTrackerConverterService
     @Override
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
-        ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
-        return from( preheat, enrollment, programInstance );
-    }
+        List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
 
+        if ( programInstances.isEmpty() )
+        {
+            return null;
+        }
+
+        return programInstances.get( 0 );
+    }
     @Override
     public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
-        return enrollments
-            .stream()
-            .map( enrollment -> from( preheat, enrollment ) )
-            .collect( Collectors.toList() );
-    }
+        List<ProgramInstance> programInstances = new ArrayList<>();
 
-    @Override
-    public ProgramInstance fromForRuleEngine( TrackerPreheat preheat, Enrollment enrollment )
-    {
-        return from( preheat, enrollment, null );
-    }
+        enrollments.forEach( enrollment -> {
 
-    private ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment, ProgramInstance programInstance )
-    {
-        OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
 
-        checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
+            checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
 
-        Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+            Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
 
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+            checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance trackedEntityInstance = preheat
-            .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+            TrackedEntityInstance trackedEntityInstance = preheat
+                .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
-        if ( programInstance == null )
-        {
-            Date now = new Date();
+            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
 
-            programInstance = new ProgramInstance();
-            programInstance.setUid( enrollment.getEnrollment() );
-            programInstance.setCreated( now );
-            programInstance.setCreatedAtClient( now );
-            programInstance.setLastUpdated( now );
-            programInstance.setLastUpdatedAtClient( now );
+            if ( programInstance == null )
+            {
+                Date now = new Date();
+
+                programInstance = new ProgramInstance();
+                programInstance.setUid( enrollment.getEnrollment() );
+                programInstance.setCreated( now );
+                programInstance.setCreatedAtClient( now );
+                programInstance.setLastUpdated( now );
+                programInstance.setLastUpdatedAtClient( now );
+            }
 
             if ( !CodeGenerator.isValidUid( programInstance.getUid() ) )
             {
@@ -161,10 +161,12 @@ public class EnrollmentTrackerConverterService
 
             if ( isNotEmpty( enrollment.getNotes() ) )
             {
-                programInstance.getComments()
-                    .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
+                programInstance.getComments().addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
             }
-        }
-        return programInstance;
+
+            programInstances.add( programInstance );
+        } );
+
+        return programInstances;
     }
 }

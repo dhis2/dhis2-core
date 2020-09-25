@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd 
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:annotation-config />
+  <context:component-scan base-package="org.hisp.dhis" />
+
+  <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+    <property name="targetClass" value="java.lang.System" />
+    <property name="targetMethod" value="setProperty" />
+    <property name="arguments">
+      <list>
+        <value>runningAsPortal</value>
+        <value>true</value>
+      </list>
+    </property>
+  </bean>
+
+</beans>

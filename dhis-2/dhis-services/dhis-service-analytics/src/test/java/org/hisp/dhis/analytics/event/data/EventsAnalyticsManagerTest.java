@@ -34,6 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -97,8 +98,8 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Captor
     private ArgumentCaptor<String> sql;
 
-    private final static String TABLE_NAME = "analytics_event";
-    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
+    private final String TABLE_NAME = "analytics_event";
+    private final String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
@@ -409,6 +410,6 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Override
     String getTableName()
     {
-        return TABLE_NAME;
+        return this.TABLE_NAME;
     }
 }

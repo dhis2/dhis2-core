@@ -60,8 +60,6 @@ public class TwoYearlyPeriodType
 
     public static final int FREQUENCY_ORDER = 730;
 
-    public static final String SQL_INTERVAL = "2 years";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
@@ -97,12 +95,6 @@ public class TwoYearlyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
-    }
-
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------

@@ -38,7 +38,6 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
@@ -60,10 +59,8 @@ public class TranslationWebApiTest
     private IdentifiableObjectManager identifiableObjectManager;
 
     @Test
-    @Ignore
     public void testOK() throws Exception
     {
-        // TODO: NEEDS TO GET WORKING
         Locale locale = Locale.FRENCH;
 
         MockHttpSession session = getSession( "ALL" );

@@ -48,10 +48,4 @@ public class ShowWarningImplementer
     {
         return RuleActionShowWarning.class;
     }
-
-    @Override
-    public boolean isWarning()
-    {
-        return true;
-    }
 }

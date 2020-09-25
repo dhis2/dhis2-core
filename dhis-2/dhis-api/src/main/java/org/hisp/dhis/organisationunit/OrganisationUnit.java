@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
@@ -431,13 +430,12 @@ public class OrganisationUnit
         {
             return false;
         }
-        Set<String> ancestorsUid = ancestors.stream().map( OrganisationUnit::getUid ).collect( Collectors.toSet() );
 
         OrganisationUnit unit = this;
 
         while ( unit != null )
         {
-            if ( ancestorsUid.contains( unit.getUid() ) )
+            if ( ancestors.contains( unit ) )
             {
                 return true;
             }

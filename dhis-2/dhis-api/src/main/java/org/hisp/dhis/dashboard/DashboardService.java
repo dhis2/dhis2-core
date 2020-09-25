@@ -31,14 +31,12 @@ package org.hisp.dhis.dashboard;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -89,22 +87,20 @@ public interface DashboardService
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
 
     void deleteDashboardItem( DashboardItem item );
+    
+    int countMapDashboardItems( Map map );
 
-    List<DashboardItem> getVisualizationDashboardItems( Visualization visualization );
+    int countChartDashboardItems( Chart chart );
 
-    List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable );
+    int countEventChartDashboardItems( EventChart eventChart );
 
-    List<DashboardItem> getChartDashboardItems( Chart chart );
+    int countReportTableDashboardItems( ReportTable reportTable );
 
-    List<DashboardItem> getEventChartDashboardItems( EventChart eventChart );
+    int countVisualizationDashboardItems( Visualization visualization );
 
-    List<DashboardItem> getMapDashboardItems( Map map );
+    int countReportDashboardItems( Report report );
 
-    List<DashboardItem> getEventReportDashboardItems( EventReport eventReport );
-
-    List<DashboardItem> getUserDashboardItems( User user );
-
-    List<DashboardItem> getReportDashboardItems( Report report );
-
-    List<DashboardItem> getDocumentDashboardItems( Document document );
+    int countDocumentDashboardItems( Document document );
+    
+    int countUserDashboardItems( User user );
 }

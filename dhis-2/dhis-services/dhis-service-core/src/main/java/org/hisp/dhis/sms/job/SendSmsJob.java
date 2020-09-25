@@ -103,7 +103,7 @@ public class SendSmsJob
             sms.setStatus( OutboundSmsStatus.FAILED );
         }
 
-        outboundSmsService.save( sms );
+        outboundSmsService.saveOutboundSms( sms );
     }
 
 }

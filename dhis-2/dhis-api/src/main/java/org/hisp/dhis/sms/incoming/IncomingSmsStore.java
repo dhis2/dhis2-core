@@ -28,24 +28,32 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericStore;
 
 import java.util.List;
 
 /**
  * Store for incoming SMS messages.
  */
-public interface IncomingSmsStore extends IdentifiableObjectStore<IncomingSms>
+public interface IncomingSmsStore extends GenericStore<IncomingSms>
 {
     String ID = IncomingSmsStore.class.getName();
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
+    void update( IncomingSms incomingSms );
 
-    List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
+    IncomingSms get( int id );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
+
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
 
     List<IncomingSms> getSmsByOriginator( String originator );
+
+    long getSmsCount();
+
+    List<IncomingSms> getAllSmses();
+
+    void delete( IncomingSms incomingSms );
 
     List<IncomingSms> getAllUnparsedMessages();
 }

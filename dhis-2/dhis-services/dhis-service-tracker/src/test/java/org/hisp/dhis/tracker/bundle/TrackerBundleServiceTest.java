@@ -120,17 +120,19 @@ public class TrackerBundleServiceTest
     public void testTrackedEntityInstanceImport()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerBundleParams.class ).toTrackerBundle();
 
-        assertEquals( 13, trackerBundleParams.getTrackedEntities().size() );
+        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
 
-        trackerBundleService.commit( trackerBundle );
+        assertEquals( 1, trackerBundles.size() );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );

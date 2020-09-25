@@ -28,11 +28,12 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,22 +43,19 @@ import lombok.NoArgsConstructor;
 public class TrackerImportReport
 {
 
-    @JsonIgnore
-    private int ignored;
-
     private TrackerStatus status = TrackerStatus.OK;
 
     private TrackerTimingsStats timings = new TrackerTimingsStats();
 
-    private TrackerBundleReport bundleReport = new TrackerBundleReport();
+    private List<TrackerBundleReport> bundleReports = new ArrayList<>();
 
-    private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
+    private TrackerValidationReport trackerValidationReport;
 
     @JsonProperty
     public TrackerStats getStats()
     {
-        TrackerStats stats = bundleReport.getStats();
-        stats.setIgnored( ignored );
+        TrackerStats stats = new TrackerStats();
+        bundleReports.forEach( br -> stats.merge( br.getStats() ) );
         return stats;
     }
 
@@ -86,10 +84,10 @@ public class TrackerImportReport
     /**
      * Are there any errors present?
      *
-     * @return true or false depending on any errors found in bundle report
+     * @return true or false depending on any errors found in bundle reports
      */
     public boolean isEmpty()
     {
-        return bundleReport.isEmpty();
+        return bundleReports.stream().allMatch( TrackerBundleReport::isEmpty );
     }
 }

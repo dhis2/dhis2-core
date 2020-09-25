@@ -40,27 +40,23 @@ public interface IncomingSmsService
 {
     String ID = IncomingSmsService.class.getName();
 
+    IncomingSms getNextUnprocessed();
+
     void update( IncomingSms sms );
 
-    IncomingSms get( long id );
+    IncomingSms findBy( Integer id );
 
-    IncomingSms get( String uid );
+    List<IncomingSms> listAllMessage();
 
-    List<IncomingSms> getAll();
+    void deleteById( Integer id );
 
-    List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
+    int save( IncomingSms sms );
 
-    void delete( long id );
+    int save( String message, String originator, String gateway, Date receivedTime, User user );
 
-    void delete( String uid );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
 
-    long save( IncomingSms sms );
-
-    long save( String message, String originator, String gateway, Date receivedTime, User user );
-
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
-
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
 
     List<IncomingSms> getAllUnparsedMessages();
 }

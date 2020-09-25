@@ -802,26 +802,6 @@ public class ExpressionServiceTest
         assertEquals( "3", eval( "4 - 3 % 2" ) );
         assertEquals( "1", eval( "( 4 - 3 ) % 2" ) );
 
-        // Logarithms
-
-        assertEquals( "3.912023005428146", eval( "log(50)") );
-        assertEquals( "1", eval( "log(2.718281828459045)") );
-        assertEquals( "-Infinity", eval( "log(0)") );
-        assertEquals( "NaN", eval( "log(-1)") );
-
-        assertEquals( "3.5608767950073115", eval( "log(50,3)") );
-        assertEquals( "3", eval( "log(8,2)" ) );
-        assertEquals( "-Infinity", eval( "log(0,3)") );
-        assertEquals( "NaN", eval( "log(-1,3)") );
-        assertEquals( "0", eval( "log(50,0)") );
-        assertEquals( "NaN", eval( "log(50,-3)") );
-        assertEquals( "NaN", eval( "log(-50,-3)") );
-
-        assertEquals( "1.6989700043360187", eval( "log10(50)") );
-        assertEquals( "3", eval( "log10(1000)") );
-        assertEquals( "-Infinity", eval( "log10(0)") );
-        assertEquals( "NaN", eval( "log10(-1)") );
-
         // Comparisons (left-to-right)
 
         assertEquals( "1", eval( "if(1 < 2, 1, 0)" ) );

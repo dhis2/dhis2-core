@@ -111,7 +111,7 @@ public class SendScheduledMessageJob
 
     private void sendMessages()
     {
-        List<OutboundSms> outboundSmsList = outboundSmsService.get( OutboundSmsStatus.OUTBOUND );
+        List<OutboundSms> outboundSmsList = outboundSmsService.getOutboundSms( OutboundSmsStatus.OUTBOUND );
 
         if ( outboundSmsList != null )
         {

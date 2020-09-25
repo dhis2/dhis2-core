@@ -74,7 +74,7 @@ public class UserActions
         return id;
     }
 
-    public void addRoleToUser( String userId, String userRoleId )
+    public void addURoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
         if ( response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId ) )
@@ -89,7 +89,7 @@ public class UserActions
 
         object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
 
-        this.update( userId, object ).validate().statusCode( 200 );
+        this.update( userId, object );
     }
 
     public void addUserToUserGroup( String userId, String userGroupId )
@@ -107,7 +107,7 @@ public class UserActions
 
         object.get( "userGroups" ).getAsJsonArray().add( userGroupAccess );
 
-        this.update( userId, object ).validate().statusCode( 200 );
+        this.update( userId, object );
     }
 
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )

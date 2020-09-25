@@ -52,7 +52,7 @@ public class PeriodCallable
     public Period call()
         throws ExecutionException
     {
-        return periodService.reloadIsoPeriodInStatelessSession( id );
+        return periodService.reloadIsoPeriod( id );
     }
 
     @Override

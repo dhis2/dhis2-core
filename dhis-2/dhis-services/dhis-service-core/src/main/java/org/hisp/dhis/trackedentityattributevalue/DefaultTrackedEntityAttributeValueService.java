@@ -47,7 +47,6 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Abyot Asalefew
@@ -70,7 +69,7 @@ public class DefaultTrackedEntityAttributeValueService
 
     private final CurrentUserService currentUserService;
 
-    private final DhisConfigurationProvider config;
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
     public DefaultTrackedEntityAttributeValueService( TrackedEntityAttributeValueStore attributeValueStore,
         FileResourceService fileResourceService,
@@ -90,7 +89,7 @@ public class DefaultTrackedEntityAttributeValueService
         this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
         this.reservedValueService = reservedValueService;
         this.currentUserService = currentUserService;
-        this.config = dhisConfigurationProvider;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -105,11 +104,7 @@ public class DefaultTrackedEntityAttributeValueService
             attributeValue,
             attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        if ( config.isEnabled( CHANGELOG_TRACKER ) )
-        {
-            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
-        }
-
+        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
         deleteFileValue( attributeValue );
         attributeValueStore.delete( attributeValue );
     }
@@ -167,7 +162,7 @@ public class DefaultTrackedEntityAttributeValueService
         }
 
         if ( attributeValue.getAttribute().isConfidentialBool() &&
-            !config.getEncryptionStatus().isOk() )
+            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
         {
             throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
         }
@@ -235,11 +230,7 @@ public class DefaultTrackedEntityAttributeValueService
             TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue, attributeValue.getAuditValue(), User.username( user ), AuditType.UPDATE );
 
-            if ( config.isEnabled( CHANGELOG_TRACKER ) )
-            {
-                trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
-            }
-
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             attributeValueStore.update( attributeValue );
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )

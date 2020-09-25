@@ -324,7 +324,6 @@ public class TrackedEntityAttributeValue
         valueIsSet = true;
 
         this.value = value;
-        this.plainValue = value;
 
         return this;
     }

@@ -47,8 +47,6 @@ public interface TrackedEntityInstanceStore
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
 
-    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params );
-
     List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params );

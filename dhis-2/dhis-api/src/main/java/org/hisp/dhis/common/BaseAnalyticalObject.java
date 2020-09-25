@@ -740,7 +740,7 @@ public abstract class BaseAnalyticalObject
         {
             DimensionalEmbeddedObject object = dimensions.get( dimension );
 
-            return Optional.of( new BaseDimensionalObject( dimension, dimensionType,
+            return Optional.of( new BaseDimensionalObject( dimension, dimensionType, null,
                 object.getDimension().getDisplayName(), object.getItems() ) );
         }
 

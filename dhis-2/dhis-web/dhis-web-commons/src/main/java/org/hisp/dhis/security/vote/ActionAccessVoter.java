@@ -31,7 +31,6 @@ package org.hisp.dhis.security.vote;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.StrutsAuthorityUtils;
-import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -86,35 +85,33 @@ public class ActionAccessVoter
         {
             log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
 
-            return AccessDecisionVoter.ACCESS_ABSTAIN;
+            return ACCESS_ABSTAIN;
         }
 
         ActionConfig actionConfig = (ActionConfig) object;
-        Collection<ConfigAttribute> requiredAuthorities = StrutsAuthorityUtils
-            .getConfigAttributes( actionConfig, requiredAuthoritiesKey );
-        Collection<ConfigAttribute> anyAuthorities = StrutsAuthorityUtils
-            .getConfigAttributes( actionConfig, anyAuthoritiesKey );
+        Collection<ConfigAttribute> requiredAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig, requiredAuthoritiesKey );
+        Collection<ConfigAttribute> anyAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig, anyAuthoritiesKey );
 
         int allStatus = allAuthorities( authentication, object, requiredAuthorities );
 
-        if ( allStatus == AccessDecisionVoter.ACCESS_DENIED )
+        if ( allStatus == ACCESS_DENIED )
         {
-            return AccessDecisionVoter.ACCESS_DENIED;
+            return ACCESS_DENIED;
         }
 
         int anyStatus = anyAuthority( authentication, object, anyAuthorities );
 
-        if ( anyStatus == AccessDecisionVoter.ACCESS_DENIED )
+        if ( anyStatus == ACCESS_DENIED )
         {
-            return AccessDecisionVoter.ACCESS_DENIED;
+            return ACCESS_DENIED;
         }
 
-        if ( allStatus == AccessDecisionVoter.ACCESS_GRANTED || anyStatus == AccessDecisionVoter.ACCESS_GRANTED )
+        if ( allStatus == ACCESS_GRANTED || anyStatus == ACCESS_GRANTED )
         {
-            return AccessDecisionVoter.ACCESS_GRANTED;
+            return ACCESS_GRANTED;
         }
 
-        return AccessDecisionVoter.ACCESS_ABSTAIN;
+        return ACCESS_ABSTAIN;
     }
 
     private int allAuthorities( Authentication authentication, Object object, Collection<ConfigAttribute> attributes )
@@ -141,7 +138,7 @@ public class ActionAccessVoter
                 {
                     log.debug( "ACCESS_DENIED [" + object.toString() + "]" );
 
-                    return AccessDecisionVoter.ACCESS_DENIED;
+                    return ACCESS_DENIED;
                 }
             }
         }
@@ -150,12 +147,12 @@ public class ActionAccessVoter
         {
             log.debug( "ACCESS_GRANTED [" + object.toString() + "]" );
 
-            return AccessDecisionVoter.ACCESS_GRANTED;
+            return ACCESS_GRANTED;
         }
 
         log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: No supported attributes." );
 
-        return AccessDecisionVoter.ACCESS_ABSTAIN;
+        return ACCESS_ABSTAIN;
     }
 
     private int anyAuthority( Authentication authentication, Object object, Collection<ConfigAttribute> attributes )
@@ -185,18 +182,18 @@ public class ActionAccessVoter
         {
             log.debug( "ACCESS_DENIED [" + object.toString() + "]" );
 
-            return AccessDecisionVoter.ACCESS_DENIED;
+            return ACCESS_DENIED;
         }
 
         if ( supported > 0 )
         {
             log.debug( "ACCESS_GRANTED [" + object.toString() + "]" );
 
-            return AccessDecisionVoter.ACCESS_GRANTED;
+            return ACCESS_GRANTED;
         }
 
         log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: No supported attributes." );
 
-        return AccessDecisionVoter.ACCESS_ABSTAIN;
+        return ACCESS_ABSTAIN;
     }
 }

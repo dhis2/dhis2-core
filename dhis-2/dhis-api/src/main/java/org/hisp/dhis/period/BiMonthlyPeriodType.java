@@ -53,8 +53,6 @@ public class BiMonthlyPeriodType
 
     public static final int FREQUENCY_ORDER = 61;
 
-    public static final String SQL_INTERVAL = "2 months";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
@@ -84,12 +82,6 @@ public class BiMonthlyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
-    }
-
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------
@@ -168,7 +160,7 @@ public class BiMonthlyPeriodType
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
         DateTimeUnit dateTimeUnit = cal.fromIso( DateTimeUnit.fromJdkDate( date ) );
-        dateTimeUnit = cal.minusMonths( dateTimeUnit, rewindedPeriods * 2 );
+        dateTimeUnit = cal.minusMonths( dateTimeUnit, rewindedPeriods );
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
     }

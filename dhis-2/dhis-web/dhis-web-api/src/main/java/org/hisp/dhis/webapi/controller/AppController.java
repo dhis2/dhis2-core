@@ -169,22 +169,9 @@ public class AppController
     {
         App application = appManager.getApp( app );
 
-        // Get page requested
-        String pageName = getUrl( request.getPathInfo(), app );
-
         if ( application == null )
         {
             throw new WebMessageException( WebMessageUtils.notFound( "App '" + app + "' not found." ) );
-        }
-
-        if ( application.getIsBundledApp() )
-        {
-            String redirectPath = application.getBaseUrl() + "/" + pageName;
-
-            log.info( String.format( "Redirecting to bundled app: %s", redirectPath ) );
-
-            response.sendRedirect( redirectPath );
-            return;
         }
 
         if ( !appManager.isAccessible( application ) )
@@ -197,13 +184,16 @@ public class AppController
             throw new WebMessageException( WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
         }
 
+        // Get page requested
+        String pageName = getUrl( request.getPathInfo(), app );
+
         log.debug( String.format( "App page name: '%s'", pageName ) );
 
         // Handling of 'manifest.webapp'
         if ( "manifest.webapp".equals( pageName ) )
         {
             // If request was for manifest.webapp, check for * and replace with host
-            if ( application.getActivities() != null && application.getActivities().getDhis() != null && "*".equals( application.getActivities().getDhis().getHref() ) )
+            if ( "*".equals( application.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
 

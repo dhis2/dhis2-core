@@ -6,13 +6,13 @@
                 <pattern>* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}</pattern>
             </PatternLayout>
             <Policies>
-                <SizeBasedTriggeringPolicy size="25 MB"/>
+                <SizeBasedTriggeringPolicy size="25 MB" />
             </Policies>
             <DefaultRolloverStrategy max="3"/>
         </RollingFile>
 
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}"/>
+            <PatternLayout  pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}" />
         </Console>
     </Appenders>
     <Loggers>
@@ -24,6 +24,7 @@
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="false"/>
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="false"/>
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="false"/>
+
         <Root level="warn">
             <AppenderRef ref="console"/>
         </Root>

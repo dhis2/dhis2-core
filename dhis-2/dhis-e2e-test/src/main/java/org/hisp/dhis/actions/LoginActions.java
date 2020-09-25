@@ -84,7 +84,9 @@ public class LoginActions
 
     public ApiResponse getLoggedInUserInfo()
     {
-        return new RestApiActions( "/me" ).get();
+        ApiResponse response = new RestApiActions( "/me" ).get();
+
+        return response;
     }
 
     public String getLoggedInUserId()
@@ -118,10 +120,5 @@ public class LoginActions
     public void loginWithToken( String token )
     {
         RestAssured.authentication = oauth2( token );
-    }
-
-    public void loginAsAdmin()
-    {
-        loginAsUser( TestConfiguration.get().adminUserUsername(), TestConfiguration.get().adminUserPassword() );
     }
 }

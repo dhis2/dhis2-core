@@ -44,14 +44,14 @@ public interface TrackerBundleService
      * @param params Params object for this bundle.
      * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
      */
-    TrackerBundle create( TrackerBundleParams params );
+    List<TrackerBundle> create( TrackerBundleParams params );
 
     /**
-     * Call rule engine for tracker bundle.
+     * Call rule engine for tracker bundles.
      *
-     * @return Tracker bundle populated with rule effects
+     * @return Tracker bundles populated with rule effects
      */
-    TrackerBundle runRuleEngine( TrackerBundle bundle );
+    List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles );
 
     /**
      * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
@@ -66,11 +66,4 @@ public interface TrackerBundleService
      * @param bundles {@link TrackerSideEffectDataBundle} to hold data for side effects.
      */
     void handleTrackerSideEffects( List<TrackerSideEffectDataBundle> bundles );
-
-    /**
-     * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.
-     *
-     * @param bundle TrackerBundle to delete.
-     */
-    TrackerBundleReport delete( TrackerBundle bundle );
 }

@@ -397,6 +397,7 @@ public class ProgramStageInstance
             ", name='" + name + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
+            ", displayName='" + displayName + '\'' +
             ", programInstance=" + (programInstance != null ? programInstance.getUid() : null) +
             ", programStage=" + (programStage != null ? programStage.getUid() : null) +
             ", deleted=" + isDeleted() +

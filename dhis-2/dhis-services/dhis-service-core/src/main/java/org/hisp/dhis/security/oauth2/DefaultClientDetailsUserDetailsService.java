@@ -28,59 +28,34 @@ package org.hisp.dhis.security.oauth2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.NoSuchClientException;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "defaultClientDetailsUserDetailsService" )
-public class DefaultClientDetailsUserDetailsService implements UserDetailsService
+@Service( "clientDetailsUserService" )
+public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
 {
-
-    private final DefaultClientDetailsService clientDetailsService;
-
-    private String emptyPassword = "";
-
-    @Autowired
-    public DefaultClientDetailsUserDetailsService(
-        @Qualifier( "defaultClientDetailsService" ) DefaultClientDetailsService clientDetailsService )
+    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
     {
-        this.clientDetailsService = clientDetailsService;
+        super( clientDetailsService );
     }
 
-    /**
-     * @param passwordEncoder the password encoder to set
-     */
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder )
+    @Override
+    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
     {
-        this.emptyPassword = passwordEncoder.encode( "" );
-    }
-
-    public UserDetails loadUserByUsername( String username )
-    {
-        ClientDetails clientDetails;
         try
         {
-            clientDetails = clientDetailsService.loadClientByClientId( username );
+            return super.loadUserByUsername( username );
         }
-        catch ( NoSuchClientException e )
+        catch ( ClientRegistrationException ex )
         {
-            throw new UsernameNotFoundException( e.getMessage(), e );
+            throw new UsernameNotFoundException( ex.getMessage(), ex );
         }
-        String clientSecret = clientDetails.getClientSecret();
-        if ( clientSecret == null || clientSecret.trim().length() == 0 )
-        {
-            clientSecret = emptyPassword;
-        }
-        return new User( username, clientSecret, clientDetails.getAuthorities() );
     }
 }

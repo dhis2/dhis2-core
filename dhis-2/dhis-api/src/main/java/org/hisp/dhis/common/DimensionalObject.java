@@ -120,11 +120,6 @@ public interface DimensionalObject
     String getDimensionName();
 
     /**
-     * Gets the dimension display name.
-     */
-    String getDimensionDisplayName();
-
-    /**
      * Dimension items.
      */
     List<DimensionalItemObject> getItems();

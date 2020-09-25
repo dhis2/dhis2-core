@@ -62,11 +62,11 @@ public final class UserContext
     {
         return threadUser.get();
     }
-
+    
     public static String getUsername()
     {
         User user = getUser();
-
+        
         return user != null ? user.getUsername() : "system-process";
     }
 
@@ -76,13 +76,13 @@ public final class UserContext
     }
 
     // TODO Needs synchronized?
-
+    
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
-        setUserSettingInternal( key.getName(), value );
+        UserContext.setUserSetting( key.getName(), value );
     }
 
-    private static void setUserSettingInternal( String key, Serializable value )
+    public static void setUserSetting( String key, Serializable value )
     {
         if ( threadUserSettings.get() == null )
         {
@@ -99,16 +99,26 @@ public final class UserContext
         }
     }
 
+    public static Serializable getUserSetting( UserSettingKey key )
+    {
+        return threadUserSettings.get() != null ? threadUserSettings.get().get( key.getName() ) : null;
+    }
+
     @SuppressWarnings( "unchecked" )
-    public static <T> T getUserSetting( UserSettingKey key )
+    public static <T> T getUserSetting( UserSettingKey key, Class<T> klass )
     {
         return threadUserSettings.get() != null ? (T) threadUserSettings.get().get( key.getName() ) : null;
+    }
+
+    public static boolean haveUserSetting( UserSettingKey key )
+    {
+        return getUserSetting( key ) != null;
     }
 
     public static void setUserSettings( List<UserSetting> userSettings )
     {
         userSettings.stream()
             .filter( userSetting -> !StringUtils.isEmpty( userSetting.getName() ) )
-            .forEach( userSetting -> UserContext.setUserSettingInternal( userSetting.getName(), userSetting.getValue() ) );
+            .forEach( userSetting -> UserContext.setUserSetting( userSetting.getName(), userSetting.getValue() ) );
     }
 }

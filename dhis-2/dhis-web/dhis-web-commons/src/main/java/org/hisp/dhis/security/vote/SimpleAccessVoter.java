@@ -59,11 +59,6 @@ public class SimpleAccessVoter
     // Interface implementation
     // -------------------------------------------------------------------------
 
-    public SimpleAccessVoter( String requiredAuthority )
-    {
-        this.requiredAuthority = requiredAuthority;
-    }
-
     @Override
     public boolean supports( ConfigAttribute configAttribute )
     {

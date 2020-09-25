@@ -287,7 +287,7 @@ public class DefaultQueryPlanner
             for ( String periodType : periodTypePeriodMap.keySet() )
             {
                 query.addFilter( new BaseDimensionalObject( filter.getDimension(), filter.getDimensionType(),
-                    periodType.toLowerCase(), filter.getDimensionDisplayName(), periodTypePeriodMap.get( periodType ) ) );
+                    periodType.toLowerCase(), filter.getDisplayName(), periodTypePeriodMap.get( periodType ) ) );
             }
 
             queries.add( query.build() );
@@ -334,7 +334,7 @@ public class DefaultQueryPlanner
             for ( Integer level : levelOrgUnitMap.keySet() )
             {
                 query.addFilter( new BaseDimensionalObject( filter.getDimension(),
-                    filter.getDimensionType(), LEVEL_PREFIX + level, filter.getDimensionDisplayName(), levelOrgUnitMap.get( level ) ) );
+                    filter.getDimensionType(), LEVEL_PREFIX + level, filter.getDisplayName(), levelOrgUnitMap.get( level ) ) );
             }
 
             queries.add( query.build() );
@@ -649,7 +649,7 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )
             {

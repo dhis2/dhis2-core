@@ -38,8 +38,6 @@ import java.util.List;
 
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 /**
  * @author Lars Helge Overland
@@ -513,15 +511,5 @@ public class RelativePeriodTest
         relatives = new RelativePeriods().setLast4Quarters( true ).getRelativePeriods( I18N_FORMAT, true );
 
         assertEquals( 4, relatives.size() );
-    }
-
-    @Test
-    public void testEnumContains()
-    {
-        assertTrue( RelativePeriodEnum.contains( "LAST_30_DAYS" ) );
-        assertTrue( RelativePeriodEnum.contains( "THIS_YEAR" ) );
-
-        assertFalse( RelativePeriodEnum.contains( "LAST_CHRISTMAS" ) );
-        assertFalse( RelativePeriodEnum.contains( "LAST_VACATION" ) );
     }
 }

@@ -100,6 +100,11 @@ public class DataElement extends BaseDimensionalItemObject
     private String formName;
 
     /**
+     * The i18n variant of the display name. Should not be persisted.
+     */
+    protected transient String displayFormName;
+
+    /**
      * The domain of this DataElement; e.g. DataElementDomainType.AGGREGATE or
      * DataElementDomainType.TRACKER.
      */
@@ -462,18 +467,22 @@ public class DataElement extends BaseDimensionalItemObject
     /**
      * Returns the form name, or the name if it does not exist.
      */
-    @Override
     public String getFormNameFallback()
     {
         return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
     }
 
-    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayFormName()
     {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
+        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
+        return displayFormName != null ? displayFormName : getFormNameFallback();
+    }
+
+    public void setDisplayFormName( String displayFormName )
+    {
+        this.displayFormName = displayFormName;
     }
 
     /**
@@ -588,7 +597,6 @@ public class DataElement extends BaseDimensionalItemObject
         this.valueType = valueType;
     }
 
-    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -597,7 +605,6 @@ public class DataElement extends BaseDimensionalItemObject
         return formName;
     }
 
-    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

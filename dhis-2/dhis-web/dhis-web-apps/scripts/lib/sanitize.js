@@ -61,7 +61,6 @@ function ex_clone_path (url) {
 }
 
 module.exports = {
-    scrub,
     sanitize_app_name,
     split_repo_path,
     ex_clone_path

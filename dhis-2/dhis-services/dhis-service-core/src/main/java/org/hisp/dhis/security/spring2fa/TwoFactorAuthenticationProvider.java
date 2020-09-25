@@ -28,7 +28,6 @@ package org.hisp.dhis.security.spring2fa;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
@@ -36,38 +35,35 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
-import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
  */
 @Slf4j
-@Component
-public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
+public class TwoFactorAuthenticationProvider
+    extends DaoAuthenticationProvider
 {
-    @Autowired
     private UserService userService;
 
-    @Autowired
+    public void setUserService( UserService userService )
+    {
+        this.userService = userService;
+    }
+
     private SecurityService securityService;
 
-    @Autowired
-    public TwoFactorAuthenticationProvider( @Qualifier( "userDetailsService" ) UserDetailsService detailsService,
-        PasswordEncoder passwordEncoder )
+    public void setSecurityService( SecurityService securityService )
     {
-        setUserDetailsService( detailsService );
-        setPasswordEncoder( passwordEncoder );
+        this.securityService = securityService;
     }
 
     @Override
@@ -105,8 +101,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             if ( authDetails == null )
             {
                 log.info( "Missing authentication details in authentication request." );
-                throw new PreAuthenticatedCredentialsNotFoundException(
-                    "Missing authentication details in authentication request." );
+                throw new PreAuthenticatedCredentialsNotFoundException( "Missing authentication details in authentication request." );
             }
 
             String ip = authDetails.getIp();
@@ -121,8 +116,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
             if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( userCredentials, code ) )
             {
-                log.info(
-                    String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
+                log.info( String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
 
                 throw new BadCredentialsException( "Invalid verification code" );
             }
@@ -144,8 +138,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         userCredentials.isSuper();
         userCredentials.getAllAuthorities();
 
-        return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(),
-            result.getAuthorities() );
+        return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(), result.getAuthorities() );
     }
 
     @Override

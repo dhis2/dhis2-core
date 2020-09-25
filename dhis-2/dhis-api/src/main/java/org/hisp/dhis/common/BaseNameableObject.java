@@ -53,7 +53,19 @@ public class BaseNameableObject
      */
     protected String description;
 
+    /**
+     * The i18n variant of the short name. Should not be persisted.
+     */
+    protected transient String displayShortName;
+
+    /**
+     * The i18n variant of the description. Should not be persisted.
+     */
+    protected transient String displayDescription;
+
     protected String formName;
+
+    protected transient String displayFormName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -205,7 +217,13 @@ public class BaseNameableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayShortName()
     {
-        return getTranslation( TranslationProperty.SHORT_NAME, getShortName() );
+        displayShortName = getTranslation( TranslationProperty.SHORT_NAME, displayShortName );
+        return displayShortName != null ? displayShortName : getShortName();
+    }
+
+    public void setDisplayShortName( String displayShortName )
+    {
+        this.displayShortName = displayShortName;
     }
 
     @Override
@@ -227,14 +245,21 @@ public class BaseNameableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDescription()
     {
-        return getTranslation( TranslationProperty.DESCRIPTION, getDescription() );
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
+    public void setDisplayDescription( String displayDescription )
+    {
+        this.displayDescription = displayDescription;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayFormName()
     {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
+        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
+        return displayFormName != null ? displayFormName : getFormNameFallback();
     }
 
     /**

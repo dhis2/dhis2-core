@@ -28,24 +28,23 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-
 /**
  * @author Lars Helge Overland
  */
 public class DeleteNotAllowedException
     extends RuntimeException
 {
-    private ErrorCode errorCode;
+    public static final String ERROR_ASSOCIATED_BY_OTHER_OBJECTS = "Object associated by other objects";
 
-    public DeleteNotAllowedException( ErrorMessage errorMessage )
+    private String errorCode;
+
+    public DeleteNotAllowedException( String errorCode, String message )
     {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
+        super( message );
+        this.errorCode = errorCode;
     }
 
-    public ErrorCode getErrorCode()
+    public String getErrorCode()
     {
         return errorCode;
     }

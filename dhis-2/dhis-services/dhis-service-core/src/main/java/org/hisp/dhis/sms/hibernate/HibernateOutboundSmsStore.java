@@ -29,13 +29,11 @@ package org.hisp.dhis.sms.hibernate;
  */
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,13 +44,12 @@ import java.util.List;
 
 @Repository( "org.hisp.dhis.sms.hibernate.OutboundSmsStore" )
 public class HibernateOutboundSmsStore
-    extends HibernateIdentifiableObjectStore<OutboundSms>
+    extends HibernateGenericStore<OutboundSms>
     implements OutboundSmsStore
 {
-    public HibernateOutboundSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    public HibernateOutboundSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, publisher, OutboundSms.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, OutboundSms.class, false );
     }
 
     // -------------------------------------------------------------------------
@@ -75,6 +72,21 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
+    public OutboundSms getOutboundSmsbyId( long id )
+    {
+        return get( id );
+    }
+
+    @Override
+    public List<OutboundSms> getAllOutboundSms()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addOrder( root -> builder.desc( root.get( "date" ) ) ));
+    }
+
+    @Override
     public List<OutboundSms> get( OutboundSmsStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -91,7 +103,19 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination )
+    public void updateOutboundSms( OutboundSms sms )
+    {
+        update( sms );
+    }
+
+    @Override
+    public void deleteOutboundSms( OutboundSms sms )
+    {
+        delete( sms );
+    }
+
+    @Override
+    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -103,7 +127,7 @@ public class HibernateOutboundSmsStore
             parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
-        if ( hasPagination )
+        if ( min != null && max != null )
         {
             parameters.setFirstResult( min ).setMaxResults( max );
         }
@@ -112,14 +136,14 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max, boolean hasPagination )
+    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
             .addOrder( root -> builder.desc( root.get( "date" ) ) );
 
-        if ( hasPagination )
+        if ( min != null && max != null )
         {
             parameters.setFirstResult( min ).setMaxResults( max );
         }

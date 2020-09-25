@@ -45,7 +45,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -154,7 +153,6 @@ public class DataValueBatchHandlerTest
     // -------------------------------------------------------------------------
 
     @Test
-    @Ignore // FIXME luciano - this test fails with a sql error after upgrading H2
     public void testInsertObject()
     {
         batchHandler.insertObject( dataValueA );

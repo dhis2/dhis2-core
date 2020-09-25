@@ -62,8 +62,6 @@ public class YearlyPeriodType
 
     public static final int FREQUENCY_ORDER = 365;
 
-    public static final String SQL_INTERVAL = "1 year";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
@@ -93,12 +91,6 @@ public class YearlyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
-    }
-
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------

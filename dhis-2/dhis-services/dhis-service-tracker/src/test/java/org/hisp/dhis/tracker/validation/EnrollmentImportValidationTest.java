@@ -122,7 +122,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 4, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -286,7 +286,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( params );
+        TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
         assertEquals( 4, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
@@ -451,7 +451,7 @@ public class EnrollmentImportValidationTest
         params.setUser( user2 );
 
         params.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerBundle trackerBundle = trackerBundleService.create( params );
+        TrackerBundle trackerBundle = trackerBundleService.create( params ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         report = trackerValidationService.validate( trackerBundle );

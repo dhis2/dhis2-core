@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "defaultClientDetailsService" )
+@Service( "clientDetailsService" )
 public class DefaultClientDetailsService implements ClientDetailsService
 {
     private static final Set<String> SCOPES = Sets.newHashSet( "ALL" );

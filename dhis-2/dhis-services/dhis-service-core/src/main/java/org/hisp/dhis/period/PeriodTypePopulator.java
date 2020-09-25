@@ -33,9 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.List;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.springframework.stereotype.Component;
 
@@ -55,15 +52,11 @@ public class PeriodTypePopulator
 
     private final PeriodStore periodStore;
 
-    private final SessionFactory sessionFactory;
-
-    public PeriodTypePopulator( PeriodStore periodStore, SessionFactory sessionFactory )
+    public PeriodTypePopulator( PeriodStore periodStore )
     {
         checkNotNull( periodStore );
-        checkNotNull( sessionFactory );
 
         this.periodStore = periodStore;
-        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -83,24 +76,11 @@ public class PeriodTypePopulator
         // Populate missing
         // ---------------------------------------------------------------------
 
-        StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
-        try
+        for ( PeriodType type : types )
         {
-            types.forEach( type -> {
-                session.insert( type );
-                log.debug( "Added PeriodType: " + type.getName() );
-            });
-        }
-        catch ( Exception exception )
-        {
-            exception.printStackTrace();
-        }
-        finally
-        {
-            DbmsUtils.closeStatelessSession( session );
-        }
+            periodStore.addPeriodType( type );
 
-        types.forEach( type ->  periodStore.reloadPeriodType( type ) );
+            log.debug( "Added PeriodType: " + type.getName() );
+        }
     }
 }

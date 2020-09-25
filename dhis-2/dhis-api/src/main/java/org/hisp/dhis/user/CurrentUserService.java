@@ -80,6 +80,11 @@ public interface CurrentUserService
     boolean currentUserIsAuthorized( String auth );
 
     /**
+     * Expire all the sessions associated with current user.
+     */
+    void expireUserSessions();
+
+    /**
      * Return UserCredentials of current User
      *
      * @return UserCredentials of current User

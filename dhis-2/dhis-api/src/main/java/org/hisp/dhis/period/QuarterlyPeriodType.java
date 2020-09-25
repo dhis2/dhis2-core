@@ -65,8 +65,6 @@ public class QuarterlyPeriodType
 
     public static final int FREQUENCY_ORDER = 91;
 
-    public static final String SQL_INTERVAL = "3 months";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
@@ -102,12 +100,6 @@ public class QuarterlyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
-    }
-
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------

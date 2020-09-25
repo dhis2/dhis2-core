@@ -35,7 +35,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,16 +86,11 @@ public class EventReportController
     {
         report.populateAnalyticalProperties();
 
-        User currentUser = currentUserService.getCurrentUser();
+        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-        if ( currentUser != null )
+        for ( OrganisationUnit organisationUnit : report.getOrganisationUnits() )
         {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : report.getOrganisationUnits() )
-            {
-                report.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
+            report.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
         }
 
         I18nFormat format = i18nManager.getI18nFormat();

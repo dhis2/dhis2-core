@@ -72,7 +72,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -102,7 +101,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final AttributeService attributeService;
 
-    private final Set<NodeTransformer> nodeTransformers;
+    private Set<NodeTransformer> nodeTransformers;
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
@@ -110,7 +109,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    private static final Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
+    private static Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
         .forRegion( "propertyTransformerCache" )
         .expireAfterAccess( 12, TimeUnit.HOURS )
         .withInitialCapacity( 20 )
@@ -249,7 +248,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean shouldExclude( Object object, Defaults defaults )
     {
-        return Defaults.EXCLUDE == defaults && object instanceof IdentifiableObject &&
+        return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
             Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
@@ -287,7 +286,6 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             AbstractNode child = null;
             Property property = schema.getProperty( fieldKey );
-            FieldMap fieldValue = fieldMap.get( fieldKey );
 
             if ( property == null || !property.isReadable() )
             {
@@ -297,7 +295,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
 
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
 
@@ -314,13 +311,18 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                 } );
 
-                if ( propertyTransformer.isPresent() && returnValue != null )
+                if ( propertyTransformer.isPresent() )
                 {
                     returnValue = propertyTransformer.get().transform( returnValue );
-                    propertyClass = returnValue.getClass();
-                    propertySchema = schemaService.getDynamicSchema( propertyClass );
-                    updateFields( fieldValue, propertyTransformer.get().getKlass() );
                 }
+
+                if ( returnValue == null )
+                {
+                    continue;
+                }
+
+                propertyClass = returnValue.getClass();
+                propertySchema = schemaService.getDynamicSchema( propertyClass );
             }
 
             if ( returnValue != null
@@ -333,6 +335,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                 propertyClass = returnValue.getClass();
                 propertySchema = schemaService.getDynamicSchema( propertyClass );
             }
+
+            FieldMap fieldValue = fieldMap.get( fieldKey );
 
             if ( returnValue == null && property.isCollection() )
             {
@@ -424,22 +428,11 @@ public class DefaultFieldFilterService implements FieldFilterService
                     child = new CollectionNode( property.getCollectionName() );
                     child.setNamespace( property.getNamespace() );
 
-                    for ( Object collectionObject : (Collection<?>) Objects.requireNonNull( returnValue ) )
+                    for ( Object collectionObject : (Collection<?>) returnValue )
                     {
-                        Node node;
+                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
 
-                        if ( property.hasPropertyTransformer() )
-                        {
-                            // if it has a transformer, re-get the schema (the item klass has probably changed)
-                            Schema sch = schemaService.getDynamicSchema( collectionObject.getClass() );
-                            node = buildNode( fieldValue, sch.getKlass(), collectionObject, user, property.getName(), defaults );
-                        }
-                        else
-                        {
-                            node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
-                        }
-
-                        if ( !Objects.requireNonNull( node ).getChildren().isEmpty() )
+                        if ( !node.getChildren().isEmpty() )
                         {
                             child.addChild( node );
                         }
@@ -458,7 +451,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 child.setProperty( property );
 
                 // TODO fix ugly hack, will be replaced by custom field serializer/deserializer
-                if ( child.isSimple() && (((SimpleNode) child).getValue()) instanceof PeriodType )
+                if ( child.isSimple() && PeriodType.class.isInstance( (((SimpleNode) child).getValue()) ) )
                 {
                     child = new SimpleNode( child.getName(), ((PeriodType) ((SimpleNode) child).getValue()).getName() );
                 }
@@ -688,11 +681,11 @@ public class DefaultFieldFilterService implements FieldFilterService
      * then we need to get full {@link Attribute} object ( from cache )
      * e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
      */
-    private Object handleJsonbObjectProperties( Class<?> klass, Class<?> propertyClass, Object returnObject )
+    private Object handleJsonbObjectProperties( Class klass, Class propertyClass, Object returnObject )
     {
         if ( AttributeValue.class.isAssignableFrom( klass ) && Attribute.class.isAssignableFrom( propertyClass ) )
         {
-            returnObject = attributeService.getAttribute( ((Attribute) returnObject).getUid() );
+            returnObject = attributeService.getAttribute( ( ( Attribute ) returnObject ).getUid() );
         }
 
         return returnObject;

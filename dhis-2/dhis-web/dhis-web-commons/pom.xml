@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web</artifactId>
-    <version>2.36-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-web-commons</artifactId>
@@ -53,6 +53,11 @@
     </dependency>
 
     <!-- Web -->
+
+    <dependency>
+      <groupId>com.alibaba.spring</groupId>
+      <artifactId>spring-webmvc-velocity</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.struts</groupId>
       <artifactId>struts2-core</artifactId>

@@ -28,17 +28,18 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.hisp.dhis.tracker.TrackerType;
+import lombok.Data;
 import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -47,8 +48,6 @@ import lombok.Data;
 public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
-
-    private final List<TrackerWarningReport> warningsReportList;
 
     private final boolean isFailFast;
 
@@ -60,18 +59,12 @@ public class ValidationErrorReporter
 
     private String mainId;
 
-    private TrackerType dtoType;
-
-    private List<TrackerDto> invalidDTOs;
-
     public ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass )
     {
         this.validationContext = context;
         this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
         this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
         this.mainKlass = mainKlass;
-        this.invalidDTOs = new ArrayList<>();
     }
 
     private ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass, boolean isFailFast,
@@ -79,11 +72,9 @@ public class ValidationErrorReporter
     {
         this.validationContext = context;
         this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
         this.isFailFast = isFailFast;
         this.mainKlass = mainKlass;
         this.listIndex.set( listIndex );
-        this.invalidDTOs = new ArrayList<>();
     }
 
     public boolean hasErrors()
@@ -96,18 +87,14 @@ public class ValidationErrorReporter
         return TrackerErrorReport.builder().errorCode( errorCode );
     }
 
-    public static TrackerWarningReport.TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
-    {
-        return TrackerWarningReport.builder().warningCode( errorCode );
-    }
-
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
     {
-        builder.trackerType( this.dtoType );
+        builder.mainKlass( this.mainKlass );
+        builder.listIndex( this.listIndex.get() );
 
         if ( this.mainId != null )
         {
-            builder.uid( this.mainId );
+            builder.mainId( this.mainId );
         }
 
         getReportList().add( builder.build( this.validationContext.getBundle() ) );
@@ -116,17 +103,6 @@ public class ValidationErrorReporter
         {
             throw new ValidationFailFastException( getReportList() );
         }
-    }
-
-    public void addWarning( TrackerWarningReport.TrackerWarningReportBuilder builder )
-    {
-        builder.trackerType( this.dtoType );
-
-        if ( this.mainId != null )
-        {
-            builder.uid( this.mainId );
-        }
-        getWarningsReportList().add( builder.build( this.validationContext.getBundle() ) );
     }
 
     public ValidationErrorReporter fork()
@@ -150,38 +126,24 @@ public class ValidationErrorReporter
         if ( dto instanceof TrackedEntity )
         {
             TrackedEntity trackedEntity = (TrackedEntity) dto;
-            fork.mainId = trackedEntity.getTrackedEntity();
-            fork.dtoType = TrackerType.TRACKED_ENTITY;
+            fork.mainId = (trackedEntity.getClass().getSimpleName() + " (" + trackedEntity.getTrackedEntity() + ")");
         }
         else if ( dto instanceof Enrollment )
         {
             Enrollment enrollment = (Enrollment) dto;
-            fork.mainId = enrollment.getEnrollment();
-            fork.dtoType = TrackerType.ENROLLMENT;
+            fork.mainId = (enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")");
         }
         else if ( dto instanceof Event )
         {
             Event event = (Event) dto;
-            fork.mainId = event.getEvent();
-            fork.dtoType = TrackerType.EVENT;
+            fork.mainId = (event.getClass().getSimpleName() + " (" + event.getEvent() + ")");
         }
-        else if ( dto instanceof Relationship )
-        {
-            Relationship relationship = (Relationship) dto;
-            fork.mainId = relationship.getRelationship();
-            fork.dtoType = TrackerType.RELATIONSHIP;
-        }
+
         return fork;
     }
 
     public void merge( ValidationErrorReporter reporter )
     {
         this.reportList.addAll( reporter.getReportList() );
-        this.warningsReportList.addAll( reporter.getWarningsReportList() );
-    }
-
-    public void addDtosWithErrors( List<TrackerDto> notValidDTOs )
-    {
-        this.invalidDTOs.addAll( notValidDTOs );
     }
 }

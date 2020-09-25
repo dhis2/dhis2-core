@@ -53,6 +53,4 @@ public interface RuleActionValidator extends RuleActionImplementer
      * @return A map of events and list of errors
      */
     Map<String, List<String>> validateEvents( TrackerBundle bundle );
-
-    boolean isWarning();
 }

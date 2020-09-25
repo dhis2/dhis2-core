@@ -67,7 +67,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.util.InputUtils;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
@@ -126,8 +125,6 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.*;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
-
 /**
  * Note that a mock BatchHandler factory is being injected.
  *
@@ -179,8 +176,6 @@ public class DefaultDataValueSetService
 
     private final AggregateAccessManager accessManager;
 
-    private final DhisConfigurationProvider config;
-
     private final ObjectMapper jsonMapper;
 
     public DefaultDataValueSetService(
@@ -203,7 +198,6 @@ public class DefaultDataValueSetService
         FileResourceService fileResourceService,
         AclService aclService,
         AggregateAccessManager accessManager,
-        DhisConfigurationProvider config,
         ObjectMapper jsonMapper )
     {
         checkNotNull( identifiableObjectManager );
@@ -225,7 +219,6 @@ public class DefaultDataValueSetService
         checkNotNull( fileResourceService );
         checkNotNull( aclService );
         checkNotNull( accessManager );
-        checkNotNull( config );
         checkNotNull( jsonMapper );
 
         this.identifiableObjectManager = identifiableObjectManager;
@@ -247,7 +240,6 @@ public class DefaultDataValueSetService
         this.fileResourceService = fileResourceService;
         this.aclService = aclService;
         this.accessManager = accessManager;
-        this.config = config;
         this.jsonMapper = jsonMapper;
     }
 
@@ -761,9 +753,8 @@ public class DefaultDataValueSetService
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
 
-        boolean auditEnabed = config.isEnabled( CHANGELOG_AGGREGATE );
         boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
-        boolean skipAudit = ( importOptions.isSkipAudit() && hasSkipAuditAuth ) || !auditEnabed;
+        boolean skipAudit = importOptions.isSkipAudit() && hasSkipAuditAuth;
 
         log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
 
@@ -936,7 +927,7 @@ public class DefaultDataValueSetService
         final Set<OrganisationUnit> currentOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
 
         BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
-        BatchHandler<DataValueAudit> auditBatchHandler = skipAudit ? null : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
+        BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
 
         int importCount = 0;
         int updateCount = 0;
@@ -1181,12 +1172,10 @@ public class DefaultDataValueSetService
 
             final CategoryOptionCombo aoc = attrOptionCombo;
 
-            DateRange aocDateRange = dataSet != null
-                ? attrOptionComboDateRangeMap.get( attrOptionCombo.getUid() + dataSet.getUid(), () -> aoc.getDateRange( dataSet ) )
-                : attrOptionComboDateRangeMap.get( attrOptionCombo.getUid() + dataElement.getUid(), () -> aoc.getDateRange( dataElement ) );
+            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange );
 
-            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().after( period.getEndDate() ) )
-                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().before( period.getStartDate() ) ) )
+            if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0)
+                || (aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
@@ -1423,11 +1412,7 @@ public class DefaultDataValueSetService
         }
 
         dataValueBatchHandler.flush();
-
-        if ( !skipAudit )
-        {
-            auditBatchHandler.flush();
-        }
+        auditBatchHandler.flush();
 
         int ignores = totalCount - importCount - updateCount - deleteCount;
 

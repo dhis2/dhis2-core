@@ -28,11 +28,10 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Enums;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -44,14 +43,18 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import com.google.common.base.Enums;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,7 +69,9 @@ public class DefaultTrackerImportService
 
     private final TrackerPreprocessService trackerPreprocessService;
 
-    private final TrackerUserService trackerUserService;
+    private final CurrentUserService currentUserService;
+
+    private final IdentifiableObjectManager manager;
 
     private final Notifier notifier;
 
@@ -74,14 +79,16 @@ public class DefaultTrackerImportService
         TrackerBundleService trackerBundleService,
         TrackerValidationService trackerValidationService,
         TrackerPreprocessService trackerPreprocessService,
-        TrackerUserService trackerUserService,
+        CurrentUserService currentUserService,
+        IdentifiableObjectManager manager,
         Notifier notifier )
     {
         this.trackerBundleService = trackerBundleService;
         this.trackerValidationService = trackerValidationService;
         this.trackerPreprocessService = trackerPreprocessService;
+        this.currentUserService = currentUserService;
+        this.manager = manager;
         this.notifier = notifier;
-        this.trackerUserService = trackerUserService;
     }
 
     @Override
@@ -89,10 +96,7 @@ public class DefaultTrackerImportService
     {
         Timer requestTimer = new SystemTimer().start();
 
-        if ( params.getUser() == null )
-        {
-            params.setUser( trackerUserService.getUser( params.getUserId() ) );
-        }
+        params.setUser( getUser( params.getUser(), params.getUserId() ) );
 
         TrackerImportReport importReport = new TrackerImportReport();
 
@@ -101,29 +105,24 @@ public class DefaultTrackerImportService
             notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
         }
 
-        TrackerBundle trackerBundle = preheatBundle( params, importReport );
+        List<TrackerBundle> trackerBundles = preheatBundle( params, importReport );
 
-        trackerBundle = preProcessBundle( trackerBundle, importReport );
+        trackerBundles = preProcessBundle( trackerBundles, importReport );
 
-        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundle );
+        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundles );
 
-        if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+        if ( validationReport.hasErrors() )
         {
             importReport.setStatus( TrackerStatus.ERROR );
         }
         else
         {
-            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
-            {
-                deleteBundle( params, importReport, trackerBundle );
-            }
-            else
-            {
-                commitBundle( params, importReport, trackerBundle );
-            }
+            commitBundle( params, importReport, trackerBundles );
         }
 
         importReport.getTimings().setTotalImport( requestTimer.toString() );
+
+        TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
 
         if ( params.hasJobConfiguration() )
         {
@@ -134,65 +133,56 @@ public class DefaultTrackerImportService
             notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
         }
 
-        long ignored = importReport.getTrackerValidationReport().getErrorReports().stream()
-            .map( TrackerErrorReport::getUid )
-            .distinct().count();
-        importReport.setIgnored( (int) ignored );
         return importReport;
     }
 
-    protected TrackerBundle preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
+    protected List<TrackerBundle> preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
     {
         Timer preheatTimer = new SystemTimer().start();
 
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
         importReport.getTimings().setPreheat( preheatTimer.toString() );
-        return trackerBundle;
+        return trackerBundles;
     }
 
-    protected TrackerBundle preProcessBundle( TrackerBundle bundle, TrackerImportReport importReport )
+    protected List<TrackerBundle> preProcessBundle( List<TrackerBundle> bundles, TrackerImportReport importReport )
     {
         Timer preProcessTimer = new SystemTimer().start();
 
-        TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle );
-        trackerBundle = trackerPreprocessService.preprocess( trackerBundle );
+        List<TrackerBundle> trackerBundles = trackerBundleService.runRuleEngine( bundles );
+        trackerBundles = trackerBundles
+            .stream()
+            .map( tb -> trackerPreprocessService.preprocess( tb ) )
+            .collect( Collectors.toList() );
 
         importReport.getTimings().setProgramrule( preProcessTimer.toString() );
-        return trackerBundle;
+        return trackerBundles;
     }
 
     protected void commitBundle( TrackerImportParams params, TrackerImportReport importReport,
-        TrackerBundle trackerBundle )
+        List<TrackerBundle> trackerBundles )
     {
         Timer commitTimer = new SystemTimer().start();
 
-
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-
-        List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
-                bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
-                bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
-
-        trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
-        importReport.setBundleReport( bundleReport );
-
-        importReport.getTimings().setCommit( commitTimer.toString() );
-
-        if ( params.hasJobConfiguration() )
+        trackerBundles.forEach( tb ->
         {
-            notifier.update( params.getJobConfiguration(),
-                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+            TrackerBundleReport bundleReport = trackerBundleService.commit( tb );
+
+            List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
+                    bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
+                    bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
+
+            trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+            importReport.getBundleReports().add( bundleReport );
+        });
+
+
+        if ( !importReport.isEmpty() )
+        {
+            importReport.setStatus( TrackerStatus.WARNING );
         }
-    }
-
-    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport,
-        TrackerBundle trackerBundle )
-    {
-        Timer commitTimer = new SystemTimer().start();
-
-        importReport.setBundleReport( trackerBundleService.delete( trackerBundle ) );
 
         importReport.getTimings().setCommit( commitTimer.toString() );
 
@@ -204,14 +194,15 @@ public class DefaultTrackerImportService
     }
 
     protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerImportReport importReport,
-        TrackerBundle trackerBundle )
+        List<TrackerBundle> trackerBundles )
     {
         Timer validationTimer = new SystemTimer().start();
 
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         // Do all the validation
-        validationReport.add( trackerValidationService.validate( trackerBundle ) );
+        trackerBundles.forEach( tb ->
+            validationReport.add( trackerValidationService.validate( tb ) ) );
 
         importReport.getTimings().setValidation( validationTimer.toString() );
         importReport.setTrackerValidationReport( validationReport );
@@ -229,10 +220,8 @@ public class DefaultTrackerImportService
     public TrackerImportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         TrackerImportParams params = new TrackerImportParams();
-        if ( params.getUser() == null )
-        {
-            params.setUser( trackerUserService.getUser( params.getUserId() ) );
-        }
+
+        params.setUser( getUser( params.getUser(), params.getUserId() ) );
         params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, "validationMode",
             ValidationMode.FULL ) );
         params.setImportMode(
@@ -244,42 +233,6 @@ public class DefaultTrackerImportService
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
 
         return params;
-    }
-
-    @Override
-    public TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode )
-    {
-
-        TrackerImportReport filteredTrackerImportReport = new TrackerImportReport();
-        TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
-        filteredTrackerImportReport.setTrackerValidationReport( trackerValidationReport );
-        filteredTrackerImportReport.setTimings( importReport.getTimings() );
-        filteredTrackerImportReport.getTrackerValidationReport()
-            .setErrorReports( importReport.getTrackerValidationReport().getErrorReports() );
-        filteredTrackerImportReport.getTrackerValidationReport()
-            .setWarningReports( importReport.getTrackerValidationReport().getWarningReports() );
-        filteredTrackerImportReport.setBundleReport( importReport.getBundleReport() );
-
-        switch ( reportMode )
-        {
-        case BASIC:
-            filteredTrackerImportReport.setTrackerValidationReport( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
-        case ERRORS:
-            filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
-            filteredTrackerImportReport.getTrackerValidationReport().setWarningReports( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
-        case WARNINGS:
-            filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
-        case FULL:
-            break;
-        }
-
-        return filteredTrackerImportReport;
     }
 
     //-----------------------------------------------------------------------------------
@@ -357,5 +310,25 @@ public class DefaultTrackerImportService
         }
 
         return null;
+    }
+
+    private User getUser( User user, String userUid )
+    {
+        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current tx
+        {
+            return manager.get( User.class, user.getUid() );
+        }
+
+        if ( !StringUtils.isEmpty( userUid ) )
+        {
+            user = manager.get( User.class, userUid );
+        }
+
+        if ( user == null )
+        {
+            user = currentUserService.getCurrentUser();
+        }
+
+        return user;
     }
 }

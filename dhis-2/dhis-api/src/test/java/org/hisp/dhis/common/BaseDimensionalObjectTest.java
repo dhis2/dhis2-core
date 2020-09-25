@@ -57,6 +57,7 @@ public class BaseDimensionalObjectTest
         target.setUid( "uid-999999" );
         target.setDimensionType( DimensionType.DATA_X );
         target.setDimensionName( "test-dimension-name" );
+        target.setDisplayName( "display-name" );
         target.setItems( Lists.newArrayList( buildDimensionalItemObject(), buildDimensionalItemObject() ) );
         target.setFilter( "test-filter" );
         target.setLegendSet(
@@ -73,6 +74,7 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.getUid(), is( target.getUid() ) );
         assertThat( cloned.getDimensionType(), is( target.getDimensionType() ) );
         assertThat( cloned.getDimensionName(), is( target.getDimensionName() ) );
+        assertThat( cloned.getDisplayName(), is( target.getDisplayName() ) );
         assertThat( cloned.getItems(), hasSize( 2 ) );
         assertThat( cloned.getItems(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(

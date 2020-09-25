@@ -47,7 +47,7 @@ public abstract class ApiTest
     @AfterAll
     public void afterAll()
     {
-        new LoginActions().loginAsDefaultUser();
+        new LoginActions().loginAsSuperUser();
         new TestCleanUp().deleteCreatedEntities();
     }
 }

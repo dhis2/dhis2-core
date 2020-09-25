@@ -91,7 +91,7 @@ public class IncomingSmsStoreTest
 
         assertEquals( 1, incomingSmsList.size() );
         assertEquals( "testMessage", incomingSmsList.get( 0 ).getText() );
-        assertEquals( 1, incomingSmsStore.getSmsByStatus( SmsMessageStatus.INCOMING, "474", 0, 10, false ).size() );
+        assertEquals( 1, incomingSmsStore.getSmsByStatus( SmsMessageStatus.INCOMING, "474", 0, 10 ).size() );
         assertEquals( 1, incomingSmsStore.getSmsByOriginator( "474000000" ).size() );
     }
 
@@ -109,6 +109,6 @@ public class IncomingSmsStoreTest
         outboundSmsStore.saveOutboundSms( outboundSms );
 
         assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND ).size() );
-        assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND, 0, 10, false ).size() );
+        assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND, 0, 10 ).size() );
     }
 }

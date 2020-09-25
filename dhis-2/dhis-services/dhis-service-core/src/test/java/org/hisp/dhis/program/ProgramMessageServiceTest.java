@@ -153,7 +153,7 @@ public class ProgramMessageServiceTest
         program.setAutoFields();
         program.setOrganisationUnits( Sets.newSet( ouA, ouB ) );
         program.setName( "programA" );
-        program.setShortName( "programAshortname" );
+        program.setDisplayShortName( "programAshortname" );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
 
         programService.addProgram( program );

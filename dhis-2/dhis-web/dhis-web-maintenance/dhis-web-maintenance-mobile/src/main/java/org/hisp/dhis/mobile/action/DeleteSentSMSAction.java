@@ -54,16 +54,16 @@ public class DeleteSentSMSAction implements Action
     // Input
     // -------------------------------------------------------------------------
     
-    private Long[] ids;
+    private Integer[] ids;
 
-    public void setIds( Long[] ids )
+    public void setIds( Integer[] ids )
     {
         this.ids = ids;
     }
     
-    private Long id;
+    private Integer id;
 
-    public void setId( Long id )
+    public void setId( Integer id )
     {
         this.id = id;
     }
@@ -74,25 +74,25 @@ public class DeleteSentSMSAction implements Action
     {
         if ( ids != null && ids.length > 0 )
         {
-            for ( long each : ids )
+            for ( Integer each : ids )
             {
-                outboundSmsService.delete( each );
+                outboundSmsService.deleteById( each );
             }
         }
         if ( id != null )
         {
-            outboundSmsService.delete( id );
+            outboundSmsService.deleteById( id );
         }
         return SUCCESS;
 
     }
 
-    public Long[] getIds()
+    public Integer[] getIds()
     {
         return ids;
     }
 
-    public Long getId()
+    public Integer getId()
     {
         return id;
     }

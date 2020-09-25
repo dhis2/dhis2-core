@@ -29,13 +29,11 @@ package org.hisp.dhis.message;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 
 import java.util.UUID;
@@ -127,9 +125,7 @@ public class UserMessage
     }
 
     @JsonProperty
-    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
-    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {

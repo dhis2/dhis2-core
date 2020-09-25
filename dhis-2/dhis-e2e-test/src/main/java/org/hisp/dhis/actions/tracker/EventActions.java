@@ -29,8 +29,6 @@ package org.hisp.dhis.actions.tracker;
  */
 
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -79,18 +77,5 @@ public class EventActions
         {
             softDelete( id );
         }
-    }
-
-    public JsonObject createEventBody( String orgUnitId, String programId, String programStageId )
-    {
-        JsonObject event = new JsonObject();
-
-        event.addProperty( "orgUnit", orgUnitId );
-        event.addProperty( "program", programId );
-        event.addProperty( "programStage", programStageId );
-        event.addProperty( "eventDate", "2018-12-01T00:00:00.000" );
-
-        return event;
-
     }
 }

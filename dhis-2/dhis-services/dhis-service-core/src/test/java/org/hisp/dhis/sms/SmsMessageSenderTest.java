@@ -40,7 +40,6 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.*;
 import org.hisp.dhis.sms.config.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.Before;
@@ -70,9 +69,6 @@ public class SmsMessageSenderTest
 
     @Mock
     private GatewayAdministrationService gatewayAdministrationService;
-
-    @Mock
-    private OutboundSmsService outboundSmsService;
 
     @Mock
     private BulkSmsHttpGateway bulkSmsGateway;
@@ -122,7 +118,7 @@ public class SmsMessageSenderTest
 
         smsGateways.add( bulkSmsGateway );
 
-        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService, outboundSmsService );
+        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService );
     }
 
     private void mockGateway()

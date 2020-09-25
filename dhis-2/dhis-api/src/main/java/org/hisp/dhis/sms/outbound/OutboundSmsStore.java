@@ -28,17 +28,23 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
 import java.util.List;
 
-public interface OutboundSmsStore  extends IdentifiableObjectStore<OutboundSms>
+public interface OutboundSmsStore
 {
     void saveOutboundSms( OutboundSms sms );
 
-    List<OutboundSms> getAllOutboundSms( Integer min, Integer max, boolean hasPagination );
+    List<OutboundSms> getAllOutboundSms();
+
+    List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
+
+    OutboundSms getOutboundSmsbyId( long id );
 
     List<OutboundSms> get( OutboundSmsStatus status );
 
-    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination );
+    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max );
+
+    void updateOutboundSms( OutboundSms sms );
+
+    void deleteOutboundSms( OutboundSms sms );
 }

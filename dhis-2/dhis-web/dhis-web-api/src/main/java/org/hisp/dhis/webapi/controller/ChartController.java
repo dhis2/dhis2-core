@@ -50,7 +50,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Axis;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
@@ -81,8 +80,6 @@ import static org.springframework.beans.BeanUtils.copyProperties;
 /**
  * This controller is being deprecated. Please use the Visualization controller
  * instead. Only compatibility changes should be done at this stage.
- * <p>
- * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -257,18 +254,12 @@ public class ChartController
     {
         chart.populateAnalyticalProperties();
 
-        User currentUser = currentUserService.getCurrentUser();
+        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-        if ( currentUser != null )
+        for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
         {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
-            {
-                chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
+            chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
         }
-
 
         if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
         {
@@ -303,7 +294,7 @@ public class ChartController
         }
     }
 
-    /**
+        /**
      * This method converts a Visualization into a Chart. It's required only during
      * the merging process of Visualization. Even though this method could be broken
      * down into smaller ones is preferable to leave it self-contained as this is

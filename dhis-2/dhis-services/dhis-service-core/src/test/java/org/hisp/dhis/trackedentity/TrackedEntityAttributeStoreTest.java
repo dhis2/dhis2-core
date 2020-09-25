@@ -127,7 +127,7 @@ public class TrackedEntityAttributeStoreTest
             .collect( Collectors.toList() );
 
         programB.setProgramAttributes( pteaList );
-        programService.updateProgram( programB );
+        programService.updateProgram( program );
 
     }
 

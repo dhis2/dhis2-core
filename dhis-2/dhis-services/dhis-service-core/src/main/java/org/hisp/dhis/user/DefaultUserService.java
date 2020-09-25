@@ -608,14 +608,7 @@ public class DefaultUserService
     @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
-        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByOpenId( openId );
-
-        if ( userCredentials != null )
-        {
-            userCredentials.getAllAuthorities();
-        }
-
-        return userCredentials;
+        return userCredentialsStore.getUserCredentialsByOpenId( openId );
     }
 
     @Override

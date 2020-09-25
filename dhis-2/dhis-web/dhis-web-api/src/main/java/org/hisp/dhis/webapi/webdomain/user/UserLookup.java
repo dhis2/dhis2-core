@@ -50,9 +50,6 @@ public class UserLookup
     private String id;
 
     @JsonProperty
-    private String username;
-
-    @JsonProperty
     private String firstName;
 
     @JsonProperty
@@ -67,7 +64,6 @@ public class UserLookup
 
         UserLookup lookup = new UserLookup();
         lookup.setId( user.getUid() ); // Will be changed to UUID later
-        lookup.setUsername( user.getUsername() );
         lookup.setFirstName( user.getFirstName() );
         lookup.setSurname( user.getSurname() );
         lookup.setDisplayName( displayName );

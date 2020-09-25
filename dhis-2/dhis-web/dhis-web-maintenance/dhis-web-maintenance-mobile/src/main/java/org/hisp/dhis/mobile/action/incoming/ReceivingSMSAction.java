@@ -148,7 +148,7 @@ public class ReceivingSMSAction
             this.paging = createPaging( total );
 
             listIncomingSms = new ArrayList<>( incomingSmsService.getSmsByStatus( null, keyword,
-                this.paging.getStartPos(), this.paging.getPageSize(), true ) );
+                this.paging.getStartPos(), this.paging.getPageSize() ) );
         }
         else
         {
@@ -163,7 +163,7 @@ public class ReceivingSMSAction
                     this.paging = createPaging( total );
 
                     listIncomingSms = new ArrayList<>( incomingSmsService.getSmsByStatus( aStatusArray,
-                        keyword.trim(), this.paging.getStartPos(), this.paging.getPageSize(), true ) );
+                        keyword.trim(), this.paging.getStartPos(), this.paging.getPageSize() ) );
 
                     break;
                 }

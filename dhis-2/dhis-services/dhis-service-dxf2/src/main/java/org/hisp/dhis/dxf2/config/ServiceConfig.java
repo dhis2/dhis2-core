@@ -28,51 +28,10 @@ package org.hisp.dhis.dxf2.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.DataValueAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventDateCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.OrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -92,13 +51,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -106,6 +64,21 @@ import com.google.common.collect.ImmutableMap;
 @Configuration( "dxf2ServiceConfig" )
 public class ServiceConfig
 {
+    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+
+    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
+        DeletionCheck.class );
+
     @Autowired
     @Qualifier( "initialInterval" )
     private ConfigurationPropertyFactoryBean initialInterval;
@@ -113,12 +86,6 @@ public class ServiceConfig
     @Autowired
     @Qualifier( "maxAttempts" )
     private ConfigurationPropertyFactoryBean maxAttempts;
-
-    @Bean
-    public NamedParameterJdbcTemplate namedParameterJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        return new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
 
     @Bean( "retryTemplate" )
     public RetryTemplate retryTemplate()
@@ -139,165 +106,14 @@ public class ServiceConfig
         return retryTemplate;
     }
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        CreationCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        UpdateCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
-        SecurityCheck.class,
-        DeletionCheck.class );
-
     @Bean( "validatorMap" )
     public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
     {
         return ImmutableMap.of(
             ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
-            CREATE, CREATE_CHECKS,
+            ImportStrategy.CREATE, CREATE_CHECKS,
             ImportStrategy.UPDATE, UPDATE_CHECKS,
-            ImportStrategy.DELETE, DELETE_CHECKS );
-    }
-
-    /*
-     * TRACKER EVENT IMPORT VALIDATION
-     */
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap()
-    {
-        return ImmutableMap.of( CREATE, newArrayList(
-            EventDateCheck.class,
-            OrgUnitCheck.class,
-            ProgramCheck.class,
-            ProgramStageCheck.class,
-            TrackedEntityInstanceCheck.class,
-            ProgramInstanceCheck.class,
-            ProgramInstanceRepeatableStageCheck.class,
-            ProgramOrgUnitCheck.class,
-            EventGeometryCheck.class,
-            EventCreationAclCheck.class,
-            EventBaseCheck.class,
-            AttributeOptionComboCheck.class,
-            AttributeOptionComboDateCheck.class,
-            AttributeOptionComboAclCheck.class,
-            DataValueCheck.class,
-            DataValueAclCheck.class,
-            ExpirationDaysCheck.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap()
-    {
-        return ImmutableMap.of( UPDATE, newArrayList(
-            EventSimpleCheck.class,
-            EventBaseCheck.class,
-            ProgramStageInstanceBasicCheck.class,
-            ProgramStageInstanceAclCheck.class,
-            ProgramCheck.class,
-            ProgramInstanceCheck.class,
-            ProgramStageInstanceAuthCheck.class,
-            AttributeOptionComboCheck.class,
-            AttributeOptionComboDateCheck.class,
-            EventGeometryCheck.class,
-            DataValueCheck.class,
-            ExpirationDaysCheck.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap()
-    {
-        return ImmutableMap.of( DELETE, newArrayList(
-            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class ) );
-    }
-
-    /*
-     * TRACKER EVENT PRE/POST PROCESSING
-     */
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorMap()
-    {
-        return ImmutableMap.of( CREATE, newArrayList(
-            ImportOptionsPreProcessor.class,
-            EventStoredByPreProcessor.class,
-            ProgramInstancePreProcessor.class,
-            ProgramStagePreProcessor.class,
-            EventGeometryPreProcessor.class,
-            FilteringOutUndeclaredDataElementsProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPostProcessorMap()
-    {
-        return ImmutableMap.of( CREATE, newArrayList(
-            ProgramNotificationPostProcessor.class,
-            EventInsertAuditPostProcessor.class,
-            FilteringOutUndeclaredDataElementsProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
-    {
-        return ImmutableMap.of( UPDATE, newArrayList(
-            ImportOptionsPreProcessor.class,
-            EventStoredByPreProcessor.class,
-            ProgramStageInstanceUpdatePreProcessor.class,
-            ProgramInstanceGeometryPreProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap()
-    {
-        return ImmutableMap.of( UPDATE, newArrayList(
-            PublishEventPostProcessor.class,
-            ProgramNotificationPostProcessor.class,
-            EventUpdateAuditPostProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventDeletePreProcessorMap()
-    {
-        return ImmutableMap.of( DELETE, newArrayList(
-        /*
-         * Intentionally left empty since we don't have pre-delete processors at the
-         * moment, so at the moment this is a placeholder where to add pre-delete
-         * processors when we will need it (if ever). Remove this comment if you add a
-         * pre-delete processor.
-         */
-        ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventDeletePostProcessorMap()
-    {
-        return ImmutableMap.of( DELETE, newArrayList(
-            EventDeleteAuditPostProcessor.class ) );
+            ImportStrategy.DELETE, DELETE_CHECKS
+        );
     }
 }
