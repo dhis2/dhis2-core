@@ -175,10 +175,8 @@ public class DefaultTrackerImportService
             bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
 
         trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+
         importReport.setBundleReport( bundleReport );
-
-
-        importReport.setBundleReport( trackerBundleService.commit( trackerBundle ) );
 
         importReport.getTimings().setCommit( commitTimer.toString() );
 
