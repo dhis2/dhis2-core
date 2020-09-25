@@ -92,6 +92,10 @@ public class SystemSettingController
         this.userSettingService = userSettingService;
     }
 
+    // -------------------------------------------------------------------------
+    // Create
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
@@ -183,6 +187,10 @@ public class SystemSettingController
         webMessageService.send( WebMessageUtils.ok( "System settings imported" ), response, request );
     }
 
+    // -------------------------------------------------------------------------
+    // Read
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
     public @ResponseBody String getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
@@ -265,7 +273,7 @@ public class SystemSettingController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJson( response.getOutputStream(), getSystemSettings( settingKeys ) );
+        renderService.toJson( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ) );
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/javascript" )
@@ -277,7 +285,7 @@ public class SystemSettingController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJsonP( response.getOutputStream(), getSystemSettings( settingKeys ), callback );
+        renderService.toJsonP( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ), callback );
     }
 
     private Set<SettingKey> getSettingKeysToFetch( Set<String> keys )
@@ -302,10 +310,9 @@ public class SystemSettingController
         return settingKeys;
     }
 
-    private Map<String, Serializable> getSystemSettings( Set<SettingKey> keys )
-    {
-        return systemSettingManager.getSystemSettings( keys );
-    }
+    // -------------------------------------------------------------------------
+    // Remove
+    // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{key}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
