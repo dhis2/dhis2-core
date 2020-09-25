@@ -28,14 +28,15 @@ package org.hisp.dhis.sms.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsStore;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -44,12 +45,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 @Repository( "org.hisp.dhis.sms.hibernate.IncomingSmsStore" )
-public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms>
+public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<IncomingSms>
     implements IncomingSmsStore
 {
-    public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, IncomingSms.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, IncomingSms.class, currentUserService, aclService, true );
     }
 
     // -------------------------------------------------------------------------
@@ -57,19 +59,11 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     // -------------------------------------------------------------------------
 
     @Override
-    public IncomingSms get( int id )
-    {
-        Session session = sessionFactory.getCurrentSession();
-        return session.get( IncomingSms.class, id );
-    }
-
-    @Override
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameter = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
         .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
 
         if ( status != null )
@@ -77,7 +71,27 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
             parameter.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
+        if ( originator != null && !originator.isEmpty() )
+        {
+            parameter.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), originator, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+        }
+
         return getList( builder, parameter );
+    }
+
+    @Override
+    public List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<IncomingSms> parameters = new JpaQueryParameters<IncomingSms>();
+
+        if ( hasPagination )
+        {
+            parameters.setFirstResult( min ).setMaxResults( max );
+        }
+
+        return getList( builder, parameters );
     }
 
     @Override
@@ -90,27 +104,6 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     }
 
     @Override
-    public List<IncomingSms> getAllSmses()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addOrder( root -> builder.desc( root.get( "id" ) ) ) );
-    }
-
-    @Override
-    public long getSmsCount()
-    {
-        return getCount( getCriteriaBuilder(), newJpaParameters() );
-    }
-
-    @Override
-    public void delete( IncomingSms incomingSms )
-    {
-        sessionFactory.getCurrentSession().delete( incomingSms );
-    }
-
-    @Override
     public List<IncomingSms> getAllUnparsedMessages()
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -120,19 +113,24 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     }
 
     @Override
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<IncomingSms> parameters = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+        JpaQueryParameters<IncomingSms> parameters = newJpaParameters();
+
 
         if ( status != null )
         {
             parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
-        if ( min != null && max != null )
+        if ( keyword != null )
+        {
+            parameters.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+        }
+
+        if ( hasPagination )
         {
             parameters.setFirstResult( min ).setMaxResults( max );
         }

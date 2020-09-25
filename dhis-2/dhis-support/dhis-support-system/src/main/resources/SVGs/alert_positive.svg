@@ -1,27 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)" fill="#333">
-  <path id="path879" d="m22.439 12.832 0.19727 15.91h2.543l0.21289-15.91zm1.5527 19.139c-0.54812 0-0.96384 0.158-1.248 0.47266-0.27406 0.30451-0.41211 0.68386-0.41211 1.1406 0 0.45677 0.13805 0.83807 0.41211 1.1426 0.28421 0.29436 0.69993 0.44141 1.248 0.44141 0.54812 0 0.96384-0.14705 1.248-0.44141 0.28421-0.30451 0.42773-0.68581 0.42773-1.1426 0-0.45677-0.14352-0.83611-0.42773-1.1406-0.28421-0.31466-0.69993-0.47266-1.248-0.47266z" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.5 27.4999C21.5 28.8749 22.625 29.9999 24 29.9999C25.375 29.9999 26.5 28.8749 26.5 27.4999V10.4999C26.5 9.12492 25.375 7.99992 24 7.99992C22.625 7.99992 21.5 9.12492 21.5 10.4999V27.4999Z" fill="#333333"/>
+<path d="M26.5 37.4999C26.5 36.1192 25.3807 34.9999 24 34.9999C22.6193 34.9999 21.5 36.1192 21.5 37.4999C21.5 38.8807 22.6193 39.9999 24 39.9999C25.3807 39.9999 26.5 38.8807 26.5 37.4999Z" fill="#333333"/>
 </svg>

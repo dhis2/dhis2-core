@@ -30,6 +30,9 @@ package org.hisp.dhis.de.action;
 
 import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -55,6 +58,7 @@ import java.util.*;
  * @author Margrethe Store
  * @author Lars Helge Overland
  */
+@Slf4j
 public class ValidationAction
     implements Action
 {
@@ -103,7 +107,7 @@ public class ValidationAction
     {
         this.validationService = validationService;
     }
-    
+
     @Autowired
     private InputUtils inputUtils;
 
@@ -249,6 +253,9 @@ public class ValidationAction
             }
 
             List<DataElementOperand> violations = validationService.validateRequiredComments( dataSet, period, organisationUnit, attributeOptionCombo );
+
+            log.info( "Validation done for data set: '{}', period: '{}', org unit: '{}', validation rule count: {}, violations found: {}",
+                dataSet.getUid(), period.getIsoDate(), organisationUnit.getUid(), params.getValidationRules().size(), violations.size() );
 
             if ( !violations.isEmpty() )
             {

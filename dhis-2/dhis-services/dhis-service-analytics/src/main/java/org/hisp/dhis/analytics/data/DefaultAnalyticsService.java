@@ -109,6 +109,7 @@ public class DefaultAnalyticsService
         if ( analyticsCache.isEnabled() )
         {
             final DataQueryParams immutableParams = newBuilder( params ).build();
+
             return analyticsCache.getOrFetch( params,
                 p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
         }
@@ -230,6 +231,8 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : columns )
             {
+                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+
                 visualization.getColumnDimensions().add( dimension );
                 tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
@@ -239,6 +242,8 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : rows )
             {
+                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+
                 visualization.getRowDimensions().add( dimension );
                 tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }

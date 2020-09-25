@@ -36,7 +36,6 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -92,6 +91,12 @@ public class TrackerBundle
     private boolean skipTextPatternValidation;
 
     /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
      * Should import be treated as a atomic import (all or nothing).
      */
     @Builder.Default
@@ -108,12 +113,6 @@ public class TrackerBundle
      */
     @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
-
-    /**
-     * Give full report, or only include errors.
-     */
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Preheat bundle for all attached objects (or null if preheater not run yet).

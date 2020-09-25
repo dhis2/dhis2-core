@@ -28,14 +28,16 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -52,7 +54,12 @@ public class TrackerValidationReport
 
     @JsonProperty
     @Builder.Default
+    private List<TrackerWarningReport> warningReports = new ArrayList<>();
+
+    @JsonIgnore
+    @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
+
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -60,7 +67,14 @@ public class TrackerValidationReport
     public void add( TrackerValidationReport validationReport )
     {
         add( validationReport.getErrorReports() );
+        this.warningReports.addAll( validationReport.getWarningReports() );
         addPerfReports( validationReport.getPerformanceReport() );
+    }
+
+    public void add( ValidationErrorReporter validationReporter )
+    {
+        this.errorReports.addAll( validationReporter.getReportList() );
+        this.warningReports.addAll( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )

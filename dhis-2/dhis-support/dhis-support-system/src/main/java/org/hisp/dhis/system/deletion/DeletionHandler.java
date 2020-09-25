@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -108,10 +109,13 @@ import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -1078,11 +1082,46 @@ public abstract class DeletionHandler
 
     public void deleteProgramNotificationInstance( ProgramNotificationInstance programNotificationInstance )
     {
+    }
 
+    public String allowDeleteIncomingSms( IncomingSms sms )
+    {
+        return null;
+    }
+
+    public void deleteIncomingSms( IncomingSms sms )
+    {
+    }
+
+    public String allowDeleteOutboundSms( OutboundSms sms )
+    {
+        return null;
+    }
+
+    public void deleteOutboundSms( OutboundSms sms )
+    {
     }
 
     public String allowProgramNotificationInstance( ProgramNotificationInstance programNotificationInstance )
     {
         return null;
+    }
+
+    public String allowDeleteReportTable( ReportTable reportTable )
+    {
+        return null;
+    }
+
+    public void deleteReportTable( ReportTable reportTable )
+    {
+    }
+
+    public String allowDeleteChart( Chart chart )
+    {
+        return null;
+    }
+
+    public void deleteChart( Chart chart )
+    {
     }
 }

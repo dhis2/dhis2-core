@@ -60,6 +60,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -461,7 +462,7 @@ public class IdentifiableObjectManagerTest
     }
 
     @Test
-    public void getByCodeTest()
+    public void testGetByCode()
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
@@ -490,6 +491,35 @@ public class IdentifiableObjectManagerTest
         assertFalse( cd.contains( dataElementB ) );
         assertTrue( cd.contains( dataElementC ) );
         assertTrue( cd.contains( dataElementD ) );
+    }
+
+    @Test
+    public void getByUidNoAcl()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+
+        dataElementA.setCode( "DE_A" );
+        dataElementB.setCode( "DE_B" );
+        dataElementC.setCode( "DE_C" );
+
+        OrganisationUnit unit1 = createOrganisationUnit( 'A' );
+
+        identifiableObjectManager.save( unit1 );
+
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+
+        List<String> uids = Lists.newArrayList( dataElementA.getUid(), dataElementB.getUid(), dataElementC.getUid() );
+
+        List<DataElement> dataElements = identifiableObjectManager.getNoAcl( DataElement.class, uids );
+
+        assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( dataElementA ) );
+        assertTrue( dataElements.contains( dataElementB ) );
+        assertTrue( dataElements.contains( dataElementC ) );
     }
 
     @Test

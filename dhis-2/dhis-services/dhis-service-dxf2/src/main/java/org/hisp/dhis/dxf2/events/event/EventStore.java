@@ -35,16 +35,57 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.user.User;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore
 {
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    /**
+     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored
+     * at this stage.
+     *
+     * @param programStageInstances a List of {@see ProgramStageInstance}
+     *
+     * @return a list of saved program stage instances
+     */
+    List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> programStageInstances );
+
+    /**
+     * Updates a List of {@see ProgramStageInstance}.
+     * Notes are not stored at this stage.
+     *
+     * @param programStageInstances a List of {@see ProgramStageInstance}
+     *
+     * @return a list of saved program stage instances
+     */
+    List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances );
+
+    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+
+    /**
+     * Delete list of given events to be removed. This operation also remove comments
+     * connected to each Event.
+     *
+     * @param events List to be removed
+     */
+    void delete( List<Event> events );
+
+    /**
+     * Updates the "last updated" and "last updated By" of the
+     * Tracked Entity Instances matching the provided list of UIDs
+     *
+     * @param teiUid a List of Tracked Entity Instance uid
+     * @param user the User to use for the last update by value. Can be null.
+     */
+    void updateTrackedEntityInstances( List<String> teiUid, User user );
 }

@@ -59,6 +59,8 @@ public class FormUtils
 
     private static final String KEY_OPEN_FUTURE_PERIODS = "openFuturePeriods";
 
+    private static final String KEY_OPEN_PERIODS_AFTER_CO_END_DATE = "openPeriodsAfterCoEndDate";
+
     private static final String KEY_DATA_ELEMENTS = "dataElements";
 
     private static final String KEY_INDICATORS = "indicators";
@@ -75,6 +77,7 @@ public class FormUtils
 
         form.getOptions().put( KEY_PERIOD_TYPE, dataSet.getPeriodType().getName() );
         form.getOptions().put( KEY_OPEN_FUTURE_PERIODS, dataSet.getOpenFuturePeriods() );
+        form.getOptions().put( KEY_OPEN_PERIODS_AFTER_CO_END_DATE, dataSet.getOpenPeriodsAfterCoEndDate() );
         form.getOptions().put( KEY_EXPIRY_DAYS, dataSet.getExpiryDays() );
         form.setCategoryCombo( getCategoryCombo( dataSet, userOrganisationUnits ) );
 

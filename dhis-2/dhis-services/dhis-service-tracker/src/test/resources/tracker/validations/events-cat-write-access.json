@@ -17,32 +17,7 @@
       "createdAt": "2019-08-19T13:58:26.964",
       "deleted": false,
       "attributeOptionCombo": "KKKKX50cXC0",
-      "dataValues": [
-        {
-          "updatedAt": "2019-08-19T13:58:37.477",
-          "storedBy": "admin",
-          "createdAt": "2019-08-19T13:58:37.477",
-          "dataElement": "BuZ5LGNfGEU",
-          "value": "20",
-          "providedElsewhere": false
-        },
-        {
-          "updatedAt": "2019-08-19T13:58:40.031",
-          "storedBy": "admin",
-          "createdAt": "2019-08-19T13:58:40.031",
-          "dataElement": "ZrqtjjveTFc",
-          "value": "Male",
-          "providedElsewhere": false
-        },
-        {
-          "updatedAt": "2019-08-19T13:59:13.691",
-          "storedBy": "admin",
-          "createdAt": "2019-08-19T13:59:13.691",
-          "dataElement": "mB2QHw1tU96",
-          "value": "[-11.566044,9.477801]",
-          "providedElsewhere": false
-        }
-      ]
+      "dataValues": []
     }
   ]
 }

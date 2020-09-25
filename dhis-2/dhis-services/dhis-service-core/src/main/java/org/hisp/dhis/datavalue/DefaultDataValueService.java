@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -42,6 +43,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -78,18 +80,22 @@ public class DefaultDataValueService
 
     private final CategoryService categoryService;
 
+    private final DhisConfigurationProvider config;
+
     public DefaultDataValueService( DataValueStore dataValueStore, DataValueAuditService dataValueAuditService,
-        CurrentUserService currentUserService, CategoryService categoryService )
+        CurrentUserService currentUserService, CategoryService categoryService, DhisConfigurationProvider config )
     {
         checkNotNull( dataValueAuditService );
         checkNotNull( dataValueStore );
         checkNotNull( currentUserService );
         checkNotNull( categoryService );
+        checkNotNull( config );
 
         this.dataValueStore = dataValueStore;
         this.dataValueAuditService = dataValueAuditService;
         this.currentUserService = currentUserService;
         this.categoryService = categoryService;
+        this.config = config;
     }
 
     // -------------------------------------------------------------------------
@@ -180,7 +186,11 @@ public class DefaultDataValueService
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
                 dataValue.getStoredBy(), AuditType.UPDATE );
 
-            dataValueAuditService.addDataValueAudit( dataValueAudit );
+            if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+            {
+                dataValueAuditService.addDataValueAudit( dataValueAudit );
+            }
+
             dataValueStore.updateDataValue( dataValue );
         }
     }
@@ -205,7 +215,10 @@ public class DefaultDataValueService
         DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
             currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        dataValueAuditService.addDataValueAudit( dataValueAudit );
+        if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+        {
+            dataValueAuditService.addDataValueAudit( dataValueAudit );
+        }
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );

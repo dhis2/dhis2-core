@@ -1,26 +1,11 @@
 {
-  "userRoles": [
-    {
-      "code": "TA Superuser",
-      "created": "2019-04-17T09:51:30.952",
-      "lastUpdated": "2019-04-17T11:27:44.297",
-      "name": "TA Superuser",
-      "id": "yrB6vc5Ip7r",
-      "publicAccess": "--------",
-      "description": "TA Superuser",
-      "authorities": [
-        "ALL"
-      ],
-      "translations": [],
-      "userAccesses": []
-    }
-  ],
   "users": [
     {
       "lastUpdated": "2019-04-23T09:35:15.027",
       "id": "PQD6wXJ2r5j",
       "created": "2019-04-23T09:35:15.027",
       "name": "TA Superuser",
+      "email": "tasuperuser@dhis2.org",
       "displayName": "TA Superuser",
       "externalAccess": false,
       "surname": "Superuser",
@@ -48,7 +33,7 @@
         "invitation": false,
         "selfRegistered": false,
         "favorite": false,
-        "username": "taadmin",
+        "username": "tasuperadmin",
         "password": "Test1212?",
         "userInfo": {
           "id": "PQD6wXJ2r5j"
@@ -76,6 +61,123 @@
         "userRoles": [
           {
             "id": "yrB6vc5Ip7r"
+          }
+        ],
+        "userAccesses": []
+      },
+      "favorites": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        },
+        {
+          "id": "ImspTQPwCqd"
+        }
+      ],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        },
+        {
+          "id": "ImspTQPwCqd"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        },
+        {
+          "id": "ImspTQPwCqd"
+        }
+      ],
+      "attributeValues": [],
+      "userGroups": [
+        {
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2019-04-23T09:35:15.027",
+      "id": "PQD6wXJ2r5k",
+      "email": "taadmin@dhis2.org",
+      "created": "2019-04-23T09:35:15.027",
+      "name": "TA Admin",
+      "displayName": "TA admin",
+      "externalAccess": false,
+      "surname": "Admin",
+      "firstName": "TA",
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "userCredentials": {
+        "lastUpdated": "2019-04-23T09:35:14.980",
+        "id": "cguDGoo8Amk",
+        "created": "2019-04-23T09:35:14.980",
+        "name": "TA Admin",
+        "displayName": "TA Admin",
+        "externalAuth": false,
+        "externalAccess": false,
+        "disabled": false,
+        "twoFA": false,
+        "passwordLastUpdated": "2019-04-23T09:35:15.052",
+        "invitation": false,
+        "selfRegistered": false,
+        "favorite": false,
+        "username": "taadmin",
+        "password": "Test1212?",
+        "userInfo": {
+          "id": "PQD6wXJ2r5k"
+        },
+        "access": {
+          "read": true,
+          "update": true,
+          "externalize": true,
+          "delete": true,
+          "write": true,
+          "manage": true
+        },
+        "favorites": [],
+        "cogsDimensionConstraints": [],
+        "catDimensionConstraints": [],
+        "translations": [],
+        "userGroupAccesses": [
+          {
+            "access": "rwrw----",
+            "userGroupUid": "OPVIvvXzNTw",
+            "id": "OPVIvvXzNTw"
+          }
+        ],
+        "attributeValues": [],
+        "userRoles": [
+          {
+            "id": "Ufph3mGRmMo"
           }
         ],
         "userAccesses": []

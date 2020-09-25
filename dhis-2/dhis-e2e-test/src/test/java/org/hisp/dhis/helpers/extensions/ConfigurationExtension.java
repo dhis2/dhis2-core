@@ -30,6 +30,7 @@ package org.hisp.dhis.helpers.extensions;
 
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.config.JsonConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.cookie.CookieFilter;
@@ -52,10 +53,11 @@ public class ConfigurationExtension
     public void beforeAll( ExtensionContext context )
     {
         RestAssured.baseURI = TestConfiguration.get().baseUrl();
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         RestAssured.config = RestAssuredConfig.config()
             .jsonConfig( new JsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL ) );
+
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();

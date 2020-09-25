@@ -91,9 +91,10 @@ public class Module
 
         String description = TextUtils.subString( app.getDescription(), 0, 80 );
         
-        Module module = new Module( app.getName(), app.getName(), defaultAction );
+        Module module = new Module( app.getShortName(), app.getShortName(), defaultAction );
         module.setIcon( icon );
         module.setDescription( description );
+        module.setDisplayName(app.getName());
         
         return module;
     }

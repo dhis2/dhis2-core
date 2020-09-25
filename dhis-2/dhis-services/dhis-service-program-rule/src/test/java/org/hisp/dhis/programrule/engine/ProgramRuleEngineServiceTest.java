@@ -88,6 +88,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Mock
     private ProgramRuleService programRuleService;
 
+    @Mock
+    private ProgramService programService;
+
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
 
@@ -99,6 +102,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     private ProgramStageInstance programStageInstance;
 
     private ProgramRule programRuleA;
+
+    private Program program;
 
     private List<ProgramRule> programRules = new ArrayList<>();
 
@@ -181,6 +186,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
         when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
@@ -206,7 +213,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         RuleValidationResult result = RuleValidationResult.builder().isValid( true ).build();
         when( programRuleService.getProgramRule( anyString() ) ).thenReturn( programRuleA );
-        when( programRuleEngine.getDescription( programRuleA.getCondition(), programRuleA ) ).thenReturn( result );
+        when( programRuleEngine.getDescription( programRuleA.getCondition(), program ) ).thenReturn( result );
 
         assertNotNull( result );
         assertTrue( result.isValid() );

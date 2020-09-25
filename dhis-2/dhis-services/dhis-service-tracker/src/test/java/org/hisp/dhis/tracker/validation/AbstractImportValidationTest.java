@@ -64,17 +64,17 @@ public abstract class AbstractImportValidationTest
 
     public static final String ADMIN_USER_UID = "M5zQapPyTZI";
 
-    public static final String USER_1 = "---USER1---";
+    public static final String USER_1 = "oZZ43IHxuUM";
 
-    public static final String USER_2 = "---USER2---";
+    public static final String USER_2 = "MbkW4Bhfw7o";
 
-    public static final String USER_3 = "---USER3---";
+    public static final String USER_3 = "fY22f5N1xSy";
 
-    public static final String USER_4 = "---USER4---";
+    public static final String USER_4 = "iAji3gyZYQL";
 
-    public static final String USER_5 = "---USER5---";
+    public static final String USER_5 = "oajYcE7VMBs";
 
-    public static final String USER_6 = "---USER6---";
+    public static final String USER_6 = "VfaA5WwHLdP";
 
     protected TrackerBundleParams createBundleFromJson( String jsonFile )
         throws IOException
