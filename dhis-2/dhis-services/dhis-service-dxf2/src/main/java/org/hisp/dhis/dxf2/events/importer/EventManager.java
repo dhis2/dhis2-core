@@ -370,7 +370,7 @@ public class EventManager
                     if ( programStage == null )
                     {
                         final ImportSummary is = new ImportSummary( ERROR,
-                            "ProgramStage " + eventToImport.getProgramStage() + " does not exist" )
+                            "ProgramStage " + eventToImport.getProgramStage() + " does not point to a valid programStage" )
                                 .setReference( eventToImport.getUid() ).incrementIgnored();
 
                         importSummaries.addImportSummary( is );
