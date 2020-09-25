@@ -33,6 +33,8 @@ import org.springframework.http.HttpMethod;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -44,6 +46,12 @@ import java.io.IOException;
  *
  * @author Lars Helge Overland
  */
+@WebFilter( urlPatterns = {
+    "/*"
+},
+    initParams = {
+        @WebInitParam( name = "urlPattern", value = "index\\.html|/$" )
+    } )
 public class HttpNoCacheFilter
     extends HttpUrlPatternFilter
 {

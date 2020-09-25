@@ -7,7 +7,7 @@ const path = require('path')
 const access = promisify(require('fs').access)
 const mkdir = promisify(require('fs').mkdir)
 
-const { clone_app, show_sha } = require('./git.js')
+const { clone_app, get_sha } = require('./git.js')
 const generate_index = require('./write-index-html.js')
 const generate_struts = require('./write-struts-xml.js')
 const generate_bundle = require('./write-bundle-json.js')
@@ -72,7 +72,7 @@ async function main(opts = {}) {
     const final = await Promise.all(new_apps)
     console.dir(final)
 
-    const core_sha = await show_sha(root)
+    const core_sha = await get_sha(root)
 
     await generate_index(final, core_sha, html_template_path, html_index_path)
     await generate_struts(final, xml_template_path, xml_struts_path)

@@ -34,11 +34,12 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
@@ -46,6 +47,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -69,13 +71,15 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramStageInstanceService programStageInstanceService;
 
+    private final ProgramService programService;
+
     private final ProgramRuleService programRuleService;
 
     public DefaultProgramRuleEngineService(
         @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
         @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ProgramRuleService programRuleService )
+        ProgramStageInstanceService programStageInstanceService, ProgramRuleService programRuleService, ProgramService programService )
     {
         checkNotNull( programRuleEngine );
         checkNotNull( programRuleEngineNew );
@@ -83,6 +87,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
         checkNotNull( programRuleService );
+        checkNotNull( programService );
 
         this.programRuleEngine = programRuleEngine;
         this.programRuleEngineNew = programRuleEngineNew;
@@ -90,9 +95,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
         this.programRuleService = programRuleService;
+        this.programService = programService;
     }
 
     @Override
+    @Transactional
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
@@ -118,6 +125,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
+    @Transactional
     public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
@@ -127,8 +135,10 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return Lists.newArrayList();
         }
 
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
+
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( psi.getProgramInstance(), psi,
-            psi.getProgramInstance().getProgramStageInstances() );
+            programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {
@@ -143,10 +153,10 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
-    public RuleValidationResult getDescription( String condition, String programRuleId )
+    public RuleValidationResult getDescription( String condition, String programId )
     {
-        ProgramRule programRule = programRuleService.getProgramRule( programRuleId );
+        Program program = programService.getProgram( programId );
 
-        return programRuleEngineNew.getDescription( condition, programRule );
+        return programRuleEngineNew.getDescription( condition, program );
     }
 }

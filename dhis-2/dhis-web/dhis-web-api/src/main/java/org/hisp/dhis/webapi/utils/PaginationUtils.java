@@ -36,7 +36,7 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
  */
 public class PaginationUtils
 {
-    private final static Pagination NO_PAGINATION = new Pagination();
+    public final static Pagination NO_PAGINATION = new Pagination();
 
     /**
      * Calculates the paging first result based on pagination data from

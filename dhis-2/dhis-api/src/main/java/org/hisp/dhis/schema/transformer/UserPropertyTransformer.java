@@ -43,9 +43,13 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.schema.AbstractPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -54,23 +58,60 @@ import java.util.UUID;
 public class UserPropertyTransformer
     extends AbstractPropertyTransformer<User>
 {
+    public UserPropertyTransformer()
+    {
+        super( UserDto.class );
+    }
+
     @Override
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Object transform( Object o )
     {
         if ( !(o instanceof User) )
         {
+            if ( o instanceof Collection )
+            {
+                Collection collection = (Collection) o;
+
+                if ( collection.isEmpty() )
+                {
+                    return o;
+                }
+
+                Object next = collection.iterator().next();
+
+                if ( !(next instanceof User) )
+                {
+                    return o;
+                }
+
+                Collection<UserDto> userDtoCollection = newCollectionInstance( collection.getClass() );
+                collection.forEach( user -> userDtoCollection.add( buildUserDto( (User) user ) ) );
+
+                return userDtoCollection;
+            }
+
             return o;
         }
 
-        User user = (User) o;
+        return buildUserDto( (User) o );
+    }
+
+    private UserDto buildUserDto( User user )
+    {
         UserCredentials userCredentials = user.getUserCredentials();
 
-        Assert.notNull( userCredentials, "UserCredentials should never be null." );
+        UserDto.UserDtoBuilder builder = UserDto.builder()
+            .id( user.getUid() )
+            .code( user.getCode() )
+            .displayName( user.getDisplayName() );
 
-        return UserDto.builder()
-            .id( userCredentials.getUuid().toString() )
-            .username( userCredentials.getUsername() )
-            .build();
+        if ( userCredentials != null )
+        {
+            builder.username( userCredentials.getUsername() );
+        }
+
+        return builder.build();
     }
 
     @Data
@@ -79,12 +120,36 @@ public class UserPropertyTransformer
     {
         private String id;
 
+        private String code;
+
+        private String name;
+
+        private String displayName;
+
         private String username;
 
         @JsonProperty
         public String getId()
         {
             return id;
+        }
+
+        @JsonProperty
+        public String getCode()
+        {
+            return code;
+        }
+
+        @JsonProperty
+        public String getName()
+        {
+            return name;
+        }
+
+        @JsonProperty
+        public String getDisplayName()
+        {
+            return displayName;
         }
 
         @JsonProperty
@@ -105,11 +170,18 @@ public class UserPropertyTransformer
         public void serialize( User user, JsonGenerator gen, SerializerProvider provider ) throws IOException
         {
             UserCredentials userCredentials = user.getUserCredentials();
-            Assert.notNull( userCredentials, "UserCredentials should never be null." );
 
             gen.writeStartObject();
-            gen.writeStringField( "id", userCredentials.getUuid().toString() );
-            gen.writeStringField( "username", userCredentials.getUsername() );
+            gen.writeStringField( "id", user.getUid() );
+            gen.writeStringField( "code", user.getCode() );
+            gen.writeStringField( "name", user.getName() );
+            gen.writeStringField( "displayName", user.getDisplayName() );
+
+            if ( userCredentials != null )
+            {
+                gen.writeStringField( "username", userCredentials.getUsername() );
+            }
+
             gen.writeEndObject();
         }
     }
@@ -159,6 +231,22 @@ public class UserPropertyTransformer
             }
 
             return user;
+        }
+    }
+
+    private static <E> Collection<E> newCollectionInstance( Class<?> clazz )
+    {
+        if ( List.class.isAssignableFrom( clazz ) )
+        {
+            return new ArrayList<>();
+        }
+        else if ( Set.class.isAssignableFrom( clazz ) )
+        {
+            return new HashSet<>();
+        }
+        else
+        {
+            throw new RuntimeException( "Unknown Collection type." );
         }
     }
 }

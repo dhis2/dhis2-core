@@ -28,19 +28,23 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.springframework.util.StringUtils.quote;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,6 +75,36 @@ public class HibernateTrackedEntityInstanceAuditStore
         getSession().save( trackedEntityInstanceAudit );
     }
 
+    @Override
+    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit )
+    {
+        final String sql = "INSERT INTO trackedentityinstanceaudit (" +
+                "trackedentityinstanceauditid, " +
+                "trackedentityinstance, " +
+                "created, " +
+                "accessedby, " +
+                "audittype, " +
+                "comment ) VALUES ";
+
+        Function<TrackedEntityInstanceAudit, String> mapToString = audit -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append( "(" );
+            sb.append( "nextval('trackedentityinstanceaudit_sequence'), " );
+            sb.append( quote( audit.getTrackedEntityInstance() ) ).append( "," );
+            sb.append( "now()" ).append( "," );
+            sb.append( quote( audit.getAccessedBy() ) ).append( "," );
+            sb.append( quote( audit.getAuditType().getValue() ) ).append( "," );
+            sb.append( StringUtils.isNotEmpty( audit.getComment() ) ? quote( audit.getComment() ) : "''" );
+            sb.append( ")" );
+            return sb.toString();
+        };
+
+        final String values = trackedEntityInstanceAudit.stream().map( mapToString )
+            .collect( Collectors.joining( "," ) );
+
+        getSession().createNativeQuery( sql + values ).executeUpdate();
+    }
+    
     @Override
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {

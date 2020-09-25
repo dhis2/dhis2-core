@@ -44,7 +44,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -82,6 +82,9 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
     @Autowired
     private TrackerImportService trackerImportService;
+
+    @Autowired
+    private TrackerBundleService trackerBundleService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -128,7 +131,7 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
         params.setUserId( ADMIN_USER_UID );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        trackerImportService.importTracker( params );
 
         await().atMost( 10, TimeUnit.SECONDS ).until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
 

@@ -783,7 +783,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
 
         final CategoryOptionCombo aoc = mdProps.attrOptCombo;
-        DateRange range = aoc.getDateRange();
+        DateRange range = aoc.getDateRange( mdProps.dataSet );
 
         if ( (range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0)
             || (range.getEndDate() != null && range.getEndDate().compareTo( pe.getEndDate() ) < 0) )

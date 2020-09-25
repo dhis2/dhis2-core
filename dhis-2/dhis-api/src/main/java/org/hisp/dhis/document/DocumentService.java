@@ -72,6 +72,13 @@ public interface DocumentService
     void deleteFileFromDocument( Document document );
 
     /**
+     * Deletes a Document.
+     *
+     * @param document the Document to delete.
+     */
+    void deleteDocument( Document document );
+
+    /**
      * Retrieves all Documents.
      *
      * @return a Collection of Documents.

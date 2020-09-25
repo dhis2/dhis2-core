@@ -33,6 +33,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ArrayUtils.remove;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.COUNT;
@@ -235,7 +236,11 @@ public class DataHandler
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
+            // Try to get filters periods from dimension (pe), or else fallback to
+            // "startDate/endDate" periods.
+            List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
+                ? dataSourceParams.getTypedFilterPeriods()
+                : singletonList( dataSourceParams.getStartEndDatesAsPeriod() );
 
             Map<String, Constant> constantMap = constantService.getConstantMap();
 
@@ -953,21 +958,24 @@ public class DataHandler
         {
             final List<DimensionalItemObject> dimensionalItems = findDimensionalItems( (String) row.get( dataIndex ),
                 items );
-
-            // Check if the current row's Period belongs to the list of periods from the
-            // original Analytics request.
-            // The row may not have a Period if Period is used as filter.
-            if ( hasPeriod( row, periodIndex ) && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+            if ( isNotEmpty( dimensionalItems ) )
             {
-                if ( dimensionalItems.size() == 1 )
+                // Check if the current row's Period belongs to the list of periods from the
+                // original Analytics request.
+                // The row may not have a Period if Period is used as filter.
+                if ( hasPeriod( row, periodIndex )
+                    && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
                 {
-                    addItemBasedOnPeriodOffset( grid, result, periodIndex, valueIndex, row, dimensionalItems );
+                    if ( dimensionalItems.size() == 1 )
+                    {
+                        addItemBasedOnPeriodOffset( grid, result, periodIndex, valueIndex, row, dimensionalItems );
+                    }
                 }
-            }
-            else
-            {
-                result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                    new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                else
+                {
+                    result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
+                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                }
             }
         }
 

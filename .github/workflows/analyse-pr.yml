@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
@@ -43,7 +46,7 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         mvn -f dhis-2/pom.xml clean install -Psonarqube
-        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
+        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
     - name: Analyse long-living branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

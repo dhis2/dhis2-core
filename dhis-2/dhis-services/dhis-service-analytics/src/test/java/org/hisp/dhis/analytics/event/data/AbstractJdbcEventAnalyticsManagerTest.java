@@ -28,26 +28,35 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -90,8 +99,10 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+            programIndicatorSubqueryBuilder );
 
         // data init
 
@@ -172,7 +183,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test( expected = IllegalArgumentException.class )
     public void verifyGetAggregateClauseWithValueFails()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -207,12 +218,13 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        programIndicator.setAggregationType(AggregationType.CUSTOM);
+        programIndicator.setAggregationType( AggregationType.CUSTOM );
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() ).withProgramIndicator( programIndicator ).build();
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withProgramIndicator( programIndicator ).build();
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
-                params.getEarliestStartDate(), params.getLatestEndDate() ) )
+            params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
         String clause = subject.getAggregateClause( params );
@@ -224,13 +236,13 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void verifyGetAggregateClauseWithEnrollmentDimension()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+        programIndicator.setAnalyticsType( AnalyticsType.ENROLLMENT );
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withProgramIndicator( programIndicator )
             .build();
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
-                params.getEarliestStartDate(), params.getLatestEndDate() ) )
+            params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
         String clause = subject.getAggregateClause( params );
@@ -238,4 +250,72 @@ public class AbstractJdbcEventAnalyticsManagerTest
         assertThat( clause, is( "avg(select * from table)" ) );
     }
 
+    @Test
+    public void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
+    {
+        // Given
+
+        DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
+        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+
+        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( createOrganisationUnit( 'A' ) ) );
+
+        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
+
+        // When
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension( periods )
+            .addDimension( orgUnits )
+            .addItem( qiA )
+            .withCoordinateField( deA.getUid() )
+            .withSkipData( true )
+            .withSkipMeta( false )
+            .build();
+
+        final List<String> columns = this.subject.getSelectColumns( params );
+
+        // Then
+
+        assertThat( columns, hasSize( 3 ) );
+        assertThat( columns, containsInAnyOrder( "ax.\"pe\"", "ax.\"ou\"",
+            "'[' || round(ST_X(ST_Centroid(\"" + deA.getUid() + "_geom"
+                + "\"))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(\"" + deA.getUid() + "_geom"
+                + "\"))::numeric, 6) || ']' as \"" + deA.getUid() + "_geom" + "\"" ) );
+    }
+
+    @Test
+    public void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
+    {
+        // Given
+
+        DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
+        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+
+        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+                DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( createOrganisationUnit( 'A' ) ) );
+
+        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
+
+        // When
+        EventQueryParams params = new EventQueryParams.Builder()
+                .addDimension( periods )
+                .addDimension( orgUnits )
+                .addItem( qiA )
+                .withCoordinateField( deA.getUid() )
+                .withSkipData( true )
+                .withSkipMeta( false )
+                .withStartDate(new Date() )
+                .withEndDate( new Date() )
+                // the not null condition is only triggered by this flag (or withGeometry) being true
+                .withCoordinatesOnly( true )
+                .build();
+
+        final String whereClause = this.subject.getWhereClause( params );
+
+        // Then
+        assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
+    }
 }

@@ -698,7 +698,9 @@ public class DefaultExpressionService
      */
     private int getDaysFromPeriods( List<Period> periods )
     {
-        return periods.stream().mapToInt( Period::getDaysInPeriod ).sum();
+        return periods.stream()
+            .filter( Objects::nonNull )
+            .mapToInt( Period::getDaysInPeriod ).sum();
     }
 
     /**

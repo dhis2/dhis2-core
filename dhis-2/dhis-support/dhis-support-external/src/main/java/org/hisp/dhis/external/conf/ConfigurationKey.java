@@ -101,12 +101,22 @@ public enum ConfigurationKey
     MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
     APPHUB_API_URL( "apphub.api.url", "https://apps.dhis2.org/api", false ),
+    CHANGELOG_AGGREGATE( "changelog.aggregate", "on" ),
+    CHANGELOG_TRACKER( "changelog.tracker", "on" ),
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "off" ),
     AUDIT_LOGGER( "audit.logger", "off", false ),
     AUDIT_DATABASE( "audit.database", "on", false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
-    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
+
+    OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", "off", false ),
+    OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "http://localhost:8080", false ),
+
+    OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
+    OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
+    OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL( "oidc.provider.google.redir_baseurl", "http://localhost:8080", true ),
+    OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true );
 
     private final String key;
 
