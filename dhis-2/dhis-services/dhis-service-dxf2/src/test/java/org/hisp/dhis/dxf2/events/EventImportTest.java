@@ -477,8 +477,8 @@ public class EventImportTest
         ImportSummaries importSummaries = eventService.addEvents( events, importOptions, true );
 
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-        assertEquals( 2, importSummaries.getIgnored() );
-        assertEquals( 1, importSummaries.getImported() );
+        assertEquals( 1, importSummaries.getIgnored() );
+        assertEquals( 2, importSummaries.getImported() );
         assertTrue( importSummaries.getImportSummaries().stream()
             .anyMatch( is -> is.getDescription().contains( "already exists or was deleted earlier" ) ) );
 

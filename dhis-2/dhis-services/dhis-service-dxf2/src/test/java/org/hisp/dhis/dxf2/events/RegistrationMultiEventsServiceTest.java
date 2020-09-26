@@ -199,7 +199,7 @@ public class RegistrationMultiEventsServiceTest
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertThat( importSummary.getDescription(),
-            CoreMatchers.containsString( "Event.programStage does not point to a valid programStage" ) );
+            CoreMatchers.containsString( "does not point to a valid programStage" ) );
     }
 
     @Test

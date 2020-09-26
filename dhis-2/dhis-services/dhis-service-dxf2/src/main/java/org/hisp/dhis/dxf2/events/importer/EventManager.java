@@ -52,6 +52,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -366,11 +367,14 @@ public class EventManager
                 else
                 {
                     ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, eventToImport.getProgramStage() );
+                    Program program = workContext.getProgramsMap().get( eventToImport.getProgram() );
 
-                    if ( programStage == null )
+                    if ( programStage == null || program == null )
                     {
-                        final ImportSummary is = new ImportSummary( ERROR,
-                            "ProgramStage " + eventToImport.getProgramStage() + " does not point to a valid programStage" )
+                        String errorMessage = programStage == null ? "ProgramStage " + eventToImport.getProgramStage() + " does not point to a valid programStage" : 
+                            "Program " + eventToImport.getProgram() + " does not point to a valid program";
+
+                        final ImportSummary is = new ImportSummary( ERROR, errorMessage )
                                 .setReference( eventToImport.getUid() ).incrementIgnored();
 
                         importSummaries.addImportSummary( is );
@@ -379,7 +383,7 @@ public class EventManager
                     {
                         String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
 
-                        if ( programStage.getRepeatable() )
+                        if ( programStage.getRepeatable() || programStage.getProgram().isWithoutRegistration() )
                         {
                             importableEvents.add( eventToImport );
                         }
