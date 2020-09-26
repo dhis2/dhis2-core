@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
@@ -105,6 +105,11 @@ public class EventManager
     public ImportSummaries addEvents( final List<Event> events, final WorkContext workContext )
     {
         final ImportSummaries importSummaries = new ImportSummaries();
+
+        if ( CollectionUtils.isEmpty( events ) )
+        {
+            return importSummaries;
+        }
 
         // filter out events which are already in the database as well as
         // duplicates in the payload (if stage is not repeatable)
@@ -350,64 +355,62 @@ public class EventManager
     {
         List<Event> importableEvents = new ArrayList<>();
         Set<String> importableStageEvents = new HashSet<>();
-        if ( CollectionUtils.isNotEmpty( events ) )
-        {
-            final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
+        final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
 
-            for ( Event eventToImport : events )
+        for ( Event eventToImport : events )
+        {
+            ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, eventToImport.getProgramStage() );
+            Program program = workContext.getProgramsMap().get( eventToImport.getProgram() );
+
+            if ( programStage == null || program == null )
             {
-                if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
+                String errorMessage = programStage == null ? "ProgramStage " + eventToImport.getProgramStage() + " does not point to a valid programStage" :
+                    "Program " + eventToImport.getProgram() + " does not point to a valid program";
+
+                final ImportSummary is = new ImportSummary( ERROR, errorMessage )
+                        .setReference( eventToImport.getUid() ).incrementIgnored();
+
+                importSummaries.addImportSummary( is );
+
+                continue;
+            }
+
+            if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
+            {
+                final ImportSummary is = new ImportSummary( ERROR,
+                    "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
+                        .setReference( eventToImport.getUid() ).incrementIgnored();
+
+                importSummaries.addImportSummary( is );
+
+                continue;
+            }
+
+            if ( programStage.getRepeatable() || program.isWithoutRegistration() )
+            {
+                importableEvents.add( eventToImport );
+
+                continue;
+            }
+            else
+            {
+                String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
+
+                if ( !importableStageEvents.contains( eventContextId ) )
+                {
+                    importableStageEvents.add( eventContextId );
+                    importableEvents.add( eventToImport );
+                }
+                else
                 {
                     final ImportSummary is = new ImportSummary( ERROR,
-                        "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
+                        "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
                             .setReference( eventToImport.getUid() ).incrementIgnored();
 
                     importSummaries.addImportSummary( is );
                 }
-                else
-                {
-                    ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, eventToImport.getProgramStage() );
-                    Program program = workContext.getProgramsMap().get( eventToImport.getProgram() );
-
-                    if ( programStage == null || program == null )
-                    {
-                        String errorMessage = programStage == null ? "ProgramStage " + eventToImport.getProgramStage() + " does not point to a valid programStage" : 
-                            "Program " + eventToImport.getProgram() + " does not point to a valid program";
-
-                        final ImportSummary is = new ImportSummary( ERROR, errorMessage )
-                                .setReference( eventToImport.getUid() ).incrementIgnored();
-
-                        importSummaries.addImportSummary( is );
-                    }
-                    else
-                    {
-                        String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
-
-                        if ( programStage.getRepeatable() || programStage.getProgram().isWithoutRegistration() )
-                        {
-                            importableEvents.add( eventToImport );
-                        }
-                        else
-                        {
-                            if ( !importableStageEvents.contains( eventContextId ) )
-                            {
-                                importableStageEvents.add( eventContextId );
-                                importableEvents.add( eventToImport );
-                            }
-                            else
-                            {
-                                final ImportSummary is = new ImportSummary( ERROR,
-                                    "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
-                                        .setReference( eventToImport.getUid() ).incrementIgnored();
-
-                                importSummaries.addImportSummary( is );
-                            }
-                        }
-                    }
-                }
             }
         }
-
         return importableEvents;
     }
 
