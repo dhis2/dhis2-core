@@ -872,7 +872,7 @@ public class OrganisationUnit
     }
 
     @JsonProperty
-    @JsonSerialize( contentUsing = JacksonOrganisationUnitChildrenSerializer.class )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "children", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "child", namespace = DxfNamespaces.DXF_2_0 )
     public Set<OrganisationUnit> getChildren()
