@@ -114,7 +114,7 @@ public enum ConfigurationKey
 
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "empty", true ),
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "empty", true ),
-    OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL( "oidc.provider.google.redir_baseurl", "http://localhost:8080", true ),
+    OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL( "oidc.provider.google.redirect_baseurl", "http://localhost:8080", true ),
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true );
 
     private final String key;
