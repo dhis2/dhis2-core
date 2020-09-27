@@ -192,7 +192,7 @@ public class SystemSettingController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
-    public @ResponseBody String getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
+    public @ResponseBody Serializable getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
@@ -207,17 +207,17 @@ public class SystemSettingController
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-        String systemSettingValue = getSystemSettingOrTranslation( key, locale );
+        Serializable systemSettingValue = getSystemSettingOrTranslation( key, locale );
 
-        Map<String, String> systemSettingsForJsonGeneration = new HashMap<>();
-        systemSettingsForJsonGeneration.put( key, systemSettingValue );
+        Map<String, Serializable> settingMap = new HashMap<>();
+        settingMap.put( key, systemSettingValue );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJson( response.getOutputStream(), systemSettingsForJsonGeneration );
+        renderService.toJson( response.getOutputStream(), settingMap );
     }
 
-    private String getSystemSettingOrTranslation( String key, String locale )
+    private Serializable getSystemSettingOrTranslation( String key, String locale )
     {
         Optional<SettingKey> settingKey = SettingKey.getByName( key );
         if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
@@ -234,8 +234,7 @@ public class SystemSettingController
                 }
             }
 
-            Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
-            return setting != null ? String.valueOf( setting ) : StringUtils.EMPTY;
+            return systemSettingManager.getSystemSetting( settingKey.get() );
         }
 
         return StringUtils.EMPTY;
