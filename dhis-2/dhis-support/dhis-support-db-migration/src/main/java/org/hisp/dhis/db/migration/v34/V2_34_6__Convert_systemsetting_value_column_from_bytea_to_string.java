@@ -33,12 +33,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.sms.config.ContentType;
+import org.hisp.dhis.sms.config.GenericGatewayParameter;
+import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
+import org.hisp.dhis.sms.config.GenericHttpGetGatewayConfig;
+import org.hisp.dhis.sms.config.SmsConfiguration;
+import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
@@ -54,6 +63,12 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
 
     private static final String CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL = "SELECT data_type FROM information_schema.columns " +
         "WHERE table_name = 'systemsetting' AND column_name = 'value';";
+    
+    private static final String SMS_CONFIGURATION_SETTING_NAME = "keySmsSetting";
+    
+    //Copied from SimplisticHttpGetGateway.java
+    public static final String KEY_TEXT = "text";
+    public static final String KEY_RECIPIENT = "recipients";
 
     @Override
     public void migrate( final Context context ) throws Exception
@@ -88,8 +103,17 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                         SystemSetting systemSetting = new SystemSetting();
                         systemSetting.setId( rs.getLong( "systemsettingid" ) );
                         systemSetting.setName( name );
-                        systemSetting
-                            .setValue( (Serializable) SerializationUtils.deserialize( rs.getBytes( "value" ) ) );
+                       
+                        if ( SMS_CONFIGURATION_SETTING_NAME.equals( name ) )
+                        {
+                            SmsConfiguration smsConfiguration = (SmsConfiguration) SerializationUtils.deserialize( rs.getBytes( "value" ) );
+                            updateSmsConfiguration( smsConfiguration );
+                            systemSetting.setValue( smsConfiguration );
+                        }
+                        else
+                        {
+                            systemSetting.setValue( (Serializable) SerializationUtils.deserialize( rs.getBytes( "value" ) ) );
+                        }
 
                         systemSettingsToConvert.add( systemSetting );
                     }
@@ -137,6 +161,70 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
             log.error( "Exception occurred: " + e, e );
             throw e;
         }
+    }
+
+    private void updateSmsConfiguration( SmsConfiguration smsConfiguration )
+    {
+     
+        List<SmsGatewayConfig> existingGatewayConfigs = smsConfiguration.getGateways();
+        
+        List<SmsGatewayConfig> updatedGatewayConfigs = new ArrayList<>();
+        
+        for ( SmsGatewayConfig gatewayConfig : existingGatewayConfigs )
+        {
+            if ( gatewayConfig instanceof GenericHttpGetGatewayConfig )
+            {
+                GenericHttpGatewayConfig newGatewayConfig = convertToNewSmsGenericConfig((GenericHttpGetGatewayConfig)gatewayConfig);
+                updatedGatewayConfigs.add( newGatewayConfig );
+            }
+            else
+            {
+                updatedGatewayConfigs.add( gatewayConfig );
+            }
+        }
+        
+        smsConfiguration.setGateways( updatedGatewayConfigs );
+    }
+
+    private GenericHttpGatewayConfig convertToNewSmsGenericConfig( GenericHttpGetGatewayConfig gatewayConfig )
+    {
+        GenericHttpGatewayConfig newGatewayConfig = new GenericHttpGatewayConfig();
+        newGatewayConfig.setContentType( ContentType.FORM_URL_ENCODED );
+        newGatewayConfig.setDefault( gatewayConfig.isDefault() );
+        newGatewayConfig.setName( gatewayConfig.getName() );
+        newGatewayConfig.setParameters( gatewayConfig.getParameters() );
+        newGatewayConfig.setPassword( gatewayConfig.getPassword() );
+        newGatewayConfig.setUid( gatewayConfig.getUid() );
+        newGatewayConfig.setUrlTemplate( gatewayConfig.getUrlTemplate() );
+        newGatewayConfig.setUseGet( true );
+        newGatewayConfig.setSendUrlParameters( true );
+        newGatewayConfig.setUsername( gatewayConfig.getUsername() );
+        newGatewayConfig.setConfigurationTemplate( createConfigurationTemplateFromConfig( gatewayConfig ) );
+
+        return newGatewayConfig;
+    }
+
+    private String createConfigurationTemplateFromConfig( GenericHttpGetGatewayConfig gatewayConfig )
+    {
+        StringBuilder configTemplateBuilder = new StringBuilder();
+        if ( !StringUtils.isEmpty( gatewayConfig.getMessageParameter() ) )
+        {
+            configTemplateBuilder.append( gatewayConfig.getMessageParameter() ).append( "=${" ).append( KEY_TEXT ).append( "}&" );
+        }
+        
+        if ( !StringUtils.isEmpty( gatewayConfig.getRecipientParameter() ) )
+        {
+            configTemplateBuilder.append( gatewayConfig.getRecipientParameter() ).append( "=${" ).append( KEY_RECIPIENT ).append( "}&" );
+        }
+
+        for ( GenericGatewayParameter parameter : gatewayConfig.getParameters() )
+        {
+            if ( !parameter.isHeader() )
+            {
+                configTemplateBuilder.append( parameter.getKey() ).append( "=${" ).append( parameter.getKey() ).append( "}&" );
+            }
+        }
+        return configTemplateBuilder.toString();
     }
 
     public class SystemSetting
