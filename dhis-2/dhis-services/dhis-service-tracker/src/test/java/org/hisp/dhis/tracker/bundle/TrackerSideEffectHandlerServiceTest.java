@@ -133,7 +133,7 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
         trackerImportService.importTracker( params );
 
-        await().atMost( 10, TimeUnit.SECONDS ).until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
+        await().atMost( 2, TimeUnit.SECONDS ).until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
 
         List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
 
