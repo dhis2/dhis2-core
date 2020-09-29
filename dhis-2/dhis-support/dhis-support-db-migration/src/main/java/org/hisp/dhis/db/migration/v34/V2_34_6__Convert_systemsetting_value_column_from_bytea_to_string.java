@@ -183,7 +183,11 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
 
     private void updateSmsConfiguration( SmsConfiguration smsConfiguration )
     {
-
+        if ( smsConfiguration == null )
+        {
+            return;
+        }
+        
         List<SmsGatewayConfig> existingGatewayConfigs = smsConfiguration.getGateways();
 
         List<SmsGatewayConfig> updatedGatewayConfigs = new ArrayList<>();
