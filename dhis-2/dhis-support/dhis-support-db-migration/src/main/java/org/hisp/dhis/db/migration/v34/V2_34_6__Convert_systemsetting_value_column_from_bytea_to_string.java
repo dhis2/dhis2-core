@@ -59,6 +59,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author David Katuscak (katuscak.d@gmail.com)
  * @author Ameen Mohamed (ameen@dhis2.org)
  */
+@SuppressWarnings( "deprecation" )
 public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string extends BaseJavaMigration
 {
     private static final Logger log = LoggerFactory.getLogger( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
@@ -225,19 +226,19 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         StringBuilder configTemplateBuilder = new StringBuilder();
         if ( !StringUtils.isEmpty( gatewayConfig.getMessageParameter() ) )
         {
-            configTemplateBuilder.append( gatewayConfig.getMessageParameter() ).append( "=${" ).append( KEY_TEXT ).append( "}&" );
+            configTemplateBuilder.append( gatewayConfig.getMessageParameter() ).append( "={" ).append( KEY_TEXT ).append( "}&" );
         }
 
         if ( !StringUtils.isEmpty( gatewayConfig.getRecipientParameter() ) )
         {
-            configTemplateBuilder.append( gatewayConfig.getRecipientParameter() ).append( "=${" ).append( KEY_RECIPIENT ).append( "}&" );
+            configTemplateBuilder.append( gatewayConfig.getRecipientParameter() ).append( "={" ).append( KEY_RECIPIENT ).append( "}&" );
         }
 
         for ( GenericGatewayParameter parameter : gatewayConfig.getParameters() )
         {
             if ( !parameter.isHeader() )
             {
-                configTemplateBuilder.append( parameter.getKey() ).append( "=${" ).append( parameter.getKey() ).append( "}&" );
+                configTemplateBuilder.append( parameter.getKey() ).append( "={" ).append( parameter.getKey() ).append( "}&" );
             }
         }
         return configTemplateBuilder.toString();
