@@ -52,10 +52,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
+ * @author Ameen Mohamed (ameen@dhis2.org)
  */
 public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string extends BaseJavaMigration
 {
@@ -89,6 +91,14 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
             if ( continueWithMigration )
             {
                 ObjectMapper objectMapper = new ObjectMapper();
+                
+                ObjectMapper specialObjectMapper = new ObjectMapper();
+                specialObjectMapper.setVisibility( specialObjectMapper.getSerializationConfig()
+                    .getDefaultVisibilityChecker()
+                    .withFieldVisibility( Visibility.ANY )
+                    .withGetterVisibility( Visibility.NONE )
+                    .withSetterVisibility( Visibility.NONE )
+                    .withCreatorVisibility( Visibility.NONE ) );
 
                 //2. Fetch the data to convert if available
                 Set<SystemSetting> systemSettingsToConvert = new HashSet<>();
@@ -131,7 +141,14 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                 {
                     for ( SystemSetting systemSetting : systemSettingsToConvert )
                     {
-                        ps.setString( 1, objectMapper.writeValueAsString( systemSetting.getValue() ) );
+                        if ( systemSetting.getName().equals( SMS_CONFIGURATION_SETTING_NAME ) )
+                        {
+                            ps.setString( 1, specialObjectMapper.writeValueAsString( systemSetting.getValue() ) );
+                        }
+                        else
+                        {
+                            ps.setString( 1, objectMapper.writeValueAsString( systemSetting.getValue() ) );
+                        }
                         ps.setLong( 2, systemSetting.getId() );
 
                         ps.execute();
@@ -165,16 +182,16 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
 
     private void updateSmsConfiguration( SmsConfiguration smsConfiguration )
     {
-     
+
         List<SmsGatewayConfig> existingGatewayConfigs = smsConfiguration.getGateways();
-        
+
         List<SmsGatewayConfig> updatedGatewayConfigs = new ArrayList<>();
-        
+
         for ( SmsGatewayConfig gatewayConfig : existingGatewayConfigs )
         {
             if ( gatewayConfig instanceof GenericHttpGetGatewayConfig )
             {
-                GenericHttpGatewayConfig newGatewayConfig = convertToNewSmsGenericConfig((GenericHttpGetGatewayConfig)gatewayConfig);
+                GenericHttpGatewayConfig newGatewayConfig = convertToNewSmsGenericConfig( (GenericHttpGetGatewayConfig) gatewayConfig );
                 updatedGatewayConfigs.add( newGatewayConfig );
             }
             else
@@ -182,7 +199,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                 updatedGatewayConfigs.add( gatewayConfig );
             }
         }
-        
+
         smsConfiguration.setGateways( updatedGatewayConfigs );
     }
 
@@ -195,11 +212,10 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         newGatewayConfig.setParameters( gatewayConfig.getParameters() );
         newGatewayConfig.setPassword( gatewayConfig.getPassword() );
         newGatewayConfig.setUid( gatewayConfig.getUid() );
-        newGatewayConfig.setUrlTemplate( gatewayConfig.getUrlTemplate() );
+        newGatewayConfig.setUrlTemplate( gatewayConfig.getUrlTemplate() + "?" + createConfigurationTemplateFromConfig( gatewayConfig ) );
         newGatewayConfig.setUseGet( true );
         newGatewayConfig.setSendUrlParameters( true );
         newGatewayConfig.setUsername( gatewayConfig.getUsername() );
-        newGatewayConfig.setConfigurationTemplate( createConfigurationTemplateFromConfig( gatewayConfig ) );
 
         return newGatewayConfig;
     }
@@ -211,7 +227,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         {
             configTemplateBuilder.append( gatewayConfig.getMessageParameter() ).append( "=${" ).append( KEY_TEXT ).append( "}&" );
         }
-        
+
         if ( !StringUtils.isEmpty( gatewayConfig.getRecipientParameter() ) )
         {
             configTemplateBuilder.append( gatewayConfig.getRecipientParameter() ).append( "=${" ).append( KEY_RECIPIENT ).append( "}&" );
