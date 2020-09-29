@@ -28,46 +28,54 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
 
 /**
  * @author Zubair Asghar
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramNotificationInstance extends BaseIdentifiableObject
 {
-    private ProgramNotificationTemplate programNotificationTemplate;
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private ProgramNotificationTemplateSnapshot programNotificationTemplate;
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private ProgramInstance programInstance;
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private ProgramStageInstance programStageInstance;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Date sentAt;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Date scheduledAt;
-
-    public ProgramNotificationInstance()
-    {
-    }
-
-    public ProgramNotificationInstance( ProgramInstance programInstance, ProgramNotificationTemplate programNotificationTemplate,
-        ProgramStageInstance programStageInstance, Date scheduledAt, Date sentAt )
-    {
-        this.programInstance = programInstance;
-        this.programNotificationTemplate = programNotificationTemplate;
-        this.programStageInstance = programStageInstance;
-        this.scheduledAt = scheduledAt;
-        this.sentAt = sentAt;
-    }
 
     public boolean hasProgramInstance()
     {
@@ -79,66 +87,4 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
         return programStageInstance != null;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
-
-    public void setProgramInstance( ProgramInstance programInstance )
-    {
-        this.programInstance = programInstance;
-    }
-
-    @JsonProperty()
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramNotificationTemplate getProgramNotificationTemplate()
-    {
-        return programNotificationTemplate;
-    }
-
-    public void setProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
-    {
-        this.programNotificationTemplate = programNotificationTemplate;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
-
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        this.programStageInstance = programStageInstance;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getScheduledAt()
-    {
-        return scheduledAt;
-    }
-
-    public void setScheduledAt( Date scheduledAt )
-    {
-        this.scheduledAt = scheduledAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getSentAt()
-    {
-        return sentAt;
-    }
-
-    public void setSentAt( Date sentAt )
-    {
-        this.sentAt = sentAt;
-    }
 }

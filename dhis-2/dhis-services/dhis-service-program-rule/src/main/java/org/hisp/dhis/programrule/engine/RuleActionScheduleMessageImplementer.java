@@ -40,6 +40,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -62,14 +63,18 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
+    private final NotificationTemplateService notificationTemplateService;
+
     public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
          NotificationLoggingService notificationLoggingService,
          ProgramInstanceService programInstanceService,
          ProgramStageInstanceService programStageInstanceService,
-         ProgramNotificationInstanceService programNotificationInstanceService )
+         ProgramNotificationInstanceService programNotificationInstanceService,
+         NotificationTemplateService notificationTemplateService)
     {
         super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
         this.programNotificationInstanceService = programNotificationInstanceService;
+        this.notificationTemplateService = notificationTemplateService;
     }
 
     @Override
@@ -103,7 +108,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( null );
         notificationInstance.setProgramInstance( programInstance );
 
@@ -141,7 +146,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 

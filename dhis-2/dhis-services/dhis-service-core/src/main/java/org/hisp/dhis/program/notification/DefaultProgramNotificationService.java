@@ -28,6 +28,8 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.program.notification.NotificationTrigger.PROGRAM_RULE;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -38,7 +40,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,6 +58,7 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -68,66 +70,56 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.notification.ProgramNotificationService" )
 public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
-    private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
-        Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
-            pnt.getScheduledAt() != null && DateUtils.isToday( pnt.getScheduledAt() );
+
+    private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE =
+            pni -> Objects.nonNull( pni ) &&
+                    PROGRAM_RULE.equals( pni.getProgramNotificationTemplate().getNotificationTrigger() ) &&
+                    pni.getScheduledAt() != null &&
+                    DateUtils.isToday( pni.getScheduledAt() );
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @NonNull
     private final ProgramMessageService programMessageService;
-   
+
+    @NonNull
     private final MessageService messageService;
 
+    @NonNull
     private final ProgramInstanceStore programInstanceStore;
-   
+
+    @NonNull
     private final ProgramStageInstanceStore programStageInstanceStore;
-    
+
+    @NonNull
     private final IdentifiableObjectManager identifiableObjectManager;
-    
+
+    @NonNull
     private final NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
-    
+
+    @NonNull
     private final NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
 
+    @NonNull
     private final ProgramNotificationTemplateService notificationTemplateService;
 
-    public DefaultProgramNotificationService(ProgramMessageService programMessageService,
-         MessageService messageService, ProgramInstanceStore programInstanceStore,
-         ProgramStageInstanceStore programStageInstanceStore, IdentifiableObjectManager identifiableObjectManager,
-         NotificationMessageRenderer<ProgramInstance> programNotificationRenderer,
-         NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer,
-         ProgramNotificationTemplateService notificationTemplateService )
-    {
-
-        checkNotNull( programMessageService );
-        checkNotNull( messageService );
-        checkNotNull( programInstanceStore );
-        checkNotNull( programStageInstanceStore );
-        checkNotNull( identifiableObjectManager );
-        checkNotNull( programNotificationRenderer );
-        checkNotNull( programStageNotificationRenderer );
-        checkNotNull( notificationTemplateService );
-
-        this.programMessageService = programMessageService;
-        this.messageService = messageService;
-        this.programInstanceStore = programInstanceStore;
-        this.programStageInstanceStore = programStageInstanceStore;
-        this.identifiableObjectManager = identifiableObjectManager;
-        this.programNotificationRenderer = programNotificationRenderer;
-        this.programStageNotificationRenderer = programStageNotificationRenderer;
-        this.notificationTemplateService = notificationTemplateService;
-    }
+    @NonNull
+    private final NotificationTemplateMapper notificationTemplateMapper;
 
     // -------------------------------------------------------------------------
     // ProgramStageNotificationService implementation
@@ -162,23 +154,29 @@ public class DefaultProgramNotificationService
         Clock clock = new Clock( log ).startClock()
             .logTime( "Processing ProgramStageNotification messages scheduled by program rules" );
 
-        List<ProgramNotificationInstance> templates = identifiableObjectManager.getAll( ProgramNotificationInstance.class ).stream()
-            .filter( IS_SCHEDULED_BY_PROGRAM_RULE ).collect( Collectors.toList() );
+        List<ProgramNotificationInstance> programNotificationInstances = identifiableObjectManager
+            .getAll( ProgramNotificationInstance.class ).stream()
+            .filter( IS_SCHEDULED_BY_PROGRAM_RULE )
+            .collect( Collectors.toList() );
 
-        if ( templates.isEmpty() )
+        if ( programNotificationInstances.isEmpty() )
         {
             return;
         }
 
         int totalMessageCount;
 
-        List<MessageBatch> batches = templates.stream().filter( ProgramNotificationInstance::hasProgramInstance )
-            .map( t -> createProgramInstanceMessageBatch( t.getProgramNotificationTemplate(),
+        List<MessageBatch> batches = programNotificationInstances.stream()
+            .filter( ProgramNotificationInstance::hasProgramInstance )
+            .map( t -> createProgramInstanceMessageBatch(
+                notificationTemplateMapper.toProgramNotificationTemplate( t.getProgramNotificationTemplate() ),
                 Collections.singletonList( t.getProgramInstance() ) ) )
             .collect( Collectors.toList() );
 
-        batches.addAll( templates.stream().filter( ProgramNotificationInstance::hasProgramStageInstance )
-            .map( t -> createProgramStageInstanceMessageBatch( t.getProgramNotificationTemplate(),
+        batches.addAll( programNotificationInstances.stream()
+            .filter( ProgramNotificationInstance::hasProgramStageInstance )
+            .map( t -> createProgramStageInstanceMessageBatch(
+                notificationTemplateMapper.toProgramNotificationTemplate( t.getProgramNotificationTemplate() ),
                 Collections.singletonList( t.getProgramStageInstance() ) ) )
             .collect( Collectors.toList() ) );
 
@@ -276,7 +274,7 @@ public class DefaultProgramNotificationService
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
-        if ( programInstance == null  )
+        if ( programInstance == null )
         {
             return;
         }
@@ -394,7 +392,7 @@ public class DefaultProgramNotificationService
             {
                 Set<User> parents = Sets.newHashSet();
 
-                recipients.forEach(r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
+                recipients.forEach( r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
 
                 return parents;
             }
@@ -524,9 +522,7 @@ public class DefaultProgramNotificationService
             messageService.sendMessage(
                 new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
                     .withForceNotification( true )
-                    .build()
-            )
-        );
+                    .build() ) );
     }
 
     private void sendProgramMessages( Set<ProgramMessage> messages )

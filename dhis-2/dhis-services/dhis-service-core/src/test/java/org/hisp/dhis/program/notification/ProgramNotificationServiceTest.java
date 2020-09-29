@@ -31,7 +31,12 @@ package org.hisp.dhis.program.notification;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +52,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.notification.*;
+import org.hisp.dhis.notification.NotificationMessage;
+import org.hisp.dhis.notification.NotificationMessageRenderer;
+import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Program;
@@ -59,6 +66,7 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -69,9 +77,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Sets;
-import org.mockito.junit.MockitoRule;
 
 /**
  * @author Zubair Asghar.
@@ -114,6 +122,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     @Mock
     private ProgramNotificationTemplateService notificationTemplateService;
+
+    private NotificationTemplateMapper notificationTemplateMapper = new NotificationTemplateMapper();
 
     private DefaultProgramNotificationService programNotificationService;
 
@@ -162,7 +172,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
             this.messageService, this.programInstanceStore, this.programStageInstanceStore, this.manager,
-            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateService );
+            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateService,
+            notificationTemplateMapper );
 
         setUpInstances();
 
@@ -607,7 +618,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
 
         programNotificationInstaceForToday = new ProgramNotificationInstance();
-        programNotificationInstaceForToday.setProgramNotificationTemplate( programNotificationTemplateForToday );
+        programNotificationInstaceForToday.setProgramNotificationTemplate( notificationTemplateMapper.toProgramNotificationTemplateSnapshot( programNotificationTemplateForToday ) );
         programNotificationInstaceForToday.setName( programNotificationTemplateForToday.getName() );
         programNotificationInstaceForToday.setAutoFields();
         programNotificationInstaceForToday.setScheduledAt( today );
