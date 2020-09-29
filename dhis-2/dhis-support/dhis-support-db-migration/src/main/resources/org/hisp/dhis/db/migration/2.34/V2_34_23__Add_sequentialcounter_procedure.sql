@@ -1,6 +1,7 @@
 -- remove primary key on id
-alter table sequentialnumbercounter drop constraint sequentialnumbercounter_pkey;
+alter table sequentialnumbercounter drop constraint if exists sequentialnumbercounter_pkey;
 -- create composite primary key
+alter table sequentialnumbercounter drop constraint if exists seqnumcount_pkey;
 alter table sequentialnumbercounter add constraint seqnumcount_pkey primary key (owneruid, key);
 
 CREATE OR REPLACE FUNCTION incrementSequentialCounter(counter_owner text, counter_key text, size integer) RETURNS integer AS $$
