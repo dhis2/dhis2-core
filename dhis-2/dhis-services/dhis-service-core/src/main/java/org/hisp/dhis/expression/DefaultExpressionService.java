@@ -28,57 +28,8 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.Boolean.FALSE;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castBoolean;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
-import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
-import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
-import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
-import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_EVALUATE;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_IDS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_ORG_UNIT_GROUPS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.DAYS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.I_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_SAMP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
-import static org.springframework.util.ObjectUtils.isEmpty;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
@@ -124,9 +75,39 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.Boolean.FALSE;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castBoolean;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_EVALUATE;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_IDS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_ORG_UNIT_GROUPS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 /**
  * The expression is a string describing a formula containing data element ids
