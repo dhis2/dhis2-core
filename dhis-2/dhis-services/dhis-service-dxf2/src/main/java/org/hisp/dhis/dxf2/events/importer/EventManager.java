@@ -370,63 +370,36 @@ public class EventManager
                 continue;
             }
 
-            boolean isValid = isValidEvent( workContext, eventToImport, importableStageEvents, importSummaries );
+            Program program = workContext.getProgramsMap().get( eventToImport.getProgram() );
 
-            if ( isValid )
+            ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, eventToImport.getProgramStage() );
+
+            if ( program != null && programStage != null && program.isRegistration() && !programStage.getRepeatable() )
+            {
+                String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
+
+                if ( importableStageEvents.contains( eventContextId ) )
+                {
+                    final ImportSummary is = new ImportSummary( ERROR,
+                        "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
+                            .setReference( eventToImport.getUid() ).incrementIgnored();
+
+                    importSummaries.addImportSummary( is );
+                }
+                else
+                {
+                    importableEvents.add( eventToImport );
+
+                    importableStageEvents.add( eventContextId );
+                }
+            }
+            else
             {
                 importableEvents.add( eventToImport );
             }
         }
+
         return importableEvents;
-    }
-
-    private boolean isValidEvent(final WorkContext workContext, Event event, Set<String> importableStageEvents, final ImportSummaries importSummaries )
-    {
-        Program program = workContext.getProgramsMap().get( event.getProgram() );
-
-        ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, event.getProgramStage() );
-
-        if ( program == null )
-        {
-            final ImportSummary is = new ImportSummary( ERROR, "Program " + event.getProgram() + " does not point to a valid program" )
-                    .setReference( event.getUid() ).incrementIgnored();
-
-            importSummaries.addImportSummary( is );
-
-            return false;
-        }
-
-        if ( programStage == null )
-        {
-            final ImportSummary is = new ImportSummary( ERROR, "ProgramStage " + event.getProgramStage() + " does not point to a valid programStage" )
-                    .setReference( event.getUid() ).incrementIgnored();
-
-            importSummaries.addImportSummary( is );
-
-            return false;
-        }
-
-        if ( programStage.getRepeatable() || program.isWithoutRegistration() )
-        {
-            return true;
-        }
-
-        String eventContextId = programStage.getUid() + "-" + event.getEnrollment();
-
-        if ( importableStageEvents.contains( eventContextId ) )
-        {
-            final ImportSummary is = new ImportSummary( ERROR,
-                "ProgramStage " + event.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
-                    .setReference( event.getUid() ).incrementIgnored();
-
-            importSummaries.addImportSummary( is );
-
-            return false;
-        }
-
-        importableStageEvents.add( eventContextId );
-
-        return true;
     }
 
     private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents,
