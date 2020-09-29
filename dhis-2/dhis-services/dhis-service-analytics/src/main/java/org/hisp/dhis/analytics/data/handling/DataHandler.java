@@ -236,7 +236,11 @@ public class DataHandler
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
+            // Try to get filters periods from dimension (pe), or else fallback to
+            // "startDate/endDate" periods.
+            List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
+                ? dataSourceParams.getTypedFilterPeriods()
+                : singletonList( dataSourceParams.getStartEndDatesAsPeriod() );
 
             Map<String, Constant> constantMap = constantService.getConstantMap();
 

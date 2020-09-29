@@ -2333,6 +2333,20 @@ public class DataQueryParams
     }
 
     /**
+     * Returns a Period object based on the "startDate" and "endDate" dates.
+     *
+     * @return the Period
+     */
+    public Period getStartEndDatesAsPeriod()
+    {
+        final Period period = new Period();
+        period.setStartDate( getStartDate() );
+        period.setEndDate( getEndDate() );
+
+        return period;
+    }
+
+    /**
      * Returns all organisation units part of the organisation unit dimension.
      */
     public List<DimensionalItemObject> getOrganisationUnits()
