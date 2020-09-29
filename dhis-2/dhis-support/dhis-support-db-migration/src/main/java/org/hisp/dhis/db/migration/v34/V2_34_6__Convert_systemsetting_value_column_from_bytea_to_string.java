@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -91,44 +92,8 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
 
             if ( continueWithMigration )
             {
-                ObjectMapper objectMapper = new ObjectMapper();
-                
-                ObjectMapper specialObjectMapper = new ObjectMapper();
-                specialObjectMapper.setVisibility( specialObjectMapper.getSerializationConfig()
-                    .getDefaultVisibilityChecker()
-                    .withFieldVisibility( Visibility.ANY )
-                    .withGetterVisibility( Visibility.NONE )
-                    .withSetterVisibility( Visibility.NONE )
-                    .withCreatorVisibility( Visibility.NONE ) );
-
                 //2. Fetch the data to convert if available
-                Set<SystemSetting> systemSettingsToConvert = new HashSet<>();
-
-                try ( Statement stmt = context.getConnection().createStatement();
-                    ResultSet rs = stmt.executeQuery( "select * from systemsetting" ); )
-                {
-                    while ( rs.next() )
-                    {
-                        String name = rs.getString( "name" );
-
-                        SystemSetting systemSetting = new SystemSetting();
-                        systemSetting.setId( rs.getLong( "systemsettingid" ) );
-                        systemSetting.setName( name );
-                       
-                        if ( SMS_CONFIGURATION_SETTING_NAME.equals( name ) )
-                        {
-                            SmsConfiguration smsConfiguration = (SmsConfiguration) SerializationUtils.deserialize( rs.getBytes( "value" ) );
-                            updateSmsConfiguration( smsConfiguration );
-                            systemSetting.setValue( smsConfiguration );
-                        }
-                        else
-                        {
-                            systemSetting.setValue( (Serializable) SerializationUtils.deserialize( rs.getBytes( "value" ) ) );
-                        }
-
-                        systemSettingsToConvert.add( systemSetting );
-                    }
-                }
+                Set<SystemSetting> systemSettingsToConvert = fetchExistingSystemSettings( context );
 
                 //3. Create a new column of type varchar in systemsetting table
                 try ( Statement stmt = context.getConnection().createStatement() )
@@ -137,29 +102,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                 }
 
                 //4. Fill the new column with transformed data
-                try ( PreparedStatement ps = context.getConnection()
-                    .prepareStatement( "UPDATE systemsetting SET value_text = ? WHERE systemsettingid = ?" ) )
-                {
-                    for ( SystemSetting systemSetting : systemSettingsToConvert )
-                    {
-                        if ( systemSetting.getName().equals( SMS_CONFIGURATION_SETTING_NAME ) )
-                        {
-                            ps.setString( 1, specialObjectMapper.writeValueAsString( systemSetting.getValue() ) );
-                        }
-                        else
-                        {
-                            ps.setString( 1, objectMapper.writeValueAsString( systemSetting.getValue() ) );
-                        }
-                        ps.setLong( 2, systemSetting.getId() );
-
-                        ps.execute();
-                    }
-                }
-                catch ( SQLException e )
-                {
-                    log.error( "Flyway java migration error:", e );
-                    throw new FlywayException( e );
-                }
+                fillNewColWithTransformedData( context, systemSettingsToConvert );
 
                 //5. Delete old byte array column for value in systemsetting table
                 try ( Statement stmt = context.getConnection().createStatement() )
@@ -178,6 +121,77 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         {
             log.error( "Exception occurred: " + e, e );
             throw e;
+        }
+    }
+
+    private Set<SystemSetting> fetchExistingSystemSettings( final Context context )
+        throws SQLException
+    {
+        Set<SystemSetting> systemSettingsToConvert = new HashSet<>();
+
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( "select * from systemsetting" ); )
+        {
+            while ( rs.next() )
+            {
+                String name = rs.getString( "name" );
+
+                SystemSetting systemSetting = new SystemSetting();
+                systemSetting.setId( rs.getLong( "systemsettingid" ) );
+                systemSetting.setName( name );
+               
+                if ( SMS_CONFIGURATION_SETTING_NAME.equals( name ) )
+                {
+                    SmsConfiguration smsConfiguration = (SmsConfiguration) SerializationUtils.deserialize( rs.getBytes( "value" ) );
+                    updateSmsConfiguration( smsConfiguration );
+                    systemSetting.setValue( smsConfiguration );
+                }
+                else
+                {
+                    systemSetting.setValue( (Serializable) SerializationUtils.deserialize( rs.getBytes( "value" ) ) );
+                }
+
+                systemSettingsToConvert.add( systemSetting );
+            }
+        }
+        return systemSettingsToConvert;
+    }
+
+    private void fillNewColWithTransformedData( final Context context, Set<SystemSetting> systemSettingsToConvert )
+        throws JsonProcessingException
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        ObjectMapper specialObjectMapper = new ObjectMapper();
+        specialObjectMapper.setVisibility( specialObjectMapper.getSerializationConfig()
+            .getDefaultVisibilityChecker()
+            .withFieldVisibility( Visibility.ANY )
+            .withGetterVisibility( Visibility.NONE )
+            .withSetterVisibility( Visibility.NONE )
+            .withCreatorVisibility( Visibility.NONE ) );
+        
+        try ( PreparedStatement ps = context.getConnection()
+            .prepareStatement( "UPDATE systemsetting SET value_text = ? WHERE systemsettingid = ?" ) )
+        {
+            for ( SystemSetting systemSetting : systemSettingsToConvert )
+            {
+                if ( systemSetting.getName().equals( SMS_CONFIGURATION_SETTING_NAME ) )
+                {
+                    ps.setString( 1, specialObjectMapper.writeValueAsString( systemSetting.getValue() ) );
+                }
+                else
+                {
+                    ps.setString( 1, objectMapper.writeValueAsString( systemSetting.getValue() ) );
+                }
+                ps.setLong( 2, systemSetting.getId() );
+
+                ps.execute();
+            }
+        }
+        catch ( SQLException e )
+        {
+            log.error( "Flyway java migration error:", e );
+            throw new FlywayException( e );
         }
     }
 
