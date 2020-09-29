@@ -246,7 +246,14 @@ public class SystemSettingController
                 }
             }
 
-            return systemSettingManager.getSystemSetting( settingKey.get() );
+            Serializable systemSetting = systemSettingManager.getSystemSetting( settingKey.get() );
+
+            if ( systemSetting == null )
+            {
+                return StringUtils.EMPTY;
+            }
+
+            return systemSetting;
         }
 
         return StringUtils.EMPTY;
