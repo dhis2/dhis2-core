@@ -65,8 +65,9 @@ public class FlywayConfig
             Boolean.parseBoolean( configurationProvider.getProperty( FLYWAY_OUT_OF_ORDER_MIGRATION ) ) );
         classicConfiguration.setIgnoreMissingMigrations( true );
         classicConfiguration.setIgnoreFutureMigrations( false );
-        classicConfiguration.setGroup( false );
+        classicConfiguration.setGroup( true );
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
+        classicConfiguration.setMixed( true );
 
         /*
          * This placeHolder is to be used by V2_33_26__Fix_encryption_issue_for_TEI_attributeValues
