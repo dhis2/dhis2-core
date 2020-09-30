@@ -52,6 +52,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.InitializingBean;
 
+import com.google.common.base.Preconditions;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
@@ -71,6 +72,18 @@ public class DefaultDataSourceManager
     private static final int MAX_READ_REPLICAS = 5;
     private static final String DEFAULT_POOL_SIZE = "40";
 
+    private final DhisConfigurationProvider config;
+
+    private final DataSource mainDataSource;
+
+    public DefaultDataSourceManager( DhisConfigurationProvider config, DataSource mainDataSource )
+    {
+        Preconditions.checkNotNull( config );
+        Preconditions.checkNotNull( mainDataSource );
+        this.config = config;
+        this.mainDataSource = mainDataSource;
+    }
+
     /**
      * State holder for the resolved read only data source.
      */
@@ -88,24 +101,6 @@ public class DefaultDataSourceManager
 
         this.internalReadOnlyInstanceList = ds;
         this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource( ds ) : mainDataSource;
-    }
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private DhisConfigurationProvider config;
-
-    public void setConfig( DhisConfigurationProvider config )
-    {
-        this.config = config;
-    }
-
-    private DataSource mainDataSource;
-
-    public void setMainDataSource( DataSource mainDataSource )
-    {
-        this.mainDataSource = mainDataSource;
     }
 
     // -------------------------------------------------------------------------
