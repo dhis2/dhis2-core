@@ -28,16 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -58,7 +48,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -137,7 +149,7 @@ public class SystemSettingController
     }
 
     private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
-        HttpServletResponse response, HttpServletRequest request) throws WebMessageException
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         try
         {
@@ -192,12 +204,12 @@ public class SystemSettingController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
-    public @ResponseBody String getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
+    public @ResponseBody Serializable getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-        return getSystemSettingOrTranslation( key, locale );
+        return String.valueOf( getSystemSettingOrTranslation( key, locale ) );
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
@@ -207,17 +219,17 @@ public class SystemSettingController
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-        String systemSettingValue = getSystemSettingOrTranslation( key, locale );
+        Serializable systemSettingValue = getSystemSettingOrTranslation( key, locale );
 
-        Map<String, String> systemSettingsForJsonGeneration = new HashMap<>();
-        systemSettingsForJsonGeneration.put( key, systemSettingValue );
+        Map<String, Serializable> settingMap = new HashMap<>();
+        settingMap.put( key, systemSettingValue );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJson( response.getOutputStream(), systemSettingsForJsonGeneration );
+        renderService.toJson( response.getOutputStream(), settingMap );
     }
 
-    private String getSystemSettingOrTranslation( String key, String locale )
+    private Serializable getSystemSettingOrTranslation( String key, String locale )
     {
         Optional<SettingKey> settingKey = SettingKey.getByName( key );
         if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
@@ -234,8 +246,14 @@ public class SystemSettingController
                 }
             }
 
-            Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
-            return setting != null ? String.valueOf( setting ) : StringUtils.EMPTY;
+            Serializable systemSetting = systemSettingManager.getSystemSetting( settingKey.get() );
+
+            if ( systemSetting == null )
+            {
+                return StringUtils.EMPTY;
+            }
+
+            return systemSetting;
         }
 
         return StringUtils.EMPTY;
