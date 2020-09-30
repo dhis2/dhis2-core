@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +67,9 @@ public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook
         query.setParameter( "name", programRule.getName() );
         query.setParameter( "programUid", programRule.getProgram().getUid() );
 
-        if ( !query.getResultList().isEmpty() )
+        int allowedCount = bundle.getImportMode() == ImportStrategy.UPDATE ? 1 : 0;
+
+        if ( query.getResultList().size() > allowedCount )
         {
             return ImmutableList.of(
                 new ErrorReport( ProgramRule.class, ErrorCode.E4031, programRule.getName() ) );
