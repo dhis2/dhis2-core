@@ -126,7 +126,7 @@ public class AzureAdProvider extends DhisOidcProvider
             builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
             boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull( config.getProperties()
-                .getProperty( PROVIDER_PREFIX + i + AZURE_MAPPING_CLAIM ), "TRUE" ) );
+                .getProperty( PROVIDER_PREFIX + i + AZURE_SUPPORT_LOGOUT ), "TRUE" ) );
 
             if ( supportLogout )
             {
