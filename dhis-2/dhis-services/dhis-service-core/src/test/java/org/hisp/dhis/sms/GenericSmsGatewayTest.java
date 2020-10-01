@@ -180,7 +180,7 @@ public class GenericSmsGatewayTest
             if ( parameter.isHeader() )
             {
                 assertTrue( httpHeaders.containsKey( parameter.getKey() ) );
-                assertEquals( parameter.getDisplayValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
+                assertEquals( parameter.getValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
             }
         }
     }
@@ -191,8 +191,8 @@ public class GenericSmsGatewayTest
         username.setHeader( false );
         password.setHeader( false );
 
-        valueStore.put( username.getKey(), username.getDisplayValue() );
-        valueStore.put( password.getKey(), password.getDisplayValue() );
+        valueStore.put( username.getKey(), username.getValue() );
+        valueStore.put( password.getKey(), password.getValue() );
 
         strSubstitutor = new StrSubstitutor( valueStore );
 
