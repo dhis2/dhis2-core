@@ -61,7 +61,7 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
         throws Exception
     {
         getCandidates( context.getConnection() )
-            .forEach( candidate -> renameOccurrencesWithPrefix( candidate, context.getConnection() ) );
+            .forEach( candidate -> renameOccurrencesWithSuffix( candidate, context.getConnection() ) );
     }
 
     private List<Pair<Long, String>> getCandidates( Connection connection )
@@ -87,7 +87,7 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
     }
 
     @SneakyThrows
-    private void renameOccurrencesWithPrefix( Pair<Long, String> candidate, Connection connection )
+    private void renameOccurrencesWithSuffix( Pair<Long, String> candidate, Connection connection )
     {
         Long programId = candidate.getLeft();
         String ruleName = candidate.getRight();

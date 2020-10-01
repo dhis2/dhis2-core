@@ -65,7 +65,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         throws Exception
     {
         Collection<String> affectedRules = getCandidates( context.getConnection() ).stream()
-            .map( candidate -> renameOccurrencesWithPrefix( candidate, context.getConnection() ) )
+            .map( candidate -> renameOccurrencesWithSuffix( candidate, context.getConnection() ) )
             .collect( Collectors.toSet() )
             .stream()
             .flatMap( Collection::stream )
@@ -107,7 +107,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     }
 
     @SneakyThrows
-    private Collection<String> renameOccurrencesWithPrefix( Pair<Long, String> candidate, Connection connection )
+    private Collection<String> renameOccurrencesWithSuffix( Pair<Long, String> candidate, Connection connection )
     {
         Long programId = candidate.getLeft();
         String variableName = candidate.getRight();
