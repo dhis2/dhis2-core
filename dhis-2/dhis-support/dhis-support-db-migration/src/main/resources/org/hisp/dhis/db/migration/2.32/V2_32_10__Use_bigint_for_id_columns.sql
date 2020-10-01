@@ -1,5 +1,18 @@
 -- datavalueaudit table and its foreign key references
-alter table datavalueaudit alter column datavalueauditid type bigint;
+alter table datavalueaudit
+      alter column datavalueauditid type bigint,
+      alter column dataelementid type bigint,
+      alter column periodid type bigint,
+      alter column organisationunitid type bigint,
+      alter column categoryoptioncomboid type bigint,
+      alter column attributeoptioncomboid type bigint;
+
+alter table datavalue
+      alter column dataelementid type bigint,
+      alter column periodid type bigint,
+      alter column sourceid type bigint,
+      alter column categoryoptioncomboid type bigint,
+      alter column attributeoptioncomboid type bigint;
 
 -- programstageinstance table and its foreign key references
 alter table programstageinstance alter column programstageinstanceid type bigint;
@@ -262,16 +275,6 @@ alter table datasetuseraccesses alter column datasetid type bigint;
 alter table datasetusergroupaccesses alter column datasetid type bigint;
 alter table datastatistics alter column statisticsid type bigint;
 alter table datastatistics alter column lastupdatedby type bigint;
-alter table datavalue alter column dataelementid type bigint;
-alter table datavalue alter column periodid type bigint;
-alter table datavalue alter column sourceid type bigint;
-alter table datavalue alter column categoryoptioncomboid type bigint;
-alter table datavalue alter column attributeoptioncomboid type bigint;
-alter table datavalueaudit alter column dataelementid type bigint;
-alter table datavalueaudit alter column periodid type bigint;
-alter table datavalueaudit alter column organisationunitid type bigint;
-alter table datavalueaudit alter column categoryoptioncomboid type bigint;
-alter table datavalueaudit alter column attributeoptioncomboid type bigint;
 alter table deletedobject alter column deletedobjectid type bigint;
 alter table document alter column documentid type bigint;
 alter table document alter column lastupdatedby type bigint;
