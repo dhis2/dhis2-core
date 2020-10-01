@@ -33,6 +33,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
@@ -78,8 +79,8 @@ public class DefaultDataSourceManager
 
     public DefaultDataSourceManager( DhisConfigurationProvider config, DataSource mainDataSource )
     {
-        Preconditions.checkNotNull( config );
-        Preconditions.checkNotNull( mainDataSource );
+        checkNotNull( config );
+        checkNotNull( mainDataSource );
         this.config = config;
         this.mainDataSource = mainDataSource;
     }
