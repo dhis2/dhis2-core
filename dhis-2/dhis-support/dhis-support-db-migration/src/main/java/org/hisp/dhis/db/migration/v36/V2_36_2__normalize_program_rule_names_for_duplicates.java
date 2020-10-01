@@ -28,13 +28,15 @@ package org.hisp.dhis.db.migration.v36;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.findAvailableName;
+import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.renameAll;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -106,48 +108,13 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
 
             }
         }
-        renameAll( ruleName, uidWithNewNames, new HashSet<>( uidWithNewNames.values() ), connection );
-    }
-
-    private void renameAll( String variableName, Map<String, String> uidWithNewNames, Set<String> existingNames,
-        Connection connection )
-    {
-        uidWithNewNames.entrySet().stream()
-            .filter( entry -> entry.getValue().equals( variableName ) )
-            .skip( 1 )
-            .map( entry -> renameOne( entry, existingNames, connection ) )
-            .forEach( updateQuery -> executeUpdate( updateQuery, connection ) );
+        renameAll( ruleName, uidWithNewNames, connection, this::getUpdateQuery );
     }
 
     @SneakyThrows
-    private void executeUpdate( String updateQuery, Connection connection )
-    {
-        try (final Statement stmt = connection.createStatement())
-        {
-            stmt.executeUpdate( updateQuery );
-        }
-    }
-
-    @SneakyThrows
-    private String renameOne( Map.Entry<String, String> uidNameEntry, Set<String> existingNames, Connection connection )
+    private String getUpdateQuery( Map.Entry<String, String> uidNameEntry, Set<String> existingNames )
     {
         return "UPDATE programrule SET name='" + findAvailableName( uidNameEntry.getValue(), existingNames )
             + "' WHERE uid= '" + uidNameEntry.getKey() + "'";
-    }
-
-    private String findAvailableName( String originalRuleName, Set<String> existingNames )
-    {
-        int i = 2;
-        while ( i < 99 )
-        {
-            String proposedName = originalRuleName + "-" + i;
-            if ( !existingNames.contains( proposedName ) )
-            {
-                existingNames.add( proposedName );
-                return proposedName;
-            }
-            i++;
-        }
-        throw new IllegalStateException( "Unable to detect a unique name for rule " + originalRuleName );
     }
 }

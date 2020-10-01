@@ -28,16 +28,22 @@ package org.hisp.dhis.db.migration.v36;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.findAvailableName;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
@@ -58,8 +64,21 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     public void migrate( Context context )
         throws Exception
     {
-        getCandidates( context.getConnection() )
-            .forEach( candidate -> renameOccurrencesWithPrefix( candidate, context.getConnection() ) );
+        Collection<String> affectedRules = getCandidates( context.getConnection() ).stream()
+            .map( candidate -> renameOccurrencesWithPrefix( candidate, context.getConnection() ) )
+            .collect( Collectors.toSet() )
+            .stream()
+            .flatMap( Collection::stream )
+            .collect( Collectors.toSet() );
+
+        if ( !affectedRules.isEmpty() )
+        {
+            log.warn(
+                "The following rules have variables whose names were formerly duplicated by some other variables. " +
+                    "Some of the following rules might not work as expected after this migration, please review them: "
+                    + affectedRules );
+        }
+
     }
 
     private List<Pair<Long, String>> getCandidates( Connection connection )
@@ -88,19 +107,19 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     }
 
     @SneakyThrows
-    private void renameOccurrencesWithPrefix( Pair<Long, String> candidate, Connection connection )
+    private Collection<String> renameOccurrencesWithPrefix( Pair<Long, String> candidate, Connection connection )
     {
         Long programId = candidate.getLeft();
         String variableName = candidate.getRight();
 
-        final String programRulesToRenameSql = "SELECT uid, name" +
+        final String programRulesVariableToRenameSql = "SELECT uid, name" +
             " FROM programrulevariable where programid = " + programId +
             " AND name like '" + variableName + "%'";
 
         Map<String, String> uidWithNewNames = new HashMap<>();
 
         try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( programRulesToRenameSql ))
+            final ResultSet rs = stmt.executeQuery( programRulesVariableToRenameSql ))
         {
             while ( rs.next() )
             {
@@ -109,48 +128,91 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
             }
         }
-        renameAll( variableName, uidWithNewNames, new HashSet<>( uidWithNewNames.values() ), connection );
-    }
 
-    private void renameAll( String variableName, Map<String, String> uidWithNewNames, Set<String> existingNames,
-        Connection connection )
-    {
-        uidWithNewNames.entrySet().stream()
-            .filter( entry -> entry.getValue().equals( variableName ) )
-            .skip( 1 )
-            .map( entry -> renameOne( entry, existingNames, connection ) )
-            .forEach( updateQuery -> executeUpdate( updateQuery, connection ) );
+        Collection<String> renamedVariableNames = ProgramRuleMigrationUtils.renameAll( variableName, uidWithNewNames,
+            connection, this::getUpdateQuery );
+
+        return getAffectedRules( renamedVariableNames, connection );
+
     }
 
     @SneakyThrows
-    private void executeUpdate( String updateQuery, Connection connection )
+    private Collection<String> getAffectedRules( Collection<String> renamedVariableNames, Connection connection )
     {
-        try (final Statement stmt = connection.createStatement())
+        if ( !renamedVariableNames.isEmpty() )
         {
-            stmt.executeUpdate( updateQuery );
+            String affectedRulesSql = "SELECT name FROM programrule WHERE " + renamedVariableNames.stream()
+                .map( variableName -> "rulecondition LIKE '%{" + variableName + "}%'" )
+                .collect( Collectors.joining( " OR " ) );
+
+            try (final Statement stmt = connection.createStatement();
+                ResultSet resultSet = stmt.executeQuery( affectedRulesSql ))
+            {
+                Collection<String> rules = new HashSet<>();
+
+                while ( resultSet.next() )
+                {
+                    String ruleName = resultSet.getString( "name" );
+                    rules.add( ruleName );
+                }
+                return rules;
+            }
         }
+        return Collections.emptySet();
     }
 
     @SneakyThrows
-    private String renameOne( Map.Entry<String, String> uidNameEntry, Set<String> existingNames, Connection connection )
+    private String getUpdateQuery( Map.Entry<String, String> uidNameEntry, Set<String> existingNames )
     {
         return "UPDATE programrulevariable SET name='" + findAvailableName( uidNameEntry.getValue(), existingNames )
             + "' WHERE uid= '" + uidNameEntry.getKey() + "'";
     }
 
-    private String findAvailableName( String originalVariableName, Set<String> existingNames )
+    static class ProgramRuleMigrationUtils
     {
-        int i = 2;
-        while ( i < 99 )
+
+        static String findAvailableName( String originalVariableName, Set<String> existingNames )
         {
-            String proposedName = originalVariableName + "-" + i;
-            if ( !existingNames.contains( proposedName ) )
+            int i = 2;
+            while ( i < 99 )
             {
-                existingNames.add( proposedName );
-                return proposedName;
+                String proposedName = originalVariableName + "-" + i;
+                if ( !existingNames.contains( proposedName ) )
+                {
+                    existingNames.add( proposedName );
+                    return proposedName;
+                }
+                i++;
             }
-            i++;
+            throw new IllegalStateException(
+                "Unable to detect a unique name for rule variable " + originalVariableName );
         }
-        throw new IllegalStateException( "Unable to detect a unique name for rule variable " + originalVariableName );
+
+        @SneakyThrows
+        static void executeUpdate( String updateQuery, Connection connection )
+        {
+            try (final Statement stmt = connection.createStatement())
+            {
+                stmt.executeUpdate( updateQuery );
+            }
+        }
+
+        static Collection<String> renameAll( String variableName, Map<String, String> uidWithNewNames,
+            Connection connection,
+            BiFunction<Map.Entry<String, String>, Set<String>, String> updateQuerySupplier )
+        {
+            Collection<String> renamedVariableNames = new HashSet<>();
+
+            Set<String> existingNames = new HashSet<>( uidWithNewNames.values() );
+
+            uidWithNewNames.entrySet().stream()
+                .filter( entry -> entry.getValue().equals( variableName ) )
+                .skip( 1 )
+                .peek( entry -> renamedVariableNames.add( entry.getValue() ) )
+                .map( entry -> updateQuerySupplier.apply( entry, existingNames ) )
+                .forEach( updateQuery -> executeUpdate( updateQuery, connection ) );
+
+            return renamedVariableNames;
+        }
     }
 }
