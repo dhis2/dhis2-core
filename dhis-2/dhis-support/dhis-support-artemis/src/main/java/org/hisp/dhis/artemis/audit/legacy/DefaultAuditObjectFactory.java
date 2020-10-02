@@ -40,6 +40,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -145,7 +146,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         }
         catch ( JsonProcessingException e )
         {
-            log.error( DebugUtils.getStackTrace( e ) );
+            log.debug( DebugUtils.getStackTrace( e ) );
         }
 
         return null;
