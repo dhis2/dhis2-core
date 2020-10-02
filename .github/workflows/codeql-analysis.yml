@@ -5,7 +5,12 @@
 # or to provide custom queries or build logic.
 name: "CodeQL"
 
-on: [pull_request]
+on:
+  pull_request:
+    branches:
+      - '**'
+  schedule:
+    - cron: '0 12 * * *'
 
 jobs:
   analyze:
