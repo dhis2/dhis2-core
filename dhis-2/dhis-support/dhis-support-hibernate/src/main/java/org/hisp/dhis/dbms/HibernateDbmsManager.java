@@ -1,7 +1,7 @@
 package org.hisp.dhis.dbms;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -244,6 +244,7 @@ public class HibernateDbmsManager
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
         emptyTable( "programstagedataelement" );
+        emptyTable( "programstagesection" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );
         emptyTable( "programusergroupaccesses" );
@@ -251,7 +252,7 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
-        
+
         emptyTable( "programstageinstancefilter" );
 
         emptyTable( "trackedentityattributevalue" );
@@ -356,7 +357,7 @@ public class HibernateDbmsManager
 
         emptyTable( "reservedvalue" );
         emptyTable( "sequentialnumbercounter" );
-        
+
         log.debug( "Cleared database contents" );
 
         cacheManager.clearCache();
