@@ -28,16 +28,15 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.tracker.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,6 +49,9 @@ public class TrackerTypeReport
 
     @JsonProperty
     private TrackerStats stats = new TrackerStats();
+
+    @JsonProperty
+    private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
 
@@ -94,5 +96,10 @@ public class TrackerTypeReport
     public Map<Integer, TrackerObjectReport> getObjectReportMap()
     {
         return objectReportMap;
+    }
+
+    public List<TrackerSideEffectDataBundle> getSideEffectDataBundles()
+    {
+        return sideEffectDataBundles;
     }
 }

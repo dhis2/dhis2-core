@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,9 +28,8 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -38,25 +37,55 @@ import java.util.List;
  * @author Zubair Asghar
  */
 
-@Service
-public class NotificationSideEffectHandlerService implements SideEffectHandlerService
+@Service( "org.hisp.dhis.program.ProgramNotificationTemplateService" )
+public class DefaultProgramNotificationTemplateService implements ProgramNotificationTemplateService
 {
-    private final TrackerNotificationMessageManager notificationMessageManager;
+    private final ProgramNotificationTemplateStore store;
 
-    public NotificationSideEffectHandlerService( TrackerNotificationMessageManager messageManager )
+    public DefaultProgramNotificationTemplateService( ProgramNotificationTemplateStore store )
     {
-        this.notificationMessageManager = messageManager;
+        this.store = store;
     }
 
     @Override
-    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
+    @Transactional( readOnly = true )
+    public ProgramNotificationTemplate get( long programNotificationTemplate )
     {
-        notificationMessageManager.addJob( sideEffectDataBundle );
+        return store.get( programNotificationTemplate );
     }
 
     @Override
-    public void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles )
+    @Transactional( readOnly = true )
+    public ProgramNotificationTemplate getByUid( String programNotificationTemplate )
     {
-        sideEffectDataBundles.forEach( this::handleSideEffect );
+        return store.getByUid( programNotificationTemplate );
+    }
+
+    @Override
+    @Transactional
+    public void save( ProgramNotificationTemplate programNotificationTemplate )
+    {
+        store.save( programNotificationTemplate );
+    }
+
+    @Override
+    @Transactional
+    public void update( ProgramNotificationTemplate programNotificationTemplate )
+    {
+        store.update( programNotificationTemplate );
+    }
+
+    @Override
+    @Transactional
+    public void delete( ProgramNotificationTemplate programNotificationTemplate )
+    {
+        store.delete( programNotificationTemplate );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
+    {
+        return store.getProgramNotificationByTriggerType( trigger );
     }
 }

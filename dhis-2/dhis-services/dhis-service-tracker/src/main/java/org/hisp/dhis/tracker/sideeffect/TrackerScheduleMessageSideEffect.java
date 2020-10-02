@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.job;
+package org.hisp.dhis.tracker.sideeffect;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -33,65 +33,31 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.artemis.Message;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- * Class holding data necessary for implementation of side effects.
- *
+ * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
  * @author Zubair Asghar
  */
+
 @Data
-@Builder( builderClassName = "TrackerSideEffectBundleBuilder" )
-@JsonDeserialize( builder = TrackerSideEffectDataBundle.TrackerSideEffectBundleBuilder.class )
-public class TrackerSideEffectDataBundle implements Message
+@Builder( builderClassName = "TrackerScheduleMessageSideEffectBuilder" )
+@JsonDeserialize( builder = TrackerScheduleMessageSideEffect.TrackerScheduleMessageSideEffectBuilder.class )
+public class TrackerScheduleMessageSideEffect implements TrackerRuleEngineSideEffect
 {
     @JsonProperty
-    private String uid;
+    private String notification;
 
     @JsonProperty
-    private Class<? extends BaseIdentifiableObject> klass;
-
-    @JsonProperty
-    private String object;
-
-    @JsonProperty
-    private JobConfiguration jobConfiguration;
-
-    @JsonProperty
-    @Builder.Default
-    private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
-
-    @JsonProperty
-    @Builder.Default
-    private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
-
-    @JsonProperty
-    private TrackerImportStrategy importStrategy;
-
-    @JsonProperty
-    private String accessedBy;
-
-    @JsonProperty
-    private String jobId;
+    private String data;
 
     @Override
-    @JsonProperty
-    public MessageType getMessageType()
+    public String getData()
     {
-        return MessageType.TRACKER_SIDE_EFFECT;
+        return data;
     }
 
     @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerSideEffectBundleBuilder
+    public static final class TrackerScheduleMessageSideEffectBuilder
     {
     }
 }

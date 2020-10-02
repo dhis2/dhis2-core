@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.tracker.converter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,19 +28,20 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * Service responsible for asynchronous handling of TrackerImport side effect. For now they related to audit, notifications and
- * program rule effect.
+ * Converts rule-engine domain objects to tracker domain objects and vice versa.
  *
- * @author Zubair Asghar
+ * @author Zubair Asghars
  */
-public interface SideEffectHandlerService
+public interface TrackerSideEffectConverterService
 {
-    void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle );
+    Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects( Map<String, List<RuleEffect>> ruleEffects );
 
-    void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles );
+    Map<String, List<RuleEffect>> toRuleEffects( Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects );
 }

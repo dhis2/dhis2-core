@@ -28,19 +28,21 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * Service responsible for asynchronous handling of TrackerImport side effect. For now they related to audit, notifications and
- * program rule effect.
- *
+ * Interface represents DHIS2 objects equivalent to rule engine objects.
  * @author Zubair Asghar
  */
-public interface SideEffectHandlerService
-{
-    void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle );
 
-    void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles );
+@JsonInclude( JsonInclude.Include.NON_NULL )
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
+@JsonSubTypes( { @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
+        @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
+        @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
+public interface TrackerRuleEngineSideEffect
+{
+    String getData();
 }

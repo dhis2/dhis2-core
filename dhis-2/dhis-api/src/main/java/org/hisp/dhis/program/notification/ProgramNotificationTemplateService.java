@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,19 +28,22 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-
 import java.util.List;
 
 /**
- * Service responsible for asynchronous handling of TrackerImport side effect. For now they related to audit, notifications and
- * program rule effect.
- *
  * @author Zubair Asghar
  */
-public interface SideEffectHandlerService
+public interface ProgramNotificationTemplateService
 {
-    void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle );
+    ProgramNotificationTemplate get( long programNotificationTemplate );
 
-    void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles );
+    ProgramNotificationTemplate getByUid( String programNotificationTemplate );
+
+    void save( ProgramNotificationTemplate programNotificationTemplate );
+
+    void update( ProgramNotificationTemplate programNotificationTemplate );
+
+    void delete( ProgramNotificationTemplate programNotificationTemplate );
+
+    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger );
 }
