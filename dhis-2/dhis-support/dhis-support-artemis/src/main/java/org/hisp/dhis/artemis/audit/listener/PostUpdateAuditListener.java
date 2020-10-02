@@ -28,8 +28,9 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+
+import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -41,7 +42,7 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -54,9 +55,10 @@ public class PostUpdateAuditListener
     public PostUpdateAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, ObjectMapper objectMapper )
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, objectMapper );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     @Override
@@ -68,7 +70,7 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        Object entity = postUpdateEvent.getEntity();
+        Object entity = initHibernateProxy( postUpdateEvent.getPersister().getFactory(), postUpdateEvent.getEntity() );
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
@@ -92,4 +94,5 @@ public class PostUpdateAuditListener
     {
         log.warn( "onPostUpdateCommitFailed: " + event );
     }
+
 }
