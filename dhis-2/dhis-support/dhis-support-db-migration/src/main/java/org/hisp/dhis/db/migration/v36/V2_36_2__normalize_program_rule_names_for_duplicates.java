@@ -64,6 +64,12 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
             .forEach( candidate -> renameOccurrencesWithSuffix( candidate, context.getConnection() ) );
     }
 
+    /**
+     * Returns a list of rules to be renamed, as pairs of (uid, name)
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
     private List<Pair<Long, String>> getCandidates( Connection connection )
         throws SQLException
     {
@@ -86,6 +92,12 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
         return candidates;
     }
 
+    /**
+     * Given a rule name, renames it
+     * @param candidate
+     * @param connection
+     * @return rule names that have actually been renamed
+     */
     @SneakyThrows
     private void renameOccurrencesWithSuffix( Pair<Long, String> candidate, Connection connection )
     {
@@ -103,9 +115,7 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
         {
             while ( rs.next() )
             {
-
                 uidWithNewNames.put( rs.getString( "uid" ), rs.getString( "name" ) );
-
             }
         }
         renameAll( ruleName, uidWithNewNames, connection, this::getUpdateQuery );

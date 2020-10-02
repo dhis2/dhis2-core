@@ -50,6 +50,13 @@ import com.google.common.collect.ImmutableList;
 public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook
 {
 
+    /**
+     * Check if a Program Rule to be added or update has a unique name in the system
+     * @param object
+     * @param bundle
+     * @param <T>
+     * @return
+     */
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {

@@ -81,6 +81,12 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     }
 
+    /**
+     * Returns a list of rule variable to be renamed, as pairs of (uid, name)
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
     private List<Pair<Long, String>> getCandidates( Connection connection )
         throws SQLException
     {
@@ -106,6 +112,12 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         return candidates;
     }
 
+    /**
+     * Given a rule variable name, renames it
+     * @param candidate
+     * @param connection
+     * @return variable names that have actually been renamed
+     */
     @SneakyThrows
     private Collection<String> renameOccurrencesWithSuffix( Pair<Long, String> candidate, Connection connection )
     {
@@ -123,9 +135,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         {
             while ( rs.next() )
             {
-
                 uidWithNewNames.put( rs.getString( "uid" ), rs.getString( "name" ) );
-
             }
         }
 
@@ -133,9 +143,14 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
             connection, this::getUpdateQuery );
 
         return getAffectedRules( renamedVariableNames, connection );
-
     }
 
+    /**
+     * Detects which Program Rules have been affected by variable renaming
+     * @param renamedVariableNames
+     * @param connection
+     * @return
+     */
     @SneakyThrows
     private Collection<String> getAffectedRules( Collection<String> renamedVariableNames, Connection connection )
     {
@@ -168,15 +183,25 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
             + "' WHERE uid= '" + uidNameEntry.getKey() + "'";
     }
 
+    /**
+     * Utility class which shares commons method with Program Name flyway migration
+     * (i.e. V2_36_2__normalize_program_rule_names_for_duplicates)
+     */
     static class ProgramRuleMigrationUtils
     {
 
-        static String findAvailableName( String originalVariableName, Set<String> existingNames )
+        /**
+         * Try to append a numeric suffix to variable name
+         * @param originalName
+         * @param existingNames
+         * @return
+         */
+        static String findAvailableName( String originalName, Set<String> existingNames )
         {
             int i = 2;
             while ( i < 99 )
             {
-                String proposedName = originalVariableName + "-" + i;
+                String proposedName = originalName + "-" + i;
                 if ( !existingNames.contains( proposedName ) )
                 {
                     existingNames.add( proposedName );
@@ -185,7 +210,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
                 i++;
             }
             throw new IllegalStateException(
-                "Unable to detect a unique name for rule variable " + originalVariableName );
+                "Unable to detect a unique name for rule variable " + originalName );
         }
 
         @SneakyThrows
