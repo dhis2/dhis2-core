@@ -28,16 +28,6 @@ package org.hisp.dhis.commons.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -46,16 +36,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import java.util.Date;
 
 /**
  * Main Jackson Mapper configuration. Any component that requires JSON/XML
  * serialization should use the Jackson mappers configured in this class.
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Configuration
@@ -133,7 +131,7 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        objectMapper.registerModules( module, new JavaTimeModule(), new Jdk8Module(), new Hibernate5Module() );
+        objectMapper.registerModules( module, new JavaTimeModule(), new Jdk8Module() );
 
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
