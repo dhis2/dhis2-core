@@ -309,17 +309,6 @@ public class EventManager
 
                 importSummaries.addImportSummary( is );
             }
-            else
-            {
-                final Optional<ImportSummary> isOptional = importSummaries.getByReference( event.getUid() );
-
-                if ( isOptional.isPresent() )
-                {
-                    final ImportSummary is = isOptional.get();
-                    is.setStatus( ERROR );
-                    is.incrementIgnored();
-                }
-            }
         }
     }
 
