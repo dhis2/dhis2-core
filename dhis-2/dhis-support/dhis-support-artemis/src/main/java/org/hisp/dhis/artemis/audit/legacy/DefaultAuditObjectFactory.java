@@ -30,7 +30,6 @@ package org.hisp.dhis.artemis.audit.legacy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -71,12 +70,9 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
      */
     private final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
-    public DefaultAuditObjectFactory( @Qualifier("jsonMapper") ObjectMapper objectMapper )
+    public DefaultAuditObjectFactory( @Qualifier( "jsonMapper" ) ObjectMapper objectMapper )
     {
         this.objectMapper = objectMapper;
-
-        // TODO consider moving this to CommonsConfig
-        objectMapper.registerModule( new Hibernate5Module() );
     }
 
     @Override
