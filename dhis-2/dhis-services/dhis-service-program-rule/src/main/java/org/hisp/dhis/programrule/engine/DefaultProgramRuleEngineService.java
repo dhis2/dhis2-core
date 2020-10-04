@@ -36,6 +36,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,7 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
+    @Transactional
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
@@ -97,6 +99,7 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<RuleEffect> evaluateEnrollment( String programInstanceUid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceUid );
@@ -121,9 +124,11 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
+    @Transactional
     public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
+
         List<RuleEffect> ruleEffects = getRuleEffects( psi );
 
         for ( RuleEffect effect : ruleEffects )
@@ -140,6 +145,7 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<RuleEffect> evaluateEvent( String programStageInstanceUid )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceUid );
