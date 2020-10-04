@@ -227,9 +227,10 @@ public class TrackedEntityInstanceController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
+        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
+
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
-            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
