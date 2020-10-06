@@ -255,6 +255,7 @@ public class HibernateDbmsManager
 
         emptyRelationships();
 
+        emptyTable( "programnotificationinstance" );
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );

@@ -44,7 +44,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -55,6 +55,7 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -80,13 +81,16 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     @Mock
-    private ProgramNotificationTemplateStore templateStore;
+    private ProgramNotificationTemplateService templateStore;
 
     @Mock
     private ApplicationEventPublisher publisher;
 
     @Mock
     private NotificationLoggingService loggingService;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @InjectMocks
     private RuleActionSendMessageImplementer implementer;
@@ -189,7 +193,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     @Test
     public void test_loggingServiceKey()
     {
-
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
         doAnswer( invocationOnMock -> {
@@ -238,10 +241,10 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     @Test
     public void test_NothingHappensIfActionIsNull()
     {
-        implementer.implement( null, programInstance );
+        exception.expect( NullPointerException.class );
+        exception.expectMessage( "Rule Effect cannot be null" );
 
-        verify( templateStore, never() ).getByUid( anyString() );
-        verify( loggingService, never() ).isValidForSending( anyString() );
+        implementer.implement( null, programInstance );
     }
 
     // -------------------------------------------------------------------------

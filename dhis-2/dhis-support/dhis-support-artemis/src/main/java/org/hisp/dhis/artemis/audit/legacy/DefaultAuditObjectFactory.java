@@ -30,7 +30,6 @@ package org.hisp.dhis.artemis.audit.legacy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditAttributes;
@@ -41,6 +40,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -68,12 +68,9 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
      */
     private final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
-    public DefaultAuditObjectFactory( @Qualifier("jsonMapper") ObjectMapper objectMapper )
+    public DefaultAuditObjectFactory( @Qualifier( "jsonMapper" ) ObjectMapper objectMapper )
     {
         this.objectMapper = objectMapper;
-
-        // TODO consider moving this to CommonsConfig
-        objectMapper.registerModule( new Hibernate5Module() );
     }
 
     @Override
@@ -149,7 +146,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         }
         catch ( JsonProcessingException e )
         {
-            log.error( DebugUtils.getStackTrace( e ) );
+            log.debug( DebugUtils.getStackTrace( e ) );
         }
 
         return null;
