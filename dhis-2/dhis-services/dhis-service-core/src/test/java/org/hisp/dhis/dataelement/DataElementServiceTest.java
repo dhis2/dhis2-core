@@ -368,29 +368,29 @@ public class DataElementServiceTest
         DataElementGroup dataElementGroupC = dataElementService.getDataElementGroupByName( "DataElementGroupC" );
         assertNull( dataElementGroupC );
     }
-    
+
     @Test
     public void testAndAndGetDataElementGroupSet()
     {
         DataElementGroup degA = createDataElementGroup( 'A' );
         DataElementGroup degB = createDataElementGroup( 'B' );
         DataElementGroup degC = createDataElementGroup( 'C' );
-        
+
         dataElementService.addDataElementGroup( degA );
         dataElementService.addDataElementGroup( degB );
         dataElementService.addDataElementGroup( degC );
-        
+
         DataElementGroupSet degsA = createDataElementGroupSet( 'A' );
         degsA.addDataElementGroup( degA );
         degsA.addDataElementGroup( degB );
-        
+
         DataElementGroupSet degsB = createDataElementGroupSet( 'B' );
         degsB.addDataElementGroup( degB );
         degsB.addDataElementGroup( degC );
-        
+
         dataElementService.addDataElementGroupSet( degsA );
         dataElementService.addDataElementGroupSet( degsB );
-        
+
         assertTrue( degsA.getMembers().contains( degA ) );
         assertTrue( degsA.getMembers().contains( degB ) );
         assertTrue( degA.getGroupSets().contains( degsA ) );
@@ -399,7 +399,7 @@ public class DataElementServiceTest
         assertTrue( degsB.getMembers().contains( degB ) );
         assertTrue( degsB.getMembers().contains( degC ) );
         assertTrue( degB.getGroupSets().contains( degsB ) );
-        assertTrue( degC.getGroupSets().contains( degsB ) );        
+        assertTrue( degC.getGroupSets().contains( degsB ) );
     }
 
     @Test
