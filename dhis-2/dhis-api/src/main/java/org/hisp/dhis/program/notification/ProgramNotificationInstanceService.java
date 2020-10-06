@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +28,31 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Zubair Asghar
  */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
+public interface ProgramNotificationInstanceService
 {
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
+    void save( ProgramNotificationInstance programNotificationInstance );
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    void update ( ProgramNotificationInstance programNotificationInstance );
 
-    public ObjectDeletionRequestedEvent( Object source )
-    {
-        super( source );
-    }
+    void delete( ProgramNotificationInstance programNotificationInstance );
 
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
-
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
-    }
+    ProgramNotificationInstance get( long programNotificationInstance );
 
     /**
-     * Check whether the given class should be skipped for DeletionHandler
-     * @param klass
-     * @return TRUE if the given class should be skipped for DeletionHandler
+     * return ProgramNotificationInstances associated with this enrollment (ProgramInstance)
      */
-    public static boolean shouldSkip( Class klass )
-    {
-        return UserAccess.class.isAssignableFrom( klass )  || UserGroupAccess.class.isAssignableFrom( klass ) ? true : false;
-    }
+    List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
+
+    /**
+     * return ProgramNotificationInstances associated with this event (ProgramStageInstance)
+     */
+    List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.sideeffect;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +28,21 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.context.ApplicationEvent;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * @author Lars Helge Overland
+ * Interface represents DHIS2 objects equivalent to rule engine objects.
+ * @author Zubair Asghar
  */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
+
+@JsonInclude( JsonInclude.Include.NON_NULL )
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
+@JsonSubTypes( { @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
+        @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
+        @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
+public interface TrackerRuleEngineSideEffect
 {
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public ObjectDeletionRequestedEvent( Object source )
-    {
-        super( source );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
-
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
-    }
-
-    /**
-     * Check whether the given class should be skipped for DeletionHandler
-     * @param klass
-     * @return TRUE if the given class should be skipped for DeletionHandler
-     */
-    public static boolean shouldSkip( Class klass )
-    {
-        return UserAccess.class.isAssignableFrom( klass )  || UserGroupAccess.class.isAssignableFrom( klass ) ? true : false;
-    }
+    String getData();
 }

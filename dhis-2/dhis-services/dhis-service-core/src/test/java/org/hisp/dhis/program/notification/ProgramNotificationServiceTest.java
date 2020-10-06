@@ -113,7 +113,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
 
     @Mock
-    private ProgramNotificationTemplateStore notificationTemplateStore;
+    private ProgramNotificationTemplateService notificationTemplateService;
 
     private DefaultProgramNotificationService programNotificationService;
 
@@ -162,7 +162,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
             this.messageService, this.programInstanceStore, this.programStageInstanceStore, this.manager,
-            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateStore );
+            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateService );
 
         setUpInstances();
 

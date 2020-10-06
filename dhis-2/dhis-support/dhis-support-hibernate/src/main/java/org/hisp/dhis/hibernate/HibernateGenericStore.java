@@ -413,7 +413,10 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        if ( !ObjectDeletionRequestedEvent.shouldSkip( object.getClass() ) )
+        {
+            publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        }
 
         getSession().delete( object );
     }

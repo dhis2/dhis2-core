@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +28,22 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.context.ApplicationEvent;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Zubair Asghar
  */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
+public interface ProgramNotificationTemplateService
 {
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
+    ProgramNotificationTemplate get( long programNotificationTemplate );
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    ProgramNotificationTemplate getByUid( String programNotificationTemplate );
 
-    public ObjectDeletionRequestedEvent( Object source )
-    {
-        super( source );
-    }
+    void save( ProgramNotificationTemplate programNotificationTemplate );
 
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
+    void update( ProgramNotificationTemplate programNotificationTemplate );
 
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
+    void delete( ProgramNotificationTemplate programNotificationTemplate );
 
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
-    }
-
-    /**
-     * Check whether the given class should be skipped for DeletionHandler
-     * @param klass
-     * @return TRUE if the given class should be skipped for DeletionHandler
-     */
-    public static boolean shouldSkip( Class klass )
-    {
-        return UserAccess.class.isAssignableFrom( klass )  || UserGroupAccess.class.isAssignableFrom( klass ) ? true : false;
-    }
+    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger );
 }

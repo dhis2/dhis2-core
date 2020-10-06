@@ -43,6 +43,7 @@ import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *<ol>
@@ -53,7 +54,9 @@ import org.springframework.stereotype.Component;
  *
  * Created by zubair@dhis2.org on 04.01.18.
  */
+
 @Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )
+@Transactional
 public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -62,13 +65,13 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private final ApplicationEventPublisher publisher;
 
-    public RuleActionSendMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+    public RuleActionSendMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
          NotificationLoggingService notificationLoggingService,
          ProgramInstanceService programInstanceService,
          ProgramStageInstanceService programStageInstanceService,
          ApplicationEventPublisher publisher )
     {
-        super( programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService );
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
         this.publisher = publisher;
     }
 
@@ -88,6 +91,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programInstance );
 
         publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
@@ -106,6 +114,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         }
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 

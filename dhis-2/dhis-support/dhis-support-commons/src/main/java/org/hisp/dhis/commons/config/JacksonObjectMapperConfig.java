@@ -56,7 +56,7 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 /**
  * Main Jackson Mapper configuration. Any component that requires JSON/XML
  * serialization should use the Jackson mappers configured in this class.
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Configuration

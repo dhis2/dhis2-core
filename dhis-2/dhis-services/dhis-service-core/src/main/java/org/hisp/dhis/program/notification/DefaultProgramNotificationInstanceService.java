@@ -1,4 +1,4 @@
-package org.hisp.dhis.notification.logging;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,85 +28,70 @@ package org.hisp.dhis.notification.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Created by zubair@dhis2.org on 10.01.18.
+ * @author Zubair Asghar
  */
 
-@Service( "org.hisp.dhis.notification.logging.NotificationLoggingService" )
-public class DefaultNotificationLoggingService
-    implements NotificationLoggingService
+@Service( "org.hisp.dhis.program.notification.ProgramNotificationInstanceService" )
+public class DefaultProgramNotificationInstanceService
+    implements ProgramNotificationInstanceService
 {
-    private final NotificationLoggingStore notificationLoggingStore;
+    private final ProgramNotificationInstanceStore notificationInstanceStore;
 
-    public DefaultNotificationLoggingService( NotificationLoggingStore notificationLoggingStore )
+    public DefaultProgramNotificationInstanceService( ProgramNotificationInstanceStore notificationInstanceStore )
     {
-        checkNotNull( notificationLoggingStore );
-
-        this.notificationLoggingStore = notificationLoggingStore;
+        checkNotNull( notificationInstanceStore );
+        this.notificationInstanceStore = notificationInstanceStore;
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ExternalNotificationLogEntry get( String uid )
+    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance )
     {
-        return notificationLoggingStore.getByUid( uid );
+        return notificationInstanceStore.getProgramNotificationInstances( programInstance );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ExternalNotificationLogEntry get( int id )
+    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance )
     {
-        return notificationLoggingStore.get( id );
+        return notificationInstanceStore.getProgramNotificationInstances( programStageInstance );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ExternalNotificationLogEntry getByKey( String key )
+    public ProgramNotificationInstance get( long programNotificationInstance )
     {
-        return notificationLoggingStore.getByKey( key );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<ExternalNotificationLogEntry> getAllLogEntries()
-    {
-        return notificationLoggingStore.getAll();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isValidForSending( String key )
-    {
-        ExternalNotificationLogEntry logEntry = getByKey( key );
-
-        return logEntry == null || logEntry.isAllowMultiple();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
-    {
-        return notificationLoggingStore.getByTemplateUid( templateUid );
+        return notificationInstanceStore.get( programNotificationInstance );
     }
 
     @Override
     @Transactional
-    public void save( ExternalNotificationLogEntry entry )
+    public void save( ProgramNotificationInstance programNotificationInstance )
     {
-        notificationLoggingStore.save( entry );
+        notificationInstanceStore.save( programNotificationInstance );
     }
 
     @Override
     @Transactional
-    public void update( ExternalNotificationLogEntry entry )
+    public void update( ProgramNotificationInstance programNotificationInstance )
     {
-        notificationLoggingStore.update( entry );
+        notificationInstanceStore.update( programNotificationInstance );
+    }
+
+    @Override
+    @Transactional
+    public void delete( ProgramNotificationInstance programNotificationInstance )
+    {
+        notificationInstanceStore.delete( programNotificationInstance );
     }
 }

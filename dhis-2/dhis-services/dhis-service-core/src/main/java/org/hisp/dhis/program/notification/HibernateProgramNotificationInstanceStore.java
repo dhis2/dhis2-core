@@ -1,3 +1,5 @@
+package org.hisp.dhis.program.notification;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,40 +28,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.program.notification;
-
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
+
 /**
- * Created by zubair@dhis2.org on 16.11.17.
+ * @author Zubair Asghar
  */
-@Repository( "org.hisp.dhis.program.ProgramNotificationTemplateStore" )
-public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
-    implements ProgramNotificationTemplateStore
+
+@Repository( "org.hisp.dhis.program.ProgramNotificationInstanceStore" )
+public class HibernateProgramNotificationInstanceStore
+    extends HibernateIdentifiableObjectStore<ProgramNotificationInstance>
+        implements ProgramNotificationInstanceStore
 {
-    public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateProgramNotificationInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramNotificationTemplate.class, currentUserService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramNotificationInstance.class, currentUserService,
             aclService, true );
     }
 
     @Override
-    public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
+    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "notificationtrigger" ), trigger ) ) );
+            .addPredicate( root -> builder.equal( root.get( "programInstance" ), programInstance ) ) );
+    }
+
+    @Override
+    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "programStageInstance" ), programStageInstance ) ) );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.converter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +28,20 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Lars Helge Overland
+ * Converts rule-engine domain objects to tracker domain objects and vice versa.
+ *
+ * @author Zubair Asghars
  */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
+public interface TrackerSideEffectConverterService
 {
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
+    Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects( Map<String, List<RuleEffect>> ruleEffects );
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public ObjectDeletionRequestedEvent( Object source )
-    {
-        super( source );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
-
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
-    }
-
-    /**
-     * Check whether the given class should be skipped for DeletionHandler
-     * @param klass
-     * @return TRUE if the given class should be skipped for DeletionHandler
-     */
-    public static boolean shouldSkip( Class klass )
-    {
-        return UserAccess.class.isAssignableFrom( klass )  || UserGroupAccess.class.isAssignableFrom( klass ) ? true : false;
-    }
+    Map<String, List<RuleEffect>> toRuleEffects( Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects );
 }
