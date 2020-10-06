@@ -208,8 +208,7 @@ public abstract class AbstractHibernateListener
 
             if ( value != null )
             {
-                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) &&
-                    !EmbeddedObject.class.isAssignableFrom( property.getItemKlass() ) )
+                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
                 {
                     objectMap.put( pName, IdentifiableObjectUtils.getUids( ( Collection ) value ) );
                 }
@@ -225,7 +224,7 @@ public abstract class AbstractHibernateListener
 
     private Object getId( Object object )
     {
-        if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
+        if ( BaseIdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
             return ( (IdentifiableObject) object).getUid();
         }
