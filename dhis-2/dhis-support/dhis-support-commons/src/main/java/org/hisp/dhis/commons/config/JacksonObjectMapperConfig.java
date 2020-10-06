@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.config;
 
 import java.util.Date;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
@@ -67,6 +68,11 @@ public class JacksonObjectMapperConfig
     public static final ObjectMapper jsonMapper = configureMapper( new ObjectMapper() );
 
     /*
+     * JSON mapper that have {@link Hibernate5Module} registered
+     */
+    public static final ObjectMapper hibernateAwareJsonMapper = configureMapper( new ObjectMapper() );
+
+    /*
      * Default JSON mapper for Program Stage Instance data values
      */
     public static final ObjectMapper dataValueJsonMapper = configureMapper( new ObjectMapper(), true );
@@ -81,6 +87,15 @@ public class JacksonObjectMapperConfig
     public ObjectMapper jsonMapper()
     {
         return jsonMapper;
+    }
+
+    @Bean( "hibernateAwareJsonMapper" )
+    public ObjectMapper hibernateAwareJsonMapper()
+    {
+        Hibernate5Module hibernate5Module = new Hibernate5Module();
+        hibernate5Module.enable( Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS );
+        hibernateAwareJsonMapper.registerModule( hibernate5Module );
+        return hibernateAwareJsonMapper;
     }
 
     @Bean( "dataValueJsonMapper" )
@@ -133,7 +148,7 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        objectMapper.registerModules( module, new JavaTimeModule(), new Jdk8Module(), new Hibernate5Module() );
+        objectMapper.registerModules( module, new JavaTimeModule(), new Jdk8Module() );
 
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
