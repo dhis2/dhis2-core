@@ -28,11 +28,19 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.LazyInitializationException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 import java.util.Arrays;
@@ -45,22 +53,27 @@ import static com.cronutils.utils.Preconditions.checkNotNull;
  */
 public abstract class AbstractHibernateListener
 {
+    Log log = LogFactory.getLog( AbstractHibernateListener.class );
     protected final AuditManager auditManager;
     protected final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
+    private final SessionFactory sessionFactory;
 
     public AbstractHibernateListener(
         AuditManager auditManager,
         AuditObjectFactory objectFactory,
-        UsernameSupplier usernameSupplier )
+        UsernameSupplier usernameSupplier,
+        SessionFactory sessionFactory )
     {
         checkNotNull( auditManager );
         checkNotNull( objectFactory );
         checkNotNull( usernameSupplier );
+        checkNotNull( sessionFactory );
 
         this.auditManager = auditManager;
         this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
+        this.sessionFactory = sessionFactory;
     }
 
     Optional<Auditable> getAuditable( Object object, String type )
@@ -87,4 +100,65 @@ public abstract class AbstractHibernateListener
     }
 
     abstract AuditType getAuditType();
+
+    /**
+     * Try to initialize all lazy loaded collections of the given Entity before sending
+     * it to {@link AuditObjectFactory} for serializing to JSON
+     * @param factory {@link SessionFactoryImplementor}
+     * @param entity current Entity
+     * @return the Entity with all collections loaded
+     */
+    protected Object initHibernateProxy( SessionFactoryImplementor factory, Object entity )
+    {
+        Session session = factory.getCurrentSession();
+
+        try
+        {
+            if ( !session.contains( entity ) )
+            {
+                session.refresh( entity );
+            }
+
+            HibernateUtils.initializeProxy( entity );
+        }
+        catch ( LazyInitializationException e )
+        {
+            // LazyInitializationException could be caused session closed
+            // Try again with new Session
+            return initHibernateProxyWithNewSession( entity );
+        }
+        catch ( Exception e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+        }
+
+        return entity;
+    }
+
+    /**
+     * Open new session for initializing lazy loaded collections of given Entity
+     * then close the session.
+     * @param entity
+     * @return
+     */
+    private Object initHibernateProxyWithNewSession( Object entity )
+    {
+        Session session = sessionFactory.openSession();
+
+        try
+        {
+            session.refresh( entity );
+            HibernateUtils.initializeProxy( entity );
+        }
+        catch ( Exception e )
+        {
+            log.warn( DebugUtils.getStackTrace( e ) );
+        }
+        finally
+        {
+            session.close();
+        }
+
+        return entity;
+    }
 }

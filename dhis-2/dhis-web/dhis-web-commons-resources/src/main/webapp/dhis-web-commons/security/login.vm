@@ -108,7 +108,7 @@
 </div>
 <div id="footerArea">
     <div id="leftFooterArea" class="innerFooterArea">
-        Powered by <a href="http://www.dhis2.org">DHIS 2</a>&nbsp; <span
+        <span id="poweredByLabel">Powered by </span><a href="http://www.dhis2.org">DHIS 2</a>&nbsp; <span
             id="applicationFooter">$!{keyApplicationFooter}</span>
     </div>
     <div id="rightFooterArea" class="innerFooterArea">

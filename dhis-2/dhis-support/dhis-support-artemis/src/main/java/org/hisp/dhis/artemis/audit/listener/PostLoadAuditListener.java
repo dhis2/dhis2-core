@@ -28,6 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -50,9 +51,10 @@ public class PostLoadAuditListener
     public PostLoadAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     AuditType getAuditType()

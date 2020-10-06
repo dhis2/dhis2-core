@@ -535,7 +535,6 @@ public class MapView
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 7, max = 7 )
     public String getNoDataColor()
