@@ -39,4 +39,16 @@ import lombok.Value;
 public class AuditableEntity
 {
     private Object entity;
+
+    private Object serializableObject;
+
+    public AuditableEntity ( Object entity )
+    {
+        this.entity = serializableObject = entity;
+    }
+
+    public Object getSerializableObject()
+    {
+        return serializableObject == null ? serializableObject : entity;
+    }
 }

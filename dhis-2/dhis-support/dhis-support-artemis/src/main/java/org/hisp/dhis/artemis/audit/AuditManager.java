@@ -93,7 +93,7 @@ public class AuditManager
             audit.setData( this.objectFactory.create(
                 audit.getAuditScope(),
                 audit.getAuditType(),
-                audit.getAuditableEntity().getEntity(),
+                audit.getAuditableEntity().getSerializableObject(),
                 audit.getCreatedBy() ) );
         }
 
@@ -108,5 +108,4 @@ public class AuditManager
             auditProducerSupplier.publish( audit );
         }
     }
-
 }
