@@ -81,8 +81,6 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object auditEntry = createAuditEntry( postInsertEvent );
-
         getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
@@ -90,7 +88,7 @@ public class PostInsertAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( postInsertEvent.getEntity() )
-                .auditableEntity( new AuditableEntity( postInsertEvent.getEntity(), auditEntry ) )
+                .auditableEntity( new AuditableEntity( postInsertEvent.getEntity(), createAuditEntry( postInsertEvent ) ) )
                 .build() ) );
     }
 

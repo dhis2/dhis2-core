@@ -49,6 +49,6 @@ public class AuditableEntity
 
     public Object getSerializableObject()
     {
-        return serializableObject == null ? serializableObject : entity;
+        return serializableObject != null ? serializableObject : entity;
     }
 }

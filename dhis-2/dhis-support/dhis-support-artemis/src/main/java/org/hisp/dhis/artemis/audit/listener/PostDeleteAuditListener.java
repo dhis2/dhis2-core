@@ -81,8 +81,6 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        Object auditEntry = createAuditEntry( postDeleteEvent );
-
         getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
@@ -90,7 +88,7 @@ public class PostDeleteAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( postDeleteEvent.getEntity() )
-                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity(), auditEntry ) )
+                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity(), createAuditEntry( postDeleteEvent ) ) )
                 .build() ) );
     }
 
