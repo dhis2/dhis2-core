@@ -65,16 +65,14 @@ public class PostLoadAuditListener
     @Override
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
-        Object entity = postLoadEvent.getEntity();
-
-        getAuditable( entity, "read" ).ifPresent( auditable ->
+        getAuditable( postLoadEvent.getEntity(), "read" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .object( postLoadEvent.getEntity() )
+                .auditableEntity( new AuditableEntity( postLoadEvent.getEntity() ) )
                 .build() ) );
     }
 }
