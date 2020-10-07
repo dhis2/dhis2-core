@@ -36,7 +36,10 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -47,19 +50,45 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.hisp.dhis.expression.Operator.*;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.expression.Operator.compulsory_pair;
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.expression.Operator.exclusive_pair;
+import static org.hisp.dhis.expression.Operator.greater_than;
+import static org.hisp.dhis.expression.Operator.less_than;
+import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
+import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 /**
@@ -97,6 +126,12 @@ public class ValidationServiceTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private IdentifiableObjectManager identifiableObjectManager;
+
+    @Autowired
+    private UserService injectUserService;
 
     private DataElement dataElementA;
     private DataElement dataElementB;
@@ -169,6 +204,8 @@ public class ValidationServiceTest
     public void setUpTest()
         throws Exception
     {
+        this.userService = injectUserService;
+
         CurrentUserService currentUserService = new MockCurrentUserService( allSources, null );
         setDependency( validationService, "currentUserService", currentUserService, CurrentUserService.class );
 
@@ -1356,5 +1393,36 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRule, periodA, sourceA, defaultCombo, 20.0, 10.0, dayInPeriodA ) );
 
         assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testInstructionTranslation()
+    {
+         User user = createUserAndInjectSecurityContext( true );
+
+        Locale locale = Locale.FRENCH;
+        UserContext.setUser( user );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+
+        useDataValue( dataElementA, periodA, sourceA, "10" );
+        useDataValue( dataElementB, periodA, sourceA, "20" );
+
+        Expression expressionLeft = new Expression( "greatest( #{" + dataElementA.getUid() + "}, #{" + dataElementB.getUid() + "} )", "expressionLeft" );
+        Expression expressionRight = new Expression( "least( #{" + dataElementA.getUid() + "}, #{" + dataElementB.getUid() + "} )", "expressionRight" );
+
+        ValidationRule validationRule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+        validationRule.setInstruction( "Validation rule instruction" );
+
+        validationRuleService.saveValidationRule( validationRule );
+
+        String instructionTranslated = "Validation rule instruction translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( validationRule.getTranslations() );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.INSTRUCTION, instructionTranslated ) );
+
+
+        identifiableObjectManager.updateTranslations( validationRule, listObjectTranslation );
+
+        Assert.assertEquals( instructionTranslated, validationRule.getDisplayInstruction() );
     }
 }
