@@ -190,6 +190,8 @@ public enum ErrorCode
     E7129( "Program is specified but does not exist: `{0}`" ),
     E7130( "Program stage is specified but does not exist: `{0}`" ),
     E7131( "Query failed, likely because the query timed out" ),
+    E7132( "Query failed. An Indicator expression is resulting in invalid operation: division by zero" ),
+    E7133( "This query cannot be executed, possibly because of invalid types or invalid operation" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
