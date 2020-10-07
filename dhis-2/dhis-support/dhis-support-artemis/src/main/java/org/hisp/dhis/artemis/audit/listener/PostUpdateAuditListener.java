@@ -92,4 +92,12 @@ public class PostUpdateAuditListener
     {
         log.warn( "onPostUpdateCommitFailed: " + event );
     }
+
+    /**
+     * Create Audit entry for update event
+     */
+    private Object createAuditEntry( PostUpdateEvent postUpdateEvent )
+    {
+        return super.createAuditEntry( postUpdateEvent.getEntity(), postUpdateEvent.getState(), postUpdateEvent.getSession(), postUpdateEvent.getId(), postUpdateEvent.getPersister() );
+    }
 }

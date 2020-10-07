@@ -28,27 +28,41 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Value;
 
 /**
  * @author Luciano Fiandesio
  */
 @Value
-@AllArgsConstructor
 public class AuditableEntity
 {
-    private Object entity;
+    /**
+     * The raw Audit entity object
+     * This object must contains all class metadata which are needed for method
+     * {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
+     * This object should be serialized by Jackson without any errors,
+     * otherwise a serializableObject should be provided
+     */
+    Object entity;
 
-    private Object serializableObject;
+    /**
+     * An object that is ready for serialized by Jackson.
+     * Means that this object should:
+     * 1. Only includes referenced properties that are owned by the current Audit Entity. Means that the property's schema has attribute "owner = true"
+     * 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
+     * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
+     * This object could be a Map<String, Object>  with key is property name and value is the property value
+     */
+    Object serializableObject;
 
-    public AuditableEntity ( Object entity )
+    public AuditableEntity( Object entity )
     {
         this.entity = serializableObject = entity;
     }
 
-    public Object getSerializableObject()
+    public AuditableEntity ( Object entity, Object serializableObject )
     {
-        return serializableObject != null ? serializableObject : entity;
+        this.entity = entity;
+        this.serializableObject = serializableObject;
     }
 }
