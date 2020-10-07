@@ -28,6 +28,8 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
 import org.hisp.dhis.program.Program;
@@ -38,13 +40,12 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,30 +54,44 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
-@AllArgsConstructor
 public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @NonNull
     private final ProgramRuleEngine programRuleEngine;
 
-    @NonNull
     private final ProgramRuleEngine programRuleEngineNew;
 
-    @NonNull
     private final List<RuleActionImplementer> ruleActionImplementers;
 
-    @NonNull
     private final ProgramInstanceService programInstanceService;
 
-    @NonNull
     private final ProgramStageInstanceService programStageInstanceService;
 
-    @NonNull
     private final ProgramService programService;
+
+    public DefaultProgramRuleEngineService(
+        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
+        @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
+        List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService, ProgramService programService )
+    {
+        checkNotNull( programRuleEngine );
+        checkNotNull( programRuleEngineNew );
+        checkNotNull( ruleActionImplementers );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( programService );
+
+        this.programRuleEngine = programRuleEngine;
+        this.programRuleEngineNew = programRuleEngineNew;
+        this.ruleActionImplementers = ruleActionImplementers;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+        this.programService = programService;
+    }
 
     @Override
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
