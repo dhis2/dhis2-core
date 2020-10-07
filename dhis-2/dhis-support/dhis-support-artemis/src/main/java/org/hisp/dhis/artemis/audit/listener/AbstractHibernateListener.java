@@ -28,10 +28,11 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.sun.tools.rngom.parse.host.Base;
 import org.hibernate.Hibernate;
-import org.hibernate.Session;
-import org.hibernate.event.spi.*;
+import org.hibernate.event.spi.EventSource;
+import org.hibernate.event.spi.PostDeleteEvent;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -40,19 +41,18 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.adapter.UidJsonSerializer;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.cronutils.utils.Preconditions.checkNotNull;
 
@@ -109,25 +109,11 @@ public abstract class AbstractHibernateListener
     abstract AuditType getAuditType();
 
     /**
-     * Create Audit entry for update event
-     */
-    protected Object createAuditEntry( PostUpdateEvent postUpdateEvent )
-    {
-        return createAuditEntry( postUpdateEvent.getEntity(), postUpdateEvent.getState(), postUpdateEvent.getSession(), postUpdateEvent.getId(), postUpdateEvent.getPersister() );
-    }
-
-    /**
-     * Create Audit entry for insert event
-     */
-    protected Object createAuditEntry( PostInsertEvent postInsertEvent )
-    {
-        return createAuditEntry( postInsertEvent.getEntity(), postInsertEvent.getState(), postInsertEvent.getSession(), postInsertEvent.getId(), postInsertEvent.getPersister() );
-    }
-
-    /**
-     * Create Audit entry for delete event
+     * Create serializable Map<String, Object> for delete event
      * Because the entity has already been deleted and transaction is committed
-     * all lazy collection or properties that hasn't been loaded will be ignored.
+     * all lazy collections or properties that haven't been loaded will be ignored.
+     *
+     * @return Map<String, Object> with key is property name and value is property value.
      */
     protected Object createAuditEntry( PostDeleteEvent event )
     {
@@ -167,11 +153,17 @@ public abstract class AbstractHibernateListener
     }
 
     /**
-     * Create Audit Entry base on given Entity
-     * Only include lazy collections and properties with owner = true
-     * For properties that are BaseIdentifiableObject, only include the uid of the object.
+     * Create serializable Map<String, Object> based on given Audit Entity and related objects that are produced by
+     * {@link PostUpdateEvent} or {@link PostInsertEvent}
+     * The returned object must comply with below rules:
+     *  1. Only includes referenced properties that are owned by the current Audit Entity.
+     *  Means that the property's schema has attribute "owner = true"
+     *  2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
+     *  3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
+     *
+     * @return Map<String, Object> with key is property name and value is property value.
      */
-    private Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
+    protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
     {
         Map<String, Object> objectMap = new HashMap<>();
         Schema schema = schemaService.getDynamicSchema( entity.getClass() );
@@ -210,7 +202,7 @@ public abstract class AbstractHibernateListener
             {
                 if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
                 {
-                    objectMap.put( pName, IdentifiableObjectUtils.getUids( ( Collection ) value ) );
+                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
                 }
                 else
                 {
@@ -226,7 +218,7 @@ public abstract class AbstractHibernateListener
     {
         if ( BaseIdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
-            return ( (IdentifiableObject) object).getUid();
+            return ( ( BaseIdentifiableObject ) object ).getUid();
         }
 
         return object;
