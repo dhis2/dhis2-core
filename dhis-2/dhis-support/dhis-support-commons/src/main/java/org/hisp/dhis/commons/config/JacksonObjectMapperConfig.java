@@ -88,9 +88,9 @@ public class JacksonObjectMapperConfig
     }
 
     @Bean( "hibernateAwareJsonMapper" )
-    public ObjectMapper hibernateAwareJsonMapper()
+    public ObjectMapper hibernateAwareJsonMapper( SessionFactory sessionFactory )
     {
-        Hibernate5Module hibernate5Module = new Hibernate5Module();
+        Hibernate5Module hibernate5Module = new Hibernate5Module( sessionFactory );
         hibernate5Module.enable( Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS );
         hibernateAwareJsonMapper.registerModule( hibernate5Module );
         return hibernateAwareJsonMapper;

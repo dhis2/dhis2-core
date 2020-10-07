@@ -76,7 +76,7 @@ public class PostUpdateAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( postUpdateEvent.getEntity() )
-                .auditableEntity( new AuditableEntity( postUpdateEvent.getEntity(), createAuditEntry( postUpdateEvent ) ) )
+                .auditableEntity( new AuditableEntity( postUpdateEvent.getEntity().getClass(), createAuditEntry( postUpdateEvent ) ) )
                 .build() )
         );
     }

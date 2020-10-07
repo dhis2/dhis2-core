@@ -28,6 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
@@ -42,6 +43,7 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -59,6 +61,7 @@ import static com.cronutils.utils.Preconditions.checkNotNull;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public abstract class AbstractHibernateListener
 {
     protected final AuditManager auditManager;
@@ -195,7 +198,15 @@ public abstract class AbstractHibernateListener
                     entityProxy = ( HibernateProxy ) persister.createProxy( id, session );
                 }
 
-                value =  persister.getPropertyValue( entityProxy, pName );
+                try
+                {
+                    value =  persister.getPropertyValue( entityProxy, pName );
+                }
+                catch ( Exception ex )
+                {
+                    // Ignore if couldn't find property reference object, maybe it was deleted.
+                    log.warn( DebugUtils.getStackTrace( ex ) );
+                }
             }
 
             if ( value != null )
