@@ -141,7 +141,11 @@ public class DefaultProgramInstanceService
     @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( long id )
     {
-        return programInstanceStore.get( id );
+        ProgramInstance programInstance = programInstanceStore.get(id);
+        // TEMP CODE FIXME Luciano-Enrico
+        programInstance.getEntityInstance().getTrackedEntityAttributeValues().size();
+
+        return programInstance;
     }
 
     @Override

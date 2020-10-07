@@ -35,12 +35,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
@@ -119,9 +123,16 @@ public class HibernateProgramStageInstanceStore
     public List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<ProgramStageInstance> q = builder.createQuery(ProgramStageInstance.class);
+        Root<ProgramStageInstance> o = q.from(ProgramStageInstance.class);
+        o.fetch("organisationUnit", JoinType.LEFT);
+        o.fetch("programStage", JoinType.LEFT);
+        q.where(builder.equal(o.get("programInstance"), id));
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> root.get( "programInstance" ).in( id ) ) );
+        TypedQuery<ProgramStageInstance> typedQuery = getSession().createQuery( q )
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
+
+        return typedQuery.getResultList();
     }
 
     @Override

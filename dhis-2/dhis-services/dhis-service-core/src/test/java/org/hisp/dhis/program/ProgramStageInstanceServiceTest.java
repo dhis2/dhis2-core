@@ -547,7 +547,7 @@ public class ProgramStageInstanceServiceTest
         final List<ProgramStageInstance> programStageInstances = programStageInstanceService
             .getProgramStageInstancesByProgramInstance( programInstanceA.getId() );
 
-        assertEquals( programStageInstances.size(), 2 );
+        assertEquals( 2, programStageInstances.size() );
     }
 
     private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
