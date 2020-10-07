@@ -39,6 +39,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.QueryTimeoutException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
@@ -102,6 +103,12 @@ public class CrudControllerAdvice
 
     @ExceptionHandler( IllegalQueryException.class )
     public void illegalQueryExceptionHandler( IllegalQueryException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( QueryRuntimeException.class )
+    public void queryRuntimeExceptionHandler( QueryRuntimeException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
     }
