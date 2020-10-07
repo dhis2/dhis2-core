@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -37,19 +37,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author Enrico Colasante
  */
-@Service
+@Service( "org.hisp.dhis.tracker.TrackerProgramRuleService")
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
-    private final DefaultProgramRuleEngineService programRuleEngineService;
+    private final ProgramRuleEngineService programRuleEngineService;
 
-    public DefaultTrackerProgramRuleService( DefaultProgramRuleEngineService programRuleEngineService )
+    public DefaultTrackerProgramRuleService( ProgramRuleEngineService programRuleEngineService )
     {
         this.programRuleEngineService = programRuleEngineService;
     }
