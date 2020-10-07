@@ -76,7 +76,7 @@ public class PostDeleteAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( postDeleteEvent.getEntity() )
-                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity(), createAuditEntry( postDeleteEvent ) ) )
+                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
                 .build() ) );
     }
 

@@ -28,22 +28,21 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Value;
 
 /**
  * @author Luciano Fiandesio
  */
 @Value
+@AllArgsConstructor
 public class AuditableEntity
 {
     /**
-     * The raw Audit entity object
-     * This object must contains all class metadata which are needed for method
-     * {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
-     * This object should be serialized by Jackson without any errors,
-     * otherwise a serializableObject should be provided
+     * Class of the AuditableEntity
+     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
      */
-    Object entity;
+    Class entityClass;
 
     /**
      * An object that is ready for serialized by Jackson.
@@ -54,15 +53,4 @@ public class AuditableEntity
      * This object could be a Map<String, Object>  with key is property name and value is the property value
      */
     Object serializableObject;
-
-    public AuditableEntity( Object entity )
-    {
-        this.entity = serializableObject = entity;
-    }
-
-    public AuditableEntity ( Object entity, Object serializableObject )
-    {
-        this.entity = entity;
-        this.serializableObject = serializableObject;
-    }
 }

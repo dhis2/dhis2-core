@@ -97,7 +97,7 @@ public class AuditManager
                 audit.getCreatedBy() ) );
         }
 
-        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
+        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity() ) );
 
         if ( config.isUseQueue() )
         {

@@ -72,7 +72,7 @@ public class PostLoadAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( postLoadEvent.getEntity() )
-                .auditableEntity( new AuditableEntity( postLoadEvent.getEntity() ) )
+                .auditableEntity( new AuditableEntity( postLoadEvent.getEntity().getClass(), postLoadEvent.getEntity() ) )
                 .build() ) );
     }
 }
