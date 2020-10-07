@@ -125,20 +125,12 @@ public interface ProgramStageInstanceService
     ProgramStageInstance getProgramStageInstance( long id );
 
     /**
-     * Returns a List of {@link ProgramStageInstance}.
+     * Returns a List of {@link ProgramStageInstance}
      *
-     * @param ids a List of {@link ProgramStageInstance} primary keys
-     * @return  a List of {@link ProgramStageInstance} matching the provided primary keyss
+     * @param id the primary key of a Program Instance
+     * @return  a List of {@link ProgramStageInstance} matching the provided primary key of a Program Instance
      */
-    List<ProgramStageInstance> getProgramStageInstances( List<Long> ids );
-
-    /**
-     * Returns a List of {@link ProgramStageInstance}.
-     *
-     * @param uids a List of {@link ProgramStageInstance} uids
-     * @return  a List of {@link ProgramStageInstance} matching the provided uids
-     */
-    List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids );
+    List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id );
 
     /**
      * Returns the {@link ProgramStageInstance} with the given UID.

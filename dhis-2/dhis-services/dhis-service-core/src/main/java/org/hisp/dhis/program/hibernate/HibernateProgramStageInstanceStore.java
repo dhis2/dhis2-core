@@ -116,6 +116,15 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
+    public List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> root.get( "programInstance" ).in( id ) ) );
+    }
+
+    @Override
     public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
     {
         CriteriaBuilder builder = getCriteriaBuilder();

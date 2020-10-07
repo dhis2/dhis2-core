@@ -141,18 +141,14 @@ public class DefaultProgramInstanceService
     @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( long id )
     {
-        ProgramInstance programInstance = programInstanceStore.get( id );
-
-        return programInstance;
+        return programInstanceStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( String uid )
     {
-        ProgramInstance programInstance = programInstanceStore.getByUid( uid );
-
-        return programInstance;
+        return programInstanceStore.getByUid( uid );
     }
 
     @Override
@@ -303,9 +299,7 @@ public class DefaultProgramInstanceService
             params.setDefaultPaging();
         }
 
-        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        return programInstances;
+        return programInstanceStore.getProgramInstances( params );
     }
 
     @Override

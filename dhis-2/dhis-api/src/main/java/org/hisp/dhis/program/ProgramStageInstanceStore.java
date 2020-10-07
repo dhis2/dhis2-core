@@ -74,6 +74,8 @@ public interface ProgramStageInstanceStore
      */
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
 
+    List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id );
+
     /**
      * Get the number of ProgramStageInstances updates since the given Date.
      *

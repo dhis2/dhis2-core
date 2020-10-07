@@ -120,8 +120,7 @@ public class ProgramStageInstanceServiceTest
     private DataElement dataElementC;
 
     private DataElement dataElementD;
-
-
+    
     private ProgramStageDataElement stageDataElementA;
 
     private ProgramStageDataElement stageDataElementB;
@@ -193,7 +192,7 @@ public class ProgramStageInstanceServiceTest
         entityInstanceA.getTrackedEntityAttributeValues().add( attributeValue );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
 
-        /**
+        /*
          * Program A
          */
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -258,7 +257,7 @@ public class ProgramStageInstanceServiceTest
         programB.setProgramStages( programStages );
         programService.updateProgram( programB );
 
-        /**
+        /*
          * Program Instance and Program Stage Instance
          */
 
@@ -410,7 +409,7 @@ public class ProgramStageInstanceServiceTest
 
         programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat, null );
 
-        assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
+        assertTrue( programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
     }
 
     @Test
@@ -538,6 +537,17 @@ public class ProgramStageInstanceServiceTest
             .getValue();
 
         assertEquals( "3", eventDataValueCValue );
+    }
+
+    @Test
+    public void testProgramStageInstancesByProgramInstance()
+    {
+        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+
+        final List<ProgramStageInstance> programStageInstances = programStageInstanceService
+            .getProgramStageInstancesByProgramInstance( programInstanceA.getId() );
+
+        assertEquals( programStageInstances.size(), 2 );
     }
 
     private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
