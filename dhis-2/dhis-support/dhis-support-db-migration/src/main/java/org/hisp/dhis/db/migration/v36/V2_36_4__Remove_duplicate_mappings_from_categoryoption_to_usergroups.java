@@ -52,6 +52,12 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
     extends BaseJavaMigration
 {
 
+    private static final String USERGROUPID = "usergroupid";
+
+
+    private static final String CATEGORYOPTIONID = "categoryoptionid";
+
+
     private static final String CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING = "SELECT count(*),categoryoptionid,name,usergroupid  " + 
         "FROM   (SELECT deco.*,uga.* " + 
         "       FROM   dataelementcategoryoption deco " + 
@@ -107,10 +113,10 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
                 {       
                     duplicateCatOptUsrgrp = new DuplicateCategoryOptionUserGroupWithCount();
                     duplicateCatOptUsrgrp.setName( rs.getString( "name" ) );
-                    duplicateCatOptUsrgrp.setCategoryOptionId( rs.getLong( "categoryoptionid" ) );
-                    catOptIds.add( rs.getString( "categoryoptionid" )  );
-                    duplicateCatOptUsrgrp.setUserGroupId( rs.getLong( "usergroupid" ) );
-                    userGroupIds.add( rs.getString( "usergroupid" ) );
+                    duplicateCatOptUsrgrp.setCategoryOptionId( rs.getLong( CATEGORYOPTIONID ) );
+                    catOptIds.add( rs.getString( CATEGORYOPTIONID )  );
+                    duplicateCatOptUsrgrp.setUserGroupId( rs.getLong( USERGROUPID ) );
+                    userGroupIds.add( rs.getString( USERGROUPID ) );
                     duplicateCatOptUsrgrp.setCount( rs.getInt( "count" ) );
                     totalCount = totalCount + rs.getInt( "count" );
                     duplicateCatOptUsrgrps.add( duplicateCatOptUsrgrp );
@@ -132,7 +138,7 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
             Pair<String,String> currentPair = null;
             while ( rs.next() )
             {
-                currentPair = Pair.of( rs.getString( "categoryoptionid" ), rs.getString( "usergroupid" ) );
+                currentPair = Pair.of( rs.getString( CATEGORYOPTIONID ), rs.getString( USERGROUPID ) );
                 if ( catOptUsrGroupPairs.contains( currentPair ) )
                 {
                     deleteUserGroupAccessIds.add( rs.getString( "usergroupaccessid" ) );
