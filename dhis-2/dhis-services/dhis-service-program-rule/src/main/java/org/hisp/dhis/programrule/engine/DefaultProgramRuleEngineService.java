@@ -32,14 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
@@ -47,7 +40,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
-import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -99,7 +94,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
-    @Transactional
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
@@ -109,8 +103,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return Lists.newArrayList();
         }
 
+        List<ProgramStageInstance> programStageInstances = programStageInstanceService
+            .getProgramStageInstances( Lists.newArrayList( programInstance.getId() ) );
+
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
-            programInstance.getProgramStageInstances() );
+            Sets.newHashSet( programStageInstances ) );
 
         for ( RuleEffect effect : ruleEffects )
         {
@@ -125,9 +122,9 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
-    @Transactional
     public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
     {
+
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
 
         if ( psi == null )
@@ -136,9 +133,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
+        List<ProgramStageInstance> programStageInstances = programStageInstanceService
+            .getProgramStageInstances( Lists.newArrayList( programInstance.getId() ) );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( psi.getProgramInstance(), psi,
-            programInstance.getProgramStageInstances() );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
+            Sets.newHashSet( programStageInstances ) );
 
         for ( RuleEffect effect : ruleEffects )
         {

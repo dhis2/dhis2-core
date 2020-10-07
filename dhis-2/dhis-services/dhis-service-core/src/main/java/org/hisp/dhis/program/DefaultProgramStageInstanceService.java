@@ -137,6 +137,7 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramStageInstance> getProgramStageInstances( List<Long> id )
     {
         return programStageInstanceStore.getById( id );

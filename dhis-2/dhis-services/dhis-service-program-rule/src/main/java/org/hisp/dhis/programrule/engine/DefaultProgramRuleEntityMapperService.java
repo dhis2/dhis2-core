@@ -252,6 +252,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
+    @Transactional( readOnly = true )
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
