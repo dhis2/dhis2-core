@@ -57,7 +57,7 @@ public class NotificationTemplateService
         notificationInstance.setAutoFields();
         notificationInstance.setName( template.getName() );
         notificationInstance.setScheduledAt( date );
-        notificationInstance.setProgramNotificationTemplate( mapper.toProgramNotificationTemplateSnapshot( template ) );
+        notificationInstance.setProgramNotificationTemplateSnapshot( mapper.toProgramNotificationTemplateSnapshot( template ) );
 
         return notificationInstance;
     }

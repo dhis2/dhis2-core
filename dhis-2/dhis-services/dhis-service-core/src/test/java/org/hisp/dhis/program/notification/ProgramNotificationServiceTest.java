@@ -618,7 +618,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
 
         programNotificationInstaceForToday = new ProgramNotificationInstance();
-        programNotificationInstaceForToday.setProgramNotificationTemplate( notificationTemplateMapper.toProgramNotificationTemplateSnapshot( programNotificationTemplateForToday ) );
+        programNotificationInstaceForToday.setProgramNotificationTemplateSnapshot( notificationTemplateMapper.toProgramNotificationTemplateSnapshot( programNotificationTemplateForToday ) );
         programNotificationInstaceForToday.setName( programNotificationTemplateForToday.getName() );
         programNotificationInstaceForToday.setAutoFields();
         programNotificationInstaceForToday.setScheduledAt( today );

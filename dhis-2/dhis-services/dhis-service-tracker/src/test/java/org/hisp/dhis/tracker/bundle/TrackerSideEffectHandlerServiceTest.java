@@ -138,7 +138,7 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );
-        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplate().getUid() );
+        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
     }
 
     @Override
