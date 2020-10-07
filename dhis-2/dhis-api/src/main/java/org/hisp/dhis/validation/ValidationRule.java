@@ -206,8 +206,6 @@ public class ValidationRule
         }
     }
 
-    //TODO: Should we translate the instruction fallback?
-
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------
