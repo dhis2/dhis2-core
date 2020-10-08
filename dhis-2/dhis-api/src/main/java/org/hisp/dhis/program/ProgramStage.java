@@ -355,7 +355,7 @@ public class ProgramStage
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayExecutionDateLabel()
     {
-        return getTranslation( TranslationProperty.PROGRAM_STAGE_EXECUTION_DATE_LABEL, getExecutionDateLabel() );
+        return getTranslation( TranslationProperty.EXECUTION_DATE_LABEL, getExecutionDateLabel() );
     }
 
     public void setExecutionDateLabel( String executionDateLabel )
@@ -375,7 +375,7 @@ public class ProgramStage
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDueDateLabel()
     {
-        return getTranslation( TranslationProperty.PROGRAM_STAGE_DUE_DATE_LABEL, getDueDateLabel() );
+        return getTranslation( TranslationProperty.DUE_DATE_LABEL, getDueDateLabel() );
     }
 
     public void setDueDateLabel( String dueDateLabel )

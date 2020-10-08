@@ -42,10 +42,10 @@ public enum TranslationProperty
     RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
     RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
     INSTRUCTION( "instruction" ),
-    PROGRAM_INCIDENT_DATE_LABEL( "programIncidentDateLabel" ),
-    PROGRAM_ENROLLMENT_DATE_LABEL( "programEnrollmentDateLabel" ),
-    PROGRAM_STAGE_EXECUTION_DATE_LABEL( "programStageExecutionDateLabel" ),
-    PROGRAM_STAGE_DUE_DATE_LABEL( "programStageDueDateLabel" );
+    INCIDENT_DATE_LABEL( "incidentDateLabel" ),
+    ENROLLMENT_DATE_LABEL( "enrollmentDateLabel" ),
+    EXECUTION_DATE_LABEL( "executionDateLabel" ),
+    DUE_DATE_LABEL( "dueDateLabel" );
 
     private String name;
 

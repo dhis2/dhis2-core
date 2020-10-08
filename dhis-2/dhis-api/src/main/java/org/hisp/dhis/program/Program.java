@@ -462,7 +462,7 @@ public class Program
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayEnrollmentDateLabel()
     {
-        return getTranslation( TranslationProperty.PROGRAM_ENROLLMENT_DATE_LABEL, getEnrollmentDateLabel() );
+        return getTranslation( TranslationProperty.ENROLLMENT_DATE_LABEL, getEnrollmentDateLabel() );
     }
 
     public void setEnrollmentDateLabel( String enrollmentDateLabel )
@@ -482,7 +482,7 @@ public class Program
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayIncidentDateLabel()
     {
-        return getTranslation( TranslationProperty.PROGRAM_INCIDENT_DATE_LABEL, getIncidentDateLabel() );
+        return getTranslation( TranslationProperty.INCIDENT_DATE_LABEL, getIncidentDateLabel() );
     }
 
     public void setIncidentDateLabel( String incidentDateLabel )
