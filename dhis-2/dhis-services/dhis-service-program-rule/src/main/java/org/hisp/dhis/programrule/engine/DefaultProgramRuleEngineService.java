@@ -28,8 +28,6 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
 import org.hisp.dhis.program.Program;
@@ -46,6 +44,9 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -54,44 +55,25 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
+@AllArgsConstructor
 public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final ProgramRuleEngine programRuleEngine;
+    @NonNull @Qualifier( "notificationRuleEngine" ) private final ProgramRuleEngine programRuleEngine;
 
-    private final ProgramRuleEngine programRuleEngineNew;
+    @NonNull@Qualifier( "serviceTrackerRuleEngine" ) private final ProgramRuleEngine programRuleEngineNew;
 
-    private final List<RuleActionImplementer> ruleActionImplementers;
+    @NonNull private final List<RuleActionImplementer> ruleActionImplementers;
 
-    private final ProgramInstanceService programInstanceService;
+    @NonNull private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    @NonNull private final ProgramStageInstanceService programStageInstanceService;
 
-    private final ProgramService programService;
-
-    public DefaultProgramRuleEngineService(
-        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
-        @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
-        List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ProgramService programService )
-    {
-        checkNotNull( programRuleEngine );
-        checkNotNull( programRuleEngineNew );
-        checkNotNull( ruleActionImplementers );
-        checkNotNull( programInstanceService );
-        checkNotNull( programStageInstanceService );
-        checkNotNull( programService );
-
-        this.programRuleEngine = programRuleEngine;
-        this.programRuleEngineNew = programRuleEngineNew;
-        this.ruleActionImplementers = ruleActionImplementers;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
-        this.programService = programService;
-    }
+    @NonNull private final ProgramService programService;
+    
 
     @Override
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
@@ -107,14 +89,8 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             Sets.newHashSet( programStageInstanceService
                 .getProgramStageInstancesByProgramInstance( programInstance.getId() ) ) );
 
-        for ( RuleEffect effect : ruleEffects )
-        {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
-                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
-
-                i.implement( effect, programInstance );
-            } );
-        }
+        RuleExecutor.builder().ruleActionImplementers( ruleActionImplementers ).programInstance( programInstance )
+            .build().exec( ruleEffects );
 
         return ruleEffects;
     }
@@ -135,14 +111,8 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             Sets.newHashSet( programStageInstanceService
                 .getProgramStageInstancesByProgramInstance( programInstance.getId() ) ) );
 
-        for ( RuleEffect effect : ruleEffects )
-        {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
-                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
-
-                i.implement( effect, psi );
-            } );
-        }
+        RuleExecutor.builder().ruleActionImplementers( ruleActionImplementers ).programStageInstance( psi ).build()
+            .exec( ruleEffects );
 
         return ruleEffects;
     }
@@ -153,5 +123,33 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         Program program = programService.getProgram( programId );
 
         return programRuleEngineNew.getDescription( condition, program );
+    }
+
+    @Builder()
+    static class RuleExecutor
+    {
+        private ProgramInstance programInstance;
+
+        private ProgramStageInstance programStageInstance;
+
+        private List<RuleActionImplementer> ruleActionImplementers;
+
+        void exec( List<RuleEffect> ruleEffects )
+        {
+            for ( RuleEffect effect : ruleEffects )
+            {
+                ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
+                    log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
+                    if ( programInstance != null )
+                    {
+                        i.implement( effect, programInstance );
+                    }
+                    else
+                    {
+                        i.implement( effect, programStageInstance );
+                    }
+                } );
+            }
+        }
     }
 }
