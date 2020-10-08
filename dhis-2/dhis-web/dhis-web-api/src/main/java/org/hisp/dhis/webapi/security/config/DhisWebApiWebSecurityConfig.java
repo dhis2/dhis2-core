@@ -342,8 +342,7 @@ public class DhisWebApiWebSecurityConfig
                 .and().csrf().disable()
 
                 .exceptionHandling()
-                .accessDeniedHandler( accessDeniedHandler )
-                .authenticationEntryPoint( authenticationEntryPoint );
+                .accessDeniedHandler( accessDeniedHandler );
 
             http
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
