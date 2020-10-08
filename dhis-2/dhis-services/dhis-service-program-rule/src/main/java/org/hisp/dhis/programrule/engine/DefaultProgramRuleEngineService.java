@@ -73,7 +73,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     @NonNull private final ProgramService programService;
     
-
     @Override
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
