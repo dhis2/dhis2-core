@@ -31,8 +31,10 @@ package org.hisp.dhis.program.notification.template.snapshot;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class IdentifiableObjectSnapshot
+public class IdentifiableObjectSnapshot implements Serializable
 {
     private long id;
 
