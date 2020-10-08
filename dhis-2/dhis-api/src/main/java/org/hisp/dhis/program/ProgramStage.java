@@ -50,6 +50,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -350,6 +351,13 @@ public class ProgramStage
         return executionDateLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayExecutionDateLabel()
+    {
+        return getTranslation( TranslationProperty.PROGRAM_STAGE_EXECUTION_DATE_LABEL, getExecutionDateLabel() );
+    }
+
     public void setExecutionDateLabel( String executionDateLabel )
     {
         this.executionDateLabel = executionDateLabel;
@@ -361,6 +369,13 @@ public class ProgramStage
     public String getDueDateLabel()
     {
         return dueDateLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDueDateLabel()
+    {
+        return getTranslation( TranslationProperty.PROGRAM_STAGE_DUE_DATE_LABEL, getDueDateLabel() );
     }
 
     public void setDueDateLabel( String dueDateLabel )
