@@ -69,7 +69,6 @@ import com.google.common.collect.Lists;
  * Created by zubair@dhis2.org on 19.10.17.
  */
 @Slf4j
-@Transactional( readOnly = true )
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" )
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService
 {
