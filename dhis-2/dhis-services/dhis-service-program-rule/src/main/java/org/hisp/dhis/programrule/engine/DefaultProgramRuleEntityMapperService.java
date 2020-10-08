@@ -57,6 +57,7 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -167,6 +168,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final ProgramRuleVariableService programRuleVariableService;
 
+    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
     private final DataElementService dataElementService;
 
     private final ConstantService constantService;
@@ -175,17 +178,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
         ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
         ConstantService constantService, I18nManager i18nManager )
     {
         checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( dataElementService );
+        checkNotNull( trackedEntityAttributeValueService );
         checkNotNull( constantService );
         checkNotNull( i18nManager );
 
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.dataElementService = dataElementService;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
         this.constantService = constantService;
         this.i18nManager = i18nManager;
     }
@@ -251,7 +257,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    @Transactional( readOnly = true )
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
@@ -271,7 +276,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
         if ( enrollment.getEntityInstance() != null )
         {
-            ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues()
+            ruleAttributeValues = trackedEntityAttributeValueService
+                .getTrackedEntityAttributeValues( enrollment.getEntityInstance() )
                 .stream()
                 .filter( Objects::nonNull )
                 .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),

@@ -138,8 +138,6 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( long id )
     {
         ProgramInstance programInstance = programInstanceStore.get(id);
-        // TEMP CODE FIXME Luciano-Enrico
-        programInstance.getEntityInstance().getTrackedEntityAttributeValues().size();
 
         return programInstance;
     }

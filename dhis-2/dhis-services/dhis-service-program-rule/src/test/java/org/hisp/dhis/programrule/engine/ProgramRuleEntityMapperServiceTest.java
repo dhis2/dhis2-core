@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.*;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -55,6 +56,7 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -139,6 +141,9 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     private ProgramRuleVariableService programRuleVariableService;
 
     @Mock
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+    @Mock
     private ConstantService constantService;
 
     @Mock
@@ -156,7 +161,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
-            dataElementService, constantService, i18nManager );
+            dataElementService, trackedEntityAttributeValueService, constantService, i18nManager );
 
         setUpProgramRules();
     }
@@ -317,6 +322,10 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedEnrollment()
     {
+        when(
+            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( programInstance.getEntityInstance() ) )
+                .thenReturn( Lists.newArrayList( trackedEntityAttributeValue ) );
+
         RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance );
 
         assertEquals( ruleEnrollment.enrollment(), programInstance.getUid() );
