@@ -28,7 +28,17 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.validation.constraints.NotNull;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -47,23 +57,19 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew
  */
 @Slf4j
 @Service( "org.hisp.dhis.program.ProgramInstanceService" )
+@AllArgsConstructor
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {
@@ -71,35 +77,25 @@ public class DefaultProgramInstanceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramInstanceStore programInstanceStore;
+    @NotNull private final ProgramInstanceStore programInstanceStore;
 
-    @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    @NotNull private final ProgramStageInstanceStore programStageInstanceStore;
 
-    @Autowired
-    private ProgramService programService;
+    @NotNull private final ProgramService programService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    @NotNull private final CurrentUserService currentUserService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    @NotNull private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    @NotNull private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+    @NotNull private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    @NotNull private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
+    @NotNull private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Autowired
-    private AclService aclService;
+    @NotNull private final AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -141,7 +137,7 @@ public class DefaultProgramInstanceService
     @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( long id )
     {
-        ProgramInstance programInstance = programInstanceStore.get( id );
+        ProgramInstance programInstance = programInstanceStore.get(id);
 
         return programInstance;
     }
@@ -150,9 +146,7 @@ public class DefaultProgramInstanceService
     @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( String uid )
     {
-        ProgramInstance programInstance = programInstanceStore.getByUid( uid );
-
-        return programInstance;
+        return programInstanceStore.getByUid( uid );
     }
 
     @Override
@@ -269,71 +263,27 @@ public class DefaultProgramInstanceService
 
         return params;
     }
-
+    
     // TODO consider security
     @Override
     @Transactional( readOnly = true )
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
-        decideAccess( params );
-        validate( params );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
-        {
-            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
-        }
-        else if ( params.isOrganisationUnitMode( CHILDREN ) )
-        {
-            Set<OrganisationUnit> organisationUnits = new HashSet<>();
-            organisationUnits.addAll( params.getOrganisationUnits() );
-
-            for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
-            {
-                organisationUnits.addAll( organisationUnit.getChildren() );
-            }
-
-            params.setOrganisationUnits( organisationUnits );
-        }
+        prepareParams( params );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
         }
 
-        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        return programInstances;
+        return programInstanceStore.getProgramInstances( params );
     }
 
     @Override
     @Transactional( readOnly = true )
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
-        decideAccess( params );
-        validate( params );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
-        {
-            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
-        }
-        else if ( params.isOrganisationUnitMode( CHILDREN ) )
-        {
-            Set<OrganisationUnit> organisationUnits = new HashSet<>();
-            organisationUnits.addAll( params.getOrganisationUnits() );
-
-            for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
-            {
-                organisationUnits.addAll( organisationUnit.getChildren() );
-            }
-
-            params.setOrganisationUnits( organisationUnits );
-        }
+        prepareParams( params );
 
         params.setSkipPaging( true );
 
@@ -634,5 +584,30 @@ public class DefaultProgramInstanceService
         programInstance.setEndDate( null );
 
         updateProgramInstance( programInstance );
+    }
+
+    private void prepareParams( ProgramInstanceQueryParams params )
+    {
+        decideAccess( params );
+        validate( params );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
+        {
+            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        }
+        else if ( params.isOrganisationUnitMode( CHILDREN ) )
+        {
+            Set<OrganisationUnit> organisationUnits = new HashSet<>( params.getOrganisationUnits() );
+
+            for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
+            {
+                organisationUnits.addAll( organisationUnit.getChildren() );
+            }
+
+            params.setOrganisationUnits( organisationUnits );
+        }
     }
 }

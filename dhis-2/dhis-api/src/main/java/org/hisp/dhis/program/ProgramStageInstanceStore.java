@@ -75,6 +75,14 @@ public interface ProgramStageInstanceStore
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
+     * Get all {@see ProgramStageInstance} linked to a {@see ProgramInstance}
+     * 
+     * @param id the primary key of a {@see ProgramInstance}
+     * @returna {@see ProgramStageInstance} list
+     */
+    List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id );
+
+    /**
      * Get the number of ProgramStageInstances updates since the given Date.
      *
      * @param time the time.

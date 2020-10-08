@@ -137,15 +137,10 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    public List<ProgramStageInstance> getProgramStageInstances( List<Long> id )
+    @Transactional( readOnly = true )
+    public List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id )
     {
-        return programStageInstanceStore.getById( id );
-    }
-
-    @Override
-    public List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids )
-    {
-        return programStageInstanceStore.getByUid( uids );
+        return programStageInstanceStore.getProgramStageInstancesByProgramInstance( id );
     }
 
     @Override

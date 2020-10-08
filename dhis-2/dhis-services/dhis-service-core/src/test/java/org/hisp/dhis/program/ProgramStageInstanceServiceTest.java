@@ -120,8 +120,7 @@ public class ProgramStageInstanceServiceTest
     private DataElement dataElementC;
 
     private DataElement dataElementD;
-
-
+    
     private ProgramStageDataElement stageDataElementA;
 
     private ProgramStageDataElement stageDataElementB;
@@ -193,7 +192,7 @@ public class ProgramStageInstanceServiceTest
         entityInstanceA.getTrackedEntityAttributeValues().add( attributeValue );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
 
-        /**
+        /*
          * Program A
          */
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -258,7 +257,7 @@ public class ProgramStageInstanceServiceTest
         programB.setProgramStages( programStages );
         programService.updateProgram( programB );
 
-        /**
+        /*
          * Program Instance and Program Stage Instance
          */
 
@@ -281,10 +280,12 @@ public class ProgramStageInstanceServiceTest
         programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setUid( "UID-A" );
+        programStageInstanceA.setOrganisationUnit( organisationUnitA );
 
         programStageInstanceB = new ProgramStageInstance( programInstanceA, stageB );
         programStageInstanceB.setDueDate( enrollmentDate );
         programStageInstanceB.setUid( "UID-B" );
+        programStageInstanceB.setOrganisationUnit( organisationUnitA );
 
         programStageInstanceC = new ProgramStageInstance( programInstanceB, stageC );
         programStageInstanceC.setDueDate( enrollmentDate );
@@ -410,7 +411,7 @@ public class ProgramStageInstanceServiceTest
 
         programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat, null );
 
-        assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
+        assertTrue( programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
     }
 
     @Test
@@ -539,6 +540,37 @@ public class ProgramStageInstanceServiceTest
 
         assertEquals( "3", eventDataValueCValue );
     }
+
+    @Test
+    public void testProgramStageInstancesByProgramInstance()
+    {
+        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+
+        final List<ProgramStageInstance> programStageInstances = programStageInstanceService
+            .getProgramStageInstancesByProgramInstance( programInstanceA.getId() );
+
+        assertEquals( 2, programStageInstances.size() );
+    }
+
+    @Test
+    public void testProgramStageInstancesByProgramInstance_fetchPSI_without_ou()
+    {
+        // Make sure that psi without an Org Unit are returned
+        // This PSI has no  Org Unit set
+
+        ProgramStageInstance programStageInstance1 = new ProgramStageInstance( programInstanceA, stageA );
+        programStageInstanceA.setDueDate( enrollmentDate );
+        programStageInstanceA.setUid( "UID-A" );
+        programStageInstanceService.addProgramStageInstance( programStageInstance1 );
+
+        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+
+        final List<ProgramStageInstance> programStageInstances = programStageInstanceService
+            .getProgramStageInstancesByProgramInstance( programInstanceA.getId() );
+
+        assertEquals( 3, programStageInstances.size() );
+    }
+
 
     private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
     {

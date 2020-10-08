@@ -34,10 +34,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -64,6 +68,12 @@ import com.google.api.client.util.Lists;
 @Slf4j
 public class ProgramRuleEngine
 {
+
+    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
+        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+
+    private static final Pattern PATTERN = Pattern.compile( REGEX );
+
     private static final String USER = "USER";
 
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -185,10 +195,29 @@ public class ProgramRuleEngine
             .stream()
             .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
 
-        Map<String, List<String>> supplementaryData = organisationUnitGroupService.getAllOrganisationUnitGroups()
-            .stream()
-            .collect( Collectors.toMap( BaseIdentifiableObject::getUid,
-                g -> g.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        Map<String, List<String>> supplementaryData = Maps.newHashMap();
+
+        List<String> orgUnitGroups = new ArrayList<>();
+
+        for ( ProgramRule programRule : programRules )
+        {
+            if ( programRule != null )
+            {
+                Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
+
+                while ( matcher.find() )
+                {
+                    orgUnitGroups.add( StringUtils.replace( matcher.group( 1 ), "'", "" ) );
+                }
+            }
+        }
+
+        if ( !orgUnitGroups.isEmpty() )
+        {
+            supplementaryData = orgUnitGroups.stream().collect(
+                Collectors.toMap( g -> g, g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
+                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        }
 
         if ( currentUserService.getCurrentUser() != null )
         {

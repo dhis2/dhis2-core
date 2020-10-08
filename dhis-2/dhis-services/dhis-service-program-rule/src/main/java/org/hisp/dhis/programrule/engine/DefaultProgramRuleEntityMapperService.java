@@ -48,7 +48,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -58,6 +57,7 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +69,6 @@ import com.google.common.collect.Lists;
  * Created by zubair@dhis2.org on 19.10.17.
  */
 @Slf4j
-@Transactional( readOnly = true )
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" )
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService
 {
@@ -168,6 +167,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final ProgramRuleVariableService programRuleVariableService;
 
+    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
     private final DataElementService dataElementService;
 
     private final ConstantService constantService;
@@ -176,17 +177,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
         ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
         ConstantService constantService, I18nManager i18nManager )
     {
         checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( dataElementService );
+        checkNotNull( trackedEntityAttributeValueService );
         checkNotNull( constantService );
         checkNotNull( i18nManager );
 
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.dataElementService = dataElementService;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
         this.constantService = constantService;
         this.i18nManager = i18nManager;
     }
@@ -271,7 +275,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
         if ( enrollment.getEntityInstance() != null )
         {
-            ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues()
+            ruleAttributeValues = trackedEntityAttributeValueService
+                .getTrackedEntityAttributeValues( enrollment.getEntityInstance() )
                 .stream()
                 .filter( Objects::nonNull )
                 .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),
