@@ -123,11 +123,13 @@ public class HibernateProgramStageInstanceStore
     public List<ProgramStageInstance> getProgramStageInstancesByProgramInstance( Long id )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<ProgramStageInstance> q = builder.createQuery(ProgramStageInstance.class);
-        Root<ProgramStageInstance> o = q.from(ProgramStageInstance.class);
-        o.fetch("organisationUnit", JoinType.LEFT);
-        o.fetch("programStage", JoinType.LEFT);
-        q.where(builder.equal(o.get("programInstance"), id));
+        CriteriaQuery<ProgramStageInstance> q = builder.createQuery( ProgramStageInstance.class );
+        Root<ProgramStageInstance> o = q.from( ProgramStageInstance.class );
+        // using LEFT because the org unit may be null, and we still want to get the PSI
+        o.fetch( "organisationUnit", JoinType.LEFT );
+        // using INNER because a PSI must always have a Program Stage
+        o.fetch( "programStage", JoinType.INNER );
+        q.where( builder.equal( o.get( "programInstance" ), id ) );
 
         TypedQuery<ProgramStageInstance> typedQuery = getSession().createQuery( q )
             .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );

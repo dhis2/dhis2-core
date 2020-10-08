@@ -280,10 +280,12 @@ public class ProgramStageInstanceServiceTest
         programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setUid( "UID-A" );
+        programStageInstanceA.setOrganisationUnit( organisationUnitA );
 
         programStageInstanceB = new ProgramStageInstance( programInstanceA, stageB );
         programStageInstanceB.setDueDate( enrollmentDate );
         programStageInstanceB.setUid( "UID-B" );
+        programStageInstanceB.setOrganisationUnit( organisationUnitA );
 
         programStageInstanceC = new ProgramStageInstance( programInstanceB, stageC );
         programStageInstanceC.setDueDate( enrollmentDate );
@@ -549,6 +551,26 @@ public class ProgramStageInstanceServiceTest
 
         assertEquals( 2, programStageInstances.size() );
     }
+
+    @Test
+    public void testProgramStageInstancesByProgramInstance_fetchPSI_without_ou()
+    {
+        // Make sure that psi without an Org Unit are returned
+        // This PSI has no  Org Unit set
+
+        ProgramStageInstance programStageInstance1 = new ProgramStageInstance( programInstanceA, stageA );
+        programStageInstanceA.setDueDate( enrollmentDate );
+        programStageInstanceA.setUid( "UID-A" );
+        programStageInstanceService.addProgramStageInstance( programStageInstance1 );
+
+        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+
+        final List<ProgramStageInstance> programStageInstances = programStageInstanceService
+            .getProgramStageInstancesByProgramInstance( programInstanceA.getId() );
+
+        assertEquals( 3, programStageInstances.size() );
+    }
+
 
     private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
     {
