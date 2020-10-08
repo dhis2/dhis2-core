@@ -255,9 +255,9 @@ alter table constantattributevalues
 	alter column constantid type bigint,
 	alter column attributevalueid type bigint;
 
-alter table constantuseraccesses
-	alter column constantid type bigint,
-	alter column constantid type bigint;
+alter table constantuseraccesses alter column constantid type bigint;
+
+alter table constantusergroupaccesses alter column constantid type bigint;
 
 alter table dashboard
 	alter column dashboardid type bigint,
