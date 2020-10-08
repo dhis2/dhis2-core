@@ -108,6 +108,11 @@ public enum ErrorCode
     /* Job specific scheduling errors */
     E7010( "Failed to validate job runtime - `{0}`" ),
 
+    /* Aggregate analytics */
+    E7100( "Query failed, likely because the query timed out" ),
+    E7101( "Query failed. An Indicator expression is resulting in invalid operation: division by zero" ),
+    E7102( "This query cannot be executed, possibly because of invalid types or invalid operation" ),
+
     /* Preheat Errors */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
