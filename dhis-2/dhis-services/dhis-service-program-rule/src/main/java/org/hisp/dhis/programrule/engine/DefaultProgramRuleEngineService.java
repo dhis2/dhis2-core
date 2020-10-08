@@ -52,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
-
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
 @AllArgsConstructor
