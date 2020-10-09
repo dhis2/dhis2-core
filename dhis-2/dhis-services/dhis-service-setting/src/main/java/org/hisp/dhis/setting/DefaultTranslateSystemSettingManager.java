@@ -83,7 +83,7 @@ public class DefaultTranslateSystemSettingManager
     {
         String settingValue = EMPTY;
 
-        settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ), defaultValue );
+        settingValue = systemSettingManager.getSystemSettingTranslation( keyName, localeStr ).orElse( defaultValue );
 
         return settingValue;
     }

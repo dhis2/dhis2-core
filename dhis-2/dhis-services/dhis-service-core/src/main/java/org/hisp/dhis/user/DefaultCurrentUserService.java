@@ -35,7 +35,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,19 +74,15 @@ public class DefaultCurrentUserService
 
     private final CacheProvider cacheProvider;
 
-    private final SessionRegistry sessionRegistry;
-
     public DefaultCurrentUserService( Environment env, CacheProvider cacheProvider,
-        @Lazy SessionRegistry sessionRegistry, @Lazy UserStore userStore )
+        @Lazy UserStore userStore )
     {
         checkNotNull( env );
         checkNotNull( cacheProvider );
-        checkNotNull( sessionRegistry );
         checkNotNull( userStore );
 
         this.env = env;
         this.cacheProvider = cacheProvider;
-        this.sessionRegistry = sessionRegistry;
         this.userStore = userStore;
     }
 

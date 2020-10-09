@@ -39,17 +39,21 @@ import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -82,7 +86,7 @@ public class EventManager
     @NonNull
     private final EventPersistenceService eventPersistenceService;
 
-    private final static String IMPORT_ERROR_STRING = "Invalid or conflicting data";
+    private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
     public ImportSummary addEvent( final Event event, final WorkContext workContext )
     {
@@ -102,7 +106,13 @@ public class EventManager
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
-        // filter out events which are already in the database
+        if ( CollectionUtils.isEmpty( events ) )
+        {
+            return importSummaries;
+        }
+
+        // filter out events which are already in the database as well as
+        // duplicates in the payload (if stage is not repeatable)
         List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
 
         if ( validEvents.isEmpty() )
@@ -121,7 +131,7 @@ public class EventManager
         final List<String> invalidEvents = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
-        if ( invalidEvents.size() == validEvents.size() )
+        if ( invalidEvents.size() == events.size() )
         {
             return importSummaries;
         }
@@ -309,17 +319,6 @@ public class EventManager
 
                 importSummaries.addImportSummary( is );
             }
-            else
-            {
-                final Optional<ImportSummary> isOptional = importSummaries.getByReference( event.getUid() );
-
-                if ( isOptional.isPresent() )
-                {
-                    final ImportSummary is = isOptional.get();
-                    is.setStatus( ERROR );
-                    is.incrementIgnored();
-                }
-            }
         }
     }
 
@@ -334,7 +333,7 @@ public class EventManager
 
     /**
      * Filters out Events which are already present in the database (regardless of
-     * the 'deleted' state)
+     * the 'deleted' state) as well as duplicates within the payload (if stage is not repeatable)
      *
      * @param events Events to import
      * @param importSummaries ImportSummaries used for import
@@ -344,16 +343,34 @@ public class EventManager
         final WorkContext workContext )
     {
         List<Event> importableEvents = new ArrayList<>();
-        if ( CollectionUtils.isNotEmpty( events ) )
-        {
-            final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
+        Set<String> importableStageEvents = new HashSet<>();
+        final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
 
-            for ( Event eventToImport : events )
+        for ( Event eventToImport : events )
+        {
+            if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
             {
-                if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
+                final ImportSummary is = new ImportSummary( ERROR,
+                    "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
+                        .setReference( eventToImport.getUid() ).incrementIgnored();
+
+                importSummaries.addImportSummary( is );
+
+                continue;
+            }
+
+            Program program = workContext.getProgramsMap().get( eventToImport.getProgram() );
+
+            ProgramStage programStage = workContext.getProgramStage( IdScheme.UID, eventToImport.getProgramStage() );
+
+            if ( program != null && programStage != null && program.isRegistration() && !programStage.getRepeatable() )
+            {
+                String eventContextId = programStage.getUid() + "-" + eventToImport.getEnrollment();
+
+                if ( importableStageEvents.contains( eventContextId ) )
                 {
                     final ImportSummary is = new ImportSummary( ERROR,
-                        "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
+                        "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
                             .setReference( eventToImport.getUid() ).incrementIgnored();
 
                     importSummaries.addImportSummary( is );
@@ -361,7 +378,13 @@ public class EventManager
                 else
                 {
                     importableEvents.add( eventToImport );
+
+                    importableStageEvents.add( eventContextId );
                 }
+            }
+            else
+            {
+                importableEvents.add( eventToImport );
             }
         }
 

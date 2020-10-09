@@ -59,10 +59,6 @@ public class RelationshipType
 
     private String toFromName;
 
-    private transient String displayFromToName;
-
-    private transient String displayToFromName;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -137,8 +133,7 @@ public class RelationshipType
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayFromToName()
     {
-        displayFromToName = getTranslation( TranslationProperty.RELATIONSHIP_FROM_TO_NAME, displayFromToName );
-        return  displayFromToName != null ? displayFromToName : getFromToName();
+        return getTranslation( TranslationProperty.RELATIONSHIP_FROM_TO_NAME, getFromToName() );
     }
 
     public void setFromToName( String fromToName )
@@ -157,8 +152,7 @@ public class RelationshipType
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayToFromName()
     {
-        displayToFromName = getTranslation( TranslationProperty.RELATIONSHIP_TO_FROM_NAME, displayToFromName );
-        return displayToFromName != null ? displayToFromName : getToFromName();
+        return getTranslation( TranslationProperty.RELATIONSHIP_TO_FROM_NAME, getToFromName() );
     }
 
     public void setToFromName( String toFromName )

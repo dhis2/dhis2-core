@@ -83,8 +83,6 @@ public class Event
 
     private String storedBy;
 
-    private Coordinate coordinate;
-
     private Set<DataValue> dataValues = new HashSet<>();
 
     private List<Note> notes = new ArrayList<>();
@@ -284,18 +282,6 @@ public class Event
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Coordinate getCoordinate()
-    {
-        return coordinate;
-    }
-
-    public void setCoordinate( Coordinate coordinate )
-    {
-        this.coordinate = coordinate;
     }
 
     @JsonProperty

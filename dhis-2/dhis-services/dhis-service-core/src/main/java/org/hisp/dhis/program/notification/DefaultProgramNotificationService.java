@@ -100,14 +100,14 @@ public class DefaultProgramNotificationService
     
     private final NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
 
-    private final ProgramNotificationTemplateStore notificationTemplateStore;
+    private final ProgramNotificationTemplateService notificationTemplateService;
 
-    public DefaultProgramNotificationService( ProgramMessageService programMessageService,
-        MessageService messageService, ProgramInstanceStore programInstanceStore,
-        ProgramStageInstanceStore programStageInstanceStore, IdentifiableObjectManager identifiableObjectManager,
-        NotificationMessageRenderer<ProgramInstance> programNotificationRenderer,
-        NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer,
-        ProgramNotificationTemplateStore notificationTemplateStore )
+    public DefaultProgramNotificationService(ProgramMessageService programMessageService,
+         MessageService messageService, ProgramInstanceStore programInstanceStore,
+         ProgramStageInstanceStore programStageInstanceStore, IdentifiableObjectManager identifiableObjectManager,
+         NotificationMessageRenderer<ProgramInstance> programNotificationRenderer,
+         NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer,
+         ProgramNotificationTemplateService notificationTemplateService )
     {
 
         checkNotNull( programMessageService );
@@ -117,7 +117,7 @@ public class DefaultProgramNotificationService
         checkNotNull( identifiableObjectManager );
         checkNotNull( programNotificationRenderer );
         checkNotNull( programStageNotificationRenderer );
-        checkNotNull( notificationTemplateStore );
+        checkNotNull( notificationTemplateService );
 
         this.programMessageService = programMessageService;
         this.messageService = messageService;
@@ -126,7 +126,7 @@ public class DefaultProgramNotificationService
         this.identifiableObjectManager = identifiableObjectManager;
         this.programNotificationRenderer = programNotificationRenderer;
         this.programStageNotificationRenderer = programStageNotificationRenderer;
-        this.notificationTemplateStore = notificationTemplateStore;
+        this.notificationTemplateService = notificationTemplateService;
     }
 
     // -------------------------------------------------------------------------
@@ -214,7 +214,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredNotifications( long pnt, long programInstance )
     {
-        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateStore.get( pnt ),
+        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateService.get( pnt ),
             Collections.singletonList( programInstanceStore.get( programInstance ) ) );
         sendAll( messageBatch );
     }
@@ -223,7 +223,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
-        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateStore.get( pnt ),
+        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
             Collections.singletonList( programStageInstanceStore.get( programStageInstance ) ) );
         sendAll( messageBatch );
     }

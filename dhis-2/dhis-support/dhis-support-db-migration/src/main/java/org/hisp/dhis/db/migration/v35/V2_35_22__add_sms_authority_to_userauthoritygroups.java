@@ -47,7 +47,7 @@ public class V2_35_22__add_sms_authority_to_userauthoritygroups
     public void migrate( Context context ) throws Exception
     {
         final String sql = "SELECT DISTINCT(userroleid), authority FROM userroleauthorities ura WHERE authority='M_dhis-web-maintenance-mobile' AND " +
-            "NOT EXISTS (SELECT * FROM userroleauthorities WHERE userroleid=ura.userroleid AND authority='M_sms-configuration-app')";
+            "NOT EXISTS (SELECT * FROM userroleauthorities WHERE userroleid=ura.userroleid AND authority='M_dhis-web-sms-configuration')";
 
         try ( final Statement stmt = context.getConnection().createStatement();
               final ResultSet rs = stmt.executeQuery( sql ) )
@@ -61,7 +61,7 @@ public class V2_35_22__add_sms_authority_to_userauthoritygroups
                 try ( final PreparedStatement ps = context.getConnection().prepareStatement( insertSql ) )
                 {
                     ps.setLong( 1, id );
-                    ps.setString( 2, "M_sms-configuration-app" );
+                    ps.setString( 2, "M_dhis-web-sms-configuration" );
 
                     ps.execute();
                 }

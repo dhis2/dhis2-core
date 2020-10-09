@@ -45,7 +45,6 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;

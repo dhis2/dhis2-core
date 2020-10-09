@@ -28,6 +28,11 @@ package org.hisp.dhis.webapi.mvc.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
@@ -39,14 +44,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Locale;
-
 /**
+ * This was deprecated in favour of the new {@link UserContextInterceptor}. This
+ * was disabled after xml to java config refactor, on (24.08.2020).
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * //TODO: Make test for this if still useable, right now (24.08.2020) this is disabled after xml to java config refactor.
  */
 @Component
 @Deprecated

@@ -29,7 +29,10 @@ package org.hisp.dhis.tracker.programrule;
  */
 
 import static org.hisp.dhis.tracker.utils.ImportUtils.build;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,15 +41,22 @@ import java.util.Map;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -116,12 +126,13 @@ public class ProgramRuleIntegrationTest
         ProgramRule programRule = createProgramRule( 'A', program );
         programRuleService.addProgramRule( programRule );
 
-        ProgramRuleAction programRuleActionWarning = createProgramRuleAction( 'A', programRule );
-        programRuleActionWarning.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
-        programRuleActionWarning.setContent( "WARNING" );
-        programRuleActionService.addProgramRuleAction( programRuleActionWarning );
+        ProgramRuleAction programRuleActionSendMessage = createProgramRuleAction( 'A', programRule );
+        programRuleActionSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionSendMessage.setContent( "WARNING" );
+        programRuleActionSendMessage.setTemplateUid( "M4zQapPyTZI" );
+        programRuleActionService.addProgramRuleAction( programRuleActionSendMessage );
 
-        programRule.getProgramRuleActions().add( programRuleActionWarning );
+        programRule.getProgramRuleActions().add( programRuleActionSendMessage );
         programRuleService.updateProgramRule( programRule );
 
         userA = userService.getUser( "M5zQapPyTZI" );
@@ -148,6 +159,6 @@ public class ProgramRuleIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertFalse( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
+        assertTrue( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
     }
 }

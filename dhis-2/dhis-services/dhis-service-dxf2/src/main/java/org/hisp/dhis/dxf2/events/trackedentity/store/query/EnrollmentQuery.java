@@ -7,7 +7,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.query.Query;
 
 /**
  * @author Luciano Fiandesio

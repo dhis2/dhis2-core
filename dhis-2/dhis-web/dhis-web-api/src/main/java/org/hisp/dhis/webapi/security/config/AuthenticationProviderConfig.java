@@ -41,10 +41,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
@@ -69,21 +67,13 @@ public class AuthenticationProviderConfig
     @Autowired
     DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
-    @Autowired
-    public void configureGlobal( @Lazy AuthenticationManagerBuilder auth )
-        throws Exception
-    {
-        auth.authenticationProvider( twoFactorAuthenticationProvider );
-        auth.authenticationProvider( customLdapAuthenticationProvider() );
-    }
-
     @Bean
     public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
     {
         return new TwoFactorWebAuthenticationDetailsSource();
     }
 
-    @Bean
+    @Bean(name ="customLdapAuthenticationProvider")
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),

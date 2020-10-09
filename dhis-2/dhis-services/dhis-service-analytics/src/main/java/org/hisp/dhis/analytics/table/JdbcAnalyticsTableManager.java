@@ -445,6 +445,11 @@ public class JdbcAnalyticsTableManager
         return filterDimensionColumns( columns );
     }
 
+    /**
+     * Returns a list of columns representing data value.
+     *
+     * @return a list of {@link AnalyticsTableColumn}.
+     */
     private List<AnalyticsTableColumn> getValueColumns()
     {
         return Lists.newArrayList(
@@ -454,6 +459,13 @@ public class JdbcAnalyticsTableManager
             new AnalyticsTableColumn( quote( "textvalue" ), TEXT, "textvalue" ) );
     }
 
+    /**
+     * Returns the distinct years which contain data values, relative to the from date
+     * in the given parameters, if it exists.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @return a list of data years.
+     */
     private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
     {
         String sql =
@@ -542,6 +554,8 @@ public class JdbcAnalyticsTableManager
     /**
      * Indicates whether the system should ignore data which has not been approved
      * in analytics tables.
+     *
+     * @param year the year of the data partition.
      */
     private boolean isApprovalEnabled( Integer year )
     {

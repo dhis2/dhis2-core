@@ -350,7 +350,7 @@ public class DefaultDataQueryService
                 throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.DATA_X_DIM_ID );
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dimensionalKeywords, dataDimensionItems );
+            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dataDimensionItems, dimensionalKeywords );
         }
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
@@ -423,7 +423,7 @@ public class DefaultDataQueryService
             }
 
             return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD,
-                dimensionalKeywords, asList( periods ) );
+                asList( periods ), dimensionalKeywords );
         }
 
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
@@ -525,7 +525,7 @@ public class DefaultDataQueryService
             orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
             return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    dimensionalKeywords, orgUnits );
+                    orgUnits, dimensionalKeywords );
         }
 
         else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )

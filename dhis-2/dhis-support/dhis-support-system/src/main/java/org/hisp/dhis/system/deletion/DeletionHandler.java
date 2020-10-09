@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -99,6 +100,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -107,6 +109,7 @@ import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
@@ -1077,6 +1080,10 @@ public abstract class DeletionHandler
     {
     }
 
+    public void deleteProgramNotificationInstance( ProgramNotificationInstance programNotificationInstance )
+    {
+    }
+
     public String allowDeleteIncomingSms( IncomingSms sms )
     {
         return null;
@@ -1093,6 +1100,31 @@ public abstract class DeletionHandler
     }
 
     public void deleteOutboundSms( OutboundSms sms )
+    {
+
+    }
+
+    public String allowProgramNotificationInstance( ProgramNotificationInstance programNotificationInstance )
+    {
+        return null;
+    }
+
+    public String allowDeleteReportTable( ReportTable reportTable )
+    {
+        return null;
+    }
+
+    public void deleteReportTable( ReportTable reportTable )
+    {
+
+    }
+
+    public String allowDeleteChart( Chart chart )
+    {
+        return null;
+    }
+
+    public void deleteChart( Chart chart )
     {
 
     }

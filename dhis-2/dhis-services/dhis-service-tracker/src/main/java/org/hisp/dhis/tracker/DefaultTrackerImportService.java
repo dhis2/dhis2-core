@@ -33,14 +33,16 @@ import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -166,7 +168,15 @@ public class DefaultTrackerImportService
     {
         Timer commitTimer = new SystemTimer().start();
 
-        importReport.setBundleReport( trackerBundleService.commit( trackerBundle ) );
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
+            bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
+            bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
+
+        trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+
+        importReport.setBundleReport( bundleReport );
 
         importReport.getTimings().setCommit( commitTimer.toString() );
 

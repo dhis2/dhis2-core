@@ -37,7 +37,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
@@ -45,18 +45,23 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Zubair Asghar.
  */
 @Slf4j
+@Component( "org.hisp.dhis.programrule.engine.NotificationRuleActionImplementer" )
 abstract class NotificationRuleActionImplementer implements RuleActionImplementer
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    protected final ProgramNotificationTemplateStore programNotificationTemplateStore;
+    protected final ProgramNotificationTemplateService programNotificationTemplateService;
 
     protected final NotificationLoggingService notificationLoggingService;
 
@@ -64,12 +69,12 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
     protected final ProgramStageInstanceService programStageInstanceService;
 
-    public NotificationRuleActionImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
-          NotificationLoggingService notificationLoggingService,
-          ProgramInstanceService programInstanceService,
-          ProgramStageInstanceService programStageInstanceService )
+    public NotificationRuleActionImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService )
     {
-        this.programNotificationTemplateStore = programNotificationTemplateStore;
+        this.programNotificationTemplateService = programNotificationTemplateService;
         this.notificationLoggingService = notificationLoggingService;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
@@ -86,7 +91,8 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return entry;
     }
 
-    protected ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
+    @Transactional( readOnly = true )
+    public ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
         String uid = "";
 
@@ -101,7 +107,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
             uid = scheduleMessage.notification();
         }
 
-        return programNotificationTemplateStore.getByUid( uid );
+        return programNotificationTemplateService.getByUid( uid );
     }
 
     protected String generateKey( ProgramNotificationTemplate template, ProgramInstance programInstance )
@@ -120,18 +126,17 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return notificationInstance;
     }
 
-    protected boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
+    @Transactional( readOnly = true )
+    public boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        if ( ruleEffect == null )
-        {
-            return false;
-        }
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programInstance, "ProgramInstance cannot be null" );
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
         if ( template == null )
         {
-            log.info( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
+            log.warn( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
 
             return false;
         }

@@ -41,7 +41,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
