@@ -43,18 +43,40 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -1134,7 +1156,8 @@ public class DataQueryParams
      * "average sum in hierarchy" aggregate values. If period is dimension,
      * use the number of days in the first period. In these cases, queries
      * should contain periods with the same number of days only. If period
-     * is filter, use the sum of days in all periods.
+     * is filter, use the sum of days in all periods. If the period is defined
+     * by "startDate" and "endDate" params, these two will be considered (default option).
      */
     public int getDaysForAvgSumIntAggregation()
     {
@@ -1148,7 +1171,7 @@ public class DataQueryParams
 
             return period.getDaysInPeriod();
         }
-        else
+        else if ( hasFilter( PERIOD_DIM_ID ) )
         {
             List<DimensionalItemObject> periods = getFilterPeriods();
 
@@ -1163,6 +1186,9 @@ public class DataQueryParams
 
             return totalDays;
         }
+
+        // Default to "startDate" and "endDate" URL params
+        return getStartEndDatesAsPeriod().getDaysInPeriod();
     }
 
     /**
@@ -2333,7 +2359,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a Period object based on the "startDate" and "endDate" dates.
+     * Returns a Period object based on the current "startDate" and "endDate" dates.
+     * It will not check if the dates are null.
      * 
      * @return the Period
      */
