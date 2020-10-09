@@ -1050,8 +1050,6 @@ alter table programinstancecomments
 	alter column programinstanceid type bigint,
 	alter column trackedentitycommentid type bigint;
 
-alter table programmessage alter column id type bigint;
-
 alter table programmessage_deliverychannels alter column programmessagedeliverychannelsid type bigint;
 
 alter table programmessage_emailAddresses alter column programmessageemailAddressid type bigint;
@@ -1358,6 +1356,10 @@ alter table usergroup
 	alter column usergroupid type bigint,
 	alter column lastupdatedby type bigint,
 	alter column userid type bigint;
+	
+alter table usergroupmembers 
+	alter column userid type bigint,
+	alter column usergroupid type bigint;
 
 alter table usergroupaccess alter column usergroupid type bigint;
 
