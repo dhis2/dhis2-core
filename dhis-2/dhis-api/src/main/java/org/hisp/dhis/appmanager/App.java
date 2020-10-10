@@ -95,7 +95,7 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
-    private Boolean hideDashboardTitle;
+    private AppSettings settings;
 
     /**
      * Generated.
@@ -367,14 +367,14 @@ public class App
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getHideDashboardTitle()
+    public AppSettings getSettings()
     {
-        return hideDashboardTitle;
+        return settings;
     }
 
-    public void setHideDashboardTitle( Boolean hideDashboardTitle )
+    public void setSettings( AppSettings settings )
     {
-        this.hideDashboardTitle = hideDashboardTitle;
+        this.settings = settings;
     }
 
     // -------------------------------------------------------------------------

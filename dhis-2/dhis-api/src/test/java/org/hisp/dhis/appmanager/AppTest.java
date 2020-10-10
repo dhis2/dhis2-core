@@ -84,7 +84,7 @@ public class AppTest
     public void testOptionalProperties()
     {
         Assert.assertEquals( "Test Description", app.getDescription() );
-        Assert.assertEquals( false, app.getHideDashboardTitle() );
+        Assert.assertEquals( false, app.getSettings().getDashboardWidget().getHideTitle() );
     }
 
     @Test
