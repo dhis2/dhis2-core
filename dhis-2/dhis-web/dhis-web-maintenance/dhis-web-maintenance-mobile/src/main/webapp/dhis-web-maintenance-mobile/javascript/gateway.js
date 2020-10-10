@@ -252,13 +252,15 @@ function saveSettings ()
 {
 	var url = "../api/gateways?type=http";
 	var httpFields = jQuery('#genericHTTPFields');
-	var data = {
-		name: httpFields.find("#name")[0].value,
-		type: "http",
-		messageParameter: httpFields.find("#messageParameter")[0].value,
-		recipientParameter: httpFields.find("#recipientParameter")[0].value,
-		urlTemplate: httpFields.find("#urlTemplate")[0].value
-	};
+    var data = {
+        name: httpFields.find("#name")[0].value,
+        type: "http",
+        useGet: httpFields.find("#useGet")[0].checked ? true: false,
+        sendUrlParameters: httpFields.find("#sendUrlParameters")[0].checked ? true: false,
+        contentType: httpFields.find("#contentType")[0].value,
+        configurationTemplate: httpFields.find("#configurationTemplate")[0].value,
+        urlTemplate: httpFields.find("#urlTemplate")[0].value
+    };
 
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);
 

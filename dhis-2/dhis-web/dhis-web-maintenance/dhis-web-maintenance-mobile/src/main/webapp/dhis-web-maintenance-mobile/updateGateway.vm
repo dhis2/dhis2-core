@@ -116,14 +116,40 @@
 				<td>$i18n.getString( "gateway_name" ):</td>
 				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.name )"/></td>
 			</tr>
-			<tr>
-				<td>$i18n.getString( "messageParameter" ):</td>
-				<td><input type="text" name="messageParameter" id="messageParameter" style="width: 28em" value="$!httpGateway.messageParameter"/></td>
-			</tr>
-			<tr>
-				<td>$i18n.getString( "recipientParameter" ):</td>
-				<td><input type="text" name="recipientParameter" id="recipientParameter" style="width: 28em" value="$!httpGateway.recipientParameter"/></td>
-			</tr>
+
+            <!-- new fields introduced in 2.34 -->
+
+            <tr>
+                <td>$i18n.getString( "configurationTemplate" ):</td>
+                <td><input type="text" name="configurationTemplate" id="configurationTemplate" style="width: 28em"
+                           value="$!httpGateway.configurationTemplate"/></td>
+            </tr>
+
+            <tr>
+                <td>$i18n.getString( "contentType" ):</td>
+                <td>
+                    <select id="contentType" style="width: 28em" >
+                        <option value="APPLICATION_JSON" #if ( $!httpGateway.contentType == 'APPLICATION_JSON' ) selected='selected' #end>application/json</option>
+                        <option value="APPLICATION_XML" #if ( $!httpGateway.contentType == 'APPLICATION_XML' ) selected='selected' #end>application/xml</option>
+                        <option value="TEXT_PLAIN" #if ( $!httpGateway.contentType == 'TEXT_PLAIN' ) selected='selected' #end>text/plain</option>
+                        <option value="FORM_URL_ENCODED" #if ( $!httpGateway.contentType == 'FORM_URL_ENCODED' ) selected='selected' #end>application/x-www-form-urlencoded</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td>$i18n.getString( "useGet" ):</td>
+                <td>
+                    <input name="useGet" class="useGet" id="useGet" type="checkbox" #if($httpGateway.useGet) checked #end />
+                </td>
+            </tr>
+
+            <tr>
+                <td>$i18n.getString( "sendUrlParameters" ):</td>
+                <td>
+                    <input name="sendUrlParameters" class="sendUrlParameters" id="sendUrlParameters" type="checkbox" #if($httpGateway.sendUrlParameters) checked #end />
+                </td>
+            </tr>
 			
 			<tr>
 				<td>$i18n.getString( "url_template" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
