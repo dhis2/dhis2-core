@@ -28,11 +28,10 @@ package org.hisp.dhis.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.Interceptor;
-import ognl.NoSuchPropertyException;
-import ognl.Ognl;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -43,14 +42,21 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import com.opensymphony.xwork2.Action;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
+
+import ognl.NoSuchPropertyException;
+import ognl.Ognl;
 
 /**
+ * This was deprecated in favour of the new
+ * {@link org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor}.
+ *
  * @author Nguyen Dang Quang
  * @version $Id: WebWorkI18nInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
+@Deprecated
 public class I18nInterceptor
     implements Interceptor
 {

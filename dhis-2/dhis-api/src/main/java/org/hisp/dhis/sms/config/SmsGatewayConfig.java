@@ -65,7 +65,7 @@ public abstract class SmsGatewayConfig
     @JsonView( SmsConfigurationViews.Public.class )
     private String username;
 
-    @JsonView( SmsConfigurationViews.Internal.class )
+    @JsonView( SmsConfigurationViews.Public.class )
     private String password;
 
     @JsonView( SmsConfigurationViews.Public.class )

@@ -109,13 +109,11 @@ public enum ConfigurationKey
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
-
     OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", "off", false ),
     OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "http://localhost:8080", false ),
-
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
-    OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL( "oidc.provider.google.redir_baseurl", "http://localhost:8080", true ),
+    OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL( "oidc.provider.google.redirect_baseurl", "http://localhost:8080", true ),
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true );
 
     private final String key;

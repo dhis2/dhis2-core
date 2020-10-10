@@ -126,12 +126,13 @@ public class ProgramRuleIntegrationTest
         ProgramRule programRule = createProgramRule( 'A', program );
         programRuleService.addProgramRule( programRule );
 
-        ProgramRuleAction programRuleActionWarning = createProgramRuleAction( 'A', programRule );
-        programRuleActionWarning.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
-        programRuleActionWarning.setContent( "WARNING" );
-        programRuleActionService.addProgramRuleAction( programRuleActionWarning );
+        ProgramRuleAction programRuleActionSendMessage = createProgramRuleAction( 'A', programRule );
+        programRuleActionSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionSendMessage.setContent( "WARNING" );
+        programRuleActionSendMessage.setTemplateUid( "M4zQapPyTZI" );
+        programRuleActionService.addProgramRuleAction( programRuleActionSendMessage );
 
-        programRule.getProgramRuleActions().add( programRuleActionWarning );
+        programRule.getProgramRuleActions().add( programRuleActionSendMessage );
         programRuleService.updateProgramRule( programRule );
 
         userA = userService.getUser( "M5zQapPyTZI" );
@@ -158,6 +159,6 @@ public class ProgramRuleIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertFalse( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
+        assertTrue( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.sms.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,77 +28,85 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.system.util.ValidationUtils;
+import com.google.common.collect.Lists;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @deprecated This is added for backward compatibility. Use
+ *             {@link #GenericHttpGatewayConfig} instead.
+ * 
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "coordinate", namespace = DxfNamespaces.DXF_2_0 )
-public class Coordinate
+@Deprecated
+public class GenericHttpGetGatewayConfig
+    extends SmsGatewayConfig
 {
-    private Double latitude;
+    private static final long serialVersionUID = 6340853488475760213L;
 
-    private Double longitude;
+    private String messageParameter;
 
-    public Coordinate()
+    private String recipientParameter;
+
+    private boolean useGet;
+
+    private ContentType contentType = ContentType.FORM_URL_ENCODED;
+
+    private List<GenericGatewayParameter> parameters = Lists.newArrayList();
+
+    @JsonProperty
+    public List<GenericGatewayParameter> getParameters()
     {
+        return parameters;
     }
 
-    public Coordinate( Double longitude, Double latitude )
+    public void setParameters( List<GenericGatewayParameter> parameters )
     {
-        this.longitude = longitude;
-        this.latitude = latitude;
+        this.parameters = parameters;
     }
 
-    public boolean hasLatitudeLongitude()
+    @JsonProperty( value = "messageParameter" )
+    public String getMessageParameter()
     {
-        return latitude != null && longitude != null;
+        return messageParameter;
     }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public Double getLatitude()
+    public void setMessageParameter( String messageParameter )
     {
-        return latitude;
+        this.messageParameter = messageParameter;
     }
 
-    public void setLatitude( Double latitude )
+    @JsonProperty( value = "recipientParameter" )
+    public String getRecipientParameter()
     {
-        this.latitude = latitude;
+        return recipientParameter;
     }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public Double getLongitude()
+    public void setRecipientParameter( String recipientParameter )
     {
-        return longitude;
+        this.recipientParameter = recipientParameter;
     }
 
-    public void setLongitude( Double longitude )
+    @JsonProperty
+    public boolean isUseGet()
     {
-        this.longitude = longitude;
+        return useGet;
     }
 
-    public boolean isValid()
+    public void setUseGet( boolean useGet )
     {
-        return ValidationUtils.coordinateIsValid( getCoordinateString() );
+        this.useGet = useGet;
     }
 
-    public String getCoordinateString()
+    @JsonProperty
+    public ContentType getContentType()
     {
-        return "[" + longitude + "," + latitude + "]";
+        return contentType;
     }
 
-    @Override
-    public String toString()
+    public void setContentType( ContentType contentType )
     {
-        return "Coordinate{" +
-            "latitude=" + latitude +
-            ", longitude=" + longitude +
-            '}';
+        this.contentType = contentType;
     }
-}
+} 

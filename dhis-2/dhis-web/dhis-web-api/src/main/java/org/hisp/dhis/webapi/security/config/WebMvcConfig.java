@@ -28,16 +28,24 @@ package org.hisp.dhis.webapi.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import lombok.extern.slf4j.Slf4j;
+import static org.springframework.http.MediaType.parseMediaType;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -69,14 +77,12 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
 
-import static org.springframework.http.MediaType.parseMediaType;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -96,6 +102,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 
     @Autowired
     private ContextService contextService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     @Bean( "multipartResolver" )
     public MultipartResolver multipartResolver()
@@ -194,6 +206,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         mapping.setOrder( 0 );
         mapping.setContentNegotiationManager( mvcContentNegotiationManager() );
         return mapping;
+    }
+
+    @Override
+    public void addInterceptors( InterceptorRegistry registry )
+    {
+        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

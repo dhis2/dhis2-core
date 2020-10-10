@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.springframework.stereotype.Component;
 
@@ -49,6 +50,13 @@ import com.google.common.collect.ImmutableList;
 public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook
 {
 
+    /**
+     * Check if a Program Rule to be added or update has a unique name in the system
+     * @param object
+     * @param bundle
+     * @param <T>
+     * @return
+     */
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -66,7 +74,9 @@ public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook
         query.setParameter( "name", programRule.getName() );
         query.setParameter( "programUid", programRule.getProgram().getUid() );
 
-        if ( !query.getResultList().isEmpty() )
+        int allowedCount = bundle.getImportMode() == ImportStrategy.UPDATE ? 1 : 0;
+
+        if ( query.getResultList().size() > allowedCount )
         {
             return ImmutableList.of(
                 new ErrorReport( ProgramRule.class, ErrorCode.E4031, programRule.getName() ) );
