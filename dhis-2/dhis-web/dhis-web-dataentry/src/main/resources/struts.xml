@@ -72,6 +72,11 @@
       <result name="success" type="outputStreamResult"></result>
       <result name="input" type="velocity">/dhis-web-dataentry/validationResult.vm</result>
     </action>
+    
+    <action name="getGreyFieldsByOrgUnit" class="org.hisp.dhis.de.action.GetGreyFieldsByOrgUnitAction">
+      <result name="success" type="velocity-json">/dhis-web-dataentry/responseGreyFieldsByOrgUnit.vm</result>
+    </action>
+    
 
   </package>
 </struts>

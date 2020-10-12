@@ -1,7 +1,7 @@
-package org.hisp.dhis.system.grid;
+package org.hisp.dhis.approvalvalidationrule.comparator;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,34 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.common.Grid;
-import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.junit.Assert.*;
+import org.hisp.dhis.approvalvalidationrule.ApprovalValidation;
 
 /**
- * @author Lars Helge Overland
+ * Comparator sorting on the result period.
+ * 
+ * @author Mike Nelushi
  */
-public class GridUtilsTest
+public class ApprovalValidationComparator
+    implements Comparator<ApprovalValidation>
 {
-    @Test
-    public void testFromHtml()
-        throws Exception
+    @Override
+    public int compare( ApprovalValidation result1, ApprovalValidation result2 )
     {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
+        if ( result1.getPeriod() == null && result2.getPeriod() == null )
+        {
+            return 0;
+        }
+        else if ( result1.getPeriod() == null )
+        {
+            return 1;
+        }
+        else if ( result2.getPeriod() == null )
+        {
+            return -1;
+        }
         
-        List<Grid> grids = GridUtils.fromHtml( html, "TitleA", null, null, null );
-        
-        assertNotNull( grids );
-        assertEquals( 6, grids.size() );
-        assertEquals( "TitleA", grids.get( 0 ).getTitle() );
+        return result1.getPeriod().getStartDate().compareTo( result2.getPeriod().getStartDate() );
     }
 }

@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Objects;
 
@@ -73,6 +74,8 @@ public class DataElementOperand
     private CategoryOptionCombo categoryOptionCombo;
 
     private CategoryOptionCombo attributeOptionCombo;
+    
+    private OrganisationUnit organisationUnit;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -92,6 +95,13 @@ public class DataElementOperand
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
+    }
+    
+    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo, OrganisationUnit organisationUnit )
+    {
+        this.dataElement = dataElement;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.organisationUnit = organisationUnit;
     }
 
     public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
@@ -379,6 +389,17 @@ public class DataElementOperand
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }
+    
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getOrganisationUnit() {
+		return organisationUnit;
+	}
+
+	public void setOrganisationUnit(OrganisationUnit organisationUnit) {
+		this.organisationUnit = organisationUnit;
+	}
 
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
@@ -396,13 +417,14 @@ public class DataElementOperand
         DataElementOperand that = (DataElementOperand) o;
         return Objects.equals( dataElement, that.dataElement ) &&
             Objects.equals( categoryOptionCombo, that.categoryOptionCombo ) &&
-            Objects.equals( attributeOptionCombo, that.attributeOptionCombo );
+            Objects.equals( attributeOptionCombo, that.attributeOptionCombo ) &&
+            Objects.equals( organisationUnit, that.organisationUnit );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( super.hashCode(), dataElement, categoryOptionCombo, attributeOptionCombo );
+        return Objects.hash( super.hashCode(), dataElement, categoryOptionCombo, attributeOptionCombo, organisationUnit );
     }
 
     @Override
@@ -415,6 +437,7 @@ public class DataElementOperand
             "\"dataElement\":" + dataElement + ", " +
             "\"categoryOptionCombo\":" + categoryOptionCombo +
             "\"attributeOptionCombo\":" + attributeOptionCombo +
+            "\"organisationUnit\":" + organisationUnit +
             '}';
     }
 

@@ -20,8 +20,18 @@
       <result name="DEFAULT" type="velocity">/dhis-web-approval/renderSectionDataSetReportForm.vm</result>
       <result name="SECTION" type="velocity">/dhis-web-approval/renderSectionDataSetReportForm.vm</result>
       <result name="CUSTOM" type="velocity">/dhis-web-approval/renderCustomDataSetReportForm.vm</result>
+      <!--  <result name="CUSTOM" type="velocity">/dhis-web-reporting/renderSectionDataSetReportForm.vm</result> -->
       <result name="xls" type="gridXlsResult" />
       <result name="pdf" type="gridPdfResult" />
+    </action>
+    
+    <!-- Approval Validation Rule -->
+    <action name="viewApprovalValidationRule" class="org.hisp.dhis.approval.dataapproval.action.GetApprovalValidationRuleAction">
+      <result name="success" type="velocity">/dhis-web-approval/approvalValidationRule.vm</result>
+    </action>
+    
+    <action name="addApprovalValidation" class="org.hisp.dhis.approval.dataapproval.action.AddApprovalValidationAction">
+      <result name="success" type="redirect">index.action</result>
     </action>
     
   </package>

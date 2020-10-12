@@ -6,6 +6,8 @@ dhis2.appr.permissions = null;
 dhis2.appr.dataSets = {};
 dhis2.appr.dataApprovalLevels = {};
 
+dhis2.appr.approvalValidationRules = {};
+
 /**
  * Object with properties: ds, pe, ou, array of approvals with aoc, ou.
  */
@@ -381,6 +383,7 @@ dhis2.appr.generateDataReport = function()
     	$( "#content" ).show( "fast" );
     	setTableStyles();
     	dhis2.appr.setApprovalState();
+		dhis2.appr.getapprovalValidation();
     } );
 };
 
@@ -453,6 +456,7 @@ dhis2.appr.setAttributeOptionComboApprovalState = function()
 	if ( counts.approve > 0 ) {
 		notification += i18n_approve + ": " + counts.approve + " items, ";
         $( "#approveButton" ).show();
+		$( "#approvalvalidationButton" ).show();
     }
 	if ( counts.unapprove > 0 ) {
 		notification += i18n_unapprove + ": " + counts.unapprove + " items, ";
@@ -479,6 +483,7 @@ dhis2.appr.setAttributeOptionComboApprovalState = function()
 dhis2.appr.resetApprovalOptions = function()
 {
 	$( ".approveButton" ).hide();
+	$( "#approvalvalidationButton" ).hide();
 	$( "#approvalNotification" ).html( i18n_done + ". " + i18n_please_make_selection );
 	dhis2.appr.clearItemsDialog();
 }
@@ -504,6 +509,7 @@ dhis2.appr.setRegularApprovalState = function( ui )
 		dhis2.appr.permissions = json;
 		
 	    $( ".approveButton" ).hide();
+		$( "#approvalvalidationButton" ).hide();
 
 	    switch ( json.state ) {
 	        case "UNAPPROVABLE":
@@ -527,6 +533,7 @@ dhis2.appr.setRegularApprovalState = function( ui )
 
 		        if ( json.mayApprove ) {
 		            $( "#approveButton" ).show();
+					$( "#approvalvalidationButton" ).show();
 		        }
 		        
 		        break;
@@ -536,6 +543,7 @@ dhis2.appr.setRegularApprovalState = function( ui )
 
                 if ( json.mayApprove ) {
                     $( "#approveButton" ).show();
+					$( "#approvalvalidationButton" ).show();
                 }
 
                 if ( json.mayUnapprove )  {
@@ -651,6 +659,174 @@ dhis2.appr.approveData = function()
 		} );
 	}
 };
+
+//-----------------------------------------------------------------------------
+//Approval Validation
+//-----------------------------------------------------------------------------
+dhis2.appr.saveApprovalValidationRules = function() {
+	var ui = dhis2.appr.getUiState();
+	var params = {
+			ds : ui.ds,
+			pe : ui.pe,
+	        ou : ui.ou,
+	        approvalValidationMap: approvalValidationMap
+	    };
+
+	    
+	return $.get( 'addApprovalValidation.action', params, 
+	    function( response, status, xhr )
+	    {
+	        if ( status == 'error' )
+	        {
+	            window.alert( i18n_operation_not_available_offline );	            
+	        }
+	        else
+	        {
+	        	if (Object.values(approvalValidationMap).indexOf(false) > -1) 
+	        	{
+				    $( "#approveButton" ).attr('disabled','disabled');
+				}
+	        	else
+        		{
+	        		$( "#approveButton" ).removeAttr('disabled');
+        		}
+	        	
+	        }        
+	    } );
+	//return $.Deferred().resolve(false);
+}
+
+dhis2.appr.displayHistoryDialog = function( operandName )
+{
+	var buttons = {};
+
+    buttons[i18n_cancel] = function() {
+      $( this ).dialog( 'destroy' );
+    };
+
+    buttons[i18n_save] = function() {
+      var me = $( this );
+
+     
+      dhis2.appr.saveApprovalValidationRules().done( function() {
+        me.dialog( 'destroy' );
+      } );
+    };
+    
+	 $( '#approvalValidationDiv' ).dialog( {
+	     modal: true,
+	     title: operandName,
+	     //width: 580,
+	     width: 620,
+	     height: 620,
+	     buttons: buttons
+	 } );
+}
+
+dhis2.appr.addEventListeners = function()
+{
+	$( '.approvalvalidationruleselect' ).each( function()
+		    {
+		        var id = $( this ).attr( 'id' );
+		        var checked = $( this ).attr( 'checked' );
+		        //dhis2.appr.approvalValidationRules = approvalValidationMap;
+		        
+
+		        $( this ).unbind( 'click' );
+		        
+		        $( this ).click( function()
+		        {
+
+		            if ( $(this).hasClass( "checked" ) )
+		            {
+		                $( this ).removeClass( "checked" );
+		                $( this ).prop('checked', false );
+
+		                approvalValidationMap[id] = false;
+		            }
+		            else
+		            {
+		                $(  '[name='+ id +']' ).each( function()
+		                {
+		                    $( this ).removeClass( 'checked' );
+		                    $( this ).prop( 'checked', false );
+		                });
+
+		                $( this ).prop( 'checked', true );
+		                $( this ).addClass( 'checked' );
+		                
+		                approvalValidationMap[id] = true;
+		            }
+		            //console.log(approvalValidationMap);
+		        } );
+		    } );
+}
+/**
+ * Approval Validation.
+ */
+dhis2.appr.approvalValidation = function()
+{	
+	/*var ui = dhis2.appr.getUiState();
+	var dataSetSelected = dhis2.appr.dataSets[ui.ds];
+	//var dataSetSelectedName = dataSetSelected.displayName;
+
+	var params = {
+			ds : ui.ds,
+			pe : ui.pe,
+	        ou : ui.ou
+	    };
+	    
+	    $( '#approvalValidationDiv' ).load( 'viewApprovalValidationRule.action', params, 
+	    function( response, status, xhr )
+	    {
+
+	        if ( status == 'error' )
+	        {
+	            window.alert( i18n_operation_not_available_offline );
+	        }
+	        else
+	        {
+	        	dhis2.appr.addEventListeners();
+	        	dhis2.appr.displayHistoryDialog( titleName );
+	        }
+	    } );*/
+	dhis2.appr.addEventListeners();
+	dhis2.appr.displayHistoryDialog( titleName );
+};
+
+/**
+ * Get Approval Validation List.
+ */
+dhis2.appr.getapprovalValidation = function()
+{	
+	var ui = dhis2.appr.getUiState();
+	var dataSetSelected = dhis2.appr.dataSets[ui.ds];
+	//var dataSetSelectedName = dataSetSelected.displayName;
+
+	var params = {
+			ds : ui.ds,
+			pe : ui.pe,
+	        ou : ui.ou
+	    };
+	    
+	    $( '#approvalValidationDiv' ).load( 'viewApprovalValidationRule.action', params, 
+	    function( response, status, xhr )
+	    {
+
+	        if ( status == 'error' )
+	        {
+	            window.alert( i18n_operation_not_available_offline );
+	        }else 
+	        {
+	        	if (Object.values(approvalValidationMap).indexOf(false) > -1) {
+				    $( "#approveButton" ).attr('disabled','disabled');
+				}	        
+	        }
+	        
+	    } );
+};
+
+
 
 /**
  * Unapprove data.

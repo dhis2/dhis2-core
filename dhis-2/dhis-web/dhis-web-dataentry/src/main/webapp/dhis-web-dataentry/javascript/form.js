@@ -1673,6 +1673,7 @@ function loadDataValues()
     dhis2.de.currentOrganisationUnitId = selection.getSelected()[0];
 
     getAndInsertDataValues();
+	getGreyFieldsByOrgUnit();
     displayEntryFormCompleted();
 }
 
@@ -1765,6 +1766,54 @@ function getAndInsertDataValues()
 	} );
 }
 
+//Grey Fields
+function getGreyFieldsByOrgUnit()
+{
+    var dataSetId = $( '#selectedDataSetId' ).val();
+
+    // grey disabled fields
+
+    $( '.entryfield' ).filter( ':disabled' ).css( 'background-color', dhis2.de.cst.colorGrey );
+
+    var params = {
+        dataSetId : dataSetId,
+        organisationUnitId : dhis2.de.getCurrentOrganisationUnit()
+    };
+    
+    $.ajax( {
+    	url: 'getGreyFieldsByOrgUnit.action',
+    	data: params,
+	    dataType: 'json',
+	    error: function(error) // offline
+	    {
+	    	console.log("error:" + error);
+	    },
+	    success: function( json ) // online
+	    {
+	    	greyFieldsByOrgUnitAll( json );
+        },
+        complete: function()
+        {
+        	console.log("complete");
+        }
+	} );
+}
+
+function greyFieldsByOrgUnitAll( json )
+{
+   
+    $.safeEach( json.greyedFieldsByOrgUnit, function( i, greyedField )
+    {
+        var fieldId = '#' + greyedField.id + '-val';
+        
+        $( fieldId ).attr( 'disabled', 'disabled' );
+        
+    } );
+    
+    $( '.entryfield' ).filter( ':disabled' ).css( 'background-color', dhis2.de.cst.colorGrey );
+
+}
+ 
 function getOfflineDataValueJson( params )
 {
 	var dataValues = dhis2.de.storageManager.getDataValuesInForm( params );

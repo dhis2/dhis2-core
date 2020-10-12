@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.approvalvalidationrule.ApprovalValidation" table="approvalvalidation">
+
+        <id name="id" column="approvalvalidationid">
+            <generator class="native"/>
+        </id>
+
+        <property name="created" type="timestamp" not-null="true" />
+
+        <properties name="unique-group" unique="true">
+        
+        	<many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
+      			foreign-key="fk_approvalvalidation_datasetid"/>
+
+            <many-to-one name="approvalValidationRule" class="org.hisp.dhis.approvalvalidationrule.ApprovalValidationRule" column="approvalvalidationruleid"
+                         foreign-key="fk_approvalvalidation_approvalvalidationruleid"/>
+
+            <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
+                         foreign-key="fk_approvalvalidation_period"/>
+
+            <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+                         column="organisationunitid" foreign-key="fk_approvalvalidation_organisationunitid"/>
+
+            <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
+                         column="attributeoptioncomboid" foreign-key="fk_approvalvalidation_attributeoptioncomboid"/>
+
+        </properties>
+        
+        <property name="storedBy" column="storedby" />
+
+        <property name="notificationSent" column="notificationSent" />
+
+    </class>
+
+</hibernate-mapping>

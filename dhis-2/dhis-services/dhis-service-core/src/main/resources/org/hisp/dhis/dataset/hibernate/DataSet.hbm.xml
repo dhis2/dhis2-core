@@ -53,6 +53,13 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
         foreign-key="fk_dataset_dataelementoperandid" />
     </set>
+    
+    <set name="greyedFields" table="datasetgreyedfields" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_datasetgreyedfields_datasetid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
+        foreign-key="fk_dataset_dataelementoperandid" />
+    </set>
 
     <set name="sources" table="datasetsource">
       <cache usage="read-write" />

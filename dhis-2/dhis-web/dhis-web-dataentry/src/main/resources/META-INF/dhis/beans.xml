@@ -71,5 +71,9 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
+  
+  <bean id="org.hisp.dhis.de.action.GetGreyFieldsByOrgUnitAction" class="org.hisp.dhis.de.action.GetGreyFieldsByOrgUnitAction" scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
 
 </beans>

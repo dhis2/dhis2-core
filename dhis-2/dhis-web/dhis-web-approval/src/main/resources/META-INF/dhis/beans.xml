@@ -16,4 +16,24 @@
     <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
   
+  <!-- Approval Validation -->
+  <bean id="org.hisp.dhis.approval.dataapproval.action.GetApprovalValidationRuleAction" class="org.hisp.dhis.approval.dataapproval.action.GetApprovalValidationRuleAction" scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
+    <property name="approvalValidationRuleService" ref="org.hisp.dhis.approvalvalidationrule.ApprovalValidationRuleService" />
+    <property name="approvalValidationService" ref="org.hisp.dhis.approvalvalidationrule.ApprovalValidationService" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.approval.dataapproval.action.AddApprovalValidationAction" class="org.hisp.dhis.approval.dataapproval.action.AddApprovalValidationAction" scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
+    <property name="approvalValidationRuleService" ref="org.hisp.dhis.approvalvalidationrule.ApprovalValidationRuleService" />
+    <property name="approvalValidationService" ref="org.hisp.dhis.approvalvalidationrule.ApprovalValidationService" />
+  </bean>
+  
 </beans>

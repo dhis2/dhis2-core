@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.grid;
+package org.hisp.dhis.approvalvalidationrule;
+
+import org.hisp.dhis.approvalvalidationrule.comparator.ApprovalValidationQuery;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +30,29 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.nio.charset.StandardCharsets;
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
+import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.common.Grid;
-import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.junit.Assert.*;
-
 /**
- * @author Lars Helge Overland
+ * @author Mike Nelushi
  */
-public class GridUtilsTest
+public interface ApprovalValidationStore
+    extends GenericStore<ApprovalValidation>
 {
-    @Test
-    public void testFromHtml()
-        throws Exception
-    {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
-        
-        List<Grid> grids = GridUtils.fromHtml( html, "TitleA", null, null, null );
-        
-        assertNotNull( grids );
-        assertEquals( 6, grids.size() );
-        assertEquals( "TitleA", grids.get( 0 ).getTitle() );
-    }
+    List<ApprovalValidation> getAllUnreportedApprovalValidations();
+
+    ApprovalValidation getById( long id );
+
+    List<ApprovalValidation> query( ApprovalValidationQuery query );
+
+    int count( ApprovalValidationQuery query );
+
+    List<ApprovalValidation> getApprovalValidations( DataSet dataSet, OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ApprovalValidationRule> approvalValidationRules, Collection<Period> periods );
 }

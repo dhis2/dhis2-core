@@ -50,6 +50,10 @@ var i18n_unaccept = '$encoder.jsEscape( $i18n.getString( "unaccept" ), "'")';
 var i18n_items = '$encoder.jsEscape( $i18n.getString( "items" ), "'")';
 var i18n_please_make_selection = '$encoder.jsEscape( $i18n.getString( "please_make_selection" ), "'")';
 var i18n_done = '$encoder.jsEscape( $i18n.getString( "done" ), "'")';
+
+var i18n_approvalcheck = '$encoder.jsEscape( $i18n.getString( "approvalcheck" ), "'")';
+var i18n_cancel = "$i18n.getString( "cancel" )";
+var i18n_save = "$i18n.getString( "save" )";
 </script>
 
 <style type="text/css">
@@ -87,6 +91,7 @@ div.inputSection {
 <input type="button" id="unapproveButton" value="$i18n.getString( 'unapprove' )" onclick="dhis2.appr.unapproveData()" class="approveButton" style="width:120px">
 <input type="button" id="acceptButton" value="$i18n.getString( 'accept' )" onclick="dhis2.appr.acceptData()" class="approveButton" style="width:120px">
 <input type="button" id="unacceptButton" value="$i18n.getString( 'unaccept' )" onclick="dhis2.appr.unacceptData()" class="approveButton" style="width:120px">
+<input type="button" id="approvalvalidationButton" value="$i18n.getString( 'approvalcheck' )" onclick="dhis2.appr.approvalValidation()" class="approveButton" style="width:145px">
 </div>
 
 <div id="criteria" class="inputCriteria" style="width:360px;">
@@ -139,6 +144,8 @@ div.inputSection {
 #parse( "dhis-web-commons/loader/loader.vm" )
 
 <div id="content"></div>
+
+<div id="approvalValidationDiv" style="display: none;" class="page"></div>
 
 <!-- Attribute option combo dialog -->
 

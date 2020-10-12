@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
+import org.hisp.dhis.approvalvalidationrule.ApprovalValidationRule;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -1089,5 +1091,14 @@ public abstract class DeletionHandler
 
     public void deleteInterpretationComment ( InterpretationComment comment )
     {
+    }
+    
+    public void deleteApprovalValidationRule( ApprovalValidationRule approvalValidationRule )
+    {
+    }
+    
+    public String allowDeleteApprovalValidationRule( ApprovalValidationRule approvalValidationRule )
+    {
+        return null;
     }
 }

@@ -1,7 +1,6 @@
-package org.hisp.dhis.system.grid;
-
+package org.hisp.dhis.schema.descriptors;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +27,28 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.nio.charset.StandardCharsets;
-
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.common.Grid;
-import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.junit.Assert.*;
+import org.hisp.dhis.approvalvalidationrule.ApprovalValidation;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Lars Helge Overland
+ * @author Mike Nelushi
  */
-public class GridUtilsTest
+public class ApprovalValidationSchemaDescriptor implements SchemaDescriptor
 {
-    @Test
-    public void testFromHtml()
-        throws Exception
+    public static final String SINGULAR = "approvalValidation";
+
+    public static final String PLURAL = "approvalValidations";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
-        
-        List<Grid> grids = GridUtils.fromHtml( html, "TitleA", null, null, null );
-        
-        assertNotNull( grids );
-        assertEquals( 6, grids.size() );
-        assertEquals( "TitleA", grids.get( 0 ).getTitle() );
+        Schema schema = new Schema( ApprovalValidation.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 2000 );
+
+        return schema;
     }
 }

@@ -175,6 +175,8 @@ public class DefaultSchemaService
         add( new ProgramInstanceSchemaDescriptor() ).
         add( new ProgramStageInstanceFilterSchemaDescriptor() ).
         add( new VisualizationSchemaDescriptor() ).
+        add( new ApprovalValidationRuleSchemaDescriptor() ).
+        add( new ApprovalValidationSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

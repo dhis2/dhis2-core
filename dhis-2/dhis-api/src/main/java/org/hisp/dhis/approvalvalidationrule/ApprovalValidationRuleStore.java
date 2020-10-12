@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.grid;
+package org.hisp.dhis.approvalvalidationrule;
+
+import java.util.Collection;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +30,36 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.nio.charset.StandardCharsets;
-
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.common.Grid;
-import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.junit.Assert.*;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Lars Helge Overland
+ * @author Mike Nelushi
  */
-public class GridUtilsTest
+public interface ApprovalValidationRuleStore
+    extends IdentifiableObjectStore<ApprovalValidationRule>
 {
-    @Test
-    public void testFromHtml()
-        throws Exception
-    {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
-        
-        List<Grid> grids = GridUtils.fromHtml( html, "TitleA", null, null, null );
-        
-        assertNotNull( grids );
-        assertEquals( 6, grids.size() );
-        assertEquals( "TitleA", grids.get( 0 ).getTitle() );
-    }
+    String ID = ApprovalValidationRuleStore.class.getName();
+
+    /**
+     * Returns all ApprovalValidationRules that should be used for approval validation.
+     * 
+     * @return a List of ApprovalValidationRules.
+     */
+    List<ApprovalValidationRule> getAllApprovalValidationRules();
+    
+    /**
+     * Returns ApprovalValidationRules objects (if any) for given collections of skipApprovalValidation
+     *
+     * @param skipApprovalValidation is skipApprovalValidation property
+     */
+    List<ApprovalValidationRule> getApprovalValidationRules( boolean skipApprovalValidation );
+
 }

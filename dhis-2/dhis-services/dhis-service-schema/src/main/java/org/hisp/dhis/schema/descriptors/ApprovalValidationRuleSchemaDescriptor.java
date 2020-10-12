@@ -1,7 +1,13 @@
-package org.hisp.dhis.system.grid;
+package org.hisp.dhis.schema.descriptors;
+
+import org.hisp.dhis.approvalvalidationrule.ApprovalValidationRule;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +34,30 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.nio.charset.StandardCharsets;
-
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.common.Grid;
-import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
- * @author Lars Helge Overland
+ * @author Mike Nelushi
  */
-public class GridUtilsTest
+public class ApprovalValidationRuleSchemaDescriptor implements SchemaDescriptor
 {
-    @Test
-    public void testFromHtml()
-        throws Exception
+    public static final String SINGULAR = "approvalValidationRule";
+
+    public static final String PLURAL = "approvalValidationRules";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
-        
-        List<Grid> grids = GridUtils.fromHtml( html, "TitleA", null, null, null );
-        
-        assertNotNull( grids );
-        assertEquals( 6, grids.size() );
-        assertEquals( "TitleA", grids.get( 0 ).getTitle() );
+        Schema schema = new Schema( ApprovalValidationRule.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1390 );
+
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_APPROVAL_VALIDATIONRULE_PUBLIC_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_APPROVAL_VALIDATIONRULE_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_APPROVAL_VALIDATIONRULE_DELETE" ) ) );
+
+        return schema;
     }
 }

@@ -57,6 +57,10 @@ public class DataSetSchemaDescriptor implements SchemaDescriptor
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATASET_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_DATASET_PRIVATE_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATASET_DELETE" ) ) );
+        
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATAELEMENTS_BY_ORGANISATIONUNIT_PUBLIC_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_DATAELEMENTS_BY_ORGANISATIONUNIT_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATAELEMENTS_BY_ORGANISATIONUNIT_DELETE" ) ) );
 
         return schema;
     }
