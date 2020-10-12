@@ -55,68 +55,69 @@ public class AuthenticationLoggerListener
 
     public void onApplicationEvent( AbstractAuthenticationEvent event )
     {
+        if ( !log.isWarnEnabled() )
+        {
+            return;
+        }
+
         if ( SessionFixationProtectionEvent.class.isAssignableFrom( event.getClass() ) ||
             InteractiveAuthenticationSuccessEvent.class.isAssignableFrom( event.getClass() ) )
         {
             return;
         }
 
-        if ( log.isWarnEnabled() )
+        String eventClassName = "Authentication event: " + ClassUtils.getShortName( event.getClass() );
+        String authName = event.getAuthentication().getName();
+        String ipAddress = "";
+        String sessionId = "";
+        String exceptionMessage = "";
+
+        if ( event instanceof AbstractAuthenticationFailureEvent )
         {
-            String authName = event.getAuthentication().getName();
-            String eventClassName = "Authentication event: " + ClassUtils.getShortName( event.getClass() );
-
-            String exceptionMessage = "";
-
-            if ( event instanceof AbstractAuthenticationFailureEvent )
-            {
-                exceptionMessage =
-                    "; exception: " + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
-            }
-
-            String ipAddress = "";
-            String sessionId = "";
-
-            Object details = event.getAuthentication().getDetails();
-
-            if ( details != null &&
-                ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
-            {
-                ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) details;
-                ipAddress = "; ip: " + authDetails.getIp();
-                sessionId = hashSessionId( authDetails.getSessionId() );
-            }
-            else if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( event.getAuthentication().getClass() ) )
-            {
-                OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) event
-                    .getAuthentication();
-
-                DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-
-                if ( principal != null )
-                {
-                    UserCredentials userCredentials = principal.getUserCredentials();
-                    authName = userCredentials.getUsername();
-                }
-
-                WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
-                ipAddress = "; ip: " + oauthDetails.getRemoteAddress();
-                sessionId = hashSessionId( oauthDetails.getSessionId() );
-            }
-            else if ( OAuth2AuthenticationToken.class.isAssignableFrom( event.getSource().getClass() ) )
-            {
-                OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) event.getSource();
-                DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-
-                if ( principal != null )
-                {
-                    UserCredentials userCredentials = principal.getUserCredentials();
-                    authName = userCredentials.getUsername();
-                }
-            }
-
-            log.warn( eventClassName + "; username: " + authName + ipAddress + sessionId + exceptionMessage );
+            exceptionMessage =
+                "; exception: " + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
         }
+
+        Object details = event.getAuthentication().getDetails();
+
+        if ( details != null &&
+            ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
+        {
+            ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) details;
+            ipAddress = "; ip: " + authDetails.getIp();
+            sessionId = hashSessionId( authDetails.getSessionId() );
+        }
+        else if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( event.getAuthentication().getClass() ) )
+        {
+            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) event
+                .getAuthentication();
+
+            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
+            if ( principal != null )
+            {
+                UserCredentials userCredentials = principal.getUserCredentials();
+                authName = userCredentials.getUsername();
+            }
+
+            WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
+            ipAddress = "; ip: " + oauthDetails.getRemoteAddress();
+            sessionId = hashSessionId( oauthDetails.getSessionId() );
+        }
+        else if ( OAuth2AuthenticationToken.class.isAssignableFrom( event.getSource().getClass() ) )
+        {
+            OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) event.getSource();
+            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
+            if ( principal != null )
+            {
+                UserCredentials userCredentials = principal.getUserCredentials();
+                authName = userCredentials.getUsername();
+            }
+        }
+
+        log.warn( eventClassName + "; username: " + authName + ipAddress + sessionId + exceptionMessage );
+
     }
 
     private String hashSessionId( String sessionId )
