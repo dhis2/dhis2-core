@@ -82,6 +82,7 @@ public class AuthenticationListener
         {
             OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
             DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
             if ( principal != null )
             {
                 UserCredentials userCredentials = principal.getUserCredentials();

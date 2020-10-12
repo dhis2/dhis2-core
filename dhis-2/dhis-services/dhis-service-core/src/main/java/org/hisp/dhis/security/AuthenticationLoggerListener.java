@@ -29,7 +29,7 @@ package org.hisp.dhis.security;
  */
 
 import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -51,6 +51,8 @@ import org.springframework.util.ClassUtils;
 public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent>
 {
+    private final HashFunction sessionIdHasher = Hashing.sha256();
+
     public void onApplicationEvent( AbstractAuthenticationEvent event )
     {
         if ( SessionFixationProtectionEvent.class.isAssignableFrom( event.getClass() ) ||
@@ -65,6 +67,7 @@ public class AuthenticationLoggerListener
             String eventClassName = "Authentication event: " + ClassUtils.getShortName( event.getClass() );
 
             String exceptionMessage = "";
+
             if ( event instanceof AbstractAuthenticationFailureEvent )
             {
                 exceptionMessage =
@@ -75,6 +78,7 @@ public class AuthenticationLoggerListener
             String sessionId = "";
 
             Object details = event.getAuthentication().getDetails();
+
             if ( details != null &&
                 ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
             {
@@ -88,6 +92,7 @@ public class AuthenticationLoggerListener
                     .getAuthentication();
 
                 DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
                 if ( principal != null )
                 {
                     UserCredentials userCredentials = principal.getUserCredentials();
@@ -120,8 +125,6 @@ public class AuthenticationLoggerListener
         {
             return "";
         }
-
-        HashCode hash = Hashing.sha256().newHasher().putString( sessionId, Charsets.UTF_8 ).hash();
-        return "; sessionId: " + hash.toString();
+        return "; sessionId: " + sessionIdHasher.newHasher().putString( sessionId, Charsets.UTF_8 ).hash().toString();
     }
 }
