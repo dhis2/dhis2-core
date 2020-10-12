@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
@@ -43,11 +44,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -73,7 +76,7 @@ public class AuthenticationProviderConfig
         return new TwoFactorWebAuthenticationDetailsSource();
     }
 
-    @Bean(name ="customLdapAuthenticationProvider")
+    @Bean( name = "customLdapAuthenticationProvider" )
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
@@ -121,7 +124,10 @@ public class AuthenticationProviderConfig
     @Bean
     public DefaultAuthenticationEventPublisher authenticationEventPublisher()
     {
-        return new DefaultAuthenticationEventPublisher();
+        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
+        defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
+            ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
+        return defaultAuthenticationEventPublisher;
     }
 
     @Bean
