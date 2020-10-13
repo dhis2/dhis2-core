@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.job;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
@@ -57,6 +58,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable
     private ProgramNotificationService programNotificationService;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
+    private IdentifiableObjectManager manager;
 
     private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new
         ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
@@ -64,10 +66,11 @@ public class TrackerNotificationThread extends SecurityContextRunnable
         .put( ProgramStageInstance.class, id -> programNotificationService.sendEventCompletionNotifications( id ) )
         .build();
 
-    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier )
+    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier, IdentifiableObjectManager manager )
     {
         this.programNotificationService = programNotificationService;
         this.notifier = notifier;
+        this.manager = manager;
     }
 
     @Override
@@ -78,11 +81,11 @@ public class TrackerNotificationThread extends SecurityContextRunnable
             return;
         }
 
-        BaseIdentifiableObject object = sideEffectDataBundle.getObject();
-
-        if ( serviceMapper.containsKey( object.getClass() ) )
+        if ( serviceMapper.containsKey( sideEffectDataBundle.getKlass() ) )
         {
-            serviceMapper.get( object.getClass() ).accept( object.getId() );
+            BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject() );
+
+            serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
         }
 
         notifier.notify( sideEffectDataBundle.getJobConfiguration(), "Tracker notification side effects completed" );

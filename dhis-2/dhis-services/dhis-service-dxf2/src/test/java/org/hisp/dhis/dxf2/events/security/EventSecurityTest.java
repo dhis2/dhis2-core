@@ -144,7 +144,7 @@ public class EventSecurityTest
 
         createAndInjectAdminUser();
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -163,7 +163,7 @@ public class EventSecurityTest
         User user = createUser( "user1" );
         injectSecurityContext( user );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
@@ -189,7 +189,7 @@ public class EventSecurityTest
 
         injectSecurityContext( user );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         // make sure data is flushed, so event service can access it
         manager.flush();
 
@@ -218,7 +218,7 @@ public class EventSecurityTest
 
         injectSecurityContext( user );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
@@ -247,7 +247,7 @@ public class EventSecurityTest
         // make sure data is flushed, so event service can access it
         manager.flush();
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -271,7 +271,7 @@ public class EventSecurityTest
         User user = createUser( "user1" );
         injectSecurityContext( user );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
@@ -292,7 +292,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -335,7 +335,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -378,7 +378,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -420,7 +420,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -462,7 +462,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -505,7 +505,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -533,12 +533,13 @@ public class EventSecurityTest
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
 
-    private Event createEvent( String program, String orgUnit )
+    private Event createEvent( String program, String programStage, String orgUnit )
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setEvent( event.getUid() );
         event.setProgram( program );
+        event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
         event.setEventDate( "2013-01-01" );
 

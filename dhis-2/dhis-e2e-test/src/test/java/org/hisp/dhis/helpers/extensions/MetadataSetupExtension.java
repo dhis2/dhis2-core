@@ -75,45 +75,51 @@ public class MetadataSetupExtension
             new LoginActions().loginAsDefaultUser();
 
             String[] files = {
-                    "src/test/resources/setup/userRoles.json",
-                    "src/test/resources/setup/userGroups.json",
-                    "src/test/resources/setup/metadata.json",
-                    "src/test/resources/setup/metadata.json",
-                    "src/test/resources/setup/users.json"
+                "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/userRoles.json",
+                "src/test/resources/setup/users.json",
+                "src/test/resources/setup/users.json"
             };
 
             String queryParams = "async=false";
             for ( String fileName : files )
             {
                 metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
-
-                createdData.putAll( TestRunStorage.getCreatedEntities() );
-
-                iterateCreatedData( id -> {
-                    TestRunStorage.removeEntity( createdData.get( id ), id );
-                } );
-
             }
 
-            setupSuperuser();
+            setupUsers();
+
+            createdData.putAll( TestRunStorage.getCreatedEntities() );
+            TestRunStorage.removeAllEntities();
 
         }
     }
 
-    private void setupSuperuser()
+    private void setupUsers()
     {
-        logger.info( "Setting up super user" );
+        logger.info( "Adding users to the TA user group" );
         UserActions userActions = new UserActions();
-        String userRoleId = Constants.USER_ROLE_ID;
+        String[] users =  {
+            TestConfiguration.get().superUserUsername(),
+            TestConfiguration.get().defaultUserUsername(),
+            TestConfiguration.get().adminUserUsername()
+        };
+
         String userGroupId = Constants.USER_GROUP_ID;
 
-        String userId = userActions.get( "?filter=userCredentials.username:eq:" + TestConfiguration.get().superUserUsername() )
+
+        for ( String user : users )
+        {
+            String userId = userActions.get( String.format(
+                "?filter=userCredentials.username:eq:%s", user ))
                 .extractString( "users.id[0]" );
 
-        userActions.addUserToUserGroup( userId, userGroupId );
-        userActions.addRoleToUser( userId, userRoleId );
+            userActions.addUserToUserGroup( userId, userGroupId );
+            TestRunStorage.removeEntity( "users", userId );
+        }
 
-        TestRunStorage.removeEntity( "/users", userId );
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )

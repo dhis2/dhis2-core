@@ -35,7 +35,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -59,7 +58,14 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -69,8 +75,6 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +86,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -101,9 +106,7 @@ public class DefaultTrackerBundleService
 
     private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
 
-    private final CurrentUserService currentUserService;
-
-    private final IdentifiableObjectManager identifiableObjectManager;
+    private final TrackerUserService trackerUserService;
 
     private final SessionFactory sessionFactory;
 
@@ -116,6 +119,8 @@ public class DefaultTrackerBundleService
     private final TrackerProgramRuleService trackerProgramRuleService;
 
     private final TrackedEntityCommentService trackedEntityCommentService;
+
+    private final TrackerSideEffectConverterService sideEffectConverterService;
 
     private TrackerObjectDeletionService deletionService;
 
@@ -156,7 +161,7 @@ public class DefaultTrackerBundleService
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService,
-        CurrentUserService currentUserService,
+        TrackerUserService trackerUserService,
         IdentifiableObjectManager identifiableObjectManager,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
@@ -164,52 +169,52 @@ public class DefaultTrackerBundleService
         ReservedValueService reservedValueService,
         TrackerProgramRuleService trackerProgramRuleService,
         TrackedEntityCommentService trackedEntityCommentService,
+        TrackerSideEffectConverterService trackerSideEffectConverterService,
         TrackerObjectDeletionService deletionService )
-
     {
         this.trackerPreheatService = trackerPreheatService;
         this.teConverter = trackedEntityTrackerConverterService;
         this.enrollmentConverter = enrollmentTrackerConverterService;
         this.eventConverter = eventTrackerConverterService;
         this.relationshipConverter = relationshipTrackerConverterService;
-        this.currentUserService = currentUserService;
-        this.identifiableObjectManager = identifiableObjectManager;
+        this.trackerUserService = trackerUserService;
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
         this.reservedValueService = reservedValueService;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.trackedEntityCommentService = trackedEntityCommentService;
+        this.sideEffectConverterService = trackerSideEffectConverterService;
         this.deletionService = deletionService;
     }
 
     @Override
-    @Transactional
-    public List<TrackerBundle> create( TrackerBundleParams params )
+    public TrackerBundle create( TrackerBundleParams params )
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
         TrackerPreheatParams preheatParams = params.toTrackerPreheatParams();
-        preheatParams.setUser( getUser( preheatParams.getUser(), preheatParams.getUserId() ) );
+        if ( preheatParams.getUser() == null )
+        {
+            preheatParams.setUser( trackerUserService.getUser( preheatParams.getUserId() ) );
+        }
 
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
+        return trackerBundle;
     }
 
     @Override
-    public List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles )
+    public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
         try
         {
-            bundles.forEach( trackerBundle -> {
-                Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-                    .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-                Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-                    .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-                trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-                trackerBundle.setEventRuleEffects( eventRuleEffects );
-            } );
+            Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+                .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+            Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+                .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+            trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+            trackerBundle.setEventRuleEffects( eventRuleEffects );
         }
         catch ( Exception e )
         {
@@ -219,7 +224,7 @@ public class DefaultTrackerBundleService
             // If rule engine fails and the validation pass, a 500 code should be returned
             e.printStackTrace();
         }
-        return bundles;
+        return trackerBundle;
     }
 
     @Override
@@ -250,6 +255,11 @@ public class DefaultTrackerBundleService
     }
 
     @Override
+    public void handleTrackerSideEffects( List<TrackerSideEffectDataBundle> bundles )
+    {
+        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
+    }
+
     @Transactional
     public TrackerBundleReport delete( TrackerBundle bundle )
     {
@@ -292,6 +302,15 @@ public class DefaultTrackerBundleService
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, tei.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
+            if ( tei.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( tei );
 
             bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(), Collections.singletonList( tei ) );
@@ -302,22 +321,18 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
-
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
-            typeReport.getStats().incCreated();
         }
 
         session.flush();
-
-        trackedEntities
-            .forEach( o -> bundleHooks.forEach( hook ->
-                hook.postCreate( TrackedEntity.class, o, bundle ) ) );
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
     }
 
     private TrackerTypeReport handleEnrollments( Session session, TrackerBundle bundle )
     {
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+
         List<Enrollment> enrollments = bundle.getEnrollments();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
 
@@ -348,6 +363,15 @@ public class DefaultTrackerBundleService
                 programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
+            if ( programInstance.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( programInstance );
 
             bundle.getPreheat().putEnrollments( bundle.getIdentifier(), Collections.singletonList( programInstance ) );
@@ -361,31 +385,34 @@ public class DefaultTrackerBundleService
             }
 
             // TODO: Implement support for update and delete and rollback/decrement create etc.
-            typeReport.getStats().incCreated();
 
             if ( !bundle.isSkipSideEffects() )
             {
                 TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
-                    .klass( ProgramInstance.class )
-                    .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
-                    .eventRuleEffects( bundle.getEventRuleEffects() )
-                    .object( programInstance )
-                    .importStrategy( bundle.getImportStrategy() )
-                    .accessedBy( bundle.getUsername() )
-                    .build();
+                        .klass( ProgramInstance.class )
+                        .enrollmentRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEnrollmentRuleEffects() ) )
+                        .eventRuleEffects( new HashMap<>() )
+                        .object( programInstance.getUid() )
+                        .importStrategy( bundle.getImportStrategy() )
+                        .accessedBy( bundle.getUsername() )
+                        .build();
 
-                sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+                sideEffectDataBundles.add( sideEffectDataBundle );
             }
         }
 
         session.flush();
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Enrollment.class, o, bundle ) ) );
 
+        typeReport.getSideEffectDataBundles().addAll( sideEffectDataBundles );
+
         return typeReport;
     }
 
     private TrackerTypeReport handleEvents( Session session, TrackerBundle bundle )
     {
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+
         List<Event> events = bundle.getEvents();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
 
@@ -417,6 +444,15 @@ public class DefaultTrackerBundleService
 
             handleDataValues( session, bundle.getPreheat(), event.getDataValues(), programStageInstance );
 
+            if ( programStageInstance.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( programStageInstance );
 
             bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
@@ -427,25 +463,26 @@ public class DefaultTrackerBundleService
             }
 
             // TODO: Implement support for update and delete and rollback/decrement create etc.
-            typeReport.getStats().incCreated();
 
             if ( !bundle.isSkipSideEffects() )
             {
                 TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                     .klass( ProgramStageInstance.class )
-                    .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
-                    .eventRuleEffects( bundle.getEventRuleEffects() )
-                    .object( programStageInstance )
+                    .enrollmentRuleEffects( new HashMap<>() )
+                    .eventRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEventRuleEffects() ) )
+                    .object( programStageInstance.getUid() )
                     .importStrategy( bundle.getImportStrategy() )
                     .accessedBy( bundle.getUsername() )
                     .build();
 
-                sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
+                sideEffectDataBundles.add( sideEffectDataBundle );
             }
         }
 
         session.flush();
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
+
+        typeReport.getSideEffectDataBundles().addAll( sideEffectDataBundles );
 
         return typeReport;
     }
@@ -465,11 +502,20 @@ public class DefaultTrackerBundleService
             relationship.setLastUpdated( now );
             relationship.setLastUpdatedBy( bundle.getUser() );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, relationship.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.RELATIONSHIP, relationship.getUid(),
+                idx );
             typeReport.addObjectReport( objectReport );
 
+            if ( relationship.getId() == 0 )
+            {
+                typeReport.getStats().incCreated();
+            }
+            else
+            {
+                typeReport.getStats().incUpdated();
+            }
+
             session.persist( relationship );
-            typeReport.getStats().incCreated();
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -496,7 +542,7 @@ public class DefaultTrackerBundleService
         Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
             .getTrackedEntityAttributeValues()
             .stream()
-            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
+            .collect( Collectors.toMap(teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
         for ( Attribute at : payloadAttributes )
         {
@@ -615,26 +661,5 @@ public class DefaultTrackerBundleService
 
         fileResource.setAssigned( isAssign );
         session.persist( fileResource );
-    }
-
-    private User getUser( User user, String userUid )
-    {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current
-        // tx
-        {
-            return identifiableObjectManager.get( User.class, user.getUid() );
-        }
-
-        if ( !StringUtils.isEmpty( userUid ) )
-        {
-            user = identifiableObjectManager.get( User.class, userUid );
-        }
-
-        if ( user == null )
-        {
-            user = currentUserService.getCurrentUser();
-        }
-
-        return user;
     }
 }

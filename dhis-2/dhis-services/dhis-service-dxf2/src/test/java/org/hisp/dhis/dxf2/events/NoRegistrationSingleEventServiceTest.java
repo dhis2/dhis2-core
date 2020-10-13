@@ -48,7 +48,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -87,6 +86,8 @@ public class NoRegistrationSingleEventServiceTest
 
     private Program programA;
 
+    private ProgramStage programStageA;
+
     @Override
     protected void setUpTest()
         throws Exception
@@ -100,7 +101,7 @@ public class NoRegistrationSingleEventServiceTest
         dataElementA.setValueType( ValueType.INTEGER );
         identifiableObjectManager.save( dataElementA );
 
-        final ProgramStage programStageA = createProgramStage( 'A', 0 );
+        programStageA = createProgramStage( 'A', 0 );
         identifiableObjectManager.save( programStageA );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -135,7 +136,7 @@ public class NoRegistrationSingleEventServiceTest
     @Test
     public void testGetPersonsByProgramStageInstance()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
 
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -151,7 +152,7 @@ public class NoRegistrationSingleEventServiceTest
     @Test
     public void testGetEventByUid()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
 
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -163,7 +164,7 @@ public class NoRegistrationSingleEventServiceTest
     @Test
     public void testSaveEvent()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 0, importSummary.getConflicts().size() );
@@ -178,7 +179,7 @@ public class NoRegistrationSingleEventServiceTest
     @Test
     public void testDeleteEvent()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
 
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -189,10 +190,11 @@ public class NoRegistrationSingleEventServiceTest
         assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
     }
 
-    private Event createEvent( String program, String orgUnit )
+    private Event createEvent( String program, String programStage, String orgUnit )
     {
         Event event = new Event();
         event.setProgram( program );
+        event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
         event.setEventDate( "2013-01-01" );
 

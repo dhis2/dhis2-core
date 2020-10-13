@@ -30,10 +30,12 @@ package org.hisp.dhis.webapi.security.config;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -41,7 +43,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
@@ -66,15 +67,13 @@ public class AuthenticationProviderConfig
     @Autowired
     DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
-    @Autowired
-    public void configureGlobal( AuthenticationManagerBuilder auth )
-        throws Exception
+    @Bean
+    public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
     {
-        auth.authenticationProvider( twoFactorAuthenticationProvider );
-        auth.authenticationProvider( customLdapAuthenticationProvider() );
+        return new TwoFactorWebAuthenticationDetailsSource();
     }
 
-    @Bean
+    @Bean(name ="customLdapAuthenticationProvider")
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
@@ -123,5 +122,17 @@ public class AuthenticationProviderConfig
     public DefaultAuthenticationEventPublisher authenticationEventPublisher()
     {
         return new DefaultAuthenticationEventPublisher();
+    }
+
+    @Bean
+    public AuthenticationLoggerListener authenticationLoggerListener()
+    {
+        return new AuthenticationLoggerListener();
+    }
+
+    @Bean
+    public AuthenticationListener authenticationListener()
+    {
+        return new AuthenticationListener();
     }
 }

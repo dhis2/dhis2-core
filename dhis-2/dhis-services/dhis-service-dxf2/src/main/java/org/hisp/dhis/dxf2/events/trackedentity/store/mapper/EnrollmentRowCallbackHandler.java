@@ -52,14 +52,9 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
-
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.util.DateUtils;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio
@@ -85,16 +80,9 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( rs.getString( getColumnName( UID ) ) );
 
-        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) );
-        if ( geo.isPresent() )
-        {
-            enrollment.setGeometry( geo.get() );
-            if ( rs.getString( "program_feature_type" ).equalsIgnoreCase( FeatureType.POINT.value() ) )
-            {
-                com.vividsolutions.jts.geom.Coordinate co = enrollment.getGeometry().getCoordinate();
-                enrollment.setCoordinate( new org.hisp.dhis.dxf2.events.event.Coordinate( co.x, co.y ) );
-            }
-        }
+        MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) )
+                .ifPresent( enrollment::setGeometry );
+
         enrollment.setTrackedEntityType( rs.getString( getColumnName( TEI_TYPE_UID ) ) );
         enrollment.setTrackedEntityInstance( rs.getString( getColumnName( TEI_UID ) ) );
         enrollment.setOrgUnit( rs.getString( getColumnName( ORGUNIT_UID ) ) );
@@ -108,8 +96,8 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         enrollment.setStatus( EnrollmentStatus.fromStatusString( rs.getString( getColumnName( STATUS ) ) ) );
         enrollment.setEnrollmentDate( rs.getTimestamp( getColumnName( ENROLLMENTDATE ) ) );
         enrollment.setIncidentDate( rs.getTimestamp( getColumnName( INCIDENTDATE ) ) );
-        final String followup = rs.getString( getColumnName( FOLLOWUP ) );
-        enrollment.setFollowup( followup != null ? Boolean.parseBoolean( followup ) : null );
+        final boolean followup = rs.getBoolean( getColumnName( FOLLOWUP ) );
+        enrollment.setFollowup( rs.wasNull() ? null : followup );
         enrollment.setCompletedDate( rs.getTimestamp( getColumnName( COMPLETED ) ) );
         enrollment.setCompletedBy( rs.getString( getColumnName( COMPLETEDBY ) ) );
         enrollment.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );

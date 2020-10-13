@@ -170,7 +170,7 @@
       "publicAccess": "--------",
       "description": "test-program-stage",
       "openAfterEnrollment": false,
-      "repeatable": false,
+      "repeatable": true,
       "remindCompleted": false,
       "displayGenerateEventBox": true,
       "generatedByEnrollmentDate": false,

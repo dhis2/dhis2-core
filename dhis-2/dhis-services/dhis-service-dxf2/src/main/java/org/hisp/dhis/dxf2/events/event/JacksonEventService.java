@@ -53,7 +53,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;

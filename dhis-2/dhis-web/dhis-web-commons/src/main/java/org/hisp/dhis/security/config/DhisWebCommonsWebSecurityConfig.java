@@ -33,7 +33,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
+import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
+import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ExternalAccessVoter;
 import org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager;
@@ -45,6 +50,7 @@ import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureH
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -54,7 +60,7 @@ import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -114,12 +120,34 @@ public class DhisWebCommonsWebSecurityConfig
     @Order( 2200 )
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     {
+        @Autowired
+        private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
+
+        @Autowired
+        private I18nManager i18nManager;
 
         @Autowired
         private DhisConfigurationProvider configurationProvider;
 
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
+
+        @Autowired
+        TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
+        @Autowired
+        private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
+
+        @Autowired
+        @Qualifier( "customLdapAuthenticationProvider" )
+        CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+
+        public void configure( AuthenticationManagerBuilder auth )
+            throws Exception
+        {
+            auth.authenticationProvider( twoFactorAuthenticationProvider );
+            auth.authenticationProvider( customLdapAuthenticationProvider );
+        }
 
         @Override
         public void configure( WebSecurity web )
@@ -149,6 +177,7 @@ public class DhisWebCommonsWebSecurityConfig
 
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
+                .antMatchers( "/dhis-web-commons/security/*" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
                 .antMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
                 .antMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
@@ -172,30 +201,34 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
                 .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
                 .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
+                .antMatchers( "/dhis-web-sms-configuration/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
 
                 .antMatchers( "/**" ).authenticated()
                 .and()
 
                 .formLogin()
-
-                .failureHandler( authenticationFailureHandler() )
-                .successHandler( authenticationSuccessHandler() )
-
-                .loginPage( "/dhis-web-commons/security/login.action" ).permitAll()
+                .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
+                .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .failureUrl( "/dhis-web-commons/security/login.action" )
+                .failureHandler( authenticationFailureHandler() )
+                .successHandler( authenticationSuccessHandler() )
+                .permitAll()
                 .and()
 
                 .logout()
                 .logoutUrl( "/dhis-web-commons-security/logout.action" )
                 .logoutSuccessUrl( "/" )
+                .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                 .deleteCookies( "JSESSIONID" )
+                .permitAll()
                 .and()
 
                 .exceptionHandling()
                 .authenticationEntryPoint( entryPoint() )
+
                 .and()
 
                 .csrf()
@@ -242,7 +275,7 @@ public class DhisWebCommonsWebSecurityConfig
         public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
         {
             CustomExceptionMappingAuthenticationFailureHandler handler =
-                new CustomExceptionMappingAuthenticationFailureHandler();
+                new CustomExceptionMappingAuthenticationFailureHandler( i18nManager );
 
             // Handles the special case when a user failed to login because it has expired...
             handler.setExceptionMappings(
@@ -327,13 +360,6 @@ public class DhisWebCommonsWebSecurityConfig
                 new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) )
             );
             return new LogicalOrAccessDecisionManager( decisionVoters );
-        }
-
-        @Bean( "formLoginAuthenticationManager" )
-        public AuthenticationManager formLoginAuthenticationManager()
-            throws Exception
-        {
-            return authenticationManager();
         }
     }
 }

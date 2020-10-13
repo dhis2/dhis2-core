@@ -28,16 +28,24 @@ package org.hisp.dhis.webapi.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import lombok.extern.slf4j.Slf4j;
+import static org.springframework.http.MediaType.parseMediaType;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -45,11 +53,13 @@ import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -64,15 +74,15 @@ import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.accept.ParameterContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
 
-import static org.springframework.http.MediaType.parseMediaType;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -80,24 +90,36 @@ import static org.springframework.http.MediaType.parseMediaType;
 @Configuration
 @Order( 1000 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
-@EnableWebMvc
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 @Slf4j
-public class WebMvcConfig implements WebMvcConfigurer
+public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
-    @Bean
-    public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()
-    {
-        return new DhisApiVersionHandlerMethodArgumentResolver();
-    }
-
     @Autowired
     public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
     @Autowired
     public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
 
+    @Autowired
+    private ContextService contextService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
+
+    @Bean( "multipartResolver" )
+    public MultipartResolver multipartResolver()
+    {
+        return new CommonsMultipartResolver();
+    }
+
+    @Bean
+    public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver()
+    {
+        return new DhisApiVersionHandlerMethodArgumentResolver();
+    }
 
     @Override
     public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
@@ -121,6 +143,12 @@ public class WebMvcConfig implements WebMvcConfigurer
         return new DefaultNodeService();
     }
 
+    @Bean
+    public RenderServiceMessageConverter renderServiceMessageConverter()
+    {
+        return new RenderServiceMessageConverter();
+    }
+
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
@@ -132,7 +160,7 @@ public class WebMvcConfig implements WebMvcConfigurer
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
 
-        converters.add( new JsonPMessageConverter( nodeService(), null ) );
+        converters.add( new JsonPMessageConverter( nodeService(), contextService ) );
         converters.add( new PdfMessageConverter( nodeService() ) );
         converters.add( new ExcelMessageConverter( nodeService() ) );
 
@@ -143,14 +171,10 @@ public class WebMvcConfig implements WebMvcConfigurer
         converters.add( renderServiceMessageConverter() );
     }
 
+    @Primary
     @Bean
-    public RenderServiceMessageConverter renderServiceMessageConverter()
-    {
-        return new RenderServiceMessageConverter();
-    }
-
-    @Bean
-    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
+    @Override
+    public ContentNegotiationManager mvcContentNegotiationManager()
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
             new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
@@ -167,18 +191,27 @@ public class WebMvcConfig implements WebMvcConfigurer
         FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
             MediaType.APPLICATION_JSON );
 
-        ContentNegotiationManager manager = new ContentNegotiationManager(
+        return new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
                 parameterContentNegotiationStrategy,
                 headerContentNegotiationStrategy,
                 fixedContentNegotiationStrategy ) );
+    }
 
+    @Override
+    protected RequestMappingHandlerMapping createRequestMappingHandlerMapping()
+    {
         CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
         mapping.setOrder( 0 );
-        mapping.setContentNegotiationManager( manager );
-
+        mapping.setContentNegotiationManager( mvcContentNegotiationManager() );
         return mapping;
+    }
+
+    @Override
+    public void addInterceptors( InterceptorRegistry registry )
+    {
+        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

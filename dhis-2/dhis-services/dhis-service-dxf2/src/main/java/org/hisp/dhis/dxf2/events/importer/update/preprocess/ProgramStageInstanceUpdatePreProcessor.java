@@ -37,7 +37,6 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import java.util.Date;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
@@ -83,7 +82,10 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor
 
             programStageInstance.setStoredBy( storedBy );
             programStageInstance.setDueDate( dueDate );
-            programStageInstance.setOrganisationUnit( organisationUnit );
+            if ( organisationUnit != null )
+            {
+                programStageInstance.setOrganisationUnit( organisationUnit );
+            }
             programStageInstance.setGeometry( event.getGeometry() );
 
             if ( programStageInstance.getProgramStage() != null
@@ -93,7 +95,7 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor
             }
         }
     }
-    
+
     private void setStatus( ProgramStageInstance programStageInstance, final Event event, WorkContext ctx )
     {
         if ( event.getStatus() == ACTIVE )

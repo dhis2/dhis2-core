@@ -29,6 +29,7 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -53,9 +54,10 @@ public class PostDeleteAuditListener
     public PostDeleteAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     @Override

@@ -44,6 +44,11 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
+    /* Miscellaneous */
+    E1000( "API query must be specified" ),
+    E1001( "API query contains an illegal string" ),
+    E1002( "API version is invalid" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
@@ -109,6 +114,8 @@ public enum ErrorCode
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
+    E4031( "A program rule with name `{0}` and program uid `{1}` already exists" ),
+    E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
@@ -185,6 +192,8 @@ public enum ErrorCode
     E7129( "Program is specified but does not exist: `{0}`" ),
     E7130( "Program stage is specified but does not exist: `{0}`" ),
     E7131( "Query failed, likely because the query timed out" ),
+    E7132( "Query failed. An Indicator expression is resulting in invalid operation: division by zero" ),
+    E7133( "This query cannot be executed, possibly because of invalid types or invalid operation" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -206,8 +215,8 @@ public enum ErrorCode
     E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
     E7217( "User is not allowed to view event analytics data: `{0}`" ),
     E7218( "Spatial database support is not enabled" ),
-    E7219( "Data element must be of value type coordinate in order to be used as coordinate field: `{0}`" ),
-    E7220( "Attribute must be of value type coordinate to in order to be used as coordinate field: `{0}`" ),
+    E7219( "Data element must be of value type coordinate or org unit in order to be used as coordinate field: `{0}`" ),
+    E7220( "Attribute must be of value type coordinate or org unit in order to be used as coordinate field: `{0}`" ),
     E7221( "Coordinate field is invalid: `{0}`" ),
     E7222( "Query item or filter is invalid: `{0}`" ),
     E7223( "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`" ),

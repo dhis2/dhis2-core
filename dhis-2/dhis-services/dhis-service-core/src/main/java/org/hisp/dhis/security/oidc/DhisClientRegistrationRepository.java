@@ -30,21 +30,16 @@ package org.hisp.dhis.security.oidc;
  */
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
+import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Set;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -54,43 +49,31 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_
 public class DhisClientRegistrationRepository
     implements ClientRegistrationRepository
 {
-    private InMemoryClientRegistrationRepository repository;
-
     @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+    private DhisConfigurationProvider config;
 
     private static final HashMap<String, DhisOidcClientRegistration> registrationHashMap = new HashMap<>();
 
     @PostConstruct
     public void init()
     {
-        String googleClientId = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
-        String googleClientSecret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
-        String googleClientRedirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL );
-        String googleClientMappingClaim = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM );
+        addRegistration( GoogleProvider.build( config ) );
+        AzureAdProvider.buildList( config ).forEach( this::addRegistration );
+    }
 
-        String registrationId = "google";
-        ClientRegistration google = CommonOAuth2Provider.GOOGLE.getBuilder( registrationId )
-            .clientId( googleClientId )
-            .clientSecret( googleClientSecret )
-            .redirectUriTemplate( googleClientRedirBaseUri + "/oauth2/code/{registrationId}" )
-            .build();
-
-        DhisOidcClientRegistration registration = DhisOidcClientRegistration.builder()
-            .clientRegistration( google )
-            .mappingClaimKey( googleClientMappingClaim )
-            .registrationId( registrationId )
-            .build();
-
-        registrationHashMap.put( registrationId, registration );
-
-        repository = new InMemoryClientRegistrationRepository( google );
+    public void addRegistration( DhisOidcClientRegistration registration )
+    {
+        if ( registration == null )
+        {
+            return;
+        }
+        registrationHashMap.put( registration.getRegistrationId(), registration );
     }
 
     @Override
     public ClientRegistration findByRegistrationId( String registrationId )
     {
-        return repository.findByRegistrationId( registrationId );
+        return registrationHashMap.get( registrationId ).getClientRegistration();
     }
 
     public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )

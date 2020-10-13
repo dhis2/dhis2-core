@@ -477,7 +477,7 @@
   <!-- Interceptor -->
 
   <bean id="org.hisp.dhis.interceptor.ExceptionInterceptor" class="org.hisp.dhis.interceptor.ExceptionInterceptor">
-    <property name="showStackTrace" value="true" />
+    <property name="showStackTrace" value="false" />
     <property name="ignoredExceptions">
       <list>
         <value>org.apache.catalina.connector.ClientAbortException</value>

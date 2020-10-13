@@ -10,12 +10,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -35,7 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -45,11 +46,13 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-@Ignore
 public class TrackedEntityInstanceAggregateTest extends TrackerTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private SessionFactory  sessionFactory;
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
@@ -306,13 +309,13 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.getFollowup(), is( nullValue() ) );
 
         // Dates
-        checkDate( currentTime, event.getCreated(), 400L );
-        checkDate( currentTime, event.getLastUpdated(), 300L );
+        checkDate( currentTime, event.getCreated(), 500L );
+        checkDate( currentTime, event.getLastUpdated(), 500L );
         assertThat( event.getEventDate(), is( notNullValue() ) );
-        checkDate( currentTime, event.getDueDate(), 400L );
-        checkDate( currentTime, event.getCreatedAtClient(), 400L );
-        checkDate( currentTime, event.getLastUpdatedAtClient(), 400L );
-        checkDate( currentTime, event.getCompletedDate(), 400L );
+        checkDate( currentTime, event.getDueDate(), 500L );
+        checkDate( currentTime, event.getCreatedAtClient(), 500L );
+        checkDate( currentTime, event.getLastUpdatedAtClient(), 500L );
+        checkDate( currentTime, event.getCompletedDate(), 500L );
         assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
     }
 
@@ -368,7 +371,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     public void testEnrollmentFollowup()
     {
         Map<String, Object> enrollmentValues = new HashMap<>();
-        enrollmentValues.put( "followup", true );
+        enrollmentValues.put( "followup", Boolean.TRUE );
         doInTransaction( () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents( enrollmentValues ) );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
@@ -409,7 +412,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
-        
+
         assertNotNull( enrollment );
         assertNotNull( event );
 
@@ -497,11 +500,15 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
             org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this
                 .persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            sessionFactory.getCurrentSession().flush();
+            sessionFactory.getCurrentSession().clear();
+            t2 = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class, Collections.singletonList( t2.getUid() ) ).get( 0 );
             ProgramInstance pi = t2.getProgramInstances().iterator().next();
             final ProgramStageInstance psi = pi.getProgramStageInstances().iterator().next();
             this.persistRelationship( t1, psi );
             relationshipItemsUid[0] = t1.getUid();
             relationshipItemsUid[1] = psi.getUid();
+
         } );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
@@ -510,6 +517,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeRelationships( true );
+        params.setIncludeEnrollments( true );
+        params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, params, false );

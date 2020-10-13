@@ -158,11 +158,6 @@ public class BaseIdentifiableObject
     protected Set<String> favorites = new HashSet<>();
 
     /**
-     * The i18n variant of the name. Not persisted.
-     */
-    protected transient String displayName;
-
-    /**
      * Last user updated this object.
      */
     protected User lastUpdatedBy;
@@ -285,14 +280,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayName()
     {
-        displayName = getTranslation( TranslationProperty.NAME, displayName );
-        return displayName != null ? displayName : getName();
-    }
-
-    @JsonIgnore
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
+        return getTranslation( TranslationProperty.NAME, getName() );
     }
 
     @Override
@@ -397,7 +385,7 @@ public class BaseIdentifiableObject
      */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE, Locale.class );
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 

@@ -31,7 +31,6 @@ package org.hisp.dhis.period;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,13 +53,6 @@ public class PeriodServiceTest
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        populatePeriodType();
-    }
 
     // -------------------------------------------------------------------------
     // Period
@@ -157,7 +149,7 @@ public class PeriodServiceTest
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
-    
+
         Period periodA = new Period( periodTypeA, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
@@ -168,42 +160,42 @@ public class PeriodServiceTest
         long idC = periodService.addPeriod( periodC );
         long idD = periodService.addPeriod( periodD );
         long idE = periodService.addPeriod( periodE );
-    
+
         periodA = periodService.getPeriod( getDay( 1 ), getDay( 2 ), periodTypeA );
         assertNotNull( periodA );
         assertEquals( idA, periodA.getId() );
         assertEquals( periodTypeA, periodA.getPeriodType() );
         assertEquals( getDay( 1 ), periodA.getStartDate() );
         assertEquals( getDay( 2 ), periodA.getEndDate() );
-        
+
         periodB = periodService.getPeriod( getDay( 2 ), getDay( 3 ), periodTypeA );
         assertNotNull( periodB );
         assertEquals( idB, periodB.getId() );
         assertEquals( periodTypeA, periodB.getPeriodType() );
         assertEquals( getDay( 2 ), periodB.getStartDate() );
         assertEquals( getDay( 3 ), periodB.getEndDate() );
-    
+
         periodC = periodService.getPeriod( getDay( 2 ), getDay( 3 ), periodTypeB );
         assertNotNull( periodC );
         assertEquals( idC, periodC.getId() );
         assertEquals( periodTypeB, periodC.getPeriodType() );
         assertEquals( getDay( 2 ), periodC.getStartDate() );
         assertEquals( getDay( 3 ), periodC.getEndDate() );
-    
+
         periodD = periodService.getPeriod( getDay( 3 ), getDay( 4 ), periodTypeB );
         assertNotNull( periodD );
         assertEquals( idD, periodD.getId() );
         assertEquals( periodTypeB, periodD.getPeriodType() );
         assertEquals( getDay( 3 ), periodD.getStartDate() );
         assertEquals( getDay( 4 ), periodD.getEndDate() );
-    
+
         periodE = periodService.getPeriod( getDay( 3 ), getDay( 4 ), periodTypeA );
         assertNotNull( periodE );
         assertEquals( idE, periodE.getId() );
         assertEquals( periodTypeA, periodE.getPeriodType() );
         assertEquals( getDay( 3 ), periodE.getStartDate() );
         assertEquals( getDay( 4 ), periodE.getEndDate() );
-        
+
         assertNull( periodService.getPeriod( getDay( 1 ), getDay( 2 ), periodTypeB ) );
         assertNull( periodService.getPeriod( getDay( 4 ), getDay( 5 ), periodTypeA ) );
         assertNull( periodService.getPeriod( getDay( 1 ), getDay( 5 ), periodTypeB ) );
@@ -219,18 +211,18 @@ public class PeriodServiceTest
         Period periodA = new Period( periodType, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( periodType, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodType, getDay( 3 ), getDay( 4 ) );
-        
+
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
         periodService.addPeriod( periodC );
-        
+
         List<Period> periods = periodService.getAllPeriods();
-        
+
         assertNotNull( periods );
         assertEquals( 3, periods.size() );
         assertTrue( periods.contains( periodA ) );
         assertTrue( periods.contains( periodB ) );
-        assertTrue( periods.contains( periodC ) );        
+        assertTrue( periods.contains( periodC ) );
     }
 
     @Test
@@ -279,19 +271,19 @@ public class PeriodServiceTest
     public void testGetIntersectingPeriodsByPeriodType()
     {
         PeriodType ypt = PeriodType.getPeriodTypeByName( YearlyPeriodType.NAME );
-        
+
         Date jan2006 = getDate( 2006, 1, 1 );
         Date dec2006 = getDate( 2006, 12, 31 );
         Date jan2007 = getDate( 2007, 1, 1 );
         Date dec2007 = getDate( 2007, 12, 31 );
-        
+
         Period periodA = new Period( ypt, jan2006, dec2006 );
-        Period periodB = new Period( ypt, jan2007, dec2007 );           
+        Period periodB = new Period( ypt, jan2007, dec2007 );
         periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );       
-        
+        periodService.addPeriod( periodB );
+
         PeriodType mpt = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
-        
+
         Date janstart = getDate( 2006, 1, 1 );
         Date janend = getDate( 2006, 1, 31 );
         Date febstart = getDate( 2006, 2, 1 );
@@ -316,7 +308,7 @@ public class PeriodServiceTest
         Date novend = getDate( 2006, 11, 30 );
         Date decstart = getDate( 2006, 12, 1 );
         Date decend = getDate( 2006, 12, 31 );
-        
+
         Period periodC = new Period( mpt, janstart, janend );
         Period periodD = new Period( mpt, febstart, febend );
         Period periodE = new Period( mpt, marstart, marend );
@@ -329,7 +321,7 @@ public class PeriodServiceTest
         Period periodL = new Period( mpt, octstart, octend );
         Period periodM = new Period( mpt, novstart, novend );
         Period periodN = new Period( mpt, decstart, decend );
-        
+
         periodService.addPeriod( periodC );
         periodService.addPeriod( periodD );
         periodService.addPeriod( periodE );
@@ -342,12 +334,12 @@ public class PeriodServiceTest
         periodService.addPeriod( periodL );
         periodService.addPeriod( periodM );
         periodService.addPeriod( periodN );
-        
-        List<Period> periodsA = periodService.getIntersectingPeriodsByPeriodType( ypt, getDate( 2006, 6, 1 ), getDate( 2006, 11, 30 ) ); 
+
+        List<Period> periodsA = periodService.getIntersectingPeriodsByPeriodType( ypt, getDate( 2006, 6, 1 ), getDate( 2006, 11, 30 ) );
         assertNotNull( periodsA );
         assertEquals( 1, periodsA.size() );
-        
-        List<Period> periodsB = periodService.getIntersectingPeriodsByPeriodType( mpt, getDate( 2006, 6, 1 ), getDate( 2006, 11, 30 ) );            
+
+        List<Period> periodsB = periodService.getIntersectingPeriodsByPeriodType( mpt, getDate( 2006, 6, 1 ), getDate( 2006, 11, 30 ) );
         assertNotNull( periodsB );
         assertEquals( 6, periodsB.size() );
     }
@@ -356,7 +348,7 @@ public class PeriodServiceTest
     public void testGetIntersectingPeriods()
     {
         PeriodType type = periodService.getAllPeriodTypes().iterator().next();
-        
+
         Period periodA = new Period( type, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( type, getDay( 2 ), getDay( 4 ) );
         Period periodC = new Period( type, getDay( 4 ), getDay( 6 ) );
@@ -367,7 +359,7 @@ public class PeriodServiceTest
         Period periodH = new Period( type, getDay( 2 ), getDay( 6 ) );
         Period periodI = new Period( type, getDay( 8 ), getDay( 12 ) );
         Period periodJ = new Period( type, getDay( 2 ), getDay( 12 ) );
-        
+
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
         periodService.addPeriod( periodC );
@@ -378,9 +370,9 @@ public class PeriodServiceTest
         periodService.addPeriod( periodH );
         periodService.addPeriod( periodI );
         periodService.addPeriod( periodJ );
-        
+
         List<Period> periods = periodService.getIntersectingPeriods( getDay( 4 ), getDay( 10 ) );
-        
+
         assertEquals( periods.size(), 8 );
 
         assertTrue( periods.contains( periodB ) );
@@ -435,16 +427,16 @@ public class PeriodServiceTest
     public void testGetBoundaryPeriods()
     {
         PeriodType periodType = periodService.getAllPeriodTypes().iterator().next();
-        
+
         Period periodA = new Period( periodType, getDay( 5 ), getDay( 8 ) );
         Period periodB = new Period( periodType, getDay( 8 ), getDay( 11 ) );
         Period periodC = new Period( periodType, getDay( 11 ), getDay( 14 ) );
         Period periodD = new Period( periodType, getDay( 14 ), getDay( 17 ) );
         Period periodE = new Period( periodType, getDay( 17 ), getDay( 20 ) );
         Period periodF = new Period( periodType, getDay( 5 ), getDay( 20 ) );
-        
+
         List<Period> periods = new ArrayList<>();
-        
+
         periods.add( periodA );
         periods.add( periodB );
         periods.add( periodC );
@@ -453,25 +445,25 @@ public class PeriodServiceTest
         periods.add( periodF );
 
         Period basePeriod = new Period( periodType, getDay( 9 ), getDay( 15 ) );
-        
+
         List<Period> boundaryPeriods = periodService.getBoundaryPeriods( basePeriod, periods );
-        
+
         assertTrue( boundaryPeriods.size() == 3 );
         assertTrue( boundaryPeriods.contains( periodB ) );
         assertTrue( boundaryPeriods.contains( periodD ) );
         assertTrue( boundaryPeriods.contains( periodF ) );
-        
+
         basePeriod = new Period( periodType, getDay( 11 ), getDay( 14 ) );
-        
+
         boundaryPeriods = periodService.getBoundaryPeriods( basePeriod, periods );
-        
-        assertTrue( boundaryPeriods.size() == 1 );        
+
+        assertTrue( boundaryPeriods.size() == 1 );
         assertTrue( boundaryPeriods.contains( periodF ) );
-        
+
         basePeriod = new Period( periodType, getDay( 2 ), getDay( 5 ) );
 
         boundaryPeriods = periodService.getBoundaryPeriods( basePeriod, periods );
-        
+
         assertTrue( boundaryPeriods.size() == 0 );
     }
 
@@ -479,16 +471,16 @@ public class PeriodServiceTest
     public void testGetInclusivePeriods()
     {
         PeriodType periodType = periodService.getAllPeriodTypes().iterator().next();
-        
+
         Period periodA = new Period( periodType, getDay( 5 ), getDay( 8 ) );
         Period periodB = new Period( periodType, getDay( 8 ), getDay( 11 ) );
         Period periodC = new Period( periodType, getDay( 11 ), getDay( 14 ) );
         Period periodD = new Period( periodType, getDay( 14 ), getDay( 17 ) );
         Period periodE = new Period( periodType, getDay( 17 ), getDay( 20 ) );
         Period periodF = new Period( periodType, getDay( 5 ), getDay( 20 ) );
-        
+
         List<Period> periods = new ArrayList<>();
-        
+
         periods.add( periodA );
         periods.add( periodB );
         periods.add( periodC );
@@ -497,7 +489,7 @@ public class PeriodServiceTest
         periods.add( periodF );
 
         Period basePeriod = new Period( periodType, getDay( 8 ), getDay( 20 ) );
-        
+
         List<Period> inclusivePeriods = periodService.getInclusivePeriods( basePeriod, periods );
 
         assertTrue( inclusivePeriods.size() == 4 );
@@ -505,19 +497,19 @@ public class PeriodServiceTest
         assertTrue( inclusivePeriods.contains( periodC ) );
         assertTrue( inclusivePeriods.contains( periodD ) );
         assertTrue( inclusivePeriods.contains( periodE ) );
-        
+
         basePeriod = new Period( periodType, getDay( 9 ), getDay( 18 ) );
-        
+
         inclusivePeriods = periodService.getInclusivePeriods( basePeriod, periods );
-        
+
         assertTrue( inclusivePeriods.size() == 2 );
         assertTrue( inclusivePeriods.contains( periodC ) );
         assertTrue( inclusivePeriods.contains( periodD ) );
-        
+
         basePeriod = new Period( periodType, getDay( 2 ), getDay( 5 ) );
 
         inclusivePeriods = periodService.getInclusivePeriods( basePeriod, periods );
-        
+
         assertTrue( inclusivePeriods.size() == 0 );
     }
 
@@ -610,40 +602,6 @@ public class PeriodServiceTest
         finally
         {
             session.close();
-        }
-    }
-    /**
-     * This is to fix the issue of PeriodType hasn't been inserted to H2 database
-     * but only available in Hibernate session
-     * so periodService.reloadIsoPeriodInStatelessSession() will fail
-     */
-    private void populatePeriodType()
-    {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
-        StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
-        try
-        {
-            periodTypes.forEach( pt -> {
-                Object periodType = session.get( PeriodType.class, pt.getId() );
-                if ( periodType == null )
-                {
-                    if ( sessionFactory.getCurrentSession().contains( pt ) )
-                    {
-                        sessionFactory.getCurrentSession().delete( pt );
-                    }
-
-                    session.insert( pt );
-                }
-            } );
-        }
-        catch ( Exception exception )
-        {
-            exception.printStackTrace();
-        }
-        finally
-        {
-            DbmsUtils.closeStatelessSession( session );
         }
     }
 }

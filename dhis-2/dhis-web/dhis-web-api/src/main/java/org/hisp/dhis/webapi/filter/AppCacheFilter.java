@@ -44,7 +44,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -117,6 +116,7 @@ class CharResponseWrapper extends HttpServletResponseWrapper
 {
     private CharArrayWriter output;
 
+    @Override
     public String toString()
     {
         return output.toString();

@@ -213,7 +213,7 @@ public class HibernateGenericStore<T>
      *
      * @return executable TypedQuery
      */
-    private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
+    private TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return getSession()
             .createQuery( criteriaQuery )
@@ -413,7 +413,10 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        if ( !ObjectDeletionRequestedEvent.shouldSkip( object.getClass() ) )
+        {
+            publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        }
 
         getSession().delete( object );
     }

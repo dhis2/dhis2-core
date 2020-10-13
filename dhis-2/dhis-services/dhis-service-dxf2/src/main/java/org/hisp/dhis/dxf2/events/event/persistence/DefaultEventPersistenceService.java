@@ -28,29 +28,23 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventCommentStore;
 import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -58,35 +52,35 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class  DefaultEventPersistenceService
     implements
     EventPersistenceService
 {
+    @NonNull
     private final EventStore jdbcEventStore;
 
-    private final IdentifiableObjectManager manager;
-
-    public DefaultEventPersistenceService( EventStore jdbcEventStore, IdentifiableObjectManager manager )
-    {
-        checkNotNull( jdbcEventStore );
-        checkNotNull( manager );
-
-        this.jdbcEventStore = jdbcEventStore;
-        this.manager = manager;
-    }
+    @NonNull
+    private final EventCommentStore jdbcEventCommentStore;
 
     @Override
     @Transactional
     public void save( WorkContext context, List<Event> events )
     {
-        /*
-         * Save Events, Notes and Data Values
-         */
-        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+        if ( isNotEmpty( events ) )
+        {
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
-        jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+                .saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
-        updateTeis( context, events );
+            jdbcEventCommentStore.saveAllComments( programStageInstances );
+
+            if ( !context.getImportOptions().isSkipLastUpdated() )
+            {
+                updateTeis( context, events );
+            }
+        }
     }
 
     /**
@@ -95,38 +89,23 @@ public class  DefaultEventPersistenceService
      * @param context a {@see WorkContext}
      * @param events a List of {@see Event}
      */
-
     @Override
     @Transactional
-    public void update( final WorkContext context, final List<Event> events ) {
-
+    public void update( final WorkContext context, final List<Event> events )
+    {
         if ( isNotEmpty( events ) )
         {
-            final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
-                new ProgramStageInstanceMapper( context ), events );
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
-            jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
+            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+                .updateEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
-            updateTeis( context, events );
-        }
-    }
-    
-    private void updateTeis( final WorkContext context, final List<Event> events )
-    {
-        List<String> teiUidList = new ArrayList<>();
+            jdbcEventCommentStore.saveAllComments( programStageInstances );
 
-        if ( !context.getImportOptions().isSkipLastUpdated() )
-        {
-            for ( Event event : events )
+            if ( !context.getImportOptions().isSkipLastUpdated() )
             {
-                final Optional<TrackedEntityInstance> trackedEntityInstance = context
-                    .getTrackedEntityInstance( event.getUid() );
-
-                trackedEntityInstance.ifPresent( t -> teiUidList.add( t.getUid() ) );
+                updateTeis( context, events );
             }
-
-            jdbcEventStore.updateTrackedEntityInstances( teiUidList, context.getImportOptions().getUser() );
-
         }
     }
 
@@ -147,31 +126,21 @@ public class  DefaultEventPersistenceService
     }
 
     /**
-     * Deletes the event using a single transaction.
+     * Updates the "lastupdated" and "lastupdatedBy" of the
+     * Tracked Entity Instances linked to the provided list of Events.
      *
      * @param context a {@see WorkContext}
-     * @param event the event to delete {@see Event}
+     * @param events a List of {@see Event}
      */
-    @Override
-    @Transactional
-    public void delete( final WorkContext context, final Event event )
+    private void updateTeis( final WorkContext context, final List<Event> events )
     {
-        if ( event != null )
-        {
-            jdbcEventStore.delete( singletonList( event ) );
-        }
-    }
+        // Make sure that the TEI uids are not duplicated
+        final List<String> distinctTeiList = events.stream()
+            .map( e -> context.getTrackedEntityInstance( e.getUid() ) )
+            .filter( Optional::isPresent )
+            .map( o -> o.get().getUid() )
+            .distinct().collect( Collectors.toList() );
 
-    private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        Map<Event, ProgramStageInstance> map = new HashMap<>();
-        for ( Event event : events )
-        {
-            ProgramStageInstance psi = mapper.map( event );
-            map.put( event, psi );
-        }
-
-        return map;
+        jdbcEventStore.updateTrackedEntityInstances( distinctTeiList, context.getImportOptions().getUser() );
     }
 }

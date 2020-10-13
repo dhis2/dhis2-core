@@ -29,16 +29,16 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 
 import java.util.HashMap;
 import java.util.List;
@@ -50,9 +50,8 @@ import java.util.Map;
  * @author Zubair Asghar
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder( builderClassName = "TrackerSideEffectBundleBuilder" )
+@JsonDeserialize( builder = TrackerSideEffectDataBundle.TrackerSideEffectBundleBuilder.class )
 public class TrackerSideEffectDataBundle implements Message
 {
     @JsonProperty
@@ -62,18 +61,18 @@ public class TrackerSideEffectDataBundle implements Message
     private Class<? extends BaseIdentifiableObject> klass;
 
     @JsonProperty
-    private BaseIdentifiableObject object;
+    private String object;
 
     @JsonProperty
     private JobConfiguration jobConfiguration;
 
     @JsonProperty
     @Builder.Default
-    private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+    private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
 
     @JsonProperty
     @Builder.Default
-    private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+    private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
 
     @JsonProperty
     private TrackerImportStrategy importStrategy;
@@ -89,5 +88,10 @@ public class TrackerSideEffectDataBundle implements Message
     public MessageType getMessageType()
     {
         return MessageType.TRACKER_SIDE_EFFECT;
+    }
+
+    @JsonPOJOBuilder( withPrefix = "" )
+    public static final class TrackerSideEffectBundleBuilder
+    {
     }
 }

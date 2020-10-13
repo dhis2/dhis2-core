@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 
 import java.util.List;
@@ -43,14 +44,14 @@ public interface TrackerBundleService
      * @param params Params object for this bundle.
      * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
      */
-    List<TrackerBundle> create( TrackerBundleParams params );
+    TrackerBundle create( TrackerBundleParams params );
 
     /**
-     * Call rule engine for tracker bundles.
+     * Call rule engine for tracker bundle.
      *
-     * @return Tracker bundles populated with rule effects
+     * @return Tracker bundle populated with rule effects
      */
-    List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles );
+    TrackerBundle runRuleEngine( TrackerBundle bundle );
 
     /**
      * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
@@ -58,6 +59,13 @@ public interface TrackerBundleService
      * @param bundle TrackerBundle to commit.
      */
     TrackerBundleReport commit( TrackerBundle bundle );
+
+    /**
+     * Carry out side effect for TrackerImporter i.e audits, notifications and program rule actions.
+     *
+     * @param bundles {@link TrackerSideEffectDataBundle} to hold data for side effects.
+     */
+    void handleTrackerSideEffects( List<TrackerSideEffectDataBundle> bundles );
 
     /**
      * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.

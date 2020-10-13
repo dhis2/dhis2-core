@@ -29,6 +29,7 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -53,9 +54,10 @@ public class PostInsertAuditListener
     public PostInsertAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     @Override
@@ -67,7 +69,7 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object entity = postInsertEvent.getEntity();
+        Object entity = initHibernateProxy( postInsertEvent.getPersister().getFactory(), postInsertEvent.getEntity() );
 
         getAuditable( entity, "create" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()

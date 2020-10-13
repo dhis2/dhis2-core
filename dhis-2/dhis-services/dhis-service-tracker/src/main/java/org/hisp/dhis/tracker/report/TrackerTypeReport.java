@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +49,9 @@ public class TrackerTypeReport
 
     @JsonProperty
     private TrackerStats stats = new TrackerStats();
+
+    @JsonProperty
+    private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
 
@@ -81,7 +85,7 @@ public class TrackerTypeReport
         this.objectReportMap.put( objectReport.getIndex(), objectReport );
     }
 
-    public List<TrackerErrorReport> getErrorReports()
+    private List<TrackerErrorReport> getErrorReports()
     {
         List<TrackerErrorReport> errorReports = new ArrayList<>();
         objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
@@ -92,5 +96,10 @@ public class TrackerTypeReport
     public Map<Integer, TrackerObjectReport> getObjectReportMap()
     {
         return objectReportMap;
+    }
+
+    public List<TrackerSideEffectDataBundle> getSideEffectDataBundles()
+    {
+        return sideEffectDataBundles;
     }
 }
