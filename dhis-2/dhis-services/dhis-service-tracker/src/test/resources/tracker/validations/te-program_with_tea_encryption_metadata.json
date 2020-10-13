@@ -24,6 +24,25 @@
       },
       "attributeValues": [],
       "translations": []
+    },
+    {
+      "code": "Region",
+      "level": 2,
+      "created": "2020-02-10T09:07:13.082",
+      "lastUpdated": "2020-02-10T09:52:02.551",
+      "name": "Region",
+      "id": "cNEZTkdAvfe",
+      "shortName": "Region",
+      "path": "/cNEZTkdAvmg/cNEZTkdAvfe",
+      "openingDate": "2020-02-10T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "attributeValues": [],
+      "translations": []
     }
   ],
   "users": [
@@ -79,11 +98,17 @@
       "organisationUnits": [
         {
           "id": "cNEZTkdAvmg"
+        },
+        {
+          "id": "cNEZTkdAvfe"
         }
       ],
       "dataViewOrganisationUnits": [
         {
           "id": "cNEZTkdAvmg"
+        },
+        {
+          "id": "cNEZTkdAvfe"
         }
       ],
       "attributeValues": []
@@ -165,6 +190,36 @@
       "displayOnVisitSchedule": false,
       "valueType": "INTEGER_POSITIVE",
       "orgunitScope": false,
+      "confidential": false,
+      "unique": true,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    },
+    {
+      "lastUpdated": "2020-02-12T15:06:45.404",
+      "id": "p5TPxx5Uhrf",
+      "created": "2020-02-12T15:06:45.404",
+      "name": "Attribute_Identifier_Integer_In_OrgUnit",
+      "shortName": "Attribute_Identifier_Integer_In_OrgUnit",
+      "aggregationType": "COUNT",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "INTEGER_POSITIVE",
+      "orgunitScope": true,
       "confidential": false,
       "unique": true,
       "inherit": false,

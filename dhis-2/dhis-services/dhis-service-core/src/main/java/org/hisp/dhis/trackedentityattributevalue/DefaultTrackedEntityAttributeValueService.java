@@ -44,6 +44,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -274,5 +276,17 @@ public class DefaultTrackedEntityAttributeValueService
         fileResource.setAssigned( true );
         fileResourceService.updateFileResource( fileResource );
         return true;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
+        Map<TrackedEntityAttribute, List<String>> uniqueAttributes )
+    {
+        return uniqueAttributes
+            .entrySet()
+            .stream()
+            .flatMap( entry -> this.attributeValueStore.get( entry.getKey(), entry.getValue() ).stream() )
+            .collect( Collectors.toList() );
     }
 }
