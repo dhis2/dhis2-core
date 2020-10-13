@@ -321,7 +321,7 @@ public class DefaultTrackerPreheatService
             .stream()
             .filter( a -> a.getUid().equals( attribute ) )
             .findAny()
-            .get();
+            .orElse( null );
     }
 
     @Override
