@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
@@ -484,7 +485,9 @@ public class DefaultAnalyticsService
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
+            List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
+                ? dataSourceParams.getTypedFilterPeriods()
+                : dataSourceParams.getStartEndDatesToSingleList();
 
             Map<String, Double> constantMap = constantService.getConstantMap();
 
