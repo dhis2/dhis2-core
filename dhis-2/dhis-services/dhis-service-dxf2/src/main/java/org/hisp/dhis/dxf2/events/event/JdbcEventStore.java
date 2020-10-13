@@ -1160,7 +1160,7 @@ public class JdbcEventStore
         sql += "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
             + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
             + "left join ("
-            + "select distinct on (deco.categoryoptionid) deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
+            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
             + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
             + "ua.access as ua_access, ua.userid as usr_id from dataelementcategoryoption deco "
             + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
