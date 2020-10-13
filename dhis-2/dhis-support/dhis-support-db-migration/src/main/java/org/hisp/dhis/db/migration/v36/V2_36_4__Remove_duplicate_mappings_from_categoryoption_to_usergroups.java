@@ -54,9 +54,7 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
 
     private static final String USERGROUPID = "usergroupid";
 
-
     private static final String CATEGORYOPTIONID = "categoryoptionid";
-
 
     private static final String CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING = "SELECT count(*),categoryoptionid,name,usergroupid  " + 
         "FROM   (SELECT deco.*,uga.* " + 
@@ -66,7 +64,6 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
         "       LEFT JOIN usergroupaccess uga " + 
         "               ON couga.usergroupaccessid = uga.usergroupaccessid) AS decouga " + 
         "GROUP  BY categoryoptionid,name,usergroupid HAVING count(*) > 1";
-    
     
     private static final String GET_ACCESS_STRING_FOR_CO_UG_COMBO = "SELECT usergroupaccessid,usergroupid,categoryoptionid, " + 
         "CASE " + 
@@ -82,7 +79,6 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
         "       LEFT JOIN usergroupaccess uga " + 
         "               ON couga.usergroupaccessid = uga.usergroupaccessid " +
         " WHERE  categoryoptionid IN (%s)  and usergroupid IN (%s)) AS decouga order by accesslevel desc";
-    
     
     private static final String DELETE_CATOPT_USRGRP_ACCESS = "delete from dataelementcategoryoptionusergroupaccesses where usergroupaccessid in (%s)";
 
