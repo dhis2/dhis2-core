@@ -265,7 +265,7 @@ public class DefaultJpaQueryParser
         }
         case "in":
         {
-            Collection<?> values = null;
+            Collection values = null;
 
             if ( property.isCollection() )
             {
@@ -285,7 +285,7 @@ public class DefaultJpaQueryParser
         }
         case "!in":
         {
-            Collection<?> values = null;
+            Collection values = null;
 
             if ( property.isCollection() )
             {

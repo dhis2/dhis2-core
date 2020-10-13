@@ -1,5 +1,33 @@
 package org.hisp.dhis.query;
 
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -22,6 +50,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * @author Viet Nguyen <viet@dhis2.org>
+ */
 @Component
 public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
@@ -82,7 +114,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         if ( query.isEmpty() )
         {
-            return sessionFactory.getCurrentSession().createQuery( criteriaQuery.select( root.get( "id" ) ).distinct( true ) ).getResultList();
+            return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
         }
 
         Predicate predicate = buildPredicates( builder, root, query );
@@ -105,9 +137,58 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     }
 
     @Override
-    public int count( Query query )
+    public long count( Query query )
     {
-        return 0;
+        Schema schema = query.getSchema();
+        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject> ) schema.getKlass() );
+
+        Class<T> klass = (Class<T>) schema.getKlass();
+
+        if ( store == null )
+        {
+            return 0;
+        }
+
+        if ( query.getUser() == null )
+        {
+            query.setUser( currentUserService.getCurrentUser() );
+        }
+
+        if ( !query.isPlannedQuery() )
+        {
+            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
+            query = queryPlan.getPersistedQuery();
+        }
+
+        CriteriaBuilder builder = sessionFactory.getCriteriaBuilder();
+
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery( Long.class );
+        Root<T> root = criteriaQuery.from( klass );
+
+        criteriaQuery.select( builder.count( root ) );
+
+        if ( query.isEmpty() )
+        {
+            return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getSingleResult();
+        }
+
+        Predicate predicate = buildPredicates( builder, root, query );
+
+        criteriaQuery.where( predicate );
+
+        if ( !query.getOrders().isEmpty() )
+        {
+            criteriaQuery.orderBy( query.getOrders().stream()
+                .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getName() ) )
+                    : builder.desc( root.get( o.getProperty().getName() ) ) ).collect( Collectors.toList() ) );
+        }
+
+        TypedQuery<Long> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
+
+        typedQuery.setFirstResult( query.getFirstResult() );
+        typedQuery.setMaxResults( query.getMaxResults() );
+
+        return typedQuery.getSingleResult();
     }
 
     private void initStoreMap()

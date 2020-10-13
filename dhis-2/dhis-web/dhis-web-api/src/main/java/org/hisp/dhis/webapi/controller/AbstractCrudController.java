@@ -28,20 +28,11 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
@@ -101,7 +92,11 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -123,11 +118,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -139,7 +141,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+    private Cache<String,Long> paginationCountCache = new Cache2kBuilder<String, Long>() {}
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -263,7 +265,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         handleAttributeValues( entities, fields );
 
-        handleSharingAttributes( entities, fields );
+//        handleSharingAttributes( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -538,7 +540,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         handleAttributeValues( entities, fields );
 
-        handleSharingAttributes( entities, fields );
+//        handleSharingAttributes( entities, fields );
 
         for ( T entity : entities )
         {
@@ -1190,7 +1192,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    private long count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
             options.getRootJunction(), options.isTrue( "restrictToCaptureScope" )  );
@@ -1274,22 +1276,22 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
     }
 
-    protected void handleSharingAttributes(  List<T> entityList, List<String> fields )
-    {
-        List<String> hasUser = fields.stream().filter( field -> field.contains( "user" ) || fields.contains( ":all" ) )
-            .collect( Collectors.toList() );
-
-        if ( !hasUser.isEmpty() )
-        {
-            entityList.forEach( entity -> {
-                System.out.println( "entity.getSharing().getOwner() = " + entity.getSharing().getOwner() );
-                User user = userService.getUser( entity.getSharing().getOwner() );
-                System.out.println( "userService.getUser( entity.getSharing().getOwner() ) = " + user );
-                entity.setUser( user );
-            } );
-        }
-
-    }
+//    protected void handleSharingAttributes(  List<T> entityList, List<String> fields )
+//    {
+//        List<String> hasUser = fields.stream().filter( field -> field.contains( "user" ) || fields.contains( ":all" ) )
+//            .collect( Collectors.toList() );
+//
+//        if ( !hasUser.isEmpty() )
+//        {
+//            entityList.forEach( entity -> {
+//                System.out.println( "entity.getSharing().getOwner() = " + entity.getSharing().getOwner() );
+//                User user = userService.getUser( entity.getSharing().getOwner() );
+//                System.out.println( "userService.getUser( entity.getSharing().getOwner() ) = " + user );
+//                entity.setUser( user );
+//            } );
+//        }
+//
+//    }
 
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
     {

@@ -125,7 +125,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public int count( Query query )
+    public long count( Query query )
     {
         Schema schema = query.getSchema();
         InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );

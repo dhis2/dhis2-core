@@ -163,7 +163,14 @@ public class UserGroup
     @JsonIgnore
     public User getUser()
     {
-        return this.sharing.getUserOwner();
+        return user;
+    }
+
+    @Override
+    @JsonIgnore
+    public void setUser( User user )
+    {
+        this.user = user;
     }
 
     @JsonProperty

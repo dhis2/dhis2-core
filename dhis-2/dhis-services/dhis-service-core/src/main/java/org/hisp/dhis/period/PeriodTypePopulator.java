@@ -28,15 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -65,21 +63,21 @@ public class PeriodTypePopulator
     @Override
     public void executeInTransaction()
     {
-//        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
-//
-//        Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
-//
-//        types.removeAll( storedTypes );
-//
-//        // ---------------------------------------------------------------------
-//        // Populate missing
-//        // ---------------------------------------------------------------------
-//
-//        for ( PeriodType type : types )
-//        {
-//            periodStore.addPeriodType( type );
-//
-//            log.debug( "Added PeriodType: " + type.getName() );
-//        }
+        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+
+        Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
+
+        types.removeAll( storedTypes );
+
+        // ---------------------------------------------------------------------
+        // Populate missing
+        // ---------------------------------------------------------------------
+
+        for ( PeriodType type : types )
+        {
+            periodStore.addPeriodType( type );
+
+            log.debug( "Added PeriodType: " + type.getName() );
+        }
     }
 }

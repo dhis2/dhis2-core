@@ -29,7 +29,6 @@ package org.hisp.dhis.config;
  */
 
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -46,12 +45,15 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.startup.*;
+import org.hisp.dhis.startup.ConfigurationPopulator;
+import org.hisp.dhis.startup.ExpressionUpgrader;
+import org.hisp.dhis.startup.I18nLocalePopulator;
+import org.hisp.dhis.startup.ModelUpgrader;
+import org.hisp.dhis.startup.SchedulerStart;
+import org.hisp.dhis.startup.SettingUpgrader;
+import org.hisp.dhis.startup.TwoFAPopulator;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupPopulator;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -147,17 +149,15 @@ public class StartupConfig
         return upgrader;
     }
 
-    @Bean
-    public UserGroupPopulator userGroupPopulator( IdentifiableObjectStore<UserGroup> userGroupStore, AclService aclService )
-    {
-        UserGroupPopulator userGroupPopulator = new UserGroupPopulator( userGroupStore, aclService );
-        userGroupPopulator.setRunlevel( 15 );
-        userGroupPopulator.setName( "UserGroupPopulator" );
-        userGroupPopulator.setSkipInTests( false );
-        return userGroupPopulator;
-    }
-
-
+//    @Bean
+//    public UserGroupPopulator userGroupPopulator( IdentifiableObjectStore<UserGroup> userGroupStore, AclService aclService )
+//    {
+//        UserGroupPopulator userGroupPopulator = new UserGroupPopulator( userGroupStore, aclService );
+//        userGroupPopulator.setRunlevel( 15 );
+//        userGroupPopulator.setName( "UserGroupPopulator" );
+//        userGroupPopulator.setSkipInTests( false );
+//        return userGroupPopulator;
+//    }
 
     @Bean
     public SchedulerStart schedulerStart( SystemSettingManager systemSettingManager,

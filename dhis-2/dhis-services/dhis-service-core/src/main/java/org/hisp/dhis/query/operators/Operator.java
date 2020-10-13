@@ -29,7 +29,11 @@ package org.hisp.dhis.query.operators;
  */
 
 import org.hibernate.criterion.Criterion;
-import org.hisp.dhis.query.*;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.query.Type;
+import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -39,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,6 +52,8 @@ public abstract class Operator<T extends Comparable<? super T>>
     protected final String name;
 
     protected final List<T> args = new ArrayList<>();
+
+    protected final List<Collection<T>> collectionArgs = new ArrayList<>();
 
     protected final Typed typed;
 
@@ -62,31 +67,26 @@ public abstract class Operator<T extends Comparable<? super T>>
         this.typed = typed;
     }
 
+    public Operator( String name, Typed typed, Collection<T> collectionArg )
+    {
+        this( name, typed );
+        this.argumentType = new Type( collectionArg );
+        this.collectionArgs.add( collectionArg );
+    }
+
+    public Operator( String name, Typed typed, Collection<T>... collectionArgs )
+    {
+        this( name, typed );
+        this.argumentType = new Type( collectionArgs[0] );
+        Collections.addAll( this.collectionArgs, collectionArgs );
+    }
+
     public Operator( String name, Typed typed, T arg )
     {
         this( name, typed );
         this.argumentType = new Type( arg );
         this.args.add( arg );
         validate();
-    }
-
-    public Operator( String name, Typed typed, Collection<T> arg )
-    {
-        this( name, typed );
-        this.argumentType = new Type( arg );
-        this.args.addAll( arg );
-        validate();
-    }
-
-    private void validate()
-    {
-        for ( Object arg : args )
-        {
-            if ( !isValid( arg.getClass() ) )
-            {
-                throw new QueryParserException( "Value `" + arg + "` of type `" + arg.getClass().getSimpleName() + "` is not supported by this operator." );
-            }
-        }
     }
 
     public Operator( String name, Typed typed, T... args )
@@ -96,9 +96,25 @@ public abstract class Operator<T extends Comparable<? super T>>
         Collections.addAll( this.args, args );
     }
 
+    private void validate()
+    {
+        for ( Object arg : args )
+        {
+            if ( !isValid( arg.getClass() ) )
+            {
+                throw new QueryParserException( "Value `" + args.get( 0 ) + "` of type `" + arg.getClass().getSimpleName() + "` is not supported by this operator." );
+            }
+        }
+    }
+
     public List<T> getArgs()
     {
         return args;
+    }
+
+    public List<Collection<T>> getCollectionArgs()
+    {
+        return collectionArgs;
     }
 
     protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, int idx )

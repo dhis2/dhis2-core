@@ -3,7 +3,11 @@ package org.hisp.dhis.user.sharing;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.user.User;
 
@@ -138,6 +142,5 @@ public class Sharing
     {
         this.userGroups.clear();
     }
-
 }
 

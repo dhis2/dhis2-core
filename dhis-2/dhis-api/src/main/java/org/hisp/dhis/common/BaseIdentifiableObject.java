@@ -45,14 +45,19 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Bob Jolliffe
@@ -434,7 +439,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( using = UidJsonSerializer.class )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {
@@ -484,20 +489,13 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        if ( sharing.getUserGroups() == null || sharing.getUserGroups().isEmpty() )
-        {
-            return null;
-        }
-
-        this.userGroupAccesses.addAll( sharing.getUserGroups().values().stream().map( uag -> uag.toDtoObject() ).collect(
-            Collectors.toSet()) );
-
-        return userGroupAccesses;
+        return SharingUtils.getDtoUserGroupAccesses( sharing );
     }
 
     public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
         this.sharing.setDtoUserGroupAccesses( userGroupAccesses );
+        this.userGroupAccesses = userGroupAccesses;
     }
 
     @Override
@@ -506,15 +504,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        if ( sharing.getUsers() == null || sharing.getUsers().isEmpty() )
-        {
-            return  null;
-        }
-
-        this.userAccesses.addAll(  sharing.getUsers().values().stream().map( ua -> ua.toDtoObject() ).collect(
-            Collectors.toSet()) );
-
-        return userAccesses;
+       return SharingUtils.getDtoUserAccess( sharing );
     }
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )

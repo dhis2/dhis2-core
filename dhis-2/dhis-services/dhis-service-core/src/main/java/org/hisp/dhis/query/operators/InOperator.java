@@ -79,7 +79,7 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T>
             return root.get( queryPath.getPath() ).in( getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
         }
 
-        return root.get( queryPath.getPath() ).in( args.get( 0 ) );
+        return root.get( queryPath.getPath() ).in( getCollectionArgs().get( 0 ) );
     }
 
     @Override

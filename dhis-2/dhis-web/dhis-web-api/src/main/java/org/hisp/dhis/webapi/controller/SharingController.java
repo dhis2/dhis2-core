@@ -46,13 +46,14 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -74,7 +75,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -186,7 +186,10 @@ public class SharingController
 
         for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getUserGroup().getId() );
+            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getId() );
+
+            if ( userGroup == null ) continue;
+
             SharingUserGroupAccess sharingUserGroupAccess = new SharingUserGroupAccess();
             sharingUserGroupAccess.setId( userGroupAccess.getId() );
             sharingUserGroupAccess.setName( userGroup.getDisplayName() );
@@ -196,11 +199,13 @@ public class SharingController
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
         }
 
-        for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
+        for ( org.hisp.dhis.user.UserAccess userAccess : SharingUtils.getDtoUserAccess( object.getSharing() ) )
         {
-            User _user = userService.getUser( userAccess.getId() );
-            SharingUserAccess sharingUserAccess = new SharingUserAccess();
+            User _user = userService.getUser( userAccess.getUid() );
 
+            if ( _user == null ) continue;
+
+            SharingUserAccess sharingUserAccess = new SharingUserAccess();
             sharingUserAccess.setId( userAccess.getId() );
             sharingUserAccess.setName( _user.getDisplayName() );
             sharingUserAccess.setDisplayName( _user.getDisplayName() );
@@ -276,7 +281,7 @@ public class SharingController
 
         if ( !schema.isDataShareable() )
         {
-            if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            if ( AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
             }
@@ -460,7 +465,8 @@ public class SharingController
 
             for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
             {
-                builder.append( "{uid: " ).append( userGroupAccess.getId() )
+                builder.append( "{uid: " ).append( userGroupAccess.getUserGroup().getUid() )
+                    .append( ", name: " ).append( userGroupAccess.getUserGroup().getName() )
                     .append( ", access: " ).append( userGroupAccess.getAccess() )
                     .append( "} " );
             }
@@ -472,7 +478,8 @@ public class SharingController
 
             for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
             {
-                builder.append( "{uid: " ).append( userAccess.getId() )
+                builder.append( "{uid: " ).append( userAccess.getUser().getUid() )
+                    .append( ", name: " ).append( userAccess.getUser().getName() )
                     .append( ", access: " ).append( userAccess.getAccess() )
                     .append( "} " );
             }

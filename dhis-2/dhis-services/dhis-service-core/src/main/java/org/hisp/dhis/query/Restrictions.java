@@ -118,12 +118,12 @@ public final class Restrictions
         return new Restriction( path, new NotTokenOperator( value, false, matchMode ) );
     }
 
-    public static Restriction in( String path, Collection<?> values )
+    public static <T extends Comparable<? super T>> Restriction in( String path, Collection<T> values )
     {
         return new Restriction( path, new InOperator( values ) );
     }
 
-    public static Restriction notIn( String path, Collection<?> values )
+    public static <T extends Comparable<? super T>> Restriction notIn( String path, Collection<T> values )
     {
         return new Restriction( path, new NotInOperator( values ) );
     }

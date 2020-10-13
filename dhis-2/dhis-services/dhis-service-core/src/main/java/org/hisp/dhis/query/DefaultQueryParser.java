@@ -30,12 +30,6 @@ package org.hisp.dhis.query;
 
 
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -46,6 +40,12 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -270,7 +270,7 @@ public class DefaultQueryParser implements QueryParser
         }
         case "in":
         {
-            Collection<?> values = null;
+            Collection values = null;
 
             if ( property.isCollection() )
             {
@@ -290,7 +290,7 @@ public class DefaultQueryParser implements QueryParser
         }
         case "!in":
         {
-            Collection<?> values = null;
+            Collection values = null;
 
             if ( property.isCollection() )
             {
