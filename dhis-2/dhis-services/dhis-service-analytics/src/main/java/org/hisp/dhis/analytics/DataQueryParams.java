@@ -28,6 +28,8 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -2320,6 +2322,25 @@ public class DataQueryParams
     public List<DimensionalItemObject> getPeriods()
     {
         return ImmutableList.copyOf( getDimensionOptions( PERIOD_DIM_ID ) );
+    }
+
+    /**
+     * Returns a single list containing a Period object based on the "startDate" and "endDate" dates.
+     *
+     * @return a single Period list or empty list if "startDate" or "endDate" is null.
+     */
+    public List<Period> getStartEndDatesToSingleList()
+    {
+        if ( getStartDate() != null && getEndDate() != null )
+        {
+            final Period period = new Period();
+            period.setStartDate( getStartDate() );
+            period.setEndDate( getEndDate() );
+
+            return singletonList( period );
+        }
+
+        return emptyList();
     }
 
     /**
