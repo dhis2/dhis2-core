@@ -240,7 +240,7 @@ public class DataHandler
             // "startDate/endDate" periods.
             List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
                 ? dataSourceParams.getTypedFilterPeriods()
-                : singletonList( dataSourceParams.getStartEndDatesAsPeriod() );
+                : dataSourceParams.getStartEndDatesToSingleList();
 
             Map<String, Constant> constantMap = constantService.getConstantMap();
 
