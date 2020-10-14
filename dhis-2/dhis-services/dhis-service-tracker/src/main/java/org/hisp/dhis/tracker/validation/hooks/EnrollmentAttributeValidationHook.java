@@ -28,7 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.Authorities;
@@ -39,19 +51,11 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import com.google.common.collect.Maps;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -103,27 +107,15 @@ public class EnrollmentAttributeValidationHook
 
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
     {
-        if ( attribute.getAttribute() == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1075 )
-                .addArg( attribute ) );
-        }
-
-        if ( attribute.getValue() == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1076 )
-                .addArg( attribute ) );
-        }
+        addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
+        addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
 
         if ( attribute.getAttribute() != null )
         {
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
-            if ( teAttribute == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1017 )
-                    .addArg( attribute.getAttribute() ) );
-            }
+
+            addErrorIfNull( teAttribute, reporter, E1017, attribute );
         }
     }
 
@@ -163,10 +155,7 @@ public class EnrollmentAttributeValidationHook
                 && !userIsAuthorizedToIgnoreRequiredValueValidation
                 && !attributeValueMap.containsKey( attribute.getUid() );
 
-            if ( hasMissingAttribute )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1018 ).addArg( attribute ) );
-            }
+            addErrorIf( () -> hasMissingAttribute, reporter, E1018, attribute );
 
             // Remove program attr. from enrollment attr. list
             attributeValueMap.remove( attribute.getUid() );
@@ -177,8 +166,7 @@ public class EnrollmentAttributeValidationHook
             for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
             {
                 //Only Program attributes is allowed for enrollment
-                reporter.addError( newReport( TrackerErrorCode.E1019 )
-                    .addArg( entry.getKey() + "=" + entry.getValue() ) );
+                addError( reporter, E1019, entry.getKey() + "=" + entry.getValue() );
             }
         }
     }

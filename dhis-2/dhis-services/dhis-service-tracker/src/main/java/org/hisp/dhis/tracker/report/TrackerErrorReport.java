@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.report;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -92,6 +93,12 @@ public class TrackerErrorReport
         public TrackerErrorReportBuilder addArg( Object arg )
         {
             this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArgs( Object ... args )
+        {
+            this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 

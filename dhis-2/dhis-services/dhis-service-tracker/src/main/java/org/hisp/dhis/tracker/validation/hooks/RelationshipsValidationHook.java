@@ -28,13 +28,20 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4004;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.relationship.RelationshipConstraint;
@@ -51,6 +58,8 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -79,8 +88,6 @@ public class RelationshipsValidationHook
         validateRelationshipType( reporter, relationship, bundle.getPreheat() );
         validateAutoRelationship( reporter, relationship );
         validateBidirectionalDuplicatedRelationships( reporter, bundle, relationship );
-
-        return;
     }
 
     private void validateBidirectionalDuplicatedRelationships( ValidationErrorReporter reporter, TrackerBundle bundle,
@@ -95,7 +102,7 @@ public class RelationshipsValidationHook
         List<ImmutablePair<RelationshipItem, RelationshipItem>> bidirectionalRelationship = Lists
             .newArrayList( relationship )
             .stream()
-            .filter( r -> r.isBidirectional() )
+            .filter( Relationship::isBidirectional )
             .map( r -> new ImmutablePair<>( r.getTo(), r.getFrom() ) )
             .collect( Collectors.toList() );
 
@@ -115,7 +122,7 @@ public class RelationshipsValidationHook
     {
         if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E4000 ).addArg( relationship.getRelationship() ) );
+            addError( reporter, E4000, relationship.getRelationship() );
         }
     }
 
@@ -128,28 +135,26 @@ public class RelationshipsValidationHook
 
         if ( !optionalRelationshipType.isPresent() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E4004 ).addArg( "relationshipType" ) );
+            addError( reporter, E4004, "relationshipType" );
             return;
         }
 
         if ( relationship.getFrom() == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E4004 ).addArg( "relationship.getFrom" ) );
+            addError( reporter, E4004, "relationship.getFrom" );
         }
         else
         {
-            if ( optionalRelationshipType.isPresent() )
-            {
-                validateRelationshipConstraint( relationship.getFrom(),
-                    optionalRelationshipType.get().getFromConstraint() )
-                    .stream()
-                        .forEach( e -> reporter.addError( e ) );
-            }
+            optionalRelationshipType
+                .ifPresent( relationshipType -> validateRelationshipConstraint( relationship.getFrom(),
+                    relationshipType.getFromConstraint() )
+                        .stream()
+                        .forEach( reporter::addError ) );
         }
 
         if ( relationship.getTo() == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E4004 ).addArg( "relationship.getTo" ) );
+            addError( reporter, E4004, "relationship.getTo" );
         }
         else
         {
@@ -158,7 +163,7 @@ public class RelationshipsValidationHook
                 validateRelationshipConstraint( relationship.getTo(),
                     optionalRelationshipType.get().getToConstraint() )
                     .stream()
-                    .forEach( e -> reporter.addError( e ) );
+                    .forEach( reporter::addError );
                 ;
             }
         }
@@ -176,6 +181,7 @@ public class RelationshipsValidationHook
             // Should be not be null
             if ( item.getTrackedEntity() == null )
             {
+                
                 result.add( newReport( TrackerErrorCode.E4002 ).addArg( "trackedEntity" ).addArg( "relationshipType" )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }

@@ -35,6 +35,8 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -47,6 +49,7 @@ public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
         TrackedEntityCommentService commentService )
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        checkNotNull( commentService );
         this.commentService = commentService;
     }
 
