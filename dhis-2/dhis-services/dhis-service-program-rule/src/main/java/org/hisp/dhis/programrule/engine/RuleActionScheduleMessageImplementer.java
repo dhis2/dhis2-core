@@ -70,7 +70,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
          ProgramInstanceService programInstanceService,
          ProgramStageInstanceService programStageInstanceService,
          ProgramNotificationInstanceService programNotificationInstanceService,
-         NotificationTemplateService notificationTemplateService)
+         NotificationTemplateService notificationTemplateService )
     {
         super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
         this.programNotificationInstanceService = programNotificationInstanceService;
