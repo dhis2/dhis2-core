@@ -173,7 +173,7 @@ public interface ProgramStageInstanceService
      */
     void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+        Cache<DataElement> dataElementsCache, Set<String> nonAccessibleDataElements, ProgramStageInstance programStageInstance, boolean singleValue );
 
     /**
      * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.

@@ -97,6 +97,9 @@ public class DefaultEventDataValueService implements EventDataValueService
             return;
         }
 
+        Set<String> nonAccessibleDataElements = new HashSet<>();
+        Set<String> accessibleDataElements = new HashSet<>();
+
         Set<EventDataValue> newDataValues = new HashSet<>();
         Set<EventDataValue> updatedDataValues = new HashSet<>();
         Set<EventDataValue> removedDataValuesDueToEmptyValue = new HashSet<>();
@@ -114,16 +117,33 @@ public class DefaultEventDataValueService implements EventDataValueService
             {
                 // This can happen if a wrong data element identifier is provided
                 importSummary.getConflicts().add( new ImportConflict( "dataElement", dataValue.getDataElement() + " is not a valid data element" ) );
+                continue;
             }
-            else if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary )
+
+            if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary )
                 && !importOptions.isDryRun() )
             {
+                accessibleDataElements.add( dataValue.getDataElement() );
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
                     removedDataValuesDueToEmptyValue, storedBy );
             }
+            else
+            {
+                nonAccessibleDataElements.add( dataValue.getDataElement() );
+            }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementCache, programStageInstance, singleValue );
+        Set<String> checkedDataElements = Sets.union( accessibleDataElements, nonAccessibleDataElements );
+
+        for ( DataElement dataElement : programStageInstance.getProgramStage().getDataElements() )
+        {
+            if ( !checkedDataElements.contains( dataElement.getUid() ) &&  !trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, dataElement, true ).isEmpty() )
+            {
+                nonAccessibleDataElements.add( dataElement.getUid() );
+            }
+        }
+
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementCache, nonAccessibleDataElements, programStageInstance, singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
@@ -239,12 +259,11 @@ public class DefaultEventDataValueService implements EventDataValueService
         String value, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
-        boolean validationPassed = true;
 
         if ( status != null )
         {
             importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), status ) );
-            validationPassed = false;
+            return false;
         }
 
         List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
@@ -252,9 +271,9 @@ public class DefaultEventDataValueService implements EventDataValueService
         if ( !errors.isEmpty() )
         {
             errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
-            validationPassed = false;
+            return false;
         }
 
-        return validationPassed;
+        return true;
     }
 }
