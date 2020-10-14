@@ -119,8 +119,11 @@ public class HibernateConfig
         dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
         dataSource.setInitialPoolSize( 5 );
         dataSource.setAcquireIncrement( 5 );
-        dataSource.setMaxIdleTime( 7200 );
-
+        dataSource.setMaxIdleTime( 10 );
+        dataSource.setMaxIdleTimeExcessConnections( 5 );
+        dataSource.setIdleConnectionTestPeriod( 5 );
+        dataSource.setTestConnectionOnCheckin( true );
+        dataSource.setTestConnectionOnCheckout( true );
         return dataSource;
     }
 
