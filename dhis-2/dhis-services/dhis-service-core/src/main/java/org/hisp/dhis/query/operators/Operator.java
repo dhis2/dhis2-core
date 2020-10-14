@@ -119,16 +119,31 @@ public abstract class Operator<T extends Comparable<? super T>>
 
     protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, int idx )
     {
+        if ( Collection.class.isAssignableFrom( klass ) )
+        {
+            return QueryUtils.parseValue( klass, secondaryClass, getCollectionArgs().get( idx ) );
+        }
+
         return QueryUtils.parseValue( klass, secondaryClass, args.get( idx ) );
     }
 
     protected <T> T getValue( Class<T> klass, int idx )
     {
+        if ( Collection.class.isAssignableFrom( klass ) )
+        {
+            return QueryUtils.parseValue( klass, null, getCollectionArgs().get( idx ) );
+        }
+
         return QueryUtils.parseValue( klass, null, args.get( idx ) );
     }
 
     protected <T> T getValue( Class<T> klass )
     {
+        if ( Collection.class.isAssignableFrom( klass ) )
+        {
+            return QueryUtils.parseValue( klass, null, getCollectionArgs().get( 0 ) );
+        }
+
         return getValue( klass, 0 );
     }
 

@@ -36,8 +36,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,7 +43,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-@Component( "org.hisp.dhis.query.JpaQueryParser" )
 public class DefaultJpaQueryParser
     implements QueryParser
 {
@@ -59,7 +56,6 @@ public class DefaultJpaQueryParser
 
     private final CurrentUserService currentUserService;
 
-    @Autowired
     public DefaultJpaQueryParser( SchemaService schemaService, CurrentUserService currentUserService, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( schemaService );

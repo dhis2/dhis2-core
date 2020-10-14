@@ -34,7 +34,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -61,7 +60,7 @@ public class DefaultQueryService
 
     private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
-    public DefaultQueryService( @Qualifier("org.hisp.dhis.query.JpaQueryParser") QueryParser queryParser, QueryPlanner queryPlanner,
+    public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
         JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
         InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
     {

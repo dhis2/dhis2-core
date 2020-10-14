@@ -45,7 +45,6 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -75,7 +74,7 @@ public class HibernateMinMaxDataElementStore
     private final SchemaService schemaService;
 
     public HibernateMinMaxDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, @Qualifier("org.hisp.dhis.query.JpaQueryParser") QueryParser queryParser, QueryPlanner queryPlanner, SchemaService schemaService )
+        ApplicationEventPublisher publisher, QueryParser queryParser, QueryPlanner queryPlanner, SchemaService schemaService )
     {
         super( sessionFactory, jdbcTemplate, publisher, MinMaxDataElement.class, false );
 

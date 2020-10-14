@@ -40,7 +40,6 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -192,7 +191,7 @@ public class JpaQueryUtils
             case "in" :
                 return path.in( (Collection<?>) QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
             case "eq" :
-                return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
+                return  builder.equal( path, property.getKlass().cast( QueryUtils.parseValue( property.getKlass(), value ) ) );
             default:
                 throw new QueryParserException( "Query operator is not supported : " + operator );
         }

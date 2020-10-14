@@ -62,7 +62,7 @@ public class CriteriaQueryEngineTest
     private QueryService queryService;
 
     @Autowired
-    private CriteriaQueryEngine<? extends IdentifiableObject> queryEngine;
+    private JpaCriteriaQueryEngine<? extends IdentifiableObject> queryEngine;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;

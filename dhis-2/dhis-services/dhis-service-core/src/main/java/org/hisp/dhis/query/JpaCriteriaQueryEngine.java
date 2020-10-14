@@ -114,7 +114,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         if ( query.isEmpty() )
         {
-            return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
+            TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
+
+            typedQuery.setFirstResult( query.getFirstResult() );
+            typedQuery.setMaxResults( query.getMaxResults() );
+            return typedQuery.getResultList();
         }
 
         Predicate predicate = buildPredicates( builder, root, query );

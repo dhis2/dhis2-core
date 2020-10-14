@@ -59,7 +59,7 @@ public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T
     @Override
     public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
     {
-        return builder.between( root.get( queryPath.getPath() ).as( klass ),  args.get( 0 ), args.get( 1 ) );
+        return builder.between( root.get( queryPath.getPath() ),  getArgs().get( 0 ), getArgs().get( 1 ) );
     }
 
     @Override
