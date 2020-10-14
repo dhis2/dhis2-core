@@ -1,6 +1,6 @@
-alter table programnotificationinstance
+alter table if exists programnotificationinstance
     add programnotificationtemplatesnapshot jsonb;
 
-alter table programnotificationinstance drop constraint fk_programstagenotification_pnt;
+alter table if exists programnotificationinstance drop constraint if exists fk_programstagenotification_pnt;
 
-alter table programnotificationinstance alter column programnotificationtemplateid drop not null;
+alter table if exists programnotificationinstance alter column programnotificationtemplateid drop not null;
