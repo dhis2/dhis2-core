@@ -52,6 +52,14 @@ public enum ConfigurationKey
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),
     CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
+    CONNECTION_POOL_MIN_SIZE( "connection.pool.min_size", "5", false ),
+    CONNECTION_POOL_INITIAL_SIZE( "connection.pool.initial_size", "5", false ),
+    CONNECTION_POOL_ACQUIRE_INCR( "connection.pool.acquire_incr", "5", false ),
+    CONNECTION_POOL_MAX_IDLE_TIME( "connection.pool.max_idle_time", "7200", false ),
+    CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON( "connection.pool.max_idle_time_excess_con", "0", false ),
+    CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "connection.pool.idle.con.test.period", "0", false ),
+    CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", "false", false ),
+    CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", "true", false ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -116,6 +124,7 @@ public enum ConfigurationKey
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "empty", true ),
     OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL( "oidc.provider.google.redirect_baseurl", "http://localhost:8080", true ),
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true );
+
 
     private final String key;
 
