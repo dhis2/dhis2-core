@@ -38,7 +38,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -353,6 +355,50 @@ public class EventImportTest
     }
 
     @Test
+    public void testAddOneValidAndOneInvalidEvent()
+        throws IOException
+    {
+        Event validEvent = createEvent( "eventUid004" );
+        Event invalidEvent = createEvent( "eventUid005" );
+        invalidEvent.setOrgUnit( "INVALID" );
+        InputStream is = createEventsJsonInputStream( Lists.newArrayList( validEvent, invalidEvent ), dataElementA,
+            "10" );
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
+        assertEquals( 1, importSummaries.getImported() );
+        assertEquals( 1, importSummaries.getIgnored() );
+        assertEquals( 0, importSummaries.getDeleted() );
+        assertEquals( 0, importSummaries.getUpdated() );
+    }
+
+    @Test
+    public void testAddValidEnrollmentWithOneValidAndOneInvalidEvent()
+    {
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event validEvent = createEvent( "eventUid004" );
+        validEvent.setOrgUnit( organisationUnitA.getUid() );
+        Event invalidEvent = createEvent( "eventUid005" );
+        invalidEvent.setOrgUnit( "INVALID" );
+        enrollment.setEvents( Lists.newArrayList( validEvent, invalidEvent ) );
+
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        assertEquals( 1, importSummary.getImportCount().getImported() );
+        assertEquals( 0, importSummary.getImportCount().getIgnored() );
+        assertEquals( 0, importSummary.getImportCount().getDeleted() );
+        assertEquals( 0, importSummary.getImportCount().getUpdated() );
+
+        ImportSummaries eventImportSummaries = importSummary.getEvents();
+        assertEquals( ImportStatus.ERROR, eventImportSummaries.getStatus() );
+        assertEquals( 1, eventImportSummaries.getImported() );
+        assertEquals( 1, eventImportSummaries.getIgnored() );
+        assertEquals( 0, eventImportSummaries.getDeleted() );
+        assertEquals( 0, eventImportSummaries.getUpdated() );
+    }
+
+    @Test
     public void testEventDeletion()
         throws IOException
     {
@@ -451,18 +497,39 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    private InputStream createEventsJsonInputStream( List<Event> events, DataElement dataElement, String value )
+    {
+
+        List<JSONObject> objects = events.stream().map( e -> createEventJSONObject( e, dataElement, value ) )
+                .collect( Collectors.toList() );
+        JSONObject jsonEvents = new JSONObject();
+        jsonEvents.put( "events", objects );
+        return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
+    }
+
     @SuppressWarnings( "unchecked" )
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
         DataElement dataElement, String value )
     {
+        Event event = createEvent( null );
+        event.setProgram( program );
+        event.setProgramStage( programStage );
+        event.setOrgUnit( orgUnit );
+        event.setTrackedEntityInstance( person );
+
+        return new ByteArrayInputStream( createEventJSONObject( event, dataElement, value ).toString().getBytes() );
+    }
+
+    private JSONObject createEventJSONObject( Event event, DataElement dataElement, String value )
+    {
         JSONObject eventJsonPayload = new JSONObject();
-        eventJsonPayload.put( "program", program );
-        eventJsonPayload.put( "programStage", programStage );
-        eventJsonPayload.put( "orgUnit", orgUnit );
+        eventJsonPayload.put( "program", event.getProgram() );
+        eventJsonPayload.put( "programStage", event.getProgramStage() );
+        eventJsonPayload.put( "orgUnit", event.getOrgUnit() );
         eventJsonPayload.put( "status", "COMPLETED" );
         eventJsonPayload.put( "eventDate", "2018-08-20" );
         eventJsonPayload.put( "completedDate", "2018-08-27" );
-        eventJsonPayload.put( "trackedEntityInstance", person );
+        eventJsonPayload.put( "trackedEntityInstance", event.getTrackedEntityInstance() );
 
         JSONObject dataValue = new JSONObject();
         dataValue.put( "dataElement", dataElement.getUid() );
@@ -480,9 +547,7 @@ public class EventImportTest
         dataValues.add( dataValue );
         eventJsonPayload.put( "dataValues", dataValues );
 
-        InputStream is = new ByteArrayInputStream( eventJsonPayload.toString().getBytes() );
-
-        return is;
+        return eventJsonPayload;
     }
 
     private Enrollment createEnrollment( String program, String person )
