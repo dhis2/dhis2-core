@@ -110,6 +110,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
 
+    <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );
+
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
     <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name );
@@ -175,7 +177,7 @@ public interface IdentifiableObjectManager
     boolean isDefault( IdentifiableObject object );
 
     List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
-    
+
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------

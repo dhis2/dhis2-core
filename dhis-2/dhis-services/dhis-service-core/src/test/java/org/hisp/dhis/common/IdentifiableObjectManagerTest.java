@@ -439,6 +439,49 @@ public class IdentifiableObjectManagerTest
     }
 
     @Test
+    public void getOrderedUidIdSchemeTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+        identifiableObjectManager.save( dataElementD );
+
+        List<String> uids = Arrays.asList( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(), dataElementD.getUid() );
+
+        List<DataElement> expected = new ArrayList<>( Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+
+        List<DataElement> actual = new ArrayList<>( identifiableObjectManager.getOrdered( DataElement.class, IdScheme.UID, uids ) );
+
+        assertEquals( expected, actual );
+    }
+
+    @Test
+    public void getOrderedCodeIdSchemeTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+        identifiableObjectManager.save( dataElementD );
+
+        List<String> codes = Arrays.asList( dataElementA.getCode(), dataElementC.getCode(), dataElementB.getCode(), dataElementD.getCode() );
+
+        List<DataElement> expected = new ArrayList<>( Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+
+        List<DataElement> actual = new ArrayList<>( identifiableObjectManager.getOrdered( DataElement.class, IdScheme.CODE, codes ) );
+
+        assertEquals( expected, actual );
+    }
+    @Test
     public void getByUidOrderedTest()
     {
         DataElement dataElementA = createDataElement( 'A' );
