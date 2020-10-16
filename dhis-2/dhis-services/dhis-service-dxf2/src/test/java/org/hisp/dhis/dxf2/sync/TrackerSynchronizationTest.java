@@ -48,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -97,6 +98,9 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     private org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
 
     @Autowired
+    private RelationshipTypeService relationshipTypeService;
+
+    @Autowired
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
@@ -128,10 +132,10 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
     @Autowired
     private TrackerOwnershipManager trackerOwnershipAccessManager;
-    
+
     @Autowired
     private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-    
+
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -143,10 +147,10 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
-    
+
     @Autowired
     private TrackedEntityAttributeStore trackedEntityAttributeStore;
-    
+
     @Autowired
     @Qualifier( "xmlMapper" )
     private ObjectMapper xmlMapper;
@@ -204,7 +208,7 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( user );
 
-        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService, _relationshipService, relationshipService,
+        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService, _relationshipService, relationshipService, relationshipTypeService,
             trackedEntityAttributeValueService, manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,
             schemaService, queryService, reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager,
             trackedEntityInstanceAggregate, trackedEntityAttributeStore, trackedEntityInstanceAuditService, trackedEntityTypeService, notifier, jsonMapper,

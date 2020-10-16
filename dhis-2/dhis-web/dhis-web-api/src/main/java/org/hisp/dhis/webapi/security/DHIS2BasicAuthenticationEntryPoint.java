@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.security;
  */
 
 import com.google.common.base.MoreObjects;
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -67,9 +68,9 @@ public class DHIS2BasicAuthenticationEntryPoint extends LoginUrlAuthenticationEn
         AuthenticationException authException )
         throws IOException, ServletException
     {
-        String acceptHeader = MoreObjects.firstNonNull( request.getHeader( "Accept" ), "" );
-        String requestWithHeader = MoreObjects.firstNonNull( request.getHeader( "X-Requested-With" ), "" );
-        String authorizationHeader = MoreObjects.firstNonNull( request.getHeader( "Authorization" ), "" );
+        String acceptHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.ACCEPT ), "" );
+        String requestWithHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.X_REQUESTED_WITH ), "" );
+        String authorizationHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.AUTHORIZATION ), "" );
 
         if ( "XMLHttpRequest".equals( requestWithHeader ) || authorizationHeader.contains( "Basic" ) )
         {
