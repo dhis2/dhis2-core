@@ -177,8 +177,8 @@ public enum ConfigurationKey
 
         public static final String TRUE = Boolean.TRUE.toString();
 
-        public static final String OFF = Constants.OFF;
+        public static final String OFF = "off";
 
-        public static final String ON = Constants.ON;
+        public static final String ON = "on";
     }
 }
