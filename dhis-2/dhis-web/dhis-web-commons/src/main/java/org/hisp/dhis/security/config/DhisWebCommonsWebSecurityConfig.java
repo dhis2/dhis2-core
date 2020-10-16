@@ -138,7 +138,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/css/**" )
                 .antMatchers( "/dhis-web-commons/flags/**" )
                 .antMatchers( "/dhis-web-commons/fonts/**" )
-                .antMatchers( "/dhis-web-commons/i18nJavaScript.action" )
+                .antMatchers( "/dhis-web-commons/i18n/i18n.vm" )
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
                 .antMatchers( "/favicon.ico" );

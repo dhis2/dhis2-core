@@ -28,6 +28,8 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -43,18 +45,40 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -2333,17 +2357,22 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a Period object based on the "startDate" and "endDate" dates.
+     * Returns a single list containing a Period object based on the "startDate" and "endDate" dates.
      *
-     * @return the Period
+     * @return a single Period list or empty list if "startDate" or "endDate" is null.
      */
-    public Period getStartEndDatesAsPeriod()
+    public List<Period> getStartEndDatesToSingleList()
     {
-        final Period period = new Period();
-        period.setStartDate( getStartDate() );
-        period.setEndDate( getEndDate() );
+        if ( getStartDate() != null && getEndDate() != null )
+        {
+            final Period period = new Period();
+            period.setStartDate( getStartDate() );
+            period.setEndDate( getEndDate() );
 
-        return period;
+            return singletonList( period );
+        }
+
+        return emptyList();
     }
 
     /**
