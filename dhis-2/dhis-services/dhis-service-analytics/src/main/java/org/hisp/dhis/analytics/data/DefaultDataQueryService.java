@@ -520,9 +520,11 @@ public class DefaultDataQueryService
 
                 Class<? extends DimensionalItemObject> itemClass = DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP.get( dimClass );
 
-                List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : getCanReadItems( user, dimObject );
+                List<DimensionalItemObject> dimItems = !allItems ?
+                    asList( idObjectManager.getOrdered( itemClass, inputIdScheme, items ) ) :
+                    getCanReadItems( user, dimObject );
 
-                return new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
+                return new BaseDimensionalObject( dimObject.getDimension(), dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
             }
         }
 
