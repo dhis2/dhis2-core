@@ -424,7 +424,7 @@ public class DataQueryServiceTest
 
         DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getCode(), itemCodes, null, null, null, false, false, IdScheme.CODE );
 
-        assertEquals( ouGroupSetA.getCode(), actual.getDimension() );
+        assertEquals( ouGroupSetA.getDimension(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
         assertEquals( items, actual.getItems() );
     }
