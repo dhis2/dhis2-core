@@ -882,6 +882,7 @@ public abstract class DhisConvenienceTest
         groupSet.setAutoFields();
 
         groupSet.setName( "OrganisationUnitGroupSet" + uniqueCharacter );
+        groupSet.setCode( "OrganisationUnitGroupSetCode" + uniqueCharacter );
         groupSet.setDescription( "Description" + uniqueCharacter );
         groupSet.setCompulsory( true );
 
