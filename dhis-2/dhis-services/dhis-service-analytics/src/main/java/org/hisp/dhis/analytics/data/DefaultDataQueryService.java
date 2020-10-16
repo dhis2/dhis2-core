@@ -572,10 +572,10 @@ public class DefaultDataQueryService
                     .get( dimClass );
 
                 List<DimensionalItemObject> dimItems = !allItems
-                    ? asList( idObjectManager.getByUidOrdered( itemClass, items ) )
+                    ? asList( idObjectManager.getOrdered( itemClass, inputIdScheme, items ) )
                     : getCanReadItems( user, dimObject );
 
-                return new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(),
+                return new BaseDimensionalObject( dimObject.getDimension(), dimObject.getDimensionType(), null, dimObject.getName(),
                     dimItems, allItems );
             }
         }
