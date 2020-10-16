@@ -416,6 +416,20 @@ public class DataQueryServiceTest
     }
 
     @Test
+    public void testGetOrgUnitGroupSetDimensionByCode()
+    {
+        List<DimensionalItemObject> items = Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC );
+
+        List<String> itemCodes = Lists.newArrayList( ouGroupA.getCode(), ouGroupB.getCode(), ouGroupC.getCode() );
+
+        DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getCode(), itemCodes, null, null, null, false, false, IdScheme.CODE );
+
+        assertEquals( ouGroupSetA.getDimension(), actual.getDimension() );
+        assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
+        assertEquals( items, actual.getItems() );
+    }
+
+    @Test
     public void testGetDimensionOperand()
     {
         DataElementOperand opA = new DataElementOperand( deA, cocA );
