@@ -28,18 +28,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hibernate.Session;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -49,8 +48,6 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -127,13 +124,13 @@ public class ProgramStageObjectBundleHook
     private void deleteRemovedSection( ProgramStage persistedProgramStage, ProgramStage importProgramStage )
     {
         List<String> importIds = importProgramStage.getProgramStageSections().stream()
-            .map( section -> section.getUid() )
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         List<ProgramStageSection> programStageSectionsToDelete = persistedProgramStage.getProgramStageSections()
             .stream()
             .filter( section -> !importIds.contains( section.getUid() ) )
-            .peek( section -> programStageSectionService.deleteProgramStageSection( section ) )
+            .peek( programStageSectionService::deleteProgramStageSection )
             .collect( Collectors.toList() );
 
         persistedProgramStage.getProgramStageSections()
