@@ -52,6 +52,8 @@ import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -72,6 +74,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -84,9 +87,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Transactional
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService
 {
+    private final RelationshipTypeService relationshipTypeService;
+
     public JacksonTrackedEntityInstanceService( org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
         TrackedEntityAttributeService trackedEntityAttributeService, RelationshipService _relationshipService,
         org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
+        RelationshipTypeService relationshipTypeService,
         TrackedEntityAttributeValueService trackedEntityAttributeValueService, IdentifiableObjectManager manager,
         UserService userService, DbmsManager dbmsManager, EnrollmentService enrollmentService,
         ProgramInstanceService programInstanceService, CurrentUserService currentUserService,
@@ -98,6 +104,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         checkNotNull( trackedEntityAttributeService );
         checkNotNull( _relationshipService );
         checkNotNull( relationshipService );
+        checkNotNull( relationshipTypeService );
         checkNotNull( trackedEntityAttributeValueService );
         checkNotNull( manager );
         checkNotNull( userService );
@@ -117,6 +124,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this._relationshipService = _relationshipService;
         this.relationshipService = relationshipService;
+        this.relationshipTypeService = relationshipTypeService;
         this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
         this.manager = manager;
         this.userService = userService;
@@ -388,20 +396,43 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream,
+        ImportOptions importOptions )
+        throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
-        trackedEntityInstance.setTrackedEntityInstance( id );
-
-        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ), true );
+        return updateTrackedEntityInstance( id, programId, importOptions, trackedEntityInstance );
     }
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream,
+        ImportOptions importOptions )
+        throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
-        trackedEntityInstance.setTrackedEntityInstance( id );
+        return updateTrackedEntityInstance( id, programId, importOptions, trackedEntityInstance );
+    }
 
-        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ), true );
+    private ImportSummary updateTrackedEntityInstance( String id, String programId, ImportOptions importOptions,
+        TrackedEntityInstance trackedEntityInstance )
+    {
+        trackedEntityInstance.setTrackedEntityInstance( id );
+        setTeiRelationshipsBidirectionalFlag( trackedEntityInstance );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ),
+            true );
+    }
+
+    private void setTeiRelationshipsBidirectionalFlag( TrackedEntityInstance trackedEntityInstance )
+    {
+        Optional.ofNullable( trackedEntityInstance )
+            .map( TrackedEntityInstance::getRelationships )
+            .ifPresent( relationships -> relationships.forEach( this::setTeiRelationshipBidirectionalFlag ) );
+    }
+
+    private void setTeiRelationshipBidirectionalFlag( Relationship relationship )
+    {
+        RelationshipType relationshipType = relationshipTypeService
+            .getRelationshipType( relationship.getRelationshipType() );
+        relationship.setBidirectional( relationshipType.isBidirectional() );
     }
 }
