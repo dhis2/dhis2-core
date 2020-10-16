@@ -44,10 +44,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * This interceptor is ONLY responsible for setting the current user and its

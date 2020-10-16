@@ -40,7 +40,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
