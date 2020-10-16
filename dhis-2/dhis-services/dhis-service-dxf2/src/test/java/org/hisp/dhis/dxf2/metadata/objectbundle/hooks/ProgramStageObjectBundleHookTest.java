@@ -39,6 +39,7 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.Assert;
@@ -60,6 +61,9 @@ public class ProgramStageObjectBundleHookTest
     @Mock
     private AclService aclService;
 
+    @Mock
+    private ProgramStageSectionService programStageSectionService;
+
     private ProgramStage programStage;
 
     private Program program;
@@ -76,7 +80,7 @@ public class ProgramStageObjectBundleHookTest
     @Before
     public void init()
     {
-        this.subject = new ProgramStageObjectBundleHook( aclService );
+        this.subject = new ProgramStageObjectBundleHook( aclService, programStageSectionService );
 
         program = DhisConvenienceTest.createProgram( 'A' );
         program.setUid( "jGRqKgwvvb6" );
