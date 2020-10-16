@@ -145,7 +145,7 @@ public class AppOverrideFilter
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )
         throws IOException, ServletException
     {
-        String requestURI = req.getRequestURI();
+        String requestURI = req.getRequestURI().substring( req.getContextPath().length() );
 
         Pattern p = Pattern.compile( APP_PATH_PATTERN );
         Matcher m = p.matcher( requestURI );
