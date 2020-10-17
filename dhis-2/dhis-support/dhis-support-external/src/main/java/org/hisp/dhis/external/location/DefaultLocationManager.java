@@ -73,7 +73,7 @@ public class DefaultLocationManager extends LogOnceLogger
     {
         this.environmentVariable = environmentVariable;
         this.systemProperty = systemProperty;
-        this.contextVariable = contextVariable
+        this.contextVariable = contextVariable;
     }
 
     public static DefaultLocationManager getDefault()
