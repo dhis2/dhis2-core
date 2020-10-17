@@ -36,7 +36,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-
+import javax.naming.Context;
+import javax.naming.InitialContext
+import javax.naming.NamingException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.util.LogOnceLogger;
@@ -57,22 +59,26 @@ public class DefaultLocationManager extends LogOnceLogger
 
     private static final String DEFAULT_ENV_VAR = "DHIS2_HOME";
     private static final String DEFAULT_SYS_PROP = "dhis2.home";
-
+    private static final String DEFAULT_CTX_VAR = "dhis2.home";
+    
     private String externalDir;
 
     private String environmentVariable;
 
     private String systemProperty;
+    
+    private String contextVariable;
 
-    public DefaultLocationManager( String environmentVariable, String systemProperty )
+    public DefaultLocationManager( String environmentVariable, String systemProperty, String contextVariable )
     {
         this.environmentVariable = environmentVariable;
         this.systemProperty = systemProperty;
+        this.contextVariable = contextVariable
     }
 
     public static DefaultLocationManager getDefault()
     {
-        return new DefaultLocationManager( DEFAULT_ENV_VAR, DEFAULT_SYS_PROP );
+        return new DefaultLocationManager( DEFAULT_ENV_VAR, DEFAULT_SYS_PROP, DEFAULT_CTX_VAR);
     }
 
     // -------------------------------------------------------------------------
@@ -82,6 +88,10 @@ public class DefaultLocationManager extends LogOnceLogger
     @PostConstruct
     public void init()
     {
+        
+        
+        
+        
         String path = System.getProperty( systemProperty );
 
         if ( path != null )
@@ -108,17 +118,31 @@ public class DefaultLocationManager extends LogOnceLogger
                     externalDir = path;
                 }
             }
-            else
-            {
-                log( log, Level.INFO, "Environment variable " + environmentVariable + " not set" );
-
-                path = DEFAULT_DHIS2_HOME;
-
-                if ( directoryIsValid( new File( path ) ) )
+            else{
+                Context initCtx = new InitialContext();
+                Context envCtx = (Context) initCtx.lookup("java:comp/env");
+                path = (String)envCtx.lookup(this.contextVariable);
+                if ( path != null )
                 {
-                    externalDir = path;
-                    log( log, Level.INFO, "Home directory set to " + DEFAULT_DHIS2_HOME );
+                    log( log, Level.INFO, "Context variable " + contextVariable + " points to " + path );
 
+                    if ( directoryIsValid( new File( path ) ) )
+                    {
+                        externalDir = path;
+                    }
+                }
+                else
+                {
+                    log( log, Level.INFO, "Environment variable " + environmentVariable + " not set" );
+
+                    path = DEFAULT_DHIS2_HOME;
+
+                    if ( directoryIsValid( new File( path ) ) )
+                    {
+                        externalDir = path;
+                        log( log, Level.INFO, "Home directory set to " + DEFAULT_DHIS2_HOME );
+
+                    }
                 }
             }
         }
