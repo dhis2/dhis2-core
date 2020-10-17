@@ -37,7 +37,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.naming.Context;
-import javax.naming.InitialContext
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import lombok.extern.slf4j.Slf4j;
