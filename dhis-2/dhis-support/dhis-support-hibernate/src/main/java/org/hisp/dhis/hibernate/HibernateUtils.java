@@ -117,7 +117,7 @@ public class HibernateUtils
             {
                 try
                 {
-                    PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
+                    PropertyDescriptor pd = new PropertyDescriptor( (String)f.getName(), proxy.getClass() );
 
                     Object persistentObject = pd.getReadMethod().invoke( proxy );
 
