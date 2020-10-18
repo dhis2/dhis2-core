@@ -104,11 +104,13 @@ public class DefaultLocationManager extends LogOnceLogger
             }
         }
         else{
+
             try {
                 Context initCtx = new InitialContext();
                 Context envCtx = (Context) initCtx.lookup("java:comp/env");
                 path = (String)envCtx.lookup(this.contextVariable);
             }catch (NamingException e) {
+
 
             }
             if ( path != null )
