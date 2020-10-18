@@ -103,34 +103,39 @@ public class DefaultLocationManager extends LogOnceLogger
                 externalDir = path;
             }
         }
-        else
-        {
-            log( log, Level.INFO, "System property " + systemProperty + " not set" );
+        else{
+            try {
+                Context initCtx = new InitialContext();
+                Context envCtx = (Context) initCtx.lookup("java:comp/env");
+                path = (String)envCtx.lookup(this.contextVariable);
+            }catch (NamingException e) {
 
-            path = System.getenv( environmentVariable );
-
+            }
             if ( path != null )
             {
-                log( log, Level.INFO, "Environment variable " + environmentVariable + " points to " + path );
+                log( log, Level.INFO, "Context variable " + contextVariable + " points to " + path );
 
                 if ( directoryIsValid( new File( path ) ) )
                 {
                     externalDir = path;
                 }
             }
-            else{
-                Context initCtx = new InitialContext();
-                Context envCtx = (Context) initCtx.lookup("java:comp/env");
-                path = (String)envCtx.lookup(this.contextVariable);
+            else
+            {
+                log( log, Level.INFO, "System property " + systemProperty + " not set" );
+
+                path = System.getenv( environmentVariable );
+
                 if ( path != null )
                 {
-                    log( log, Level.INFO, "Context variable " + contextVariable + " points to " + path );
+                    log( log, Level.INFO, "Environment variable " + environmentVariable + " points to " + path );
 
                     if ( directoryIsValid( new File( path ) ) )
                     {
                         externalDir = path;
                     }
                 }
+
                 else
                 {
                     log( log, Level.INFO, "Environment variable " + environmentVariable + " not set" );
