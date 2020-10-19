@@ -462,7 +462,7 @@ public class ProgramStageInstanceServiceTest
 
         //Update PSI: create 0, update 3, delete 1
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), updatedEventDataValues, Collections.singleton( eventDataValueD ),
-            dataElementMap, programStageInstanceA, false );
+            dataElementMap, Collections.emptySet(), programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 3 EventDataValues
@@ -507,7 +507,7 @@ public class ProgramStageInstanceServiceTest
         eventDataValueB.setValue( "22" );
 
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), Collections.singleton( eventDataValueB ), Collections.emptySet(),
-            dataElementMap, programStageInstanceA, true );
+            dataElementMap, Collections.emptySet(), programStageInstanceA, true );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 4 EventDataValues
@@ -552,7 +552,7 @@ public class ProgramStageInstanceServiceTest
         //Prepare EventDataValues -> save 4 of them to PSI
         Set<EventDataValue> newEventDataValues = new HashSet<>( Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD ));
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newEventDataValues, Collections.emptySet(), Collections.emptySet(),
-            dataElementMap, programStageInstanceA, false );
+            dataElementMap, Collections.emptySet(), programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
 }

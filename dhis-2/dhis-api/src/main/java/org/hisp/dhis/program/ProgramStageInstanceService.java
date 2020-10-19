@@ -170,7 +170,7 @@ public interface ProgramStageInstanceService
      * @param singleValue specifies whether the update is a single value update
      */
     void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+        Map<String, DataElement> dataElementsCache, Set<String> nonAccessibleDataElements, ProgramStageInstance programStageInstance, boolean singleValue );
 
     /**
      * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.

@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -279,7 +280,7 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
+        Map<String, DataElement> dataElementsCache, Set<String> nonAccessibleDataElements, ProgramStageInstance programStageInstance, boolean singleValue )
     {
         Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
 
@@ -295,7 +296,8 @@ public class DefaultProgramStageInstanceService
         }
         else
         {
-            programStageInstance.setEventDataValues( updatedOrNewDataValues );
+            Set<EventDataValue> nonAccessibleDataValues = programStageInstance.getEventDataValues().stream().filter( dv -> nonAccessibleDataElements.contains( dv.getDataElement() ) ).collect(  Collectors.toSet() );
+            programStageInstance.setEventDataValues( Sets.union( nonAccessibleDataValues, updatedOrNewDataValues ) );
         }
 
         auditDataValuesChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache,
