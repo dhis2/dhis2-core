@@ -231,9 +231,6 @@
 
   <bean id="org.hisp.dhis.oust.action.GetUserCountAction" class="org.hisp.dhis.oust.action.GetUserCountAction" scope="prototype" />
 
-  <!-- Security import -->
-<!--  <import resource="security.xml" />-->
-
   <!-- i18n -->
 
   <bean id="org.hisp.dhis.i18n.action.I18nAction" class="org.hisp.dhis.i18n.action.I18nAction" scope="prototype">
