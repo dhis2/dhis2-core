@@ -29,7 +29,10 @@ package org.hisp.dhis.security.oidc;
  *
  */
 
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +45,6 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -94,9 +95,9 @@ public class DhisOidcUserService
             }
         }
 
-        if ( log.isInfoEnabled() )
+        if ( log.isDebugEnabled() )
         {
-            log.info( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+            log.debug( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
         }
 
         OAuth2Error oauth2Error = new OAuth2Error(
