@@ -232,6 +232,22 @@ public class DefaultHibernateConfigurationProvider
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), Environment.USER, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ),
+            ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ),
+            ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ),
+            ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ),
+            ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ),
+            ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ),
+            ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ),
+            ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ),
+            ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(), props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
 
         if ( SystemUtils.isTestRun(environment.getActiveProfiles()) )
