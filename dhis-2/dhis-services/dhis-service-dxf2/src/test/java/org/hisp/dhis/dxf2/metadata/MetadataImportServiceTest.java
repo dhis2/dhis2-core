@@ -45,6 +45,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.RenderDevice;
@@ -97,6 +98,9 @@ public class MetadataImportServiceTest
 
     @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private ProgramStageService programStageService;
 
     @Autowired
     private NodeService nodeService;
@@ -395,6 +399,61 @@ public class MetadataImportServiceTest
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
 
         assertEquals(true, dataset.getSections().isEmpty() );
+
+    }
+
+    @Test
+    public void testMetadataImportWithDeletedProgramStageSection()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/programstage_with_sections.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        ProgramStage programStage = programStageService.getProgramStage( "NpsdDv6kKSO" );
+
+        assertNotNull( programStage.getProgramStageSections() );
+
+        assertNotNull( manager.get( ProgramStageSection.class, "JwcV2ZifEQf" ) );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/programstage_with_removed_section.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+        params.setMetadataSyncImport( true );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
+
+        assertEquals( 1, programStage.getProgramStageSections().size() );
+
+        assertNull( manager.get( ProgramStageSection.class, "JwcV2ZifEQf" ) );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/programstage_with_all_section_removed.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+        params.setMetadataSyncImport( true );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
+
+        assertEquals( true, programStage.getProgramStageSections().isEmpty() );
 
     }
 
