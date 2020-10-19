@@ -50,7 +50,7 @@ public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescrip
     {
         Schema schema = new Schema( ProgramStageInstanceFilter.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setDefaultPrivate(true);
+        schema.setDefaultPrivate( true );
         return schema;
     }
 
