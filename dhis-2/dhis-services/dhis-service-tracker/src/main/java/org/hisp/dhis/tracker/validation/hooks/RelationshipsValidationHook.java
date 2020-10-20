@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
 public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
+    private final static String RELATIONSHIP_TYPE = "relationshipType";
     public RelationshipsValidationHook( TrackedEntityAttributeService teAttrService )
     {
         super( Relationship.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
@@ -177,26 +177,24 @@ public class RelationshipsValidationHook
 
         if ( relationshipType.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-
             // Should be not be null
             if ( item.getTrackedEntity() == null )
             {
-                
-                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "trackedEntity" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "trackedEntity" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEnrollment() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "enrollment" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "enrollment" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEvent() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "event" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "event" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }
 
@@ -207,49 +205,47 @@ public class RelationshipsValidationHook
             // Should be null
             if ( item.getTrackedEntity() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "trackedEntity" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "trackedEntity" ).addArg(RELATIONSHIP_TYPE)
                     .addArg( PROGRAM_INSTANCE ) );
             }
 
             // Should not be null
             if ( item.getEnrollment() == null )
             {
-                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "enrollment" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "enrollment" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEvent() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "event" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "event" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_INSTANCE ) );
             }
 
         }
         else if ( relationshipType.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
-
             // Should be null
             if ( item.getTrackedEntity() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "trackedEntity" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "trackedEntity" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_STAGE_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEnrollment() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "enrollment" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "enrollment" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_STAGE_INSTANCE ) );
             }
 
             // Should not be null
             if ( item.getEvent() == null )
             {
-                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "event" ).addArg( "relationshipType" )
+                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "event" ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_STAGE_INSTANCE ) );
             }
-
         }
 
         return result;
