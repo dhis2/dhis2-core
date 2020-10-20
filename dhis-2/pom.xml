@@ -2063,8 +2063,8 @@
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <spring.version>5.2.8.RELEASE</spring.version>
-    <spring-security.version>5.3.4.RELEASE</spring-security.version>
+    <spring.version>5.2.9.RELEASE</spring.version>
+    <spring-security.version>5.4.1</spring-security.version>
     <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
     <lettuce.version>5.2.0.RELEASE</lettuce.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>

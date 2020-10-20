@@ -96,9 +96,9 @@ public class DhisOidcUserService
             }
         }
 
-        if ( log.isInfoEnabled() )
+        if ( log.isDebugEnabled() )
         {
-            log.info( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+            log.debug( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
         }
 
         OAuth2Error oauth2Error = new OAuth2Error(
