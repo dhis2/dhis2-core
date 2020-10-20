@@ -160,8 +160,8 @@ public class TrackedEntityAttributeValidationHook
         addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, E1112, value );
 
         // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
-        String result = dataValueIsValid( value, tea.getValueType() );
-        addErrorIfNull( result, reporter, E1085, tea, result );
+        final String result = dataValueIsValid( value, tea.getValueType() );
+        addErrorIf( () -> result != null, reporter, E1085, tea, result );
     }
 
     protected void validateTextPattern( ValidationErrorReporter reporter,
