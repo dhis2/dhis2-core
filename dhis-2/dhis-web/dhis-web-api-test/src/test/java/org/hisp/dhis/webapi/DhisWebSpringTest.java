@@ -79,10 +79,6 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
 {
-    // MvcTestConfig.class,
-//    @Autowired
-//    protected FilterChainProxy filterChainProxy;
-
     @Autowired
     protected WebApplicationContext webApplicationContext;
 
@@ -103,21 +99,16 @@ public abstract class DhisWebSpringTest
     @Rule
     public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
 
-
     @Before
     public void setup()
         throws Exception
     {
-
         userService = _userService;
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-//            .addFilters( characterEncodingFilter, new ShallowEtagHeaderFilter(), filterChainProxy )
-
             .apply( documentationConfiguration( this.restDocumentation ) )
-
             .build();
 
         executeStartupRoutines();
