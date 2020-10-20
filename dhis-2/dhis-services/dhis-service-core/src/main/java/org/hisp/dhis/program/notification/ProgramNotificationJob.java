@@ -28,6 +28,10 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Calendar;
+
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -36,10 +40,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
-
-import java.util.Calendar;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -108,5 +108,4 @@ public class ProgramNotificationJob extends AbstractJob
         programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
         programNotificationService.sendScheduledNotifications();
     }
-
 }
