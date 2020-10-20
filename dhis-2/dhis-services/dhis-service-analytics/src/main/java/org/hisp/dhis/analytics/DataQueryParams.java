@@ -45,18 +45,40 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -251,9 +273,31 @@ public class DataQueryParams
     protected DisplayProperty displayProperty;
 
     /**
-     * The scheme to use as identifier in the query response.
+     * The general id scheme, which drives the values in the query response.
+     * 
+     * For implementation details @see
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
      */
     protected IdScheme outputIdScheme;
+
+    /**
+     * The id schema specific for data elements.
+     *
+     * For implementation details @see
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
+     */
+    protected IdScheme outputDataElementIdScheme;
+
+    /**
+     * The id schema specific for org units.
+     *
+     * For implementation details @see
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
+     */
+    protected IdScheme outputOrgUnitIdScheme;
 
     /**
      * The output format, default is OutputFormat.ANALYTICS.
@@ -476,6 +520,8 @@ public class DataQueryParams
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
+        params.outputDataElementIdScheme = this.outputDataElementIdScheme;
+        params.outputOrgUnitIdScheme = this.outputOrgUnitIdScheme;
         params.outputFormat = this.outputFormat;
         params.duplicatesOnly = this.duplicatesOnly;
         params.approvalLevel = this.approvalLevel;
@@ -535,6 +581,8 @@ public class DataQueryParams
             .add( "includeMetadataDetails", includeMetadataDetails )
             .add( "displayProperty", displayProperty )
             .add( "outputIdScheme", outputIdScheme )
+            .add( "outputDataElementIdScheme", outputDataElementIdScheme )
+            .add( "outputOrgUnitIdScheme", outputOrgUnitIdScheme )
             .add( "outputFormat", outputFormat )
             .add( "duplicatesOnly", duplicatesOnly )
             .add( "approvalLevel", approvalLevel )
@@ -1168,12 +1216,35 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query defines an identifier scheme different from
+     * Indicates whether this query defines a master identifier scheme different from
      * UID.
      */
-    public boolean hasNonUidOutputIdScheme()
+    public boolean isGeneralOutputIdSchemeSet()
     {
         return outputIdScheme != null && !IdScheme.UID.equals( outputIdScheme );
+    }
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different from
+     * UID.
+     */
+    public boolean isOutputDataElementIdSchemeSet()
+    {
+        return outputDataElementIdScheme != null && !IdScheme.UID.equals( outputDataElementIdScheme );
+    }
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different from
+     * UID.
+     */
+    public boolean isOutputOrgUnitIdSchemeSet()
+    {
+        return outputOrgUnitIdScheme != null && !IdScheme.UID.equals( outputOrgUnitIdScheme );
+    }
+    
+    public boolean hasCustomIdSchemaSet()
+    {
+        return isGeneralOutputIdSchemeSet() || isOutputDataElementIdSchemeSet() || isOutputOrgUnitIdSchemeSet();
     }
 
     /**
@@ -1979,6 +2050,16 @@ public class DataQueryParams
         return outputIdScheme;
     }
 
+    public IdScheme getOutputDataElementIdScheme()
+    {
+        return outputDataElementIdScheme;
+    }
+
+    public IdScheme getOutputOrgUnitIdScheme()
+    {
+        return outputOrgUnitIdScheme;
+    }
+
     public OutputFormat getOutputFormat()
     {
         return outputFormat;
@@ -2037,6 +2118,16 @@ public class DataQueryParams
     public void setOutputIdScheme( IdScheme outputIdScheme )
     {
         this.outputIdScheme = outputIdScheme;
+    }
+
+    public void setOutputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+    {
+        this.outputDataElementIdScheme = outputDataElementIdScheme;
+    }
+
+    public void setOutputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+    {
+        this.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
     }
 
     // -------------------------------------------------------------------------
@@ -2783,6 +2874,18 @@ public class DataQueryParams
         public Builder withOutputIdScheme( IdScheme outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+
+        public Builder withOutputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+        {
+            this.params.outputDataElementIdScheme = outputDataElementIdScheme;
+            return this;
+        }
+
+        public Builder withOutputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+        {
+            this.params.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
             return this;
         }
 

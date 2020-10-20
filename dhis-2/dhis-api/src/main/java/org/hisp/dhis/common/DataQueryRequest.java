@@ -87,6 +87,10 @@ public class DataQueryRequest
 
     protected IdScheme outputIdScheme;
 
+    protected IdScheme outputDataElementIdScheme;
+
+    protected IdScheme outputOrgUnitIdScheme;
+
     protected IdScheme inputIdScheme;
 
     protected String approvalLevel;
@@ -212,6 +216,16 @@ public class DataQueryRequest
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
+    }
+
+    public IdScheme getOutputDataElementIdScheme()
+    {
+        return outputDataElementIdScheme;
+    }
+
+    public IdScheme getOutputOrgUnitIdScheme()
+    {
+        return outputOrgUnitIdScheme;
     }
 
     public IdScheme getInputIdScheme()
@@ -407,6 +421,18 @@ public class DataQueryRequest
         public DataQueryRequestBuilder outputIdScheme( IdScheme outputIdScheme )
         {
             this.request.outputIdScheme = outputIdScheme;
+            return this;
+        }
+
+        public DataQueryRequestBuilder outputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+        {
+            this.request.outputDataElementIdScheme = outputDataElementIdScheme;
+            return this;
+        }
+
+        public DataQueryRequestBuilder outputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+        {
+            this.request.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
             return this;
         }
 
