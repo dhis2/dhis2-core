@@ -69,6 +69,10 @@ public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     private final static String RELATIONSHIP_TYPE = "relationshipType";
+    private final static String TRACKED_ENTITY = "trackedEntity";
+    private final static String ENROLLMENT = "enrollment";
+    private final static String EVENT = "event";
+
     public RelationshipsValidationHook( TrackedEntityAttributeService teAttrService )
     {
         super( Relationship.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
@@ -135,7 +139,7 @@ public class RelationshipsValidationHook
 
         if ( !optionalRelationshipType.isPresent() )
         {
-            addError( reporter, E4004, "relationshipType" );
+            addError( reporter, E4004, RELATIONSHIP_TYPE );
             return;
         }
 
@@ -180,21 +184,21 @@ public class RelationshipsValidationHook
             // Should be not be null
             if ( item.getTrackedEntity() == null )
             {
-                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "trackedEntity" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4002 ).addArg( TRACKED_ENTITY ).addArg( RELATIONSHIP_TYPE )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEnrollment() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "enrollment" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( ENROLLMENT ).addArg( RELATIONSHIP_TYPE )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEvent() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "event" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( EVENT ).addArg( RELATIONSHIP_TYPE )
                     .addArg( TRACKED_ENTITY_INSTANCE ) );
             }
 
@@ -205,21 +209,21 @@ public class RelationshipsValidationHook
             // Should be null
             if ( item.getTrackedEntity() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "trackedEntity" ).addArg(RELATIONSHIP_TYPE)
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( TRACKED_ENTITY ).addArg(RELATIONSHIP_TYPE)
                     .addArg( PROGRAM_INSTANCE ) );
             }
 
             // Should not be null
             if ( item.getEnrollment() == null )
             {
-                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "enrollment" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4002 ).addArg( ENROLLMENT ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEvent() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "event" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( EVENT ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_INSTANCE ) );
             }
 
@@ -229,21 +233,21 @@ public class RelationshipsValidationHook
             // Should be null
             if ( item.getTrackedEntity() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "trackedEntity" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( TRACKED_ENTITY ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_STAGE_INSTANCE ) );
             }
 
             // Should be null
             if ( item.getEnrollment() != null )
             {
-                result.add( newReport( TrackerErrorCode.E4001 ).addArg( "enrollment" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4001 ).addArg( ENROLLMENT ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_STAGE_INSTANCE ) );
             }
 
             // Should not be null
             if ( item.getEvent() == null )
             {
-                result.add( newReport( TrackerErrorCode.E4002 ).addArg( "event" ).addArg( RELATIONSHIP_TYPE )
+                result.add( newReport( TrackerErrorCode.E4002 ).addArg( EVENT ).addArg( RELATIONSHIP_TYPE )
                     .addArg( PROGRAM_STAGE_INSTANCE ) );
             }
         }
