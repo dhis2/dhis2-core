@@ -91,7 +91,6 @@ public class EnrollmentAttributeValidationHook
 
             validateAttrValueType( reporter, attribute, teAttribute );
 
-            // TODO: This is ripe for optimization
             validateAttributeUniqueness( reporter,
                 attribute.getValue(),
                 teAttribute,

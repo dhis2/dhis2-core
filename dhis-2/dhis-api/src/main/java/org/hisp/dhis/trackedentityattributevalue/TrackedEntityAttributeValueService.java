@@ -34,6 +34,7 @@ import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Abyot Asalefew
@@ -113,4 +114,14 @@ public interface TrackedEntityAttributeValueService
      */
     //TODO: This method is never used except of the Unit Test
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
+
+    /**
+     * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the
+     * values and the tea present in uniqueAttributes
+     *
+     * @param uniqueAttributes A map that links a list of values to a TEA
+     * @return TrackedEntityAttributeValue list
+     */
+    List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
+        Map<TrackedEntityAttribute, List<String>> uniqueAttributes );
 }

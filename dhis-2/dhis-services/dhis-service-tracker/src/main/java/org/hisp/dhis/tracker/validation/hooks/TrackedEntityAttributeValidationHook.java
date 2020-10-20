@@ -127,55 +127,44 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-            // TODO: Should we really validate existing data? this sounds like a mix of con
-//            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( tea.getUid() );
-//            if ( trackedEntityAttributeValue == null )
-//            {
-            TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-            trackedEntityAttributeValue.setEntityInstance( tei );
-            trackedEntityAttributeValue.setValue( attribute.getValue() );
-            trackedEntityAttributeValue.setAttribute( tea );
-//            }
-
-            validateAttributeValue( reporter, trackedEntityAttributeValue );
+            validateAttributeValue( reporter, tea, attribute.getValue() );
             validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
             validateAttrValueType( reporter, attribute, tea );
 
-            // TODO: This is one "THE" potential performance killer...
             validateAttributeUniqueness( reporter, attribute.getValue(), tea, tei, orgUnit );
 
             validateFileNotAlreadyAssigned( reporter, attribute, valueMap );
         }
     }
 
-    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttributeValue teav )
+    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttribute tea, String value )
     {
-        checkNotNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
-        checkNotNull( teav.getValue(), TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        if ( teav.getValue().length() > MAX_ATTR_VALUE_LENGTH )
+        if ( value.length() > MAX_ATTR_VALUE_LENGTH )
         {
             reporter.addError( newReport( TrackerErrorCode.E1077 )
-                .addArg( teav )
+                .addArg( value )
                 .addArg( MAX_ATTR_VALUE_LENGTH ) );
         }
 
         // Validate if that encryption is configured properly if someone sets value to (confidential)
-        boolean isConfidential = teav.getAttribute().isConfidentialBool();
+        boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
         if ( isConfidential && !encryptionStatusOk )
         {
             reporter.addError( newReport( TrackerErrorCode.E1112 )
-                .addArg( teav ) );
+                .addArg( value ) );
         }
 
         // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
-        String result = dataValueIsValid( teav.getValue(), teav.getAttribute().getValueType() );
+        String result = dataValueIsValid( value, tea.getValueType() );
         if ( result != null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1085 )
-                .addArg( teav.getAttribute() )
+                .addArg( tea )
                 .addArg( result ) );
         }
     }
