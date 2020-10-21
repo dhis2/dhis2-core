@@ -68,7 +68,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Lars Helge Overland
  */
-@Profile("!test")
+@Profile("!test-h2")
 @Component( "dhisConfigurationProvider" )
 @Slf4j
 public class DefaultDhisConfigurationProvider extends LogOnceLogger

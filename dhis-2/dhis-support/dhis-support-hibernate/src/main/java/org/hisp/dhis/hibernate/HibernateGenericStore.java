@@ -74,6 +74,7 @@ public class HibernateGenericStore<T>
 {
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+    protected static final int OBJECT_FETCH_SIZE = 2000;
 
     protected SessionFactory sessionFactory;
 
@@ -214,7 +215,7 @@ public class HibernateGenericStore<T>
      *
      * @return executable TypedQuery
      */
-    private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
+    private TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return getSession()
             .createQuery( criteriaQuery )
@@ -414,7 +415,10 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        if ( !ObjectDeletionRequestedEvent.shouldSkip( object.getClass() ) )
+        {
+            publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        }
 
         getSession().delete( object );
     }

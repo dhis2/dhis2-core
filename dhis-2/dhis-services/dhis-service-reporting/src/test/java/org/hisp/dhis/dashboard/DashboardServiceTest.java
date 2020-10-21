@@ -40,7 +40,6 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -49,7 +48,6 @@ import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -145,10 +143,6 @@ public class DashboardServiceTest
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
-
-        assertEquals( 1, dashboardService.countVisualizationDashboardItems( vzA ) );
-        assertEquals( 1, dashboardService.countVisualizationDashboardItems( vzB ) );
-        assertEquals( 1, dashboardService.countDocumentDashboardItems( dcA ) );
     }
 
     @Test
@@ -225,32 +219,6 @@ public class DashboardServiceTest
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
-    }
-
-    @Test( expected = DeleteNotAllowedException.class)
-    public void testDeleteWithDashboardItem()
-    {
-        Program prA = createProgram( 'A', null, null );
-        objectManager.save( prA );
-
-        EventChart eventChart = new EventChart( "ecA" );
-        eventChart.setProgram( prA );
-        eventChart.setType( ChartType.COLUMN );
-
-        long idA = eventChartService.saveEventChart( eventChart );
-
-        assertNotNull( eventChartService.getEventChart( idA ) );
-
-        Dashboard dashboard = new Dashboard( "A" );
-        dashboard.setAutoFields();
-
-        dashboardService.saveDashboard( dashboard );
-
-        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART, eventChart.getUid() );
-
-        assertNotNull( itemA );
-
-        eventChartService.deleteEventChart( eventChart );
     }
 
     @Test

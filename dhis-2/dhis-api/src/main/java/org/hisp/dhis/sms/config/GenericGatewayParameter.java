@@ -69,11 +69,6 @@ public class GenericGatewayParameter
 
     public String getValue()
     {
-        return confidential ? "" : value;
-    }
-
-    public String getDisplayValue()
-    {
         return value;
     }
 

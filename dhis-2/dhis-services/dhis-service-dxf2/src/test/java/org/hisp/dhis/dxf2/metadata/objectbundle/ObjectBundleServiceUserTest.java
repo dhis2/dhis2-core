@@ -65,8 +65,8 @@ public class ObjectBundleServiceUserTest
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+        @Autowired
+        private IdentifiableObjectManager manager;
 
     @Autowired
     private RenderService _renderService;

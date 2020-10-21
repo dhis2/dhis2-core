@@ -28,17 +28,20 @@ package org.hisp.dhis.security.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author mortenoh
@@ -59,6 +62,9 @@ public class LoginAction
 
     @Autowired
     private ResourceBundleManager resourceBundleManager;
+
+    @Autowired
+    private DhisConfigurationProvider configurationProvider;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -83,6 +89,13 @@ public class LoginAction
         return availableLocales;
     }
 
+    private final Map<String, Object> oidcConfig = new HashMap<>();
+
+    public Map<String, Object> getOidcConfig()
+    {
+        return oidcConfig;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -91,6 +104,8 @@ public class LoginAction
     public String execute()
         throws Exception
     {
+        setOidcConfig();
+
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
@@ -103,5 +118,15 @@ public class LoginAction
         availableLocales = new ArrayList<>( resourceBundleManager.getAvailableLocales() );
 
         return "standard";
+    }
+
+    private void setOidcConfig()
+    {
+        boolean isEnabled = configurationProvider.
+            getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED ).equalsIgnoreCase( "on" );
+
+        oidcConfig.put( "isGoogleEnabled",
+            isEnabled &&
+                !configurationProvider.getProperty( ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID ).isEmpty() );
     }
 }

@@ -28,6 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -115,6 +121,22 @@ public class UserGroupAccess
         }
 
         return userGroup;
+    }
+
+    /**
+     * Check if the given {@link User} is contained in the {@link UserGroup}.
+     *
+     * @param user a {@link User}.
+     * @return true if the {@link User} is part of this UserGroup members list.
+     */
+    public boolean userGroupContainsUser( User user )
+    {
+        if ( userGroup != null )
+        {
+            return userGroup.getMembers().stream().anyMatch( u -> u.getId() == user.getId() );
+        }
+
+        return false;
     }
 
     @JsonProperty

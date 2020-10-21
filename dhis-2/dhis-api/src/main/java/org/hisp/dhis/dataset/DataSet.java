@@ -193,6 +193,12 @@ public class DataSet
     private int openFuturePeriods;
 
     /**
+     * Number of periods to open for data capture that are after the category
+     * option's end date.
+     */
+    private int openPeriodsAfterCoEndDate;
+
+    /**
      * Property indicating that all fields for a data element must be filled.
      */
     private boolean fieldCombinationRequired;
@@ -805,6 +811,18 @@ public class DataSet
     public void setOpenFuturePeriods( int openFuturePeriods )
     {
         this.openFuturePeriods = openFuturePeriods;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getOpenPeriodsAfterCoEndDate()
+    {
+        return openPeriodsAfterCoEndDate;
+    }
+
+    public void setOpenPeriodsAfterCoEndDate( int openPeriodsAfterCoEndDate )
+    {
+        this.openPeriodsAfterCoEndDate = openPeriodsAfterCoEndDate;
     }
 
     @JsonProperty

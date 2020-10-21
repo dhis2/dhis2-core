@@ -28,14 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -54,10 +47,17 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerEventBundleServiceTest extends IntegrationTestBase
+public class TrackerEventBundleServiceTest extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -81,6 +81,8 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -99,30 +101,23 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
         objectBundleService.commit( bundle );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testCreateSingleEventData()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                TrackerBundleParams.class );
 
-        assertEquals( 8, trackerBundle.getEvents().size() );
+        assertEquals( 8, trackerBundleParams.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() )
-            .trackedEntities( trackerBundle.getTrackedEntities() ).build() );
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .events( trackerBundleParams.getEvents() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -132,24 +127,25 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
     public void testUpdateSingleEventData()
         throws IOException
     {
-        TrackerBundle trackerBundle = renderService
+        TrackerBundleParams trackerBundleParams = renderService
             .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
-                TrackerBundleParams.class )
-            .toTrackerBundle();
+                 TrackerBundleParams.class );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService
+        TrackerBundle trackerBundle = trackerBundleService
             .create( TrackerBundleParams.builder().importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-                .events( trackerBundle.getEvents() ).enrollments( trackerBundle.getEnrollments() )
-                .trackedEntities( trackerBundle.getTrackedEntities() ).build() );
+                .events( trackerBundleParams.getEvents() )
+                .enrollments( trackerBundleParams.getEnrollments() )
+                .trackedEntities( trackerBundleParams.getTrackedEntities() )
+                .build() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
-        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder().events( trackerBundle.getEvents() )
+        trackerBundle = trackerBundleService.create( TrackerBundleParams.builder().events( trackerBundle.getEvents() )
             .enrollments( trackerBundle.getEnrollments() ).trackedEntities( trackerBundle.getTrackedEntities() )
             .build() );
 
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }

@@ -28,12 +28,14 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -45,13 +47,8 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Used for setting up bundle parameters, closely modelled around {@see org.hisp.dhis.tracker.TrackerImportParams}
@@ -83,6 +80,18 @@ public class TrackerBundleParams
     @JsonProperty
     @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
+
+    /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipTextPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -118,13 +127,6 @@ public class TrackerBundleParams
     @JsonProperty
     @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
-
-    /**
-     * Give full report, or only include errors.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Tracked entities to import.
@@ -166,9 +168,10 @@ public class TrackerBundleParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .skipTextPatternValidation( skipTextPatternValidation )
+            .skipSideEffects( skipSideEffects )
             .flushMode( flushMode )
             .validationMode( validationMode )
-            .reportMode( reportMode )
             .trackedEntities( trackedEntities )
             .enrollments( enrollments )
             .events( events )

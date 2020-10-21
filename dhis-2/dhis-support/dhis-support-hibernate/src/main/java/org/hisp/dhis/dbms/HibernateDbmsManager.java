@@ -255,13 +255,13 @@ public class HibernateDbmsManager
 
         emptyRelationships();
 
+        emptyTable( "programnotificationinstance" );
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
         emptyTable( "programstagedataelement" );
-        emptyTable( "programstagesection_dataelements" );
         emptyTable( "programstagesection" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );

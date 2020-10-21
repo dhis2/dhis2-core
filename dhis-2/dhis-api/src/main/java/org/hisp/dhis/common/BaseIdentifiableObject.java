@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -38,12 +39,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
@@ -104,6 +106,9 @@ public class BaseIdentifiableObject
     @AuditAttribute
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
+    /**
+     * Cache of attribute values which allows for lookup by attribute identifier.
+     */
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**
@@ -151,11 +156,6 @@ public class BaseIdentifiableObject
      * Users who have marked this object as a favorite.
      */
     protected Set<String> favorites = new HashSet<>();
-
-    /**
-     * The i18n variant of the name. Not persisted.
-     */
-    protected transient String displayName;
 
     /**
      * Last user updated this object.
@@ -285,14 +285,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayName()
     {
-        displayName = getTranslation( TranslationProperty.NAME, displayName );
-        return displayName != null ? displayName : getName();
-    }
-
-    @JsonIgnore
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
+        return getTranslation( TranslationProperty.NAME, getName() );
     }
 
     @Override
@@ -312,7 +305,9 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( using = UidJsonSerializer.class )
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getLastUpdatedBy()
     {
@@ -395,7 +390,7 @@ public class BaseIdentifiableObject
      */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE, Locale.class );
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 
@@ -439,7 +434,9 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( using = UidJsonSerializer.class )
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {

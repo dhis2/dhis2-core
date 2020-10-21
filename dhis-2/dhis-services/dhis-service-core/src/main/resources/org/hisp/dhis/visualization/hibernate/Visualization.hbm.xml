@@ -215,6 +215,8 @@
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
     <property name="fontStyle" type="jbVisualizationFontStyle"/>
+    
+    <property name="colorSet"/>
 
     <property name="percentStackedValues"/>
 

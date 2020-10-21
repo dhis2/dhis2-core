@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SortProperty;
-import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -430,12 +430,13 @@ public class OrganisationUnit
         {
             return false;
         }
+        Set<String> ancestorsUid = ancestors.stream().map( OrganisationUnit::getUid ).collect( Collectors.toSet() );
 
         OrganisationUnit unit = this;
 
         while ( unit != null )
         {
-            if ( ancestors.contains( unit ) )
+            if ( ancestorsUid.contains( unit.getUid() ) )
             {
                 return true;
             }
@@ -870,7 +871,7 @@ public class OrganisationUnit
     }
 
     @JsonProperty
-    @JsonSerialize( contentUsing = JacksonOrganisationUnitChildrenSerializer.class )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "children", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "child", namespace = DxfNamespaces.DXF_2_0 )
     public Set<OrganisationUnit> getChildren()

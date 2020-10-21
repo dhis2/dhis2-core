@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
@@ -97,8 +97,8 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Captor
     private ArgumentCaptor<String> sql;
 
-    private final String TABLE_NAME = "analytics_event";
-    private final String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
+    private final static String TABLE_NAME = "analytics_event";
+    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
@@ -128,6 +128,27 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         assertThat( sql.getValue(), is(expected) );
     }
+
+    @Test
+    public void verifyGetEventSqlWithOrgUnitTypeDataElement()
+    {
+        mockEmptyRowSet();
+
+        DataElement dataElement = createDataElement('a');
+        QueryItem queryItem = new QueryItem( dataElement, this.programA, null,
+            ValueType.ORGANISATION_UNIT, AggregationType.SUM, null );
+
+        subject.getEvents( createRequestParams( queryItem ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "select psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) " +
+                "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name" + "\"  " +
+                "from " + getTable( programA.getUid() ) + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+
+        assertThat( sql.getValue(), is(expected) );
+    }
+
 
     @Test
     public void verifyGetEventSqlWithProgram()
@@ -388,6 +409,6 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Override
     String getTableName()
     {
-        return this.TABLE_NAME;
+        return TABLE_NAME;
     }
 }

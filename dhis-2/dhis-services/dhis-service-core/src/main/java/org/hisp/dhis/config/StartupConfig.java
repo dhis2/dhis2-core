@@ -28,6 +28,7 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.constant.ConstantService;
@@ -47,6 +48,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.startup.ConfigurationPopulator;
+import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.startup.ExpressionUpgrader;
 import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
@@ -65,11 +67,11 @@ import org.springframework.context.annotation.Configuration;
 public class StartupConfig
 {
     @Bean( "org.hisp.dhis.period.PeriodTypePopulator" )
-    public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore )
+    public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore, SessionFactory sessionFactory )
     {
-        PeriodTypePopulator populator = new PeriodTypePopulator( periodStore );
+        PeriodTypePopulator populator = new PeriodTypePopulator( periodStore, sessionFactory );
         populator.setName( "PeriodTypePopulator" );
-        populator.setRunlevel( 2 );
+        populator.setRunlevel( 3 );
         return populator;
     }
 
@@ -78,7 +80,7 @@ public class StartupConfig
     {
         TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
         populator.setName( "PeriodTypePopulator" );
-        populator.setRunlevel( 2 );
+        populator.setRunlevel( 3 );
         populator.setSkipInTests( true );
         return populator;
     }
@@ -90,7 +92,7 @@ public class StartupConfig
         DataElementDefaultDimensionPopulator populator = new DataElementDefaultDimensionPopulator( dataElementService,
             categoryService );
         populator.setName( "DataElementDefaultDimensionPopulator" );
-        populator.setRunlevel( 3 );
+        populator.setRunlevel( 4 );
         return populator;
     }
 
@@ -145,6 +147,16 @@ public class StartupConfig
         SettingUpgrader upgrader = new SettingUpgrader( systemSettingManager );
         upgrader.setRunlevel( 14 );
         upgrader.setName( "SettingUpgrader" );
+        upgrader.setSkipInTests( true );
+        return upgrader;
+    }
+
+    @Bean( "org.hisp.dhis.startup.DefaultAdminUserPopulator" )
+    public DefaultAdminUserPopulator defaultAdminUserPopulator( UserService userService )
+    {
+        DefaultAdminUserPopulator upgrader = new DefaultAdminUserPopulator( userService );
+        upgrader.setName( "defaultAdminUserPopulator" );
+        upgrader.setRunlevel( 2 );
         upgrader.setSkipInTests( true );
         return upgrader;
     }

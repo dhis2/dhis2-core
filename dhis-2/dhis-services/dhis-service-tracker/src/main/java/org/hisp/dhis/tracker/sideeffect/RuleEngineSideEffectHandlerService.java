@@ -32,6 +32,8 @@ import org.hisp.dhis.tracker.job.TrackerRuleEngineMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author Zubair Asghar
  */
@@ -50,5 +52,11 @@ public class RuleEngineSideEffectHandlerService implements SideEffectHandlerServ
     public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
         ruleEngineMessageManager.addJob( sideEffectDataBundle );
+    }
+
+    @Override
+    public void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles )
+    {
+        sideEffectDataBundles.forEach( this::handleSideEffect );
     }
 }

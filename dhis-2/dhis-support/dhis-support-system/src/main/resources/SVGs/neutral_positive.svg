@@ -1,27 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)" fill="#333">
-  <path id="path1362" d="m24 4c-11.046-3.78e-7 -20 8.9543-20 20-3.29e-7 11.046 8.9543 20 20 20 11.046 3.8e-7 20-8.9543 20-20 3e-7 -11.046-8.9543-20-20-20zm0 0.51758c10.76 0 19.482 8.7224 19.482 19.482s-8.722 19.482-19.482 19.482-19.482-8.722-19.482-19.482c-0.0004-10.76 8.722-19.482 19.482-19.482zm-6.854 9.3654c-1.9522 0.00027622-3.5347 2.097-3.5352 4.6836-0.00040213 2.5874 1.5824 4.6853 3.5352 4.6855 1.9535 0.001153 3.5375-2.0971 3.5371-4.6855-0.00041188-2.5877-1.5842-4.6847-3.5371-4.6836zm12.904 0c-1.9522 0.00027623-3.5347 2.097-3.5352 4.6836-0.00040213 2.5874 1.5824 4.6853 3.5352 4.6855 1.9535 0.001153 3.5375-2.0971 3.5371-4.6855-0.00041188-2.5877-1.5842-4.6847-3.5371-4.6836zm-13.862 18.478v0.514h15.625v-0.51367z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M17 22C18.6569 22 20 20.6569 20 19C20 17.3431 18.6569 16 17 16C15.3431 16 14 17.3431 14 19C14 20.6569 15.3431 22 17 22Z" fill="#333333"/>
+<path d="M34 19C34 20.6569 32.6569 22 31 22C29.3431 22 28 20.6569 28 19C28 17.3431 29.3431 16 31 16C32.6569 16 34 17.3431 34 19Z" fill="#333333"/>
+<path d="M28.5 31C29.3284 31 30 30.3284 30 29.5C30 28.6716 29.3284 28 28.5 28H19.5C18.6716 28 18 28.6716 18 29.5C18 30.3284 18.6716 31 19.5 31H28.5Z" fill="#333333"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4 24C4 12.96 12.94 4 23.98 4C35.04 4 44 12.96 44 24C44 35.04 35.04 44 23.98 44C12.94 44 4 35.04 4 24ZM8 24C8 32.84 15.16 40 24 40C32.84 40 40 32.84 40 24C40 15.16 32.84 8 24 8C15.16 8 8 15.16 8 24Z" fill="#333333"/>
 </svg>

@@ -60,6 +60,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 /**
  * @author Chau Thu Tran
@@ -180,7 +183,40 @@ public class DefaultUserService
     {
         UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUuid( uuid );
 
-        return userCredentials != null ? userCredentials.getUser() : null;
+        return userCredentials != null ? userCredentials.getUserInfo() : null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByUsername( String username )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
+
+        return userCredentials != null ? userCredentials.getUserInfo() : null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByIdentifier( String id )
+    {
+        User user = null;
+
+        if ( isValidUid( id ) && ( user = getUser( id ) ) != null )
+        {
+            return user;
+        }
+
+        if ( uuidIsValid( id ) && ( user = getUserByUuid( UUID.fromString( id ) ) ) != null )
+        {
+            return user;
+        }
+
+        if ( usernameIsValid( id ) && ( user = getUserByUsername( id ) ) != null )
+        {
+            return user;
+        }
+
+        return user;
     }
 
     @Override
@@ -572,7 +608,14 @@ public class DefaultUserService
     @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
-        return userCredentialsStore.getUserCredentialsByOpenId( openId );
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByOpenId( openId );
+
+        if ( userCredentials != null )
+        {
+            userCredentials.getAllAuthorities();
+        }
+
+        return userCredentials;
     }
 
     @Override

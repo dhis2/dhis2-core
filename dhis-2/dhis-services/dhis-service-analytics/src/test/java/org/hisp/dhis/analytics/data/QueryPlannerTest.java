@@ -39,7 +39,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -299,12 +298,12 @@ public class QueryPlannerTest
         return de.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + coc.getUid() + DIMENSION_SEP + ou.getUid() + DIMENSION_SEP
             + period;
     }
-    
+
     @Test
     public void testGetPermutationDimensionalItemValueMapCocEnabled()
     {
         MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = new ArrayListValuedHashMap<>();
-        
+
         aggregatedDataMap.put( makeKey( deA, coc, ouA, "2000Q1" ), new DimensionItemObjectValue( deA, 1d ) );
         aggregatedDataMap.put( makeKey( deA, coc, ouA, "2000Q2" ), new DimensionItemObjectValue( deA, 2d ) );
         aggregatedDataMap.put( makeKey( deA, coc, ouB, "2000Q1" ), new DimensionItemObjectValue( deA, 3d ) );
@@ -902,7 +901,17 @@ public class QueryPlannerTest
     {
         planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST );
     }
-    
+
+    /**
+     * Create 4 queries (one for each period) due to the LAST aggregation type.
+     */
+    @Test
+    public void planQueryForLastInPeriodAggregationType()
+    {
+        planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST_IN_PERIOD );
+    }
+
+
     private void planQueryForFirstOrLastAggregationType(AnalyticsAggregationType analyticsAggregationType)
     {
         DataQueryParams params = DataQueryParams.newBuilder()

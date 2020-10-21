@@ -129,10 +129,10 @@ public class DefaultQueryService
             query.setFirstResult( pagination.getFirstResult() );
             query.setMaxResults( pagination.getSize() );
         }
-        
+
         return query;
     }
-    
+
     @Override
     public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
     {

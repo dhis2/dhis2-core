@@ -43,9 +43,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.*;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -223,7 +221,7 @@ public class DataApprovalServiceTest
         defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
         defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        periodType = PeriodType.getPeriodTypeByName( "Monthly" );
+        periodType = periodService.reloadPeriodType( PeriodType.getPeriodTypeByName( "Monthly" ) );
 
         periodA = createPeriod( "201401" ); // Monthly: Jan
         periodB = createPeriod( "201402" ); // Monthly: Feb

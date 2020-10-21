@@ -63,7 +63,7 @@ public class GenericHttpGatewayConfig
     public Map<String, String> getParametersMap()
     {
         return parameters.stream()
-            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getDisplayValue ) );
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) );
     }
 
     public void setParameters( List<GenericGatewayParameter> parameters )

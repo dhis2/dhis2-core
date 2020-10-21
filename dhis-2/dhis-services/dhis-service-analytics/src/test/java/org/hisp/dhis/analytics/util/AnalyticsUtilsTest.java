@@ -52,6 +52,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -635,6 +636,33 @@ public class AnalyticsUtilsTest
             Lists.newArrayList( pi1, pi2, pi3, pi4 ) );
 
         assertEquals( dimensionalItems.size(), 2);
-        
+    }
+
+    @Test
+    public void testHasPeriod()
+    {
+        List<Object> row = new ArrayList<>();
+
+        row.add( "someUid" );
+        row.add( "202010" );
+        row.add( 100D );
+        // pass - index 1 is a valid iso period
+        assertTrue( AnalyticsUtils.hasPeriod( row, 1 ) );
+        // fail - index 3 is too high
+        assertFalse( AnalyticsUtils.hasPeriod( row, 3 ) );
+        // fail - index 4 is too high
+        assertFalse( AnalyticsUtils.hasPeriod( row, 4 ) );
+        // fail - index 2 is a Double
+        assertFalse( AnalyticsUtils.hasPeriod( row, 2 ) );
+
+        row = new ArrayList<>();
+
+        row.add( "someUid" );
+        row.add( "2020A" );
+        row.add( 100D );
+        // pass - index 1 is not a valid period iso string
+        assertFalse( AnalyticsUtils.hasPeriod( row, 1 ) );
+
+
     }
 }

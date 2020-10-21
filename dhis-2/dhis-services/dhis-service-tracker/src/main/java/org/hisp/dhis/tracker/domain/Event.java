@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vividsolutions.jts.geom.Geometry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +37,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,6 +56,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Event
     extends BaseLinkableObject
+    implements TrackerDto
 {
     private String uid;
 
@@ -82,6 +86,7 @@ public class Event
     private String trackedEntity;
 
     @JsonProperty
+    @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
@@ -106,12 +111,6 @@ public class Event
     private String updatedAt;
 
     @JsonProperty
-    private String clientCreatedAt;
-
-    @JsonProperty
-    private String clientUpdatedAt;
-
-    @JsonProperty
     private String attributeOptionCombo;
 
     @JsonProperty
@@ -125,6 +124,10 @@ public class Event
 
     @JsonProperty
     private Geometry geometry;
+
+    @JsonProperty
+    @JsonSerialize( using = UidJsonSerializer.class )
+    private User assignedUser;
 
     @JsonProperty
     @Builder.Default

@@ -29,6 +29,8 @@
 package org.hisp.dhis.program.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -41,6 +43,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -65,5 +69,19 @@ public class HibernateProgramTrackedEntityAttributeStore
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> builder.equal( root.get( "attribute" ), attribute ) ) );
+    }
+
+    @Override
+    public List<TrackedEntityAttribute> getAttributes( List<Program> programs )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<TrackedEntityAttribute> query = builder.createQuery( TrackedEntityAttribute.class );
+        Root<ProgramTrackedEntityAttribute> root = query.from( ProgramTrackedEntityAttribute.class );
+        query.select( root.get( "attribute" ) );
+        query.where( root.get( "program" ).in( programs ) );
+        query.distinct( true );
+
+        return getSession().createQuery( query ).getResultList();
     }
 }

@@ -349,12 +349,12 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, dxObject.getDimension() );
         assertEquals( DimensionType.DATA_X, dxObject.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDimensionDisplayName() );
         assertEquals( dxItems, dxObject.getItems() );
 
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, ouObject.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, ouObject.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDimensionDisplayName() );
         assertEquals( ouItems, ouObject.getItems() );
     }
 
@@ -376,12 +376,12 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, dxObject.getDimension() );
         assertEquals( DimensionType.DATA_X, dxObject.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDimensionDisplayName() );
         assertEquals( dxItems, dxObject.getItems() );
 
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, ouObject.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, ouObject.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDimensionDisplayName() );
         assertEquals( ouItems, ouObject.getItems() );
     }
 
@@ -396,7 +396,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
         assertEquals( items, actual.getItems() );
     }
 
@@ -411,7 +411,21 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
+        assertEquals( items, actual.getItems() );
+    }
+
+    @Test
+    public void testGetOrgUnitGroupSetDimensionByCode()
+    {
+        List<DimensionalItemObject> items = Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC );
+
+        List<String> itemCodes = Lists.newArrayList( ouGroupA.getCode(), ouGroupB.getCode(), ouGroupC.getCode() );
+
+        DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getCode(), itemCodes, null, null, null, false, false, IdScheme.CODE );
+
+        assertEquals( ouGroupSetA.getDimension(), actual.getDimension() );
+        assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
         assertEquals( items, actual.getItems() );
     }
 
@@ -430,7 +444,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
         assertEquals( items, actual.getItems() );
     }
 
@@ -445,7 +459,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName() );
         assertEquals( items, actual.getItems() );
     }
 
@@ -460,7 +474,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName() );
         assertEquals( ouGroupA.getMembers(), Sets.newHashSet( actual.getItems() ) );
     }
 
@@ -475,7 +489,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
         assertEquals( deGroupA.getMembers(), Sets.newHashSet( actual.getItems() ) );
     }
 
@@ -490,7 +504,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
         assertEquals( inGroupA.getMembers(), Sets.newHashSet( actual.getItems() ) );
     }
 
@@ -504,7 +518,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.PERIOD_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.PERIOD, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName() );
         assertEquals( 7, actual.getItems().size() );
     }
 
@@ -515,7 +529,7 @@ public class DataQueryServiceTest
 
         assertEquals( DimensionalObject.PERIOD_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.PERIOD, actual.getDimensionType() );
-        assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDisplayName() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName() );
         assertEquals( 0, actual.getItems().size() );
     }
 
@@ -530,7 +544,7 @@ public class DataQueryServiceTest
 
         assertEquals( ouGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
-        assertEquals( ouGroupSetA.getName(), actual.getDisplayName() );
+        assertEquals( ouGroupSetA.getName(), actual.getDimensionDisplayName() );
         assertEquals( items, actual.getItems() );
     }
 
@@ -545,7 +559,7 @@ public class DataQueryServiceTest
 
         assertEquals( deGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.DATA_ELEMENT_GROUP_SET, actual.getDimensionType() );
-        assertEquals( deGroupSetA.getName(), actual.getDisplayName() );
+        assertEquals( deGroupSetA.getName(), actual.getDimensionDisplayName() );
         assertEquals( items, actual.getItems() );
     }
 

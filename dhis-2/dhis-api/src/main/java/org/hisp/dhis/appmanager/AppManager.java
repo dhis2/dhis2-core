@@ -28,13 +28,15 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-import org.springframework.core.io.Resource;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
+import org.hisp.dhis.user.User;
+import org.springframework.core.io.Resource;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Saptarshi Purkayastha
@@ -42,6 +44,41 @@ import java.util.List;
 public interface AppManager
 {
     String ID = AppManager.class.getName();
+
+    String BUNDLED_APP_PREFIX = "dhis-web-";
+
+    ImmutableSet<String> BUNDLED_APPS = ImmutableSet.of(
+        // Javascript apps
+        "app-management",
+        "cache-cleaner",
+        "capture",
+        "dashboard",
+        "data-administration",
+        "data-visualizer",
+        "data-quality",
+        "datastore",
+        "event-reports",
+        "event-visualizer",
+        "import-export",
+        "interpretation",
+        "maintenance",
+        "maps",
+        "menu-management",
+        "messaging",
+        "pivot",
+        "reports",
+        "scheduler",
+        "settings",
+        "tracker-capture",
+        "translations",
+        "usage-analytics",
+        "user",
+        "user-profile",
+
+        // Struts apps
+        "approval",
+        "dataentry",
+        "maintenance-mobile" );
 
     /**
      * Returns a list of all installed apps.
@@ -70,16 +107,32 @@ public interface AppManager
     List<App> getAppsByType( AppType appType, Collection<App> apps );
 
     /**
-     * Returns a list of all installed apps with name equal the given name
-     * and operator. Currently supports eq and ilike.
+     * Returns a list of all installed apps with name equal the given name and
+     * operator. Currently supports eq and ilike.
      *
      * @return list of installed apps with given name
      */
     List<App> getAppsByName( String name, Collection<App> apps, String operator );
 
     /**
-     * Return a list of all installed apps with given filter list
-     * Currently support filtering by AppType and name
+     * Returns a list of all installed apps with shortName equal the given name and
+     * operator. Currently supports eq and ilike.
+     *
+     * @return list of installed apps with given name
+     */
+    List<App> getAppsByShortName( String shortName, Collection<App> apps, String operator );
+
+    /**
+     * Returns a list of all installed apps which are either bundled or not bundled
+     * operator. Currently supports eq.
+     *
+     * @return list of installed apps with given isBundled property
+     */
+    List<App> getAppsByIsBundled( boolean isBundled, Collection<App> apps );
+
+    /**
+     * Return a list of all installed apps with given filter list Currently support
+     * filtering by AppType and name
      *
      * @param filter
      * @return Return a list of all installed apps with given filter list
@@ -89,7 +142,7 @@ public interface AppManager
     /**
      * Returns the app with the given key (folder name).
      *
-     * @param key         the app key.
+     * @param key the app key.
      * @param contextPath the context path of this instance.
      * @return the app with the given key.
      */
@@ -106,7 +159,7 @@ public interface AppManager
     /**
      * Installs the app.
      *
-     * @param file     the app file.
+     * @param file the app file.
      * @param fileName the name of the app file.
      * @throws IOException if the app manifest file could not be read.
      */
@@ -123,8 +176,9 @@ public interface AppManager
     /**
      * Deletes the given app.
      *
-     * @param app           the app to delete.
-     * @param deleteAppData decide if associated data in dataStore should be deleted or not.
+     * @param app the app to delete.
+     * @param deleteAppData decide if associated data in dataStore should be deleted
+     *        or not.
      */
     void deleteApp( App app, boolean deleteAppData );
 
@@ -158,7 +212,8 @@ public interface AppManager
     boolean isAccessible( App app, User user );
 
     /**
-     * Returns the app associated with the namespace, or null if no app is associated.
+     * Returns the app associated with the namespace, or null if no app is
+     * associated.
      *
      * @param namespace the namespace to check
      * @return App or null
@@ -166,7 +221,9 @@ public interface AppManager
     App getAppByNamespace( String namespace );
 
     /**
-     * Looks up and returns the file associated with the app and pageName, if it exists
+     * Looks up and returns the file associated with the app and pageName, if it
+     * exists
+     *
      * @param app the app to look up files for
      * @param pageName the page requested
      * @return the Resource representing the file, or null if no file was found
@@ -176,6 +233,7 @@ public interface AppManager
 
     /**
      * Sets the app status to DELETION_IN_PROGRESS.
+     *
      * @param app The app that has to be marked as deleted.
      * @return true if the status was changed in this method.
      */

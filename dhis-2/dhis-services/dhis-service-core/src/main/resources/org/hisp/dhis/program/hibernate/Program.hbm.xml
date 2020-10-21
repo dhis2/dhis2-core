@@ -113,7 +113,7 @@
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
     </set>
 
-    <set name="notificationTemplates">
+    <set name="notificationTemplates" cascade="all-delete-orphan">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>

@@ -256,9 +256,8 @@ public class HibernateDataApprovalStore
     @Override
     public List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
-        CategoryCombo attributeCombo,
-        Set<CategoryOptionCombo> attributeOptionCombos, List<DataApprovalLevel> userApprovalLevels,
-                                                             Map<Integer, DataApprovalLevel> levelMap )
+        CategoryCombo attributeCombo, Set<CategoryOptionCombo> attributeOptionCombos,
+        List<DataApprovalLevel> userApprovalLevels, Map<Integer, DataApprovalLevel> levelMap )
     {
         // ---------------------------------------------------------------------
         // Get validation criteria
@@ -411,7 +410,7 @@ public class HibernateDataApprovalStore
         {
             highestApprovedOrgUnitJoin = "join organisationunit dao on dao.organisationunitid = da.organisationunitid ";
 
-            highestApprovedOrgUnitCompare = statementBuilder.position( "dao.uid", "o.path" ) + " <> 0";
+            highestApprovedOrgUnitCompare = statementBuilder.position( "dao.uid", "o.path" ) + " <> 0 ";
         }
 
         String userApprovalLevelRestrictions = "";
@@ -421,22 +420,29 @@ public class HibernateDataApprovalStore
             for ( DataApprovalLevel dal : userApprovalLevels )
             {
                 userApprovalLevelRestrictions += ( userApprovalLevelRestrictions.length() == 0 ?
-                    " and dal.dataapprovallevelid in ( " : ", " ) + dal.getId();
+                    "and dal.dataapprovallevelid in ( " : ", " ) + dal.getId() + " ";
             }
-            userApprovalLevelRestrictions += " ) ";
+            userApprovalLevelRestrictions += ") ";
         }
+
+        String coEndDateExtension = workflow.getSqlCoEndDateExtension();
 
         String approvedAboveSubquery = "false"; // Not approved above if this is the highest (lowest number) approval orgUnit level.
 
         if ( approvedAboveLevel != null )
         {
-            approvedAboveSubquery = "exists(select 1 from dataapproval da " +
-                "join period p on p.periodid = da.periodid " +
-                "join organisationunit dao on dao.organisationunitid = da.organisationunitid " +
-                "where " + statementBuilder.position( "dao.uid", "o.path" ) +" = " + pathPositionAtLevel( approvedAboveLevel ) + " " +
-                "and '" + endDate + "' >= p.startdate and '" + endDate + "' <= p.enddate " +
-                "and da.dataapprovallevelid = " + approvedAboveLevel.getId() + " " +
-                "and da.workflowid = " + workflow.getId() + " and da.attributeoptioncomboid = cocco.categoryoptioncomboid)";
+            approvedAboveSubquery =
+                "exists ( " +
+                    "select 1 " +
+                    "from dataapproval da " +
+                    "join period p on p.periodid = da.periodid " +
+                    "join organisationunit dao on dao.organisationunitid = da.organisationunitid " +
+                    "where " + statementBuilder.position( "dao.uid", "o.path" ) +" = " + pathPositionAtLevel( approvedAboveLevel ) + " " +
+                    "and '" + endDate + "' >= p.startdate and '" + endDate + "' <= p.enddate " +
+                    "and da.dataapprovallevelid = " + approvedAboveLevel.getId() + " " +
+                    "and da.workflowid = " + workflow.getId() + " " +
+                    "and da.attributeoptioncomboid = coc.categoryoptioncomboid " +
+                ")";
         }
 
         String readyBelowSubquery = "true"; // Ready below if this is the lowest (highest number) approval orgUnit level.
@@ -445,28 +451,54 @@ public class HibernateDataApprovalStore
         {
             boolean acceptanceRequiredForApproval = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
-            readyBelowSubquery = "not exists (select 1 from organisationunit dao " +
-                "where exists (select 1 from organisationunit child " +
-                    "where " + statementBuilder.position( "dao.uid", "child.path" ) + " <> 0 " +
-                    "and child.organisationunitid in (select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + ")) " +
-                "and not exists (select 1 from dataapproval da " +
-                    "join period p on p.periodid = da.periodid " +
-                    "where da.organisationunitid = dao.organisationunitid " +
-                    "and da.dataapprovallevelid = " + approvalLevelBelowOrgUnit.getId() + " " +
-                    "and '" + endDate + "' >= p.startdate and '" + endDate + "' <= p.enddate " +
-                    "and da.workflowid = " + workflow.getId() + " " +
-                    "and da.attributeoptioncomboid = cocco.categoryoptioncomboid " +
-                    ( acceptanceRequiredForApproval ? "and da.accepted " : "" ) +
-                ") " +
-                "and " + statementBuilder.position( "o.uid", "dao.path" ) + " = " + pathPositionAtLevel( orgUnitLevel ) + " " +
-                "and dao.hierarchylevel = " + approvalLevelBelowOrgUnit.getOrgUnitLevel() + " " +
-                ( isDefaultCombo ? "" :
-                    "and ( not exists ( select 1 from categoryoption_organisationunits c_o where c_o.categoryoptionid = cocco.categoryoptionid ) " +
-                        "or exists ( select 1 from categoryoption_organisationunits c_o " +
-                        "join organisationunit o2 on o2.organisationunitid = c_o.organisationunitid " +
-                        "where c_o.categoryoptionid = cocco.categoryoptionid and " + statementBuilder.position( "o2.uid", "dao.path" ) +
-                        " between 2 and " + pathPositionAtLevel( approvalLevelBelowOrgUnit ) + ") ) " ) +
-                ")";
+            readyBelowSubquery =
+                "not exists ( " + // Ready if nothing expected below is unapproved(/unaccepted)
+                    "select 1 " +
+                    "from organisationunit dao " + // Lower-level Data Approval OrgUnit (DAO) where approval is needed to be ready.
+                    "where " + statementBuilder.position( "o.uid", "dao.path" ) + " = " + pathPositionAtLevel( orgUnitLevel ) + " " +
+                    "and dao.hierarchylevel = " + approvalLevelBelowOrgUnit.getOrgUnitLevel() + " " +
+                    "and exists ( " + // Data for this workflow is collected somewhere at or below DAO
+                        "select 1 from organisationunit child " +
+                        "where " + statementBuilder.position( "dao.uid", "child.path" ) + " <> 0 " +
+                        "and child.organisationunitid in ( " +
+                            "select distinct sourceid " +
+                            "from datasetsource dss " +
+                            "join dataset ds on ds.datasetid = dss.datasetid " +
+                            "where ds.workflowid = " + workflow.getId() +
+                        ") " +
+                    ") " +
+                    ( isDefaultCombo ? "" : // Default combo options never have an organisation unit mapping.
+                        "and not exists (" + // No AOCs without all attribute options valid for org unit.
+                            "select 1 " +
+                            "from categoryoptioncombos_categoryoptions cc1 " +
+                            "where cc1.categoryoptioncomboid = coc.categoryoptioncomboid " +
+                            "and ( " +
+                                "exists ( " + // If there are orgUnit mappings...
+                                    "select 1 " +
+                                    "from categoryoption_organisationunits co1 " +
+                                    "where co1.categoryoptionid = cc1.categoryoptionid ) " +
+                                "and not exists (" + // then one of them should map to this orgUnit.
+                                    "select 1 " +
+                                    "from categoryoption_organisationunits co1 " +
+                                    "join organisationunit o1 on o1.organisationunitid = co1.organisationunitid " +
+                                    "where co1.categoryoptionid = cc1.categoryoptionid " +
+                                    "and " + statementBuilder.position( "o1.uid", "dao.path" ) +
+                                        " between 2 and " + pathPositionAtLevel( approvalLevelBelowOrgUnit ) + " " +
+                                ") " +
+                            ") " +
+                        ") "
+                    ) +
+                    "and not exists (" + // Data not approved(/accepted) below where it needs to be if ready.
+                        "select 1 from dataapproval da " +
+                        "join period p on p.periodid = da.periodid " +
+                        "where da.organisationunitid = dao.organisationunitid " +
+                        "and da.dataapprovallevelid = " + approvalLevelBelowOrgUnit.getId() + " " +
+                        "and '" + endDate + "' >= p.startdate and '" + endDate + "' <= p.enddate " +
+                        "and da.workflowid = " + workflow.getId() + " " +
+                        "and da.attributeoptioncomboid = coc.categoryoptioncomboid " +
+                        ( acceptanceRequiredForApproval ? "and da.accepted " : "" ) +
+                    ") " +
+                ") ";
         }
 
         final String sql =
@@ -477,33 +509,56 @@ public class HibernateDataApprovalStore
                 highestApprovedOrgUnitJoin +
                 "where da.workflowid = " + workflow.getId() + " " +
                 "and da.periodid = " + getWorkflowPeriodId( workflow, endDate ) + " " +
-                "and da.attributeoptioncomboid = cocco.categoryoptioncomboid " +
+                "and da.attributeoptioncomboid = coc.categoryoptioncomboid " +
                 "and " + highestApprovedOrgUnitCompare + userApprovalLevelRestrictions +
             ") as highest_approved, " +
             readyBelowSubquery + " as ready_below, " +
             approvedAboveSubquery + " as approved_above " +
             "from categoryoptioncombo coc " +
-            "join categoryoptioncombos_categoryoptions cocco on cocco.categoryoptioncomboid = coc.categoryoptioncomboid " +
-            ( attributeCombo == null ? "" : "join categorycombos_optioncombos ccoc on ccoc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
-                "and ccoc.categorycomboid = " + attributeCombo.getId() + " " ) +
-            "join dataelementcategoryoption co on co.categoryoptionid = cocco.categoryoptionid " +
-                "and (co.startdate is null or co.startdate <= '" + endDate + "') and (co.enddate is null or co.enddate >= '" + startDate + "') " +
-            "join organisationunit o on " + (orgUnits != null ? "o.organisationunitid in (" + orgUnitIds + ")" : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions ) + " " +
-            "left join categoryoption_organisationunits coo on coo.categoryoptionid = co.categoryoptionid " +
-            "left join organisationunit oc on oc.organisationunitid = coo.organisationunitid " +
-            "where ( coo.categoryoptionid is null or " +
-                statementBuilder.position( "o.uid", "oc.path" ) + " <> 0  or " +
-                statementBuilder.position( "oc.uid", "o.path" ) + " <> 0 )" +
-            ( attributeOptionCombos == null || attributeOptionCombos.isEmpty() ? "" : " and cocco.categoryoptioncomboid in (" +
-                StringUtils.join( IdentifiableObjectUtils.getIdentifiers( attributeOptionCombos ), "," ) + ") " ) +
-            ( isSuperUser ? "" :
-                " and ( co.publicaccess is null or left(co.publicaccess, 1) = 'r' or co.userid is null or co.userid = " + user.getId() + " or exists ( " +
-                "select 1 from dataelementcategoryoptionusergroupaccesses couga " +
-                "left join usergroupaccess uga on uga.usergroupaccessid = couga.usergroupaccessid " +
-                "left join usergroupmembers ugm on ugm.usergroupid = uga.usergroupid " +
-                    "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") ) " ) +
-                " and exists (select 1 from organisationunit od where od.path like o.path || '%' and od.organisationunitid in " +
-                "(select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + "))";
+            "join organisationunit o on " + ( orgUnits != null ? "o.organisationunitid in (" + orgUnitIds + ") " : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions + " " ) +
+            "where not exists ( " + // Exclude any attribute option combo (COC) that is linked linked (1 to many) to an unwanted attribute option (CO):
+                "select 1 " +
+                "from categoryoptioncombos_categoryoptions cocco " +
+                "join dataelementcategoryoption co on co.categoryoptionid = cocco.categoryoptionid " +
+                "where cocco.categoryoptioncomboid = coc.categoryoptioncomboid " +
+                "and ( " +
+                    "(co.startdate is not null and co.startdate > '" + endDate + "') " + // CO start date too late.
+                    "or (co.enddate is not null and co.enddate" + coEndDateExtension + " < '" + startDate + "') " + // CO end date too early
+                    "or ( " +
+                        "exists ( " + // This CO has orgunit mapping
+                            "select 1 " +
+                            "from categoryoption_organisationunits coo " +
+                            "where coo.categoryoptionid = co.categoryoptionid " +
+                        ") and not exists (" + // and not mapped to an orgunit we are looking for
+                            "select 1 " +
+                            "from categoryoption_organisationunits coo " +
+                            "join organisationunit o2 on o2.organisationunitid = coo.organisationunitid " +
+                            "where coo.categoryoptionid = co.categoryoptionid " +
+                            "and ( " +
+                                statementBuilder.position( "o.uid", "o2.path" ) + " <> 0  or " +
+                                statementBuilder.position( "o2.uid", "o.path" ) + " <> 0 " +
+                            ") " +
+                        ") " +
+                    ") " +
+                    ( isSuperUser ? "" : // Filter out COs the user doesn't have permission to see.
+                    "or ( co.publicaccess is not null and left(co.publicaccess, 1) != 'r' and co.userid is not null and co.userid != " + user.getId() + " and not exists ( " +
+                        "select 1 from dataelementcategoryoptionusergroupaccesses couga " +
+                        "left join usergroupaccess uga on uga.usergroupaccessid = couga.usergroupaccessid " +
+                        "left join usergroupmembers ugm on ugm.usergroupid = uga.usergroupid " +
+                        "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") ) " ) +
+                ") " +
+            ") " +
+            ( attributeCombo == null ? "" : "and coc.categoryoptioncomboid in (select c9.categoryoptioncomboid from categorycombos_optioncombos c9 where c9.categorycomboid = " + attributeCombo.getId() + " ) " ) +
+            ( attributeOptionCombos == null || attributeOptionCombos.isEmpty() ? "" : "and coc.categoryoptioncomboid in (" +
+                StringUtils.join( IdentifiableObjectUtils.getIdentifiers( attributeOptionCombos ), "," ) + ") " ) + // Filter AOCs if specified.
+            "and exists ( " + // Include orgUnits, and their ancestors, that are mapped to a dataset of the workflow.
+                "select 1 from organisationunit o3 " +
+                "where o3.path like o.path || '%' and o3.organisationunitid in ( " +
+                    "select distinct sourceid " +
+                    "from datasetsource dss " +
+                    "join dataset ds on ds.datasetid = dss.datasetid " +
+                    "where ds.workflowid = " + workflow.getId() + ") " +
+            ")";
 
         log.debug( "User " + user.getUsername() + " superuser " + isSuperUser
             + " workflow " + workflow.getName() + " period " + period.getIsoDate()

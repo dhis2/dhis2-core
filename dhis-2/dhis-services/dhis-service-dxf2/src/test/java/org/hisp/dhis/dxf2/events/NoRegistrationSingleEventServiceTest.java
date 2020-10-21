@@ -48,7 +48,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -82,8 +81,11 @@ public class NoRegistrationSingleEventServiceTest
     private UserService _userService;
 
     private OrganisationUnit organisationUnitA;
+
     private DataElement dataElementA;
+
     private Program programA;
+
     private ProgramStage programStageA;
 
     @Override
@@ -127,19 +129,21 @@ public class NoRegistrationSingleEventServiceTest
         identifiableObjectManager.update( programA );
 
         createUserAndInjectSecurityContext( true );
+
+        identifiableObjectManager.flush();
     }
 
     @Test
-    @Ignore
     public void testGetPersonsByProgramStageInstance()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
 
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( importSummary.getReference() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( importSummary.getReference() );
 
         assertNotNull( programStageInstance );
         assertNotNull( eventService.getEvent( programStageInstance ) );
@@ -148,7 +152,7 @@ public class NoRegistrationSingleEventServiceTest
     @Test
     public void testGetEventByUid()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
 
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -158,45 +162,24 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
-    @Ignore
     public void testSaveEvent()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 0, importSummary.getConflicts().size() );
         assertNotNull( importSummary.getReference() );
 
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        event = eventService
+            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertNotNull( event );
         assertEquals( 1, event.getDataValues().size() );
     }
 
     @Test
-    @Ignore
-    public void testUpdateEvent()
-    {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        assertEquals( "10", event.getDataValues().iterator().next().getValue() );
-
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        event.getDataValues().iterator().next().setValue( "254" );
-        eventService.updateEvent( event, false, false );
-
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        assertEquals( "254", event.getDataValues().iterator().next().getValue() );
-    }
-
-    @Test
-    @Ignore
     public void testDeleteEvent()
     {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
 
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -207,10 +190,11 @@ public class NoRegistrationSingleEventServiceTest
         assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
     }
 
-    private Event createEvent( String program, String orgUnit )
+    private Event createEvent( String program, String programStage, String orgUnit )
     {
         Event event = new Event();
         event.setProgram( program );
+        event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
         event.setEventDate( "2013-01-01" );
 

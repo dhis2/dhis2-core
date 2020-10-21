@@ -141,7 +141,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String,Long> paginationCountCache = new Cache2kBuilder<String, Long>() {}
+    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>() {}
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -238,7 +238,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
-        
+
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
         Pager pager = metadata.getPager();
@@ -253,9 +253,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             }
             else
             {
-                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( metadata, options, filters, orders ) );
+                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( options, filters, orders ) );
             }
-            
+
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
@@ -1094,7 +1094,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
     }
-    
+
     /**
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
@@ -1192,10 +1192,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private long count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" )  );
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
         return queryService.count( query );
     }
 

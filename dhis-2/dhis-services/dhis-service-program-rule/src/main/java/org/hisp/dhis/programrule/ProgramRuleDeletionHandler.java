@@ -28,9 +28,16 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,7 +46,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Component( "org.hisp.dhis.programrule.ProgramRuleDeletionHandler" )
 public class ProgramRuleDeletionHandler
-    extends DeletionHandler 
+    extends DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -57,13 +64,13 @@ public class ProgramRuleDeletionHandler
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
-    
+
     @Override
     protected String getClassName()
     {
         return ProgramRule.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteProgram( Program program )
     {
@@ -71,5 +78,48 @@ public class ProgramRuleDeletionHandler
         {
             programRuleService.deleteProgramRule( programRule );
         }
+    }
+
+    @Override
+    public String allowDeleteProgramStageSection( ProgramStageSection programStageSection )
+    {
+        String programRules = programRuleService
+            .getProgramRule( programStageSection.getProgramStage().getProgram() )
+            .stream()
+            .filter( pr -> isLinkedToProgramStageSection( programStageSection, pr ) )
+            .map( BaseIdentifiableObject::getName )
+            .collect( Collectors.joining( ", " ) );
+
+        return StringUtils.isBlank( programRules ) ? null : programRules;
+    }
+
+    @Override
+    public String allowDeleteProgramStage( ProgramStage programStage )
+    {
+        String programRules = programRuleService
+            .getProgramRule( programStage.getProgram() )
+            .stream()
+            .filter( pr -> isLinkedToProgramStage( programStage, pr ) )
+            .map( BaseIdentifiableObject::getName )
+            .collect( Collectors.joining( ", " ) );
+
+        return StringUtils.isBlank( programRules ) ? null : programRules;
+    }
+
+    private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )
+    {
+        return Objects.equals( programRule.getProgramStage(), programStage )
+            || programRule.getProgramRuleActions()
+                .stream()
+                .anyMatch( pra -> Objects.equals( pra.getProgramStage(), programStage ) )
+            || programStage.getProgramStageSections().stream()
+                .anyMatch( s -> isLinkedToProgramStageSection( s, programRule ) );
+    }
+
+    private boolean isLinkedToProgramStageSection( ProgramStageSection programStageSection, ProgramRule programRule )
+    {
+        return programRule.getProgramRuleActions()
+            .stream()
+            .anyMatch( pra -> Objects.equals( pra.getProgramStageSection(), programStageSection ) );
     }
 }

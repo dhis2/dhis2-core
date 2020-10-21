@@ -108,17 +108,22 @@ public class TrackerImportParams
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
      * Name of file that was used for import (if available).
      */
     @JsonProperty
     private String filename;
-
-    /**
-     * Give full report, or only include errors.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Job id to use for threaded imports.
@@ -182,11 +187,12 @@ public class TrackerImportParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .skipTextPatternValidation( skipPatternValidation )
+            .skipSideEffects( skipSideEffects )
             .identifiers( identifiers )
             .atomicMode( atomicMode )
             .flushMode( flushMode )
             .validationMode( validationMode )
-            .reportMode( reportMode )
             .trackedEntities( trackedEntities )
             .enrollments( enrollments )
             .events( events )

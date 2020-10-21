@@ -28,7 +28,6 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Hashtable;
@@ -83,7 +82,7 @@ public class DefaultTranslateSystemSettingManager
     {
         String settingValue = EMPTY;
 
-        settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ), defaultValue );
+        settingValue = systemSettingManager.getSystemSettingTranslation( keyName, localeStr ).orElse( defaultValue );
 
         return settingValue;
     }

@@ -729,7 +729,7 @@ public class DefaultAclService implements AclService
         return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
     }
 
-    private boolean readWriteCommonCheck(User user, IdentifiableObject object )
+    private boolean readWriteCommonCheck( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
         {

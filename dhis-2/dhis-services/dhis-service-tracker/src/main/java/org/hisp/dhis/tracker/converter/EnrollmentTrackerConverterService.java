@@ -28,6 +28,15 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -37,16 +46,9 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,11 +57,14 @@ import java.util.List;
 public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
 
-    public EnrollmentTrackerConverterService( TrackerPreheatService trackerPreheatService )
+    private final NotesConverterService notesConverterService;
+
+    public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )
     {
-        this.trackerPreheatService = trackerPreheatService;
+        checkNotNull( notesConverterService );
+
+        this.notesConverterService = notesConverterService;
     }
 
     @Override
@@ -76,73 +81,63 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Enrollment> to( List<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
         programInstances.forEach( tei -> {
-
+            // TODO: Add implementation
         } );
 
         return enrollments;
     }
 
     @Override
-    public ProgramInstance from( Enrollment enrollment )
-    {
-        List<ProgramInstance> programInstances = from( Collections.singletonList( enrollment ) );
-
-        if ( programInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programInstances.get( 0 );
-    }
-
-    @Override
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
-        List<ProgramInstance> programInstances = from( preheat, Collections.singletonList( enrollment ) );
-
-        if ( programInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programInstances.get( 0 );
+        ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+        return from( preheat, enrollment, programInstance );
     }
 
     @Override
-    public List<ProgramInstance> from( List<Enrollment> enrollments )
-    {
-        return from( preheat( enrollments ), enrollments );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
-        List<ProgramInstance> programInstances = new ArrayList<>();
+        return enrollments
+            .stream()
+            .map( enrollment -> from( preheat, enrollment ) )
+            .collect( Collectors.toList() );
+    }
 
-        enrollments.forEach( enrollment -> {
-            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
-            Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+    @Override
+    public ProgramInstance fromForRuleEngine( TrackerPreheat preheat, Enrollment enrollment )
+    {
+        return from( preheat, enrollment, null );
+    }
 
-            if ( programInstance == null )
-            {
-                Date now = new Date();
+    private ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment, ProgramInstance programInstance )
+    {
+        OrganisationUnit organisationUnit = preheat
+            .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
 
-                programInstance = new ProgramInstance();
-                programInstance.setUid( enrollment.getEnrollment() );
-                programInstance.setCreated( now );
-                programInstance.setCreatedAtClient( now );
-                programInstance.setLastUpdated( now );
-                programInstance.setLastUpdatedAtClient( now );
-            }
+        checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
+
+        Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+
+        TrackedEntityInstance trackedEntityInstance = preheat
+            .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+
+        if ( programInstance == null )
+        {
+            Date now = new Date();
+
+            programInstance = new ProgramInstance();
+            programInstance.setUid( enrollment.getEnrollment() );
+            programInstance.setCreated( now );
+            programInstance.setCreatedAtClient( now );
+            programInstance.setLastUpdated( now );
+            programInstance.setLastUpdatedAtClient( now );
 
             if ( !CodeGenerator.isValidUid( programInstance.getUid() ) )
             {
@@ -164,19 +159,12 @@ public class EnrollmentTrackerConverterService
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
 
-
-            programInstances.add( programInstance );
-        } );
-
-        return programInstances;
-    }
-
-    private TrackerPreheat preheat( List<Enrollment> enrollments )
-    {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .enrollments( enrollments )
-            .build();
-
-        return trackerPreheatService.preheat( params );
+            if ( isNotEmpty( enrollment.getNotes() ) )
+            {
+                programInstance.getComments()
+                    .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
+            }
+        }
+        return programInstance;
     }
 }
