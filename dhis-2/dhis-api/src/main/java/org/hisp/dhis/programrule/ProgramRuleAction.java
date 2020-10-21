@@ -44,6 +44,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.Set;
 
@@ -397,6 +398,13 @@ public class ProgramRuleAction
     public String getContent()
     {
         return content;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayContent()
+    {
+        return getTranslation( TranslationProperty.CONTENT, getContent() );
     }
 
     public void setContent( String content )

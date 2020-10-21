@@ -41,7 +41,8 @@ public enum TranslationProperty
     DENOMINATOR_DESCRIPTION( "denominatorDescription" ),
     RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
     RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
-    INSTRUCTION( "instruction" );
+    INSTRUCTION( "instruction" ),
+    CONTENT( "content" );
 
     private String name;
 
