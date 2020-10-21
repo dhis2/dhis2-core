@@ -84,12 +84,12 @@ public class EventAnalyticsController
     {
         EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        configResponseForJson( response );
+        
         return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
     }
-
+    
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.xml" )
     public void getAggregateXml(
         @PathVariable String program,
@@ -167,8 +167,7 @@ public class EventAnalyticsController
     {
         EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        configResponseForJson( response );
 
         return analyticsService.getRectangle( params );
     }
@@ -195,8 +194,7 @@ public class EventAnalyticsController
             .withIncludeClusterPoints( includeClusterPoints )
             .build();
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        configResponseForJson( response );
 
         return analyticsService.getEventClusters( params );
     }
@@ -214,8 +212,8 @@ public class EventAnalyticsController
     {
         EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        configResponseForJson( response );
+
         return analyticsService.getEvents( params );
     }
 
@@ -311,5 +309,10 @@ public class EventAnalyticsController
     {
         return EventDataQueryRequest.newBuilder().program( program ).fromCriteria( criteria )
             .apiVersion( apiVersion ).build();
+    }
+
+    private void configResponseForJson( HttpServletResponse response )
+    {
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
     }
 }
