@@ -218,6 +218,7 @@ public class TrackedEntityAttributeValue
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Date getCreated()
@@ -231,6 +232,7 @@ public class TrackedEntityAttributeValue
         return this;
     }
 
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Date getLastUpdated()
@@ -298,6 +300,7 @@ public class TrackedEntityAttributeValue
      *
      * @return String with value, either plain-text or decrypted.
      */
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getValue()

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import javassist.util.proxy.ProxyFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -141,6 +142,13 @@ public class TrackerPreheat
      * events.
      */
     private Map<String, User> users = new HashMap<>();
+
+    /**
+     * A list of all unique attribute values that are both present in the payload
+     * and in the database. This is going to be used to validate the uniqueness of
+     * attribute values in the Validation phase.
+     */
+    private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
 
     /**
      * Identifier map
@@ -595,6 +603,16 @@ public class TrackerPreheat
         }
 
         relationships.get( identifier ).put( relationshipUid, relationship );
+    }
+
+    public List<UniqueAttributeValue> getUniqueAttributeValues()
+    {
+        return this.uniqueAttributeValues;
+    }
+
+    public void setUniqueAttributeValues( List<UniqueAttributeValue> uniqueAttributeValues )
+    {
+        this.uniqueAttributeValues = uniqueAttributeValues;
     }
 
     public static Class<?> getRealClass( Class<?> klass )

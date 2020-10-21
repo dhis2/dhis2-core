@@ -30,7 +30,9 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -164,6 +166,9 @@ public interface TrackedEntityAttributeService
      * @return null if valid, a message if not
      */
     String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value );
+
+    @Transactional( readOnly = true )
+    List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
 
     /**
      * Get all {@link TrackedEntityAttribute} linked to all

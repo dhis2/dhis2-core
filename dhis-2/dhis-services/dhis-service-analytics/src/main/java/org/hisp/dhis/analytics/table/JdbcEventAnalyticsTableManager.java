@@ -387,7 +387,7 @@ public class JdbcEventAnalyticsTableManager
 
         if ( attribute.getValueType().isOrganisationUnit())
         {
-            if ( databaseInfo.isSpatialSupport() ) 
+            if ( databaseInfo.isSpatialSupport() )
             {
                 final String geoSql = selectForInsert( attribute,
                     "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
@@ -452,7 +452,7 @@ public class JdbcEventAnalyticsTableManager
                         .withSkipIndex( true ).withIndexType( GEOMETRY_INDEX_TYPE ) );
             }
 
-            // add the OU name for this Data Element
+            // Add org unit name for data value
             String ouNameSql = selectForInsert( dataElement,
                 "ou.name from organisationunit ou where ou.uid = (select " + columnName, dataClause );
 

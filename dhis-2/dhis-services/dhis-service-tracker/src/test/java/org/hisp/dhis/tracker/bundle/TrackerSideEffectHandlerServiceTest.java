@@ -44,7 +44,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -139,7 +138,7 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );
-        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplate().getUid() );
+        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
     }
 
     @Override
