@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.security;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -67,7 +67,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class EnrollmentSecurityTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private EnrollmentService enrollmentService;
@@ -96,6 +96,12 @@ public class EnrollmentSecurityTest
     private DataElement dataElementB;
     private ProgramStage programStageA;
     private ProgramStage programStageB;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

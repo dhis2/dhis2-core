@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -59,11 +58,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -139,13 +141,13 @@ public class DataValueSetExportAccessControlTest
         idObjectManager.save( Lists.newArrayList( deA, deB ) );
 
         coA = createCategoryOption( 'A' );
-        coA.setPublicAccess( DEFAULT );
+        coA.getSharing().setPublicAccess( DEFAULT );
         coB = createCategoryOption( 'B' );
-        coB.setPublicAccess( DEFAULT );
+        coB.getSharing().setPublicAccess( DEFAULT );
         coC = createCategoryOption( 'C' );
-        coC.setPublicAccess( DEFAULT );
+        coC.getSharing().setPublicAccess( DEFAULT );
         coD = createCategoryOption( 'D' );
-        coD.setPublicAccess( DEFAULT );
+        coD.getSharing().setPublicAccess( DEFAULT );
         idObjectManager.save( Lists.newArrayList( coA, coB, coC, coD ) );
 
         caA = createCategory( 'A', coA, coB );
@@ -162,7 +164,7 @@ public class DataValueSetExportAccessControlTest
         idObjectManager.save( Lists.newArrayList( cocA, cocB, cocC, cocD ) );
 
         dsA = createDataSet( 'A', ptA, ccA );
-        dsA.setPublicAccess( DEFAULT );
+        dsA.getSharing().setPublicAccess( DEFAULT );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
         idObjectManager.save( dsA );
@@ -269,8 +271,14 @@ public class DataValueSetExportAccessControlTest
 
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
 
+        List<DataValue> alldvs = dataValueService.getAllDataValues();
+        System.out.println( "alldvs = " + alldvs );
+
+        List<CategoryOptionCombo> cocs = idObjectManager.getAll( CategoryOptionCombo.class );
+        System.out.println( "cocs = " + cocs );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
+
         assertEquals( 4, dvs.getDataValues().size() );
     }
 
