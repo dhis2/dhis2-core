@@ -55,6 +55,8 @@
 
     <property name="data" type="text" />
 
+    <property name="translations" type="jblTranslations"/>
+
   </class>
 
 </hibernate-mapping>
