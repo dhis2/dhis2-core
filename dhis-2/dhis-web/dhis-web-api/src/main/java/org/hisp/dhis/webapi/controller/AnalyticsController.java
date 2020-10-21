@@ -42,7 +42,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.AnalyticsQueryCriteria;
+import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -79,7 +79,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getJson( // JSON, JSONP
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
@@ -88,7 +88,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + ".xml" )
     public void getXml(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
         throws Exception
@@ -99,7 +99,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + ".html" )
     public void getHtml(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -109,7 +109,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + ".html+css" )
     public void getHtmlCss(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -119,7 +119,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + ".csv" )
     public void getCsv(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -130,7 +130,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + ".xls" )
     public void getXls(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -141,7 +141,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + ".jrxml" )
     public void getJrxml(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -157,7 +157,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + "/debug/sql", produces = { TEXT_HTML_VALUE, TEXT_PLAIN_VALUE } )
     public @ResponseBody String getDebugSql(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
@@ -173,7 +173,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".json" )
     public @ResponseBody Grid getRawDataJson(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
@@ -188,7 +188,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".csv" )
     public void getRawDataCsv(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -209,7 +209,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".xml" )
     public @ResponseBody DataValueSet getDataValueSetXml(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
@@ -221,7 +221,7 @@ public class AnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".json" )
     public @ResponseBody DataValueSet getDataValueSetJson(
-        AnalyticsQueryCriteria criteria,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
@@ -237,10 +237,10 @@ public class AnalyticsController
         return AnalyticsTableType.values();
     }
 
-    private Grid getGrid( AnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
+    private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
         HttpServletResponse response )
     {
-        DataQueryParams params = dataQueryService.getFromRequest(  mapFromCriteria( criteria, apiVersion)  );
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, null,
             false, params.getLatestEndDate() );
@@ -249,10 +249,11 @@ public class AnalyticsController
             getItemsFromParam( criteria.getRows() ) );
     }
 
-    private Grid getGridWithAttachment( AnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType, String file,
-                          HttpServletResponse response )
+    private Grid getGridWithAttachment( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion,
+        String contentType, String file,
+        HttpServletResponse response )
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion) );
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file,
             true, params.getLatestEndDate() );
@@ -261,7 +262,7 @@ public class AnalyticsController
             getItemsFromParam( criteria.getRows() ) );
     }
     
-    private DataQueryRequest mapFromCriteria( AnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
+    private DataQueryRequest mapFromCriteria( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
     {
         return DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
             .build();

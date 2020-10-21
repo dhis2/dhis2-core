@@ -12,11 +12,11 @@ import lombok.NoArgsConstructor;
 
 /**
  * This class contains all the criteria that can be used to execute a DHIS2
- * analytics query using the {@see AnalyticsController}
+ * analytics query using the AnalyticsController
  */
 @Data
 @NoArgsConstructor
-public class AnalyticsQueryCriteria
+public class AggregateAnalyticsQueryCriteria
 {
     /**
      * The analytics dimensions
@@ -94,13 +94,13 @@ public class AnalyticsQueryCriteria
     private boolean skipRounding;
 
     /**
-     * Whether to only show completed events
+     * Whether to only show completed events.
      */
     private boolean completedOnly;
 
     /**
-     *  Whether to include names of organisation unit ancestors and hierarchy paths of
-     * organisation units in the metadata.
+     * Whether to include names of organisation unit ancestors and hierarchy paths
+     * of organisation units in the metadata.
      */
     private boolean hierarchyMeta;
 
@@ -110,8 +110,7 @@ public class AnalyticsQueryCriteria
     private boolean ignoreLimit;
 
     /**
-     * Whether to hide empty rows in response, applicable when table layout is
-     * true.
+     * Whether to hide empty rows in response, applicable when table layout is true.
      */
     private boolean hideEmptyRows;
 

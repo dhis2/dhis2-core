@@ -462,7 +462,7 @@ public class DataQueryRequest
             return request;
         }
 
-        public DataQueryRequestBuilder fromCriteria( AnalyticsQueryCriteria criteria )
+        public DataQueryRequestBuilder fromCriteria( AggregateAnalyticsQueryCriteria criteria )
         {
             this.request.aggregationType = criteria.getAggregationType();
             this.request.approvalLevel = criteria.getApprovalLevel();
