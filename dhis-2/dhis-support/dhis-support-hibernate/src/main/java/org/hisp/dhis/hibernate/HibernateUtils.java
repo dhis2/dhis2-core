@@ -121,7 +121,7 @@ public class HibernateUtils
 
                     Object persistentObject = pd.getReadMethod().invoke( proxy );
 
-                    if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                    if ( persistentObject != null && PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
                     {
                         Hibernate.initialize( persistentObject );
                     }
