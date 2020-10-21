@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
@@ -65,7 +66,9 @@ public class TrackerErrorReport
 
     private final String uid;
 
-    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode, TrackerType trackerType, String uid )
+    @JsonCreator
+    public TrackerErrorReport( @JsonProperty( "errorMessage" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.errorMessage = errorMessage;
         this.errorCode = errorCode;
