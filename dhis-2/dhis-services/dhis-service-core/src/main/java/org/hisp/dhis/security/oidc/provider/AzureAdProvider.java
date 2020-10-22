@@ -48,6 +48,8 @@ import java.util.Properties;
  */
 public class AzureAdProvider extends DhisOidcProvider
 {
+    public static final int MAX_AZURE_TENANTS = 10;
+
     public static final String PROVIDER_PREFIX = "oidc.provider.azure.";
 
     public static final String AZURE_TENANT = ".tenant";
@@ -77,15 +79,14 @@ public class AzureAdProvider extends DhisOidcProvider
 
         final Properties properties = config.getProperties();
 
-        int i = 0;
-
-        while ( true )
+        for ( int i = 0; i < MAX_AZURE_TENANTS; i++ )
         {
             String tenantKey = PROVIDER_PREFIX + i + AZURE_TENANT;
             String tenant = properties.getProperty( tenantKey, "" );
+
             if ( tenant.isEmpty() )
             {
-                break;
+                continue;
             }
 
             String key = PROVIDER_PREFIX + i + AZURE_CLIENT_ID;
@@ -146,8 +147,6 @@ public class AzureAdProvider extends DhisOidcProvider
                 .build();
 
             clients.add( dhisClient );
-
-            i++;
         }
 
         return clients.build();
