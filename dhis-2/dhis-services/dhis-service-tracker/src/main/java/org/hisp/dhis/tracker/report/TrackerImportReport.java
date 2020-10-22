@@ -112,6 +112,11 @@ public class TrackerImportReport
     
     private int calculateIgnored()
     {
+        if ( getTrackerValidationReport() == null || getTrackerValidationReport().getErrorReports() == null )
+        {
+            return 0;
+        }
+        
         return (int) getTrackerValidationReport().getErrorReports().stream()
         .map( TrackerErrorReport::getUid )
         .distinct().count();
