@@ -85,7 +85,16 @@
             <div id="submitDiv">
                 <input style="width: 269px; height:46px; border:none; background: url(../security/btn_google_light_normal_ios.svg) no-repeat scroll 0px 0px, #fff;"
                        id="submit" class="button" type="submit"
-                       value="$i18n.getString( 'login_in_with_google' )">
+                       value="$i18n.getString( 'login_with_google' )">
+            </div>
+        </form>
+        #end
+        #foreach( $tenant in $oidcConfig.azureAdTenants )
+        <form id="oidcAzureAdLogin_$tenant.id" action="../../oauth2/authorization/$tenant.id" method="get">
+            <div id="submitDiv">
+                <input style="width: 269px; height:46px; border:none; background: url(../security/btn_azure_login.svg) no-repeat scroll 13px 13px, #fff;"
+                       id="submit" class="button" type="submit"
+                       value="$tenant.alias">
             </div>
         </form>
         #end

@@ -28,10 +28,13 @@ package org.hisp.dhis.security.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
@@ -42,6 +45,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
+
+import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.AZURE_DISPLAY_ALIAS;
+import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.AZURE_TENANT;
+import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.PROVIDER_PREFIX;
 
 /**
  * @author mortenoh
@@ -65,6 +73,9 @@ public class LoginAction
 
     @Autowired
     private DhisConfigurationProvider configurationProvider;
+
+    @Autowired
+    private I18nManager i18nManager;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -122,11 +133,41 @@ public class LoginAction
 
     private void setOidcConfig()
     {
-        boolean isEnabled = configurationProvider.
+        boolean isOidcEnabled = configurationProvider.
             getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED ).equalsIgnoreCase( "on" );
 
+        if ( !isOidcEnabled )
+        {
+            return;
+        }
+
+        parseGoogle();
+        parseAzure();
+    }
+
+    private void parseAzure()
+    {
+        String defaultAlias = i18nManager.getI18n().getString( "login_with_azure" );
+        List<Map<String, String>> tenants = new ArrayList<>();
+        Properties properties = configurationProvider.getProperties();
+        int i = 0;
+        while ( i < 10 )
+        {
+            String id = properties.getProperty( PROVIDER_PREFIX + i + AZURE_TENANT, "" );
+            if ( id.isEmpty() )
+            {
+                break;
+            }
+            String alias = properties.getProperty( PROVIDER_PREFIX + i + AZURE_DISPLAY_ALIAS, defaultAlias );
+            tenants.add( ImmutableMap.of( "id", id, "alias", alias ) );
+            i++;
+        }
+        oidcConfig.put( "azureAdTenants", tenants );
+    }
+
+    private void parseGoogle()
+    {
         oidcConfig.put( "isGoogleEnabled",
-            isEnabled &&
-                !configurationProvider.getProperty( ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID ).isEmpty() );
+            !configurationProvider.getProperty( ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID ).isEmpty() );
     }
 }
