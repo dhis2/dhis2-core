@@ -44,6 +44,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -130,6 +131,18 @@ public class HibernateTrackedEntityAttributeValueStore
         Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
             .setParameter( "attribute", attribute )
             .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText  ) + "%");
+
+        return getList( typedQuery );
+    }
+
+    @Override
+    public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, Collection<String> values )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) in :values";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "attribute", attribute )
+            .setParameter( "values", values.stream().map( StringUtils::lowerCase ).collect( Collectors.toList() ) );
 
         return getList( typedQuery );
     }

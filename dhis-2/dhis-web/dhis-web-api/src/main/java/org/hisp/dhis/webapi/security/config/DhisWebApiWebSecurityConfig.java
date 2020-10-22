@@ -218,6 +218,15 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DhisOAuth2AuthorizationRequestResolver dhisOAuth2AuthorizationRequestResolver;
 
+        @Autowired
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+
+        public void configure( AuthenticationManagerBuilder auth )
+            throws Exception
+        {
+            auth.authenticationEventPublisher( authenticationEventPublisher );
+        }
+
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
@@ -238,6 +247,7 @@ public class DhisWebApiWebSecurityConfig
                 )
 
                 .oauth2Login( oauth2 -> oauth2
+                    .failureUrl( "/dhis-web-dashboard" )
                     .clientRegistrationRepository( dhisClientRegistrationRepository )
                     .loginProcessingUrl( "/oauth2/code/*" )
                     .authorizationEndpoint()
@@ -288,6 +298,9 @@ public class DhisWebApiWebSecurityConfig
         @Qualifier( "customLdapAuthenticationProvider" )
         private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
+        @Autowired
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+
         final private SecurityExpressionHandler<FilterInvocation> expressionHandler = new OAuth2WebSecurityExpressionHandler();
 
         final private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
@@ -299,6 +312,7 @@ public class DhisWebApiWebSecurityConfig
         {
             auth.authenticationProvider( twoFactorAuthenticationProvider );
             auth.authenticationProvider( customLdapAuthenticationProvider );
+            auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
         /**

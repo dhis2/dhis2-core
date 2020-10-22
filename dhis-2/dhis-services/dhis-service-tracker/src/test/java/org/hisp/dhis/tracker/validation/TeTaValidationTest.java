@@ -50,6 +50,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
@@ -404,6 +405,79 @@ public class TeTaValidationTest
         printReport( report );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
+    }
+
+    @Test
+    public void testUniqueFailInOrgUnit()
+        throws IOException
+    {
+        String metaDataFile = "tracker/validations/te-program_with_tea_encryption_metadata.json";
+        setupMetadata( metaDataFile );
+
+        TrackerBundle trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data_in_country.json" )
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
+
+        User user = userService.getUser( ADMIN_USER_UID );
+
+        TrackerBundleParams bundle = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
+            .build();
+
+        bundle.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( bundle );
+
+        trackerBundleService.commit( trackerBundle );
+
+        trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data_in_country.json" )
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
+
+        bundle = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
+            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .build();
+
+        user = userService.getUser( ADMIN_USER_UID );
+
+        bundle.setUser( user );
+
+        trackerBundle = trackerBundleService.create( bundle );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+        printReport( report );
+
+        trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data_in_region.json" )
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
+
+        bundle = TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        user = userService.getUser( ADMIN_USER_UID );
+
+        bundle.setUser( user );
+
+        trackerBundle = trackerBundleService.create( bundle );
+
+        report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+        printReport( report );
     }
 
     @Test

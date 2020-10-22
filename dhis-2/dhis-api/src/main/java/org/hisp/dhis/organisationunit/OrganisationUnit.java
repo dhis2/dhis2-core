@@ -51,7 +51,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SortProperty;
-import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.dataelement.DataElement;

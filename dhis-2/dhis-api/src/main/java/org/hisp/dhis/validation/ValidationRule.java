@@ -34,7 +34,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.expression.Expression;
@@ -43,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 import java.util.HashSet;
@@ -99,7 +104,7 @@ public class ValidationRule
     /**
      * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
      */
-    private Set<Integer> organisationUnitLevels = new HashSet<>(  );
+    private Set<Integer> organisationUnitLevels = new HashSet<>();
 
     /**
      * The set of ValidationRuleGroups to which this ValidationRule belongs.
@@ -223,6 +228,13 @@ public class ValidationRule
     public String getInstruction()
     {
         return instruction;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayInstruction()
+    {
+        return getTranslation( TranslationProperty.INSTRUCTION, getInstruction() );
     }
 
     public void setInstruction( String instruction )
