@@ -131,6 +131,12 @@ public class DefaultTrackerImportService
             }
 
             importReport.getTimings().setTotalImport( requestTimer.toString() );
+            
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " + requestTimer, true );
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
            
         }
         
@@ -155,16 +161,6 @@ public class DefaultTrackerImportService
                 notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
             }
         }
-        
-        if ( params.hasJobConfiguration() )
-        {
-            notifier
-                .update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") Import:Done took " + requestTimer, true );
-
-            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
-        }
-
        
         return importReport;
     }
