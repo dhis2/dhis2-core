@@ -49,6 +49,7 @@ import java.util.Properties;
 
 import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.AZURE_DISPLAY_ALIAS;
 import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.AZURE_TENANT;
+import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.MAX_AZURE_TENANTS;
 import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.PROVIDER_PREFIX;
 
 /**
@@ -152,7 +153,7 @@ public class LoginAction
 
         List<Map<String, String>> tenants = new ArrayList<>();
 
-        for ( int i = 0; i < 10; i++ )
+        for ( int i = 0; i < MAX_AZURE_TENANTS; i++ )
         {
             String id = properties.getProperty( PROVIDER_PREFIX + i + AZURE_TENANT, "" );
 
