@@ -147,21 +147,25 @@ public class LoginAction
 
     private void parseAzure()
     {
-        String defaultAlias = i18nManager.getI18n().getString( "login_with_azure" );
-        List<Map<String, String>> tenants = new ArrayList<>();
         Properties properties = configurationProvider.getProperties();
-        int i = 0;
-        while ( i < 10 )
+        String defaultAlias = i18nManager.getI18n().getString( "login_with_azure" );
+
+        List<Map<String, String>> tenants = new ArrayList<>();
+
+        for ( int i = 0; i < 10; i++ )
         {
             String id = properties.getProperty( PROVIDER_PREFIX + i + AZURE_TENANT, "" );
+
             if ( id.isEmpty() )
             {
-                break;
+                continue;
             }
+
             String alias = properties.getProperty( PROVIDER_PREFIX + i + AZURE_DISPLAY_ALIAS, defaultAlias );
+
             tenants.add( ImmutableMap.of( "id", id, "alias", alias ) );
-            i++;
         }
+
         oidcConfig.put( "azureAdTenants", tenants );
     }
 
