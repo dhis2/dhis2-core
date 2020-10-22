@@ -42,10 +42,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -144,15 +142,7 @@ public class DefaultTrackerImportService
         {
             log.error( "Exception thrown during import.",e );
 
-            TrackerValidationReport tvr = importReport.getTrackerValidationReport();
-
-            if ( tvr == null )
-            {
-                tvr = new TrackerValidationReport();
-            }
-
-            tvr.getErrorReports().add( new TrackerErrorReport( "Exception:" + e.getMessage(), TrackerErrorCode.E9999 ) );
-            importReport.setTrackerValidationReport( tvr );
+            importReport.setMessage( "Exception:" + e.getMessage() );
             importReport.setStatus( TrackerStatus.ERROR );
 
             if ( params.hasJobConfiguration() )

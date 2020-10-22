@@ -76,14 +76,6 @@ public class TrackerErrorReport
         this.uid = uid;
     }
     
-    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode )
-    {
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
-        this.trackerType = null;
-        this.uid = null;
-    }
-
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {

@@ -1,5 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -48,6 +50,8 @@ public class TrackerImportReport
     private TrackerBundleReport bundleReport = new TrackerBundleReport();
 
     private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
+    
+    private String message;
 
     @JsonProperty
     public TrackerStats getStats()
@@ -79,6 +83,17 @@ public class TrackerImportReport
     public TrackerValidationReport getTrackerValidationReport()
     {
         return trackerValidationReport;
+    }
+    
+    @JsonProperty
+    public String message()
+    {
+        if ( StringUtils.isEmpty( message ) )
+        {
+            return getStatus().name();
+        }
+        
+        return message;
     }
     
     //-----------------------------------------------------------------------------------
