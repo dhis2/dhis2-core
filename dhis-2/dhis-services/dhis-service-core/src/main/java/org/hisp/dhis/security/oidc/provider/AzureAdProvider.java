@@ -52,6 +52,8 @@ public class AzureAdProvider extends DhisOidcProvider
 
     public static final String AZURE_TENANT = ".tenant";
 
+    public static final String AZURE_DISPLAY_ALIAS = ".display_alias";
+
     public static final String AZURE_CLIENT_ID = ".client_id";
 
     public static final String AZURE_CLIENT_SECRET = ".client_secret";
@@ -73,11 +75,12 @@ public class AzureAdProvider extends DhisOidcProvider
 
         ImmutableList.Builder<DhisOidcClientRegistration> clients = ImmutableList.builder();
 
+        final Properties properties = config.getProperties();
+
         int i = 0;
 
         while ( true )
         {
-            Properties properties = config.getProperties();
             String tenantKey = PROVIDER_PREFIX + i + AZURE_TENANT;
             String tenant = properties.getProperty( tenantKey, "" );
             if ( tenant.isEmpty() )
