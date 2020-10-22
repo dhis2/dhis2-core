@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -42,9 +41,6 @@ import lombok.NoArgsConstructor;
 public class TrackerImportReport
 {
 
-    @JsonIgnore
-    private int ignored;
-
     private TrackerStatus status = TrackerStatus.OK;
 
     private TrackerTimingsStats timings = new TrackerTimingsStats();
@@ -57,14 +53,20 @@ public class TrackerImportReport
     public TrackerStats getStats()
     {
         TrackerStats stats = bundleReport.getStats();
-        stats.setIgnored( ignored );
+        stats.setIgnored( calculateIgnored() );
         return stats;
     }
-
+    
     @JsonProperty
     public TrackerStatus getStatus()
     {
         return status;
+    }
+    
+    @JsonProperty
+    public TrackerBundleReport getBundleReport()
+    {
+        return bundleReport;
     }
 
     @JsonProperty
@@ -78,7 +80,7 @@ public class TrackerImportReport
     {
         return trackerValidationReport;
     }
-
+    
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -91,5 +93,12 @@ public class TrackerImportReport
     public boolean isEmpty()
     {
         return bundleReport.isEmpty();
+    }
+    
+    private int calculateIgnored()
+    {
+        return (int) getTrackerValidationReport().getErrorReports().stream()
+        .map( TrackerErrorReport::getUid )
+        .distinct().count();
     }
 }

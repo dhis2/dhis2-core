@@ -28,15 +28,18 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,6 +61,24 @@ public class TrackerTypeReport
     public TrackerTypeReport( TrackerType trackerType )
     {
         this.trackerType = trackerType;
+    }
+    
+    @JsonCreator
+    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "stats" ) TrackerStats stats,
+        @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
+        @JsonProperty( "objectReports" ) List<TrackerObjectReport> objectReports )
+    {
+        this.trackerType = trackerType;
+        this.stats = stats;
+        this.sideEffectDataBundles = sideEffectDataBundles;
+
+        if ( objectReports != null )
+        {
+            for ( TrackerObjectReport objectReport : objectReports )
+            {
+                this.objectReportMap.put( objectReport.getIndex(), objectReport );
+            }
+        }
     }
 
     @JsonProperty

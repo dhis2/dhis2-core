@@ -67,13 +67,21 @@ public class TrackerErrorReport
     private final String uid;
 
     @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "errorMessage" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
         @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.errorMessage = errorMessage;
         this.errorCode = errorCode;
         this.trackerType = trackerType;
         this.uid = uid;
+    }
+    
+    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode )
+    {
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = null;
+        this.uid = null;
     }
 
     @JsonProperty
@@ -86,6 +94,18 @@ public class TrackerErrorReport
     public String getMessage()
     {
         return errorMessage;
+    }
+    
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+    
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
     }
 
     public static class TrackerErrorReportBuilder
