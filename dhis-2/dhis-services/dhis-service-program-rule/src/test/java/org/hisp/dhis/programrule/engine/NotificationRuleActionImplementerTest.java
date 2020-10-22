@@ -277,19 +277,11 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
 
-        setMandatoryFieldFalse = new RuleActionSetMandatoryField()
-        {
-            @Nonnull
-            @Override
-            public String field()
-            {
-                return MANDATORY_FIELD;
-            }
-        };
+        setMandatoryFieldFalse = RuleActionSetMandatoryField.create( MANDATORY_FIELD );
 
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
-        Program programA = createProgram('A', new HashSet<>(), organisationUnitA );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programRuleA = createProgramRule( 'R', programA );
