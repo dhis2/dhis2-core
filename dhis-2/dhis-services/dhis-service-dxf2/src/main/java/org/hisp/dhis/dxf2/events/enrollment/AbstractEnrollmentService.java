@@ -410,7 +410,6 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    events.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
                     events.addAll( enrollment.getEvents() );
                 }
             }
@@ -735,9 +734,7 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    List<Event> enrollmentEvents = enrollment.getEvents();
-                    enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
-                    events.addAll( enrollmentEvents );
+                    events.addAll( enrollment.getEvents() );
                 }
             }
 
