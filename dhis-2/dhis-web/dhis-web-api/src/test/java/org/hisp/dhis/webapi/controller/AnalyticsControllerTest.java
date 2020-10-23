@@ -28,11 +28,231 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.data.DefaultDataQueryService;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsControllerTest {
+public class AnalyticsControllerTest
+{
+    private final static String ENDPOINT = "/analytics";
 
+    private MockMvc mockMvc;
+
+    @Mock
+    private AnalyticsService analyticsService;
+
+    @Mock
+    private ContextUtils contextUtils;
+
+    @Mock
+    private DimensionService dimensionService;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Before
+    public void setUp()
+    {
+        final DataQueryService dataQueryService = new DefaultDataQueryService(
+            mock( IdentifiableObjectManager.class ),
+            mock( OrganisationUnitService.class ),
+            dimensionService, mock( AnalyticsSecurityManager.class ), mock( SystemSettingManager.class ),
+            mock( AclService.class ), mock( CurrentUserService.class ),
+            mock( I18nManager.class ) );
+
+        // Controller under test
+        final AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
+            contextUtils );
+
+        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
+
+        // When
+        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "fbfJHSPpUQD" ) )
+            .thenReturn( new DataElement( "alfa" ) );
+        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "cYeuwXTCPkU" ) )
+            .thenReturn( new DataElement( "beta" ) );
+        when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ), Mockito.any(),
+            Mockito.any() ) )
+                .thenReturn( buildMockGrid() );
+    }
+
+    @Test
+    public void verifyJsonRequest()
+        throws Exception
+    {
+        // Then
+        mockMvc.perform( get( ENDPOINT )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$" ).exists() )
+            .andExpect( content().contentType( "application/json" ) );
+    }
+
+    @Test
+    public void verifyXmlRequest()
+        throws Exception
+    {
+        // Then
+        mockMvc.perform( get( ENDPOINT + ".xml" )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            // .andExpect( content().contentType( "application/xml" ) ) // Note: we do not
+            // send contentType with xml payload
+            .andExpect( content().string( notNullValue() ) )
+            .andExpect( content().string( startsWith( "<?xml version='1.0' encoding='UTF-8'?>" ) ) )
+            .andExpect( status().isOk() );
+    }
+
+    @Test
+    public void verifyHtmlRequest()
+        throws Exception
+    {
+        // Then
+        mockMvc.perform( get( ENDPOINT + ".html" )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            // .andExpect( content().contentType( "application/xml" ) ) // Note: we do not
+            // send contentType with html payload
+            .andExpect( content().string( notNullValue() ) )
+            .andExpect( content().string( startsWith( "<div class=\"gridDiv\">" ) ) )
+            .andExpect( status().isOk() );
+    }
+
+    @Test
+    public void verifyHtmlCssRequest()
+        throws Exception
+    {
+        // Then
+        mockMvc.perform( get( ENDPOINT + ".html+css" )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            // .andExpect( content().contentType( "application/xml" ) ) // Note: we do not
+            // send contentType with html+css payload
+            .andExpect( content().string( notNullValue() ) )
+            .andExpect( content().string( startsWith( "<style type=\"text/css\">" ) ) )
+            .andExpect( status().isOk() );
+    }
+
+    @Test
+    public void verifyCsvRequest()
+        throws Exception
+    {
+        // Then
+        mockMvc.perform( get( ENDPOINT + ".csv" )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            // .andExpect( content().contentType( "application/xml" ) ) // Note: we do not
+            // send contentType with csv payload
+            .andExpect( content().string( notNullValue() ) )
+            .andExpect( content().string( "\"\",,,\nde1,ou2,pe1,3\n" +
+                "de2,ou3,pe2,5\n" ) )
+            .andExpect( status().isOk() );
+    }
+
+    @Test
+    public void verifyXlsRequest()
+        throws Exception
+    {
+        // Then
+        final ResultActions resultActions = mockMvc.perform( get( ENDPOINT + ".xls" )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            // .andExpect( content().contentType( "application/xml" ) ) // Note: we do not
+            // send contentType with xsl payload
+            .andExpect( status().isOk() );
+
+        // Convert content to Excel sheet
+        final byte[] excel = resultActions.andReturn().getResponse().getContentAsByteArray();
+        InputStream is = new ByteArrayInputStream( excel );
+        Workbook book = WorkbookFactory.create( is );
+        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 0 ).getStringCellValue(), is( "de1" ) );
+        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 1 ).getStringCellValue(), is( "ou2" ) );
+        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 2 ).getStringCellValue(), is( "pe1" ) );
+        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 3 ).getNumericCellValue(), is( 3.0 ) );
+    }
+
+    @Test
+    public void verifyJrxmlRequest()
+        throws Exception
+    {
+        when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ) ) )
+            .thenReturn( buildMockGrid() );
+
+        // Then
+        mockMvc.perform( get( ENDPOINT + ".jrxml" )
+            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
+            .param( "filter", "pe:2014Q1;2014Q2" ) )
+            // .andExpect( content().contentType( "application/xml" ) ) // Note: we do not
+            // send contentType with jrxml payload
+            .andExpect( content().string( notNullValue() ) )
+            .andExpect( content().string( startsWith( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ) ) )
+            .andExpect( status().isOk() );
+    }
+
+    private Grid buildMockGrid()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( "a" ) );
+        grid.addHeader( new GridHeader( "b" ) );
+        grid.addHeader( new GridHeader( "c" ) );
+        grid.addHeader( new GridHeader( "d" ) );
+
+        grid.addRow();
+        grid.addValue( "de1" );
+        grid.addValue( "ou2" );
+        grid.addValue( "pe1" );
+        grid.addValue( 3 );
+
+        grid.addRow();
+        grid.addValue( "de2" );
+        grid.addValue( "ou3" );
+        grid.addValue( "pe2" );
+        grid.addValue( 5 );
+        return grid;
+    }
 }

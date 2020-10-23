@@ -54,9 +54,6 @@ import com.google.common.collect.Sets;
  */
 public class DashboardControllerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private MockMvc mockMvc;
 
     @Mock
@@ -73,6 +70,9 @@ public class DashboardControllerTest
 
     @InjectMocks
     private DashboardController dashboardController;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private final static String ENDPOINT = "/dashboards/q";
 
