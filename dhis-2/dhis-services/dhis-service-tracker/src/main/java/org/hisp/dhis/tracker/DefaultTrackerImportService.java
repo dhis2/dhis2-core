@@ -273,6 +273,8 @@ public class DefaultTrackerImportService
         filteredTrackerImportReport.getTrackerValidationReport()
             .setWarningReports( importReport.getTrackerValidationReport().getWarningReports() );
         filteredTrackerImportReport.setBundleReport( importReport.getBundleReport() );
+        filteredTrackerImportReport.setStatus( importReport.getStatus() );
+        filteredTrackerImportReport.setMessage( importReport.getMessage() );
 
         switch ( reportMode )
         {
