@@ -279,15 +279,18 @@ public class DefaultTrackerImportService
         case BASIC:
             filteredTrackerImportReport.setTrackerValidationReport( null );
             filteredTrackerImportReport.setTimings( null );
+            filteredTrackerImportReport.setBundleReport( null );
             break;
         case ERRORS:
             filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
             filteredTrackerImportReport.getTrackerValidationReport().setWarningReports( null );
             filteredTrackerImportReport.setTimings( null );
+            filteredTrackerImportReport.setBundleReport( null );
             break;
         case WARNINGS:
             filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
             filteredTrackerImportReport.setTimings( null );
+            filteredTrackerImportReport.setBundleReport( null );
             break;
         case FULL:
             break;
