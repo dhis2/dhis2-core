@@ -1,5 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,7 +30,6 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -42,9 +43,6 @@ import lombok.NoArgsConstructor;
 public class TrackerImportReport
 {
 
-    @JsonIgnore
-    private int ignored;
-
     private TrackerStatus status = TrackerStatus.OK;
 
     private TrackerTimingsStats timings = new TrackerTimingsStats();
@@ -52,19 +50,27 @@ public class TrackerImportReport
     private TrackerBundleReport bundleReport = new TrackerBundleReport();
 
     private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
+    
+    private String message;
 
     @JsonProperty
     public TrackerStats getStats()
     {
         TrackerStats stats = bundleReport.getStats();
-        stats.setIgnored( ignored );
+        stats.setIgnored( calculateIgnored() );
         return stats;
     }
-
+    
     @JsonProperty
     public TrackerStatus getStatus()
     {
         return status;
+    }
+    
+    @JsonProperty
+    public TrackerBundleReport getBundleReport()
+    {
+        return bundleReport;
     }
 
     @JsonProperty
@@ -78,7 +84,18 @@ public class TrackerImportReport
     {
         return trackerValidationReport;
     }
-
+    
+    @JsonProperty
+    public String message()
+    {
+        if ( StringUtils.isEmpty( message ) )
+        {
+            return getStatus().name();
+        }
+        
+        return message;
+    }
+    
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -91,5 +108,17 @@ public class TrackerImportReport
     public boolean isEmpty()
     {
         return bundleReport.isEmpty();
+    }
+    
+    private int calculateIgnored()
+    {
+        if ( getTrackerValidationReport() == null || getTrackerValidationReport().getErrorReports() == null )
+        {
+            return 0;
+        }
+        
+        return (int) getTrackerValidationReport().getErrorReports().stream()
+        .map( TrackerErrorReport::getUid )
+        .distinct().count();
     }
 }
