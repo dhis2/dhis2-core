@@ -57,9 +57,9 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
