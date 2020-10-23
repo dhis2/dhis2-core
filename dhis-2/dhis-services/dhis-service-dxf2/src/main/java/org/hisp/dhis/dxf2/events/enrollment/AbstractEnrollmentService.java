@@ -410,9 +410,8 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    List<Event> enrollmentEvents = enrollment.getEvents();
-                    enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
-                    events.addAll( enrollmentEvents );
+                    events.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
+                    events.addAll( enrollment.getEvents() );
                 }
             }
 
@@ -555,7 +554,6 @@ public abstract class AbstractEnrollmentService
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
 
         importSummary.setReference( programInstance.getUid() );
-        enrollment.setEnrollment( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
         if ( handleEvents )
