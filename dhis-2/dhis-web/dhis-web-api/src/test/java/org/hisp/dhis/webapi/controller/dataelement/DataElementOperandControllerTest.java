@@ -98,9 +98,6 @@ import com.jayway.jsonpath.JsonPath;
  */
 public class DataElementOperandControllerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private MockMvc mockMvc;
 
     @Mock
@@ -122,6 +119,9 @@ public class DataElementOperandControllerTest
 
     @Mock
     private CurrentUserService currentUserService;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private BeanRandomizer rnd;
 
