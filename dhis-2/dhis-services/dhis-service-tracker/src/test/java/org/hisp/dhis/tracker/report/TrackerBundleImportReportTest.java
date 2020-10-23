@@ -59,17 +59,6 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     private ObjectMapper jsonMapper;
 
     @Test
-    public void testImportReportBasic()
-    {
-        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(), TrackerBundleReportMode.BASIC );
-
-        assertEquals( TrackerStatus.OK, report.getStatus() );
-        assertStats( report );
-        assertNull( report.getTrackerValidationReport() );
-        assertNull( report.getTimings() );
-    }
-
-    @Test
     public void testImportReportErrors()
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(), TrackerBundleReportMode.ERRORS );

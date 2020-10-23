@@ -276,10 +276,6 @@ public class DefaultTrackerImportService
 
         switch ( reportMode )
         {
-        case BASIC:
-            filteredTrackerImportReport.setTrackerValidationReport( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
         case ERRORS:
             filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
             filteredTrackerImportReport.getTrackerValidationReport().setWarningReports( null );
