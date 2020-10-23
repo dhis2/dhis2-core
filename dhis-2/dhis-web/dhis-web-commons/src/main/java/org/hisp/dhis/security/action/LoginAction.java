@@ -33,9 +33,9 @@ import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
+import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
@@ -45,12 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
-
-import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.AZURE_DISPLAY_ALIAS;
-import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.AZURE_TENANT;
-import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.MAX_AZURE_TENANTS;
-import static org.hisp.dhis.security.oidc.provider.AzureAdProvider.PROVIDER_PREFIX;
+import java.util.Set;
 
 /**
  * @author mortenoh
@@ -76,7 +71,7 @@ public class LoginAction
     private DhisConfigurationProvider configurationProvider;
 
     @Autowired
-    private I18nManager i18nManager;
+    private DhisClientRegistrationRepository repository;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -142,36 +137,27 @@ public class LoginAction
             return;
         }
 
-        parseGoogle();
-        parseAzure();
+        parseRegisteredProviders();
     }
 
-    private void parseAzure()
+    private void parseRegisteredProviders()
     {
-        Properties properties = configurationProvider.getProperties();
-        String defaultAlias = i18nManager.getI18n().getString( "login_with_azure" );
+        List<Map<String, String>> providers = new ArrayList<>();
 
-        List<Map<String, String>> tenants = new ArrayList<>();
+        Set<String> allRegistrationIds = repository.getAllRegistrationId();
 
-        for ( int i = 0; i < MAX_AZURE_TENANTS; i++ )
+        for ( String registrationId : allRegistrationIds )
         {
-            String id = properties.getProperty( PROVIDER_PREFIX + i + AZURE_TENANT, "" );
+            DhisOidcClientRegistration clientRegistration = repository.getDhisOidcClientRegistration( registrationId );
 
-            if ( id.isEmpty() )
-            {
-                continue;
-            }
-
-            String alias = properties.getProperty( PROVIDER_PREFIX + i + AZURE_DISPLAY_ALIAS, defaultAlias );
-            tenants.add( ImmutableMap.of( "id", id, "alias", alias ) );
+            providers.add( ImmutableMap.of(
+                "id", registrationId,
+                "icon", clientRegistration.getLoginIcon(),
+                "iconPadding", clientRegistration.getLoginIconPadding(),
+                "loginText", clientRegistration.getLoginText()
+            ) );
         }
 
-        oidcConfig.put( "azureAdTenants", tenants );
-    }
-
-    private void parseGoogle()
-    {
-        oidcConfig.put( "isGoogleEnabled",
-            !configurationProvider.getProperty( ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID ).isEmpty() );
+        oidcConfig.put( "providers", providers );
     }
 }

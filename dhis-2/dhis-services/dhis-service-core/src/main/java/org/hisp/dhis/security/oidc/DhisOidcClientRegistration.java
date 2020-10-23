@@ -45,4 +45,10 @@ public class DhisOidcClientRegistration
     private String mappingClaimKey;
 
     private String registrationId;
+
+    private String loginIcon;
+
+    private String loginIconPadding;
+
+    private String loginText;
 }
