@@ -91,6 +91,7 @@ public class AzureAdProvider extends DhisOidcProvider
 
             String key = PROVIDER_PREFIX + i + AZURE_CLIENT_ID;
             String clientId = properties.getProperty( key, "" );
+
             if ( clientId.isEmpty() )
             {
                 throw new IllegalArgumentException( "Azure client id is missing! tenant=" + tenant );
@@ -98,10 +99,12 @@ public class AzureAdProvider extends DhisOidcProvider
 
             String clientSecret = config.getProperties()
                 .getProperty( PROVIDER_PREFIX + i + AZURE_CLIENT_SECRET );
+
             if ( clientSecret.isEmpty() )
             {
                 throw new IllegalArgumentException( "Azure client secret is missing! tenant=" + tenant );
             }
+
             String redirectBaseUrl = MoreObjects
                 .firstNonNull( config.getProperties().getProperty( PROVIDER_PREFIX + i + AZURE_REDIRECT_BASE_URL ),
                     "http://localhost:8080" );
@@ -144,6 +147,10 @@ public class AzureAdProvider extends DhisOidcProvider
                 .clientRegistration( builder.build() )
                 .mappingClaimKey( mappingClaims )
                 .registrationId( tenant )
+                .loginIcon( "../security/btn_azure_login.svg" )
+                .loginIconPadding( "13px 13px" )
+                .loginText(
+                    properties.getProperty( PROVIDER_PREFIX + i + AZURE_DISPLAY_ALIAS, "login_with_azure" ) )
                 .build();
 
             clients.add( dhisClient );

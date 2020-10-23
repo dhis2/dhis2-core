@@ -80,23 +80,14 @@
             #end
         </form>
 
-        #if( $oidcConfig.isGoogleEnabled )
-        <form id="oidcGoogleLoginForm" action="../../oauth2/authorization/google" method="get">
-            <div id="submitDiv">
-                <input style="width: 269px; height:46px; border:none; background: url(../security/btn_google_light_normal_ios.svg) no-repeat scroll 0px 0px, #fff;"
-                       id="submit" class="button" type="submit"
-                       value="$i18n.getString( 'login_with_google' )">
-            </div>
-        </form>
-        #end
-        #foreach( $tenant in $oidcConfig.azureAdTenants )
-        <form id="oidcAzureAdLogin_$tenant.id" action="../../oauth2/authorization/$tenant.id" method="get">
-            <div id="submitDiv">
-                <input style="width: 269px; height:46px; border:none; background: url(../security/btn_azure_login.svg) no-repeat scroll 13px 13px, #fff;"
-                       id="submit" class="button" type="submit"
-                       value="$tenant.alias">
-            </div>
-        </form>
+        #foreach( $provider in $oidcConfig.providers )
+            <form id="oidcProvider_$provider.id" action="../../oauth2/authorization/$provider.id" method="get">
+                <div id="submitDiv">
+                    <input style="width: 269px; height:46px; border:none; background: url($provider.icon) no-repeat scroll $provider.iconPadding, #fff;"
+                           id="submit" class="button" type="submit"
+                           value="$i18n.getString( $provider.loginText )">
+                </div>
+            </form>
         #end
 
         #if( $failed == true )
