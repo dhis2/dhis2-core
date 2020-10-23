@@ -295,7 +295,7 @@ public class FlattenedDataIntegrityReport
     {
         SortedMap<String, Collection<String>> newMap = new TreeMap<>();
 
-        for ( SortedMap.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map
+        for ( Map.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map
             .entrySet() )
         {
             newMap.put( defaultIfNull( entry.getKey() ), transformCollection( entry.getValue() ) );
