@@ -33,11 +33,15 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
 
@@ -46,15 +50,17 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImportTests
+public class TrackerImporterTests
     extends ApiTest
 {
     private TrackerActions trackerActions;
+    private TEIActions teiActions;
 
     @BeforeAll
     public void beforeAll()
     {
         trackerActions = new TrackerActions();
+        teiActions = new TEIActions();
 
         new LoginActions().loginAsSuperUser();
     }
@@ -62,6 +68,7 @@ public class TrackerImportTests
     @Test
     public void shouldReturnErrorReportsWhenTeiIncorrect()
     {
+        // arrange
         JsonObject trackedEntity = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "" )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
@@ -69,8 +76,10 @@ public class TrackerImportTests
 
         JsonObject trackedEntities = createTeiBody( trackedEntity );
 
+        // act
         ApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
 
+        // assert
         response.validate()
             .statusCode( 200 )
             .body( "status", equalTo( "ERROR" ) )
@@ -84,28 +93,72 @@ public class TrackerImportTests
 
     @Test
     public void shouldImportTei()
+        throws JSONException
     {
+        // arrange
+
         JsonObject trackedEntity = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
-            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[1] )
             .build();
 
         JsonObject trackedEntities = createTeiBody( trackedEntity );
 
+        // act
         ApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
 
+        // assert
         response.validate()
             .statusCode( 200 )
-            .body( "stats.created", equalTo( 1 ) );
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.created", equalTo( 1 ) )
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" )
+            .body( "stats.created", equalTo( 1 ) )
+            .body( "objectReports", notNullValue() )
+            .body( "objectReports[0].errorReports", empty() );
+
+        // assert that the tei was imported
+        String teiId = response.extractString( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid[0]" );
+
+        response = teiActions.get( teiId );
+        response.validate()
+            .statusCode( 200 );
+
+        JSONAssert.assertEquals( trackedEntities.get( "trackedEntities" ).getAsJsonArray().get( 0 ).toString(), response.getBody().toString(), false );
     }
 
     @Test
     public void shouldImportTeiWithAttributes()
+        throws Exception
     {
-        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker_v2/teis/teis.json" ) );
+        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker_v2/teis/teis.json" ) );
+
+        // act
+        ApiResponse response = trackerActions.postAndGetJobReport( teiBody );
+
+        // assert
+        response.validate()
+            .statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.created", equalTo( 1 ) )
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" )
+            .body( "stats.created", equalTo( 1 ) )
+            .body( "objectReports", notNullValue() )
+            .body( "objectReports[0].errorReports", empty() );
+
+        // assert that the TEI was imported
+        String teiId = response.extractString( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid[0]" );
+
+        response = teiActions.get( teiId);
 
         response.validate()
             .statusCode( 200 );
+
+        JSONAssert.assertEquals( teiBody.get( "trackedEntities" ).getAsJsonArray().get( 0 ).toString(), response.getBody().toString(), false);
+
+
     }
 
     private JsonObject createTeiBody( JsonObject innerTei )
