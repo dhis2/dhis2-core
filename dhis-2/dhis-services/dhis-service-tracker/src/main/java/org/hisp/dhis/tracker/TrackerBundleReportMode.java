@@ -48,8 +48,4 @@ public enum TrackerBundleReportMode
      */
     WARNINGS,
 
-    /**
-     * Returns tracker bundle report only with stats.
-     */
-    BASIC;
 }
