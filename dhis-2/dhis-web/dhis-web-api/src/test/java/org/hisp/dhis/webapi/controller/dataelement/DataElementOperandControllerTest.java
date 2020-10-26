@@ -51,10 +51,12 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -68,6 +70,8 @@ import com.jayway.jsonpath.JsonPath;
  */
 public class DataElementOperandControllerTest
 {
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     private MockMvc mockMvc;
 
@@ -98,8 +102,6 @@ public class DataElementOperandControllerTest
     @Before
     public void setUp()
     {
-        MockitoAnnotations.initMocks( this );
-
         rnd = new BeanRandomizer();
 
         ContextService contextService = new DefaultContextService();

@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
-import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -51,9 +50,7 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -71,6 +68,7 @@ import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
@@ -99,9 +97,6 @@ public class ProgramSqlGeneratorItemsTest
 
     @org.junit.Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
@@ -183,8 +178,7 @@ public class ProgramSqlGeneratorItemsTest
         when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
-        thrown.expect( org.hisp.dhis.antlr.ParserException.class );
-        test( "#{ProgrmStagA.NotElementA}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
     }
 
     @Test
@@ -208,8 +202,7 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testAttributeNotFound()
     {
-        thrown.expect( org.hisp.dhis.antlr.ParserException.class );
-        test( "A{NoAttribute}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "A{NoAttribute}" ) );
     }
 
     @Test
@@ -222,15 +215,13 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testConstantNotFound()
     {
-        thrown.expect( org.hisp.dhis.antlr.ParserException.class );
-        test( "C{notConstant}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "C{notConstant}" ) );
     }
 
     @Test
     public void testInvalidItemType()
     {
-        thrown.expect( ParserException.class );
-        test( "I{notValidItm}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "I{notValidItm}" ) );
     }
 
     // -------------------------------------------------------------------------

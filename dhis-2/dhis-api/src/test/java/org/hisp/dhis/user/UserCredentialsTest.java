@@ -29,7 +29,11 @@ package org.hisp.dhis.user;
  */
 
 import org.hamcrest.Matchers;
-import org.junit.Assert;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -72,8 +76,8 @@ public class UserCredentialsTest
         final UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
 
-        Assert.assertTrue( userCredentials.isSuper() );
-        Assert.assertTrue( userCredentials.isSuper() );
+        assertTrue( userCredentials.isSuper() );
+        assertTrue( userCredentials.isSuper() );
     }
 
     @Test
@@ -82,8 +86,8 @@ public class UserCredentialsTest
         final UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
 
-        Assert.assertFalse( userCredentials.isSuper() );
-        Assert.assertFalse( userCredentials.isSuper() );
+        assertFalse( userCredentials.isSuper() );
+        assertFalse( userCredentials.isSuper() );
     }
 
     @Test
@@ -92,10 +96,10 @@ public class UserCredentialsTest
         final UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
 
-        Assert.assertTrue( userCredentials.isSuper() );
+        assertTrue( userCredentials.isSuper() );
 
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
-        Assert.assertFalse( userCredentials.isSuper() );
+        assertFalse( userCredentials.isSuper() );
     }
 
     @Test
@@ -105,10 +109,10 @@ public class UserCredentialsTest
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
 
         Set<String> authorities1 = userCredentials.getAllAuthorities();
-        Assert.assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
+        assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
 
         Set<String> authorities2 = userCredentials.getAllAuthorities();
-        Assert.assertSame( authorities1, authorities2 );
+        assertSame( authorities1, authorities2 );
     }
 
     @Test
@@ -118,10 +122,10 @@ public class UserCredentialsTest
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
 
         Set<String> authorities1 = userCredentials.getAllAuthorities();
-        Assert.assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
+        assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
 
         userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
         Set<String> authorities2 = userCredentials.getAllAuthorities();
-        Assert.assertThat( authorities2, Matchers.containsInAnyOrder( "x1", "x2", "y1", "y2" ) );
+        assertThat( authorities2, Matchers.containsInAnyOrder( "x1", "x2", "y1", "y2" ) );
     }
 }

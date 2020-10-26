@@ -2,8 +2,10 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -31,9 +33,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceCriteria;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -79,9 +79,6 @@ public class TrackedEntityCriteriaMapperTest
     private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
 
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Override
     public void setUpTest()
@@ -199,88 +196,82 @@ public class TrackedEntityCriteriaMapperTest
     @Test
     public void verifyCriteriaMappingFailOnMissingAttribute()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Attribute does not exist: missing" );
-
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setAttribute( newHashSet( attrD.getUid(), attrE.getUid(), "missing" ) );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Attribute does not exist: missing", e.getMessage() );
     }
 
     @Test
     public void verifyCriteriaMappingFailOnMissingFilter()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Attribute does not exist: missing" );
-
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setFilter( newHashSet( filtF.getUid(), filtG.getUid(), "missing" ) );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Attribute does not exist: missing", e.getMessage() );
     }
 
     @Test
     public void verifyCriteriaMappingFailOnMissingProgram()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Program does not exist: " + programA.getUid() + "A" );
-
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setProgram( programA.getUid() + 'A' );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Program does not exist: " + programA.getUid() + "A", e.getMessage() );
     }
 
     @Test
     public void verifyCriteriaMappingFailOnMissingTrackerEntityType()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Tracked entity type does not exist: " + trackedEntityTypeA.getUid() + "A" );
-
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setTrackedEntityType( trackedEntityTypeA.getUid() + "A" );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Tracked entity type does not exist: " + trackedEntityTypeA.getUid() + "A", e.getMessage() );
     }
 
     @Test
     public void verifyCriteriaMappingFailOnMissingOrgUnit()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Organisation unit does not exist: " + organisationUnit.getUid() + "A" );
-
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setOu( organisationUnit.getUid() + "A" );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Organisation unit does not exist: " + organisationUnit.getUid() + "A", e.getMessage() );
     }
 
     @Test
     public void verifyCriteriaMappingFailOnUserNonInOuHierarchy()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Organisation unit is not part of the search scope: " + organisationUnit.getUid() );
-
         // Force Current User Service to return a User without search org unit
         ReflectionTestUtils.setField( trackedEntityCriteriaMapper, "currentUserService",
             new MockCurrentUserService( createUser( "testUser2" ) ) );
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setOu( organisationUnit.getUid() );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Organisation unit is not part of the search scope: " + organisationUnit.getUid(),
+            e.getMessage() );
     }
 
     @Test
     public void testGetFromUrlFailOnNonProvidedAndAssignedUsers()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setAssignedUser( "user-1;user-2" );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
 
-        trackedEntityCriteriaMapper.map( criteria );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED", e.getMessage() );
     }
 }
