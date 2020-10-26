@@ -28,7 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -37,19 +37,24 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Torgeir Lorange Ostby
  */
 public class DataElementStoreTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private DataElementStore dataElementStore;
@@ -108,58 +113,6 @@ public class DataElementStoreTest
         dataElementA = dataElementStore.get( idA );
         assertNotNull( dataElementA.getValueType() );
         assertEquals( ValueType.BOOLEAN, dataElementA.getValueType() );
-    }
-
-    @Test
-    public void testDeleteAndGetDataElement()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        dataElementStore.save( dataElementA );
-        long idA = dataElementA.getId();
-        dataElementStore.save( dataElementB );
-        long idB = dataElementB.getId();
-        dataElementStore.save( dataElementC );
-        long idC = dataElementC.getId();
-        dataElementStore.save( dataElementD );
-        long idD = dataElementD.getId();
-
-        assertNotNull( dataElementStore.get( idA ) );
-        assertNotNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementA = dataElementStore.get( idA );
-        dataElementB = dataElementStore.get( idB );
-        dataElementC = dataElementStore.get( idC );
-        dataElementD = dataElementStore.get( idD );
-
-        dataElementStore.delete( dataElementA );
-        assertNull( dataElementStore.get( idA ) );
-        assertNotNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementStore.delete( dataElementB );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementStore.delete( dataElementC );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementStore.delete( dataElementD );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNull( dataElementStore.get( idC ) );
-        assertNull( dataElementStore.get( idD ) );
     }
 
     @Test
@@ -252,7 +205,6 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );
         assertEquals( aggregationLevels, dataElementStore.get( idA ).getAggregationLevels() );
     }
-
 
     @Test
     public void testGetDataElementsWithoutGroups()
@@ -378,7 +330,14 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
         Date lastUpdated = dataElementStore.getLastUpdated();
-
+        try
+        {
+            Thread.sleep( 10 );
+        }
+        catch ( InterruptedException e )
+        {
+            e.printStackTrace();
+        }
         dataElementA.setDescription( "testA" );
         dataElementStore.update( dataElementA );
 
@@ -418,14 +377,31 @@ public class DataElementStoreTest
         uids.add( dataElementB.getUid() );
 
         assertNotNull( dataElementStore.getByUidNoAcl( uids ) );
-
         assertNotNull( dataElementStore.getByName( dataElementA.getName() ) );
-
         assertNotNull( dataElementStore.getByCode( dataElementA.getCode() ) );
-
         assertEquals( 1, dataElementStore.getAllEqName( "DataElementA" ).size() );
-
         assertEquals( 2, dataElementStore.getAllLikeName( "DataElement" ).size() );
+    }
+
+    @Test
+    public void testGetDataElementsByUidNoAcl()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+
+        List<String> uids = Lists.newArrayList( dataElementA.getUid(), dataElementB.getUid(), dataElementC.getUid() );
+
+        List<DataElement> dataElements = dataElementStore.getByUidNoAcl( uids );
+
+        assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( dataElementA ) );
+        assertTrue( dataElements.contains( dataElementB ) );
+        assertTrue( dataElements.contains( dataElementC ) );
     }
 
     @Test
@@ -438,19 +414,9 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementB );
 
         assertEquals( 2, dataElementStore.getCountLikeName( "dataelement" ) );
-
         assertEquals( 2, dataElementStore.getCount() );
-
         assertEquals( 0, dataElementStore.getCountGeCreated( new Date() ) );
-
         assertEquals( 2, dataElementStore.getCountGeCreated( dataElementA.getCreated() ) );
-
         assertEquals( 2, dataElementStore.getCountGeLastUpdated( dataElementA.getLastUpdated() ) );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

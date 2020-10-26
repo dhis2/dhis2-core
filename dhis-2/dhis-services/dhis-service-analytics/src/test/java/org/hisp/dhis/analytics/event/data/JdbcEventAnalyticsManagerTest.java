@@ -28,198 +28,116 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.isEmptyString;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
-import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.junit.Assert.assertThat;
-import static org.mockito.junit.MockitoJUnit.rule;
+import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.ExceptionHandler.handle;
+import static org.hisp.dhis.feedback.ErrorCode.E7132;
+import static org.hisp.dhis.feedback.ErrorCode.E7133;
+import static org.junit.rules.ExpectedException.none;
+import static org.postgresql.util.PSQLState.BAD_DATETIME_FORMAT;
+import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
-import java.util.List;
-
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicatorService;
-import org.junit.Before;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.collect.Lists;
+import org.junit.rules.ExpectedException;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 public class JdbcEventAnalyticsManagerTest
 {
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
-
-    @Mock
-    private StatementBuilder statementBuilder;
-
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
-
-    @Mock
-    private DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
-
     @Rule
-    public MockitoRule mockitoRule = rule();
+    public final ExpectedException expectedException = none();
 
-    private JdbcEventAnalyticsManager jdbcEventAnalyticsManager;
-
-    @Before
-    public void setUp()
+    @Test
+    public void testHandlingDataIntegrityExceptionWhenDivisionByZero()
     {
-        jdbcEventAnalyticsManager = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder,
-            programIndicatorService, programIndicatorSubqueryBuilder );
+        // Given
+        final DataIntegrityViolationException aDivisionByZeroException = mockDataIntegrityExceptionDivisionByZero();
+
+        // Then
+        expectedException.expect( QueryRuntimeException.class );
+        expectedException.expectMessage( E7132.getMessage() );
+
+        // When
+        handle( aDivisionByZeroException );
     }
 
     @Test
-    public void testWhereClauseWhenThereAreNoDimensionsAndOneCategory()
+    public void testHandlingAnyOtherDataIntegrityException()
     {
         // Given
-        final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
-        final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
-
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-
-        final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
-            newArrayList( aCategoryA ) );
-
-        final String theExpectedSql = " and ax.\"uid-cat-A\" in ('uid-opt-A', 'uid-opt-B') ";
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager.getWhereClause( theEventQueryParams );
+        final DataIntegrityViolationException anyDataIntegrityException = mockAnyOtherDataIntegrityException();
 
         // Then
-        assertThat( actualSql, containsString( theExpectedSql ) );
+        expectedException.expect( QueryRuntimeException.class );
+        expectedException.expectMessage( E7133.getMessage() );
+
+        // When
+        handle( anyDataIntegrityException );
     }
 
     @Test
-    public void testWhereClauseWhenThereAreNoDimensionsAndMultipleCategories()
+    public void testHandlingWhenExceptionIsNull()
     {
         // Given
-        final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
-        final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
-
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-
-        final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
-            newArrayList( aCategoryA, aCategoryB ) );
-
-        final String theExpectedSql = " and ax.\"uid-cat-A\" in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" in ('uid-opt-A', 'uid-opt-B') ";
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager.getWhereClause( theEventQueryParams );
+        final DataIntegrityViolationException aNullException = null;
 
         // Then
-        assertThat( actualSql, containsString( theExpectedSql ) );
+        expectedException.expect( QueryRuntimeException.class );
+        expectedException.expectMessage( E7133.getMessage() );
+
+        // When
+        handle( aNullException );
     }
 
     @Test
-    public void testQueryOnlyAllowedCategoryOptionEvents()
+    public void testHandlingWhenExceptionCauseNull()
     {
         // Given
-        final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
-        final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
-
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-
-        final String theExpectedSql = " and ax.\"uid-cat-A\" in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" in ('uid-opt-A', 'uid-opt-B') ";
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager
-            .queryOnlyAllowedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
+        final DataIntegrityViolationException aNullExceptionCause = new DataIntegrityViolationException( "null",
+            null );
 
         // Then
-        assertThat( actualSql, containsString( theExpectedSql ) );
+        expectedException.expect( QueryRuntimeException.class );
+        expectedException.expectMessage( E7133.getMessage() );
+
+        // When
+        handle( aNullExceptionCause );
     }
 
     @Test
-    public void testQueryOnlyAllowedCategoryOptionEventsWithNoCategories()
+    public void testHandlingWhenExceptionCauseIsNotPSQLException()
     {
         // Given
-        final List<Category> emptyCategoryList = newArrayList();
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager.queryOnlyAllowedCategoryOptionEvents( emptyCategoryList );
-
-        // Then
-        assertThat( actualSql, isEmptyString() );
-    }
-
-    @Test
-    public void testQueryOnlyAllowedCategoryOptionEventsWithNoCategoryOptions()
-    {
-        // Given
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", newArrayList() );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", newArrayList() );
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager
-            .queryOnlyAllowedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
+        final ArrayIndexOutOfBoundsException aRandomCause = new ArrayIndexOutOfBoundsException();
+        final DataIntegrityViolationException aNonPSQLExceptionCause = new DataIntegrityViolationException(
+            "not caused by PSQLException", aRandomCause );
 
         // Then
-        assertThat( actualSql, isEmptyString() );
+        expectedException.expect( QueryRuntimeException.class );
+        expectedException.expectMessage( E7133.getMessage() );
+
+        // When
+        handle( aNonPSQLExceptionCause );
     }
 
-    private Category stubCategory( final String name, final String uid, final List<CategoryOption> categoryOptions )
+    private DataIntegrityViolationException mockDataIntegrityExceptionDivisionByZero()
     {
-        final Category category = new Category( name, ATTRIBUTE );
-        category.setCategoryOptions( newArrayList( categoryOptions ) );
-        category.setUid( uid );
-        return category;
+        final PSQLException psqlException = new PSQLException( "ERROR: division by zero", DIVISION_BY_ZERO );
+        final DataIntegrityViolationException mockedException = new DataIntegrityViolationException(
+            "ERROR: division by zero; nested exception is org.postgresql.util.PSQLException: ERROR: division by zero",
+            psqlException );
+
+        return mockedException;
     }
 
-    private CategoryOption stubCategoryOption( final String name, final String uid )
+    private DataIntegrityViolationException mockAnyOtherDataIntegrityException()
     {
-        final CategoryOption categoryOption = new CategoryOption( name );
-        categoryOption.setUid( uid );
-        return categoryOption;
-    }
+        final PSQLException psqlException = new PSQLException( "ERROR: bad time format", BAD_DATETIME_FORMAT );
+        final DataIntegrityViolationException mockedException = new DataIntegrityViolationException(
+            "ERROR: bad time format; nested exception is org.postgresql.util.PSQLException: ERROR: bad time format",
+            psqlException );
 
-    private EventQueryParams stubEventQueryParamsWithoutDimensions( final List<Category> categories )
-    {
-        final DimensionalObject doA = new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList() );
-        final DimensionalObject doC = new BaseDimensionalObject( "Cz3WQznvrCM", PROGRAM_ATTRIBUTE, newArrayList() );
-
-        final Period period = PeriodType.getPeriodFromIsoString( "2019Q2" );
-
-        final CategoryCombo categoryCombo = new CategoryCombo( "cat-combo", ATTRIBUTE );
-        categoryCombo.setCategories( categories );
-
-        final Program program = new Program( "program", "a program" );
-        program.setCategoryCombo( categoryCombo );
-
-        final DataQueryParams dataQueryParams = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doC )
-            .withPeriods( Lists.newArrayList( period ) ).withPeriodType( period.getPeriodType().getIsoFormat() )
-            .build();
-
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( dataQueryParams );
-        final EventQueryParams eventQueryParams = eventQueryParamsBuilder.withProgram( program ).build();
-
-        return eventQueryParams;
+        return mockedException;
     }
 }

@@ -42,10 +42,11 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -61,11 +62,10 @@ import org.springframework.util.ResourceUtils;
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 public class DefaultHibernateConfigurationProvider
     implements HibernateConfigurationProvider
 {
-    private static final Log log = LogFactory.getLog( DefaultHibernateConfigurationProvider.class );
-
     private Configuration configuration = null;
 
     private static final String MAPPING_RESOURCES_ROOT = "org/hisp/dhis/";
@@ -232,6 +232,22 @@ public class DefaultHibernateConfigurationProvider
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), Environment.USER, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ),
+            ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ),
+            ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ),
+            ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ),
+            ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ),
+            ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ),
+            ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ),
+            ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ),
+            ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(), props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
 
         if ( SystemUtils.isTestRun(environment.getActiveProfiles()) )
@@ -306,21 +322,21 @@ public class DefaultHibernateConfigurationProvider
 
         // Split using comma delimiter along with possible spaces in between
 
-        String clusterMemberList[] = clusterMembers.trim().split("\\s*,\\s*");
+        String[] clusterMemberList = clusterMembers.trim().split("\\s*,\\s*");
 
         List<String> cacheNames = getCacheNames();
 
         final StringBuilder rmiUrlBuilder = new StringBuilder();
 
-        for ( int i = 0; i < clusterMemberList.length; i++ )
+        for ( String member : clusterMemberList )
         {
-            final String clusterUrl = "//" + clusterMemberList[i] + "/";
+            final String clusterUrl = "//" + member + "/";
 
-            cacheNames.stream().forEach( name -> rmiUrlBuilder.append( clusterUrl + name + "|" ) );
+            cacheNames.forEach( name -> rmiUrlBuilder.append( clusterUrl ).append( name ).append( "|" ) );
 
-            clusterHostnames.add( clusterMemberList[i] );
+            clusterHostnames.add( member );
 
-            log.info( "Found cluster instance: " + clusterMemberList[i] );
+            log.info("Found cluster instance: " + member);
         }
 
         String rmiUrls = StringUtils.removeEnd( rmiUrlBuilder.toString(), "|" );

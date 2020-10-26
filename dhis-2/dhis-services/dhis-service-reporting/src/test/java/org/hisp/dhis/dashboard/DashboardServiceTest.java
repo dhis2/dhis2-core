@@ -34,12 +34,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -71,94 +71,90 @@ public class DashboardServiceTest
     @Autowired
     private IdentifiableObjectManager objectManager;
 
-    private Dashboard dA;
-    private Dashboard dB;
+    private Dashboard dbA;
+    private Dashboard dbB;
 
     private DashboardItem diA;
     private DashboardItem diB;
     private DashboardItem diC;
     private DashboardItem diD;
 
-    private Visualization visualizationA;
-    private Visualization visualizationB;
+    private Visualization vzA;
+    private Visualization vzB;
 
-    private Document docA;
+    private Document dcA;
 
     @Override
     public void setUpTest()
     {
-        visualizationA = createVisualization( "A" );
-        visualizationB = createVisualization( "B" );
+        vzA = createVisualization( "A" );
+        vzB = createVisualization( "B" );
 
-        visualizationService.save( visualizationA );
-        visualizationService.save( visualizationB );
+        visualizationService.save( vzA );
+        visualizationService.save( vzB );
 
-        docA = new Document( "A", "url", false, null );
-        Document docB = new Document( "B", "url", false, null );
-        Document docC = new Document( "C", "url", false, null );
-        Document docD = new Document( "D", "url", false, null );
+        dcA = new Document( "A", "url", false, null );
+        Document dcB = new Document( "B", "url", false, null );
+        Document dcC = new Document( "C", "url", false, null );
+        Document dcD = new Document( "D", "url", false, null );
 
-        documentService.saveDocument( docA );
-        documentService.saveDocument( docB );
-        documentService.saveDocument( docC );
-        documentService.saveDocument( docD );
+        documentService.saveDocument( dcA );
+        documentService.saveDocument( dcB );
+        documentService.saveDocument( dcC );
+        documentService.saveDocument( dcD );
 
         diA = new DashboardItem();
         diA.setAutoFields();
-        diA.setVisualization( visualizationA );
+        diA.setVisualization( vzA );
 
         diB = new DashboardItem();
         diB.setAutoFields();
-        diB.setVisualization( visualizationB );
+        diB.setVisualization( vzB );
 
         diC = new DashboardItem();
         diC.setAutoFields();
-        diC.getResources().add( docA );
-        diC.getResources().add( docB );
+        diC.getResources().add( dcA );
+        diC.getResources().add( dcB );
 
         diD = new DashboardItem();
         diD.setAutoFields();
-        diD.getResources().add( docC );
-        diD.getResources().add( docD );
+        diD.getResources().add( dcC );
+        diD.getResources().add( dcD );
 
-        dA = new Dashboard( "A" );
-        dA.setAutoFields();
-        dA.getItems().add( diA );
-        dA.getItems().add( diB );
-        dA.getItems().add( diC );
+        dbA = new Dashboard( "A" );
+        dbA.setAutoFields();
+        dbA.getItems().add( diA );
+        dbA.getItems().add( diB );
+        dbA.getItems().add( diC );
 
-        dB = new Dashboard( "B" );
-        dB.setAutoFields();
-        dB.getItems().add( diD );
+        dbB = new Dashboard( "B" );
+        dbB.setAutoFields();
+        dbB.getItems().add( diD );
     }
 
     @Test
     public void testAddGet()
     {
-        long dAId = dashboardService.saveDashboard( dA );
-        long dBId = dashboardService.saveDashboard( dB );
+        long dAId = dashboardService.saveDashboard( dbA );
+        long dBId = dashboardService.saveDashboard( dbB );
 
-        assertEquals( dA, dashboardService.getDashboard( dAId ) );
-        assertEquals( dB, dashboardService.getDashboard( dBId ) );
+        assertEquals( dbA, dashboardService.getDashboard( dAId ) );
+        assertEquals( dbB, dashboardService.getDashboard( dBId ) );
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
-
-        assertEquals( 1, dashboardService.countVisualizationDashboardItems( visualizationA ) );
-        assertEquals( 1, dashboardService.countVisualizationDashboardItems( visualizationB ) );
-        assertEquals( 1, dashboardService.countDocumentDashboardItems( docA ) );
     }
 
     @Test
     public void testUpdate()
     {
-        long dAId = dashboardService.saveDashboard( dA );
+        long dAId = dashboardService.saveDashboard( dbA );
 
         assertEquals( "A", dashboardService.getDashboard( dAId ).getName() );
 
-        dA.setName( "B" );
+        dbA.setName( "B" );
 
-        dashboardService.updateDashboard( dA );
+        dashboardService.updateDashboard( dbA );
 
         assertEquals( "B", dashboardService.getDashboard( dAId ).getName() );
     }
@@ -166,78 +162,82 @@ public class DashboardServiceTest
     @Test
     public void testDelete()
     {
-        long dAId = dashboardService.saveDashboard( dA );
-        long dBId = dashboardService.saveDashboard( dB );
+        // ## Ensuring the preparation for deletion
+        // When saved
+        final long dAId = dashboardService.saveDashboard( dbA );
+        final long dBId = dashboardService.saveDashboard( dbB );
 
-        assertNotNull( dashboardService.getDashboard( dAId ) );
-        assertNotNull( dashboardService.getDashboard( dBId ) );
+        // Then confirm that they were saved
+        assertThatDashboardAndItemsArePersisted( dAId );
+        assertThatDashboardAndItemsArePersisted( dBId );
 
-        dashboardService.deleteDashboard( dA );
+        // ## Testing deletion
+        // Given
+        final List<DashboardItem> itemsOfDashA = dashboardService.getDashboard( dAId ).getItems();
+        final List<DashboardItem> itemsOfDashB = dashboardService.getDashboard( dBId ).getItems();
 
-        assertNull( dashboardService.getDashboard( dAId ) );
-        assertNotNull( dashboardService.getDashboard( dBId ) );
+        // When deleted
+        dashboardService.deleteDashboard( dbA );
+        dashboardService.deleteDashboard( dbB );
 
-        dashboardService.deleteDashboard( dB );
+        // Then confirm that they were deleted
+        assertDashboardAndItemsAreDeleted( dAId, itemsOfDashA );
+        assertDashboardAndItemsAreDeleted( dBId, itemsOfDashB );
+    }
 
-        assertNull( dashboardService.getDashboard( dAId ) );
-        assertNull( dashboardService.getDashboard( dBId ) );
+    private void assertThatDashboardAndItemsArePersisted( final long dashboardId )
+    {
+        final Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+        assertNotNull( dashboard );
+
+        final List<DashboardItem> itemsA = dashboard.getItems();
+
+        for ( final DashboardItem dAItem : itemsA )
+        {
+            assertNotNull( "DashboardItem should exist", dashboardService.getDashboardItem( dAItem.getUid() ) );
+        }
+    }
+
+    private void assertDashboardAndItemsAreDeleted( final long dashboardId, final List<DashboardItem> dashboardItems )
+    {
+        assertNull( dashboardService.getDashboard( dashboardId ) );
+
+        // Assert that there are not items related to the given Dashboard
+        for ( final DashboardItem item : dashboardItems )
+        {
+            assertNull( "DashboardItem should not exist", dashboardService.getDashboardItem( item.getUid() ) );
+        }
     }
 
     @Test
     public void testAddItemContent()
     {
-        dashboardService.saveDashboard( dA );
-        dashboardService.saveDashboard( dB );
+        dashboardService.saveDashboard( dbA );
+        dashboardService.saveDashboard( dbB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dA.getUid(), DashboardItemType.VISUALIZATION, visualizationA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION, vzA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
     }
 
-    @Test( expected = DeleteNotAllowedException.class)
-    public void testDeleteWithDashboardItem()
-    {
-        Program prA = createProgram( 'A', null, null );
-        objectManager.save( prA );
-
-        EventChart eventChart = new EventChart( "ecA" );
-        eventChart.setProgram( prA );
-        eventChart.setType( ChartType.COLUMN );
-
-        long idA = eventChartService.saveEventChart( eventChart );
-
-        assertNotNull( eventChartService.getEventChart( idA ) );
-
-        Dashboard dashboard = new Dashboard( "A" );
-        dashboard.setAutoFields();
-
-        dashboardService.saveDashboard( dashboard );
-
-        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART, eventChart.getUid() );
-
-        assertNotNull( itemA );
-
-        eventChartService.deleteEventChart( eventChart );
-    }
-
     @Test
     public void testSearchDashboard()
     {
-        dashboardService.saveDashboard( dA );
-        dashboardService.saveDashboard( dB );
+        dashboardService.saveDashboard( dbA );
+        dashboardService.saveDashboard( dbB );
 
         DashboardSearchResult result = dashboardService.search( "A" );
-        assertEquals(1, result.getVisualizationCount() );
-        assertEquals(1, result.getResourceCount() );
+        assertEquals( 1, result.getVisualizationCount() );
+        assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "B" );
-        assertEquals(1, result.getVisualizationCount() );
-        assertEquals(1, result.getResourceCount() );
+        assertEquals( 1, result.getVisualizationCount() );
+        assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "Z" );
-        assertEquals(0, result.getVisualizationCount() );
-        assertEquals(0, result.getResourceCount() );
+        assertEquals( 0, result.getVisualizationCount() );
+        assertEquals( 0, result.getResourceCount() );
     }
 
     @Test
@@ -246,14 +246,14 @@ public class DashboardServiceTest
         Program prA = createProgram( 'A', null, null );
         objectManager.save( prA );
 
-        IntStream.range(1, 30).forEach( i -> {
-            Visualization visualization = createVisualization( "A" );
+        IntStream.range( 1, 30 ).forEach( i -> {
+            Visualization visualization = createVisualization( 'A' );
             visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
 
-        });
+        } );
 
-        IntStream.range(1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
+        IntStream.range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
 
         DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ) );
 
@@ -270,6 +270,13 @@ public class DashboardServiceTest
         assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
 
+    }
+
+    private Visualization createVisualization( String name )
+    {
+        Visualization visualization = createVisualization( 'X' );
+        visualization.setName( name );
+        return visualization;
     }
 
     private EventChart createEventChart( Program program )

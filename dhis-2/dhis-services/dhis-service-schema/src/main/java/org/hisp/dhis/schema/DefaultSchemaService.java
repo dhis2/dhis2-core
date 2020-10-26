@@ -75,8 +75,6 @@ public class DefaultSchemaService
         add( new CategoryOptionSchemaDescriptor() ).
         add( new CategorySchemaDescriptor() ).
         add( new ChartSchemaDescriptor() ).
-        add( new ColorSchemaDescriptor() ).
-        add( new ColorSetSchemaDescriptor() ).
         add( new ConstantSchemaDescriptor() ).
         add( new DashboardItemSchemaDescriptor() ).
         add( new DashboardSchemaDescriptor() ).
@@ -216,7 +214,7 @@ public class DefaultSchemaService
             }
             catch ( MappingException e )
             {
-                // class is not persisted with Hibernate
+                // Class is not persisted with Hibernate
                 schema.setPersisted( false );
             }
 

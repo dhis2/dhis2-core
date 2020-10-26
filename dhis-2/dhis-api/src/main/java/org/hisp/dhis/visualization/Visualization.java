@@ -1,5 +1,3 @@
-package org.hisp.dhis.visualization;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,7 +26,16 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.visualization;
+
+import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -40,25 +47,15 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.NumberType;
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
-import org.springframework.util.Assert;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -66,11 +63,40 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.analytics.NumberType;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.HideEmptyItemStrategy;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.RegressionType;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.legend.LegendDisplayStrategy;
+import org.hisp.dhis.legend.LegendDisplayStyle;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.user.User;
+import org.springframework.util.Assert;
 
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
     extends BaseAnalyticalObject
-        implements MetadataObject
+    implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
@@ -150,6 +176,12 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items in the
+     * first dimension of the "columns" list by dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -174,24 +206,26 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    /*
-     * # Legend related attributes.
-     */
     private LegendDisplayStyle legendDisplayStyle;
 
     private LegendSet legendSet;
 
     private LegendDisplayStrategy legendDisplayStrategy;
 
-    private ColorSet colorSet;
+    /**
+     * The font style for various components of the visualization.
+     */
+    private VisualizationFontStyle fontStyle;
+
+    /**
+     * The key of the color set to use for visualization items, like columns and bars.
+     */
+    private String colorSet;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    /*
-     * # Settings more likely to be applied to graphics or charts.
-     */
     private Double targetLineValue;
 
     private Double baseLineValue;
@@ -241,7 +275,7 @@ public class Visualization
     /**
      * Indicates whether the visualization contains cumulative values or columns.
      */
-    private boolean cumulative;
+    private boolean cumulativeValues;
 
     /**
      * User stacked values or not. Very likely to be applied for graphics/charts.
@@ -326,6 +360,8 @@ public class Visualization
 
     private transient List<List<DimensionalItemObject>> gridRows = new ArrayList<>();
 
+    private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>();
+
     public Visualization()
     {
     }
@@ -385,8 +421,8 @@ public class Visualization
     }
 
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;
@@ -499,14 +535,14 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isCumulative()
+    public boolean isCumulativeValues()
     {
-        return cumulative;
+        return cumulativeValues;
     }
 
-    public void setCumulative( boolean cumulative )
+    public void setCumulativeValues( boolean cumulativeValues )
     {
-        this.cumulative = cumulative;
+        this.cumulativeValues = cumulativeValues;
     }
 
     @JsonProperty
@@ -585,7 +621,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public DisplayDensity getDisplayDensity()
     {
-        return displayDensity;
+        return DefaultValue.defaultIfNull( displayDensity );
     }
 
     public void setDisplayDensity( DisplayDensity displayDensity )
@@ -597,7 +633,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public FontSize getFontSize()
     {
-        return fontSize;
+        return DefaultValue.defaultIfNull( fontSize );
     }
 
     public void setFontSize( FontSize fontSize )
@@ -613,7 +649,7 @@ public class Visualization
         return optionalAxes;
     }
 
-    public void setOptionalAxes(List<Axis> optionalAxes)
+    public void setOptionalAxes( List<Axis> optionalAxes )
     {
         this.optionalAxes = optionalAxes;
     }
@@ -804,6 +840,19 @@ public class Visualization
         this.regressionType = regressionType;
     }
 
+    @JsonProperty( "series" )
+    @JacksonXmlElementWrapper( localName = "series", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DXF_2_0 )
+    public List<Series> getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( List<Series> series )
+    {
+        this.series = series;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
@@ -902,12 +951,24 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ColorSet getColorSet()
+    public VisualizationFontStyle getFontStyle()
+    {
+        return fontStyle;
+    }
+
+    public void setFontStyle( VisualizationFontStyle fontStyle )
+    {
+        this.fontStyle = fontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public String getColorSet()
     {
         return colorSet;
     }
 
-    public void setColorSet( ColorSet colorSet )
+    public void setColorSet( String colorSet )
     {
         this.colorSet = colorSet;
     }
@@ -926,6 +987,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -938,6 +1000,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -962,6 +1025,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -974,6 +1038,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
@@ -1021,10 +1086,86 @@ public class Visualization
         this.yearlySeries = yearlySeries;
     }
 
+    /**
+     * Returns the list of DimensionDescriptor held internally to the current Visualization object.
+     * See {@link #addDimensionDescriptor}.
+     *
+     * @return the list of DimensionDescriptor's held.
+     */
+    public List<DimensionDescriptor> getDimensionDescriptors()
+    {
+        return dimensionDescriptors;
+    }
+
+    /**
+     * This method will hold the mapping of a dimension and its respective formal
+     * type.
+     *
+     * @param dimension the dimension, which should also be found in
+     *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
+     * @param dimensionType the formal dimension type. See {@link DimensionType}
+     */
+    public void addDimensionDescriptor( final String dimension, final DimensionType dimensionType )
+    {
+        this.dimensionDescriptors.add( new DimensionDescriptor( dimension, dimensionType ) );
+    }
+
     @Override
     public void init( final User user, final Date date, final OrganisationUnit organisationUnit,
         final List<OrganisationUnit> organisationUnitsAtLevel, final List<OrganisationUnit> organisationUnitsInGroups,
         final I18nFormat format )
+    {
+        if ( type == PIVOT_TABLE )
+        {
+            initializePivotTable( user, date, organisationUnit, organisationUnitsAtLevel, organisationUnitsInGroups,
+                format );
+        }
+        else
+        {
+            // It's a CHART type
+            initializeChart( user, date, organisationUnit, organisationUnitsAtLevel, organisationUnitsInGroups,
+                format );
+        }
+    }
+
+    private void initializePivotTable( User user, Date date, OrganisationUnit organisationUnit,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
+    {
+        verify( (periods != null && !periods.isEmpty()) || hasRelativePeriods(),
+            "Must contain periods or relative periods" );
+
+        this.relativePeriodDate = date;
+        this.relativeOrganisationUnit = organisationUnit;
+
+        if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
+        {
+            organisationUnit.setCurrentParent( true );
+            addTransientOrganisationUnits( organisationUnit.getChildren() );
+            addTransientOrganisationUnit( organisationUnit );
+        }
+
+        if ( organisationUnit != null && hasReportingParams() && reportingParams.isOrganisationUnit() )
+        {
+            addTransientOrganisationUnit( organisationUnit );
+        }
+
+        // Handle special dimension
+        if ( isDimensional() )
+        {
+            transientCategoryOptionCombos
+                .addAll( Objects.requireNonNull( getFirstCategoryCombo() ).getSortedOptionCombos() );
+            verify( nonEmptyLists( transientCategoryOptionCombos ) == 1,
+                "Category option combos size must be larger than 0" );
+        }
+
+        // Populate grid
+        this.populateGridColumnsAndRows( date, user, organisationUnitsAtLevel, organisationUnitsInGroups, format );
+    }
+
+    private void initializeChart( User user, Date date, OrganisationUnit organisationUnit,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
     {
         this.relativeUser = user;
         this.relativePeriodDate = date;
@@ -1037,19 +1178,36 @@ public class Visualization
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
+        // Some Visualizations may not have columnDimensions.
+        if ( isNotEmpty( columnDimensions ) )
         {
-            columns.add( getDimensionalObject( column ) );
+            for ( String column : columnDimensions )
+            {
+                if ( isNotBlank( column ) )
+                {
+                    columns.add( getDimensionalObject( column ) );
+                }
+            }
         }
 
-        for ( String row : rowDimensions )
+        // PIE, GAUGE and others don't not have rowsDimensions.
+        if ( isNotEmpty( rowDimensions ) )
         {
-            rows.add( getDimensionalObject( row ) );
+            for ( String row : rowDimensions )
+            {
+                if ( isNotBlank( row ) )
+                {
+                    rows.add( getDimensionalObject( row ) );
+                }
+            }
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            if ( isNotBlank( filter ) )
+            {
+                filters.add( getDimensionalObject( filter ) );
+            }
         }
     }
 
@@ -1076,6 +1234,98 @@ public class Visualization
     // -------------------------------------------------------------------------
     // Business logic
     // -------------------------------------------------------------------------
+
+    /**
+     * Based on the Chart dimension, this method will bring the collection of
+     * child items related to its series.
+     *
+     * @return a list of DimensionalItemObject representing the Chart series
+     */
+    public List<DimensionalItemObject> chartSeries()
+    {
+        // Chart must have one column dimension (series). This is a protective checking.
+        if ( isEmpty( columnDimensions ) || isBlank( columnDimensions.get( 0 ) ) )
+        {
+            return null;
+        }
+
+        return getDimensionalItemObjects( columnDimensions.get( 0 ) );
+    }
+
+    /**
+     * Based on the Chart dimension, this method will bring the collection of
+     * child items related to its category.
+     *
+     * @return a list of DimensionalItemObject representing the Chart category
+     */
+    public List<DimensionalItemObject> chartCategory()
+    {
+        // Chart must have one row dimension (category). This is a protective checking.
+        if ( isEmpty( rowDimensions ) || isBlank( rowDimensions.get( 0 ) ) )
+        {
+            return null;
+        }
+
+        return getDimensionalItemObjects( rowDimensions.get( 0 ) );
+    }
+
+    /**
+     * Returns a list of dimensional items based on the given dimension and internal
+     * attributes of the current Visualization object.
+     *
+     * @param dimension a given dimension
+     * @return the list of DimensionalItemObject's
+     */
+    private List<DimensionalItemObject> getDimensionalItemObjects( final String dimension )
+    {
+        DimensionalObject object = getDimensionalObject( dimension, relativePeriodDate, relativeUser, true,
+            organisationUnitsAtLevel, organisationUnitsInGroups, format );
+
+        return object != null ? object.getItems() : null;
+    }
+
+    public void populateGridColumnsAndRows( Date date, User user,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+    {
+        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
+        List<DimensionalItemObject> filterItems = new ArrayList<>();
+
+        for ( String dimension : columnDimensions )
+        {
+            if ( dimension != null )
+            {
+                tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
+        }
+
+        for ( String dimension : rowDimensions )
+        {
+            if ( dimension != null )
+            {
+                tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
+        }
+
+        for ( String filter : filterDimensions )
+        {
+            if ( filter != null )
+            {
+                filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
+        }
+
+        gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
+        gridRows = CombinationGenerator.newInstance( tableRows ).getCombinations();
+
+        addListIfEmpty( gridColumns );
+        addListIfEmpty( gridRows );
+
+        gridTitle = IdentifiableObjectUtils.join( filterItems );
+    }
 
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
@@ -1107,8 +1357,39 @@ public class Visualization
     }
 
     // -------------------------------------------------------------------------
-    // Display supportive methods
+    // Display and supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns the category combo of the first data element.
+     */
+    private CategoryCombo getFirstCategoryCombo()
+    {
+        if ( !getDataElements().isEmpty() )
+        {
+            return getDataElements().get( 0 ).getCategoryCombos().iterator().next();
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the number of empty lists among the argument lists.
+     */
+    private static int nonEmptyLists( List<?>... lists )
+    {
+        int nonEmpty = 0;
+
+        for ( List<?> list : lists )
+        {
+            if ( list != null && list.size() > 0 )
+            {
+                ++nonEmpty;
+            }
+        }
+
+        return nonEmpty;
+    }
 
     /**
      * Tests whether this visualization has reporting parameters.
@@ -1116,6 +1397,27 @@ public class Visualization
     public boolean hasReportingParams()
     {
         return reportingParams != null;
+    }
+
+    /**
+     * Simply checks if the given type matches the current object instance.
+     *
+     * @param type the VisualizationType.
+     * @return true if the type matches, false otherwise.
+     */
+    public boolean isType( final VisualizationType type )
+    {
+        return this.type != null && this.type.equals( type );
+    }
+
+    public boolean isTargetLine()
+    {
+        return targetLineValue != null;
+    }
+
+    public boolean isBaseLine()
+    {
+        return baseLineValue != null;
     }
 
     /**
@@ -1133,9 +1435,9 @@ public class Visualization
      * Generates a grid for this visualization based on the given aggregate value
      * map.
      *
-     * @param grid the grid, should be empty and not null.
-     * @param valueMap the mapping of identifiers to aggregate values.
-     * @param displayProperty the display property to use for meta data.
+     * @param grid               the grid, should be empty and not null.
+     * @param valueMap           the mapping of identifiers to aggregate values.
+     * @param displayProperty    the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */
@@ -1165,10 +1467,11 @@ public class Visualization
         final Map<String, String> metaData = getMetaData();
         metaData.putAll( PRETTY_NAMES );
 
-        for ( String row : rowDimensions )
+        for ( String dimension : rowDimensions )
         {
-            final String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
-            final String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
+            final String dimensionId = getDimensionIdentifierFor( dimension, getDimensionDescriptors() );
+            final String name = defaultIfEmpty( metaData.get( dimensionId ), dimensionId );
+            final String col = defaultIfEmpty( COLUMN_NAMES.get( dimensionId ), dimensionId );
 
             grid.addHeader( new GridHeader( name + " ID", col + "id", TEXT, String.class.getName(), true, true ) );
             grid.addHeader( new GridHeader( name, col + "name", TEXT, String.class.getName(), false, true ) );
@@ -1258,7 +1561,7 @@ public class Visualization
             grid.addRegressionToGrid( startColumnIndex, numberOfColumns );
         }
 
-        if ( cumulative )
+        if ( cumulativeValues )
         {
             grid.addCumulativesToGrid( startColumnIndex, numberOfColumns );
         }
@@ -1415,5 +1718,34 @@ public class Visualization
 
         grid.addHeaders( ouIdColumnIndex, headers );
         grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
+    }
+
+    public String generateTitle()
+    {
+        List<String> titleItems = new ArrayList<>();
+
+        for ( String filter : filterDimensions )
+        {
+            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
+                organisationUnitsAtLevel, organisationUnitsInGroups, format );
+
+            if ( object != null )
+            {
+                String item = IdentifiableObjectUtils.join( object.getItems() );
+                String filt = DimensionalObjectUtils.getPrettyFilter( object.getFilter() );
+
+                if ( item != null )
+                {
+                    titleItems.add( item );
+                }
+
+                if ( filt != null )
+                {
+                    titleItems.add( filt );
+                }
+            }
+        }
+
+        return join( titleItems, DimensionalObjectUtils.TITLE_ITEM_SEP );
     }
 }

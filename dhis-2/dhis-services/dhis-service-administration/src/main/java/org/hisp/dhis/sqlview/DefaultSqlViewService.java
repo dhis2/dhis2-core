@@ -28,19 +28,21 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.sqlview.SqlView.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
@@ -52,19 +54,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.sqlview.SqlView.*;
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Dang Duy Hieu
  */
+@Slf4j
 @Transactional
 @Service( "org.hisp.dhis.sqlview.SqlViewService" )
 public class DefaultSqlViewService
     implements SqlViewService
 {
-    private static final Log log = LogFactory.getLog( DefaultSqlViewService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -187,8 +189,6 @@ public class DefaultSqlViewService
         Grid grid = new ListGrid();
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
-
-        validateSqlView( sqlView, criteria, variables );
 
         log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
 
@@ -326,11 +326,11 @@ public class DefaultSqlViewService
     public void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException
     {
-        String violation = null;
+        ErrorMessage error = null;
 
         if ( sqlView == null || sqlView.getSqlQuery() == null )
         {
-            throw new IllegalQueryException( "SQL query is null" );
+            throw new IllegalQueryException( ErrorCode.E4300 );
         }
 
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
@@ -340,64 +340,65 @@ public class DefaultSqlViewService
 
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
-            violation = "SQL query must be a select query";
+            error = new ErrorMessage( ErrorCode.E4301 );
         }
 
         if ( sql.contains( ";" ) && !sql.trim().endsWith( ";" ) )
         {
-            violation = "SQL query can only contain a single semi-colon at the end of the query";
+            error = new ErrorMessage( ErrorCode.E4302 );
         }
 
         if ( variables != null && variables.keySet().contains( null ) )
         {
-            violation = "Variables contains null key";
+            error = new ErrorMessage( ErrorCode.E4303 );
         }
 
         if ( variables != null && variables.values().contains( null ) )
         {
-            violation = "Variables contains null value";
+            error = new ErrorMessage( ErrorCode.E4304 );
         }
 
         if ( variables != null && !SqlView.getInvalidQueryParams( variables.keySet() ).isEmpty() )
         {
-            violation = "Variable params are invalid: " + SqlView.getInvalidQueryParams( variables.keySet() );
+            error = new ErrorMessage( ErrorCode.E4305, SqlView.getInvalidQueryParams( variables.keySet() ) );
         }
 
         if ( variables != null && !SqlView.getInvalidQueryValues( variables.values() ).isEmpty() )
         {
-            violation = "Variables are invalid: " + SqlView.getInvalidQueryValues( variables.values() );
+            error = new ErrorMessage( ErrorCode.E4306, SqlView.getInvalidQueryValues( variables.values() ) );
         }
 
         if ( sqlView.isQuery() && !sqlVars.isEmpty() && ( !allowedVariables.containsAll( sqlVars ) ) )
         {
-            violation = "SQL query contains variables which were not provided in request: " + sqlVars;
+            error = new ErrorMessage( ErrorCode.E4307, sqlVars );
         }
 
         if ( criteria != null && !SqlView.getInvalidQueryParams( criteria.keySet() ).isEmpty() )
         {
-            violation = "Criteria params are invalid: " + SqlView.getInvalidQueryParams( criteria.keySet() );
+            error = new ErrorMessage( ErrorCode.E4308, SqlView.getInvalidQueryParams( criteria.keySet() ) );
         }
 
         if ( criteria != null && !SqlView.getInvalidQueryValues( criteria.values() ).isEmpty() )
         {
-            violation = "Criteria values are invalid: " + SqlView.getInvalidQueryValues( criteria.values() );
+            error = new ErrorMessage( ErrorCode.E4309, SqlView.getInvalidQueryValues( criteria.values() ) );
         }
 
         if ( !ignoreSqlViewTableProtection && sql.matches( SqlView.getProtectedTablesRegex() ) )
         {
-            violation = "SQL query contains references to protected tables";
+            error = new ErrorMessage( ErrorCode.E4310 );
         }
 
         if ( sql.matches( SqlView.getIllegalKeywordsRegex() ) )
         {
-            violation = "SQL query contains illegal keywords";
+            error = new ErrorMessage( ErrorCode.E4311 );
         }
 
-        if ( violation != null )
+        if ( error != null )
         {
-            log.warn( String.format( "Validation failed for SQL view '%s': %s", sqlView.getUid(), violation ) );
+            log.warn( String.format( "Validation failed for SQL view '%s' with code: '%s' and message: '%s'",
+                sqlView.getUid(), error.getErrorCode(), error.getMessage() ) );
 
-            throw new IllegalQueryException( violation );
+            throw new IllegalQueryException( error );
         }
     }
 

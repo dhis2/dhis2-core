@@ -29,9 +29,8 @@ package org.hisp.dhis.preheat;
  */
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
@@ -87,13 +86,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Transactional // TODO check if this class can be readOnly
 @Service( "org.hisp.dhis.preheat.PreheatService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class DefaultPreheatService implements PreheatService
 {
-    private static final Log log = LogFactory.getLog( DefaultPreheatService.class );
-
     private final SchemaService schemaService;
 
     private final QueryService queryService;
@@ -110,9 +108,12 @@ public class DefaultPreheatService implements PreheatService
 
     private final MergeService mergeService;
 
+    private final SchemaToDataFetcher schemaToDataFetcher;
+
     public DefaultPreheatService( SchemaService schemaService, QueryService queryService,
         IdentifiableObjectManager manager, CurrentUserService currentUserService, PeriodStore periodStore,
-        PeriodService periodService, AttributeService attributeService, MergeService mergeService )
+        PeriodService periodService, AttributeService attributeService, MergeService mergeService,
+        SchemaToDataFetcher schemaToDataFetcher )
     {
         checkNotNull( schemaService );
         checkNotNull( queryService );
@@ -131,6 +132,7 @@ public class DefaultPreheatService implements PreheatService
         this.periodService = periodService;
         this.attributeService = attributeService;
         this.mergeService = mergeService;
+        this.schemaToDataFetcher = schemaToDataFetcher;
     }
 
     @Override
@@ -150,13 +152,6 @@ public class DefaultPreheatService implements PreheatService
 
         preheat.put( PreheatIdentifier.UID, preheat.getUser() );
         preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
-
-        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
-        {
-            params.getObjects().get( klass ).stream()
-                .filter( identifiableObject -> StringUtils.isEmpty( identifiableObject.getUid() ) )
-                .forEach( identifiableObject -> ((BaseIdentifiableObject) identifiableObject).setUid( CodeGenerator.generateUid() ) );
-        }
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap = new HashMap<>();
         Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>( params.getObjects().keySet() );
@@ -240,10 +235,8 @@ public class DefaultPreheatService implements PreheatService
 
             for ( Class<? extends IdentifiableObject> klass : klasses )
             {
-                Query query = Query.from( schemaService.getDynamicSchema( klass ) );
-                query.setUser( preheat.getUser() );
-                List<? extends IdentifiableObject> objects = queryService.query( query );
-
+                List<? extends IdentifiableObject> objects = schemaToDataFetcher
+                    .fetch( schemaService.getDynamicSchema( klass ) );
                 if ( !objects.isEmpty() )
                 {
                     uniqueCollectionMap.put( klass, new ArrayList<>( objects ) );
@@ -268,7 +261,25 @@ public class DefaultPreheatService implements PreheatService
             uniqueCollectionMap.put( UserCredentials.class, userCredentials );
         }
 
-        preheat.setUniquenessMap( collectUniqueness( uniqueCollectionMap ) );
+        // assign an uid to objects without an UID, if they don't have UID but an existing object exists then reuse the UID
+        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
+        {
+            params.getObjects().get( klass ).forEach( o -> {
+                IdentifiableObject object = preheat.get( params.getPreheatIdentifier(), o );
+
+                if ( object != null )
+                {
+                    ((BaseIdentifiableObject) o).setUid( object.getUid() );
+                }
+
+                if ( StringUtils.isEmpty( o.getUid() ) )
+                {
+                    ((BaseIdentifiableObject) o).setUid( CodeGenerator.generateUid() );
+                }
+            } );
+        }
+
+        preheat.setUniquenessMap( collectUniqueness( params.getPreheatIdentifier(), uniqueCollectionMap ) );
 
         // add preheat placeholders for objects that will be created and set mandatory/unique attributes
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
@@ -425,7 +436,7 @@ public class DefaultPreheatService implements PreheatService
                     preheat.getUniqueAttributeValues().get( klass ).get( attributeValue.getAttribute().getUid() )
                         .put( attributeValue.getValue(), object.getUid() );
                 }
-            } ));
+            } ) );
     }
 
     @Override
@@ -457,11 +468,11 @@ public class DefaultPreheatService implements PreheatService
             return new HashMap<>();
         }
 
-        if ( Collection.class.isInstance( object ) )
+        if ( object instanceof Collection )
         {
             return collectReferences( (Collection<?>) object );
         }
-        else if ( Map.class.isInstance( object ) )
+        else if ( object instanceof Map )
         {
             return collectReferences( (Map<Class<?>, List<?>>) object );
         }
@@ -501,8 +512,7 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<?>, List<?>> targets = new HashMap<>();
-        targets.putAll( objects ); // Clone objects list, we don't want to modify it
+        Map<Class<?>, List<?>> targets = new HashMap<>( objects ); // Clone objects list, we don't want to modify it
         collectScanTargets( targets );
 
         for ( Class<?> klass : targets.keySet() )
@@ -572,7 +582,7 @@ public class DefaultPreheatService implements PreheatService
     /**
      * Collect references for {@link AnalyticalObject}.
      *
-     * @param map the mapping between {@link PreheatIdentifier} and object identifiers.
+     * @param map    the mapping between {@link PreheatIdentifier} and object identifiers.
      * @param object the object.
      */
     private void collectAnalyticalObjectReferences( Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> map, Object object )
@@ -825,7 +835,8 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
-    public Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    public Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness(
+        PreheatIdentifier identifier, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
         Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniqueMap = new HashMap<>();
 
@@ -838,7 +849,7 @@ public class DefaultPreheatService implements PreheatService
         {
             Schema schema = schemaService.getDynamicSchema( objectClass );
             List<IdentifiableObject> identifiableObjects = objects.get( objectClass );
-            uniqueMap.put( objectClass, handleUniqueProperties( schema, identifiableObjects ) );
+            uniqueMap.put( objectClass, handleUniqueProperties( schema, identifier, identifiableObjects ) );
         }
 
         return uniqueMap;
@@ -926,7 +937,7 @@ public class DefaultPreheatService implements PreheatService
 
         if ( Preheat.isDefaultClass( property.getKlass() ) )
         {
-            if ( refObject == null || ( refObject.getUid() != null && refObject.getUid().equals( defaultObject.getUid() ) ) )
+            if ( refObject == null || (refObject.getUid() != null && refObject.getUid().equals( defaultObject.getUid() )) )
             {
                 ref = defaultObject;
             }
@@ -958,7 +969,7 @@ public class DefaultPreheatService implements PreheatService
         if ( !StringUtils.isEmpty( identifiableObject.getCode() ) ) codeMap.get( klass ).add( identifiableObject.getCode() );
     }
 
-    private Map<String, Map<Object, String>> handleUniqueProperties( Schema schema, List<IdentifiableObject> objects )
+    private Map<String, Map<Object, String>> handleUniqueProperties( Schema schema, PreheatIdentifier identifier, List<IdentifiableObject> objects )
     {
         List<Property> uniqueProperties = schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
@@ -972,7 +983,7 @@ public class DefaultPreheatService implements PreheatService
             {
                 if ( !map.containsKey( property.getName() ) ) map.put( property.getName(), new HashMap<>() );
                 Object value = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-                if ( value != null ) map.get( property.getName() ).put( value, object.getUid() );
+                if ( value != null ) map.get( property.getName() ).put( value, identifier.getIdentifier( object ) );
             } );
         }
 
@@ -981,7 +992,7 @@ public class DefaultPreheatService implements PreheatService
 
     private IdentifiableObject getPersistedObject( Preheat preheat, PreheatIdentifier identifier, IdentifiableObject ref )
     {
-        if (ref instanceof Period)
+        if ( ref instanceof Period )
         {
             Period period = preheat.getPeriodMap().get( ref.getName() );
 
@@ -992,7 +1003,7 @@ public class DefaultPreheatService implements PreheatService
 
             if ( period != null )
             {
-                preheat.getPeriodMap().put( period.getName(), period);
+                preheat.getPeriodMap().put( period.getName(), period );
             }
 
             return period;
@@ -1003,6 +1014,6 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ) );
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
     }
 }

@@ -64,7 +64,6 @@ import org.mockito.junit.MockitoRule;
 
 public class DefaultVisualizationServiceTest
 {
-
     @Mock
     private AnalyticalObjectStore<Visualization> visualizationStore;
 
@@ -212,7 +211,7 @@ public class DefaultVisualizationServiceTest
     private BaseDimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem )
     {
         final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDisplayDescription( "display " + dimensionItem );
+        baseDimensionalItemObject.setDescription( "display " + dimensionItem );
         return baseDimensionalItemObject;
     }
 }

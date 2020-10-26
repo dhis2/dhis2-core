@@ -28,11 +28,9 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
-import org.hisp.dhis.system.util.ValidationUtils;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -45,18 +43,13 @@ public class D2CountIfValue
     extends ProgramCountFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ValueType valueType = visitor.validateStageDataElement( ctx.getText(),
-            ctx.stageDataElement().uid0.getText(),
-            ctx.stageDataElement().uid1.getText() );
+        Object programStageElement = getProgramStageElementDescription( ctx, visitor );
 
-        String dataValueCheck = ValidationUtils.dataValueIsValid( ctx.numStringLiteral().getText(), valueType );
+        Object value = visitor.visit( ctx.expr( 0 ) );
 
-        if ( dataValueCheck != null )
-        {
-            throw new ParserExceptionWithoutContext( dataValueCheck );
-        }
+        castClass( programStageElement.getClass(), value ); // Check that we are comparing same data types.
 
         return DEFAULT_DOUBLE_VALUE;
     }
@@ -64,6 +57,6 @@ public class D2CountIfValue
     @Override
     public String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return " = " + ctx.numStringLiteral().getText();
+        return " = " + visitor.visit( ctx.expr( 0 ) );
     }
 }

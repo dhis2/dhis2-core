@@ -1,30 +1,4 @@
-package org.hisp.dhis.dxf2.sync;/*
- * Copyright (c) 2004-2018, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+package org.hisp.dhis.dxf2.sync;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -54,44 +28,35 @@ package org.hisp.dhis.dxf2.sync;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.util.Date;
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
+import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import org.springframework.web.client.*;
 
-import java.util.Date;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
-
+@Slf4j
 public class SyncUtils
 {
-
-    private static final Log log = LogFactory.getLog( SyncUtils.class );
-
     static final String HEADER_AUTHORIZATION = "Authorization";
     static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
     private static final String PING_PATH = "/api/system/ping";
@@ -101,7 +66,7 @@ public class SyncUtils
     }
 
     /**
-     * Sends a synchronization request to the {@code syncUrl}
+     * Sends a synchronization request to the {@code syncUrl} and analyzes the returned summary
      *
      * @param systemSettingManager Reference to SystemSettingManager
      * @param restTemplate         Spring Rest Template instance
@@ -113,27 +78,32 @@ public class SyncUtils
     static boolean sendSyncRequest( SystemSettingManager systemSettingManager, RestTemplate restTemplate, RequestCallback requestCallback, SystemInstance instance, SyncEndpoint endpoint )
     {
         final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
-        return runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, instance.getUrl(), endpoint, maxSyncAttempts );
+        Optional<AbstractWebMessageResponse> responseSummaries = runSyncRequest( restTemplate, requestCallback, endpoint.getKlass(), instance.getUrl(), maxSyncAttempts );
+
+        if ( responseSummaries.isPresent() )
+        {
+            if ( ImportSummaries.class.isAssignableFrom( endpoint.getKlass() ) )
+            {
+                return analyzeResultsInImportSummaries( (ImportSummaries) responseSummaries.get(), (ImportSummaries) responseSummaries.get(), endpoint );
+            }
+            else if ( ImportSummary.class.isAssignableFrom( endpoint.getKlass() ) )
+            {
+                return checkSummaryStatus( (ImportSummary) responseSummaries.get(), endpoint );
+            }
+        }
+
+        return false;
     }
 
-    /**
-     * Run a synchronization request against the syncUrl and analyzes the response for errors.
-     * If the network problems occur during the sync, the sync is retried the maxSyncAttempts times until give up.
-     *
-     * @param restTemplate    Spring Rest Template instance
-     * @param requestCallback Request callback
-     * @param syncUrl         Url against which the sync request is run
-     * @param endpoint        Endpoint against which the sync request is run
-     * @param maxSyncAttempts Specifies how many times the sync should be retried if it fails due to network problems
-     * @return True if sync was successful, false otherwise
-     */
-    private static boolean runSyncRequestAndAnalyzeResponse( RestTemplate restTemplate, RequestCallback requestCallback, String syncUrl, SyncEndpoint endpoint, int maxSyncAttempts )
+    public static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
+        RequestCallback requestCallback, Class<? extends AbstractWebMessageResponse> klass, String syncUrl,
+        int maxSyncAttempts )
     {
         boolean networkErrorOccurred = true;
         int syncAttemptsDone = 0;
 
-        ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
-        ImportSummaries summaries = null;
+        ResponseExtractor<? extends AbstractWebMessageResponse> responseExtractor = getResponseExtractor( klass );
+        AbstractWebMessageResponse responseSummary = null;
 
         while ( networkErrorOccurred )
         {
@@ -141,19 +111,19 @@ public class SyncUtils
             syncAttemptsDone++;
             try
             {
-                summaries = restTemplate.execute( syncUrl, HttpMethod.POST, requestCallback, responseExtractor );
+                responseSummary = restTemplate.execute( syncUrl, HttpMethod.POST, requestCallback, responseExtractor );
             }
             catch ( HttpClientErrorException ex )
             {
                 String responseBody = ex.getResponseBodyAsString();
                 try
                 {
-                    summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
+                    responseSummary = WebMessageParseUtils.fromWebMessageResponse( responseBody, klass );
                 }
                 catch ( WebMessageParseException e )
                 {
                     log.error( "Parsing WebMessageResponse failed.", e );
-                    return false;
+                    return Optional.empty();
                 }
             }
             catch ( HttpServerErrorException ex )
@@ -177,8 +147,24 @@ public class SyncUtils
             }
         }
 
-        log.info( "Sync summary: " + summaries );
-        return analyzeResultsInImportSummaries( summaries, summaries, endpoint );
+        log.info( "Sync summary: " + responseSummary );
+        return Optional.ofNullable( responseSummary );
+    }
+
+    private static ResponseExtractor<? extends AbstractWebMessageResponse> getResponseExtractor( Class<? extends AbstractWebMessageResponse> klass )
+    {
+        if ( ImportSummaries.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummariesResponseExtractor();
+        }
+        else if ( ImportSummary.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummaryResponseExtractor();
+        }
+        else
+        {
+            throw new IllegalStateException( "ResponseExtractor for given class '" + klass + "' is not supported." );
+        }
     }
 
     /**
@@ -454,8 +440,16 @@ public class SyncUtils
     {
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + syncEndpoint.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+        String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + syncEndpoint.getPath();
 
         return new SystemInstance( syncUrl, username, password );
+    }
+
+    static SystemInstance getRemoteInstanceWithSyncImportStrategy( SystemSettingManager systemSettingManager, SyncEndpoint syncEndpoint )
+    {
+        SystemInstance systemInstance = getRemoteInstance( systemSettingManager, syncEndpoint );
+        systemInstance.setUrl( systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX );
+
+        return systemInstance;
     }
 }

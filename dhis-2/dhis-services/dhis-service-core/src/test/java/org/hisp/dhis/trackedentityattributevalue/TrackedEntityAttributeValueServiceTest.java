@@ -262,4 +262,29 @@ public class TrackedEntityAttributeValueServiceTest
         assertTrue( fileResourceA.isAssigned() );
         assertTrue( fileResourceB.isAssigned() );
     }
+
+    @Test
+    public void testAttributeValueWithNullValue()
+    {
+        attributeService.updateTrackedEntityAttribute( attributeA );
+
+        attributeValueA = createTrackedEntityAttributeValue( 'A', entityInstanceA, attributeA );
+        attributeValueA.setValue( "any value" );
+
+        attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
+
+        TrackedEntityAttributeValue retrievedValue = attributeValueService
+            .getTrackedEntityAttributeValue( entityInstanceA, attributeA );
+
+        assertEquals( "any value", retrievedValue.getValue() );
+
+        attributeValueA.setValue( null );
+
+        attributeValueService.updateTrackedEntityAttributeValue( attributeValueA );
+
+        retrievedValue = attributeValueService
+            .getTrackedEntityAttributeValue( entityInstanceA, attributeA );
+
+        assertNull( retrievedValue );
+    }
 }

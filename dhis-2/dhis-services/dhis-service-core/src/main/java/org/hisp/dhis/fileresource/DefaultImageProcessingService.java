@@ -28,33 +28,29 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.imgscalr.Scalr;
-import org.springframework.stereotype.Service;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.imgscalr.Scalr;
+import org.springframework.stereotype.Service;
+
+import com.google.common.collect.ImmutableMap;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @Author Zubair Asghar.
  */
-
+@Slf4j
 @Service( "org.hisp.dhis.fileresource.ImageProcessingService" )
 public class DefaultImageProcessingService implements ImageProcessingService
 {
-    private static final Log log = LogFactory.getLog( DefaultImageProcessingService.class );
-
     private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_SIZES = ImmutableMap.of(
         ImageFileDimension.SMALL, new ImageSize( 256, 256 ),
         ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ),
@@ -118,11 +114,9 @@ public class DefaultImageProcessingService implements ImageProcessingService
 
         if ( file.exists() )
         {
-            try
+            try ( InputStream is = new BufferedInputStream( new FileInputStream( file ) ))
             {
-                InputStream is = new BufferedInputStream( new FileInputStream( file ) );
                 String mimeType = URLConnection.guessContentTypeFromStream( is );
-
                 return FileResource.IMAGE_CONTENT_TYPES.contains( mimeType );
             }
             catch ( IOException e )

@@ -28,11 +28,11 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.util.Date;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.AbstractJob;
@@ -44,7 +44,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Job for continuous update of analytics tables. Performs analytics table update on a schedule
@@ -59,12 +59,11 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "continuousAnalyticsTableJob" )
 public class ContinuousAnalyticsTableJob
     extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( ContinuousAnalyticsTableJob.class );
-
     private static final Integer DEFAULT_HOUR_OF_DAY = 0;
 
     private final AnalyticsTableGenerator analyticsTableGenerator;

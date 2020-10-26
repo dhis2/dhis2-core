@@ -31,6 +31,7 @@ package org.hisp.dhis.system.util;
 import java.awt.geom.Point2D;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +47,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableSet;
@@ -175,6 +177,36 @@ public class ValidationUtils
     public static boolean urlIsValid( String url )
     {
         return new UrlValidator().isValid( url );
+    }
+
+    /**
+     * Validates whether a UUID is valid.
+     *
+     * @param uuid the UUID as string.
+     * @return true if the UUID is valid, false otherwise.
+     */
+    public static boolean uuidIsValid( String uuid )
+    {
+        try
+        {
+            UUID.fromString( uuid );
+            return true;
+        }
+        catch ( IllegalArgumentException ex )
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Validates whether a username is valid.
+     *
+     * @param username the username.
+     * @return true if the username is valid, false otherwise.
+     */
+    public static boolean usernameIsValid( String username )
+    {
+        return username != null && username.length() <= UserCredentials.USERNAME_MAX_LENGTH;
     }
 
     /**
@@ -550,16 +582,16 @@ public class ValidationUtils
     }
 
     /**
-     * Returns a string useful for substitution.
+     * Returns a value useful for substitution.
      *
      * @param valueType the value type.
-     * @return the string.
+     * @return the object.
      */
-    public static String getSubstitutionValue( ValueType valueType )
+    public static Object getSubstitutionValue( ValueType valueType )
     {
         if ( valueType.isNumeric() || valueType.isBoolean() )
         {
-            return "1";
+            return 1d;
         }
         else if ( valueType.isDate() )
         {

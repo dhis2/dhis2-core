@@ -28,62 +28,31 @@ package org.hisp.dhis.dimension;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ReportingRateMetric;
-import org.hisp.dhis.common.SetMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.EnumUtils.isValidEnum;
+import static org.hisp.dhis.common.DimensionType.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Joiner;
+import org.hisp.dhis.category.*;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
-import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -94,33 +63,18 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.EnumUtils.isValidEnum;
-import static org.hisp.dhis.common.DimensionType.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dimension.DimensionService" )
 public class DefaultDimensionService
     implements DimensionService
 {
-    private static final Log log = LogFactory.getLog( DefaultDimensionService.class );
-
     private final IdentifiableObjectManager idObjectManager;
 
     private final CategoryService categoryService;
@@ -139,13 +93,13 @@ public class DefaultDimensionService
         PeriodService periodService, OrganisationUnitService organisationUnitService, AclService aclService,
         CurrentUserService currentUserService, MergeService mergeService )
     {
-        checkNotNull(idObjectManager);
-        checkNotNull(categoryService);
-        checkNotNull(periodService);
-        checkNotNull(organisationUnitService);
-        checkNotNull(aclService);
-        checkNotNull(currentUserService);
-        checkNotNull(mergeService);
+        checkNotNull( idObjectManager );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( aclService );
+        checkNotNull( currentUserService );
+        checkNotNull( mergeService );
 
         this.idObjectManager = idObjectManager;
         this.categoryService = categoryService;
@@ -190,7 +144,7 @@ public class DefaultDimensionService
     {
         List<T> list = new ArrayList<>( objects );
 
-        list.removeIf(object -> !aclService.canRead(user, object));
+        list.removeIf( object -> !aclService.canRead( user, object ) );
 
         return list;
     }
@@ -416,7 +370,35 @@ public class DefaultDimensionService
     @Override
     public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
     {
-        return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
+        final Map<DimensionalItemId, DimensionalItemObject> map = getDataDimensionalItemObjectMap( itemIds );
+
+        Map<String, DimensionalItemObject> dios = new HashMap<>();
+        
+        // Build a key out of the DimItemObject identifier. Replace missing id with "null" String
+        Function<String[], String> makeKey = strings -> Joiner.on( "-" ).useForNull( "null" ).join( strings );
+
+        for ( DimensionalItemId key : map.keySet() )
+        {
+            final String[] keyIds = { key.getId0(), key.getId1(), key.getId2() };
+            final DimensionalItemObject item = map.get( key );
+
+            final String dimItemIdKey = makeKey.apply( keyIds );
+            if ( dios.containsKey( dimItemIdKey ) )
+            {
+                // Make sure that an Item with a Period Offset > 0 is returned,
+                // if there are multiple Items with the same key
+                if ( dios.get( dimItemIdKey ).getPeriodOffset() == 0 && item.getPeriodOffset() != 0 )
+                {
+                    dios.replace( dimItemIdKey, item );
+                }
+            }
+            else
+            {
+                dios.put( dimItemIdKey, item );
+            }
+        }
+
+        return new HashSet<>( dios.values() );
     }
 
     @Override
@@ -527,10 +509,10 @@ public class DefaultDimensionService
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
-            atomicObjects.putEntries( e.getKey(),
-                idObjectManager.get( e.getKey(), e.getValue() ).stream()
+            atomicObjects.putEntries( entry.getKey(),
+                idObjectManager.get( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
@@ -542,10 +524,10 @@ public class DefaultDimensionService
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
-            atomicObjects.putEntries( e.getKey(),
-                idObjectManager.getNoAcl( e.getKey(), e.getValue() ).stream()
+            atomicObjects.putEntries( entry.getKey(),
+                idObjectManager.getNoAcl( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
@@ -571,14 +553,15 @@ public class DefaultDimensionService
             {
                 continue;
             }
-
+            BaseDimensionalItemObject dimensionalItemObject = null;
+                     
             switch ( id.getDimensionItemType() )
             {
                 case DATA_ELEMENT:
                     DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
                     if ( dataElement != null )
                     {
-                        itemObjectMap.put( id, dataElement );
+                        dimensionalItemObject = dataElement;
                     }
                     break;
 
@@ -586,7 +569,7 @@ public class DefaultDimensionService
                     Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
                     if ( indicator != null )
                     {
-                        itemObjectMap.put( id, indicator );
+                        dimensionalItemObject =  indicator;
                     }
                     break;
 
@@ -598,8 +581,7 @@ public class DefaultDimensionService
                         ( id.getId1() != null ) == ( categoryOptionCombo != null ) &&
                         ( id.getId2() != null ) == ( attributeOptionCombo != null ) )
                     {
-                        DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo, attributeOptionCombo );
-                        itemObjectMap.put( id, dataElementOperand );
+                        dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo, attributeOptionCombo );
                     }
                     break;
 
@@ -607,8 +589,7 @@ public class DefaultDimensionService
                     DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
                     if ( dataSet != null )
                     {
-                        ReportingRate reportingRate = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
-                        itemObjectMap.put( id, reportingRate );
+                        dimensionalItemObject = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
                     }
                     break;
 
@@ -617,8 +598,7 @@ public class DefaultDimensionService
                     dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
                     if ( program != null && dataElement != null )
                     {
-                        ProgramDataElementDimensionItem programDataElementDimensionItem = new ProgramDataElementDimensionItem( program, dataElement );
-                        itemObjectMap.put( id, programDataElementDimensionItem );
+                        dimensionalItemObject = new ProgramDataElementDimensionItem( program, dataElement );
                     }
                     break;
 
@@ -627,8 +607,7 @@ public class DefaultDimensionService
                     TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects.getValue( TrackedEntityAttribute.class, id.getId1() );
                     if ( program != null && attribute != null )
                     {
-                        ProgramTrackedEntityAttributeDimensionItem programTrackedEntityAttributeDimensionItem = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
-                        itemObjectMap.put( id, programTrackedEntityAttributeDimensionItem );
+                        dimensionalItemObject = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
                     }
                     break;
 
@@ -636,13 +615,21 @@ public class DefaultDimensionService
                     ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects.getValue( ProgramIndicator.class, id.getId0() );
                     if ( programIndicator != null )
                     {
-                        itemObjectMap.put( id, programIndicator );
+                        dimensionalItemObject = programIndicator;
                     }
                     break;
 
                 default:
                     log.warn( "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getItemObjectMap" );
                     break;
+            }
+            if ( dimensionalItemObject != null && id.getPeriodOffset() != 0 )
+            {
+                dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
+            }
+            if ( dimensionalItemObject != null )
+            {
+                itemObjectMap.put( id, dimensionalItemObject );
             }
         }
 

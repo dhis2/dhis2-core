@@ -33,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -62,50 +63,107 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     }
 
     @Override
-    public String allowDeleteMap( Map map )
+    public void deleteVisualization( Visualization visualization )
     {
-        return dashboardService.countMapDashboardItems( map ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getVisualizationDashboardItems( visualization ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
     }
 
     @Override
-    public String allowDeleteChart( Chart chart )
+    public void deleteReportTable( ReportTable reportTable )
     {
-        return dashboardService.countChartDashboardItems( chart ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getReportTableDashboardItems( reportTable ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
     }
 
     @Override
-    public String allowDeleteEventChart( EventChart eventChart )
+    public void deleteChart( Chart chart )
     {
-        return dashboardService.countEventChartDashboardItems( eventChart ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getChartDashboardItems( chart ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
     }
 
     @Override
-    public String allowDeleteReportTable( ReportTable reportTable )
+    public void deleteEventChart( EventChart eventChart )
     {
-        return dashboardService.countReportTableDashboardItems( reportTable ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getEventChartDashboardItems( eventChart ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
     }
 
     @Override
-    public String allowDeleteVisualization( Visualization visualization )
+    public void deleteMap( Map map )
     {
-        return dashboardService.countVisualizationDashboardItems( visualization ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getMapDashboardItems( map ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
     }
 
     @Override
-    public String allowDeleteReport( Report report )
+    public void deleteEventReport( EventReport eventReport )
     {
-        return dashboardService.countReportDashboardItems( report ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getEventReportDashboardItems( eventReport ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
     }
-    
+
     @Override
-    public String allowDeleteDocument( Document document )
+    public void deleteUser( User user )
     {
-        return dashboardService.countDocumentDashboardItems( document ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getUserDashboardItems( user ) )
+        {
+            while ( item.getUsers().contains( user ) ) // In case of duplicates
+            {
+                item.getUsers().remove( user );
+            }
+
+            if ( item.getUsers().isEmpty() )
+            {
+                dashboardService.deleteDashboardItem( item );
+            }
+        }
     }
-    
+
     @Override
-    public String allowDeleteUser( User user )
+    public void deleteReport( Report report )
     {
-        return dashboardService.countUserDashboardItems( user ) == 0 ? null : ERROR;
+        for ( DashboardItem item : dashboardService.getReportDashboardItems( report ) )
+        {
+            while ( item.getReports().contains( report ) ) // In case of duplicates
+            {
+                item.getReports().remove( report );
+            }
+
+            if ( item.getReports().isEmpty() )
+            {
+                dashboardService.deleteDashboardItem( item );
+            }
+        }
+    }
+
+    @Override
+    public void deleteDocument( Document document )
+    {
+        for ( DashboardItem item : dashboardService.getDocumentDashboardItems( document ) )
+        {
+            while ( item.getResources().contains( document ) ) // In case of duplicates
+            {
+                item.getResources().remove( document );
+            }
+
+            if ( item.getResources().isEmpty() )
+            {
+                dashboardService.deleteDashboardItem( item );
+            }
+        }
     }
 }

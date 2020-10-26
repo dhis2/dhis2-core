@@ -29,6 +29,8 @@ package org.hisp.dhis.pushanalysis;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -36,39 +38,24 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -81,6 +68,9 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.visualization.ChartImageGenerator;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -91,17 +81,17 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Stian Sandvold
  */
+@Slf4j
 @Service( "org.hisp.dhis.pushanalysis.PushAnalysisService" )
 @Transactional
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-
-    private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
-
     private static final Encoder encoder = new Encoder();
 
     private final Notifier notifier;
@@ -116,11 +106,11 @@ public class DefaultPushAnalysisService
 
     private final CurrentUserService currentUserService;
 
-    private final ReportTableService reportTableService;
-
     private final MapGenerationService mapGenerationService;
 
-    private final ChartService chartService;
+    private final VisualizationService visualizationService;
+
+    private final ChartImageGenerator chartImageGenerator;
 
     private final I18nManager i18nManager;
 
@@ -131,9 +121,10 @@ public class DefaultPushAnalysisService
     public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
         DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
         FileResourceService fileResourceService, CurrentUserService currentUserService,
-        ReportTableService reportTableService, MapGenerationService mapGenerationService, ChartService chartService,
-        I18nManager i18nManager, @Qualifier( "emailMessageSender" ) MessageSender messageSender,
-        @Qualifier("org.hisp.dhis.pushanalysis.PushAnalysisStore") IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
+        MapGenerationService mapGenerationService, VisualizationService visualizationService,
+        ChartImageGenerator chartImageGenerator, I18nManager i18nManager,
+        @Qualifier( "emailMessageSender" ) MessageSender messageSender,
+        @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         checkNotNull( notifier );
         checkNotNull( systemSettingManager );
@@ -141,9 +132,9 @@ public class DefaultPushAnalysisService
         checkNotNull( externalFileResourceService );
         checkNotNull( fileResourceService );
         checkNotNull( currentUserService );
-        checkNotNull( reportTableService );
         checkNotNull( mapGenerationService );
-        checkNotNull( chartService );
+        checkNotNull(visualizationService);
+        checkNotNull( chartImageGenerator );
         checkNotNull( i18nManager );
         checkNotNull( messageSender );
         checkNotNull( pushAnalysisStore );
@@ -154,9 +145,9 @@ public class DefaultPushAnalysisService
         this.externalFileResourceService = externalFileResourceService;
         this.fileResourceService = fileResourceService;
         this.currentUserService = currentUserService;
-        this.reportTableService = reportTableService;
         this.mapGenerationService = mapGenerationService;
-        this.chartService = chartService;
+        this.visualizationService = visualizationService;
+        this.chartImageGenerator = chartImageGenerator;
         this.i18nManager = i18nManager;
         this.messageSender = messageSender;
         this.pushAnalysisStore = pushAnalysisStore;
@@ -307,8 +298,13 @@ public class DefaultPushAnalysisService
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
-            itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
-            itemLink.put( item.getUid(), getItemLink( item ));
+            // Preventing NPE when DB data is not consistent.
+            // In normal conditions all DashboardItem has a type.
+            if ( item.getType() != null )
+            {
+                itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
+                itemLink.put( item.getUid(), getItemLink( item ) );
+            }
         }
 
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
@@ -361,12 +357,7 @@ public class DefaultPushAnalysisService
             case MAP:
                 return generateMapHtml( item.getMap(), user );
             case VISUALIZATION:
-                // NOT SUPPORTED
-                return "";
-            case CHART:
-                return generateChartHtml( item.getChart(), user );
-            case REPORT_TABLE:
-                return generateReportTableHtml( item.getReportTable(), user );
+                return generateVisualizationHtml( item.getVisualization(), user );
             case EVENT_CHART:
                 // TODO: Add support for EventCharts
                 return "";
@@ -389,20 +380,32 @@ public class DefaultPushAnalysisService
             case MAP:
                 result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
                 break;
-            case REPORT_TABLE:
-                result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
-                break;
             case CHART:
-                result += "/dhis-web-data-visualizer/index.html?id=" + item.getChart().getUid();
-                break;
+            case REPORT_TABLE:
             case VISUALIZATION:
-                result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
+                result += getVisualizationLink( item.getVisualization() );
                 break;
             default:
                 break;
         }
 
         return result;
+    }
+
+    private String getVisualizationLink( final Visualization visualization )
+    {
+        if ( visualization != null )
+        {
+            if ( visualization.getType() == PIVOT_TABLE )
+            {
+                return "/dhis-web-pivot/index.html?id=" + visualization.getUid();
+            }
+            else
+            {
+                return "/dhis-web-data-visualizer/index.html?id=" + visualization.getUid();
+            }
+        }
+        return EMPTY;
     }
 
     /**
@@ -430,38 +433,53 @@ public class DefaultPushAnalysisService
     }
 
     /**
-     * Returns an absolute URL to an image representing the chart input
+     * Returns an absolute URL to an image representing the given Visualization.
      *
-     * @param chart chart to render and upload
-     * @param user  user to generate chart for
-     * @return absolute URL to uploaded image
+     * @param visualization the visualization to be rendered and uploaded.
+     * @param user the user generate the Visualization.
+     * @return absolute URL to the uploaded image.
      */
-    private String generateChartHtml( Chart chart, User user )
+    private String generateVisualizationHtml( final Visualization visualization, final User user )
         throws IOException
     {
-        JFreeChart jFreechart = chartService
-            .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
-
-        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 578, 440 ) );
+        switch ( visualization.getType() )
+        {
+        case PIVOT_TABLE:
+            return generateReportTableHtml( visualization, user );
+        default:
+            return generateChartHtml( visualization, user );
+        }
     }
 
     /**
-     * Builds a HTML table representing the ReportTable input
+     * Returns an absolute URL to an image representing the chart input
      *
-     * @param reportTable reportTable to generate HTML for
-     * @param user        user to generate reportTable data for
-     * @return a HTML representation of the reportTable
+     * @param visualization chart to render and upload
+     * @param user  user to generate chart for
+     * @return absolute URL to uploaded image
      */
-    private String generateReportTableHtml( ReportTable reportTable, User user )
+    private String generateChartHtml( final Visualization visualization, User user )
+        throws IOException
+    {
+        JFreeChart jFreechart = chartImageGenerator
+            .getJFreeChart( visualization, new Date(), null, i18nManager.getI18nFormat(), user );
+
+        return uploadImage( visualization.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 578, 440 ) );
+    }
+
+    /**
+     * Builds a HTML table representing a Pivot table.
+     *
+     * @param visualization the input Visualization to generate the HTML from.
+     * @param user user generating the Pivot.
+     * @return a HTML representation of the Pivot table.
+     */
+    private String generateReportTableHtml( final Visualization visualization, User user )
     {
         StringWriter stringWriter = new StringWriter();
 
-        GridUtils.toHtmlInlineCss(
-            reportTableService
-                .getReportTableGridByUser( reportTable.getUid(), new Date(),
-                    user.getOrganisationUnit().getUid(), user ),
-            stringWriter
-        );
+        GridUtils.toHtmlInlineCss( visualizationService.getVisualizationGridByUser( visualization.getUid(), new Date(),
+            user.getOrganisationUnit().getUid(), user ), stringWriter );
 
         return stringWriter.toString().replaceAll( "\\R", "" );
     }

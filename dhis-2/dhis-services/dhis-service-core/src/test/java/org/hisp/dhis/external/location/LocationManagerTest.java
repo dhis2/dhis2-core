@@ -28,32 +28,28 @@ package org.hisp.dhis.external.location;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
 @Ignore // Takes forever to run, enable to test modifications
+@Slf4j
 public class LocationManagerTest
     extends DhisSpringTest
 {
-    private static final Log log = LogFactory.getLog( LocationManagerTest.class );
-    
     private InputStream in;
     
     private OutputStream out;

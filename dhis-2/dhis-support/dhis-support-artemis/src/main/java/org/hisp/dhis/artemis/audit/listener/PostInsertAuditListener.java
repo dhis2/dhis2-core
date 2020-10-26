@@ -28,8 +28,10 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
-import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -44,15 +46,18 @@ import java.time.LocalDateTime;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class PostInsertAuditListener
-    extends AbstractHibernateListener implements PostInsertEventListener
+    extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
-
-    public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+    public PostInsertAuditListener(
+        AuditManager auditManager,
+        AuditObjectFactory auditObjectFactory,
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     @Override
@@ -64,7 +69,7 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object entity = postInsertEvent.getEntity();
+        Object entity = initHibernateProxy( postInsertEvent.getPersister().getFactory(), postInsertEvent.getEntity() );
 
         getAuditable( entity, "create" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
@@ -80,6 +85,12 @@ public class PostInsertAuditListener
     @Override
     public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        return false;
+        return true;
+    }
+
+    @Override
+    public void onPostInsertCommitFailed( PostInsertEvent event )
+    {
+        log.warn( "onPostInsertCommitFailed: " + event );
     }
 }

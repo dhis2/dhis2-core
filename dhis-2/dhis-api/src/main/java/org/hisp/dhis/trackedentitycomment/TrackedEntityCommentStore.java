@@ -56,6 +56,8 @@ package org.hisp.dhis.trackedentitycomment;/*
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+import java.util.List;
+
 /**
  * @author David Katuscak
  */
@@ -70,5 +72,24 @@ public interface TrackedEntityCommentStore
      * @return true/false depending on result.
      */
     boolean exists( String uid );
+
+    /**
+     * Filters out existing {@see TrackedEntityComment} uid.
+     *
+     * Given:
+     *
+     * uid: abcd
+     * uid: cdef
+     * uid: ghil
+     * uid: mnop
+     *
+     * and assuming that "cdef" and "abcd" are associated to two TrackedEntityComment in the database,
+     * this method returns "ghil" and "mnop"
+     *
+     *
+     * @param noteUids a List of {@see TrackedEntityComment} uid
+     * @return a List of uid that are not present in the database
+     */
+    List<String> filterExisting( List<String> noteUids);
 
 }

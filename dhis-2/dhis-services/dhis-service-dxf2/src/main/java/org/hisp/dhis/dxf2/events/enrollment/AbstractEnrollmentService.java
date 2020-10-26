@@ -28,32 +28,29 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -62,7 +59,17 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
+import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -76,6 +83,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -85,80 +93,79 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.StringUtils;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public abstract class AbstractEnrollmentService
     implements EnrollmentService
 {
-    private static final Log log = LogFactory.getLog( AbstractEnrollmentService.class );
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    @Autowired
     protected ProgramInstanceService programInstanceService;
 
-    @Autowired
     protected ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
     protected ProgramService programService;
 
-    @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
     protected TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Autowired
     protected RelationshipService relationshipService;
 
-    @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
-    @Autowired
     protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
     protected CurrentUserService currentUserService;
 
-    @Autowired
     protected TrackedEntityCommentService commentService;
 
-    @Autowired
     protected IdentifiableObjectManager manager;
 
-    @Autowired
     protected I18nManager i18nManager;
 
-    @Autowired
     protected UserService userService;
 
-    @Autowired
     protected DbmsManager dbmsManager;
 
-    @Autowired
     protected EventService eventService;
 
-    @Autowired
     protected TrackerAccessManager trackerAccessManager;
 
-    @Autowired
     protected SchemaService schemaService;
 
-    @Autowired
     protected QueryService queryService;
 
-    @Autowired
     protected Notifier notifier;
+
+    protected ApplicationEventPublisher eventPublisher;
+
+    protected ObjectMapper jsonMapper;
+
+    protected ObjectMapper xmlMapper;
 
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -210,7 +217,8 @@ public abstract class AbstractEnrollmentService
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && trackerOwnershipAccessManager.hasAccess( user, programInstance ) )
+            if ( programInstance != null && trackerOwnershipAccessManager
+                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
             }
@@ -265,12 +273,6 @@ public abstract class AbstractEnrollmentService
         if ( programInstance.getGeometry() != null )
         {
             enrollment.setGeometry( programInstance.getGeometry() );
-
-            if ( programInstance.getProgram().getFeatureType().equals( FeatureType.POINT ) )
-            {
-                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
-                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
-            }
         }
 
         enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
@@ -388,7 +390,9 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    events.addAll( enrollment.getEvents() );
+                    List<Event> enrollmentEvents = enrollment.getEvents();
+                    enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
+                    events.addAll( enrollmentEvents );
                 }
             }
 
@@ -449,7 +453,7 @@ public abstract class AbstractEnrollmentService
 
         if ( daoTrackedEntityInstance == null )
         {
-            daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
+            daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance(), importOptions.getUser() );
         }
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
@@ -503,7 +507,7 @@ public abstract class AbstractEnrollmentService
             programInstance.setEndDate( date );
         }
 
-        programInstanceService.addProgramInstance( programInstance );
+        programInstanceService.addProgramInstance( programInstance, importOptions.getUser() );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
 
@@ -512,19 +516,26 @@ public abstract class AbstractEnrollmentService
             return importSummary;
         }
 
+        // -----------------------------------------------------------------
+        // Send enrollment notifications (if any)
+        // -----------------------------------------------------------------
+
+        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
+
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
+
         updateFeatureType( program, enrollment, programInstance );
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
         programInstance.setStoredBy( storedBy );
 
-        programInstanceService.updateProgramInstance( programInstance );
-
+        programInstanceService.updateProgramInstance( programInstance, importOptions.getUser() );
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
-
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
 
         importSummary.setReference( programInstance.getUid() );
+        enrollment.setEnrollment( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
         if ( handleEvents )
@@ -669,7 +680,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
+        Set<ImportConflict> importConflicts = checkAttributes( entityInstance, enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -706,7 +717,9 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    events.addAll( enrollment.getEvents() );
+                    List<Event> enrollmentEvents = enrollment.getEvents();
+                    enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
+                    events.addAll( enrollmentEvents );
                 }
             }
 
@@ -752,7 +765,7 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
+        Set<ImportConflict> importConflicts = checkAttributes( programInstance.getEntityInstance(), enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -844,10 +857,10 @@ public abstract class AbstractEnrollmentService
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
 
-        programInstanceService.updateProgramInstance( programInstance );
-        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+        programInstanceService.updateProgramInstance( programInstance, importOptions.getUser() );
+        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), importOptions.getUser() );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
 
         importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
@@ -886,7 +899,7 @@ public abstract class AbstractEnrollmentService
             return new ImportSummary( ImportStatus.ERROR, "Enrollment ID was not valid." ).incrementIgnored();
         }
 
-        saveTrackedEntityComment( programInstance, enrollment, currentUserService.getCurrentUsername() );
+        saveTrackedEntityComment( programInstance, enrollment, currentUserService.getCurrentUser() );
 
         importSummary.setReference( enrollment.getEnrollment() );
         importSummary.getImportCount().incrementUpdated();
@@ -936,8 +949,6 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            programInstance.getProgramStageInstances().stream()
-                .forEach( psi -> programStageInstanceService.deleteProgramStageInstance( psi ) );
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
@@ -1139,12 +1150,6 @@ public abstract class AbstractEnrollmentService
             {
                 programInstance.setGeometry( enrollment.getGeometry() );
             }
-            else if ( program.getFeatureType().equals( FeatureType.POINT ) && enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
-            {
-                GeometryFactory gf = new GeometryFactory();
-                com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate( enrollment.getCoordinate().getLongitude(), enrollment.getCoordinate().getLatitude() );
-                programInstance.setGeometry( gf.createPoint( co ) );
-            }
             else
             {
                 programInstance.setGeometry( null );
@@ -1162,16 +1167,14 @@ public abstract class AbstractEnrollmentService
         return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
     }
 
-    private Set<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
+    private Set<ImportConflict> checkAttributes( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
+        Enrollment enrollment, ImportOptions importOptions )
     {
         Set<ImportConflict> importConflicts = new HashSet<>();
-
-        Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
-        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.getTrackedEntityInstance(
-            enrollment.getTrackedEntityInstance() );
-
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         Map<String, String> attributeValueMap = Maps.newHashMap();
+
+        Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
         for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
         {
@@ -1189,7 +1192,12 @@ public abstract class AbstractEnrollmentService
             validateAttributeType( attribute, importOptions, importConflicts );
         }
 
-        TrackedEntityInstance instance = trackedEntityInstanceService.getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
+        List<String> errors = trackerAccessManager.canRead( importOptions.getUser(), trackedEntityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
 
         for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
         {
@@ -1202,12 +1210,18 @@ public abstract class AbstractEnrollmentService
                 continue;
             }
 
+            String attributeValue = attributeValueMap.get( trackedEntityAttribute.getUid() );
+
+            if ( attributeValue != null && attributeValue.length() > TEA_VALUE_MAX_LENGTH )
+            {
+                // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
+                importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) ) );
+            }
+
             if ( trackedEntityAttribute.isUnique() )
             {
-                OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, instance.getOrgUnit() );
-
                 checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
-                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, importConflicts );
+                    attributeValueMap.get( trackedEntityAttribute.getUid() ), trackedEntityInstance.getOrganisationUnit(), importConflicts );
             }
 
             attributeValueMap.remove( trackedEntityAttribute.getUid() );
@@ -1262,21 +1276,24 @@ public abstract class AbstractEnrollmentService
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.
             getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
-        Map<String, String> attributeValueMap = Maps.newHashMap();
+        Map<String, Attribute> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+            attributeValueMap.put( attribute.getAttribute(), attribute );
         }
 
         trackedEntityInstance.getTrackedEntityAttributeValues().stream().
             filter( value -> attributeValueMap.containsKey( value.getAttribute().getUid() ) ).
             forEach( value ->
             {
-                String newValue = attributeValueMap.get( value.getAttribute().getUid() );
-                value.setValue( newValue );
+                Attribute enrollmentAttribute = attributeValueMap.get( value.getAttribute().getUid() );
 
-                trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( value );
+                String newValue = enrollmentAttribute.getValue();
+                value.setValue( newValue );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
+
+                trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( value, importOptions.getUser() );
 
                 attributeValueMap.remove( value.getAttribute().getUid() );
             } );
@@ -1288,8 +1305,11 @@ public abstract class AbstractEnrollmentService
             if ( attribute != null )
             {
                 TrackedEntityAttributeValue value = new TrackedEntityAttributeValue();
-                value.setValue( attributeValueMap.get( key ) );
+                Attribute enrollmentAttribute = attributeValueMap.get( key );
+
+                value.setValue( enrollmentAttribute.getValue() );
                 value.setAttribute( attribute );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( value );
                 trackedEntityInstance.addAttributeValue( value );
@@ -1297,10 +1317,20 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID )
+    private String getStoredBy( Attribute attribute, User user )
+    {
+        if ( !StringUtils.isEmpty( attribute.getStoredBy() ) )
+        {
+            return attribute.getStoredBy();
+        }
+
+        return User.username( user, Constants.UNKNOWN );
+    }
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID, User user )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.
-            getTrackedEntityInstance( teiUID );
+            getTrackedEntityInstance( teiUID, user );
 
         if ( entityInstance == null )
         {
@@ -1328,7 +1358,7 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment, String storedBy )
+    private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment, User user )
     {
         for ( Note note : enrollment.getNotes() )
         {
@@ -1339,7 +1369,8 @@ public abstract class AbstractEnrollmentService
                 TrackedEntityComment comment = new TrackedEntityComment();
                 comment.setUid( noteUid );
                 comment.setCommentText( note.getValue() );
-                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
+                comment
+                    .setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? user.getUsername() : note.getStoredBy() );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
 
@@ -1354,8 +1385,8 @@ public abstract class AbstractEnrollmentService
 
                 programInstance.getComments().add( comment );
 
-                programInstanceService.updateProgramInstance( programInstance );
-                teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+                programInstanceService.updateProgramInstance( programInstance, user );
+                teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), user );
             }
         }
     }
@@ -1381,7 +1412,7 @@ public abstract class AbstractEnrollmentService
         programCache.clear();
         trackedEntityAttributeCache.clear();
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
     }
 
     private void updateDateFields( Enrollment enrollment, ProgramInstance programInstance )

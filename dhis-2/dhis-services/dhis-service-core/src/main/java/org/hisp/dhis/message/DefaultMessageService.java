@@ -35,8 +35,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -53,17 +51,17 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ClassUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.message.MessageService")
 public class DefaultMessageService
     implements MessageService
 {
-    private static final Log log = LogFactory.getLog( DefaultMessageService.class );
-
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
     private static final String COMPLETE_TEMPLATE = "completeness_message";
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
@@ -102,14 +100,6 @@ public class DefaultMessageService
         checkNotNull( systemSettingManager );
         checkNotNull( configurationProvider );
         checkNotNull( messageSenders );
-
-        StringBuilder sb = new StringBuilder( "Found the following message senders:\n" );
-
-        for ( MessageSender messageSender : messageSenders )
-        {
-            sb.append("- ").append( ClassUtils.getUserClass( messageSender.getClass() ).getSimpleName() ).append( "\n" );
-        }
-        log.info( sb.toString() );
 
         this.messageConversationStore = messageConversationStore;
         this.currentUserService = currentUserService;

@@ -30,7 +30,6 @@ package org.hisp.dhis.security.authority;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,8 +40,12 @@ import java.util.Set;
  */
 public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
 {
-    @Autowired
     private AppManager appManager;
+
+    public AppsSystemAuthoritiesProvider( AppManager appManager )
+    {
+        this.appManager = appManager;
+    }
 
     @Override
     public Collection<String> getSystemAuthorities()
@@ -50,7 +53,7 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
         Set<String> authorities = new HashSet<>();
 
         appManager.getApps( null ).stream()
-            .filter( app -> !StringUtils.isEmpty( app.getName() ) )
+            .filter( app -> !StringUtils.isEmpty( app.getShortName() ) && !app.getIsBundledApp() )
             .forEach( app -> {
                 authorities.add( app.getSeeAppAuthority() );
                 authorities.addAll( app.getAuthorities() );

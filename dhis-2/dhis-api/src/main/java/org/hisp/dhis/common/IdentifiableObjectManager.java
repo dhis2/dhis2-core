@@ -104,9 +104,13 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
+    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
+
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
+
+    <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );
 
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
@@ -162,6 +166,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value );
 
+    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass, Attribute attribute, List<String> values );
+
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
@@ -173,7 +179,7 @@ public interface IdentifiableObjectManager
     boolean isDefault( IdentifiableObject object );
 
     List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
-    
+
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------

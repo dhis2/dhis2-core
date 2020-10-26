@@ -187,22 +187,5 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <!-- J2ME Client Update -->
-
-    <action name="showJ2meClientUpdatePage" class="org.hisp.dhis.mobile.action.J2meClientUpdateAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-maintenance-mobile/j2meClientUpdatePage.vm</param>
-      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
-      <param name="javascripts">javascript/gateway.js</param>
-      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
-    </action>
-
-    <!-- Mobile Phones Pattern 
-    <action name="mobilePhonesPattern" class="org.hisp.dhis.mobile.action.MobilePhonesPatternAction">
-  	  <result name="success" type="velocity">/main.vm</result>
-  	  <param name="page">/dhis-web-maintenance-mobile/phonePatternPage.vm</param>
-  	  <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
-    </action>-->
-
   </package>
 </struts>

@@ -29,6 +29,8 @@ package org.hisp.dhis.sms.config;
  */
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -56,6 +58,12 @@ public class GenericHttpGatewayConfig
     public List<GenericGatewayParameter> getParameters()
     {
         return parameters;
+    }
+
+    public Map<String, String> getParametersMap()
+    {
+        return parameters.stream()
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) );
     }
 
     public void setParameters( List<GenericGatewayParameter> parameters )

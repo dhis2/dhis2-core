@@ -37,12 +37,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -51,23 +52,24 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Nguyen Kim Lai
  */
+@Slf4j
 @Component( "smsMessageSender" )
 @Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class SmsMessageSender
     implements MessageSender
 {
-    private static final Log log = LogFactory.getLog( SmsMessageSender.class );
-
     private static final String NO_CONFIG = "No default gateway configured";
 
     private static final String BATCH_ABORTED = "Aborted sending message batch";
@@ -86,18 +88,22 @@ public class SmsMessageSender
 
     private UserSettingService userSettingService;
 
+    private OutboundSmsService outboundSmsService;
+
     public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
-        UserSettingService userSettingService )
+        UserSettingService userSettingService, OutboundSmsService outboundSmsService )
     {
 
         Preconditions.checkNotNull( gatewayAdminService );
         Preconditions.checkNotNull( smsGateways );
+        Preconditions.checkNotNull( outboundSmsService );
         Preconditions.checkNotNull( userSettingService );
         Preconditions.checkState( !smsGateways.isEmpty() );
 
         this.gatewayAdminService = gatewayAdminService;
         this.smsGateways = smsGateways;
         this.userSettingService = userSettingService;
+        this.outboundSmsService = outboundSmsService;
     }
 
     // -------------------------------------------------------------------------
@@ -233,6 +239,8 @@ public class SmsMessageSender
     {
         OutboundMessageResponse status = null;
 
+        OutboundSms outboundSms = new OutboundSms( subject, text, recipients );
+
         for ( SmsGateway smsGateway : smsGateways )
         {
             if ( smsGateway.accept( gatewayConfig ) )
@@ -247,7 +255,7 @@ public class SmsMessageSender
 
                     status = smsGateway.send( subject, text, new HashSet<>( to ), gatewayConfig );
 
-                    handleResponse( status );
+                    handleResponse( status, outboundSms );
                 }
 
                 return status;
@@ -282,7 +290,7 @@ public class SmsMessageSender
             .collect( Collectors.toList() );
     }
 
-    private void handleResponse( OutboundMessageResponse status )
+    private void handleResponse( OutboundMessageResponse status, OutboundSms sms )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
@@ -294,14 +302,17 @@ public class SmsMessageSender
             log.info( "SMS sent" );
 
             status.setOk( true );
+            sms.setStatus( OutboundSmsStatus.SENT );
         }
         else
         {
             log.error( "SMS failed, failure cause: " + gatewayResponse.getResponseMessage() );
 
             status.setOk( false );
+            sms.setStatus( OutboundSmsStatus.FAILED );
         }
 
+        outboundSmsService.save( sms );
         status.setDescription( gatewayResponse.getResponseMessage() );
         status.setResponseObject( gatewayResponse );
     }

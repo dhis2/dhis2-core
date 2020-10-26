@@ -1,0 +1,154 @@
+<script type="text/javascript">
+
+dhis2.appr.metaData = {
+  "periodTypes": [
+    #set( $size1 = $periodTypes.size() )
+    #foreach( $type in $periodTypes )
+      "${type.name}"#if( $velocityCount < $size1 ),#end
+    #end
+  ]
+};
+
+selection.setListenerFunction( dhis2.appr.orgUnitSelected  );
+
+var i18n_select_data_set = '$encoder.jsEscape( $i18n.getString( "select_data_set" ), "'")';
+var i18n_select_period_type = '$encoder.jsEscape( $i18n.getString( "select_period_type" ), "'")';
+var i18n_select_period = '$encoder.jsEscape( $i18n.getString( "select_period" ), "'")';
+var i18n_select_organisation_unit = '$encoder.jsEscape( $i18n.getString( "select_organisation_unit" ), "'")';
+var i18n_select_items = '$encoder.jsEscape( $i18n.getString( "select_items" ), "'")';
+var i18n_select_items_for = '$encoder.jsEscape( $i18n.getString( "select_items_for" ), "'")';
+var i18n_item = '$encoder.jsEscape( $i18n.getString( "item" ), "'")';
+var i18n_organisation_unit = '$encoder.jsEscape( $i18n.getString( "organisation_unit" ), "'")';
+var i18n_approval_level = '$encoder.jsEscape( $i18n.getString( "approval_level" ), "'")';
+var i18n_not_yet_approved = '$encoder.jsEscape( $i18n.getString( "not_yet_approved" ), "'")';
+var i18n_action = '$encoder.jsEscape( $i18n.getString( "action" ), "'")';
+var i18n_generating_report = '$encoder.jsEscape( $i18n.getString( "generating_report" ), "'")';    
+var i18n_select_option_view_all = '$encoder.jsEscape( $i18n.getString( "select_option_view_all" ) , "'")';
+var i18n_nothing_to_do = '$encoder.jsEscape( $i18n.getString( "nothing_to_do" ) , "'")';
+var i18n_waiting_for_lower_level_approval = '$encoder.jsEscape( $i18n.getString( "waiting_for_lower_level_approval" ) , "'")';
+var i18n_ready_for_approval_at_a_higher_level = '$encoder.jsEscape( $i18n.getString( "ready_for_approval_at_a_higher_level" ) , "'")';
+var i18n_ready_for_approval = '$encoder.jsEscape( $i18n.getString( "ready_for_approval" ) , "'")';
+var i18n_approval_not_relevant = '$encoder.jsEscape( $i18n.getString( "approval_not_relevant" ) , "'")';
+var i18n_waiting_for_approval_elsewhere = '$encoder.jsEscape( $i18n.getString( "waiting_for_approval_elsewhere" ) , "'")';
+var i18n_approved_at_a_higher_level = '$encoder.jsEscape( $i18n.getString( "approved_at_a_higher_level" ) , "'")';
+var i18n_approved = '$encoder.jsEscape( $i18n.getString( "approved" ) , "'")';
+var i18n_approved_elsewhere = '$encoder.jsEscape( $i18n.getString( "approved_elsewhere" ) , "'")';
+var i18n_accepted_elsewhere = '$encoder.jsEscape( $i18n.getString( "accepted_elsewhere" ) , "'")';
+var i18n_approved_and_accepted = '$encoder.jsEscape( $i18n.getString( "approved_and_accepted" ) , "'")';
+var i18n_approved_for_part_of_this_period = '$encoder.jsEscape( $i18n.getString( "approved_for_part_of_this_period" ) , "'")';
+var i18n_accepted_for_part_of_this_period = '$encoder.jsEscape( $i18n.getString( "accepted_for_part_of_this_period" ) , "'")';
+var i18n_approved_elsewhere_for_part_of_this_period = '$encoder.jsEscape( $i18n.getString( "approved_elsewhere_for_part_of_this_period" ) , "'")';
+var i18n_accepted_elsewhere_for_part_of_this_period = '$encoder.jsEscape( $i18n.getString( "accepted_elsewhere_for_part_of_this_period" ) , "'")';
+var i18n_confirm_approval = '$encoder.jsEscape( $i18n.getString( "confirm_approval" ) , "'")';
+var i18n_confirm_unapproval = '$encoder.jsEscape( $i18n.getString( "confirm_unapproval" ) , "'")';
+var i18n_confirm_accept = '$encoder.jsEscape( $i18n.getString( "confirm_accept" ) , "'")';
+var i18n_confirm_unaccept = '$encoder.jsEscape( $i18n.getString( "confirm_unaccept" ) , "'")';
+var i18n_approve = '$encoder.jsEscape( $i18n.getString( "approve" ), "'")';
+var i18n_unapprove = '$encoder.jsEscape( $i18n.getString( "unapprove" ), "'")';
+var i18n_accept = '$encoder.jsEscape( $i18n.getString( "accept" ), "'")';
+var i18n_unaccept = '$encoder.jsEscape( $i18n.getString( "unaccept" ), "'")';
+var i18n_items = '$encoder.jsEscape( $i18n.getString( "items" ), "'")';
+var i18n_please_make_selection = '$encoder.jsEscape( $i18n.getString( "please_make_selection" ), "'")';
+var i18n_done = '$encoder.jsEscape( $i18n.getString( "done" ), "'")';
+</script>
+
+<style type="text/css">
+div#orgUnitTree {
+  width:328px; 
+  height:200px; 
+  border:1px solid #ccc; 
+  margin-bottom: 8px;
+}	
+
+div#control {
+  margin-bottom: 15px;
+}
+
+div.inputSection {
+  padding-top: 7px;
+  padding-bottom: 5px;
+}
+
+.approveButton {
+  display: none;
+}
+</style>
+
+<h3 id="dataSetReportHeader">$i18n.getString( "data_approval" )</h3>
+
+<div class="message message-info" style="margin-bottom: 14px">
+<span>$i18n.getString( "approval_status" )</span>:
+<span id="approvalNotification">$i18n.getString( "please_make_selection" )</span>
+</div>
+
+<div id="control">
+<input type="button" id="dataButton" value='$i18n.getString( "data_criteria" )' style="width:140px" onclick="dhis2.dsr.showCriteria()" disabled="disabled">
+<input type="button" id="approveButton" value="$i18n.getString( 'approve' )" onclick="dhis2.appr.approveData()" class="approveButton" style="width:120px">
+<input type="button" id="unapproveButton" value="$i18n.getString( 'unapprove' )" onclick="dhis2.appr.unapproveData()" class="approveButton" style="width:120px">
+<input type="button" id="acceptButton" value="$i18n.getString( 'accept' )" onclick="dhis2.appr.acceptData()" class="approveButton" style="width:120px">
+<input type="button" id="unacceptButton" value="$i18n.getString( 'unaccept' )" onclick="dhis2.appr.unacceptData()" class="approveButton" style="width:120px">
+</div>
+
+<div id="criteria" class="inputCriteria" style="width:360px;">
+
+<!-- Data set -->
+
+<div class="inputSection">
+<label>$i18n.getString( "dataset" )</label><br>
+<select id="dataSetId" name="dataSetId" style="width:330px" onchange="dhis2.appr.dataSetSelected()">
+  <option value="">[ $i18n.getString( "select" ) ]</option>
+  #foreach( $dataSet in $dataSets )
+  <option value="$dataSet.uid" data-pt="${dataSet.periodType.name}" data-cc="${dataSet.categoryCombo.uid}" 
+    data-hc="${dataSet.hasCategoryCombo()}" data-cn="${dataSet.categoryCombo.optionCombos.size()}">
+  $encoder.htmlEncode( $dataSet.displayName )
+  </option>
+  #end
+</select>
+</div>
+
+<!-- Period -->
+
+<div class="inputSection">
+<label>$i18n.getString( "report_period" )</label><br>
+<select id="periodType" name="periodType" style="width:173px" disabled="disabled" onchange="dhis2.appr.displayPeriods()"></select>
+<input type="button" style="width:75px" value="$i18n.getString( 'prev_year' )" onclick="dhis2.appr.displayPreviousPeriods()" />
+<input type="button" style="width:75px" value="$i18n.getString( 'next_year' )" onclick="dhis2.appr.displayNextPeriods()" /><br>
+<select id="periodId" name="periodId" style="width:330px" disabled="disabled" onchange="dhis2.appr.periodSelected()">
+</select>
+</div>
+
+<!-- Organisation unit -->
+
+<div class="inputSection">
+<label>$i18n.getString( "report_organisation_unit" )</label><br>
+#parse( "/dhis-web-commons/ouwt/orgunittree.vm" )
+</div>
+
+<!-- Attribute option combo -->
+
+<div id="attributeOptionComboDiv" class="inputSection" style="display:none">
+</div>
+
+<div class="inputSection">
+<input type="button" value='$i18n.getString( "get_data" )' style="width:120px" onclick="dhis2.appr.generateDataReport()">
+<input type="button" value='$i18n.getString( "cancel" )' style="width:120px" onclick="dhis2.dsr.hideCriteria()">
+</div>
+
+</div>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="content"></div>
+
+<!-- Attribute option combo dialog -->
+
+<div id="attributeOptionComboDialog" class="page" style="display:none">
+<div id="attributeOptionComboHeaderDiv"></div>
+<div id="attributeOptionComboItemDiv"></div>
+<div id="attributeOptionComboButtonDiv">
+  <input type="button" value="$i18n.getString( 'done' )" style="width:80px" onclick='javascript:dhis2.appr.closeItemsDialog()'>
+  <span style="padding-left: 10px"><a href="javascript:dhis2.appr.selectAllItems()">$i18n.getString( 'select_all' )</a></span>
+  <span style="padding-left: 10px"><a href="javascript:dhis2.appr.unselectAllItems()">$i18n.getString( 'unselect_all' )</a></span>
+</div>
+</div>
+

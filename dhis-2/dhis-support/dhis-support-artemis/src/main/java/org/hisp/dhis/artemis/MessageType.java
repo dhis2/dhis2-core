@@ -33,5 +33,9 @@ package org.hisp.dhis.artemis;
  */
 public enum MessageType
 {
-    AUDIT
+    AUDIT,
+
+    TRACKER_JOB,
+
+    TRACKER_SIDE_EFFECT
 }

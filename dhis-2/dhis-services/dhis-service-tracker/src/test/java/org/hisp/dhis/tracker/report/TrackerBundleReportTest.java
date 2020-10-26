@@ -30,7 +30,9 @@ package org.hisp.dhis.tracker.report;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +44,6 @@ public class TrackerBundleReportTest
     {
         TrackerBundleReport report = new TrackerBundleReport();
         assertEquals( TrackerStatus.OK, report.getStatus() );
-        assertNull( report.getBundleParams() );
         assertNotNull( report.getTypeReportMap() );
         assertTrue( report.isEmpty() );
     }

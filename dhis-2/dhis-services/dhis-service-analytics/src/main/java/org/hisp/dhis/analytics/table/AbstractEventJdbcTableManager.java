@@ -128,7 +128,7 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isOrganisationUnit() )
         {
-            return "ou.name from organisationunit ou where ou.uid = (select " + columnName ;
+            return "ou.uid from organisationunit ou where ou.uid = (select " + columnName ;
         }
         else
         {

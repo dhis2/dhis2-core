@@ -33,6 +33,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
@@ -44,9 +45,8 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -58,11 +58,10 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DefaultDataSourceManager
     implements DataSourceManager, InitializingBean
 {
-    private static final Log log = LogFactory.getLog( DefaultDataSourceManager.class );
-
     private static final String FORMAT_READ_PREFIX = "read%d.";
     private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
     private static final String FORMAT_CONNECTION_USERNAME = FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
@@ -72,6 +71,18 @@ public class DefaultDataSourceManager
     private static final int VAL_MAX_IDLE_TIME = 21600;
     private static final int MAX_READ_REPLICAS = 5;
     private static final String DEFAULT_POOL_SIZE = "40";
+
+    private final DhisConfigurationProvider config;
+
+    private final DataSource mainDataSource;
+
+    public DefaultDataSourceManager( DhisConfigurationProvider config, DataSource mainDataSource )
+    {
+        checkNotNull( config );
+        checkNotNull( mainDataSource );
+        this.config = config;
+        this.mainDataSource = mainDataSource;
+    }
 
     /**
      * State holder for the resolved read only data source.
@@ -85,30 +96,11 @@ public class DefaultDataSourceManager
 
     @Override
     public void afterPropertiesSet()
-        throws Exception
     {
         List<DataSource> ds = getReadOnlyDataSources();
 
         this.internalReadOnlyInstanceList = ds;
         this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource( ds ) : mainDataSource;
-    }
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private DhisConfigurationProvider config;
-
-    public void setConfig( DhisConfigurationProvider config )
-    {
-        this.config = config;
-    }
-
-    private DataSource mainDataSource;
-
-    public void setMainDataSource( DataSource mainDataSource )
-    {
-        this.mainDataSource = mainDataSource;
     }
 
     // -------------------------------------------------------------------------
@@ -161,7 +153,7 @@ public class DefaultDataSourceManager
                     ds.setJdbcUrl( jdbcUrl );
                     ds.setUser( user );
                     ds.setPassword( password );
-                    ds.setMaxPoolSize( Integer.valueOf( maxPoolSize ) );
+                    ds.setMaxPoolSize( Integer.parseInt( maxPoolSize ) );
                     ds.setAcquireIncrement( VAL_ACQUIRE_INCREMENT );
                     ds.setMaxIdleTime( VAL_MAX_IDLE_TIME );
 

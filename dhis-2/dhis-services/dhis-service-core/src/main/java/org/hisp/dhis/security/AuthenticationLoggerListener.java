@@ -29,60 +29,103 @@ package org.hisp.dhis.security;
  */
 
 import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.oidc.DhisOidcUser;
+import org.hisp.dhis.user.UserCredentials;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionEvent;
 import org.springframework.util.ClassUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent>
 {
-    private static final Log log = LogFactory.getLog( AuthenticationLoggerListener.class );
+    private final HashFunction sessionIdHasher = Hashing.sha256();
 
     public void onApplicationEvent( AbstractAuthenticationEvent event )
     {
-        if ( log.isWarnEnabled() )
+        if ( !log.isWarnEnabled() )
         {
-            final StringBuilder builder = new StringBuilder();
-            builder.append( "Authentication event " );
-            builder.append( ClassUtils.getShortName( event.getClass() ) );
-            builder.append( ": " );
-            builder.append( event.getAuthentication().getName() );
-
-            Object details = event.getAuthentication().getDetails();
-
-            if ( ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
-            {
-                ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) details;
-                String ip = authDetails.getIp();
-
-                builder.append( "; ip: " );
-                builder.append( ip );
-
-                String sessionId = authDetails.getSessionId();
-                if ( sessionId != null )
-                {
-                    HashCode hash = Hashing.sha256().newHasher().putString( sessionId, Charsets.UTF_8 ).hash();
-                    builder.append( " sessionId: " );
-                    builder.append( hash.toString() );
-                }
-
-            }
-
-            if ( event instanceof AbstractAuthenticationFailureEvent )
-            {
-                builder.append( "; exception: " );
-                builder.append( ((AbstractAuthenticationFailureEvent) event).getException().getMessage() );
-            }
-
-            log.warn( builder.toString() );
+            return;
         }
+
+        if ( SessionFixationProtectionEvent.class.isAssignableFrom( event.getClass() ) ||
+            InteractiveAuthenticationSuccessEvent.class.isAssignableFrom( event.getClass() ) )
+        {
+            return;
+        }
+
+        String eventClassName = "Authentication event: " + ClassUtils.getShortName( event.getClass() );
+        String authName = event.getAuthentication().getName();
+        String ipAddress = "";
+        String sessionId = "";
+        String exceptionMessage = "";
+
+        if ( event instanceof AbstractAuthenticationFailureEvent )
+        {
+            exceptionMessage =
+                "; exception: " + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
+        }
+
+        Object details = event.getAuthentication().getDetails();
+
+        if ( details != null &&
+            ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
+        {
+            ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) details;
+            ipAddress = "; ip: " + authDetails.getIp();
+            sessionId = hashSessionId( authDetails.getSessionId() );
+        }
+        else if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( event.getAuthentication().getClass() ) )
+        {
+            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) event
+                .getAuthentication();
+
+            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
+            if ( principal != null )
+            {
+                UserCredentials userCredentials = principal.getUserCredentials();
+                authName = userCredentials.getUsername();
+            }
+
+            WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
+            ipAddress = "; ip: " + oauthDetails.getRemoteAddress();
+            sessionId = hashSessionId( oauthDetails.getSessionId() );
+        }
+        else if ( OAuth2AuthenticationToken.class.isAssignableFrom( event.getSource().getClass() ) )
+        {
+            OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) event.getSource();
+            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
+            if ( principal != null )
+            {
+                UserCredentials userCredentials = principal.getUserCredentials();
+                authName = userCredentials.getUsername();
+            }
+        }
+
+        log.warn( eventClassName + "; username: " + authName + ipAddress + sessionId + exceptionMessage );
+
+    }
+
+    private String hashSessionId( String sessionId )
+    {
+        if ( sessionId == null )
+        {
+            return "";
+        }
+        return "; sessionId: " + sessionIdHasher.newHasher().putString( sessionId, Charsets.UTF_8 ).hash().toString();
     }
 }

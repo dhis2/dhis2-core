@@ -28,9 +28,20 @@ package org.hisp.dhis.maintenance.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.maintenance.MaintenanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -47,11 +58,15 @@ public class JdbcMaintenanceStore
 
     private JdbcTemplate jdbcTemplate;
 
-    public JdbcMaintenanceStore( JdbcTemplate jdbcTemplate )
+    private AuditManager auditManager;
+
+    public JdbcMaintenanceStore( JdbcTemplate jdbcTemplate, AuditManager auditManager )
     {
         checkNotNull( jdbcTemplate );
+        checkNotNull( auditManager );
 
         this.jdbcTemplate = jdbcTemplate;
+        this.auditManager = auditManager;
     }
 
     // -------------------------------------------------------------------------
@@ -130,6 +145,23 @@ public class JdbcMaintenanceStore
     @Override
     public int deleteSoftDeletedTrackedEntityInstances()
     {
+        /*
+         *  Get all soft deleted TEIs before they are hard deleted from database
+         */
+        List<String> deletedTeiUids = new ArrayList<>();
+
+        String softDeletedTeiStmt = "(select uid from trackedentityinstance where deleted is true)";
+
+        SqlRowSet softDeletedTeiUidRows = jdbcTemplate.queryForRowSet( softDeletedTeiStmt );
+
+        while ( softDeletedTeiUidRows.next() )
+        {
+            deletedTeiUids.add( softDeletedTeiUidRows.getString( "uid" ) );
+        }
+
+        /*
+         * Prepare filter queries for hard delete
+         */
         String teiSelect = "(select trackedentityinstanceid from trackedentityinstance where deleted is true)";
 
         String piSelect = "(select programinstanceid from programinstance where trackedentityinstanceid in " + teiSelect
@@ -162,8 +194,33 @@ public class JdbcMaintenanceStore
             "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityattributevalueaudit where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityprogramowner where trackedentityinstanceid in " + teiSelect,
+            "delete from programownershiphistory where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityinstance where deleted is true" };
 
-        return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
+        int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
+
+        if ( result > 0 && deletedTeiUids.size() > 0 )
+        {
+            auditHardDeletedTrackedEntityInstances( deletedTeiUids );
+        }
+
+        return result;
+    }
+
+    private void auditHardDeletedTrackedEntityInstances( List<String> deletedTeiUids )
+    {
+        deletedTeiUids.forEach( teiUid -> {
+            TrackedEntityInstance tei = new TrackedEntityInstance();
+            tei.setUid( teiUid );
+            tei.setDeleted( true );
+            auditManager.send( Audit.builder()
+                .auditType( AuditType.DELETE )
+                .auditScope( AuditScope.TRACKER )
+                .createdAt( LocalDateTime.now() )
+                .object( tei )
+                .uid( teiUid )
+                .auditableEntity( new AuditableEntity( tei ) )
+                .build() );
+        });
     }
 }

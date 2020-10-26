@@ -28,8 +28,21 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -37,27 +50,38 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +93,6 @@ public class DefaultEventDataQueryService
     private static final String COL_NAME_EVENTDATE = "executiondate";
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
-    
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
         ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
@@ -127,14 +150,14 @@ public class DefaultEventDataQueryService
 
         if ( pr == null )
         {
-            throw new IllegalQueryException( "Program does not exist: " + request.getProgram() );
+            throwIllegalQueryEx( ErrorCode.E7129, request.getProgram() );
         }
 
         ProgramStage ps = programStageService.getProgramStage( request.getStage() );
 
         if ( StringUtils.isNotEmpty( request.getStage() ) && ps == null )
         {
-            throw new IllegalQueryException( "Program stage is specified but does not exist: " + request.getStage() );
+            throwIllegalQueryEx( ErrorCode.E7130, request.getStage() );
         }
 
         if ( request.getDimension() != null )
@@ -303,27 +326,17 @@ public class DefaultEventDataQueryService
 
         if ( dataElement != null )
         {
-            if ( ValueType.COORDINATE != dataElement.getValueType() )
-            {
-                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
-            }
-
-            return dataElement.getUid();
+            return getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField, ErrorCode.E7219 );
         }
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
         if ( attribute != null )
         {
-            if ( ValueType.COORDINATE != attribute.getValueType() )
-            {
-                throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
-            }
-
-            return attribute.getUid();
+            return getCoordinateFieldOrFail( attribute.getValueType(), coordinateField, ErrorCode.E7220 );
         }
 
-        throw new IllegalQueryException( "Cluster field not valid: " + coordinateField );
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
     }
 
     // -------------------------------------------------------------------------
@@ -346,7 +359,7 @@ public class DefaultEventDataQueryService
 
         if ( split.length % 2 != 1 )
         {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + dimensionString );
+            throwIllegalQueryEx( ErrorCode.E7222, dimensionString );
         }
 
         QueryItem queryItem = queryItemLocator.getQueryItemFromDimension( split[0], program, type );
@@ -404,8 +417,15 @@ public class DefaultEventDataQueryService
             return at;
         }
 
-        throw new IllegalQueryException( "Value identifier does not reference any " +
-            "data element or attribute which are numeric type and part of the program: " + value );
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
     }
 
+    private String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
+    {
+        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
+        {
+            throwIllegalQueryEx( errorCode, field );
+        }
+        return field;
+    }
 }

@@ -28,39 +28,49 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
+@Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
 public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
-    private static final Log log = LogFactory.getLog( RuleActionAssignValueImplementer.class );
-
     private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*";
 
     private static final Pattern PATTERN = Pattern.compile( REGEX, Pattern.CASE_INSENSITIVE );
 
     private RuleVariableInMemoryMap variableMap;
 
-    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap )
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramStageInstanceService programStageInstanceService;
+
+    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap, ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
     {
         checkNotNull( variableMap );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+
         this.variableMap = variableMap;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
     }
 
     @Override
@@ -72,6 +82,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     @Override
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programInstance, "ProgramInstance cannot be null" );
+
         assignValue( ruleEffect, programInstance );
     }
 
@@ -83,7 +96,19 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
         assignValue( ruleEffect, programInstance );
     }
 
-    private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )
+    @Override
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+    }
+
+    private void assignValue(RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( programInstance == null )
         {

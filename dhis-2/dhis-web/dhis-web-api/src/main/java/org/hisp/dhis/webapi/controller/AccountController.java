@@ -29,9 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -42,6 +41,7 @@ import org.hisp.dhis.security.RecaptchaResponse;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -55,8 +55,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -82,45 +80,60 @@ import java.util.Set;
  */
 @Controller
 @RequestMapping( value = "/account" )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AccountController
 {
-    private static final Log log = LogFactory.getLog( AccountController.class );
-
     private static final int MAX_LENGTH = 80;
+
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
-    @Autowired
-    private ConfigurationService configurationService;
+    private final ConfigurationService configurationService;
 
-    @Autowired
-    private PasswordManager passwordManager;
+    private final PasswordManager passwordManager;
 
-    @Autowired
-    private SecurityService securityService;
+    private final SecurityService securityService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private WebMessageService webMessageService;
+    private final WebMessageService webMessageService;
 
-    @Autowired
-    private PasswordValidationService passwordValidationService;
+    private final PasswordValidationService passwordValidationService;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper jsonMapper;
+
+    public AccountController(
+        UserService userService,
+        TwoFactorAuthenticationProvider authenticationManager,
+        ConfigurationService configurationService,
+        PasswordManager passwordManager,
+        SecurityService securityService,
+        SystemSettingManager systemSettingManager,
+        WebMessageService webMessageService,
+        PasswordValidationService passwordValidationService,
+        ObjectMapper jsonMapper )
+    {
+        this.userService = userService;
+        this.twoFactorAuthenticationProvider = authenticationManager;
+        this.configurationService = configurationService;
+        this.passwordManager = passwordManager;
+        this.securityService = securityService;
+        this.systemSettingManager = systemSettingManager;
+        this.webMessageService = webMessageService;
+        this.passwordValidationService = passwordValidationService;
+        this.jsonMapper = jsonMapper;
+    }
 
     @RequestMapping( value = "/recovery", method = RequestMethod.POST )
     public void recoverAccount(
         @RequestParam String username,
         HttpServletRequest request,
-        HttpServletResponse response ) throws WebMessageException
+        HttpServletResponse response )
+        throws WebMessageException
     {
         String rootPath = ContextUtils.getContextPath( request );
 
@@ -136,7 +149,8 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
-        boolean recover = securityService.sendRestoreMessage( credentials, rootPath, RestoreOptions.RECOVER_PASSWORD_OPTION );
+        boolean recover = securityService
+            .sendRestoreMessage( credentials, rootPath, RestoreOptions.RECOVER_PASSWORD_OPTION );
 
         if ( !recover )
         {
@@ -154,14 +168,15 @@ public class AccountController
         @RequestParam String token,
         @RequestParam String password,
         HttpServletRequest request,
-        HttpServletResponse response ) throws WebMessageException
+        HttpServletResponse response )
+        throws WebMessageException
     {
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Account recovery is not enabled" ) );
         }
 
-        if ( password == null || !ValidationUtils.passwordIsValid( password ) )
+        if ( !ValidationUtils.passwordIsValid( password ) )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified or invalid" ) );
         }
@@ -184,11 +199,13 @@ public class AccountController
         // if user is null then something is internally wrong and request should be terminated.
         if ( user == null )
         {
-            throw new WebMessageException( WebMessageUtils.error( String.format( "No user found for username: %s", username ) ) );
+            throw new WebMessageException(
+                WebMessageUtils.error( String.format( "No user found for username: %s", username ) ) );
         }
         else
         {
-            credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "", false );
+            credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "",
+                false );
         }
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
@@ -341,12 +358,14 @@ public class AccountController
             // Check result from API, return 500 if validation failed
             // ---------------------------------------------------------------------
 
-            RecaptchaResponse recaptchaResponse = securityService.verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+            RecaptchaResponse recaptchaResponse = securityService
+                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
 
             if ( !recaptchaResponse.success() )
             {
                 log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() ) );
+                throw new WebMessageException(
+                    WebMessageUtils.badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() ) );
             }
         }
 
@@ -429,7 +448,8 @@ public class AccountController
         @RequestParam String oldPassword,
         @RequestParam String password,
         HttpServletRequest request,
-        HttpServletResponse response ) throws IOException
+        HttpServletResponse response )
+        throws IOException
     {
         String username = (String) request.getSession().getAttribute( "username" );
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
@@ -442,18 +462,19 @@ public class AccountController
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Username is not valid, redirecting to login." );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password, credentials.getUserInfo().getEmail(), false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password,
+            credentials.getUserInfo().getEmail(), false );
 
         if ( userService.credentialsNonExpired( credentials ) )
         {
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Account is not expired, redirecting to login." );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -462,7 +483,7 @@ public class AccountController
             result.put( "status", "NON_MATCHING_PASSWORD" );
             result.put( "message", "Old password is wrong, please correct and try again." );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -473,7 +494,7 @@ public class AccountController
             result.put( "status", "PASSWORD_INVALID" );
             result.put( "message", passwordValidationResult.getErrorMessage() );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -482,7 +503,7 @@ public class AccountController
             result.put( "status", "PASSWORD_EQUAL_TO_USERNAME" );
             result.put( "message", "Password cannot be equal to username" );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -493,39 +514,43 @@ public class AccountController
 
         result.put( "message", "Account was updated." );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/username", method = RequestMethod.GET )
-    public void validateUserNameGet( @RequestParam String username, HttpServletResponse response ) throws IOException
+    public void validateUserNameGet( @RequestParam String username, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validateUserName( username );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
-    public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response ) throws IOException
+    public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validateUserName( username );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/password", method = RequestMethod.GET )
-    public void validatePasswordGet( @RequestParam String password, HttpServletResponse response ) throws IOException
+    public void validatePasswordGet( @RequestParam String password, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validatePassword( password );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/validatePassword", method = RequestMethod.POST )
-    public void validatePasswordPost( @RequestParam String password, HttpServletResponse response ) throws IOException
+    public void validatePasswordPost( @RequestParam String password, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validatePassword( password );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     // ---------------------------------------------------------------------
@@ -562,13 +587,14 @@ public class AccountController
         return result;
     }
 
-    private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities, HttpServletRequest request )
+    private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities,
+        HttpServletRequest request )
     {
         UsernamePasswordAuthenticationToken token =
             new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
         token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
-        Authentication auth = authenticationManager.authenticate( token );
+        Authentication auth = twoFactorAuthenticationProvider.authenticate( token );
 
         SecurityContextHolder.getContext().setAuthentication( auth );
 

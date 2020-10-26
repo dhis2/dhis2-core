@@ -235,6 +235,7 @@
       "id": "Zd2rkv8FsWq",
       "created": "2019-02-28T11:41:32.093",
       "name": "TA Event_program",
+      "code": "TA EVENT_PROGRAM",
       "shortName": "TAEP",
       "publicAccess": "rwrw----",
       "completeEventsExpiryDays": 0,
@@ -260,7 +261,16 @@
       "translations": [],
       "organisationUnits": [
         {
+          "id": "g8upMTyEZGZ"
+        },
+        {
           "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
         }
       ],
       "userGroupAccesses": [
@@ -284,6 +294,7 @@
       "id": "f1AyMswryyQ",
       "created": "2019-02-05T13:46:19.312",
       "name": "TA Tracker_program",
+      "code": "TA TRACKER_PROGRAM",
       "shortName": "TA Tracker_program",
       "publicAccess": "rwrw----",
       "completeEventsExpiryDays": 0,
@@ -309,7 +320,16 @@
       },
       "organisationUnits": [
         {
+          "id": "g8upMTyEZGZ"
+        },
+        {
           "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
         }
       ],
       "programTrackedEntityAttributes": [
@@ -410,7 +430,6 @@
       "lastUpdated": "2019-02-05T13:45:36.361",
       "id": "dIVt4l5vIOa",
       "created": "2019-02-05T13:45:36.361",
-      "name": "TA First name",
       "name": "TA First name",
       "shortName": "TA First name",
       "aggregationType": "NONE",
@@ -3231,6 +3250,46 @@
       "attributeValues": []
     }
   ],
+  "organisationUnitGroups": [
+    {
+      "id": "tMbbjys8mS6",
+      "name": "TA org unit group",
+      "displayName": "TA org unit group",
+      "publicAccess": "rw------",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "ImspTQPwCqd"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        }
+      ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ]
+    }
+  ],
   "organisationUnitLevels": [
     {
       "lastUpdated": "2015-08-09T12:58:05.001",
@@ -3292,33 +3351,6 @@
     }
   ],
   "dataElements": [
-    {
-      "lastUpdated": "2019-02-28T12:52:29.860",
-      "id": "BuZ5LGNfGEB",
-      "created": "2019-02-28T12:49:47.868",
-      "name": "TA ABAge in years",
-      "shortName": "TA BAAge in years",
-      "aggregationType": "AVERAGE",
-      "domainType": "TRACKER",
-      "publicAccess": "rw------",
-      "valueType": "NUMBER",
-      "zeroIsSignificant": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": [],
-      "aggregationLevels": []
-    },
     {
       "lastUpdated": "2019-02-28T12:52:29.860",
       "id": "BuZ5LGNfGEU",
@@ -3480,6 +3512,30 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
+    }
+  ],
+  "programIndicators": [
+    {
+      "aggregationType": "SUM",
+      "code": "AAAAAAA-1234",
+      "decimals": 1,
+      "name": "Prg-Ind-Test",
+      "analyticsType": "EVENT",
+      "shortName": "prg-ind-test",
+      "program": {
+        "id": "Zd2rkv8FsWq"
+      },
+      "analyticsPeriodBoundaries": [
+        {
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD",
+          "boundaryTarget": "EVENT_DATE"
+        },
+        {
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD",
+          "boundaryTarget": "EVENT_DATE"
+        }
+      ],
+      "legendSets": []
     }
   ]
 }

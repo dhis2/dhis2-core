@@ -30,7 +30,9 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,12 @@ import java.util.Set;
 public interface TrackedEntityAttributeService
 {
     String ID = TrackedEntityAttributeService.class.getName();
+
+    /**
+     * The max length of a value. This is also naturally constrained by the database table, due to the
+     * data type: varchar(1200).
+     */
+    int TEA_VALUE_MAX_LENGTH = 1200;
 
     /**
      * Adds an {@link TrackedEntityAttribute}
@@ -142,9 +150,9 @@ public interface TrackedEntityAttributeService
      * if attribute is non-unique.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
-     * @param value                  Value
-     * @param trackedEntityInstance  TrackedEntityInstance - required if updating TEI
-     * @param organisationUnit       OrganisationUnit - only required if org unit scoped
+     * @param value Value
+     * @param trackedEntityInstance TrackedEntityInstance - required if updating TEI
+     * @param organisationUnit OrganisationUnit - only required if org unit scoped
      * @return null if valid, a message if not
      */
     String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
@@ -154,24 +162,27 @@ public interface TrackedEntityAttributeService
      * Validate value against tracked entity attribute value type.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
-     * @param value                  Value
+     * @param value Value
      * @return null if valid, a message if not
      */
     String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value );
 
+    @Transactional( readOnly = true )
+    List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
+
     /**
-     * Get all {@see TrackedEntityAttribute} linked to all
-     * {@see TrackedEntityType} present in the system
+     * Get all {@link TrackedEntityAttribute} linked to all
+     * {@link TrackedEntityType} present in the system
      *
-     * @return a Set of {@see TrackedEntityAttribute}
+     * @return a Set of {@link TrackedEntityAttribute}
      */
     Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
 
     /**
-     * Get all {@see TrackedEntityAttribute} grouped by {@see Program}
+     * Get all {@link TrackedEntityAttribute} grouped by {@link Program}
      *
-     * @return a Map, where the key is the {@see Program} and the values is a Set of {@see TrackedEntityAttribute} associated
-     * to the {@see Program} in the key
+     * @return a Map, where the key is the {@link Program} and the values is a Set of {@link TrackedEntityAttribute} associated
+     * to the {@link Program} in the key
      */
     Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
 }

@@ -53,7 +53,8 @@ public interface DhisConfigurationProvider
     Properties getProperties();
 
     /**
-     * Get the property value for the given key, or the default value for the
+     * Get the property value for the given key, or the default value as
+     * specified in the {@link ConfigurationKey#getDefaultValue()} for the
      * configuration key if not exists.
      *
      * @param key the configuration key.
@@ -117,18 +118,7 @@ public interface DhisConfigurationProvider
      *
      * @return true if the system is in read-only mode.
      */
-    public boolean isReadOnlyMode();
-
-    /**
-     * Returns the analytics server-side cache expiration in seconds.
-     */
-    long getAnalyticsCacheExpiration();
-
-    /**
-     * Indicates whether analytics server-side cache is enabled, i.e. whether
-     * an expiration greater than 0 is defined.
-     */
-    public boolean isAnalyticsCacheEnabled();
+    boolean isReadOnlyMode();
 
     /**
      * Indicates whether clustering is enabled.

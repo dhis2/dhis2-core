@@ -28,39 +28,39 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.common.cache.Cacheability;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.InvalidMediaTypeException;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.webapi.service.WebCache;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * @author Lars Helge Overland
@@ -96,95 +96,66 @@ public class ContextUtils
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
     public static final String HEADER_ETAG = "ETag";
     private static final String QUOTE = "\"";
+    private static final String QUERY_STRING_SEP = "?";
 
     /**
      * Regular expression that extracts the attachment file name from a content disposition header value.
      */
     private static final Pattern CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN = Pattern.compile( "attachment;\\s*filename=\"?([^;\"]+)\"?");
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final WebCache webCache;
+
+    public ContextUtils( final WebCache webCache )
+    {
+        checkNotNull( webCache );
+
+        this.webCache = webCache;
+    }
 
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy )
     {
         configureResponse( response, contentType, cacheStrategy, null, false );
     }
 
-    public void configureAnalyticsResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
+    public void configureAnalyticsResponse( HttpServletResponse response, String contentType,
+        CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
     {
-        int cacheThreshold = (int) systemSettingManager.getSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD );
-        Calendar threshold = Calendar.getInstance();
-        threshold.add( Calendar.YEAR, cacheThreshold * -1 );
-
-        if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
+        // Progressive cache will always take priority
+        if ( RESPECT_SYSTEM_SETTING == cacheStrategy && webCache.isProgressiveCachingEnabled() && latestEndDate != null )
         {
-            configureResponse( response, contentType, CacheStrategy.NO_CACHE, filename, attachment );
+            // Uses the progressive TTL
+            final CacheControl cacheControl = webCache.getCacheControlFor( latestEndDate );
+
+            configureResponse( response, contentType, filename, attachment, cacheControl );
         }
         else
         {
+            // Respects the fixed (predefined) settings
             configureResponse( response, contentType, cacheStrategy, filename, attachment );
         }
     }
 
-    public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy,
-        String filename, boolean attachment )
+    public void configureResponse( HttpServletResponse response, String contentType,
+        CacheStrategy cacheStrategy, String filename, boolean attachment )
     {
-        CacheControl cacheControl;
+        CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
 
+        configureResponse( response, contentType, filename, attachment, cacheControl );
+    }
+
+    private void configureResponse( HttpServletResponse response, String contentType, String filename,
+        boolean attachment, CacheControl cacheControl )
+    {
         if ( contentType != null )
         {
             response.setContentType( contentType );
-        }
-
-        if ( CacheStrategy.RESPECT_SYSTEM_SETTING.equals( cacheStrategy ) )
-        {
-            cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY );
-        }
-
-        if ( CacheStrategy.CACHE_15_MINUTES.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
-        }
-        else if ( CacheStrategy.CACHE_30_MINUTES.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 30, TimeUnit.MINUTES );
-        }
-        else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
-        }
-        else if ( CacheStrategy.CACHE_6AM_TOMORROW.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( getSecondsUntilTomorrow( 6 ), TimeUnit.SECONDS );
-        }
-        else if ( CacheStrategy.CACHE_TWO_WEEKS.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 14, TimeUnit.DAYS );
-        }
-        else
-        {
-            cacheControl = CacheControl.noCache();
-        }
-
-        if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
-        {
-            Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );
-
-            if ( cacheability.equals( Cacheability.PUBLIC ) )
-            {
-                cacheControl.cachePublic();
-            }
-            else if ( cacheability.equals( Cacheability.PRIVATE ) )
-            {
-                cacheControl.cachePrivate();
-            }
         }
 
         response.setHeader( HEADER_CACHE_CONTROL, cacheControl.getHeaderValue() );
 
         if ( filename != null )
         {
-            String type = attachment ? "attachment" : "inline";
+            final String type = attachment ? "attachment" : "inline";
 
             response.setHeader( HEADER_CONTENT_DISPOSITION, type + "; filename=\"" + filename + "\"" );
         }
@@ -281,7 +252,7 @@ public class ContextUtils
      * Indicates whether the media type (content type) of the
      * given HTTP request is compatible with the given media type.
      *
-     * @param request the HTTP response.
+     * @param response the HTTP response.
      * @param mediaType the media type.
      */
     public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )
@@ -433,8 +404,8 @@ public class ContextUtils
      */
     public static boolean isAcceptCsvGzip( HttpServletRequest request )
     {
-        return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
-            || (request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" )));
+        return request != null && ( ( request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ) )
+            || ( request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" ) ) ) ;
     }
 
     /**
@@ -450,7 +421,29 @@ public class ContextUtils
         {
             return null;
         }
-        final Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
+
+        Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
         return matcher.matches() ? matcher.group( 1 ) : null;
+    }
+
+    /**
+     * Returns the value associated with a double wildcard ({@code **}) in the request mapping.
+     * <p>
+     * As an example, for a request mapping {@code /apps/**} and a request {@code /apps/data-visualizer/index.html?id=123},
+     * this method will return {@code data-visualizer/index.html?id=123}.
+     *
+     * @param request the {@link HttpServletRequest}.
+     * @return the wildcard value.
+     */
+    public static String getWildcardPathValue( HttpServletRequest request )
+    {
+        String path = (String) request.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE );
+        String bestMatchPattern = (String) request.getAttribute( HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE );
+        String wildcardPath = new AntPathMatcher().extractPathWithinPattern( bestMatchPattern, path );
+
+        String queryString = !StringUtils.isBlank( request.getQueryString() ) ?
+            QUERY_STRING_SEP.concat( request.getQueryString() ) : StringUtils.EMPTY;
+
+        return String.format( "%s%s", wildcardPath, queryString );
     }
 }

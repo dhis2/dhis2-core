@@ -30,8 +30,7 @@ package org.hisp.dhis.dataapproval;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalNotFound;
@@ -68,12 +67,11 @@ import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
 /**
  * @author Jim Grace
  */
+@Slf4j
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
 public class DefaultDataApprovalService
     implements DataApprovalService
 {
-    private final static Log log = LogFactory.getLog( DefaultDataApprovalService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

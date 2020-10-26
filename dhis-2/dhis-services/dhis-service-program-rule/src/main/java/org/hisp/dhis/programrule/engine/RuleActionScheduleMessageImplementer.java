@@ -28,50 +28,53 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar.
  */
+@Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
-    private static final Log log = LogFactory.getLog( RuleActionScheduleMessageImplementer.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final NotificationLoggingService notificationLoggingService;
+    private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+    private final NotificationTemplateService notificationTemplateService;
 
-    public RuleActionScheduleMessageImplementer( NotificationLoggingService notificationLoggingService,
-        @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" ) IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
+    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService,
+         ProgramNotificationInstanceService programNotificationInstanceService,
+         NotificationTemplateService notificationTemplateService )
     {
-
-        checkNotNull( notificationLoggingService );
-        checkNotNull( programNotificationInstanceStore );
-
-        this.notificationLoggingService = notificationLoggingService;
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
+        this.programNotificationInstanceService = programNotificationInstanceService;
+        this.notificationTemplateService = notificationTemplateService;
     }
 
     @Override
@@ -81,6 +84,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( !validate( ruleEffect, programInstance ) )
@@ -90,20 +94,25 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programInstance );
 
-        String date = ruleEffect.data();
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( null );
         notificationInstance.setProgramInstance( programInstance );
 
-        programNotificationInstanceStore.save( notificationInstance );
+        programNotificationInstanceService.save( notificationInstance );
 
         log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
 
@@ -113,6 +122,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
@@ -122,20 +132,25 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        String date = ruleEffect.data();
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 
-        programNotificationInstanceStore.save( notificationInstance );
+        programNotificationInstanceService.save( notificationInstance );
 
         log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
 
@@ -144,6 +159,24 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         notificationLoggingService.save( entry );
 
     }
+
+    @Override
+    @Transactional
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    @Transactional
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
 
     private boolean isDateValid( String date )
     {
@@ -156,6 +189,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         }
 
         log.error( "Invalid date: " + date );
+
         return false;
     }
 }

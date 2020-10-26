@@ -28,8 +28,11 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
+import java.util.List;
+
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -43,17 +46,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
+@Slf4j
 @Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
-    private static final Log log = LogFactory.getLog( DefaultEventQueryValidator.class );
-
     private final QueryValidator queryValidator;
 
     private final SystemSettingManager systemSettingManager;
@@ -193,7 +192,7 @@ public class DefaultEventQueryValidator
     @Override
     public void validateTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
     {
-        String violation = null;
+        ErrorMessage violation = null;
 
         if ( columns != null )
         {
@@ -201,7 +200,7 @@ public class DefaultEventQueryValidator
             {
                 if ( !params.hasDimension( column ) )
                 {
-                    violation = "Column must be present as dimension in query: " + column;
+                    violation = new ErrorMessage( ErrorCode.E7126, column );
                 }
             }
         }
@@ -212,7 +211,7 @@ public class DefaultEventQueryValidator
             {
                 if ( !params.hasDimension( row ) )
                 {
-                    violation = "Row must be present as dimension in query: " + row;
+                    violation = new ErrorMessage( ErrorCode.E7127, row );
                 }
             }
         }

@@ -30,10 +30,16 @@ package org.hisp.dhis.system.grid;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -56,4 +62,35 @@ public class GridUtilsTest
         assertEquals( 6, grids.size() );
         assertEquals( "TitleA", grids.get( 0 ).getTitle() );
     }
+
+    @Test
+    public void testGetGridIndexByDimensionItem()
+    {
+        Period period1 = PeriodType.getPeriodFromIsoString( "202010" );
+        period1.setUid( CodeGenerator.generateUid() );
+
+        Period period2 = PeriodType.getPeriodFromIsoString( "202011" );
+        period2.setUid( CodeGenerator.generateUid() );
+
+        Period period3 = PeriodType.getPeriodFromIsoString( "202012" );
+        period3.setUid( CodeGenerator.generateUid() );
+
+        List<DimensionalItemObject> periods = Lists.newArrayList( period1, period2, period3);
+
+        List<Object> row = new ArrayList<>( 3 );
+        row.add( CodeGenerator.generateUid() ); // dimension
+        row.add( period2.getIsoDate()); // period
+        row.add( 10.22D ); // value
+        assertEquals( 1, GridUtils.getGridIndexByDimensionItem( row, periods, 2 ) );
+
+        List<Object> row2 = new ArrayList<>( 3 );
+        row2.add( CodeGenerator.generateUid() ); // dimension
+        row2.add( "201901" ); // period
+        row2.add( 10.22D ); // value
+        assertEquals( 2, GridUtils.getGridIndexByDimensionItem( row2, periods, 2 ) );
+
+
+    }
+
+
 }

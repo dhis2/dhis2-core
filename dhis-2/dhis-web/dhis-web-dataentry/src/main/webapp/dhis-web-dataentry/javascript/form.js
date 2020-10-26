@@ -289,13 +289,14 @@ dhis2.de.shouldFetchDataSets = function( ids ) {
 dhis2.de.getMultiOrgUnitSetting = function()
 {
   return $.ajax({
-    url: '../api/systemSettings/multiOrganisationUnitForms',
+    url: '../api/systemSettings?key=multiOrganisationUnitForms',
     dataType: 'json',
     async: false,
     type: 'GET',
     success: function( data ) {
-      dhis2.de.multiOrganisationUnitEnabled = data;
-      selection.setIncludeChildren(data);
+      var isMultiOrgUnit = data && data.multiOrganisationUnitForms ? data.multiOrganisationUnitForms : false;
+      dhis2.de.multiOrganisationUnitEnabled = isMultiOrgUnit;
+      selection.setIncludeChildren(isMultiOrgUnit);
     }
   });
 };
@@ -1534,13 +1535,28 @@ dhis2.de.getCurrentCategoryOptionsQueryValue = function()
 
 /**
  * Tests to see if a category option is valid during a period.
- * 
- * TODO proper date comparison
  */
 dhis2.de.optionValidWithinPeriod = function( option, period )
 {
-    return ( !option.start || option.start <= dhis2.de.periodChoices[ period ].endDate )
-        && ( !option.end || option.end >= dhis2.de.periodChoices[ period ].startDate )
+    var optionStartDate, optionEndDate;
+
+    if ( option.start ) {
+        optionStartDate = dhis2.period.calendar.parseDate( dhis2.period.format, option.start );
+    }
+
+    if ( option.end ) {
+        optionEndDate = dhis2.period.calendar.parseDate( dhis2.period.format, option.end );
+        var ds = dhis2.de.dataSets[dhis2.de.currentDataSetId];
+        if ( ds.openPeriodsAfterCoEndDate ) {
+            optionEndDate = dhis2.period.generator.datePlusPeriods( ds.periodType, optionEndDate, parseInt( ds.openPeriodsAfterCoEndDate ) );
+        }
+    }
+
+    var periodStartDate = dhis2.period.calendar.parseDate( dhis2.period.format, dhis2.de.periodChoices[ period ].startDate );
+    var periodEndDate = dhis2.period.calendar.parseDate( dhis2.period.format, dhis2.de.periodChoices[ period ].endDate );
+
+    return ( !optionStartDate || optionStartDate <= periodEndDate )
+        && ( !optionEndDate || optionEndDate >= periodStartDate )
 }
 
 /**
@@ -2128,7 +2144,7 @@ function getPreviousEntryField( field )
 
 function registerCompleteDataSet( completedStatus )
 {
-	if ( !confirm( i18n_confirm_complete ) )
+	if ( !confirm( completedStatus ? i18n_confirm_complete : i18n_confirm_undo ) )
 	{
 		return false;
     }

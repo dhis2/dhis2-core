@@ -30,18 +30,13 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryValidator;
@@ -54,19 +49,20 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
-import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.analytics.QueryValidator" )
 public class DefaultQueryValidator
     implements QueryValidator
 {
-    private static final Log log = LogFactory.getLog( DefaultQueryValidator.class );
-
     private final SystemSettingManager systemSettingManager;
 
     private final NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
@@ -228,7 +224,7 @@ public class DefaultQueryValidator
     @Override
     public void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        String violation = null;
+        ErrorMessage violation = null;
 
         if ( columns != null )
         {
@@ -236,7 +232,7 @@ public class DefaultQueryValidator
             {
                 if ( !params.hasDimension( column ) )
                 {
-                    violation = "Column must be present as dimension in query: " + column;
+                    violation = new ErrorMessage( ErrorCode.E7126, column );
                 }
             }
         }
@@ -247,7 +243,7 @@ public class DefaultQueryValidator
             {
                 if ( !params.hasDimension( row ) )
                 {
-                    violation = "Row must be present as dimension in query: " + row;
+                    violation = new ErrorMessage( ErrorCode.E7127, row );
                 }
             }
         }

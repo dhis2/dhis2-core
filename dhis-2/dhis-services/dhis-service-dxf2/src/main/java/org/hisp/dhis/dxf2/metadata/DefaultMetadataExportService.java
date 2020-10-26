@@ -28,16 +28,10 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
@@ -98,27 +92,31 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    private static final Log log = LogFactory.getLog( DefaultMetadataExportService.class );
-
     @Autowired
     private SchemaService schemaService;
 
@@ -234,7 +232,24 @@ public class DefaultMetadataExportService implements MetadataExportService
     @Override
     public void validate( MetadataExportParams params )
     {
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
 
+        User user = params.getUser();
+
+        if ( params.getClasses().isEmpty()
+            && !(user == null || user.isSuper() || user.isAuthorized( Authorities.F_METADATA_EXPORT )) )
+        {
+            throw new MetadataExportException( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." );
+        }
+
+        if ( params.getClasses().contains( User.class )
+            && !(user == null || user.isSuper() || user.isAuthorized( Authorities.F_USER_VIEW ) || user.isAuthorized( Authorities.F_METADATA_EXPORT )) )
+        {
+            throw new MetadataExportException( "Exporting user metadata requires the 'F_USER_VIEW' authority." );
+        }
     }
 
     @Override

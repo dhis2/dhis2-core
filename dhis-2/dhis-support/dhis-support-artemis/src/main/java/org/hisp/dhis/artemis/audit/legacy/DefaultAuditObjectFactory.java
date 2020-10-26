@@ -28,27 +28,48 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
- * (as is the case for metadata), or it can be a wrapper object collecting the parts wanted.
+ * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads.
+ * This can be the object itself (as is the case for metadata), or it can be a
+ * wrapper object collecting the parts wanted.
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
-    private final RenderService renderService;
+    private final ObjectMapper objectMapper;
 
-    public DefaultAuditObjectFactory( RenderService renderService )
+    /**
+     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is
+     * class name. Value is Map of {@link AuditAttribute} Fields and its getter
+     * Method
+     */
+    private final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
+
+    public DefaultAuditObjectFactory( @Qualifier( "jsonMapper" ) ObjectMapper objectMapper )
     {
-        this.renderService = renderService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -56,36 +77,77 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     {
         switch ( auditScope )
         {
-            case METADATA:
-                return handleMetadataAudit( auditType, object, user );
-            case TRACKER:
-                return handleTracker( auditType, object, user );
-            case AGGREGATE:
-                return handleAggregate( auditType, object, user );
+        case METADATA:
+            return handleMetadataAudit( object );
+        case TRACKER:
+            return handleTracker( object );
+        case AGGREGATE:
+            return handleAggregate( object );
         }
-
         return null;
     }
 
-    private Object handleTracker( AuditType auditType, Object object, String user )
+    @Override
+    public AuditAttributes collectAuditAttributes( Object auditObject )
     {
-        return null;
+        AuditAttributes auditAttributes = new AuditAttributes();
+
+        getAuditAttributeFields( auditObject.getClass() ).forEach( ( key, value ) -> {
+
+            Object attributeObject = ReflectionUtils.invokeMethod( auditObject, value );
+
+            if ( attributeObject instanceof IdentifiableObject )
+            {
+                auditAttributes.put( key.getName(), ((IdentifiableObject) attributeObject).getUid() );
+            }
+            else
+            {
+                auditAttributes.put( key.getName(), attributeObject );
+            }
+        } );
+
+        return auditAttributes;
     }
 
-    private Object handleAggregate( AuditType auditType, Object object, String user )
+    private Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
     {
-        return null;
-    }
+        Map<Field, Method> map = cachedAuditAttributeFields.get( auditClass.getName() );
 
-    private Object handleMetadataAudit( AuditType auditType, Object object, String user )
-    {
-        if ( !(object instanceof IdentifiableObject) )
+        if ( map == null )
         {
-            return null;
+            map = AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class );
+            cachedAuditAttributeFields.put( auditClass.getName(), map );
         }
 
-        return renderService.toJsonAsString( MetadataAuditPayload.builder()
-            .identifiableObject( (IdentifiableObject) object )
-            .build() );
+        return map;
+    }
+
+    private String handleTracker( Object object )
+    {
+        return toJson( object );
+    }
+
+    private String handleAggregate( Object object )
+    {
+        return toJson( object );
+    }
+
+    private String handleMetadataAudit( Object object )
+    {
+        return toJson( object );
+    }
+
+    private String toJson( Object object )
+    {
+        try
+        {
+            return objectMapper.writeValueAsString( object );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.debug( DebugUtils.getStackTrace( e ) );
+        }
+
+        return null;
     }
 }

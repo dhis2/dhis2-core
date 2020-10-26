@@ -28,26 +28,37 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "validationReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerValidationReport
 {
+    @JsonProperty
+    @Builder.Default
     private List<TrackerErrorReport> errorReports = new ArrayList<>();
 
-    public TrackerValidationReport()
-    {
-    }
+    @JsonProperty
+    @Builder.Default
+    private List<TrackerWarningReport> warningReports = new ArrayList<>();
+
+    @JsonIgnore
+    @Builder.Default
+    private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
 
     //-----------------------------------------------------------------------------------
     // Utility Methods
@@ -56,6 +67,14 @@ public class TrackerValidationReport
     public void add( TrackerValidationReport validationReport )
     {
         add( validationReport.getErrorReports() );
+        this.warningReports.addAll( validationReport.getWarningReports() );
+        addPerfReports( validationReport.getPerformanceReport() );
+    }
+
+    public void add( ValidationErrorReporter validationReporter )
+    {
+        this.errorReports.addAll( validationReporter.getReportList() );
+        this.warningReports.addAll( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )
@@ -63,25 +82,18 @@ public class TrackerValidationReport
         this.errorReports.addAll( errorReports );
     }
 
-    public boolean isEmpty()
+    public void addPerfReports( List<TrackerValidationHookTimerReport> reports )
     {
-        return errorReports == null || errorReports.isEmpty();
+        this.performanceReport.addAll( reports );
     }
 
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerErrorReport> getErrorReports()
+    public void add( TrackerValidationHookTimerReport report )
     {
-        return errorReports;
+        performanceReport.add( report );
     }
 
-    public void setErrorReports( List<TrackerErrorReport> errorReports )
+    public boolean hasErrors()
     {
-        this.errorReports = errorReports;
+        return !errorReports.isEmpty();
     }
 }

@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.36-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-services</artifactId>
@@ -31,7 +31,6 @@
     <!-- Level 6 -->
     <module>dhis-service-validation</module>
     <module>dhis-service-program-rule</module>
-    <module>dhis-service-mobile</module>
     <!-- Level 7 -->
     <module>dhis-service-administration</module>
     <module>dhis-service-dxf2</module>

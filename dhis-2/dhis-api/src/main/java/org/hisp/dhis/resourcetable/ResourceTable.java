@@ -28,8 +28,6 @@ package org.hisp.dhis.resourcetable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
 
 import java.util.List;
@@ -40,8 +38,6 @@ import java.util.Optional;
  */
 public abstract class ResourceTable<T>
 {
-    protected static final Log log = LogFactory.getLog( ResourceTable.class );
-
     protected static final String TEMP_TABLE_SUFFIX = "_temp";
 
     protected List<T> objects;

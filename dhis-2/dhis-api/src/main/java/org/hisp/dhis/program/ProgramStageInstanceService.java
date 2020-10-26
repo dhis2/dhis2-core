@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -55,17 +55,17 @@ public interface ProgramStageInstanceService
     long addProgramStageInstance( ProgramStageInstance programStageInstance );
 
     /**
-     * Deletes a {@link ProgramStageInstance}.
+     * Adds a {@link ProgramStageInstance}
      *
-     * @param programStageInstance the ProgramStageInstance to delete.
-     * @param forceDelete          false if PSI should be soft deleted.
+     * @param programStageInstance The ProgramStageInstance to add.
+     * @param user the current user.
+     * @return A generated unique id of the added {@link ProgramStageInstance}.
      */
-    void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete );
+    long addProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
      * Soft deletes a {@link ProgramStageInstance}.
      *
-     * @param programStageInstance
      */
     void deleteProgramStageInstance( ProgramStageInstance programStageInstance );
 
@@ -75,6 +75,14 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance to update.
      */
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
+
+    /**
+     * Updates a {@link ProgramStageInstance}.
+     *
+     * @param programStageInstance the ProgramStageInstance to update.
+     * @param user the current user.
+     */
+    void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
      * Updates a last sync timestamp on specified ProgramStageInstances
@@ -115,6 +123,22 @@ public interface ProgramStageInstanceService
      * @return the ProgramStageInstance with the given id.
      */
     ProgramStageInstance getProgramStageInstance( long id );
+
+    /**
+     * Returns a List of {@link ProgramStageInstance}.
+     *
+     * @param ids a List of {@link ProgramStageInstance} primary keys
+     * @return  a List of {@link ProgramStageInstance} matching the provided primary keyss
+     */
+    List<ProgramStageInstance> getProgramStageInstances( List<Long> ids );
+
+    /**
+     * Returns a List of {@link ProgramStageInstance}.
+     *
+     * @param uids a List of {@link ProgramStageInstance} uids
+     * @return  a List of {@link ProgramStageInstance} matching the provided uids
+     */
+    List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids );
 
     /**
      * Returns the {@link ProgramStageInstance} with the given UID.
@@ -180,7 +204,7 @@ public interface ProgramStageInstanceService
      */
     void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
 
     /**
      * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.

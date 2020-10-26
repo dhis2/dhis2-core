@@ -71,8 +71,8 @@ public class DataApprovalRemapLevelResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "create table " + getTempTableName() + "(" +
-            "workflowid integer not null, " +
-            "dataapprovallevelid integer not null, " +
+            "workflowid bigint not null, " +
+            "dataapprovallevelid bigint not null, " +
             "level integer not null, " +
             "primary key (workflowid,dataapprovallevelid))";
 

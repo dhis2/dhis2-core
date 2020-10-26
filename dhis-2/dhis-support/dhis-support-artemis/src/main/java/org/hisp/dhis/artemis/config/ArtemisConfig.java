@@ -45,14 +45,19 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.util.SocketUtils;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 
 /**
@@ -60,17 +65,21 @@ import java.util.Map;
  */
 @EnableJms
 @Configuration
+@DependsOn( "artemisPortChecker" )
 public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
     private final LocationManager locationManager;
+    private final Environment environment;
 
     public ArtemisConfig(
         DhisConfigurationProvider dhisConfig,
-        LocationManager locationManager )
+        LocationManager locationManager,
+        Environment environment )
     {
         this.dhisConfig = dhisConfig;
         this.locationManager = locationManager;
+        this.environment = environment;
     }
 
     @Bean
@@ -85,13 +94,24 @@ public class ArtemisConfig
     }
 
     @Bean
-    public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    public JmsTemplate jmsTopicTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
         template.setDestinationResolver( nameDestinationResolver );
         // set to true, since we only use topics and we want to resolve names to topic destination
         template.setPubSubDomain( true );
+
+        return template;
+    }
+
+    @Bean
+    public JmsTemplate jmsQueueTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    {
+        JmsTemplate template = new JmsTemplate( connectionFactory );
+        template.setDeliveryMode( DeliveryMode.PERSISTENT );
+        template.setDestinationResolver( nameDestinationResolver );
+        template.setPubSubDomain( false );
 
         return template;
     }
@@ -106,6 +126,18 @@ public class ArtemisConfig
         factory.setPubSubDomain( true );
         // 1 forces the listener to use only one consumer, to avoid duplicated messages
         factory.setConcurrency( "1" );
+
+        return factory;
+    }
+
+    @Bean // configured for queues
+    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( nameDestinationResolver );
+        factory.setPubSubDomain( false );
+        factory.setConcurrency( "5-10" );
 
         return factory;
     }
@@ -175,7 +207,14 @@ public class ArtemisConfig
         artemisConfigData
             .setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
         artemisConfigData.setHost( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST ) );
+
         artemisConfigData.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) ) );
+
+        if ( isTestRun( this.environment.getActiveProfiles() ) )
+        {
+            artemisConfigData.setPort( SocketUtils.findAvailableTcpPort( 3000 ) );
+        }
+
         artemisConfigData.setUsername( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_USERNAME ) );
         artemisConfigData.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
 

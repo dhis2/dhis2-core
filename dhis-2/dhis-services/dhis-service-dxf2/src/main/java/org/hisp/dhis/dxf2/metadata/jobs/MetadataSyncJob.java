@@ -28,22 +28,20 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.sync.SynchronizationJob;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
@@ -52,10 +50,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is the runnable that takes care of the Metadata Synchronization.
@@ -63,10 +58,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * through the dhis.conf.
  *
  * @author anilkumk
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "metadataSyncJob" )
-public class MetadataSyncJob
-    extends AbstractJob
+public class MetadataSyncJob extends SynchronizationJob
 {
     public static final String VERSION_KEY = "version";
     public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
@@ -77,8 +73,6 @@ public class MetadataSyncJob
     public static final String METADATA_SYNC = "metadataSync";
     public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
     public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
-
-    private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
     private final SystemSettingManager systemSettingManager;
 
@@ -160,14 +154,10 @@ public class MetadataSyncJob
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
+            MetadataSyncJob.class );
 
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return new ErrorReport( MetadataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
-        }
-
-        return super.validate();
+        return errorReport.orElse( super.validate() );
     }
 
     synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )

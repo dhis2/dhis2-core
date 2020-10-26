@@ -28,21 +28,19 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.springframework.context.event.EventListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DefaultHibernateCacheManager
     implements HibernateCacheManager
 {
-    private static final Log log = LogFactory.getLog( DefaultHibernateCacheManager.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

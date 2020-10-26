@@ -28,126 +28,147 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.util.ObjectUtils;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerErrorMessage;
+
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
 public class TrackerErrorReport
 {
-    protected final TrackerErrorMessage message;
+    private final String errorMessage;
 
-    protected final Class<?> mainKlass;
+    private final TrackerErrorCode errorCode;
 
-    protected String mainId;
+    private final TrackerType trackerType;
 
-    protected Class<?> errorKlass;
+    private final String uid;
 
-    protected String errorProperty;
-
-    protected Object value;
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
+    @JsonCreator
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
-        this.mainKlass = mainKlass;
-        this.message = new TrackerErrorMessage( errorCode, args );
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message )
-    {
-        this.mainKlass = mainKlass;
-        this.message = message;
-    }
-
+    
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerErrorCode getErrorCode()
     {
-        return message.getErrorCode();
+        return errorCode;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getMessage()
     {
-        return message.getMessage();
+        return errorMessage;
     }
-
+    
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getMainKlass()
+    public TrackerType getTrackerType()
     {
-        return mainKlass;
+        return trackerType;
     }
-
+    
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMainId()
+    public String getUid()
     {
-        return mainId;
+        return uid;
     }
 
-    public TrackerErrorReport setMainId( String mainId )
+    public static class TrackerErrorReportBuilder
     {
-        this.mainId = mainId;
-        return this;
-    }
+        private final List<Object> arguments = new ArrayList<>();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getErrorKlass()
-    {
-        return errorKlass;
-    }
+        public TrackerErrorReportBuilder addArg( Object arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
 
-    public TrackerErrorReport setErrorKlass( Class<?> errorKlass )
-    {
-        this.errorKlass = errorKlass;
-        return this;
-    }
+        public TrackerErrorReport build( TrackerBundle bundle )
+        {
+            TrackerIdScheme scheme = bundle.getIdentifier();
+            TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getErrorProperty()
-    {
-        return errorProperty;
-    }
+            List<String> args = new ArrayList<>();
+            for ( Object argument : this.arguments )
+            {
+                String s = parseArgs( identifier, argument );
+                args.add( s );
+            }
 
-    public TrackerErrorReport setErrorProperty( String errorProperty )
-    {
-        this.errorProperty = errorProperty;
-        return this;
-    }
+            String errorMessage = MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Object getValue()
-    {
-        return value;
-    }
+            return new TrackerErrorReport( errorMessage, this.errorCode, this.trackerType, this.uid );
+        }
 
-    public TrackerErrorReport setValue( Object value )
-    {
-        this.value = value;
-        return this;
+        public static String parseArgs( TrackerIdentifier identifier, Object argument )
+        {
+            if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
+            {
+                return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
+            }
+            else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return identifier.getIdAndName( (IdentifiableObject) argument );
+            }
+            else if ( Date.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return (DateFormat.getInstance().format( argument ));
+            }
+            else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Enrollment enrollment = (Enrollment) argument;
+                return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
+            }
+            else if ( Event.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Event event = (Event) argument;
+                return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
+            }
+            else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
+            {
+                TrackedEntity entity = (TrackedEntity) argument;
+                return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
+            }
+
+            return "";
+        }
     }
 
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "message", getMessage() )
-            .add( "errorCode", message.getErrorCode() )
-            .add( "mainKlass", mainKlass )
-            .add( "errorKlass", errorKlass )
-            .add( "value", value )
-            .toString();
+        return "TrackerErrorReport{" +
+            "message=" + errorMessage +
+            ", errorCode=" + errorCode +
+            ", trackerEntityType=" + trackerType +
+            ", uid=" + uid +
+            '}';
     }
 }

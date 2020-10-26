@@ -56,8 +56,6 @@ public class TrackedEntityAttribute
 {
     private String description;
 
-    private String formName;
-
     private ValueType valueType;
 
     private Boolean inherit = false;
@@ -178,7 +176,7 @@ public class TrackedEntityAttribute
 
         for ( Option option : getOptionSet().getOptions() )
         {
-            if ( value.equals( option.getCode() ) )
+            if ( option != null && value.equals( option.getCode() ) )
             {
                 return true;
             }
@@ -420,6 +418,7 @@ public class TrackedEntityAttribute
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -427,6 +426,7 @@ public class TrackedEntityAttribute
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

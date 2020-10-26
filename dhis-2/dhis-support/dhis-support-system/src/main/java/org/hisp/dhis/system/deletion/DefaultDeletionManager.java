@@ -30,10 +30,12 @@ package org.hisp.dhis.system.deletion;
 
 import javassist.util.proxy.ProxyObject;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,12 +50,11 @@ import java.util.List;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "deletionManager" )
 public class DefaultDeletionManager
     implements DeletionManager
 {
-    private static final Log log = LogFactory.getLog( DefaultDeletionManager.class );
-
     private static final String DELETE_METHOD_PREFIX = "delete";
     private static final String ALLOW_METHOD_PREFIX = "allowDelete";
 
@@ -121,13 +122,14 @@ public class DefaultDeletionManager
                 if ( allow != null )
                 {
                     String hint = String.valueOf( allow );
+                    hint = hint.isEmpty() ? hint : ( " (" + hint + ")" );
+                    String argument = handler.getClassName() + hint;
 
-                    String message = "Could not delete due to association with another object: " +
-                        handler.getClassName() + ( hint.isEmpty() ? hint : ( " (" + hint + ")" ) );
+                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, argument );
 
-                    log.info( "Delete was not allowed by " + currentHandler + ": " + message );
+                    log.info( "Delete was not allowed by " + currentHandler + ": " + errorMessage.toString() );
 
-                    throw new DeleteNotAllowedException( DeleteNotAllowedException.ERROR_ASSOCIATED_BY_OTHER_OBJECTS, message );
+                    throw new DeleteNotAllowedException( errorMessage );
                 }
             }
         }

@@ -138,7 +138,7 @@ public class DataSet
      * Property indicating if the dataset could be collected using mobile data
      * entry.
      */
-    private boolean mobile;
+    private boolean mobile; //TODO Remove, mobile service is now removed
 
     /**
      * Indicating custom data entry form, can be null.
@@ -191,6 +191,12 @@ public class DataSet
      * not allowed for current period.
      */
     private int openFuturePeriods;
+
+    /**
+     * Number of periods to open for data capture that are after the category
+     * option's end date.
+     */
+    private int openPeriodsAfterCoEndDate;
 
     /**
      * Property indicating that all fields for a data element must be filled.
@@ -809,6 +815,18 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getOpenPeriodsAfterCoEndDate()
+    {
+        return openPeriodsAfterCoEndDate;
+    }
+
+    public void setOpenPeriodsAfterCoEndDate( int openPeriodsAfterCoEndDate )
+    {
+        this.openPeriodsAfterCoEndDate = openPeriodsAfterCoEndDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFieldCombinationRequired()
     {
         return fieldCombinationRequired;
@@ -903,6 +921,7 @@ public class DataSet
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -910,6 +929,7 @@ public class DataSet
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

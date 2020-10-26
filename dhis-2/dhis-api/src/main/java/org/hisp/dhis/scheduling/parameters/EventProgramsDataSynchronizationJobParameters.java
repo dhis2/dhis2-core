@@ -40,7 +40,7 @@ import org.hisp.dhis.scheduling.parameters.jackson.EventProgramsDataSynchronizat
 import java.util.Optional;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = EventProgramsDataSynchronizationJobParametersDeserializer.class )
@@ -49,19 +49,10 @@ public class EventProgramsDataSynchronizationJobParameters
 {
     private static final long serialVersionUID = 168332662397563659L;
 
-    static final int EVENT_PAGE_SIZE_MIN = 5;
-    static final int EVENT_PAGE_SIZE_MAX = 200;
+    static final int PAGE_SIZE_MIN = 5;
+    static final int PAGE_SIZE_MAX = 200;
 
     private int pageSize = 60;
-
-    public EventProgramsDataSynchronizationJobParameters()
-    {
-    }
-
-    public EventProgramsDataSynchronizationJobParameters( final int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -78,9 +69,17 @@ public class EventProgramsDataSynchronizationJobParameters
     @Override
     public Optional<ErrorReport> validate()
     {
-        if ( pageSize < EVENT_PAGE_SIZE_MIN || pageSize > EVENT_PAGE_SIZE_MAX )
+        if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
         {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4008, "pageSize", EVENT_PAGE_SIZE_MIN, EVENT_PAGE_SIZE_MAX, pageSize  ) );
+            return Optional.of(
+                new ErrorReport(
+                    this.getClass(),
+                    ErrorCode.E4008,
+                    "pageSize",
+                    PAGE_SIZE_MIN,
+                    PAGE_SIZE_MAX,
+                    pageSize  )
+            );
         }
 
         return Optional.empty();

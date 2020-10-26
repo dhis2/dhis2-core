@@ -28,29 +28,28 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.function.Consumer;
+
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.hisp.dhis.smscompression.SMSResponse;
+import org.hisp.dhis.smscompression.SmsResponse;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableMap;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Transactional
 public abstract class BaseSMSListener
     implements
     IncomingSmsListener
 {
-    private static final Log log = LogFactory.getLog( BaseSMSListener.class );
-
     private static final String NO_SMS_CONFIG = "No sms configuration found";
 
     protected static final int INFO = 1;
@@ -88,7 +87,7 @@ public abstract class BaseSMSListener
         LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
     }
 
-    protected void sendSMSResponse( SMSResponse resp, IncomingSms sms, int messageID )
+    protected void sendSMSResponse( SmsResponse resp, IncomingSms sms, int messageID )
     {
         // A response code < 100 is either success or just a warning
         SmsMessageStatus status = resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;

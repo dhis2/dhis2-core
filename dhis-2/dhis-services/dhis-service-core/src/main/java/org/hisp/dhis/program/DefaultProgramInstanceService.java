@@ -28,10 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AuditType;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -65,12 +62,11 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 /**
  * @author Abyot Asalefew
  */
+@Slf4j
 @Service( "org.hisp.dhis.program.ProgramInstanceService" )
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {
-    private static final Log log = LogFactory.getLog( DefaultProgramInstanceService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -103,9 +99,6 @@ public class DefaultProgramInstanceService
     private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
-    private ProgramInstanceAuditService programInstanceAuditService;
-
-    @Autowired
     private AclService aclService;
 
     // -------------------------------------------------------------------------
@@ -122,25 +115,26 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void deleteProgramInstance( ProgramInstance programInstance )
+    public long addProgramInstance( ProgramInstance programInstance, User user )
     {
-        deleteProgramInstance( programInstance, false );
+        programInstanceStore.save( programInstance, user );
+        return programInstance.getId();
     }
 
     @Override
     @Transactional
-    public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
+    public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        if ( forceDelete )
-        {
-            programInstanceStore.delete( programInstance );
-        }
-        else
-        {
-            programInstance.setDeleted( true );
-            programInstance.setStatus( ProgramStatus.CANCELLED );
-            programInstanceStore.update( programInstance );
-        }
+        programInstance.setStatus( ProgramStatus.CANCELLED );
+        programInstanceStore.update( programInstance );
+        programInstanceStore.delete( programInstance );
+    }
+
+    @Override
+    @Transactional
+    public void hardDeleteProgramInstance( ProgramInstance programInstance )
+    {
+        programInstanceStore.hardDelete( programInstance );
     }
 
     @Override
@@ -148,13 +142,6 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( long id )
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
-        {
-            addProgramInstanceAudit( programInstance, user.getUsername() );
-        }
 
         return programInstance;
     }
@@ -164,13 +151,6 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( String uid )
     {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
-        {
-            addProgramInstanceAudit( programInstance, user.getUsername() );
-        }
 
         return programInstance;
     }
@@ -201,6 +181,13 @@ public class DefaultProgramInstanceService
     public void updateProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.update( programInstance );
+    }
+
+    @Override
+    @Transactional
+    public void updateProgramInstance( ProgramInstance programInstance, User user )
+    {
+        programInstanceStore.update( programInstance, user );
     }
 
     @Override
@@ -317,11 +304,6 @@ public class DefaultProgramInstanceService
         }
 
         List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        if ( user != null )
-        {
-            addProgramInstanceAudits( programInstances, user.getUsername() );
-        }
 
         return programInstances;
     }
@@ -652,23 +634,5 @@ public class DefaultProgramInstanceService
         programInstance.setEndDate( null );
 
         updateProgramInstance( programInstance );
-    }
-
-    private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
-    {
-        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
-        {
-            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
-
-            programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
-        }
-    }
-
-    private void addProgramInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
-    {
-        for ( ProgramInstance programInstance : programInstances )
-        {
-            addProgramInstanceAudit( programInstance, accessedBy );
-        }
     }
 }

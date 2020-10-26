@@ -34,9 +34,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversation;
@@ -54,18 +58,19 @@ import java.util.Set;
 /**
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 public class ProgramStageInstance
-    extends BaseIdentifiableObject
+    extends SoftDeletableObject
 {
     private Date createdAtClient;
 
     private Date lastUpdatedAtClient;
 
+    @AuditAttribute
     private ProgramInstance programInstance;
 
+    @AuditAttribute
     private ProgramStage programStage;
-
-    private boolean deleted;
 
     private String storedBy;
 
@@ -73,18 +78,22 @@ public class ProgramStageInstance
 
     private Date executionDate;
 
+    @AuditAttribute
     private OrganisationUnit organisationUnit;
 
+    @AuditAttribute
     private CategoryOptionCombo attributeOptionCombo;
 
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
 
+    @AuditAttribute
     private Set<EventDataValue> eventDataValues = new HashSet<>();
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
+    @AuditAttribute
     private EventStatus status = EventStatus.ACTIVE;
 
     private String completedBy;
@@ -103,14 +112,12 @@ public class ProgramStageInstance
 
     public ProgramStageInstance()
     {
-        this.deleted = false;
     }
 
     public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
     {
         this.programInstance = programInstance;
         this.programStage = programStage;
-        this.deleted = false;
     }
 
     @Override
@@ -325,18 +332,6 @@ public class ProgramStageInstance
         return this;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDeleted()
-    {
-        return deleted;
-    }
-
-    public void setDeleted( boolean deleted )
-    {
-        this.deleted = deleted;
-    }
-
     @JsonIgnore
     public Date getLastSynchronized()
     {
@@ -402,10 +397,9 @@ public class ProgramStageInstance
             ", name='" + name + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
-            ", displayName='" + displayName + '\'' +
             ", programInstance=" + (programInstance != null ? programInstance.getUid() : null) +
             ", programStage=" + (programStage != null ? programStage.getUid() : null) +
-            ", deleted=" + deleted +
+            ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +
             ", organisationUnit=" + (organisationUnit != null ? organisationUnit.getUid() : null) +
             ", status=" + status +

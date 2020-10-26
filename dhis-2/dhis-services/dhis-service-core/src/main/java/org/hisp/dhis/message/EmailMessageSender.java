@@ -38,8 +38,6 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -71,16 +69,17 @@ import org.springframework.util.concurrent.ListenableFuture;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "emailMessageSender" )
 @Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class EmailMessageSender
     implements MessageSender
 {
-    private static final Log log = LogFactory.getLog( EmailMessageSender.class );
-
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
     private static final String LB = System.getProperty( "line.separator" );
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
@@ -111,7 +110,7 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
@@ -192,7 +191,7 @@ public class EmailMessageSender
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
         return new AsyncResult<>(response);
     }
-    
+
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
@@ -296,7 +295,7 @@ public class EmailMessageSender
         email.setFrom( sender, getEmailName() );
         email.setSmtpPort( port );
         email.setStartTLSEnabled( tls );
-        
+
         if ( username != null && password != null )
         {
             email.setAuthenticator( new DefaultAuthenticator( username, password ) );
@@ -359,17 +358,17 @@ public class EmailMessageSender
 
     private String getPrefixedSubject( String subject )
     {
-        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE, DEFAULT_APPLICATION_TITLE );
+        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         return "[" + title + "] " + subject;
     }
-    
+
     private String getEmailName()
     {
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ), DEFAULT_APPLICATION_TITLE );
         return appTitle + " message [No reply]";
     }
-    
+
     private String emailNameEncode( String name )
     {
         return name != null ? TextUtils.removeNewlines( name ) : null;

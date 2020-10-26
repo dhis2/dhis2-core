@@ -30,8 +30,7 @@ package org.hisp.dhis.interceptor;
 
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -54,11 +53,10 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
  * @author Torgeir Lorange Ostby
  * @version $Id: WebWorkExceptionInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
+@Slf4j
 public class ExceptionInterceptor
     implements Interceptor
 {
-    private static final Log LOG = LogFactory.getLog( ExceptionInterceptor.class );
-
     public static final String EXCEPTION_RESULT_KEY = "onExceptionReturn";
     public static final String EXCEPTION_RESULT_DEFAULT = "exceptionDefault";
     public static final String EXCEPTION_RESULT_PLAIN_TEXT = "plainTextError";
@@ -185,11 +183,11 @@ public class ExceptionInterceptor
 
             if ( !ignore )
             {
-                LOG.error( "Error while executing action", e );
+                log.error( "Error while executing action", e );
             }
             else
             {
-                LOG.info( "Ignored exception: " + e.getClass().getName() );
+                log.info( "Ignored exception: " + e.getClass().getName() );
             }
 
             exceptionResultName = defaultIfEmpty( exceptionResultName, EXCEPTION_RESULT_DEFAULT );

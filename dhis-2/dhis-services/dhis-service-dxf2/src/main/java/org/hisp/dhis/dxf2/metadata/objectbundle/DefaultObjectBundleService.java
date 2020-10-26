@@ -30,16 +30,20 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
@@ -56,15 +60,16 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
-    private static final Log log = LogFactory.getLog( DefaultObjectBundleService.class );
-
     private final CurrentUserService currentUserService;
 
     private final PreheatService preheatService;
@@ -82,8 +87,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private final Notifier notifier;
 
     private final MergeService mergeService;
-
-    private final DeletedObjectService deletedObjectService;
 
     private List<ObjectBundleHook> objectBundleHooks;
 
@@ -114,7 +117,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         this.cacheManager = cacheManager;
         this.notifier = notifier;
         this.mergeService = mergeService;
-        this.deletedObjectService = deletedObjectService;
     }
 
     @Override
@@ -378,11 +380,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
-
-            if (object instanceof MetadataObject)
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 

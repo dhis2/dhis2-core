@@ -72,32 +72,26 @@ public class CriteriaQueryEngineTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.NUMBER );
-        dataElementA.setDisplayName( "dataElementA" );
         dataElementA.setName( "dataElementA" );
 
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.BOOLEAN );
-        dataElementB.setDisplayName( "dataElementB" );
         dataElementB.setName( "dataElementB" );
 
         DataElement dataElementC = createDataElement( 'C' );
         dataElementC.setValueType( ValueType.INTEGER );
-        dataElementC.setDisplayName( "dataElementC" );
         dataElementC.setName( "dataElementC" );
 
         DataElement dataElementD = createDataElement( 'D' );
         dataElementD.setValueType( ValueType.NUMBER );
-        dataElementD.setDisplayName( "dataElementD" );
         dataElementD.setName( "dataElementD" );
 
         DataElement dataElementE = createDataElement( 'E' );
         dataElementE.setValueType( ValueType.BOOLEAN );
-        dataElementE.setDisplayName( "dataElementE" );
         dataElementE.setName( "dataElementE" );
 
         DataElement dataElementF = createDataElement( 'F' );
         dataElementF.setValueType( ValueType.INTEGER );
-        dataElementF.setDisplayName( "dataElementF" );
         dataElementF.setName( "dataElementF" );
 
         dataElementA.setCreated( Year.parseYear( "2001" ).getStart() );

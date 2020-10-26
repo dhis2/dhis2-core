@@ -28,39 +28,39 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Saptarshi Purkayastha
  */
+@Slf4j
 @Component( "org.hisp.dhis.appmanager.AppManager" )
 public class DefaultAppManager
     implements AppManager
 {
-    private static final Log log = LogFactory.getLog( DefaultAppManager.class );
+    public static final String INVALID_FILTER_MSG = "Invalid filter: ";
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -74,7 +74,8 @@ public class DefaultAppManager
 
     private final CacheProvider cacheProvider;
 
-    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
+    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
+        CurrentUserService currentUserService,
         LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
         KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
@@ -109,7 +110,8 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS ).collect( Collectors.toList() );
+        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
+            .collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
@@ -139,7 +141,7 @@ public class DefaultAppManager
         // If no apps are found, check for original name
         for ( App app : appCache.getAll() )
         {
-            if ( app.getName().equals( appName ) )
+            if ( app.getShortName().equals( appName ) )
             {
                 return app;
             }
@@ -159,10 +161,52 @@ public class DefaultAppManager
     @Override
     public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
     {
-        return apps.stream().filter( app -> (
-            ("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) ).
-            collect( Collectors.toList() );
+        return apps.stream().filter(
+            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
+                ||
+                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getAppsByShortName( final String name, Collection<App> apps, final String operator )
+    {
+        return apps.stream()
+            .filter( app -> (("ilike".equalsIgnoreCase( operator )
+                && app.getShortName().toLowerCase().contains( name.toLowerCase() )) ||
+                ("eq".equalsIgnoreCase( operator ) && app.getShortName().equals( name ))) )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getAppsByIsBundled( final boolean isBundled, Collection<App> apps )
+    {
+        return apps
+            .stream()
+            .filter( app -> app.getIsBundledApp() == isBundled )
+            .collect( Collectors.toList() );
+    }
+
+    private void applyFilter( Set<App> apps, String key, String operator, String value )
+    {
+        if ( "appType".equalsIgnoreCase( key ) )
+        {
+            String appType = value != null ? value.toUpperCase() : null;
+            apps.retainAll( getAppsByType( AppType.valueOf( appType ), apps ) );
+        }
+        else if ( "name".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( getAppsByName( value, apps, operator ) );
+        }
+        else if ( "shortName".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( getAppsByShortName( value, apps, operator ) );
+        }
+        else if ( "isBundledApp".equalsIgnoreCase( key ) )
+        {
+            boolean isBundled = "true".equalsIgnoreCase( value );
+            apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
+        }
     }
 
     @Override
@@ -177,18 +221,22 @@ public class DefaultAppManager
 
             if ( split.length != 3 )
             {
-                throw new QueryParserException( "Invalid filter: " + filter );
+                throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
 
-            if ( "appType".equalsIgnoreCase( split[0] ) )
+            if ( !"name".equalsIgnoreCase( split[0] ) && !"shortName".equalsIgnoreCase( split[0] )
+                && !"eq".equalsIgnoreCase( split[1] ) )
             {
-                String appType = split[2] != null ? split[2].toUpperCase() : null;
-                returnList.retainAll( getAppsByType( AppType.valueOf( appType ), returnList ) );
+                throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
-            else if ( "name".equalsIgnoreCase( split[0] ) )
+
+            if ( "isBundledApp".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
+                && !"false".equalsIgnoreCase( split[2] ) )
             {
-                returnList.retainAll( getAppsByName( split[2], returnList, split[1] ) );
+                throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
+
+            applyFilter( returnList, split[0], split[1], split[2] );
         }
 
         return new ArrayList<>( returnList );
@@ -275,9 +323,17 @@ public class DefaultAppManager
     }
 
     @Override
-    public String getAppStoreUrl()
+    public String getAppHubUrl()
     {
-        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
+        String baseUrl = StringUtils
+            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
+        String apiUrl = StringUtils
+            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
+
+        return "{" +
+            "\"baseUrl\": \"" + baseUrl + "\", " +
+            "\"apiUrl\": \"" + apiUrl + "\"" +
+            "}";
     }
 
     /**
@@ -304,7 +360,7 @@ public class DefaultAppManager
     @Override
     public boolean isAccessible( App app, User user )
     {
-        if ( user == null || user.getUserCredentials() == null || app == null || app.getName() == null )
+        if ( app == null || app.getShortName() == null || user == null || user.getUserCredentials() == null )
         {
             return false;
         }
@@ -327,14 +383,6 @@ public class DefaultAppManager
         throws IOException
     {
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
-    }
-
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        appCache.invalidateAll();
-        log.info( "App cache cleared" );
     }
 
     // -------------------------------------------------------------------------

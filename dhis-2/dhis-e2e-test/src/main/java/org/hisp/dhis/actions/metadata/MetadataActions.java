@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions.metadata;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions.metadata;
+
 
 import io.restassured.matcher.RestAssuredMatchers;
 import org.hisp.dhis.actions.RestApiActions;
@@ -51,7 +53,7 @@ public class MetadataActions
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=NONE", "importReportMode=FULL" );
+        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
 
         ApiResponse response = postFile( file, queryParamsBuilder );
         response.validate().statusCode( 200 );

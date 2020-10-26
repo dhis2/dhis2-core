@@ -27,13 +27,13 @@ package org.hisp.dhis.db.migration.v33;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
 
 import javax.annotation.Nonnull;
@@ -45,7 +45,7 @@ import java.sql.Statement;
  */
 public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends BaseJavaMigration
 {
-    private final Log log = LogFactory.getLog( V2_33_13__Migrate_text_based_system_settings_to_use_enums.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_33_13__Migrate_text_based_system_settings_to_use_enums.class );
 
     @Override
     public void migrate( final Context context ) throws Exception

@@ -38,6 +38,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -152,7 +153,7 @@ public class Indicator
     {
         return DimensionItemType.INDICATOR;
     }
-    
+
     /**
      * A denominator value of "1" implies that there is no denominator
      * and that the indicator represents a sum.
@@ -162,7 +163,7 @@ public class Indicator
     {
         return "1".equals( denominator ) ? TotalAggregationType.SUM : TotalAggregationType.AVERAGE;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -228,6 +229,13 @@ public class Indicator
         this.numeratorDescription = numeratorDescription;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayNumeratorDescription()
+    {
+        return getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, getNumeratorDescription() );
+    }
+
     @JsonIgnore
     public String getExplodedNumerator()
     {
@@ -261,6 +269,13 @@ public class Indicator
     public void setDenominatorDescription( String denominatorDescription )
     {
         this.denominatorDescription = denominatorDescription;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDenominatorDescription()
+    {
+        return getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, getDenominatorDescription() );
     }
 
     @JsonIgnore
@@ -327,6 +342,7 @@ public class Indicator
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -334,6 +350,7 @@ public class Indicator
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

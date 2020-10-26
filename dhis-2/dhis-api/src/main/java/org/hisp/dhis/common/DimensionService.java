@@ -39,6 +39,12 @@ import org.hisp.dhis.user.User;
  */
 public interface DimensionService
 {
+    /**
+     * Returns items which the current user has data read access to.
+     *
+     * @param uid the dimension identifier.
+     * @return a list of {@link DimensionalItemObject}, empty if none.
+     */
     List<DimensionalItemObject> getCanReadDimensionItems( String uid );
 
     <T extends IdentifiableObject> List<T> getCanReadObjects( List<T> objects );
@@ -58,17 +64,17 @@ public interface DimensionService
     void mergeEventAnalyticalObject( EventAnalyticalObject object );
 
     /**
-     * Gets a dimension item object which are among the data dimension item 
-     * objects. The composite dimensional items themselves will be transient 
+     * Gets a dimension item object which are among the data dimension item
+     * objects. The composite dimensional items themselves will be transient
      * and the associated objects will be persistent.
      *
      * @param dimensionItem the dimension item identifier.
      * @return a dimensional item object.
      */
     DimensionalItemObject getDataDimensionalItemObject( String dimensionItem );
-    
+
     /**
-     * Gets a dimension item object which are among the data dimension item 
+     * Gets a dimension item object which are among the data dimension item
      * objects. The composite dimensional items will be transient and the
      * associated objects will be persistent.
      *
@@ -88,7 +94,10 @@ public interface DimensionService
 
     /**
      * Gets a set of dimension item objects from their ids.
-     *
+     * In case of two {@see DimensionalItemId} having the same ids, this function always returns a
+     * {@see DimensionalItemObject} corresponding to the {@see DimensionalItemId}
+     * with the Period Offset property higher/lower than 0.
+     * 
      * @param itemIds a set of ids of the dimension item objects to get.
      * @return the set of dimension item objects built from the ids.
      */

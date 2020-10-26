@@ -30,35 +30,33 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.QueryTimeoutException;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
@@ -75,13 +73,14 @@ import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Markus Bekken
  */
+@Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( AbstractJdbcEventAnalyticsManager.class );
-
     private static final String ITEM_NAME_SEP = ": ";
     private static final String NA = "[N/A]";
     protected static final String COL_COUNT = "count";
@@ -95,12 +94,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final StatementBuilder statementBuilder;
 
     protected final ProgramIndicatorService programIndicatorService;
-    
-    protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
-    
-    public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-                                             StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-                                             DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+
+    protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
+
+    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
@@ -145,19 +144,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " desc,";
-            }
+            sql += "order by " + getSortColumns( params, SortOrder.ASC ) + getSortColumns( params, SortOrder.DESC );
 
             sql = TextUtils.removeLastComma( sql ) + " ";
+        }
+
+        return sql;
+    }
+
+    private String getSortColumns(EventQueryParams params , SortOrder order) {
+
+        String sql = "";
+
+        for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
+        {
+            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() ) )
+            {
+                sql += quote( item.getUid() );
+            }
+            else
+            {
+                sql += quoteAlias( item.getUid() );
+            }
+            sql += order.equals( SortOrder.ASC ) ? " asc," : " desc,";
         }
 
         return sql;
@@ -251,7 +260,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
                         getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
                 }
-                
+
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -260,6 +269,23 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
 
                 columns.add( coordSql );
+            }
+            else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
+            {
+                if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+                {
+                    String colName = quote( queryItem.getItemId() + OU_GEOMETRY_COL_SUFFIX );
+
+                    String coordSql = "'[' || round(ST_X(ST_Centroid(" + colName
+                        + "))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(" + colName + "))::numeric, 6) || ']' as "
+                        + colName;
+
+                    columns.add( coordSql );
+                }
+                else
+                {
+                    columns.add( quote( queryItem.getItemName() + OU_NAME_COL_SUFFIX ) );
+                }
             }
             else
             {
@@ -332,8 +358,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
 
         return grid;
@@ -464,7 +490,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         }
     }
-    
+
     /**
      * Returns an item value for the given query, query item and value. Assumes that
      * data dimensions are collapsed for the given query. Returns the short name
@@ -639,8 +665,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new org.hisp.dhis.common.QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
     }
 
@@ -652,19 +678,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected abstract String getSelectClause( EventQueryParams params );
 
     /**
-     * Generate the SQL for the from-clause. Generally this means which analytics table to get data from.
+     * Generates the SQL for the from-clause. Generally this means which analytics table to get data from.
+     *
      * @param params the {@link EventQueryParams} that define what is going to be queried.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getFromClause( EventQueryParams params );
 
     /**
-     * Generate the SQL for the where-clause. Generally this means adding filters, grouping and ordering
+     * Generates the SQL for the where-clause. Generally this means adding filters, grouping and ordering
      * to the SQL.
+     *
      * @param params the {@link EventQueryParams} that defines the details of the filters, grouping and ordering.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );
 
+    /**
+     * Returns the relevant {@link AnalyticsType}.
+     *
+     * @return the {@link AnalyticsType}.
+     */
     protected abstract AnalyticsType getAnalyticsType();
 }

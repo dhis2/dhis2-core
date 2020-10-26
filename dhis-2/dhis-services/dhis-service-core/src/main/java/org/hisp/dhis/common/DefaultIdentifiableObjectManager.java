@@ -28,11 +28,10 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.api.client.util.Lists;
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -48,8 +47,6 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
-
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -71,6 +68,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
 /**
  * Note that it is required for nameable object stores to have concrete implementation
  * classes, not rely on the HibernateIdentifiableObjectStore class, in order to
@@ -78,12 +78,11 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.common.IdentifiableObjectManager" )
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
-    private static final Log log = LogFactory.getLog( DefaultIdentifiableObjectManager.class );
-
     /**
      * Cache for default category objects. Disabled during test phase.
      */
@@ -583,6 +582,26 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes)
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return 0;
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return 0;
+        }
+
+        return  store.countAllValuesByAttributes( attributes );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids )
@@ -629,28 +648,49 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids )
+    public <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values )
     {
-        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
-
-        if ( store == null )
+        if ( values == null )
         {
             return new ArrayList<>();
         }
 
         List<T> list = new ArrayList<>();
 
-        if ( uids != null )
+        for ( String value : values )
         {
-            for ( String uid : uids )
-            {
-                T object = store.getByUid( uid );
+            T object = getObject( clazz, idScheme, value );
 
-                if ( object != null )
-                {
-                    list.add( object );
-                }
+            if ( object != null )
+            {
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        if ( store == null || uids == null )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> list = new ArrayList<>();
+
+        for ( String uid : uids )
+        {
+            T object = store.getByUid( uid );
+
+            if ( object != null )
+            {
+                list.add( object );
             }
         }
 
@@ -1084,6 +1124,15 @@ public class DefaultIdentifiableObjectManager
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
         return store != null && store.isAttributeValueUnique( object, attribute, value );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass,
+        Attribute attribute, List<String> values )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Lists.newArrayList();
     }
 
     @Override

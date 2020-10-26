@@ -52,7 +52,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,8 +82,11 @@ public class TrackerBundleServiceTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -100,7 +106,7 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata() throws IOException
+    public void testVerifyMetadata()
     {
         Program program = manager.get( Program.class, "E8o1E9tAppy" );
         OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
@@ -111,19 +117,20 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testTrackedEntityInstanceImport() throws IOException
+    public void testTrackedEntityInstanceImport()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
+                TrackerBundleParams.class );
 
-        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 13, trackerBundleParams.getTrackedEntities().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setTrackedEntities( trackerBundle.getTrackedEntities() ) );
+        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .build() );
 
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );

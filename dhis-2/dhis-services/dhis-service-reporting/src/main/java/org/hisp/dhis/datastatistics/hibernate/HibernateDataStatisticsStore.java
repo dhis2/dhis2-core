@@ -1,6 +1,3 @@
-package org.hisp.dhis.datastatistics.hibernate;
-
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -29,42 +26,40 @@ package org.hisp.dhis.datastatistics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.datastatistics.hibernate;
+
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Slf4j
 @Repository( "org.hisp.dhis.datastatistics.DataStatisticsStore" )
 public class HibernateDataStatisticsStore
     extends HibernateIdentifiableObjectStore<DataStatistics>
     implements DataStatisticsStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataStatisticsStore.class );
-
     public HibernateDataStatisticsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataStatistics.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataStatistics.class, currentUserService, aclService, false );
     }
 
     // -------------------------------------------------------------------------

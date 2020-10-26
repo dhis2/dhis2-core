@@ -651,12 +651,10 @@ public class DefaultAclService implements AclService
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            /*
-             * Is the user allowed to read this object through group access?
-             *
-             */
+            // Check if user is allowed to read this object through group access
+
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+                    && userGroupAccess.userGroupContainsUser( user ) )
             {
                 return true;
             }
@@ -664,12 +662,10 @@ public class DefaultAclService implements AclService
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
-            /*
-             * Is the user allowed to read to this object through user access?
-             *
-             */
+            // Check if user is allowed to read to this object through user access
+
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                && user.equals( userAccess.getUser() ) )
+                    && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }
@@ -700,7 +696,7 @@ public class DefaultAclService implements AclService
         return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
     }
 
-    private boolean readWriteCommonCheck(User user, IdentifiableObject object )
+    private boolean readWriteCommonCheck( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
         {

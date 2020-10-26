@@ -33,6 +33,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -46,6 +49,7 @@ import java.util.Date;
  *
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttributeValue
     implements Serializable
@@ -55,8 +59,10 @@ public class TrackedEntityAttributeValue
      */
     private static final long serialVersionUID = -4469496681709547707L;
 
+    @AuditAttribute
     private TrackedEntityAttribute attribute;
 
+    @AuditAttribute
     private TrackedEntityInstance entityInstance;
 
     private Date created;
@@ -195,11 +201,12 @@ public class TrackedEntityAttributeValue
     }
 
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "TrackedEntityAttributeValue{" +
             "attribute=" + attribute +
-            ", entityInstance=" + entityInstance.getUid() +
+            ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
             ", value='" + value + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
@@ -211,6 +218,7 @@ public class TrackedEntityAttributeValue
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Date getCreated()
@@ -218,11 +226,13 @@ public class TrackedEntityAttributeValue
         return created;
     }
 
-    public void setCreated( Date created )
+    public TrackedEntityAttributeValue setCreated( Date created )
     {
         this.created = created;
+        return this;
     }
 
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Date getLastUpdated()
@@ -230,9 +240,10 @@ public class TrackedEntityAttributeValue
         return lastUpdated;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public TrackedEntityAttributeValue setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
     }
 
     /**
@@ -289,6 +300,7 @@ public class TrackedEntityAttributeValue
      *
      * @return String with value, either plain-text or decrypted.
      */
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getValue()
@@ -302,8 +314,9 @@ public class TrackedEntityAttributeValue
      * value when requested.
      *
      * @param value the value to be stored.
+     * @return a {@link TrackedEntityAttributeValue}.
      */
-    public void setValue( String value )
+    public TrackedEntityAttributeValue setValue( String value )
     {
         if ( !auditValueIsSet )
         {
@@ -314,6 +327,9 @@ public class TrackedEntityAttributeValue
         valueIsSet = true;
 
         this.value = value;
+        this.plainValue = value;
+
+        return this;
     }
 
     @JsonProperty
@@ -323,9 +339,10 @@ public class TrackedEntityAttributeValue
         return storedBy;
     }
 
-    public void setStoredBy( String storedBy )
+    public TrackedEntityAttributeValue setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+        return this;
     }
 
     @JsonProperty( "trackedEntityAttribute" )
@@ -336,9 +353,10 @@ public class TrackedEntityAttributeValue
         return attribute;
     }
 
-    public void setAttribute( TrackedEntityAttribute attribute )
+    public TrackedEntityAttributeValue setAttribute( TrackedEntityAttribute attribute )
     {
         this.attribute = attribute;
+        return this;
     }
 
     @JsonProperty( "trackedEntityInstance" )
@@ -349,9 +367,10 @@ public class TrackedEntityAttributeValue
         return entityInstance;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public TrackedEntityAttributeValue setEntityInstance( TrackedEntityInstance entityInstance )
     {
         this.entityInstance = entityInstance;
+        return this;
     }
 
     public String getAuditValue()

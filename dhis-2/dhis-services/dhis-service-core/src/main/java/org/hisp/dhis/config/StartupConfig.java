@@ -28,8 +28,8 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -47,12 +47,18 @@ import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.startup.*;
+import org.hisp.dhis.startup.ConfigurationPopulator;
+import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.hisp.dhis.startup.ExpressionUpgrader;
+import org.hisp.dhis.startup.I18nLocalePopulator;
+import org.hisp.dhis.startup.ModelUpgrader;
+import org.hisp.dhis.startup.SchedulerStart;
+import org.hisp.dhis.startup.SettingUpgrader;
+import org.hisp.dhis.startup.TwoFAPopulator;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -61,11 +67,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class StartupConfig
 {
     @Bean( "org.hisp.dhis.period.PeriodTypePopulator" )
-    public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore )
+    public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore, SessionFactory sessionFactory )
     {
-        PeriodTypePopulator populator = new PeriodTypePopulator( periodStore );
+        PeriodTypePopulator populator = new PeriodTypePopulator( periodStore, sessionFactory );
         populator.setName( "PeriodTypePopulator" );
-        populator.setRunlevel( 2 );
+        populator.setRunlevel( 3 );
         return populator;
     }
 
@@ -74,7 +80,7 @@ public class StartupConfig
     {
         TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
         populator.setName( "PeriodTypePopulator" );
-        populator.setRunlevel( 2 );
+        populator.setRunlevel( 3 );
         populator.setSkipInTests( true );
         return populator;
     }
@@ -86,7 +92,7 @@ public class StartupConfig
         DataElementDefaultDimensionPopulator populator = new DataElementDefaultDimensionPopulator( dataElementService,
             categoryService );
         populator.setName( "DataElementDefaultDimensionPopulator" );
-        populator.setRunlevel( 3 );
+        populator.setRunlevel( 4 );
         return populator;
     }
 
@@ -123,28 +129,6 @@ public class StartupConfig
         return upgrader;
     }
 
-    @Bean( "org.hisp.dhis.startup.FavoriteDataItemUpgrader" )
-    public FavoriteDataItemUpgrader favoriteDataItemUpgrader( JdbcTemplate jdbcTemplate,
-        IdentifiableObjectManager idObjectManager )
-    {
-        FavoriteDataItemUpgrader upgrader = new FavoriteDataItemUpgrader( jdbcTemplate, idObjectManager );
-        upgrader.setName( "FavoriteDataItemUpgrader" );
-        upgrader.setRunlevel( 9 );
-        upgrader.setSkipInTests( true );
-        return upgrader;
-    }
-
-    @Bean( "org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader" )
-    public AnalyticalObjectEmbeddedDimensionUpgrader analyticalObjectEmbeddedDimensionUpgrader(
-        JdbcTemplate jdbcTemplate, IdentifiableObjectManager idObjectManager )
-    {
-        AnalyticalObjectEmbeddedDimensionUpgrader upgrader = new AnalyticalObjectEmbeddedDimensionUpgrader(
-            jdbcTemplate, idObjectManager );
-        upgrader.setRunlevel( 9 );
-        upgrader.setSkipInTests( true );
-        return upgrader;
-    }
-
     @Bean( "org.hisp.dhis.startup.ExpressionUpgrader" )
     public ExpressionUpgrader expressionUpgrader( DataEntryFormService dataEntryFormService,
         DataElementService dataElementService, CategoryService categoryService, IndicatorService indicatorService,
@@ -163,6 +147,16 @@ public class StartupConfig
         SettingUpgrader upgrader = new SettingUpgrader( systemSettingManager );
         upgrader.setRunlevel( 14 );
         upgrader.setName( "SettingUpgrader" );
+        upgrader.setSkipInTests( true );
+        return upgrader;
+    }
+
+    @Bean( "org.hisp.dhis.startup.DefaultAdminUserPopulator" )
+    public DefaultAdminUserPopulator defaultAdminUserPopulator( UserService userService )
+    {
+        DefaultAdminUserPopulator upgrader = new DefaultAdminUserPopulator( userService );
+        upgrader.setName( "defaultAdminUserPopulator" );
+        upgrader.setRunlevel( 2 );
         upgrader.setSkipInTests( true );
         return upgrader;
     }

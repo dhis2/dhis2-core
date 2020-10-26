@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker.teis;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.teis;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
@@ -41,6 +42,7 @@ import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -54,6 +56,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -97,8 +100,7 @@ public class RelationshipsTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ) ).validate()
-            .statusCode( 200 );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
         JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
             .replacePropertyValuesWithIds( "trackedEntityInstance" ).get( JsonObject.class );
@@ -108,7 +110,37 @@ public class RelationshipsTest
         JsonObject eventObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
-        events = eventActions.post( eventObject ).extractUids();
+        ApiResponse response = eventActions.post( eventObject );
+        response.validate().statusCode( 200 );
+        events = response.extractUids();
+    }
+
+    @Test
+    public void duplicateRelationshipsShouldNotBeAdded()
+    {
+        // create a relationship
+        JsonObject object = relationshipActions
+            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
+                teis.get( 1 ) );
+
+        ApiResponse response = relationshipActions.post( object );
+
+        response.validate().statusCode( 200 );
+        createdRelationship = response.extractUid();
+        assertNotNull( createdRelationship, "First relationship was not created." );
+
+        // create a second relationship
+        response = relationshipActions.post( object );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "response.status", equalTo( "ERROR" ) )
+            .body( "response.ignored", equalTo( 1 ) )
+            .body( "response.total", equalTo( 1 ) )
+            .rootPath( "response.importSummaries[0]" )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "description", Matchers.stringContainsInOrder( "Relationship", "already exist" ) )
+            .body( "importCount.ignored", equalTo( 1 ) );
     }
 
     @MethodSource( "provideRelationshipData" )

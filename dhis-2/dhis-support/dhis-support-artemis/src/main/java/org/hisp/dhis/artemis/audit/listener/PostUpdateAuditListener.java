@@ -28,8 +28,10 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
-import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -44,16 +46,18 @@ import java.time.LocalDateTime;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class PostUpdateAuditListener
-    extends AbstractHibernateListener implements PostUpdateEventListener
+    extends AbstractHibernateListener implements PostCommitUpdateEventListener
 {
     public PostUpdateAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SessionFactory sessionFactory )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
     }
 
     @Override
@@ -65,7 +69,7 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        Object entity = postUpdateEvent.getEntity();
+        Object entity = initHibernateProxy( postUpdateEvent.getPersister().getFactory(), postUpdateEvent.getEntity() );
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
@@ -81,6 +85,13 @@ public class PostUpdateAuditListener
     @Override
     public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        return false;
+        return true;
     }
+
+    @Override
+    public void onPostUpdateCommitFailed( PostUpdateEvent event )
+    {
+        log.warn( "onPostUpdateCommitFailed: " + event );
+    }
+
 }

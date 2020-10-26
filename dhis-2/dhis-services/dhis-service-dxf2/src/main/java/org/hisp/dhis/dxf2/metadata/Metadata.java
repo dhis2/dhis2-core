@@ -41,8 +41,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.NameableObject;
@@ -242,10 +240,6 @@ public class Metadata
     private List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-    private List<Color> colors = new ArrayList<>();
-
-    private List<ColorSet> colorSets = new ArrayList<>();
 
     private List<Predictor> predictors = new ArrayList<>();
 
@@ -1095,32 +1089,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "colorSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "colorSet", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ColorSet> getColorSets()
-    {
-        return colorSets;
-    }
-
-    public void setColorSets( List<ColorSet> colorSets )
-    {
-        this.colorSets = colorSets;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "colors", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Color> getColors()
-    {
-        return colors;
-    }
-
-    public void setColors( List<Color> colors )
-    {
-        this.colors = colors;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
     public List<Predictor> getPredictors()
@@ -1252,8 +1220,6 @@ public class Metadata
             ", relationshipTypes=" + relationshipTypes +
             ", trackedEntityTypes=" + trackedEntityTypes +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
-            ", colors=" + colors +
-            ", colorSets=" + colorSets +
             ", programNotificationTemplates=" + programNotificationTemplates +
             ", predictors=" + predictors +
             ", predictorGroups=" + predictorGroups +

@@ -28,12 +28,16 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Primitives;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.scheduling.JobType.values;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
@@ -42,28 +46,20 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Primitives;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.JobType.values;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
  */
+@Slf4j
 @Service( "jobConfigurationService" )
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
-
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public DefaultJobConfigurationService( @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )

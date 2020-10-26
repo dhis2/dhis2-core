@@ -36,6 +36,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -154,6 +155,10 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setJobType( JobType.DATA_SYNC );
         jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
+
+        DataSynchronizationJobParameters jobParameters = new DataSynchronizationJobParameters();
+        jobParameters.setPageSize( 200 );
+        jobConfiguration.setJobParameters( jobParameters );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 1, errorReports.size() );

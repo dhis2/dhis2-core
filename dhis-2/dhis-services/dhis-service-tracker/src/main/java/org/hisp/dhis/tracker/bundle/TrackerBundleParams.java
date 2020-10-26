@@ -29,17 +29,20 @@ package org.hisp.dhis.tracker.bundle;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.converter.TrackerBundleParamsConverter;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.user.User;
@@ -48,265 +51,144 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Used for setting up bundle parameters, closely modelled around {@see org.hisp.dhis.tracker.TrackerImportParams}
+ * and is usually not directly used (rather created by using {@see org.hisp.dhis.tracker.TrackerImportParams#toTrackerBundleParams}.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
 public class TrackerBundleParams
 {
     /**
      * User uid to use for import job.
      */
+    @JsonProperty
     private String userId;
 
     /**
      * User to use for import job.
      */
-
     private User user;
 
     /**
      * Should import be imported or just validated.
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
-     * What identifiers to match on.
+     * Should text pattern validation be skipped or not, default is not.
      */
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    @JsonProperty
+    private boolean skipTextPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
 
     /**
      * Sets import strategy (create, update, etc).
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
+
+    /**
+     * Identifiers to match metadata
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
      * Should import be treated as a atomic import (all or nothing).
      */
+    @JsonProperty
+    @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
 
     /**
      * Flush for every object or per type.
      */
+    @JsonProperty
+    @Builder.Default
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
+    @JsonProperty
+    @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
-
-    /**
-     * Give full report, or only include errors.
-     */
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Tracked entities to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
 
-    public TrackerBundleParams()
-    {
-    }
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    public TrackerBundleParams setUserId( String userId )
-    {
-        this.userId = userId;
-        return this;
-    }
-
-    public User getUser()
-    {
-        return user;
-    }
-
-    public TrackerBundleParams setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleMode getImportMode()
-    {
-        return importMode;
-    }
-
-    public TrackerBundleParams setImportMode( TrackerBundleMode importMode )
-    {
-        this.importMode = importMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerIdentifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    public TrackerBundleParams setIdentifier( TrackerIdentifier identifier )
-    {
-        this.identifier = identifier;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerImportStrategy getImportStrategy()
-    {
-        return importStrategy;
-    }
-
-    public TrackerBundleParams setImportStrategy( TrackerImportStrategy importStrategy )
-    {
-        this.importStrategy = importStrategy;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AtomicMode getAtomicMode()
-    {
-        return atomicMode;
-    }
-
-    public TrackerBundleParams setAtomicMode( org.hisp.dhis.tracker.AtomicMode atomicMode )
-    {
-        this.atomicMode = atomicMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FlushMode getFlushMode()
-    {
-        return flushMode;
-    }
-
-    public TrackerBundleParams setFlushMode( FlushMode flushMode )
-    {
-        this.flushMode = flushMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValidationMode getValidationMode()
-    {
-        return validationMode;
-    }
-
-    public TrackerBundleParams setValidationMode( ValidationMode validationMode )
-    {
-        this.validationMode = validationMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleReportMode getReportMode()
-    {
-        return reportMode;
-    }
-
-    public TrackerBundleParams setReportMode( TrackerBundleReportMode reportMode )
-    {
-        this.reportMode = reportMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntity> getTrackedEntities()
-    {
-        return trackedEntities;
-    }
-
-    public TrackerBundleParams setTrackedEntities( List<TrackedEntity> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-        return this;
-    }
-
-    @JsonSetter
-    public TrackerBundleParams setTrackedEntityInstances( List<TrackedEntity> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public TrackerBundleParams setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Event> getEvents()
-    {
-        return events;
-    }
-
-    public TrackerBundleParams setEvents( List<Event> events )
-    {
-        this.events = events;
-        return this;
+        return User.username( user );
     }
 
     public TrackerBundle toTrackerBundle()
     {
-        return new TrackerBundle()
-            .setUser( user )
-            .setImportMode( importMode )
-            .setImportStrategy( importStrategy )
-            .setAtomicMode( atomicMode )
-            .setFlushMode( flushMode )
-            .setValidationMode( validationMode )
-            .setReportMode( reportMode )
-            .setTrackedEntities( trackedEntities )
-            .setEnrollments( enrollments )
-            .setEvents( events );
+        return TrackerBundle.builder()
+            .user( user )
+            .importMode( importMode )
+            .importStrategy( importStrategy )
+            .skipTextPatternValidation( skipTextPatternValidation )
+            .skipSideEffects( skipSideEffects )
+            .flushMode( flushMode )
+            .validationMode( validationMode )
+            .trackedEntities( trackedEntities )
+            .enrollments( enrollments )
+            .events( events )
+            .relationships( relationships )
+            .build();
     }
 
     public TrackerPreheatParams toTrackerPreheatParams()
     {
-        return new TrackerPreheatParams()
-            .setUserId( userId )
-            .setUser( user )
-            .setTrackedEntities( trackedEntities )
-            .setEnrollments( enrollments )
-            .setEvents( events );
+        return TrackerPreheatParams.builder()
+            .userId( userId )
+            .user( user )
+            .identifiers( identifiers )
+            .trackedEntities( trackedEntities )
+            .enrollments( enrollments )
+            .events( events )
+            .relationships( relationships )
+            .build();
     }
 }

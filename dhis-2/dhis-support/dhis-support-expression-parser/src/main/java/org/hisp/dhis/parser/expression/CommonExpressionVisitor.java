@@ -28,10 +28,23 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.antlr.AntlrExpressionVisitor;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.MapMap;
@@ -39,11 +52,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
-import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -52,20 +64,14 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
-
 /**
- * Common traversal of the ANTLR4 expression parse tree using the
- * visitor pattern.
+ * Common traversal of the ANTLR4 expression parse tree using the visitor
+ * pattern.
  *
  * @author Jim Grace
  */
 public class CommonExpressionVisitor
-    extends ExpressionBaseVisitor<Object>
+    extends AntlrExpressionVisitor
 {
     private DimensionService dimensionService;
 
@@ -86,34 +92,24 @@ public class CommonExpressionVisitor
     private I18n i18n;
 
     /**
-     * Map of ExprFunction instances to call for each expression function
-     */
-    private Map<Integer, ExprFunction> functionMap;
-
-    /**
      * Map of ExprItem instances to call for each expression item
      */
-    private Map<Integer, ExprItem> itemMap;
-
-    /**
-     * Method to call within the ExprFunction instance
-     */
-    private ExprFunctionMethod functionMethod;
+    private Map<Integer, ExpressionItem> itemMap;
 
     /**
      * Method to call within the ExprItem instance
      */
-    private ExprItemMethod itemMethod;
-
-    /**
-     * Instance to call for each literal
-     */
-    private ExprLiteral expressionLiteral = new DefaultLiteral();
+    private ExpressionItemMethod itemMethod;
 
     /**
      * By default, replace nulls with 0 or ''.
      */
     private boolean replaceNulls = true;
+
+    /**
+     * By default, the offset is not set.
+     */
+    private int periodOffset = 0;
 
     /**
      * Used to collect the string replacements to build a description.
@@ -156,8 +152,8 @@ public class CommonExpressionVisitor
     private Map<String, Double> itemValueMap;
 
     /**
-     * Dimensional item values by period for aggregating in evaluating
-     * an expression.
+     * Dimensional item values by period for aggregating in evaluating an
+     * expression.
      */
     private MapMap<Period, String, Double> periodItemValueMap;
 
@@ -175,6 +171,11 @@ public class CommonExpressionVisitor
      * Count of dimension item values found.
      */
     private int itemValuesFound = 0;
+
+    /**
+     * Strategy for handling missing values.
+     */
+    private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
 
     /**
      * Current program indicator.
@@ -206,6 +207,11 @@ public class CommonExpressionVisitor
      */
     public static final String DEFAULT_DATE_VALUE = "2017-07-08";
 
+    /**
+     * Default value for data type boolean.
+     */
+    public static final boolean DEFAULT_BOOLEAN_VALUE = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -229,29 +235,24 @@ public class CommonExpressionVisitor
     // -------------------------------------------------------------------------
 
     @Override
-    public final Object visitExpression( ExpressionContext ctx )
-    {
-        return visit( ctx.expr() );
-    }
-
-    @Override
     public Object visitExpr( ExprContext ctx )
     {
+        if ( ctx.it != null )
+        {
+            ExpressionItem item = itemMap.get( ctx.it.getType() );
+
+            if ( item == null )
+            {
+                throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+                    "Item " + ctx.it.getText() + " not supported for this type of expression" );
+            }
+
+            return itemMethod.apply( item, ctx, this );
+        }
+
         if ( itemMethod == ITEM_REGENERATE )
         {
             return regenerateAllChildren( ctx );
-        }
-
-        if ( ctx.fun != null )
-        {
-            ExprFunction function = functionMap.get( ctx.fun.getType() );
-
-            if ( function == null )
-            {
-                throw new ParserExceptionWithoutContext( "Function " + ctx.fun.getText() + " not supported for this type of expression" );
-            }
-
-            return functionMethod.apply( function, ctx, this );
         }
 
         if ( ctx.expr().size() > 0 ) // If there's an expr, visit the expr
@@ -262,83 +263,13 @@ public class CommonExpressionVisitor
         return visit( ctx.getChild( 0 ) ); // All others: visit first child.
     }
 
-    @Override
-    public Object visitItem( ItemContext ctx )
-    {
-        ExprItem item = itemMap.get( ctx.it.getType() );
-
-        if ( item == null )
-        {
-            throw new ParserExceptionWithoutContext( "Item " + ctx.it.getText() + " not supported for this type of expression" );
-        }
-
-        return itemMethod.apply( item, ctx, this );
-    }
-
-    @Override
-    public Object visitNumericLiteral( NumericLiteralContext ctx )
-    {
-        return expressionLiteral.getNumericLiteral( ctx );
-    }
-
-    @Override
-    public Object visitStringLiteral( StringLiteralContext ctx )
-    {
-        return expressionLiteral.getStringLiteral( ctx );
-    }
-
-    @Override
-    public Object visitBooleanLiteral( BooleanLiteralContext ctx )
-    {
-        return expressionLiteral.getBooleanLiteral( ctx );
-    }
-
-    @Override
-    public Object visitTerminal( TerminalNode node )
-    {
-        return node.getText(); // Needed to regenerate an expression.
-    }
-
     // -------------------------------------------------------------------------
-    // Logic for functions and items
+    // Logic for expression items
     // -------------------------------------------------------------------------
 
     /**
-     * Visits a context and casts the result as Double.
-     *
-     * @param ctx any context
-     * @return the Double value
-     */
-    public Double castDoubleVisit( ParseTree ctx )
-    {
-        return castDouble( visit( ctx ) );
-    }
-
-    /**
-     * Visits a context and casts the result as String.
-     *
-     * @param ctx any context
-     * @return the Double value
-     */
-    public String castStringVisit( ParseTree ctx )
-    {
-        return castString( visit( ctx ) );
-    }
-
-    /**
-     * Visits a context and casts the result as Boolean.
-     *
-     * @param ctx any context
-     * @return the Boolean value
-     */
-    public Boolean castBooleanVisit( ParseTree ctx )
-    {
-        return castBoolean( visit( ctx ) );
-    }
-
-    /**
-     * Visits a context while allowing null values (not replacing them
-     * with 0 or ''), even if we would otherwise be replacing them.
+     * Visits a context while allowing null values (not replacing them with 0 or
+     * ''), even if we would otherwise be replacing them.
      *
      * @param ctx any context
      * @return the value while allowing nulls
@@ -357,37 +288,34 @@ public class CommonExpressionVisitor
     }
 
     /**
-     * Gets the value of an item or numeric string literal
+     * Visits a context using a period offset.
      *
-     * If an item, gets the value while allowing nulls.
-     *
-     * @param ctx item or numeric string literal context
-     * @return the value of the item or numeric string literal
+     * @param ctx any context
+     * @return the value with the applied offset
      */
-    public Object getItemNumStringLiteral( ItemNumStringLiteralContext ctx )
+    public Object visitWithOffset( ParserRuleContext ctx, int offset )
     {
-        if ( ctx.item() != null )
-        {
-            return visitAllowingNulls( ctx.item() );
-        }
-        else if ( ctx.numStringLiteral().stringLiteral() != null )
-        {
-            return expressionLiteral.getStringLiteral( ctx.numStringLiteral().stringLiteral() );
-        }
+        int savedPeriodOffset = periodOffset;
 
-        return ctx.getText();
+        periodOffset = offset;
+
+        Object result = visit( ctx );
+
+        periodOffset = savedPeriodOffset;
+
+        return result;
     }
 
     /**
      * Handles nulls and missing values.
      * <p/>
-     * If we should replace nulls with the default value, then do so, and
-     * remember how many items found, and how many of them had values, for
-     * subsequent MissingValueStrategy analysis.
+     * If we should replace nulls with the default value, then do so, and remember
+     * how many items found, and how many of them had values, for subsequent
+     * MissingValueStrategy analysis.
      * <p/>
-     * If we should not replace nulls with the default value, then don't,
-     * as this is likely for some function that is testing for nulls, and
-     * a missing value should not count towards the MissingValueStrategy.
+     * If we should not replace nulls with the default value, then don't, as this is
+     * likely for some function that is testing for nulls, and a missing value
+     * should not count towards the MissingValueStrategy.
      *
      * @param value the (possibly null) value
      * @return the value we should return.
@@ -414,7 +342,8 @@ public class CommonExpressionVisitor
     /**
      * Validates a program stage id / data element id pair
      *
-     * @param text expression text containing both program stage id and data element id
+     * @param text expression text containing both program stage id and data element
+     *        id
      * @param programStageId the program stage id
      * @param dataElementId the data element id
      * @return the ValueType of the data element
@@ -426,7 +355,8 @@ public class CommonExpressionVisitor
 
         if ( programStage == null )
         {
-            throw new ParserExceptionWithoutContext( "Program stage " + programStageId + " not found" );
+            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+                "Program stage " + programStageId + " not found" );
         }
 
         if ( dataElement == null )
@@ -434,11 +364,25 @@ public class CommonExpressionVisitor
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID + dataElement.getDisplayName();
+        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
+            + dataElement.getDisplayName();
 
         itemDescriptions.put( text, description );
 
         return dataElement.getValueType();
+    }
+
+    /**
+     * Regenerates an expression by visiting all the children of the expression node
+     * (including any terminal nodes).
+     *
+     * @param ctx the expression context
+     * @return the regenerated expression (as a String)
+     */
+    public Object regenerateAllChildren( ExprContext ctx )
+    {
+        return ctx.children.stream().map( this::castStringVisit )
+            .collect( Collectors.joining() );
     }
 
     // -------------------------------------------------------------------------
@@ -547,9 +491,19 @@ public class CommonExpressionVisitor
         return replaceNulls;
     }
 
-    public void setExpressionLiteral( ExprLiteral expressionLiteral )
+    public void setReplaceNulls( boolean replaceNulls )
     {
-        this.expressionLiteral = expressionLiteral;
+        this.replaceNulls = replaceNulls;
+    }
+
+    public int getPeriodOffset()
+    {
+        return periodOffset;
+    }
+
+    public void setPeriodOffset( int periodOffset )
+    {
+        this.periodOffset = periodOffset;
     }
 
     public Set<DimensionalItemId> getItemIds()
@@ -557,7 +511,7 @@ public class CommonExpressionVisitor
         return itemIds;
     }
 
-    public void setItemIds(Set<DimensionalItemId> itemIds )
+    public void setItemIds( Set<DimensionalItemId> itemIds )
     {
         this.itemIds = itemIds;
     }
@@ -567,7 +521,7 @@ public class CommonExpressionVisitor
         return sampleItemIds;
     }
 
-    public void setSampleItemIds(Set<DimensionalItemId> sampleItemIds )
+    public void setSampleItemIds( Set<DimensionalItemId> sampleItemIds )
     {
         this.sampleItemIds = sampleItemIds;
     }
@@ -627,9 +581,24 @@ public class CommonExpressionVisitor
         return itemsFound;
     }
 
+    public void setItemsFound( int itemsFound )
+    {
+        this.itemsFound = itemsFound;
+    }
+
     public int getItemValuesFound()
     {
         return itemValuesFound;
+    }
+
+    public void setItemValuesFound( int itemValuesFound )
+    {
+        this.itemValuesFound = itemValuesFound;
+    }
+
+    public MissingValueStrategy getMissingValueStrategy()
+    {
+        return missingValueStrategy;
     }
 
     // -------------------------------------------------------------------------
@@ -648,25 +617,13 @@ public class CommonExpressionVisitor
             this.visitor = new CommonExpressionVisitor();
         }
 
-        public Builder withFunctionMap( Map<Integer, ExprFunction> functionMap )
-        {
-            this.visitor.functionMap = functionMap;
-            return this;
-        }
-
-        public Builder withItemMap( Map<Integer, ExprItem> itemMap )
+        public Builder withItemMap( Map<Integer, ExpressionItem> itemMap )
         {
             this.visitor.itemMap = itemMap;
             return this;
         }
 
-        public Builder withFunctionMethod( ExprFunctionMethod functionMethod )
-        {
-            this.visitor.functionMethod = functionMethod;
-            return this;
-        }
-
-        public Builder withItemMethod( ExprItemMethod itemMethod )
+        public Builder withItemMethod( ExpressionItemMethod itemMethod )
         {
             this.visitor.itemMethod = itemMethod;
             return this;
@@ -738,22 +695,31 @@ public class CommonExpressionVisitor
             return this;
         }
 
+        public Builder withMissingValueStrategy( MissingValueStrategy missingValueStrategy )
+        {
+            this.visitor.missingValueStrategy = missingValueStrategy;
+            return this;
+        }
+
         public CommonExpressionVisitor buildForExpressions()
         {
             Validate.notNull( this.visitor.dimensionService, "Missing required property 'dimensionService'" );
             Validate.notNull( this.visitor.organisationUnitGroupService,
                 "Missing required property 'organisationUnitGroupService'" );
+            Validate.notNull( this.visitor.missingValueStrategy, "Missing required property 'missingValueStrategy'" );
 
             return validateCommonProperties();
         }
 
         public CommonExpressionVisitor buildForProgramIndicatorExpressions()
         {
-            Validate.notNull( this.visitor.programIndicatorService, "Missing required property 'programIndicatorService'" );
+            Validate.notNull( this.visitor.programIndicatorService,
+                "Missing required property 'programIndicatorService'" );
             Validate.notNull( this.visitor.programStageService, "Missing required property 'programStageService'" );
             Validate.notNull( this.visitor.dataElementService, "Missing required property 'dataElementService'" );
             Validate.notNull( this.visitor.attributeService, "Missing required property 'attributeService'" );
-            Validate.notNull( this.visitor.relationshipTypeService, "Missing required property 'relationshipTypeService'" );
+            Validate.notNull( this.visitor.relationshipTypeService,
+                "Missing required property 'relationshipTypeService'" );
             Validate.notNull( this.visitor.statementBuilder, "Missing required property 'statementBuilder'" );
             Validate.notNull( this.visitor.i18n, "Missing required property 'i18n'" );
 
@@ -762,31 +728,12 @@ public class CommonExpressionVisitor
 
         private CommonExpressionVisitor validateCommonProperties()
         {
-            Validate.notNull( this.visitor.functionMap, "Missing required property 'functionMap'" );
             Validate.notNull( this.visitor.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.visitor.itemMap, "Missing required property 'itemMap'" );
-            Validate.notNull( this.visitor.functionMethod, "Missing required property 'functionMethod'" );
             Validate.notNull( this.visitor.itemMethod, "Missing required property 'itemMethod'" );
             Validate.notNull( this.visitor.samplePeriods, "Missing required property 'samplePeriods'" );
 
             return visitor;
         }
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Regenerates an expression by visiting all the children of the
-     * expression node (including any terminal nodes).
-     *
-     * @param ctx the expression context
-     * @return the regenerated expression (as a String)
-     */
-    private Object regenerateAllChildren( ExprContext ctx )
-    {
-        return ctx.children.stream().map( this::castStringVisit )
-            .collect( Collectors.joining() );
     }
 }

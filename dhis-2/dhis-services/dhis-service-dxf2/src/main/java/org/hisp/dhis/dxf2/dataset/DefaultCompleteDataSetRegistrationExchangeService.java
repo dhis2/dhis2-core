@@ -28,19 +28,10 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -65,7 +56,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -77,7 +70,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -90,22 +82,27 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-
-import com.google.common.collect.ImmutableSet;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Nonnull;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService" )
 public class DefaultCompleteDataSetRegistrationExchangeService
-    implements
-    CompleteDataSetRegistrationExchangeService
+    implements CompleteDataSetRegistrationExchangeService
 {
-    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
-
     private static final int CACHE_MISS_THRESHOLD = 500;
 
     private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
@@ -144,13 +141,25 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     private final MessageService messageService;
 
-    public DefaultCompleteDataSetRegistrationExchangeService( CompleteDataSetRegistrationExchangeStore cdsrStore,
-        IdentifiableObjectManager idObjManager, OrganisationUnitService orgUnitService, Notifier notifier,
-        I18nManager i18nManager, BatchHandlerFactory batchHandlerFactory, SystemSettingManager systemSettingManager,
-        CategoryService categoryService, PeriodService periodService, CurrentUserService currentUserService,
-        CompleteDataSetRegistrationService registrationService, InputUtils inputUtils,
-        AggregateAccessManager accessManager, DataSetNotificationEventPublisher notificationPublisher,
-        MessageService messageService )
+    private final ObjectMapper jsonMapper;
+
+    public DefaultCompleteDataSetRegistrationExchangeService(
+        CompleteDataSetRegistrationExchangeStore cdsrStore,
+        IdentifiableObjectManager idObjManager,
+        OrganisationUnitService orgUnitService,
+        Notifier notifier,
+        I18nManager i18nManager,
+        BatchHandlerFactory batchHandlerFactory,
+        SystemSettingManager systemSettingManager,
+        CategoryService categoryService,
+        PeriodService periodService,
+        CurrentUserService currentUserService,
+        CompleteDataSetRegistrationService registrationService,
+        InputUtils inputUtils,
+        AggregateAccessManager accessManager,
+        DataSetNotificationEventPublisher notificationPublisher,
+        MessageService messageService,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( cdsrStore );
         checkNotNull( idObjManager );
@@ -168,7 +177,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         checkNotNull( accessManager );
         checkNotNull( notificationPublisher );
         checkNotNull( messageService );
-        
+        checkNotNull( jsonMapper );
+
         this.cdsrStore = cdsrStore;
         this.idObjManager = idObjManager;
         this.orgUnitService = orgUnitService;
@@ -184,6 +194,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         this.accessManager = accessManager;
         this.notificationPublisher = notificationPublisher;
         this.messageService = messageService;
+        this.jsonMapper = jsonMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -289,8 +300,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            CompleteDataSetRegistrations completeDataSetRegistrations = DefaultRenderService.getJsonMapper()
-                .readValue( in, CompleteDataSetRegistrations.class );
+
+            CompleteDataSetRegistrations completeDataSetRegistrations = jsonMapper.readValue( in, CompleteDataSetRegistrations.class );
 
             return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
@@ -300,65 +311,75 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private static void validate( ExportParams params )
+    public void validate( ExportParams params )
         throws IllegalQueryException
     {
+        ErrorMessage error = null;
+
         if ( params == null )
         {
-            throw new IllegalArgumentException( "ExportParams must be non-null" );
+            throw new IllegalQueryException( ErrorCode.E2000 );
         }
 
         if ( params.getDataSets().isEmpty() )
         {
-            validationError( "At least one data set must be specified" );
+            error = new ErrorMessage( ErrorCode.E2013 );
         }
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
         {
-            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
+            error = new ErrorMessage( ErrorCode.E2002 );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
         {
-            validationError( "Both periods and start/end date cannot be specified" );
+            error = new ErrorMessage( ErrorCode.E2003 );
         }
 
         if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
         {
-            validationError( "Start date must be before end date" );
+            error = new ErrorMessage( ErrorCode.E2004 );
         }
 
         if ( params.hasCreatedDuration() && DateUtils.getDuration( params.getCreatedDuration() ) == null )
         {
-            validationError( "Duration is not valid: " + params.getCreatedDuration() );
+            error = new ErrorMessage( ErrorCode.E2005 );
         }
 
         if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
         {
-            validationError( "At least one valid organisation unit or organisation unit group must be specified" );
+            error = new ErrorMessage( ErrorCode.E2006 );
         }
 
         if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
         {
-            validationError( "Children cannot be included for organisation unit groups" );
+            error = new ErrorMessage( ErrorCode.E2007 );
         }
 
         if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
         {
-            validationError( "At least one organisation unit must be specified when children are included" );
+            error = new ErrorMessage( ErrorCode.E2008 );
         }
 
         if ( params.hasLimit() && params.getLimit() < 0 )
         {
-            validationError( "Limit cannot be less than zero: " + params.getLimit() );
+            error = new ErrorMessage( ErrorCode.E2009 );
+        }
+
+        if ( error != null )
+        {
+            log.warn( String.format( "Complete data set registration validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
+
+            throw new IllegalQueryException( error );
         }
 
         limitToValidIdSchemes( params );
     }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     /**
      * Limit valid IdSchemes for export to UID, CODE, NAME
@@ -399,7 +420,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             if ( !orgUnitService.isInUserHierarchy( ou ) )
             {
-                throw new IllegalQueryException( "User is not allowed to view org unit: " + ou.getUid() );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2012, ou.getUid() ) );
             }
         }
     }
@@ -409,14 +430,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         log.error( DebugUtils.getStackTrace( ex ) );
         notifier.notify( jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
         return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
-    }
-
-    private static void validationError( String message )
-        throws IllegalQueryException
-    {
-        log.warn( "Validation error: " + message );
-
-        throw new IllegalQueryException( message );
     }
 
     private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobConfiguration id,
@@ -479,8 +492,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     /**
      * @return total number of processed CompleteDataSetRegistration objects
      */
-    private int batchImport(CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
-                            ImportSummary summary, MetadataCallables mdCallables, MetadataCaches mdCaches )
+    private int batchImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
+        ImportSummary summary, MetadataCallables mdCallables, MetadataCaches mdCaches )
     {
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
@@ -554,7 +567,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 boolean DEFAULT_COMPLETENESS_STATUS = true;
                 isCompleted = cdsr.getCompleted();
-                isCompleted = ( isCompleted == null ) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
+                isCompleted = (isCompleted == null) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
                 cdsr.setCompleted( isCompleted );
 
                 // TODO Check if Period is within range of data set?
@@ -573,7 +586,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
                 mdProps.orgUnit, mdProps.attrOptCombo );
 
-            if( !missingDataElementOperands.isEmpty() )
+            if ( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
@@ -598,7 +611,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
                 continue;
             }
-            
+
             // -----------------------------------------------------------------
             // Create complete data set registration
             // -----------------------------------------------------------------
@@ -608,7 +621,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
             CompleteDataSetRegistration existingCdsr = config.isSkipExistingCheck() ? null
                 : batchHandler.findObject( internalCdsr );
-            
+
             ImportStrategy strategy = config.getStrategy();
 
             boolean isDryRun = config.isDryRun();
@@ -702,8 +715,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataProperties mdProps, Date now,
-            String storedBy )
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataProperties mdProps, Date now,
+        String storedBy )
     {
         Date date = cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now;
 
@@ -713,7 +726,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     /**
      * Check write permission for {@see DataSet} and {@see CategoryOptionCombo}
-     * @param user currently logged-in user
+     *
+     * @param user               currently logged-in user
      * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
      */
     private List<String> validateDataAccess( User user, MetadataProperties metaDataProperties )
@@ -723,8 +737,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         return errors;
     }
 
-    private static void validateOrgUnitInUserHierarchy(MetadataCaches mdCaches, MetadataProperties mdProps,
-                                                       final Set<OrganisationUnit> userOrgUnits, String currentUsername )
+    private static void validateOrgUnitInUserHierarchy( MetadataCaches mdCaches, MetadataProperties mdProps,
+        final Set<OrganisationUnit> userOrgUnits, String currentUsername )
         throws ImportConflictException
     {
         boolean inUserHierarchy = mdCaches.getOrgUnitInHierarchyMap().get( mdProps.orgUnit.getUid(),
@@ -741,7 +755,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     {
         if ( !config.isSkipNotifications() )
         {
-            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
+            if ( registration.getDataSet() != null && registration.getDataSet().isNotifyCompletingUser() )
             {
                 messageService.sendCompletenessMessage( registration );
             }
@@ -750,7 +764,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private void validateAttrOptCombo(MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config )
+    private void validateAttrOptCombo( MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config )
         throws ImportConflictException
     {
         final Period pe = mdProps.period;
@@ -769,7 +783,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
 
         final CategoryOptionCombo aoc = mdProps.attrOptCombo;
-        DateRange range = aoc.getDateRange();
+        DateRange range = aoc.getDateRange( mdProps.dataSet );
 
         if ( (range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0)
             || (range.getEndDate() != null && range.getEndDate().compareTo( pe.getEndDate() ) < 0) )
@@ -846,7 +860,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private void heatCaches(MetadataCaches caches, ImportConfig config )
+    private void heatCaches( MetadataCaches caches, ImportConfig config )
     {
         if ( !caches.getDataSets().isCacheLoaded() && exceedsThreshold( caches.getDataSets() ) )
         {
@@ -880,7 +894,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private MetadataProperties initMetaDataProperties(
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataCallables callables, MetadataCaches cache)
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataCallables callables, MetadataCaches cache )
     {
         String ds = StringUtils.trimToNull( cdsr.getDataSet() );
         String pe = StringUtils.trimToNull( cdsr.getPeriod() );

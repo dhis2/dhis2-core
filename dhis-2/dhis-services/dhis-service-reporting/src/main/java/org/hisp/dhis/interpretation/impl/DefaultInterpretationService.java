@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -52,7 +51,6 @@ import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -61,6 +59,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -150,22 +149,19 @@ public class DefaultInterpretationService
 
         Set<User> users = new HashSet<>();
 
-        if ( interpretation != null )
+        if ( user != null )
         {
-            if ( user != null )
-            {
-                interpretation.setUser( user );
-            }
-
-            if ( interpretation.getPeriod() != null )
-            {
-                interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
-            }
-
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-            interpretation.setMentionsFromUsers( users );
-            updateSharingForMentions( interpretation, users );
+            interpretation.setUser( user );
         }
+
+        if ( interpretation.getPeriod() != null )
+        {
+            interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
+        }
+
+        users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        interpretation.setMentionsFromUsers( users );
+        updateSharingForMentions( interpretation, users );
 
         interpretationStore.save( interpretation );
         notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_CREATE );
@@ -192,8 +188,11 @@ public class DefaultInterpretationService
     {
         Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
         comment.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
-        interpretationStore.update( interpretation );
+        comment.setLastUpdated( new Date() );
+        if ( updateSharingForMentions( interpretation, users ) )
+        {
+            interpretationStore.update( interpretation );
+        }
         notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
         sendMentionNotifications( interpretation, comment, users );
     }
@@ -375,15 +374,22 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public void updateSharingForMentions( Interpretation interpretation, Set<User> users )
+    public boolean updateSharingForMentions( Interpretation interpretation, Set<User> users )
     {
+        boolean modified = false;
+        IdentifiableObject interpretationObject = interpretation.getObject();
+        Set<UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
+
         for ( User user : users )
         {
-            if ( !aclService.canRead( user, interpretation.getObject() ) )
+            if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationUserAccesses.add( new UserAccess( user, AccessStringHelper.READ ) );
+                modified = true;
             }
         }
+
+        return modified;
     }
 
     @Override
@@ -495,21 +501,9 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public long countChartInterpretations( Chart chart )
+    public long countVisualizationInterpretations( Visualization visualization )
     {
-        return interpretationStore.countChartInterpretations( chart );
-    }
-
-    @Override
-    public long countReportTableInterpretations( ReportTable reportTable )
-    {
-        return interpretationStore.countReportTableInterpretations( reportTable );
-    }
-
-    @Override
-    public Interpretation getInterpretationByChart( long id )
-    {
-        return interpretationStore.getByChartId( id );
+        return interpretationStore.countVisualizationInterpretations( visualization );
     }
 
     @Override

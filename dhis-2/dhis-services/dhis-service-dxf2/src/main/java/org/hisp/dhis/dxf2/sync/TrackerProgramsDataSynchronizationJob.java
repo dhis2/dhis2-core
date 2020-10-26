@@ -27,34 +27,31 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "trackerProgramsDataSyncJob" )
-public class TrackerProgramsDataSynchronizationJob extends AbstractJob
+public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
 {
-    private static final Log log = LogFactory.getLog( TrackerProgramsDataSynchronizationJob.class );
-
     private final Notifier notifier;
     private final MessageService messageService;
-    private final TrackerSynchronization trackerSync;
+    private final DataSynchronizationWithPaging trackerSync;
     private final SynchronizationManager synchronizationManager;
 
     public TrackerProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -84,7 +81,7 @@ public class TrackerProgramsDataSynchronizationJob extends AbstractJob
         {
             TrackerProgramsDataSynchronizationJobParameters jobParameters =
                 (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
-            trackerSync.syncTrackerProgramData( jobParameters.getPageSize() );
+            trackerSync.synchronizeData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
         }
         catch ( Exception e )
@@ -98,13 +95,9 @@ public class TrackerProgramsDataSynchronizationJob extends AbstractJob
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
+            TrackerProgramsDataSynchronizationJob.class );
 
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return new ErrorReport( MetadataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
-        }
-
-        return super.validate();
+        return errorReport.orElse( super.validate() );
     }
 }

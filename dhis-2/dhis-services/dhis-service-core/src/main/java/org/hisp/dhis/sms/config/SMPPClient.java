@@ -28,25 +28,16 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.IOException;
+import java.util.*;
+
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.jsmpp.InvalidResponseException;
 import org.jsmpp.PDUException;
-import org.jsmpp.bean.Address;
-import org.jsmpp.bean.Alphabet;
-import org.jsmpp.bean.ESMClass;
-import org.jsmpp.bean.GeneralDataCoding;
-import org.jsmpp.bean.MessageClass;
-import org.jsmpp.bean.NumberingPlanIndicator;
-import org.jsmpp.bean.RegisteredDelivery;
-import org.jsmpp.bean.ReplaceIfPresentFlag;
-import org.jsmpp.bean.SMSCDeliveryReceipt;
-import org.jsmpp.bean.SubmitMultiResult;
-import org.jsmpp.bean.TypeOfNumber;
+import org.jsmpp.bean.*;
 import org.jsmpp.extra.NegativeResponseException;
 import org.jsmpp.extra.ResponseTimeoutException;
 import org.jsmpp.session.BindParameter;
@@ -56,21 +47,15 @@ import org.jsmpp.util.DeliveryReceiptState;
 import org.jsmpp.util.TimeFormatter;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair Asghar.
  */
+@Slf4j
 @Component( "org.hisp.dhis.sms.config.SMPPClient" )
 public class SMPPClient
 {
-    private static final Log log = LogFactory.getLog( SMPPClient.class );
-
     private static final String SOURCE = "DHIS2";
     private static final String SENDING_FAILED = "SMS sending failed";
     private static final String SESSION_ERROR = "SMPP Session cannot be null";

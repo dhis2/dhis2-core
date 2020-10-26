@@ -28,9 +28,8 @@ package org.hisp.dhis.system.database;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -49,12 +48,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "databaseInfoProvider" )
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
     private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
-    private static final Log log = LogFactory.getLog( HibernateDatabaseInfoProvider.class );
     private static final String POSTGRES_VERSION_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)?[ ,].*$";
     private static final Pattern POSTGRES_VERSION_PATTERN = Pattern.compile( POSTGRES_VERSION_REGEX );
 

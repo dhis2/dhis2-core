@@ -42,6 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -143,11 +144,16 @@ public class EventChartController
     {
         eventChart.populateAnalyticalProperties();
 
-        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+        User currentUser = currentUserService.getCurrentUser();
 
-        for ( OrganisationUnit organisationUnit : eventChart.getOrganisationUnits() )
+        if ( currentUser != null )
         {
-            eventChart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+            for ( OrganisationUnit organisationUnit : eventChart.getOrganisationUnits() )
+            {
+                eventChart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            }
         }
 
         I18nFormat format = i18nManager.getI18nFormat();

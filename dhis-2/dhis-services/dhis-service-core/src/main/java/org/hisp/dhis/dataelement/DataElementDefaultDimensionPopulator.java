@@ -28,16 +28,16 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
-import java.util.Collection;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * When storing DataValues without associated dimensions there is a need to
@@ -51,11 +51,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Abyot Aselefew
  * @version $Id$
  */
+@Slf4j
 public class DataElementDefaultDimensionPopulator
     extends TransactionContextStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( DataElementDefaultDimensionPopulator.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

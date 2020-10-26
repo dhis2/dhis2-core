@@ -28,33 +28,63 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.tracker.TrackerType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
 public class TrackerTypeReport
 {
+    @JsonProperty
     private final TrackerType trackerType;
 
+    @JsonProperty
     private TrackerStats stats = new TrackerStats();
+
+    @JsonProperty
+    private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
 
     public TrackerTypeReport( TrackerType trackerType )
     {
         this.trackerType = trackerType;
+    }
+    
+    @JsonCreator
+    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "stats" ) TrackerStats stats,
+        @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
+        @JsonProperty( "objectReports" ) List<TrackerObjectReport> objectReports )
+    {
+        this.trackerType = trackerType;
+        this.stats = stats;
+        this.sideEffectDataBundles = sideEffectDataBundles;
+
+        if ( objectReports != null )
+        {
+            for ( TrackerObjectReport objectReport : objectReports )
+            {
+                this.objectReportMap.put( objectReport.getIndex(), objectReport );
+            }
+        }
+    }
+
+    @JsonProperty
+    public List<TrackerObjectReport> getObjectReports()
+    {
+        return new ArrayList<>( objectReportMap.values() );
     }
 
     //-----------------------------------------------------------------------------------
@@ -76,38 +106,7 @@ public class TrackerTypeReport
         this.objectReportMap.put( objectReport.getIndex(), objectReport );
     }
 
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStats getStats()
-    {
-        return stats;
-    }
-
-    public void setStats( TrackerStats stats )
-    {
-        this.stats = stats;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerObjectReport> getObjectReports()
-    {
-        return new ArrayList<>( objectReportMap.values() );
-    }
-
-    public List<TrackerErrorReport> getErrorReports()
+    private List<TrackerErrorReport> getErrorReports()
     {
         List<TrackerErrorReport> errorReports = new ArrayList<>();
         objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
@@ -118,5 +117,10 @@ public class TrackerTypeReport
     public Map<Integer, TrackerObjectReport> getObjectReportMap()
     {
         return objectReportMap;
+    }
+
+    public List<TrackerSideEffectDataBundle> getSideEffectDataBundles()
+    {
+        return sideEffectDataBundles;
     }
 }

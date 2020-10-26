@@ -54,13 +54,13 @@ import java.util.Map;
  */
 public final class QueryUtils
 {
-    static public <T> T parseValue( Class<T> klass, Object objectValue )
+    public static <T> T parseValue( Class<T> klass, Object objectValue )
     {
         return parseValue( klass, null, objectValue );
     }
 
     @SuppressWarnings( "unchecked" )
-    static public <T> T parseValue( Class<T> klass, Class<?> secondaryKlass, Object objectValue )
+    public static <T> T parseValue( Class<T> klass, Class<?> secondaryKlass, Object objectValue )
     {
         if ( klass.isInstance( objectValue ) )
         {
@@ -182,8 +182,8 @@ public final class QueryUtils
     /**
      * Try and parse `value` as Enum. Throws `QueryException` if invalid value.
      *
-     * @param klass Enum class
-     * @param value value
+     * @param klass the Enum class.
+     * @param value the enum value.
      */
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     public static <T> T getEnumValue( Class<T> klass, String value )
@@ -199,10 +199,6 @@ public final class QueryUtils
             Object[] possibleValues = klass.getEnumConstants();
             throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: " + Arrays.toString( possibleValues ) );
         }
-    }
-
-    private QueryUtils()
-    {
     }
 
     public static Object parseValue( String value )
@@ -222,11 +218,12 @@ public final class QueryUtils
     }
 
     /**
-     * Convert a List of select fields into a string as in sql select query.
-     *
-     * @param fields: list of fields in a select query
-     * @return a string which is concat of list fields, separate by comma character.
+     * Convert a List of select fields into a string as in SQL select query.
+     * <p>
      * If input is null, return "*" means the query will select all fields.
+     *
+     * @param fields list of fields in a select query.
+     * @return a string which is concatenated of list fields, separate by comma.
      */
     public static String parseSelectFields( List<String> fields )
     {
@@ -251,10 +248,10 @@ public final class QueryUtils
 
 
     /**
-     * Convert a String with json format [x,y,z] into sql query collection format (x,y,z)
+     * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
      *
-     * @param value a string contains a collection with json format [x,y,z]
-     * @return a string contains a collection with sql query format (x,y,z)
+     * @param value a string contains a collection with JSON format [x,y,z].
+     * @return a string contains a collection with SQL query format (x,y,z).
      */
     public static String convertCollectionValue( String value )
     {
@@ -292,12 +289,13 @@ public final class QueryUtils
 
 
     /**
-     * Convert a DHIS2 filter operator into SQl operator
+     * Converts a filter operator into an SQL operator.
+     * <p>
+     * Example: {@code parseFilterOperator('eq', 5)}  will return "=5".
      *
-     * @param operator the filter operator of DHIS2
-     * @param value    value of the current sql query condition
-     * @return a string contains an sql expression with operator and value.
-     * Example parseFilterOperator('eq', 5)  will return "=5"
+     * @param operator the filter operator.
+     * @param value value of the current SQL query condition.
+     * @return a string contains an SQL expression with operator and value.
      */
     public static String parseFilterOperator( String operator, String value )
     {
@@ -440,7 +438,6 @@ public final class QueryUtils
         {
             String[] split = o.split( ":" );
 
-            //Using ascending as default direction.
             String direction = "asc";
 
             if ( split.length < 1 )
@@ -479,10 +476,21 @@ public final class QueryUtils
             || "iasc".equals( direction ) || "idesc".equals( direction );
     }
 
-    public static <T> T getSingleResult( TypedQuery<T> query ) {
+    /**
+     * Returns a single result from the given {@link TypedQuery}. Returns null
+     * if no objects could be found (without throwing an exception).
+     *
+     * @param query the query.
+     * @return an object.
+     */
+    public static <T> T getSingleResult( TypedQuery<T> query )
+    {
         query.setMaxResults( 1 );
+
         List<T> list = query.getResultList();
-        if ( list == null || list.isEmpty() ) {
+
+        if ( list == null || list.isEmpty() )
+        {
             return null;
         }
 

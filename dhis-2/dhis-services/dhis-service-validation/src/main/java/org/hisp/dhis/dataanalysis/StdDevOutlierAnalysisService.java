@@ -28,10 +28,13 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.MapMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -39,20 +42,16 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
 public class StdDevOutlierAnalysisService
     implements DataAnalysisService
 {
-    private static final Log log = LogFactory.getLog( StdDevOutlierAnalysisService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

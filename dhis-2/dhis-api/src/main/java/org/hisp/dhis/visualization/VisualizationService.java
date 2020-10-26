@@ -74,10 +74,9 @@ public interface VisualizationService
     void delete( Visualization visualization );
 
     /**
-     * Instantiates and populates a Grid populated with data from the Visualization
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param uid the Visualization unique identifier.
+     * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @return a Grid.
@@ -85,10 +84,9 @@ public interface VisualizationService
     Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
 
     /**
-     * Instantiates and populates a Grid populated with data from the Visualization
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param uid the Visualization unique identifier.
+     * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @param user the current user.

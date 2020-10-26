@@ -28,8 +28,18 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.OutputStream;
+import java.io.Writer;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -39,35 +49,46 @@ import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.CsvUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
+import com.google.common.base.Preconditions;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Repository( "org.hisp.dhis.dxf2.datavalueset.DataValueSetStore" )
 public class SpringDataValueSetStore
     implements DataValueSetStore
 {
-    private static final Log log = LogFactory.getLog( SpringDataValueSetStore.class );
+    private CurrentUserService currentUserService;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public SpringDataValueSetStore( CurrentUserService currentUserService, JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( jdbcTemplate );
+
+        this.currentUserService = currentUserService;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Use only for testing.
+     */
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     //--------------------------------------------------------------------------
     // DataValueSetStore implementation
@@ -203,6 +224,10 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
+        Preconditions.checkArgument( !params.getAllDataElements().isEmpty() );
+
+        User user = currentUserService.getCurrentUser();
+
         IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
@@ -257,7 +282,7 @@ public class SpringDataValueSetStore
             sql += "left join orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
         }
 
-        sql += "where de.dataelementid in (" + (!dataElements.isEmpty() ? dataElements : "null") + ") ";
+        sql += "where de.dataelementid in (" + dataElements + ") ";
 
         if ( params.isIncludeChildren() )
         {
@@ -320,6 +345,11 @@ public class SpringDataValueSetStore
             sql += "and dv.lastupdated >= '" + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
 
+        if ( user != null && !user.isSuper() )
+        {
+            sql += getAttributeOptionComboClause( user );
+        }
+
         if ( params.hasLimit() )
         {
             sql += "limit " + params.getLimit();
@@ -328,5 +358,48 @@ public class SpringDataValueSetStore
         log.debug( "Get data value set SQL: " + sql );
 
         return sql;
+    }
+
+    /**
+     * Returns an attribute option combo filter SQL clause. The filter enforces
+     * that only attribute option combinations which the given user has access
+     * to are returned.
+     *
+     * @param user the user.
+     * @return an SQL filter clause.
+     */
+    private String getAttributeOptionComboClause( User user )
+    {
+        return
+            "and dv.attributeoptioncomboid not in (" +
+                "select distinct(cocco.categoryoptioncomboid) " +
+                "from categoryoptioncombos_categoryoptions as cocco " +
+                // Get inaccessible category options
+                "where cocco.categoryoptionid not in ( " +
+                    "select co.categoryoptionid " +
+                    "from dataelementcategoryoption co " +
+                    // Public access check
+                    "where co.publicaccess like '__r_____' " +
+                    "or co.publicaccess is null " +
+                    // User access check
+                    "or exists ( " +
+                        "select coua.categoryoptionid " +
+                        "from dataelementcategoryoptionuseraccesses coua " +
+                        "inner join useraccess ua on coua.useraccessid = ua.useraccessid " +
+                        "where coua.categoryoptionid = co.categoryoptionid " +
+                        "and ua.access like '__r_____' " +
+                        "and ua.userid = " + user.getId() + ") " +
+                    // User group access check
+                    "or exists ( " +
+                        "select couga.categoryoptionid " +
+                        "from dataelementcategoryoptionusergroupaccesses couga " +
+                        "inner join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid " +
+                        "where couga.categoryoptionid = co.categoryoptionid " +
+                        "and uga.access like '__r_____' " +
+                        "and uga.usergroupid in ( " +
+                            "select ugm.usergroupid " +
+                            "from usergroupmembers ugm " +
+                            "where ugm.userid = " + user.getId() + ")))) ";
+
     }
 }

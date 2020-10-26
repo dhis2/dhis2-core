@@ -73,6 +73,8 @@ public interface GenericStore<T>
      */
     T get( long id );
 
+    long countAllValuesByAttributes( List<Attribute> attributes );
+
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
     /**
@@ -104,4 +106,7 @@ public interface GenericStore<T>
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
 
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
+
+    List<T> getAllByAttributeAndValues( Attribute attribute, List<String> values );
+
 }

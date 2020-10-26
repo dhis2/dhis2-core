@@ -29,27 +29,33 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "stats", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@NoArgsConstructor
 public class TrackerStats
 {
+    @JsonProperty
     private int created;
 
+    @JsonProperty
     private int updated;
 
+    @JsonProperty
     private int deleted;
 
+    @JsonProperty
     private int ignored;
 
-    public TrackerStats()
+    @JsonProperty
+    public int getTotal()
     {
+        return created + updated + deleted + ignored;
     }
 
     //-----------------------------------------------------------------------------------
@@ -64,65 +70,6 @@ public class TrackerStats
         ignored += stats.getIgnored();
     }
 
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getTotal()
-    {
-        return created + updated + deleted + ignored;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getCreated()
-    {
-        return created;
-    }
-
-    public void incCreated()
-    {
-        created++;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getUpdated()
-    {
-        return updated;
-    }
-
-    public void incUpdated()
-    {
-        updated++;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getDeleted()
-    {
-        return deleted;
-    }
-
-    public void incDeleted()
-    {
-        deleted++;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getIgnored()
-    {
-        return ignored;
-    }
-
-    public void incIgnored()
-    {
-        ignored++;
-    }
-
     public void ignored()
     {
         ignored += created;
@@ -134,14 +81,23 @@ public class TrackerStats
         deleted = 0;
     }
 
-    @Override
-    public String toString()
+    public void incCreated()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "created", created )
-            .add( "updated", updated )
-            .add( "deleted", deleted )
-            .add( "ignored", ignored )
-            .toString();
+        created++;
+    }
+
+    public void incUpdated()
+    {
+        updated++;
+    }
+
+    public void incDeleted()
+    {
+        deleted++;
+    }
+
+    public void incIgnored()
+    {
+        ignored++;
     }
 }

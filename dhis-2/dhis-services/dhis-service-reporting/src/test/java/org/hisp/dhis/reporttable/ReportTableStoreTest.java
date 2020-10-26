@@ -45,6 +45,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,6 +59,8 @@ import static org.junit.Assert.*;
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Ignore
+@Deprecated
 public class ReportTableStoreTest
     extends DhisSpringTest
 {

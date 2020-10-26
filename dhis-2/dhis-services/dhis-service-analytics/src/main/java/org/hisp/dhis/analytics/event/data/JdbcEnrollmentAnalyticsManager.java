@@ -28,9 +28,7 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -41,24 +39,15 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
@@ -68,28 +57,28 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.util.Assert;
-import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Markus Bekken
  */
+@Slf4j
 @Component( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
 public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EnrollmentAnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
-    
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                          ProgramIndicatorService programIndicatorService,
-                                          DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorService programIndicatorService, ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
@@ -100,6 +89,13 @@ public class JdbcEnrollmentAnalyticsManager
         withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
     }
 
+    /**
+     * Adds enrollments to the given grid based on the given parameters and SQL statement.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @param grid the {@link Grid}.
+     * @param sql the SQL statement used to retrieve events.
+     */
     private void getEnrollments( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics enrollment query SQL: %s", sql ) );
@@ -152,8 +148,8 @@ public class JdbcEnrollmentAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( ErrorCode.E7131.getMessage(), ex );
+            throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
 
         return count;
@@ -351,17 +347,17 @@ public class JdbcEnrollmentAnalyticsManager
             Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program:" + item.getItemName() );
             String eventTableName = "analytics_event_" + item.getProgram().getUid();
             return "(select " +  colName  + " from " + eventTableName +
-            " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " + 
+            " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
             "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
             "order by executiondate " + "desc limit 1 )";
         }
         else
         {
-            colName = quoteAlias( colName );
-            return  item.isText() ? "lower(" + colName + ")" : colName;
+            return quoteAlias( colName );
         }
     }
 
+    @Override
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.ENROLLMENT;

@@ -65,11 +65,14 @@ public abstract class SmsGatewayConfig
     @JsonView( SmsConfigurationViews.Public.class )
     private String username;
 
-    @JsonView( SmsConfigurationViews.Internal.class )
+    @JsonView( SmsConfigurationViews.Public.class )
     private String password;
 
     @JsonView( SmsConfigurationViews.Public.class )
     private boolean isDefault;
+
+    @JsonView( SmsConfigurationViews.Public.class )
+    private boolean sendUrlParameters;
 
     @JsonView( SmsConfigurationViews.Public.class )
     private String urlTemplate;
@@ -132,6 +135,16 @@ public abstract class SmsGatewayConfig
     public void setUsername( String username )
     {
         this.username = username;
+    }
+
+    public boolean isSendUrlParameters()
+    {
+        return sendUrlParameters;
+    }
+
+    public void setSendUrlParameters( boolean sendUrlParameters )
+    {
+        this.sendUrlParameters = sendUrlParameters;
     }
 
     @Override

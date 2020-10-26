@@ -38,6 +38,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
+import org.opengis.geometry.primitive.Point;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
@@ -60,7 +62,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
  */
 public abstract class AbstractAnalyticsService
 {
-
     final AnalyticsSecurityManager securityManager;
 
     final EventQueryValidator queryValidator;
@@ -76,13 +77,19 @@ public abstract class AbstractAnalyticsService
 
     protected Grid getGrid( EventQueryParams params )
     {
+        // ---------------------------------------------------------------------
+        // Decide access, add constraints and validate
+        // ---------------------------------------------------------------------
+
         securityManager.decideAccessEventQuery( params );
+
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
         params = new EventQueryParams.Builder( params )
-                .withStartEndDatesForPeriods()
-                .build();
+            .withStartEndDatesForPeriods()
+            .build();
 
         // ---------------------------------------------------------------------
         // Headers
@@ -92,19 +99,33 @@ public abstract class AbstractAnalyticsService
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT, String.class.getName(), false, true ) );
+            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDimensionDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            if ( item.getValueType() == ValueType.ORGANISATION_UNIT
+                && params.getCoordinateField().equals( item.getItem().getUid() ) )
+            {   // Special case: if the request contains an item of Org Unit value type and the item uid
+                // is linked to coordinates (coordinateField), then create an Header of ValueType
+                // COORDINATE and type "Point"
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
+                    Point.class.getName(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
+            else
+            {
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                    item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
         }
 
         // ---------------------------------------------------------------------
         // Data
         // ---------------------------------------------------------------------
 
-        long count = addData( grid, params );
+        long count = addEventData( grid, params );
 
         // ---------------------------------------------------------------------
         // Meta-data
@@ -137,7 +158,7 @@ public abstract class AbstractAnalyticsService
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );
 
-    protected abstract long addData(Grid grid, EventQueryParams params );
+    protected abstract long addEventData( Grid grid, EventQueryParams params );
 
     /**
      * Adds meta data values to the given grid based on the given data query
@@ -146,7 +167,7 @@ public abstract class AbstractAnalyticsService
      * @param params the data query parameters.
      * @param grid the grid.
      */
-    protected void addMetadata(EventQueryParams params, Grid grid)
+    protected void addMetadata( EventQueryParams params, Grid grid )
     {
         if ( !params.isSkipMeta() )
         {
@@ -194,13 +215,21 @@ public abstract class AbstractAnalyticsService
             metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
         }
 
-        params.getItemLegends().forEach( legend -> metadataItemMap.put( legend.getUid(),
-                new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) ) );
+        params.getItemLegends().stream()
+            .filter( legend -> legend != null )
+            .forEach( legend -> metadataItemMap.put( legend.getUid(),
+                new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
+                    legend.getCode() ) ) );
 
-        params.getItemOptions().forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) ) );
+        params.getItemOptions().stream()
+            .filter( option -> option != null )
+            .forEach( option -> metadataItemMap.put( option.getUid(),
+                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                    option.getCode() ) ) );
 
-        params.getItemsAndItemFilters().forEach( item -> metadataItemMap.put( item.getItemId(),
+        params.getItemsAndItemFilters().stream()
+            .filter( item -> item != null )
+            .forEach( item -> metadataItemMap.put( item.getItemId(),
                 new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
         return metadataItemMap;
@@ -218,7 +247,7 @@ public abstract class AbstractAnalyticsService
         Calendar calendar = PeriodType.getCalendar();
 
         List<String> periodUids = calendar.isIso8601() ?
-                getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+            getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
         Map<String, List<String>> dimensionItems = new HashMap<>();
@@ -265,6 +294,11 @@ public abstract class AbstractAnalyticsService
         return dimensionItems;
     }
 
+    /**
+     * Substitutes metadata in the given grid.
+     *
+     * @param grid the {@link Grid}.
+     */
     private void substituteData( Grid grid )
     {
         for ( int i = 0; i < grid.getHeaders().size(); i++ )

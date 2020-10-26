@@ -28,57 +28,53 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
+import org.hisp.dhis.dxf2.events.importer.EventImporter;
+import org.hisp.dhis.dxf2.events.importer.EventManager;
+import org.hisp.dhis.dxf2.events.importer.EventServiceFacade;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.program.EventSyncService;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Implementation of EventService that uses Jackson for serialization and
- * deserialization. This class has the prototype scope and can hence have
- * class scoped variables such as caches.
+ * deserialization. This class has the prototype scope and can hence have class
+ * scoped variables such as caches.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -86,78 +82,99 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class JacksonEventService extends AbstractEventService
 {
+    private final EventServiceFacade jacksonEventServiceFacade;
+
     // -------------------------------------------------------------------------
     // EventService Impl
     // -------------------------------------------------------------------------
 
-    private final static ObjectMapper XML_MAPPER = new XmlMapper();
+    protected ObjectMapper jsonMapper;
 
-    private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
+    protected ObjectMapper xmlMapper;
 
-    public JacksonEventService( ProgramService programService, ProgramStageService programStageService,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        CurrentUserService currentUserService, EventDataValueService eventDataValueService,
-        TrackedEntityInstanceService entityInstanceService, TrackedEntityCommentService commentService,
-        EventStore eventStore, I18nManager i18nManager, Notifier notifier, SessionFactory sessionFactory,
-        DbmsManager dbmsManager, IdentifiableObjectManager manager, CategoryService categoryService,
-        FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
-        TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
-        AclService aclService, ApplicationEventPublisher eventPublisher, RelationshipService relationshipService,
-        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService )
+    public JacksonEventService( EventImporter eventImporter, EventManager eventManager,
+        WorkContextLoader workContextLoader, EventServiceFacade jacksonEventServiceFacade,
+        ProgramService programService, ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService, OrganisationUnitService organisationUnitService,
+        CurrentUserService currentUserService, TrackedEntityInstanceService entityInstanceService,
+        TrackedEntityCommentService commentService, EventStore eventStore, Notifier notifier, DbmsManager dbmsManager,
+        IdentifiableObjectManager manager, CategoryService categoryService, FileResourceService fileResourceService,
+        SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
+        TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
+        UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
-        super( programService, programStageService, programInstanceService, programStageInstanceService,
-            organisationUnitService, dataElementService, currentUserService, eventDataValueService,
-            entityInstanceService, commentService, eventStore, i18nManager, notifier, sessionFactory, dbmsManager,
-            manager, categoryService, fileResourceService, schemaService, queryService, trackerAccessManager,
-            trackerOwnershipAccessManager, aclService, eventPublisher, relationshipService, userService,
-            eventSyncService, ruleVariableService );
+        checkNotNull( eventImporter );
+        checkNotNull( eventManager );
+        checkNotNull( workContextLoader );
+        checkNotNull( jacksonEventServiceFacade );
+        checkNotNull( programService );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( currentUserService );
+        checkNotNull( entityInstanceService );
+        checkNotNull( commentService );
+        checkNotNull( eventStore );
+        checkNotNull( notifier );
+        checkNotNull( dbmsManager );
+        checkNotNull( manager );
+        checkNotNull( categoryService );
+        checkNotNull( fileResourceService );
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( trackerOwnershipAccessManager );
+        checkNotNull( userService );
+        checkNotNull( eventSyncService );
+        checkNotNull( jsonMapper );
+        checkNotNull( xmlMapper );
+
+        this.eventImporter = eventImporter;
+        this.eventManager = eventManager;
+        this.workContextLoader = workContextLoader;
+        this.jacksonEventServiceFacade = jacksonEventServiceFacade;
+        this.programService = programService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+        this.organisationUnitService = organisationUnitService;
+        this.currentUserService = currentUserService;
+        this.entityInstanceService = entityInstanceService;
+        this.commentService = commentService;
+        this.eventStore = eventStore;
+        this.notifier = notifier;
+        this.dbmsManager = dbmsManager;
+        this.manager = manager;
+        this.categoryService = categoryService;
+        this.fileResourceService = fileResourceService;
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.trackerAccessManager = trackerAccessManager;
+        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+        this.relationshipService = relationshipService;
+        this.userService = userService;
+        this.eventSyncService = eventSyncService;
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( String input, Class<?> clazz ) throws IOException
+    private <T> T fromXml( String input, Class<?> clazz )
+        throws IOException
     {
-        return (T) XML_MAPPER.readValue( input, clazz );
+        return (T) xmlMapper.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( String input, Class<?> clazz ) throws IOException
+    private <T> T fromJson( String input, Class<?> clazz )
+        throws IOException
     {
-        return (T) JSON_MAPPER.readValue( input, clazz );
-    }
-
-    static
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
-        XML_MAPPER.registerModules( module, new JtsXmlModule() );
+        return (T) jsonMapper.readValue( input, clazz );
     }
 
     @Override
-    public List<Event> getEventsXml( InputStream inputStream ) throws IOException
+    public List<Event> getEventsXml( InputStream inputStream )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
@@ -165,7 +182,8 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public List<Event> getEventsJson( InputStream inputStream ) throws IOException
+    public List<Event> getEventsJson( InputStream inputStream )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
@@ -173,33 +191,17 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
-        return addEventsXml( inputStream, null, updateImportOptions( importOptions ) );
+        return jacksonEventServiceFacade.addEventsXml( inputStream, null, importOptions );
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
-        List<Event> events = parseXmlEvents( input );
-
-        return processEventImport( events, updateImportOptions( importOptions ), jobId );
-    }
-
-    @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
-    {
-        return addEventsJson( inputStream, null, updateImportOptions( importOptions ) );
-    }
-
-    @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
-    {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
-        List<Event> events = parseJsonEvents( input );
-
-        return processEventImport( events, updateImportOptions( importOptions ), jobId );
+        return jacksonEventServiceFacade.addEventsJson( inputStream, null, importOptions );
     }
 
     // -------------------------------------------------------------------------
@@ -230,7 +232,7 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        JsonNode root = JSON_MAPPER.readTree( input );
+        JsonNode root = jsonMapper.readTree( input );
 
         if ( root.get( "events" ) != null )
         {

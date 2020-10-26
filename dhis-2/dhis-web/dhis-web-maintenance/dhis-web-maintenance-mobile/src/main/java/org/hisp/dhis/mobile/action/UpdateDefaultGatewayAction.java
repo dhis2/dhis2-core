@@ -28,9 +28,10 @@ package org.hisp.dhis.mobile.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
@@ -41,11 +42,10 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Dang Duy Hieu
  */
+@Slf4j
 public class UpdateDefaultGatewayAction
     implements Action
 {
-    private static final Log log = LogFactory.getLog( UpdateDefaultGatewayAction.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -70,7 +70,6 @@ public class UpdateDefaultGatewayAction
 
     @Override
     public String execute()
-        throws Exception
     {
         SmsConfiguration smsConfig = smsConfigurationManager.getSmsConfiguration();
 
