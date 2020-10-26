@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,33 +28,37 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+@RequiredArgsConstructor
+@Component
+@StrategyFor( Relationship.class )
+public class RelationshipStrategy implements ClassBasedSupplierStrategy
 {
-    @JsonProperty
-    private String note;
+    @NonNull
+    private final RelationshipStore relationshipStore;
 
-    @JsonProperty
-    private String storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    @Override
+    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    {
+        for ( List<String> ids : splitList )
+        {
+            List<org.hisp.dhis.relationship.Relationship> relationships = relationshipStore
+                .getByUid( ids, preheat.getUser() );
+            preheat.putRelationships( TrackerIdScheme.UID, relationships );
+        }
+    }
 }

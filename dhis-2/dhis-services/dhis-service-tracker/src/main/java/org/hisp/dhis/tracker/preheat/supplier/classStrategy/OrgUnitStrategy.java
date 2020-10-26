@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,33 +28,27 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Component;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+@Component
+@StrategyFor( OrganisationUnit.class )
+public class OrgUnitStrategy extends AbstractSchemaStrategy
 {
-    @JsonProperty
-    private String note;
+    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager )
+    {
+        super( schemaService, queryService, manager );
+    }
 
-    @JsonProperty
-    private String storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    @Override
+    protected Class<?> getSchemaClass()
+    {
+        return getClass().getAnnotation( StrategyFor.class ).value();
+    }
 }

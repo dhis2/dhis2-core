@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,33 +28,21 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
+ * Tracker domain object the annotated strategy has to process
+ * 
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+@Retention( RUNTIME )
+@Target( ElementType.TYPE )
+public @interface StrategyFor
 {
-    @JsonProperty
-    private String note;
-
-    @JsonProperty
-    private String storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    Class<?> value();
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.hooks;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -69,7 +69,7 @@ import com.google.common.collect.Lists;
  */
 public class ProgramInstanceByTeiHookTest
 {
-    private ProgramInstanceByTeiHook hook;
+    private ProgramInstanceByTeiSupplier hook;
 
     @Mock
     private ProgramInstanceStore programInstanceStore;
@@ -80,7 +80,7 @@ public class ProgramInstanceByTeiHookTest
     @Before
     public void setUp()
     {
-        this.hook = new ProgramInstanceByTeiHook( programInstanceStore );
+        this.hook = new ProgramInstanceByTeiSupplier( programInstanceStore );
     }
 
     @Test
@@ -130,7 +130,7 @@ public class ProgramInstanceByTeiHookTest
                 .thenReturn( Collections.singletonList( p4 ) );
 
         // When
-        this.hook.preheat( params, trackerPreheat );
+        this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
@@ -189,7 +189,7 @@ public class ProgramInstanceByTeiHookTest
                 .thenReturn( Collections.singletonList( p4 ) );
 
         // When
-        this.hook.preheat( params, trackerPreheat );
+        this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat

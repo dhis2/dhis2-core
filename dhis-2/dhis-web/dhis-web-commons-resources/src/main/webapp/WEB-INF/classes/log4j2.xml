@@ -19,6 +19,7 @@
         <Logger name="org.hisp.dhis" level="info" additivity="true"/>
         <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="false"/>
         <Logger name="org.hisp.dhis.programrule.engine" level="warn" additivity="false"/>
+        <Logger name="org.hisp.dhis.tracker.preheat.supplier" level="debug" additivity="false"/>
         <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="false"/>
         <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="false"/>
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="false"/>

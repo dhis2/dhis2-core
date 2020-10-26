@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,33 +28,37 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.concurrent.TimeUnit;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.time.StopWatch;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A {@link PreheatSupplier} subclass can implement this abstract class to
+ * execute code before and after the supplier has been executed (e.g. timing)
+ * 
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+@Slf4j
+public abstract class AbstractPreheatSupplier implements PreheatSupplier
 {
-    @JsonProperty
-    private String note;
+    @Override
+    public void add( TrackerPreheatParams params, TrackerPreheat preheat )
+    {
+        log.debug( "Executing preheat supplier: {}", this.getClass().getName() );
+        StopWatch watch = new StopWatch();
+        watch.start();
+        preheatAdd( params, preheat );
+        watch.stop();
+        log.debug( "Supplier {} executed in : {}", this.getClass().getName(),
+            TimeUnit.SECONDS.convert( watch.getNanoTime(), TimeUnit.NANOSECONDS ) );
+    }
 
-    @JsonProperty
-    private String storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    /**
+     * Template method: executes preheat logic from the subclass
+     */
+    public abstract void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat );
 }

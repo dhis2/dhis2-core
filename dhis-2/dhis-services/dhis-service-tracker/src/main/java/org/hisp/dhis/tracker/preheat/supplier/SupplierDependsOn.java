@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,33 +28,38 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
+ * This annotation establishes a dependency between {@link PreheatSupplier} objects.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * <pre>{@code
+ * @SupplierDependsOn( SupplierZ.class )
+ * public class SupplierA implements PreheatSupplier {
+ *  ...
+ * }
+ *
+ * public class SupplierZ implements PreheatSupplier {
+ *  ...
+ * }
+ *
+ * }</pre>
+ *
+ * In the above example, the supplier "SupplierZ" will be executed before "SupplierA"
+ *
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+@Retention( RUNTIME )
+@Target( ElementType.TYPE )
+public @interface SupplierDependsOn
 {
-    @JsonProperty
-    private String note;
-
-    @JsonProperty
-    private String storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    /**
+     * The {@link PreheatSupplier} subclass the supplier annotated with depends on
+     * 
+     */
+    Class<?> value();
 }
