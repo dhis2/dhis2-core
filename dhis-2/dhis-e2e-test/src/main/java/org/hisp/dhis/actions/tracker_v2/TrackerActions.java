@@ -31,6 +31,7 @@ package org.hisp.dhis.actions.tracker_v2;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -82,6 +83,12 @@ public class TrackerActions
     public ApiResponse postAndGetJobReport( JsonObject jsonObject )
     {
         ApiResponse response = this.post( jsonObject );
+
+        return getJobReportByImportResponse( response );
+    }
+
+    public ApiResponse postAndGetJobReport(JsonObject jsonObject, String importStrategy) {
+        ApiResponse response = this.post(jsonObject, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy) ));
 
         return getJobReportByImportResponse( response );
     }
