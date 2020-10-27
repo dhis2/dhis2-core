@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.AuditType;
@@ -286,7 +287,7 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
+        Cache<DataElement> dataElementsCache, Set<String> nonAccessibleDataElements, ProgramStageInstance programStageInstance, boolean singleValue )
     {
         Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
 
@@ -303,7 +304,8 @@ public class DefaultProgramStageInstanceService
         }
         else
         {
-            programStageInstance.setEventDataValues( updatedOrNewDataValues );
+            Set<EventDataValue> nonAccessibleDataValues = programStageInstance.getEventDataValues().stream().filter( dv -> nonAccessibleDataElements.contains( dv.getDataElement() ) ).collect(  Collectors.toSet() );
+            programStageInstance.setEventDataValues( Sets.union( nonAccessibleDataValues, updatedOrNewDataValues ) );
         }
 
         auditDataValuesChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache,
