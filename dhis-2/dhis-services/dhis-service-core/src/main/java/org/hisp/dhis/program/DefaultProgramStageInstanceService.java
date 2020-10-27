@@ -311,7 +311,9 @@ public class DefaultProgramStageInstanceService
         }
         else
         {
-            Set<EventDataValue> nonAccessibleDataValues = programStageInstance.getEventDataValues().stream().filter( dv -> nonAccessibleDataElements.contains( dv.getDataElement() ) ).collect(  Collectors.toSet() );
+            Set<EventDataValue> nonAccessibleDataValues = programStageInstance.getEventDataValues().stream()
+                .filter( dv -> nonAccessibleDataElements.contains( dv.getDataElement() ) )
+                .collect( Collectors.toSet() );
 
             programStageInstance.setEventDataValues( Sets.union( nonAccessibleDataValues, updatedOrNewDataValues ) );
         }

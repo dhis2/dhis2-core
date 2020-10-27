@@ -166,6 +166,7 @@ public interface ProgramStageInstanceService
      * @param updatedDataValues EventDataValues to update
      * @param removedDataValues EventDataValues to remove
      * @param dataElementsCache DataElements cache map with DataElements required for creating audit logs for changed EventDataValues
+     * @param nonAccessibleDataElements DataElements whose values are non-accessible to the current user
      * @param programStageInstance programStageInstance to which the EventDataValues belongs to
      * @param singleValue specifies whether the update is a single value update
      */

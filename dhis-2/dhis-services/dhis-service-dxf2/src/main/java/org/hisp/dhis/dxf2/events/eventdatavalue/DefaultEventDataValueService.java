@@ -138,13 +138,16 @@ public class DefaultEventDataValueService implements EventDataValueService
 
         for ( DataElement dataElement : programStageInstance.getProgramStage().getDataElements() )
         {
-            if ( !checkedDataElements.contains( dataElement.getUid() ) &&  !trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, dataElement, true ).isEmpty() )
+            if ( !checkedDataElements.contains( dataElement.getUid() ) &&
+                !trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, dataElement, true ).isEmpty() )
             {
                 nonAccessibleDataElements.add( dataElement.getUid() );
             }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementsCache, nonAccessibleDataElements, programStageInstance, singleValue );
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues,
+            removedDataValuesDueToEmptyValue, dataElementsCache, nonAccessibleDataElements, programStageInstance,
+            singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
