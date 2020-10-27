@@ -32,10 +32,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.io.Serializable;
+
 /**
  * @author Jim Grace
  */
 public class DashboardWidgetAppSettings
+    implements Serializable
 {
     private static final long serialVersionUID = 3276714841481308629L;
 
