@@ -35,7 +35,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Jim Grace
  */
-public class AppSettingsDashboardWidget
+public class DashboardWidgetAppSettings
 {
     private static final long serialVersionUID = 3276714841481308629L;
 

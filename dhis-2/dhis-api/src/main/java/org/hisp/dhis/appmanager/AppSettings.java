@@ -44,16 +44,16 @@ public class AppSettings
 {
     private static final long serialVersionUID = 8800206452082390209L;
 
-    private AppSettingsDashboardWidget dashboardWidget;
+    private DashboardWidgetAppSettings dashboardWidget;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AppSettingsDashboardWidget getDashboardWidget()
+    public DashboardWidgetAppSettings getDashboardWidget()
     {
         return dashboardWidget;
     }
 
-    public void setDashboardWidget( AppSettingsDashboardWidget dashboardWidget )
+    public void setDashboardWidget( DashboardWidgetAppSettings dashboardWidget )
     {
         this.dashboardWidget = dashboardWidget;
     }
