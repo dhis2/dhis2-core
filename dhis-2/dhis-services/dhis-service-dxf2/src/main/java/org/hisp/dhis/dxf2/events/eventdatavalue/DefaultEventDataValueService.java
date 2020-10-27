@@ -104,13 +104,11 @@ public class DefaultEventDataValueService implements EventDataValueService
         Set<EventDataValue> updatedDataValues = new HashSet<>();
         Set<EventDataValue> removedDataValuesDueToEmptyValue = new HashSet<>();
 
-        String fallbackStoredBy =
-            AbstractEventService.getValidUsername( event.getStoredBy(), importSummary,
-                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String fallbackStoredBy = getFallbackStoredBy( event.getStoredBy(), importSummary, importOptions );
 
         for ( DataValue dataValue : event.getDataValues() )
         {
-            String storedBy = !StringUtils.isEmpty( dataValue.getStoredBy() ) ? dataValue.getStoredBy() : fallbackStoredBy;
+            String storedBy = getStoredBy( dataValue.getStoredBy(), fallbackStoredBy );
             DataElement dataElement = dataElementCache.get( dataValue.getDataElement() ).orElse( null );
 
             if ( dataElement == null )
@@ -135,15 +133,20 @@ public class DefaultEventDataValueService implements EventDataValueService
 
         Set<String> checkedDataElements = Sets.union( accessibleDataElements, nonAccessibleDataElements );
 
-        for ( DataElement dataElement : programStageInstance.getProgramStage().getDataElements() )
+        Set<DataElement> dataElementsToCheck = programStageInstance.getProgramStage().getDataElements()
+            .stream().filter( de -> !checkedDataElements.contains( de.getUid() ) )
+            .collect(  Collectors.toSet() );
+
+        for ( DataElement dataElement : dataElementsToCheck )
         {
-            if ( !checkedDataElements.contains( dataElement.getUid() ) &&  !trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, dataElement, true ).isEmpty() )
+            if ( !trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, dataElement, true ).isEmpty() )
             {
                 nonAccessibleDataElements.add( dataElement.getUid() );
             }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementCache, nonAccessibleDataElements, programStageInstance, singleValue );
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues,
+            removedDataValuesDueToEmptyValue, dataElementCache, nonAccessibleDataElements, programStageInstance, singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
@@ -198,8 +201,8 @@ public class DefaultEventDataValueService implements EventDataValueService
     }
 
     private boolean validatePresenceOfMandatoryDataElements( Event event, ProgramStageInstance programStageInstance,
-                                                             Cache<DataElement> dataElementsCache, ImportOptions importOptions, ImportSummary importSummary,
-        boolean isSingleValueUpdate )
+                                                             Cache<DataElement> dataElementsCache, ImportOptions importOptions,
+                                                             ImportSummary importSummary, boolean isSingleValueUpdate )
     {
         ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
 
@@ -231,7 +234,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             Set<String> notPresentMandatoryDataElements = Sets.difference( mandatoryDataElements, presentDataElements );
 
-            if ( notPresentMandatoryDataElements.size() > 0 )
+            if ( !notPresentMandatoryDataElements.isEmpty() )
             {
                 notPresentMandatoryDataElements.stream()
                     .map( i -> dataElementsCache.get( i ).get() )
@@ -275,5 +278,16 @@ public class DefaultEventDataValueService implements EventDataValueService
         }
 
         return true;
+    }
+
+    private String getFallbackStoredBy( String userName, ImportSummary importSummary, ImportOptions importOptions )
+    {
+        return AbstractEventService.getValidUsername( userName, importSummary,
+                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+    }
+
+    private String getStoredBy( String storedBy, String fallBackStoredBy )
+    {
+        return !StringUtils.isEmpty( storedBy ) ? storedBy : fallBackStoredBy;
     }
 }
