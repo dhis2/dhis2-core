@@ -42,7 +42,7 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

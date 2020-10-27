@@ -42,6 +42,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -49,6 +50,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeService;
@@ -307,8 +309,10 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setSkipSharing( true );
+        List<CategoryCombo> all = manager.getAll( CategoryCombo.class );
 
         report = importService.importMetadata( params );
+        List<ErrorReport> errorReports = report.getErrorReports();
         assertEquals( Status.OK, report.getStatus() );
 
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
@@ -363,6 +367,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setSkipSharing( false );
 
         report = importService.importMetadata( params );
+        List<ErrorReport> errorReports = report.getErrorReports();
         assertEquals( Status.OK, report.getStatus() );
 
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
@@ -429,6 +434,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
         params.setMetadataSyncImport( true );
+
+        List<CategoryCombo> all = manager.getAll( CategoryCombo.class );
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );

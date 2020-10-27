@@ -108,7 +108,7 @@
       <artifactId>hibernate-spatial</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bedatadriven</groupId>
+      <groupId>com.graphhopper.external</groupId>
       <artifactId>jackson-datatype-jts</artifactId>
     </dependency>
     <dependency>
@@ -166,8 +166,8 @@
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts-io</artifactId>
+      <groupId>org.locationtech.jts.io</groupId>
+      <artifactId>jts-io-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>

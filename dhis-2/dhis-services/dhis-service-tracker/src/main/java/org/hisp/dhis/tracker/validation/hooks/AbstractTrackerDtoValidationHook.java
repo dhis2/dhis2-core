@@ -57,7 +57,7 @@ import org.springframework.core.Ordered;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

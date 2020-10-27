@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Lars Helge Overland
