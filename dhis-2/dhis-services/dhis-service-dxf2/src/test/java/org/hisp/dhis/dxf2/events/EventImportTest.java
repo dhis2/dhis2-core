@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -96,7 +96,7 @@ import static org.junit.Assert.assertThat;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventImportTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private EventService eventService;
@@ -153,6 +153,12 @@ public class EventImportTest
     private ProgramInstance pi;
 
     private Event event;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

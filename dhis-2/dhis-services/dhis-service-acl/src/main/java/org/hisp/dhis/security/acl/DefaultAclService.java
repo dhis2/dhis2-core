@@ -447,19 +447,21 @@ public class DefaultAclService implements AclService
         }
 
         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.setExternalAccess( false );
+//        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+//        baseIdentifiableObject.setExternalAccess( false );
+        baseIdentifiableObject.getSharing().setExternal( false );
 
-        if ( object.getUser() == null )
+        if ( object.getSharing().getOwner() == null )
         {
-            baseIdentifiableObject.setUser( user );
+            baseIdentifiableObject.getSharing().setOwner( user );
         }
 
         if ( canMakePublic( user, object.getClass() ) )
         {
             if ( defaultPublic( object.getClass() ) )
             {
-                baseIdentifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+                baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.READ_WRITE );
             }
         }
 
@@ -476,10 +478,9 @@ public class DefaultAclService implements AclService
         }
 
         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.setUser( user );
-        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.setExternalAccess( false );
-
+        baseIdentifiableObject.getSharing().setOwner( user );
+        baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.getSharing().setExternal( false );
         object.getSharing().resetUserAccesses();
         object.getSharing().resetUserGroupAccesses();
     }
@@ -494,7 +495,7 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
-        if ( !AccessStringHelper.isValid( object.getPublicAccess() ) )
+        if ( !AccessStringHelper.isValid( object.getSharing().getPublicAccess() ) )
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
             return errorReports;
@@ -506,7 +507,7 @@ public class DefaultAclService implements AclService
         {
             ErrorReport errorReport = null;
 
-            if ( object.getPublicAccess() != null && AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            if ( object.getSharing().getPublicAccess() != null && AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
                 errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
             }
@@ -595,7 +596,7 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        if ( AccessStringHelper.DEFAULT.equals( object.getSharing().getPublicAccess() ) )
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
@@ -627,7 +628,7 @@ public class DefaultAclService implements AclService
      */
     private boolean checkUser( User user, IdentifiableObject object )
     {
-        return user == null || object.getUser() == null || user.getUid().equals( object.getUser().getUid() );
+        return user == null || object.getSharing().getOwner() == null || user.getUid().equals( object.getSharing().getOwner() );
     }
 
     /**
@@ -643,7 +644,7 @@ public class DefaultAclService implements AclService
         boolean canMakePrivate = canMakePrivate( user, object.getClass() );
         boolean canMakeExternal = canMakeExternal( user, object.getClass() );
 
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        if ( AccessStringHelper.DEFAULT.equals( object.getSharing().getPublicAccess() ) )
         {
             if ( !(canMakePublic || canMakePrivate) )
             {
@@ -676,7 +677,7 @@ public class DefaultAclService implements AclService
      */
     private boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
     {
-        if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )
+        if ( AccessStringHelper.isEnabled( object.getSharing().getPublicAccess(), permission ) )
         {
             return true;
         }

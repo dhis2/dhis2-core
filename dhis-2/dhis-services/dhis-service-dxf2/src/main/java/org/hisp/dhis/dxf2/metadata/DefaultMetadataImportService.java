@@ -28,10 +28,9 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,7 +40,11 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
@@ -60,10 +63,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -300,14 +302,29 @@ public class DefaultMetadataImportService implements MetadataImportService
             object.setUser( bundle.getUser() );
         }
 
+        if ( object.getSharing().getOwner() == null )
+        {
+            object.getSharing().setOwner( object.getUser() );
+        }
+
         if ( object.getUserAccesses() == null )
         {
             object.setUserAccesses( new HashSet<>() );
         }
 
+        if ( object.getSharing().getUsers() == null )
+        {
+            object.getSharing().setDtoUserAccesses( object.getUserAccesses() );
+        }
+
         if ( object.getUserGroupAccesses() == null )
         {
             object.setUserGroupAccesses( new HashSet<>() );
+        }
+
+        if ( object.getSharing().getUserGroups() == null )
+        {
+            object.getSharing().setDtoUserGroupAccesses( object.getUserGroupAccesses() );
         }
 
         object.setLastUpdatedBy( bundle.getUser() );

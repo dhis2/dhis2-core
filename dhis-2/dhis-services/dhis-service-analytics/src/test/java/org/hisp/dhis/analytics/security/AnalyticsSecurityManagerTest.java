@@ -28,10 +28,9 @@ package org.hisp.dhis.analytics.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.hisp.dhis.DhisSpringTest;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -47,18 +46,20 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsSecurityManagerTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private AnalyticsSecurityManager securityManager;
@@ -72,6 +73,9 @@ public class AnalyticsSecurityManagerTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Autowired
+    private UserService _userService;
+
     private CategoryOption coA;
     private CategoryOption coB;
     private Category caA;
@@ -83,6 +87,17 @@ public class AnalyticsSecurityManagerTest
     private OrganisationUnit ouC;
 
     private Set<OrganisationUnit> userOrgUnits;
+
+    @Before
+    public void before()
+    {
+        userService = _userService;
+    }
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     public void setUpTest()
@@ -112,8 +127,6 @@ public class AnalyticsSecurityManagerTest
         organisationUnitService.addOrganisationUnit( ouC );
 
         userOrgUnits = Sets.newHashSet( ouB, ouC );
-
-        userService = (UserService) getBean( UserService.ID );
 
         createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false, "F_VIEW_EVENT_ANALYTICS" );
     }

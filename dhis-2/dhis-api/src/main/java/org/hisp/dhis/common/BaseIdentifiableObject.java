@@ -446,6 +446,7 @@ public class BaseIdentifiableObject
     public void setUser( User user )
     {
         this.user = user;
+        this.setOwner( user != null ? user.getUid() : null );
     }
 
     public void setOwner( String userId )

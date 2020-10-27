@@ -147,7 +147,7 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
             this.code = psiFilter.getCode();
             this.name = psiFilter.getName();
             this.description = psiFilter.getDescription();
-            this.publicAccess = psiFilter.getPublicAccess();
+            this.setPublicAccess( psiFilter.getSharing().getPublicAccess() );
         }
     }
 

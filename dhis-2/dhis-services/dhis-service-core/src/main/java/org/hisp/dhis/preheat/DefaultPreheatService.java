@@ -532,6 +532,11 @@ public class DefaultPreheatService implements PreheatService
                     identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
                     identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
+                    if ( identifiableObject.getUser() != null )
+                    {
+                        addIdentifiers( map, identifiableObject.getUser() );
+                    }
+
                     addIdentifiers( map, identifiableObject );
                 }
 

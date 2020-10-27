@@ -29,17 +29,17 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -52,10 +52,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,7 +64,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -73,7 +76,7 @@ import static org.junit.Assert.assertTrue;
  */
 // FIXME refactor this test to use mocks
 public class DataApprovalAuditServiceTest
-    extends DhisTest
+    extends TransactionalIntegrationTestBase
 {
     private static final String ACCESS_NONE = "--------";
     private static final String ACCESS_READ = "r-------";
@@ -213,8 +216,9 @@ public class DataApprovalAuditServiceTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
+        object.getSharing().setPublicAccess( ACCESS_NONE );
         object.setUser( userZ ); // Needed for sharing to work
+        object.getSharing().setOwner( userZ );
 
         for ( UserGroup group : userGroups )
         {

@@ -272,10 +272,8 @@ public class DataValueSetExportAccessControlTest
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
 
         List<DataValue> alldvs = dataValueService.getAllDataValues();
-        System.out.println( "alldvs = " + alldvs );
 
         List<CategoryOptionCombo> cocs = idObjectManager.getAll( CategoryOptionCombo.class );
-        System.out.println( "cocs = " + cocs );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
 

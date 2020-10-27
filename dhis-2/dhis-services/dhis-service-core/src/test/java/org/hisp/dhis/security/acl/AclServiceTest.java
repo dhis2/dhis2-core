@@ -125,6 +125,7 @@ public class AclServiceTest
         User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user );
+        dataElement.getSharing().setOwner( user );
         dataElement.setPublicAccess( AccessStringHelper.READ );
 
         assertTrue( aclService.canUpdate( user, dataElement ) );
@@ -146,6 +147,7 @@ public class AclServiceTest
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user );
+        dataElement.getSharing().setOwner( user );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
 
         assertFalse( aclService.canUpdate( user, dataElement ) );
@@ -178,6 +180,7 @@ public class AclServiceTest
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setAutoFields();
         dashboard.setUser( user );
+        dashboard.getSharing().setOwner( user );
         dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, dashboard ) );
@@ -200,6 +203,7 @@ public class AclServiceTest
         Visualization visualization = new Visualization( "Visualization" );
         visualization.setAutoFields();
         visualization.setUser( user );
+        visualization.getSharing().setOwner( user );
         visualization.setType( VisualizationType.COLUMN );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -223,6 +227,7 @@ public class AclServiceTest
         Map map = new Map();
         map.setAutoFields();
         map.setUser( user );
+        map.getSharing().setOwner( user );
         map.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, map ) );
@@ -245,6 +250,7 @@ public class AclServiceTest
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.setUser( user );
+        eventChart.getSharing().setOwner( user );
         eventChart.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, eventChart ) );
@@ -267,6 +273,7 @@ public class AclServiceTest
         EventReport eventReport = new EventReport();
         eventReport.setAutoFields();
         eventReport.setUser( user );
+        eventReport.getSharing().setOwner( user );
         eventReport.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, eventReport ) );
@@ -289,6 +296,7 @@ public class AclServiceTest
         LegendSet legendSet = new LegendSet();
         legendSet.setAutoFields();
         legendSet.setUser( user );
+        legendSet.getSharing().setOwner( user );
         legendSet.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, legendSet ) );
@@ -417,6 +425,7 @@ public class AclServiceTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
         manager.save( dataElement );
 
         assertFalse( aclService.canUpdate( user2, dataElement ) );
@@ -442,6 +451,7 @@ public class AclServiceTest
 
         CategoryOption categoryOption = createCategoryOption( 'A' );
         categoryOption.setUser( user1 );
+        categoryOption.getSharing().setOwner( user1 );
         manager.save( categoryOption );
 
         assertFalse( aclService.canUpdate( user2, categoryOption ) );
@@ -470,6 +480,7 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
         manager.save( dashboard );
@@ -496,6 +507,7 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
         manager.save( dashboard );
@@ -527,6 +539,7 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
         manager.save( dashboard );
@@ -558,6 +571,7 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
         manager.save( dashboard );
@@ -587,6 +601,7 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
         manager.save( dashboard );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
@@ -625,6 +640,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
         manager.save( dataElement );
@@ -670,6 +686,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         manager.save( dataElement );
 
@@ -705,6 +722,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
         manager.save( dataElement );
@@ -724,6 +742,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
         manager.save( dataElement );
@@ -741,6 +760,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         Access access = aclService.getAccess( dataElement, user1 );
         assertTrue( access.isRead() );
@@ -770,6 +790,7 @@ public class AclServiceTest
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
 
         aclService.canWrite( user1, dashboard );
         manager.save( dashboard );
@@ -788,6 +809,7 @@ public class AclServiceTest
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
         dashboard.setUser( user1 );
+        dashboard.getSharing().setOwner( user1 );
 
         aclService.canWrite( user1, dashboard );
         manager.save( dashboard );
@@ -810,6 +832,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         manager.save( dataElement );
 
@@ -857,6 +880,7 @@ public class AclServiceTest
 
         Program program = createProgram( 'A' );
         program.setUser( user );
+        program.getSharing().setOwner( user );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
 
         manager.save( program );
@@ -886,6 +910,7 @@ public class AclServiceTest
         Visualization visualization = new Visualization();
         visualization.setName( "RT" );
         visualization.setUser( adminUser );
+        visualization.getSharing().setOwner( adminUser );
         visualization.setAutoFields();
         visualization.setPublicAccess( AccessStringHelper.READ );
         visualization.setExternalAccess( true );
@@ -915,6 +940,7 @@ public class AclServiceTest
         Visualization visualization = new Visualization();
         visualization.setName( "RT" );
         visualization.setUser( user1 );
+        visualization.getSharing().setOwner( user1 );
         visualization.setAutoFields();
         visualization.setExternalAccess( false );
         visualization.setType( VisualizationType.COLUMN );
@@ -943,6 +969,7 @@ public class AclServiceTest
         Visualization visualization = new Visualization();
         visualization.setName( "RT" );
         visualization.setUser( user1 );
+        visualization.getSharing().setOwner( user1 );
         visualization.setAutoFields();
         visualization.setExternalAccess( false );
         visualization.setType( VisualizationType.COLUMN );
@@ -968,6 +995,7 @@ public class AclServiceTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         Access access = aclService.getAccess( dataElement, user1 );
         assertTrue( access.isRead() );
@@ -1006,6 +1034,7 @@ public class AclServiceTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
 
         Access access = aclService.getAccess( dataElement, user1 );
@@ -1043,6 +1072,7 @@ public class AclServiceTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user1 );
+        dataElement.getSharing().setOwner( user1 );
 
         Access access = aclService.getAccess( dataElement, user1 );
         assertTrue( access.isRead() );
@@ -1079,6 +1109,7 @@ public class AclServiceTest
         visualization.setAutoFields();
         visualization.setName( "FavA" );
         visualization.setUser( userA );
+        visualization.getSharing().setOwner( userA );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
         visualization.setType( VisualizationType.COLUMN );
 
@@ -1113,6 +1144,7 @@ public class AclServiceTest
         visualization.setAutoFields();
         visualization.setName( "FavA" );
         visualization.setUser( userA );
+        visualization.getSharing().setOwner( userA );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
         visualization.setType( VisualizationType.COLUMN );
 
@@ -1146,6 +1178,7 @@ public class AclServiceTest
         visualization.setAutoFields();
         visualization.setName( "FavA" );
         visualization.setUser( userA );
+        visualization.getSharing().setOwner( userA );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
         visualization.setType( VisualizationType.COLUMN );
 
@@ -1185,6 +1218,7 @@ public class AclServiceTest
         categoryOption.setName( "coA");
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
         categoryOption.setUser( user1 );
+        categoryOption.getSharing().setOwner( user1 );
         categoryOption.setPublicAccess("rwrw----");
 
         manager.save( categoryOption , false);

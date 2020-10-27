@@ -28,20 +28,8 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.xml.xpath.XPathExpressionException;
-
-import org.hibernate.MappingException;
-import org.hisp.dhis.DhisSpringTest;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -74,7 +62,21 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -239,7 +241,7 @@ public class MetadataImportServiceTest
         assertEquals( Status.OK, report.getStatus() );
     }
 
-    @Test( expected = MappingException.class )
+    @Test( expected = IllegalArgumentException.class )
     public void testImportNonExistingEntityObject()
         throws IOException
     {
@@ -575,7 +577,7 @@ public class MetadataImportServiceTest
     public void testUpdateUserGroupWithoutCreatedUserProperty()
         throws IOException
     {
-        User userA = createUser( "A", "ALL" );
+        User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
         userService.addUser( userA );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
@@ -604,6 +606,7 @@ public class MetadataImportServiceTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setUser( userB );
+
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );

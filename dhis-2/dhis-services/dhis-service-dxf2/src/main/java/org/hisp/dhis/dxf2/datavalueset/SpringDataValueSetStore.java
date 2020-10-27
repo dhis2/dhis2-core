@@ -373,7 +373,11 @@ public class SpringDataValueSetStore
         List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
             .collect( Collectors.toList() );
 
-        String groupUids = "{" + String.join( ",", groupsIds ) + "}";
+        String groupAccessCheck =  groupsIds.size() > 0 ?
+            "or ( " +
+                "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) " +
+                "and check_user_groups_access( co.sharing, '__r_____', '{"+ String.join( ",", groupsIds ) +"}' ) ) )"
+            : ") )";
 
         return
             "and dv.attributeoptioncomboid not in (" +
@@ -389,6 +393,7 @@ public class SpringDataValueSetStore
                     // User access check
                 " or co.sharing->'users'->'" + user.getId() + "'->>'access' like '__r_____'" +
                     // User group access check
-                "or ( check_user_group_ids(co.sharing, '"+groupUids+"' ) and check_user_groups_access( co.sharing, '__r_____', '"  + groupUids + "') )";
+                    groupAccessCheck
+                ;
     }
 }
