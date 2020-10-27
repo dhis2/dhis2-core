@@ -61,6 +61,16 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -99,26 +109,16 @@ public class PreCheckDataRelationsValidationHook
 
         Program program = context.getProgram( enrollment.getProgram() );
 
-        if ( !program.isRegistration() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1014 )
-                .addArg( program ) );
-        }
+        addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        if ( tei == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1068 )
-                .addArg( enrollment.getTrackedEntity() ) );
-        }
+        addErrorIf( () -> tei == null,  reporter, E1068, enrollment.getTrackedEntity() );
 
         if ( tei != null && program.getTrackedEntityType() != null
             && !program.getTrackedEntityType().equals( tei.getTrackedEntityType() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1022 )
-                .addArg( tei )
-                .addArg( program ) );
+            addError( reporter, E1022, tei, program );
         }
     }
 
@@ -134,8 +134,7 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1036 )
-                    .addArg( event ) );
+                addError( reporter, E1036, event );
             }
 
             if ( strategy.isCreate() )
@@ -169,15 +168,11 @@ public class PreCheckDataRelationsValidationHook
 
                 if ( count == 0 )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1037 )
-                        .addArg( tei )
-                        .addArg( program ) );
+                    addError( reporter, E1037, tei, program );
                 }
                 else if ( count > 1 )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1038 )
-                        .addArg( tei )
-                        .addArg( program ) );
+                    addError( reporter, E1038, tei, program );
                 }
                 else
                 {
@@ -199,11 +194,8 @@ public class PreCheckDataRelationsValidationHook
 
             int count = programInstanceService.countProgramInstances( params );
 
-            if ( count > 1 )
-            {
-                // TODO: this also needs to be changed to match original code.
-                reporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
-            }
+            // TODO: this also needs to be changed to match original code.
+            addErrorIf( () -> count > 1, reporter, E1040, program );
         }
     }
 
@@ -218,7 +210,7 @@ public class PreCheckDataRelationsValidationHook
             && !programStage.getRepeatable()
             && programInstance.hasProgramStageInstance( programStage ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1039 ).addArg( programStage ) );
+            addError( reporter, E1039, programStage );
         }
     }
 
@@ -248,14 +240,12 @@ public class PreCheckDataRelationsValidationHook
 
         if ( categoryOptionCombo == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1115 )
-                .addArg( event.getAttributeOptionCombo() ) );
+            addError( reporter, E1115, event.getAttributeOptionCombo() );
         }
         else
         {
             reporter.getValidationContext()
                 .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
-
         }
     }
 
@@ -323,8 +313,7 @@ public class PreCheckDataRelationsValidationHook
             CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
             if ( categoryOption == null )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1116 )
-                    .addArg( uid ) );
+                addError( reporter, E1116, uid );
                 return null;
             }
 
