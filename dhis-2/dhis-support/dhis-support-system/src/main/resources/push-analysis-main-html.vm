@@ -54,7 +54,7 @@
                                             #img( $itemHtml.get( $dashboardItem.getUid() ) )
                                             <div style="padding-top: 10px">
                                                 #if( $dashboardItem.getType() == "MAP" )
-                                                    #link ( $itemLink.get( $dashboardItem.getUid() ), "View in GIS app" )
+                                                    #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Maps app" )
                                                 #else
                                                     #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Visualizer app" )
                                                 #end
