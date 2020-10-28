@@ -61,7 +61,7 @@ public class OptionSetObjectBundleHook
 
     private void updateOption( OptionSet optionSet )
     {
-        if ( optionSet.getOptions() != null && !optionSet.getOptions().isEmpty() )
+        if ( optionSet.getOptions() == null || optionSet.getOptions().isEmpty() )
         {
             return;
         }
