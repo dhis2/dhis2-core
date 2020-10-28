@@ -1150,7 +1150,7 @@ public class DataQueryParams
 
             return period.getDaysInPeriod();
         }
-        else
+        else if ( hasFilter( PERIOD_DIM_ID ) )
         {
             List<DimensionalItemObject> periods = getFilterPeriods();
 
@@ -1165,6 +1165,9 @@ public class DataQueryParams
 
             return totalDays;
         }
+
+        // Default to "startDate" and "endDate" URL params
+        return getStartEndDatesAsPeriod().getDaysInPeriod();
     }
 
     /**
