@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 

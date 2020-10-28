@@ -28,7 +28,12 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,16 +44,18 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
-import org.hisp.dhis.program.*;
-import org.junit.Rule;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
-public class ProgramRuleServiceTest
-    extends IntegrationTestBase
+public class ProgramRuleServiceTest extends IntegrationTestBase
 {
     private Program programA;
     private Program programB;
@@ -85,9 +92,6 @@ public class ProgramRuleServiceTest
 
     @Autowired
     private DeletedObjectStore deletedObjectStore;
-
-    @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -176,7 +180,7 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
             .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
+            .map( ProgramRuleAction::getProgramRuleActionEvaluationTime ).collect(
                 Collectors.toSet() );
         Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
             .getProgramRuleActions().stream()
@@ -213,7 +217,7 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
             .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
+            .map( ProgramRuleAction::getProgramRuleActionEvaluationTime ).collect(
                 Collectors.toSet() );
         Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
             .getProgramRuleActions().stream()
@@ -501,69 +505,59 @@ public class ProgramRuleServiceTest
     @Test
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRule()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleA.setProgramStage( programStageA );
         programRuleService.updateProgramRule( programRuleA );
 
-        programStageService.deleteProgramStage( programStageA );
+        assertThrows( "ProgramRuleA", DeleteNotAllowedException.class,
+            () -> programStageService.deleteProgramStage( programStageA ) );
     }
 
     @Test
     public void testDoNotAllowDeleteProgramStageSectionBecauseOfLinkWithProgramRuleAction()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleActionA.setProgramStageSection( programStageSectionA );
         programRuleActonService.updateProgramRuleAction( programRuleActionA );
 
         programRuleA.getProgramRuleActions().add( programRuleActionA );
         programRuleService.updateProgramRule( programRuleA );
 
-        programStageSectionService.deleteProgramStageSection( programStageSectionA );
+        assertThrows( "ProgramRuleA", DeleteNotAllowedException.class,
+            () -> programStageSectionService.deleteProgramStageSection( programStageSectionA ) );
     }
 
     @Test
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleActionAndSection()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleActionA.setProgramStageSection( programStageSectionA );
         programRuleActonService.updateProgramRuleAction( programRuleActionA );
 
         programRuleA.getProgramRuleActions().add( programRuleActionA );
         programRuleService.updateProgramRule( programRuleA );
 
-        programStageService.deleteProgramStage( programStageB );
+        assertThrows( "ProgramRuleA", DeleteNotAllowedException.class,
+            () -> programStageService.deleteProgramStage( programStageB ) );
     }
 
     @Test
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleAction()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleActionA.setProgramStage( programStageA );
         programRuleActonService.updateProgramRuleAction( programRuleActionA );
 
         programRuleA.getProgramRuleActions().add( programRuleActionA );
         programRuleService.updateProgramRule( programRuleA );
 
-        programStageService.deleteProgramStage( programStageA );
+        assertThrows( "ProgramRuleA", DeleteNotAllowedException.class,
+            () -> programStageService.deleteProgramStage( programStageA ) );
     }
 
     @Test
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleVariable()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleVariableA" );
-
         programRuleVariableA.setProgramStage( programStageA );
         programRuleVariableService.updateProgramRuleVariable( programRuleVariableA );
 
-        programStageService.deleteProgramStage( programStageA );
+        assertThrows( "ProgramRuleVariableA", DeleteNotAllowedException.class,
+            () -> programStageService.deleteProgramStage( programStageA ) );
     }
 }

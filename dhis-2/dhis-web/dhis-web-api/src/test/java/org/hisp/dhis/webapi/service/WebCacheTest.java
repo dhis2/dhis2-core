@@ -46,7 +46,7 @@ import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;

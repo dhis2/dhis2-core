@@ -30,12 +30,15 @@ package org.hisp.dhis.hibernate.jsonb.type;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.translation.Translation;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 
 /**
  * Unit tests for {@link JsonSetBinaryType}.
@@ -76,13 +79,13 @@ public class JsonSetBinaryTypeTest
     public void deepCopy()
     {
         final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
-        Assert.assertNotSame( translations, result );
-        Assert.assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
+        assertNotSame( translations, result );
+        assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
     }
 
     @Test
     public void deepCopyNull()
     {
-        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
+        assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }

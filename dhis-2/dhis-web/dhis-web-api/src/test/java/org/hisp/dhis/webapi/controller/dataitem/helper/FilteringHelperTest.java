@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -36,8 +37,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
-import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -46,15 +46,10 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class FilteringHelperTest
 {
-    @Rule
-    public ExpectedException expectedException = none();
-
     @Test
     public void testExtractEntitiesFromInFilter()
     {
@@ -77,14 +72,11 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[INVALID_TYPE,DATA_SET]";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage(
+        // Then
+        assertThrows(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
-
-        // When
-        extractEntitiesFromInFilter( filtersWithInvalidType );
+                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ),
+            IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
     }
 
     @Test
@@ -93,12 +85,11 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[,]";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse filter `" + filtersWithInvalidType + "`" );
-
         // When
-        extractEntitiesFromInFilter( filtersWithInvalidType );
+        assertThrows(
+            "Unable to parse filter `" + filtersWithInvalidType + "`",
+            IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
+
     }
 
     @Test
@@ -138,14 +129,12 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:eq:INVALID_TYPE";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage(
-                "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                        + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
-
         // When
-        extractEntityFromEqualFilter( filtersWithInvalidType );
+        assertThrows(
+            "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
+                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ),
+            IllegalQueryException.class, () -> extractEntityFromEqualFilter( filtersWithInvalidType ) );
+
     }
 
     @Test
@@ -154,11 +143,9 @@ public class FilteringHelperTest
         // Given
         final String invalidFilter = "dimensionItemType:eq:";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse filter `" + invalidFilter + "`" );
-
         // When
-        extractEntityFromEqualFilter( invalidFilter );
+        assertThrows(
+            "Unable to parse filter `" + invalidFilter + "`",
+            IllegalQueryException.class, () -> extractEntityFromEqualFilter( invalidFilter ) );
     }
 }

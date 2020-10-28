@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -85,9 +86,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -174,9 +173,6 @@ public class DataQueryServiceTest
 
     @Autowired
     private UserService internalUserService;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Override
     public void setUpTest()
@@ -827,8 +823,6 @@ public class DataQueryServiceTest
     @Test
     public void testGetFromUrlInvalidOrganisationUnits()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E7124 );
-
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "ou:aTr6yTgX7t5;gBgf2G2j4GR" );
@@ -836,7 +830,9 @@ public class DataQueryServiceTest
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
             .dimension( dimensionParams ).build();
 
-        dataQueryService.getFromRequest( dataQueryRequest );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) ),
+            ErrorCode.E7124 );
     }
 
     @Test

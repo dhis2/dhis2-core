@@ -29,6 +29,7 @@ package org.hisp.dhis.expression;
  */
 
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
@@ -36,10 +37,13 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ParseType.*;
 import static org.hisp.dhis.expression.ExpressionService.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import java.util.*;
 
 import com.google.common.collect.ImmutableMap;
