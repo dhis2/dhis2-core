@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
@@ -125,7 +126,7 @@ public class EnrollmentTrackerConverterService
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance trackedEntityInstance = preheat
+        ITrackedEntityInstance trackedEntityInstance = preheat
             .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
         if ( programInstance == null )
@@ -148,7 +149,11 @@ public class EnrollmentTrackerConverterService
             programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getOccurredAt() ) );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
-            programInstance.setEntityInstance( trackedEntityInstance );
+
+            TrackedEntityInstance trackedEntityInstance1 = new TrackedEntityInstance();
+            trackedEntityInstance1.setId( trackedEntityInstance.getId());
+            programInstance.setEntityInstance( trackedEntityInstance1 );
+
             programInstance.setFollowup( enrollment.isFollowUp() );
             programInstance.setGeometry( enrollment.getGeometry() );
 

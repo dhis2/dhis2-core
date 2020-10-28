@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
@@ -151,8 +152,11 @@ public class RelationshipTrackerConverterService
         // FROM
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                fromRelationship.getFrom().getTrackedEntity() ) );
+
+            TrackedEntityInstance tei = new TrackedEntityInstance();
+            tei.setId( preheat.getTrackedEntity( TrackerIdScheme.UID,
+                fromRelationship.getFrom().getTrackedEntity() ).getId() );
+            fromItem.setTrackedEntityInstance( tei );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
@@ -168,8 +172,10 @@ public class RelationshipTrackerConverterService
         // TO
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                fromRelationship.getTo().getTrackedEntity() ) );
+            TrackedEntityInstance tei = new TrackedEntityInstance();
+            tei.setId( preheat.getTrackedEntity( TrackerIdScheme.UID,
+                    fromRelationship.getTo().getTrackedEntity() ).getId() );
+            toItem.setTrackedEntityInstance( tei );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {

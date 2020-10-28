@@ -39,6 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +79,7 @@ public class TrackedEntityTrackerConverterService
     public TrackedEntityInstance from( TrackerPreheat preheat,
         TrackedEntity trackedEntity )
     {
-        TrackedEntityInstance tei = preheat.getTrackedEntity( TrackerIdScheme.UID,
+        ITrackedEntityInstance tei = preheat.getTrackedEntity( TrackerIdScheme.UID,
             trackedEntity.getTrackedEntity() );
         return from( preheat, trackedEntity, tei );
     }
@@ -99,17 +100,18 @@ public class TrackedEntityTrackerConverterService
         return null;
     }
 
-    private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
+    private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, ITrackedEntityInstance itei )
     {
         OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class,
             te.getOrgUnit() );
         TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class,
             te.getTrackedEntityType() );
 
-        if ( tei == null )
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+
+        if ( itei == null )
         {
             Date now = new Date();
-
             tei = new TrackedEntityInstance();
             tei.setUid( te.getTrackedEntity() );
             tei.setCreated( now );
@@ -119,7 +121,7 @@ public class TrackedEntityTrackerConverterService
             tei.setStoredBy( te.getStoredBy() );
         }
 
-        if ( !CodeGenerator.isValidUid( tei.getUid() ) )
+        if ( !CodeGenerator.isValidUid( itei.getUid() ) )
         {
             tei.setUid( CodeGenerator.generateUid() );
         }

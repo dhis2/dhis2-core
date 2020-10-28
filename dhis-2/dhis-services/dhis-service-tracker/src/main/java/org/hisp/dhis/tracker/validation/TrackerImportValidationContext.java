@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
@@ -149,7 +150,7 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( bundle.getIdentifier(), OrganisationUnit.class, id );
     }
 
-    public TrackedEntityInstance getTrackedEntityInstance( String id )
+    public ITrackedEntityInstance getTrackedEntityInstance(String id )
     {
         return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), id );
     }

@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
@@ -103,7 +104,9 @@ public class TrackerPreheat
      * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
      * for object merging.
      */
-    private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
+    //private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
+
+    private Map<TrackerIdScheme, Map<String, ITrackedEntityInstance>> iTrackedEntities = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
@@ -453,24 +456,19 @@ public class TrackerPreheat
         this.mandatoryProgramAttributes = mandatoryProgramAttributes;
     }
 
-    public Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> getTrackedEntities()
+    public Map<TrackerIdScheme, Map<String, ITrackedEntityInstance>> getTrackedEntities()
     {
-        return trackedEntities;
+        return iTrackedEntities;
     }
 
-    public void setTrackedEntities( Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities )
+    public ITrackedEntityInstance getTrackedEntity( TrackerIdScheme identifier, String trackedEntity )
     {
-        this.trackedEntities = trackedEntities;
-    }
-
-    public TrackedEntityInstance getTrackedEntity( TrackerIdScheme identifier, String trackedEntity )
-    {
-        if ( !trackedEntities.containsKey( identifier ) )
+        if ( !iTrackedEntities.containsKey( identifier ) )
         {
             return null;
         }
 
-        return trackedEntities.get( identifier ).get( trackedEntity );
+        return iTrackedEntities.get( identifier ).get( trackedEntity );
     }
 
     public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances )
@@ -481,12 +479,12 @@ public class TrackerPreheat
     private void putTrackedEntity( TrackerIdScheme identifier, String trackedEntity,
         TrackedEntityInstance trackedEntityInstance )
     {
-        if ( !trackedEntities.containsKey( identifier ) )
+        if ( !iTrackedEntities.containsKey( identifier ) )
         {
-            trackedEntities.put( identifier, new HashMap<>() );
+            iTrackedEntities.put( identifier, new HashMap<>() );
         }
 
-        trackedEntities.get( identifier ).put( trackedEntity, trackedEntityInstance );
+        iTrackedEntities.get( identifier ).put( trackedEntity, new ITrackedEntityInstance( trackedEntityInstance ) );
     }
 
     public Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> getTrackedEntityAttributes()

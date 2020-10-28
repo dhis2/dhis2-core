@@ -140,7 +140,9 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
 
     private TrackedEntityInstance getTrackedEntityInstance( TrackerPreheat preheat, String uid )
     {
-        return preheat.getTrackedEntity( TrackerIdScheme.UID, uid );
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setId( preheat.getTrackedEntity( TrackerIdScheme.UID, uid ).getId() );
+        return tei;
     }
 
     private String makeKey( ProgramInstance programInstance )

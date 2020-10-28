@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
@@ -122,7 +123,7 @@ public class EnrollmentInExistingValidationHook
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = reporter.getValidationContext()
+        ITrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         // TODO: Create a dedicated sql query....?
@@ -151,7 +152,7 @@ public class EnrollmentInExistingValidationHook
     }
 
     private List<Enrollment> getAllEnrollments( ValidationErrorReporter reporter, Program program,
-        TrackedEntityInstance trackedEntityInstance )
+        ITrackedEntityInstance trackedEntityInstance )
     {
         User user = reporter.getValidationContext().getBundle().getUser();
 
@@ -163,7 +164,7 @@ public class EnrollmentInExistingValidationHook
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
         params.setProgram( program );
-        params.setTrackedEntityInstance( trackedEntityInstance );
+        params.setTrackedEntityInstance( trackedEntityInstance.toTrackedEntityInstance() );
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
 
         List<Enrollment> all = new ArrayList<>();

@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -75,7 +76,7 @@ public class EnrollmentAttributeValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         Program program = context.getProgram( enrollment.getProgram() );
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        ITrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
@@ -120,7 +121,7 @@ public class EnrollmentAttributeValidationHook
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
+        Program program, ITrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
         checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );

@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
@@ -96,7 +97,7 @@ public class PreCheckOwnershipValidationHook
 
         if ( strategy.isDelete() )
         {
-            TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+            ITrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
             checkNotNull( tei, TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
@@ -109,7 +110,7 @@ public class PreCheckOwnershipValidationHook
         // Check acting user is allowed to change/write existing tei type
         if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+            ITrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
             TrackedEntityType trackedEntityType = tei.getTrackedEntityType();
             trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, trackedEntityType );
         }
@@ -133,7 +134,7 @@ public class PreCheckOwnershipValidationHook
 
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        ITrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         checkNotNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
@@ -161,7 +162,7 @@ public class PreCheckOwnershipValidationHook
         }
 
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-            new ProgramInstance( program, tei, organisationUnit ) );
+            new ProgramInstance( program, tei.toTrackedEntityInstance(), organisationUnit ) );
     }
 
     @Override

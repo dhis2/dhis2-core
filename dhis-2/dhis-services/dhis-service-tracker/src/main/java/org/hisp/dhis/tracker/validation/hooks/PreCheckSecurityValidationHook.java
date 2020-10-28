@@ -35,6 +35,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
@@ -79,7 +80,7 @@ public class PreCheckSecurityValidationHook
 
         if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntityInstance trackedEntityInstance = context
+            ITrackedEntityInstance trackedEntityInstance = context
                 .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
             accessManager.checkOrgUnitInCaptureScope( reporter, trackedEntityInstance.getOrganisationUnit() );
         }

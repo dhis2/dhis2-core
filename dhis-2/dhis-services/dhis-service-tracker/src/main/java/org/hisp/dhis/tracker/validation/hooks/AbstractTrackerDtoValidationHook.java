@@ -49,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -284,7 +285,7 @@ public abstract class AbstractTrackerDtoValidationHook
     protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
-        TrackedEntityInstance trackedEntityInstance,
+        ITrackedEntityInstance trackedEntityInstance,
         OrganisationUnit organisationUnit )
     {
         checkNotNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );

@@ -28,6 +28,25 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -41,37 +60,18 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.model.ITrackedEntityInstance;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -111,7 +111,7 @@ public class PreCheckDataRelationsValidationHook
 
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        ITrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         addErrorIf( () -> tei == null,  reporter, E1068, enrollment.getTrackedEntity() );
 
@@ -159,7 +159,7 @@ public class PreCheckDataRelationsValidationHook
 
             if ( programInstance == null )
             {
-                TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
+                ITrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
 
                 List<ProgramInstance> programInstances = ctx.getEventToProgramInstancesMap()
                     .getOrDefault( event.getUid(), new ArrayList<>() );
