@@ -95,6 +95,8 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
+    private AppSettings settings;
+
     /**
      * Generated.
      */
@@ -361,6 +363,18 @@ public class App
     public void setAppState( AppStatus appState )
     {
         this.appState = appState;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AppSettings getSettings()
+    {
+        return settings;
+    }
+
+    public void setSettings( AppSettings settings )
+    {
+        this.settings = settings;
     }
 
     // -------------------------------------------------------------------------
