@@ -65,6 +65,7 @@ public class GoogleProvider extends DhisOidcProvider
         {
             return null;
         }
+
         if ( googleClientSecret.isEmpty() )
         {
             throw new IllegalArgumentException( "Google client secret is missing!" );
@@ -80,7 +81,9 @@ public class GoogleProvider extends DhisOidcProvider
             .clientRegistration( google )
             .mappingClaimKey( googleClientMappingClaim )
             .registrationId( REGISTRATION_ID )
+            .loginIcon( "../security/btn_google_light_normal_ios.svg" )
+            .loginIconPadding( "0px 0px" )
+            .loginText( "login_with_google" )
             .build();
     }
-
 }
