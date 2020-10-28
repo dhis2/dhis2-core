@@ -27,10 +27,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -40,13 +42,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.springframework.stereotype.Component;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -82,10 +77,12 @@ public class PreCheckSecurityValidationHook
         {
             ITrackedEntityInstance trackedEntityInstance = context
                 .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, trackedEntityInstance.getOrganisationUnit() );
+            // accessManager.checkOrgUnitInCaptureScope( reporter,
+            // trackedEntityInstance.getOrganisationUnit() );
         }
 
-        accessManager.checkOrgUnitInCaptureScope( reporter, context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+        // accessManager.checkOrgUnitInCaptureScope( reporter,
+        // context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
     }
 
     @Override
@@ -101,11 +98,13 @@ public class PreCheckSecurityValidationHook
         if ( strategy.isUpdateOrDelete() )
         {
             ProgramInstance pi = validationContext.getProgramInstance( enrollment.getEnrollment() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, pi.getOrganisationUnit() );
+            // accessManager.checkOrgUnitInCaptureScope( reporter, pi.getOrganisationUnit()
+            // );
         }
 
-        accessManager
-            .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit( enrollment.getOrgUnit() ) );
+        // accessManager
+        // .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit(
+        // enrollment.getOrgUnit() ) );
     }
 
     @Override

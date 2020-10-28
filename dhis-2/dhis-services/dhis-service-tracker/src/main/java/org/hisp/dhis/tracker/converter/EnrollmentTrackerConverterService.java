@@ -150,9 +150,12 @@ public class EnrollmentTrackerConverterService
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
 
-            TrackedEntityInstance trackedEntityInstance1 = new TrackedEntityInstance();
-            trackedEntityInstance1.setId( trackedEntityInstance.getId());
-            programInstance.setEntityInstance( trackedEntityInstance1 );
+            if ( trackedEntityInstance != null )
+            {
+                TrackedEntityInstance trackedEntityInstance1 = new TrackedEntityInstance();
+                trackedEntityInstance1.setId( trackedEntityInstance.getId() );
+                programInstance.setEntityInstance( trackedEntityInstance1 );
+            }
 
             programInstance.setFollowup( enrollment.isFollowUp() );
             programInstance.setGeometry( enrollment.getGeometry() );

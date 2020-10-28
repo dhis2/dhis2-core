@@ -109,6 +109,11 @@ public class TrackedEntityTrackerConverterService
 
         TrackedEntityInstance tei = new TrackedEntityInstance();
 
+        if ( itei != null )
+        {
+            tei = itei.toTrackedEntityInstance();
+        }
+
         if ( itei == null )
         {
             Date now = new Date();
@@ -121,7 +126,7 @@ public class TrackedEntityTrackerConverterService
             tei.setStoredBy( te.getStoredBy() );
         }
 
-        if ( !CodeGenerator.isValidUid( itei.getUid() ) )
+        if ( !CodeGenerator.isValidUid( tei.getUid() ) )
         {
             tei.setUid( CodeGenerator.generateUid() );
         }

@@ -38,6 +38,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 
@@ -54,9 +55,15 @@ public class ITrackedEntityInstance
 
     private String code;
 
+    private Date created;
+
     private Date createdAtClient;
 
     private Date lastUpdatedAtClient;
+
+    private Date lastUpdated;
+
+    private User lastUpdatedBy;
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues;
 
@@ -97,6 +104,7 @@ public class ITrackedEntityInstance
         this.inactive = tei.isInactive();
         this.lastSynchronized = tei.getLastSynchronized();
         this.lastUpdatedAtClient = tei.getLastUpdatedAtClient();
+        // HibernateUtils.initializeProxy( tei.getOrganisationUnit() );
         this.organisationUnit = tei.getOrganisationUnit();
         this.programInstances = tei.getProgramInstances();
         this.programOwners = tei.getProgramOwners();
@@ -105,13 +113,36 @@ public class ITrackedEntityInstance
         this.trackedEntityType = tei.getTrackedEntityType();
         this.userGroupAccesses = tei.getUserGroupAccesses();
         this.userAccesses = tei.getUserAccesses();
+        this.created = tei.getCreated();
+        this.lastUpdated = tei.getLastUpdated();
+        this.lastUpdatedBy = tei.getLastUpdatedBy();
     }
 
     // FIXME use mapper
     public TrackedEntityInstance toTrackedEntityInstance() {
 
         TrackedEntityInstance tei = new TrackedEntityInstance();
-        // TODO add fields
+        tei.setId( this.id );
+        tei.setCode( this.code );
+        tei.setUid( this.uid );
+        tei.setDeleted( this.deleted );
+        tei.setTrackedEntityAttributeValues( this.trackedEntityAttributeValues );
+        tei.setCreatedAtClient( this.createdAtClient );
+        tei.setGeometry( this.geometry );
+        tei.setInactive( this.inactive );
+        tei.setLastSynchronized( this.lastSynchronized );
+        tei.setLastUpdatedAtClient( this.lastUpdatedAtClient );
+        tei.setOrganisationUnit( this.organisationUnit );
+        tei.setProgramInstances( this.programInstances );
+        tei.setProgramOwners( this.programOwners );
+        tei.setRelationshipItems( this.relationshipItems );
+        tei.setStoredBy( this.storedBy );
+        tei.setTrackedEntityType( this.trackedEntityType );
+        tei.setUserGroupAccesses( this.userGroupAccesses );
+        tei.setUserAccesses( this.userAccesses );
+        tei.setCreated( this.created );
+        tei.setLastUpdated( this.lastUpdated );
+        tei.setLastUpdatedBy( this.lastUpdatedBy );
 
         return tei;
     }
@@ -204,5 +235,20 @@ public class ITrackedEntityInstance
     public boolean isDeleted()
     {
         return deleted;
+    }
+
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public User getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
     }
 }
