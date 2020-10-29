@@ -110,7 +110,7 @@ public class DefaultTrackerImportService
 
             TrackerBundle trackerBundle = preheatBundle( params, importReport );
 
-            // trackerBundle = preProcessBundle( trackerBundle, importReport );
+            trackerBundle = preProcessBundle( trackerBundle, importReport );
 
             TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundle );
 

@@ -87,11 +87,11 @@ public class TrackerBundleParamsConverter
     @Override
     public TrackerBundleParams convert( TrackerBundleParams bundle )
     {
+        // pre assign UIDs to entities, if UIDs are missing
+        generateUid( bundle );
+
         if ( hasNestedStructure( bundle ) )
         {
-            // pre assign UIDs to entities, if UIDs are missing
-            generateUid( bundle );
-
             flattenPayload( bundle );
         }
 
@@ -200,25 +200,38 @@ public class TrackerBundleParamsConverter
 
             List<Enrollment> enrollments = trackedEntity.getEnrollments();
 
-            for ( Enrollment enrollment : enrollments )
-            {
-                // Assign an UID to Enrollment if no UID is present
-                if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
-                {
-                    enrollment.setEnrollment( CodeGenerator.generateUid() );
-                }
-
-                generateRelationshipUids( enrollment.getRelationships(), relationshipsWithUid );
-
-                // Assign an UID to Events if no UID is present
-                enrollment.getEvents()
-                    .stream()
-                    .peek( event -> generateRelationshipUids( event.getRelationships(), relationshipsWithUid ) )
-                    .filter( e -> StringUtils.isEmpty( e.getEvent() ) )
-                    .forEach( e -> e.setEvent( CodeGenerator.generateUid() ) );
-            }
+            generateEnrollmentUids( enrollments, relationshipsWithUid );
 
         }
+        Map<Relationship, String> relationshipsWithUid = Maps.newHashMap();
+        generateEnrollmentUids( params.getEnrollments(), relationshipsWithUid );
+        generateEventUids( params.getEvents(), relationshipsWithUid );
+    }
+
+    private void generateEnrollmentUids( List<Enrollment> enrollments, Map<Relationship, String> relationshipsWithUid )
+    {
+        for ( Enrollment enrollment : enrollments )
+        {
+            // Assign an UID to Enrollment if no UID is present
+            if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
+            {
+                enrollment.setEnrollment( CodeGenerator.generateUid() );
+            }
+
+            generateRelationshipUids( enrollment.getRelationships(), relationshipsWithUid );
+
+            generateEventUids( enrollment.getEvents(), relationshipsWithUid );
+        }
+    }
+
+    private void generateEventUids( List<Event> events, Map<Relationship, String> relationshipsWithUid )
+    {
+        // Assign an UID to Events if no UID is present
+        events
+            .stream()
+            .peek( event -> generateRelationshipUids( event.getRelationships(), relationshipsWithUid ) )
+            .filter( e -> StringUtils.isEmpty( e.getEvent() ) )
+            .forEach( e -> e.setEvent( CodeGenerator.generateUid() ) );
     }
 
     private void generateRelationshipUids( Collection<Relationship> relationships,

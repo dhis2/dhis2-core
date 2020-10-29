@@ -51,6 +51,6 @@ public class NewImplementableRuleService implements ImplementableRuleService
     @Override
     public List<ProgramRule> getImplementableRules( Program program )
     {
-        return programRuleService.getAllProgramRule();
+        return programRuleService.getProgramRule( program );
     }
 }
