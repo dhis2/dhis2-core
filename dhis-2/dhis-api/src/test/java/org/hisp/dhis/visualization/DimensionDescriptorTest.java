@@ -30,16 +30,15 @@ package org.hisp.dhis.visualization;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
-import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
-import org.hisp.dhis.common.DimensionType;
 import org.junit.Test;
 
 public class DimensionDescriptorTest
@@ -49,8 +48,7 @@ public class DimensionDescriptorTest
     {
         // Given
         final String anyDimensionValue = "dx";
-        final DimensionType theDimensionType = DATA_X;
-        final DimensionDescriptor aDimensionDescriptor = new DimensionDescriptor( anyDimensionValue, theDimensionType );
+        final DimensionDescriptor aDimensionDescriptor = new DimensionDescriptor( anyDimensionValue, DATA_X );
         final String dimensionAbbreviation = "dx";
 
         // When
@@ -65,8 +63,7 @@ public class DimensionDescriptorTest
     {
         // Given
         final String anyDimensionValue = "dx";
-        final DimensionType theDimensionType = DATA_X;
-        final DimensionDescriptor aDimensionDescriptor = new DimensionDescriptor( anyDimensionValue, theDimensionType );
+        final DimensionDescriptor aDimensionDescriptor = new DimensionDescriptor( anyDimensionValue, DATA_X );
         final String nonExistingDimensionAbbreviation = "ou";
 
         // When

@@ -28,11 +28,14 @@ package org.hisp.dhis.security.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
+import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
@@ -42,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author mortenoh
@@ -65,6 +69,9 @@ public class LoginAction
 
     @Autowired
     private DhisConfigurationProvider configurationProvider;
+
+    @Autowired
+    private DhisClientRegistrationRepository repository;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -122,11 +129,35 @@ public class LoginAction
 
     private void setOidcConfig()
     {
-        boolean isEnabled = configurationProvider.
+        boolean isOidcEnabled = configurationProvider.
             getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED ).equalsIgnoreCase( "on" );
 
-        oidcConfig.put( "isGoogleEnabled",
-            isEnabled &&
-                !configurationProvider.getProperty( ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID ).isEmpty() );
+        if ( !isOidcEnabled )
+        {
+            return;
+        }
+
+        parseRegisteredProviders();
+    }
+
+    private void parseRegisteredProviders()
+    {
+        List<Map<String, String>> providers = new ArrayList<>();
+
+        Set<String> allRegistrationIds = repository.getAllRegistrationId();
+
+        for ( String registrationId : allRegistrationIds )
+        {
+            DhisOidcClientRegistration clientRegistration = repository.getDhisOidcClientRegistration( registrationId );
+
+            providers.add( ImmutableMap.of(
+                "id", registrationId,
+                "icon", clientRegistration.getLoginIcon(),
+                "iconPadding", clientRegistration.getLoginIconPadding(),
+                "loginText", clientRegistration.getLoginText()
+            ) );
+        }
+
+        oidcConfig.put( "providers", providers );
     }
 }

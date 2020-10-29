@@ -38,7 +38,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,7 +53,7 @@ public class DhisClientRegistrationRepository
     @Autowired
     private DhisConfigurationProvider config;
 
-    private static final HashMap<String, DhisOidcClientRegistration> registrationHashMap = new HashMap<>();
+    private static final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
 
     @PostConstruct
     public void init()

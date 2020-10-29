@@ -28,14 +28,14 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -64,7 +64,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.http.ResponseEntity;
@@ -86,9 +85,6 @@ public class DataItemQueryControllerTest
     @Rule
     public MockitoRule mockitoRule = rule();
 
-    @Rule
-    public ExpectedException expectedException = none();
-
     private DataItemQueryController dataItemQueryController;
 
     @Before
@@ -106,8 +102,8 @@ public class DataItemQueryControllerTest
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final List<BaseDimensionalItemObject> itemsFound = asList( new Indicator() );
+            singletonList( Indicator.class ) );
+        final List<BaseDimensionalItemObject> itemsFound = singletonList( new Indicator() );
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
@@ -134,7 +130,7 @@ public class DataItemQueryControllerTest
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
+            singletonList( Indicator.class ) );
         final List<BaseDimensionalItemObject> itemsFound = emptyList();
 
         // When
@@ -161,17 +157,15 @@ public class DataItemQueryControllerTest
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
+            singletonList( Indicator.class ) );
         final boolean invalidAcl = false;
-
-        // Then
-        expectedException.expect( IllegalQueryException.class );
-        expectedException
-            .expectMessage( containsString( "does not have read access for object" ) );
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
-        dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
+
+        final IllegalQueryException ex = assertThrows(IllegalQueryException.class,
+                () -> dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser));
+        assertThat(ex.getMessage(), containsString( "does not have read access for object" ));
     }
 }

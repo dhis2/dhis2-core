@@ -1184,7 +1184,8 @@ public class DataQueryParams
      * "average sum in hierarchy" aggregate values. If period is dimension,
      * use the number of days in the first period. In these cases, queries
      * should contain periods with the same number of days only. If period
-     * is filter, use the sum of days in all periods.
+     * is filter, use the sum of days in all periods. If the period is defined
+     * by "startDate" and "endDate" params, these two will be considered (default option).
      */
     public int getDaysForAvgSumIntAggregation()
     {
@@ -1198,7 +1199,7 @@ public class DataQueryParams
 
             return period.getDaysInPeriod();
         }
-        else
+        else if ( hasFilter( PERIOD_DIM_ID ) )
         {
             List<DimensionalItemObject> periods = getFilterPeriods();
 
@@ -1213,6 +1214,9 @@ public class DataQueryParams
 
             return totalDays;
         }
+
+        // Default to "startDate" and "endDate" URL params
+        return getStartEndDatesAsPeriod().getDaysInPeriod();
     }
 
     /**
@@ -2423,6 +2427,21 @@ public class DataQueryParams
     public List<DimensionalItemObject> getPeriods()
     {
         return ImmutableList.copyOf( getDimensionOptions( PERIOD_DIM_ID ) );
+    }
+
+    /**
+     * Returns a Period object based on the current "startDate" and "endDate" dates.
+     * It will not check if the dates are null.
+     *
+     * @return the Period
+     */
+    public Period getStartEndDatesAsPeriod()
+    {
+        final Period period = new Period();
+        period.setStartDate( getStartDate() );
+        period.setEndDate( getEndDate() );
+
+        return period;
     }
 
     /**

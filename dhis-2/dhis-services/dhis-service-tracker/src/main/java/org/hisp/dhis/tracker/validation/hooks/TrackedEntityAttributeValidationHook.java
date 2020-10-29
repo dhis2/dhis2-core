@@ -28,6 +28,26 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1006;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,20 +65,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -69,16 +76,19 @@ public class TrackedEntityAttributeValidationHook
 {
     private static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
-    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService )
+    private final ReservedValueService reservedValueService;
+    
+    private final DhisConfigurationProvider dhisConfigurationProvider;
+    
+    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService,
+        ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService  );
+        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        checkNotNull( reservedValueService );
+        checkNotNull( dhisConfigurationProvider );
+        this.reservedValueService = reservedValueService;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
-
-    @Autowired
-    private ReservedValueService reservedValueService;
-
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
@@ -111,8 +121,7 @@ public class TrackedEntityAttributeValidationHook
 
             if ( tea == null )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1006 )
-                    .addArg( attribute.getAttribute() ) );
+                addError( reporter, E1006, attribute.getAttribute() );
                 continue;
             }
 
@@ -122,8 +131,8 @@ public class TrackedEntityAttributeValidationHook
                 //continue; ??? Just continue on empty and null?
                 // TODO: Is this really correct? This check was not here originally
                 //  Enrollment attr check fails on null so why not here too?
-                reporter.addError( newReport( TrackerErrorCode.E1076 )
-                    .addArg( attribute ) );
+                addError( reporter, E1076, attribute );
+
                 continue;
             }
 
@@ -143,30 +152,16 @@ public class TrackedEntityAttributeValidationHook
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        if ( value.length() > MAX_ATTR_VALUE_LENGTH )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1077 )
-                .addArg( value )
-                .addArg( MAX_ATTR_VALUE_LENGTH ) );
-        }
-
+        addErrorIf( () -> value.length() > MAX_ATTR_VALUE_LENGTH, reporter, E1077, value, MAX_ATTR_VALUE_LENGTH );
+        
         // Validate if that encryption is configured properly if someone sets value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        if ( isConfidential && !encryptionStatusOk )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1112 )
-                .addArg( value ) );
-        }
+        addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, E1112, value );
 
         // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
-        String result = dataValueIsValid( value, tea.getValueType() );
-        if ( result != null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1085 )
-                .addArg( tea )
-                .addArg( result ) );
-        }
+        final String result = dataValueIsValid( value, tea.getValueType() );
+        addErrorIf( () -> result != null, reporter, E1085, tea, result );
     }
 
     protected void validateTextPattern( ValidationErrorReporter reporter,
@@ -203,12 +198,8 @@ public class TrackedEntityAttributeValidationHook
             boolean isValidPattern = TextPatternValidationUtils
                 .validateTextPatternValue( tea.getTextPattern(), attribute.getValue() );
 
-            if ( !isReservedOrAlreadyAssigned && !isValidPattern )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1008 )
-                    .addArg( attribute.getValue() )
-                    .addArg( tea.getTextPattern() ) );
-            }
+            addErrorIf( () -> !isReservedOrAlreadyAssigned && !isValidPattern, reporter, E1008, attribute.getValue(),
+                tea.getTextPattern() );
         }
     }
 
@@ -234,17 +225,8 @@ public class TrackedEntityAttributeValidationHook
 
         FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat()
             .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
-
-        if ( fileResource == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1084 )
-                .addArg( attr.getValue() ) );
-        }
-
-        if ( fileResource != null && fileResource.isAssigned() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1009 )
-                .addArg( attr.getValue() ) );
-        }
+        
+        addErrorIfNull( fileResource, reporter, E1084, attr.getValue() );
+        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );
     }
 }

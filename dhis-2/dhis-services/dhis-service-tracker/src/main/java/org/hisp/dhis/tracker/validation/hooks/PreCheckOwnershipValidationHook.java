@@ -44,7 +44,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
@@ -52,7 +51,9 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
@@ -101,9 +102,7 @@ public class PreCheckOwnershipValidationHook
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1100 )
-                    .addArg( bundle.getUser() )
-                    .addArg( tei ) );
+                addError( reporter, E1100, bundle.getUser(), tei );
             }
         }
 
@@ -149,12 +148,8 @@ public class PreCheckOwnershipValidationHook
             boolean hasNonDeletedEvents = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
-            if ( hasNonDeletedEvents && hasNotCascadeDeleteAuthority )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1103 )
-                    .addArg( user )
-                    .addArg( pi ) );
-            }
+            
+            addErrorIf( () -> hasNonDeletedEvents && hasNotCascadeDeleteAuthority, reporter, E1103, user, pi );
         }
 
         // Check acting user is allowed to change/write existing pi and program
@@ -238,8 +233,7 @@ public class PreCheckOwnershipValidationHook
             && event.getStatus() != programStageInstance.getStatus()
             && (!user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1083 )
-                .addArg( user ) );
+            addError( reporter, E1083, user );
         }
     }
 }
