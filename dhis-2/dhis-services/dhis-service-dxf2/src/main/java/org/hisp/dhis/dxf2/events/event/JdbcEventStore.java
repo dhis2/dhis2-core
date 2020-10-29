@@ -57,6 +57,8 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ST
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.jsonToUserInfo;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.userInfoToJson;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -346,9 +348,9 @@ public class JdbcEventStore implements EventStore
                 event.setDueDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_duedate" ) ) );
                 event.setEventDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_executiondate" ) ) );
                 event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
-                event.setCreatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_createdbyusername" ) ) );
+                event.setCreatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_createdbyusername" ), jsonMapper ) );
                 event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
-                event.setLastUpdatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyusername" ) ) );
+                event.setLastUpdatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyusername" ), jsonMapper ) );
 
                 event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
                 event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
@@ -449,23 +451,6 @@ public class JdbcEventStore implements EventStore
         }
 
         return events;
-    }
-
-    private ProgramStageInstanceUserInfo jsonToUserInfo( String userInfoAsString )
-    {
-        try
-        {
-            if ( StringUtils.isNotEmpty( userInfoAsString ) )
-            {
-                return jsonMapper.readValue( userInfoAsString, ProgramStageInstanceUserInfo.class );
-            }
-            return null;
-        }
-        catch ( IOException e )
-        {
-            log.error( "Parsing ProgramStageInstanceUserInfo json string failed. String value: " + userInfoAsString );
-            throw new IllegalArgumentException( e );
-        }
     }
 
     public List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> events )
@@ -1649,8 +1634,8 @@ public class JdbcEventStore implements EventStore
         ps.setTimestamp(    10, JdbcEventSupport.toTimestamp( new Date() ) );
         ps.setLong(         11, event.getAttributeOptionCombo().getId() );
         ps.setString(       12, event.getStoredBy() );
-        ps.setObject(       13, userInfoToJson( event.getCreatedByUserInfo() ) );
-        ps.setObject(       14, userInfoToJson( event.getLastUpdatedByUserInfo() ) );
+        ps.setObject(       13, userInfoToJson( event.getCreatedByUserInfo(), jsonMapper ) );
+        ps.setObject(       14, userInfoToJson( event.getLastUpdatedByUserInfo(), jsonMapper ) );
         ps.setString(       15, event.getCompletedBy() );
         ps.setBoolean(      16, false );
         ps.setString(       17, event.getCode() );
@@ -1688,7 +1673,7 @@ public class JdbcEventStore implements EventStore
         ps.setTimestamp( 8, JdbcEventSupport.toTimestamp( new Date() ) );
         ps.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
         ps.setString( 10, programStageInstance.getStoredBy() );
-        ps.setObject( 11, userInfoToJson( programStageInstance.getLastUpdatedByUserInfo() ) );
+        ps.setObject( 11, userInfoToJson( programStageInstance.getLastUpdatedByUserInfo(), jsonMapper ) );
         ps.setString( 12, programStageInstance.getCompletedBy() );
         ps.setBoolean( 13, programStageInstance.isDeleted() );
         ps.setString( 14, programStageInstance.getCode() );
@@ -1707,14 +1692,6 @@ public class JdbcEventStore implements EventStore
 
         ps.setObject( 19, eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper ) );
         ps.setString( 20, programStageInstance.getUid() );
-    }
-
-    @SneakyThrows
-    private PGobject userInfoToJson(ProgramStageInstanceUserInfo userInfo) {
-        PGobject jsonbObj = new PGobject();
-        jsonbObj.setType( "json" );
-        jsonbObj.setValue( jsonMapper.writeValueAsString( userInfo ) ) ;
-        return jsonbObj;
     }
 
     private boolean userHasAccess( SqlRowSet rowSet )
