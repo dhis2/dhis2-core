@@ -52,6 +52,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -245,7 +246,7 @@ public abstract class CommandSMSListener
 
         ProgramInstance programInstance = programInstances.get( 0 );
 
-        String currentUserName = currentUserService.getCurrentUsername();
+        ProgramStageInstanceUserInfo currentUserInfo = ProgramStageInstanceUserInfo.from( currentUserService.getCurrentUser() );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( ous.iterator().next() );
@@ -255,13 +256,15 @@ public abstract class CommandSMSListener
         programStageInstance.setDueDate( sms.getSentDate() );
         programStageInstance.setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
-        programStageInstance.setStoredBy( currentUserName );
+        programStageInstance.setStoredBy( currentUserInfo.getUsername() );
+        programStageInstance.setCreatedByUserInfo( currentUserInfo );
+        programStageInstance.setLastUpdatedByUserInfo( currentUserInfo );
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
             EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(),
-                commandValuePairs.get( smsCode.getCode() ), currentUserName );
+                commandValuePairs.get( smsCode.getCode() ), currentUserInfo.getUsername() );
             eventDataValue.setAutoFields();
 
             // Filter empty values out -> this is "adding/saving/creating",
