@@ -129,7 +129,7 @@ public class EventsAnalyticsQueryCriteria
     /**
      * Aggregation type for the value dimension. Default is AVERAGE.
      */
-    private AggregationType aggregationType = AggregationType.AVERAGE;
+    private AggregationType aggregationType;
 
     /**
      * Whether to exclude the meta data part of the response.
