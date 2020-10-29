@@ -27,25 +27,15 @@
  *
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
+package org.hisp.dhis.audit;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.AbstractUserInfoPreProcessor;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 
-public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
-{
+public class UserInfoTestHelper {
 
-    @Override
-    protected void updateDataValueUserInfo(EventDataValue dataValue, ProgramStageInstanceUserInfo userInfo )
-    {
-        dataValue.setLastUpdatedByUserInfo( userInfo );
-    }
-
-    @Override
-    protected void updateEventUserInfo( Event event, ProgramStageInstanceUserInfo eventUserInfo )
-    {
-        event.setLastUpdatedByUserInfo( eventUserInfo );
+    public static ProgramStageInstanceUserInfo testUserInfo(String username) {
+        ProgramStageInstanceUserInfo userInfo = new ProgramStageInstanceUserInfo();
+        userInfo.setUsername(username);
+        return userInfo;
     }
 }

@@ -326,7 +326,7 @@ public abstract class CompressionSMSListener
                     continue;
                 }
 
-                EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), user.getUsername() );
+                EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), currentUserInfo );
                 eventDataValue.setAutoFields();
                 dataElementsAndEventDataValues.put( de, eventDataValue );
             }

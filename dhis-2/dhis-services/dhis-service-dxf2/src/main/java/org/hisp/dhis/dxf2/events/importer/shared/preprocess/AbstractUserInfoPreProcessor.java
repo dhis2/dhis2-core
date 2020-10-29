@@ -29,7 +29,9 @@
 
 package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -37,6 +39,7 @@ import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 import org.hisp.dhis.user.User;
 
@@ -51,11 +54,29 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
 
         if ( user != null )
         {
-            updateUserInfo( event, ProgramStageInstanceUserInfo.from( user ) );
+            ProgramStageInstanceUserInfo userInfo = ProgramStageInstanceUserInfo.from( user );
+            updateEventUserInfo( event, userInfo );
+            updateDataValuesUserInfo( getWorkContextDataValueMapEntry(workContext, event.getUid()), userInfo );
         }
     }
 
-    protected abstract void updateUserInfo( Event event, ProgramStageInstanceUserInfo eventUserInfo );
+    protected Set<EventDataValue> getWorkContextDataValueMapEntry(WorkContext workContext, String uid) {
+        return Optional.ofNullable(workContext)
+                .map(WorkContext::getEventDataValueMap)
+                .orElse(Collections.emptyMap())
+                .get(uid);
+    }
+
+    protected void updateDataValuesUserInfo(Set<EventDataValue> eventDataValueMap, ProgramStageInstanceUserInfo userInfo )
+    {
+        Optional.ofNullable( eventDataValueMap )
+            .orElse( Collections.emptySet() )
+            .forEach( dataValue -> updateDataValueUserInfo( dataValue, userInfo ) );
+    }
+
+    protected abstract void updateDataValueUserInfo( EventDataValue dataValue, ProgramStageInstanceUserInfo userInfo );
+
+    protected abstract void updateEventUserInfo( Event event, ProgramStageInstanceUserInfo eventUserInfo );
 
     private User getUser( WorkContext workContext )
     {

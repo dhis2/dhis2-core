@@ -565,7 +565,9 @@ public abstract class AbstractEventService implements EventService
 
                 DataValue value = new DataValue();
                 value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+                value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
                 value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+                value.setLastUpdatedByUserInfo( dataValue.getLastUpdatedByUserInfo() );
                 value.setDataElement( dataValue.getDataElement() );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );

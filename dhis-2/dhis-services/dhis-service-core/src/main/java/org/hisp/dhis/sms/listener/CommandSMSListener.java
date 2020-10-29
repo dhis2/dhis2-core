@@ -264,7 +264,7 @@ public abstract class CommandSMSListener
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
             EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(),
-                commandValuePairs.get( smsCode.getCode() ), currentUserInfo.getUsername() );
+                commandValuePairs.get( smsCode.getCode() ), currentUserInfo );
             eventDataValue.setAutoFields();
 
             // Filter empty values out -> this is "adding/saving/creating",
