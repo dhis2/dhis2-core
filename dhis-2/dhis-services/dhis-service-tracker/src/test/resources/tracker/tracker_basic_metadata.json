@@ -73,41 +73,6 @@
       "validationStrategy": "ON_COMPLETE",
       "autoGenerateEvent": true,
       "publicAccess": "rwrw----",
-      "programStageDataElements": [
-        {
-          "created": "2019-03-29T12:41:32.971",
-          "sortOrder": 1,
-          "lastUpdated": "2019-03-29T12:41:32.971",
-          "renderOptionsAsRadio": false,
-          "access": {
-            "read": true,
-            "externalize": true,
-            "manage": true,
-            "delete": true,
-            "update": true,
-            "write": true
-          },
-          "programStage": {
-            "id": "Qmqxq907VNz"
-          },
-          "translations": [],
-          "allowProvidedElsewhere": false,
-          "favorites": [],
-          "externalAccess": false,
-          "attributeValues": [],
-          "favorite": false,
-          "userAccesses": [],
-          "dataElement": {
-            "id": "NXzX9s90nT3"
-          },
-          "id": "PKajUE4CAAC",
-          "allowFutureDate": false,
-          "userGroupAccesses": [],
-          "displayInReports": false,
-          "compulsory": false,
-          "skipSynchronization": false
-        }
-      ],
       "minDaysFromStart": 0,
       "attributeValues": [],
       "preGenerateUID": false,
@@ -143,41 +108,6 @@
       "hideDueDate": false,
       "autoGenerateEvent": true,
       "publicAccess": "rw------",
-      "programStageDataElements": [
-        {
-          "access": {
-            "delete": true,
-            "update": true,
-            "write": true,
-            "externalize": true,
-            "read": true,
-            "manage": true
-          },
-          "renderOptionsAsRadio": false,
-          "lastUpdated": "2019-03-29T12:41:32.971",
-          "programStage": {
-            "id": "OilWH8Cj6QU"
-          },
-          "created": "2019-03-29T12:41:32.971",
-          "sortOrder": 1,
-          "favorites": [],
-          "translations": [],
-          "allowProvidedElsewhere": false,
-          "favorite": false,
-          "userAccesses": [],
-          "externalAccess": false,
-          "attributeValues": [],
-          "id": "GgAeloqjBaf",
-          "dataElement": {
-            "id": "yjF5elLCmQx"
-          },
-          "compulsory": false,
-          "skipSynchronization": false,
-          "allowFutureDate": false,
-          "userGroupAccesses": [],
-          "displayInReports": false
-        }
-      ],
       "validationStrategy": "ON_COMPLETE",
       "userAccesses": [],
       "repeatable": true,
@@ -217,41 +147,6 @@
       "minDaysFromStart": 0,
       "attributeValues": [],
       "preGenerateUID": false,
-      "programStageDataElements": [
-        {
-          "sortOrder": 1,
-          "created": "2019-03-29T12:41:32.972",
-          "programStage": {
-            "id": "m7HlXaMvgX2"
-          },
-          "lastUpdated": "2019-03-29T12:41:32.972",
-          "access": {
-            "delete": true,
-            "write": true,
-            "update": true,
-            "externalize": true,
-            "read": true,
-            "manage": true
-          },
-          "renderOptionsAsRadio": false,
-          "allowProvidedElsewhere": false,
-          "translations": [],
-          "favorites": [],
-          "attributeValues": [],
-          "externalAccess": false,
-          "userAccesses": [],
-          "favorite": false,
-          "displayInReports": false,
-          "userGroupAccesses": [],
-          "allowFutureDate": false,
-          "compulsory": false,
-          "skipSynchronization": false,
-          "id": "ybwRIdb403R",
-          "dataElement": {
-            "id": "LjQPcfuEI6P"
-          }
-        }
-      ],
       "autoGenerateEvent": true,
       "publicAccess": "rw------",
       "validationStrategy": "ON_COMPLETE"
