@@ -69,8 +69,6 @@ public class AzureAdProvider extends DhisOidcProvider
 
     public static final String AZURE_SUPPORT_LOGOUT = ".support_logout";
 
-    public static final String DEFAULT_MAPPING_CLAIM = "email";
-
     public static final String PROVIDER_STATIC_BASE_URL = "https://login.microsoftonline.com/";
 
     private AzureAdProvider()
@@ -119,7 +117,7 @@ public class AzureAdProvider extends DhisOidcProvider
 
             builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
             builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
-            builder.scope( "openid", "profile", "email" );
+            builder.scope( "openid", "profile", DEFAULT_MAPPING_CLAIM );
             builder.authorizationUri( providerBaseUrl + "/oauth2/v2.0/authorize" );
             builder.tokenUri( providerBaseUrl + "/oauth2/v2.0/token" );
             builder.jwkSetUri( providerBaseUrl + "/discovery/v2.0/keys" );

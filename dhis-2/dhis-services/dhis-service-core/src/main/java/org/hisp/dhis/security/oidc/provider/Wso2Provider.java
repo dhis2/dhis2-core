@@ -83,7 +83,7 @@ public class Wso2Provider extends DhisOidcProvider
 
         builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
         builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
-        builder.scope( "openid", "profile", "email" );
+        builder.scope( "openid", "profile", DEFAULT_MAPPING_CLAIM );
         builder.authorizationUri( providerBaseUrl + "/oauth2/authorize" );
         builder.tokenUri( providerBaseUrl + "/oauth2/token" );
         builder.jwkSetUri( providerBaseUrl + "/oauth2/jwks" );
