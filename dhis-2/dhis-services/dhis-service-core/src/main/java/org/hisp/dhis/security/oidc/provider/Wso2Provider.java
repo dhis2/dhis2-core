@@ -91,7 +91,7 @@ public class Wso2Provider extends DhisOidcProvider
         builder.clientName( wso2ClientId );
         builder.clientId( wso2ClientId );
         builder.clientSecret( wso2ClientSecret );
-        builder.redirectUri( "{baseUrl}/oauth2/code/{registrationId}" );
+        builder.redirectUri( DEFAULT_REDIRECT_TEMPLATE_URL );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
