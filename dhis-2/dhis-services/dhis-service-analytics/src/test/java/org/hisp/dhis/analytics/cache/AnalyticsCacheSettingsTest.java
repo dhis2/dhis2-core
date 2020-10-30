@@ -40,7 +40,7 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_F
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 

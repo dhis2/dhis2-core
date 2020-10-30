@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
 
@@ -87,6 +88,7 @@ public class DefaultTrackerImportService
     }
 
     @Override
+    @Transactional // TODO: This annotation must be removed. Performance killer.
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
         Timer requestTimer = new SystemTimer().start();

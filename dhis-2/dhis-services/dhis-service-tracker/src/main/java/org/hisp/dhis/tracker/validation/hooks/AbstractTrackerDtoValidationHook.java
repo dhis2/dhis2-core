@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
 
@@ -36,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
@@ -316,8 +318,6 @@ public abstract class AbstractTrackerDtoValidationHook
                 return;
             }
         }
-
-        return;
     }
 
     protected void validateGeometry( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
@@ -334,8 +334,7 @@ public abstract class AbstractTrackerDtoValidationHook
 
         if ( FeatureType.NONE == featureType || featureType != typeFromName )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1012 )
-                .addArg( featureType.name() ) );
+            addError( errorReporter, E1012, featureType.name() );
         }
     }
 
@@ -349,5 +348,28 @@ public abstract class AbstractTrackerDtoValidationHook
     public boolean isValidDateStringAndNotNull( String dateString )
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
+    }
+    
+    protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
+    {
+        report.addError( newReport( errorCode ).addArgs( args ) );
+    }
+
+    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerErrorCode errorCode,
+        Object... args )
+    {
+        if ( expression.get() )
+        {
+            addError( report, errorCode, args );
+        }
+    }
+
+    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerErrorCode errorCode,
+        Object... args )
+    {
+        if ( object == null )
+        {
+            addError( report, errorCode, args );
+        }
     }
 }

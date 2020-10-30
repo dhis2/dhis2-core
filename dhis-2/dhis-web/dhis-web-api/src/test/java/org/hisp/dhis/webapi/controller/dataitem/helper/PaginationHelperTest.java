@@ -36,8 +36,8 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.s
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
-import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,15 +46,10 @@ import java.util.Map;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class PaginationHelperTest
 {
-    @Rule
-    public ExpectedException expectedException = none();
-
     @Test
     public void testSliceWhenFirstPage()
     {
@@ -123,12 +118,9 @@ public class PaginationHelperTest
         final WebOptions theWebOptions = mockWebOptions( pageSize, lastPage );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
-        // Expect
-        expectedException.expect( IllegalStateException.class );
-        expectedException.expectMessage( "Page size must be greater than zero." );
-
         // When
-        slice( theWebOptions, anyDimensionalItems );
+        assertThrows( "Page size must be greater than zero.", IllegalStateException.class,
+            () -> slice( theWebOptions, anyDimensionalItems ) );
     }
 
     @Test
@@ -159,12 +151,9 @@ public class PaginationHelperTest
         final WebOptions theWebOptions = mockWebOptions( pageSize, currentPage );
         final List<BaseDimensionalItemObject> emptyDimensionalItems = emptyList();
 
-        // Expect
-        expectedException.expect( IllegalStateException.class );
-        expectedException.expectMessage( "Current page must be greater than zero." );
-
         // When
-        slice( theWebOptions, emptyDimensionalItems );
+        assertThrows( "Current page must be greater than zero.", IllegalStateException.class,
+            () -> slice( theWebOptions, emptyDimensionalItems ) );
     }
 
     private WebOptions mockWebOptions( final int pageSize, final int pageNumber )

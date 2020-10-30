@@ -28,23 +28,20 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.sideeffect.TrackerAssignValueSideEffect;
-import org.hisp.dhis.tracker.sideeffect.TrackerScheduleMessageSideEffect;
-import org.hisp.dhis.tracker.sideeffect.TrackerSendMessageSideEffect;
-import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
+import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.tracker.sideeffect.TrackerAssignValueSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerScheduleMessageSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerSendMessageSideEffect;
+import org.springframework.stereotype.Service;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Zubair Asghar
@@ -113,7 +110,11 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
             {
                 RuleAction action = ruleEffect.ruleAction();
 
-                trackerSideEffects.add( TO_SIDE_EFFECT.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
+                if ( TO_SIDE_EFFECT.containsKey( action.getClass().getSuperclass() ) )
+                {
+                    trackerSideEffects
+                        .add( TO_SIDE_EFFECT.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
+                }
             }
         }
 

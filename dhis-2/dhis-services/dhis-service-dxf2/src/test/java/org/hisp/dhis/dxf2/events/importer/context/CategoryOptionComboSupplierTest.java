@@ -29,9 +29,9 @@ package org.hisp.dhis.dxf2.events.importer.context;
  */
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -48,6 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Luciano Fiandesio
