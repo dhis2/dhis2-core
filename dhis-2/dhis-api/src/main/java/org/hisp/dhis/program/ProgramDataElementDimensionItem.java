@@ -42,6 +42,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.List;
 
@@ -150,6 +151,7 @@ public class ProgramDataElementDimensionItem
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE )
     public Program getProgram()
     {
         return program;
@@ -163,6 +165,7 @@ public class ProgramDataElementDimensionItem
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE )
     public DataElement getDataElement()
     {
         return dataElement;
