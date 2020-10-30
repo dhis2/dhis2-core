@@ -34,7 +34,8 @@ package org.hisp.dhis.common;
  * normal metadata (no refs etc) but instead need to be contained in the entity
  * that owns it.
  * <p>
- * Embedded objects should also always be implemented as cascade="delete-all-orphan".
+ * Embedded objects should also always be implemented as cascade="delete-all-orphan"
+ * if they are to be persisted.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
