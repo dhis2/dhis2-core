@@ -97,7 +97,7 @@ public class UserGroupAccess
 
     @JsonProperty( "id" )
     @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( persisted = Property.Value.TRUE )
+    // @Property( persisted = Property.Value.TRUE )
     public String getUid()
     {
         return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);
