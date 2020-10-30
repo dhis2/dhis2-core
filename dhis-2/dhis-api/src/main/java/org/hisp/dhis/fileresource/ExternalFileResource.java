@@ -27,7 +27,11 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Date;
@@ -35,6 +39,7 @@ import java.util.Date;
 /**
  * @author Stian Sandvold
  */
+@JacksonXmlRootElement( localName = "externalFileResource", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalFileResource
     extends BaseIdentifiableObject implements MetadataObject
 {
@@ -53,6 +58,8 @@ public class ExternalFileResource
      */
     private Date expires;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getExpires()
     {
         return expires;
@@ -63,6 +70,8 @@ public class ExternalFileResource
         this.expires = expires;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAccessToken()
     {
         return accessToken;
@@ -73,6 +82,8 @@ public class ExternalFileResource
         this.accessToken = accessToken;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FileResource getFileResource()
     {
         return fileResource;
