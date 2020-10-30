@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class CategoryOptionGroupSetDimension
     @JsonProperty( "categoryOptionGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public CategoryOptionGroupSet getDimension()
     {
         return dimension;
@@ -81,7 +82,7 @@ public class CategoryOptionGroupSetDimension
     @JsonProperty( "categoryOptionGroups" )
     @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public List<CategoryOptionGroup> getItems()
     {
         return items;

@@ -60,6 +60,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -250,7 +251,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.TRUE )
     public boolean isUnique()
     {
         return unique;
@@ -263,7 +264,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isDataElementAttribute()
     {
         return dataElementAttribute;
@@ -288,7 +289,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isIndicatorAttribute()
     {
         return indicatorAttribute;
@@ -325,7 +326,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isOrganisationUnitAttribute()
     {
         return organisationUnitAttribute;
@@ -362,7 +363,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isUserAttribute()
     {
         return userAttribute;

@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -152,7 +153,7 @@ public class ProgramTrackedEntityAttributeDimensionItem
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public Program getProgram()
     {
         return program;
@@ -166,7 +167,7 @@ public class ProgramTrackedEntityAttributeDimensionItem
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public TrackedEntityAttribute getAttribute()
     {
         return attribute;
