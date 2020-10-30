@@ -181,7 +181,8 @@ public class DefaultTrackedEntityAttributeValueService
 
         attributeValue.setAutoFields();
 
-        if ( attributeValue.getAttribute().getValueType().isFile() && !addFileValue( attributeValue ) )
+        if ( attributeValue.getAttribute().getValueType().isFile() &&
+            !StringUtils.isEmpty( attributeValue.getValue() ) && !addFileValue( attributeValue ) )
         {
             throw new IllegalQueryException(
                 String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
