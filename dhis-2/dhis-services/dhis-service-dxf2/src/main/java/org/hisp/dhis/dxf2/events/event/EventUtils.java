@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,10 +37,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.postgresql.util.PGobject;
@@ -50,9 +53,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+import lombok.SneakyThrows;
+
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public class EventUtils
 {
     public final static String FALLBACK_USERNAME = "[Unknown]";
@@ -182,5 +188,31 @@ public class EventUtils
         }
         return attributeValueSet;
 
+    }
+
+    @SneakyThrows
+    public static PGobject userInfoToJson( ProgramStageInstanceUserInfo userInfo, ObjectMapper mapper )
+    {
+        PGobject jsonbObj = new PGobject();
+        jsonbObj.setType( "json" );
+        jsonbObj.setValue( mapper.writeValueAsString( userInfo ) );
+        return jsonbObj;
+    }
+
+    public static ProgramStageInstanceUserInfo jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
+    {
+        try
+        {
+            if ( org.apache.commons.lang3.StringUtils.isNotEmpty( userInfoAsString ) )
+            {
+                return mapper.readValue( userInfoAsString, ProgramStageInstanceUserInfo.class );
+            }
+            return null;
+        }
+        catch ( IOException e )
+        {
+            log.error( "Parsing ProgramStageInstanceUserInfo json string failed. String value: " + userInfoAsString );
+            throw new IllegalArgumentException( e );
+        }
     }
 }

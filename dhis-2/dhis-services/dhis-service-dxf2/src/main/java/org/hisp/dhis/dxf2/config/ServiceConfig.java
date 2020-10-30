@@ -44,6 +44,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPos
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.UserInfoInsertPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.DataValueAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
@@ -68,6 +69,7 @@ import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostPro
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
+import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
@@ -250,7 +252,8 @@ public class ServiceConfig
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class,
-            FilteringOutUndeclaredDataElementsProcessor.class ) );
+            FilteringOutUndeclaredDataElementsProcessor.class,
+            UserInfoInsertPreProcessor.class) );
     }
 
     @Bean
@@ -269,7 +272,8 @@ public class ServiceConfig
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
-            ProgramInstanceGeometryPreProcessor.class ) );
+            ProgramInstanceGeometryPreProcessor.class,
+            UserInfoUpdatePreProcessor.class) );
     }
 
     @Bean
