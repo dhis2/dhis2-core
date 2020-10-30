@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,17 +28,25 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+
 /**
- * Marker interface for marking an object to not be treated as a id object (even
- * if the class itself implements id object), this object will not be treated as
- * normal metadata (no refs etc) but instead need to be contained in the entity
- * that owns it.
- * <p>
- * Embedded objects should also always be implemented as cascade="delete-all-orphan"
- * if they are to be persisted.
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface EmbeddedObject
+public class AttributeValueSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "attributeValue";
+
+    public static final String PLURAL = "attributeValues";
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
+        schema.setOrder( 100 );
+
+        return schema;
+    }
 }

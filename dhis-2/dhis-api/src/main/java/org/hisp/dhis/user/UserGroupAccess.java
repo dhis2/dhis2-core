@@ -28,17 +28,17 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.annotation.Property;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -97,6 +97,7 @@ public class UserGroupAccess
 
     @JsonProperty( "id" )
     @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = Property.Value.TRUE )
     public String getUid()
     {
         return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);
