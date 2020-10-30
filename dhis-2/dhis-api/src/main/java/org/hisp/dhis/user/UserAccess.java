@@ -78,6 +78,7 @@ public class UserAccess
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE )
     public String getAccess()
     {
         return access;
