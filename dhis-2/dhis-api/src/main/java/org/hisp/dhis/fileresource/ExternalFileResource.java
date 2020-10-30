@@ -33,7 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Date;
 
@@ -42,7 +41,7 @@ import java.util.Date;
  */
 @JacksonXmlRootElement( localName = "externalFileResource", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalFileResource
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
 {
     /**
      * FileResource containing the file we are exposing
