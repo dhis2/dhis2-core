@@ -45,6 +45,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -93,7 +94,11 @@ public class Event
 
     private String created;
 
+    private ProgramStageInstanceUserInfo createdByUserInfo;
+
     private String lastUpdated;
+
+    private ProgramStageInstanceUserInfo lastUpdatedByUserInfo;
 
     private String createdAtClient;
 
@@ -336,6 +341,18 @@ public class Event
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStageInstanceUserInfo getCreatedByUserInfo()
+    {
+        return createdByUserInfo;
+    }
+
+    public void setCreatedByUserInfo( ProgramStageInstanceUserInfo createdByUserInfo )
+    {
+        this.createdByUserInfo = createdByUserInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLastUpdated()
     {
         return lastUpdated;
@@ -344,6 +361,18 @@ public class Event
     public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStageInstanceUserInfo getLastUpdatedByUserInfo()
+    {
+        return lastUpdatedByUserInfo;
+    }
+
+    public void setLastUpdatedByUserInfo( ProgramStageInstanceUserInfo lastUpdatedByUserInfo )
+    {
+        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     @JsonProperty( required = true )
