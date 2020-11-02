@@ -107,7 +107,6 @@ public class DefaultTrackerImportService
         
         try
         {
-
             TrackerBundle trackerBundle = preheatBundle( params, importReport );
 
             trackerBundle = preProcessBundle( trackerBundle, importReport );
