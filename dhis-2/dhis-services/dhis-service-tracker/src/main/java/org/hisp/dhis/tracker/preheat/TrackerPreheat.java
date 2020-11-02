@@ -28,8 +28,19 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
-import javassist.util.proxy.ProxyFactory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,18 +61,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.google.api.client.util.Lists;
+
+import javassist.util.proxy.ProxyFactory;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -584,12 +586,11 @@ public class TrackerPreheat
         // Notes are always using UID scheme
         notes.put( TrackerIdScheme.UID, trackedEntityComments.stream().collect(
             Collectors.toMap( TrackedEntityComment::getUid, Function.identity() ) ) );
-
     }
     
     public Optional<TrackedEntityComment> getNote( String uid )
     {
-        return Optional.ofNullable( notes.get( TrackerIdScheme.UID ).get( uid ) );
+        return Optional.ofNullable( notes.getOrDefault( TrackerIdScheme.UID, new HashMap<>() ).get( uid ) );
     }
     
     public Map<TrackerIdScheme, Map<String, Relationship>> getRelationships()
