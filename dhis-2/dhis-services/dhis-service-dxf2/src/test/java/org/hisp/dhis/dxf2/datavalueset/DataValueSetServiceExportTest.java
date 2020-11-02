@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.datavalueset;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,10 +28,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,6 +48,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -64,14 +67,11 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-
 
 /**
  * @author Lars Helge Overland
@@ -105,9 +105,6 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private ObjectMapper jsonMapper;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     private DataElement deA;
     private DataElement deB;
@@ -461,36 +458,34 @@ public class DataValueSetServiceExportTest
     @Test
     public void testMissingDataSetElementGroup()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2001 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
             .setOrganisationUnits( Sets.newHashSet( ouB ) )
             .setPeriods( Sets.newHashSet( peA ) );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2001 );
     }
 
     @Test
     public void testMissingPeriodStartEndDate()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2002 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2002 );
     }
 
     @Test
     public void testPeriodAndStartEndDate()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2003 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
@@ -500,13 +495,14 @@ public class DataValueSetServiceExportTest
             .setStartDate( getDate( 2019, 1, 1 ) )
             .setEndDate( getDate( 2019, 1, 31 ) );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2003 );
     }
 
     @Test
     public void testStartDateAfterEndDate()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2004 );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -516,28 +512,28 @@ public class DataValueSetServiceExportTest
             .setStartDate( getDate( 2019, 3, 1 ) )
             .setEndDate( getDate( 2019, 1, 31 ) );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2004 );
     }
 
     @Test
     public void testMissingOrgUnit()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2006 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2006 );
     }
 
     @Test
     public void testAtLestOneOrgUnitWithChildren()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2008 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
@@ -546,14 +542,14 @@ public class DataValueSetServiceExportTest
             .setOrganisationUnitGroups( Sets.newHashSet( ogA ) )
             .setIncludeChildren( true );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2008 );
     }
 
     @Test
     public void testLimitLimitNotLessThanZero()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2009 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
@@ -562,14 +558,14 @@ public class DataValueSetServiceExportTest
             .setOrganisationUnits( Sets.newHashSet( ouB ) )
             .setLimit( -2 );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2009 );
     }
 
     @Test
     public void testAccessOutsideOrgUnitHierarchy()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2012 );
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DataExportParams params = new DataExportParams()
@@ -577,7 +573,9 @@ public class DataValueSetServiceExportTest
             .setOrganisationUnits( Sets.newHashSet( ouC ) )
             .setPeriods( Sets.newHashSet( peA ) );
 
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            ErrorCode.E2012 );
     }
 
 }

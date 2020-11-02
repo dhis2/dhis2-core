@@ -28,11 +28,9 @@ package org.hisp.dhis.maintenance.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.maintenance.MaintenanceStore;
@@ -50,7 +48,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
 @Service( "org.hisp.dhis.maintenance.MaintenanceStore" )
 public class JdbcMaintenanceStore
     implements MaintenanceStore

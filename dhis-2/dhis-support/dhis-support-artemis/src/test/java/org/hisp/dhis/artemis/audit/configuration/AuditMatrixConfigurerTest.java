@@ -40,7 +40,7 @@ import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 

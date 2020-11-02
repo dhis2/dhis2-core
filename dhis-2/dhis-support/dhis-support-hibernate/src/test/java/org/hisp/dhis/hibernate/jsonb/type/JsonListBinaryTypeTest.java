@@ -37,6 +37,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotSame;
+
 /**
  * Unit tests for {@link JsonListBinaryType}.
  *
@@ -76,8 +79,8 @@ public class JsonListBinaryTypeTest
     public void deepCopy()
     {
         final List<Translation> result = (List<Translation>) jsonBinaryType.deepCopy( translations );
-        Assert.assertNotSame( translations, result );
-        Assert.assertThat( result, Matchers.contains( translation1, translation2 ) );
+        assertNotSame( translations, result );
+        assertThat( result, Matchers.contains( translation1, translation2 ) );
     }
 
     @Test

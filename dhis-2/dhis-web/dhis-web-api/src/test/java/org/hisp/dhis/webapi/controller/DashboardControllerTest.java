@@ -32,40 +32,28 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.dxf2.metadata.MetadataImportService;
-import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.patch.PatchService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
  */
 public class DashboardControllerTest
 {
-
     private MockMvc mockMvc;
 
     @Mock
@@ -75,62 +63,22 @@ public class DashboardControllerTest
     protected IdentifiableObjectManager manager;
 
     @Mock
-    protected CurrentUserService currentUserService;
-
-    @Mock
-    protected FieldFilterService fieldFilterService;
-
-    @Mock
-    protected AclService aclService;
-
-    @Mock
-    protected SchemaService schemaService;
-
-    @Mock
-    protected LinkService linkService;
-
-    @Mock
-    protected RenderService renderService;
-
-    @Mock
-    protected MetadataImportService importService;
-
-    @Mock
     protected MetadataExportService exportService;
 
     @Mock
     protected ContextService contextService;
 
-    @Mock
-    protected QueryService queryService;
-
-    @Mock
-    protected WebMessageService webMessageService;
-
-    @Mock
-    protected HibernateCacheManager hibernateCacheManager;
-
-    @Mock
-    protected UserSettingService userSettingService;
-
-    @Mock
-    protected CollectionService collectionService;
-
-    @Mock
-    protected MergeService mergeService;
-
-    @Mock
-    protected PatchService patchService;
-
     @InjectMocks
     private DashboardController dashboardController;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private final static String ENDPOINT = "/dashboards/q";
 
     @Before
     public void setUp()
     {
-        MockitoAnnotations.initMocks( this );
         mockMvc = MockMvcBuilders.standaloneSetup( dashboardController ).build();
     }
 

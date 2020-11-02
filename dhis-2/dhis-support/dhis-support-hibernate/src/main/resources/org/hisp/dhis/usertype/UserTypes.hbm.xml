@@ -87,4 +87,12 @@
     <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramNotificationTemplateSnapshot">
+    <param name="clazz">org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramStageInstanceUserInfo">
+    <param name="clazz">org.hisp.dhis.program.ProgramStageInstanceUserInfo</param>
+  </typedef>
+
 </hibernate-mapping>

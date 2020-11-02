@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.*;

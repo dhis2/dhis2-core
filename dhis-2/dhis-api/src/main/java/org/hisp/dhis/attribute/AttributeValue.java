@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.CustomAttributeSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -43,7 +44,7 @@ import java.util.Objects;
  */
 @JacksonXmlRootElement( localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0 )
 public class AttributeValue
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -82,7 +83,7 @@ public class AttributeValue
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
 
-        AttributeValue that = ( AttributeValue ) o;
+        AttributeValue that = (AttributeValue) o;
 
         if ( !Objects.equals( attribute, that.attribute ) ) return false;
         if ( !Objects.equals( value, that.value ) ) return false;
@@ -102,10 +103,10 @@ public class AttributeValue
     @Override public String toString()
     {
         return "AttributeValue{" +
-                "class=" + getClass() +
-                ", value='" + value + '\'' +
+            "class=" + getClass() +
+            ", value='" + value + '\'' +
             ", attribute='" + attribute + '\'' +
-                '}';
+            '}';
     }
 
     @JsonProperty

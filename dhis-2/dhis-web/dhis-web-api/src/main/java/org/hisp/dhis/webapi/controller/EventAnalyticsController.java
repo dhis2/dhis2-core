@@ -28,402 +28,147 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.EventOutputType;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class EventAnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics/events";
 
-    private static final String DEFAULT_OUTPUT_TYPE = "EVENT";
+    @NonNull private EventDataQueryService eventDataService;
 
-    @Autowired
-    private EventDataQueryService eventDataQueryService;
+    @NonNull private EventAnalyticsService analyticsService;
 
-    @Autowired
-    private EventAnalyticsService analyticsService;
-
-    @Autowired
-    private ContextUtils contextUtils;
+    @NonNull private ContextUtils contextUtils;
 
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getAggregateJson( // JSON, JSONP
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) String value,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) boolean collapseDataDimensions,
-        @RequestParam( required = false ) boolean aggregateData,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response )
         throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
-            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
-            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
-            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
-            .aggregateData( aggregateData ).includeMetadataDetails( includeMetadataDetails )
-            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
+        configResponseForJson( response );
+        
+        return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
+            getItemsFromParam( criteria.getRows() ) );
     }
-
-    @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.xml", method = RequestMethod.GET )
+    
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.xml" )
     public void getAggregateXml(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) String value,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) boolean collapseDataDimensions,
-        @RequestParam( required = false ) boolean aggregateData,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        EventsAnalyticsQueryCriteria criteria,
+
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
-            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
-            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
-            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
-            .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
-        Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toXml( grid, response.getOutputStream() );
+        GridUtils.toXml( getAggregatedGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
+            "events.xml", response ), response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.xls", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.xls" )
     public void getAggregateXls(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) String value,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) boolean collapseDataDimensions,
-        @RequestParam( required = false ) boolean aggregateData,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
-            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
-            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
-            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
-            .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
-        Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toXls( grid, response.getOutputStream() );
+        GridUtils
+            .toXls( getAggregatedGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
+                "events.xls", response ), response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.csv", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.csv" )
     public void getAggregateCsv(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) String value,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) boolean collapseDataDimensions,
-        @RequestParam( required = false ) boolean aggregateData,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
-            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
-            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
-            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
-            .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
-        Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toCsv( grid, response.getWriter() );
+        GridUtils.toCsv( getAggregatedGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
+            "events.csv", response ), response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.html", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.html" )
     public void getAggregateHtml(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) String value,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) boolean collapseDataDimensions,
-        @RequestParam( required = false ) boolean aggregateData,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
-            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
-            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
-            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
-            .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
-        Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toHtml( grid, response.getWriter() );
+        GridUtils
+            .toHtml( getAggregatedGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
+                "events.html", response ), response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.html+css", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.html+css" )
     public void getAggregateHtmlCss(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) String value,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) boolean collapseDataDimensions,
-        @RequestParam( required = false ) boolean aggregateData,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
-            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
-            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
-            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
-            .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
-        Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toHtmlCss( grid, response.getWriter() );
+        GridUtils
+            .toHtmlCss( getAggregatedGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
+                "events.html", response ), response.getWriter() );
     }
 
     // -------------------------------------------------------------------------
     // Count / rectangle
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH + "/count/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/count/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Rectangle getCountJson( // JSON, JSONP
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response )
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
+        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+        configResponseForJson( response );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getRectangle( params );
     }
 
@@ -431,46 +176,17 @@ public class EventAnalyticsController
     // Clustering
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH + "/cluster/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/cluster/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getClusterJson( // JSON, JSONP
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
+        EventsAnalyticsQueryCriteria criteria,
         @RequestParam Long clusterSize,
-        @RequestParam( required = false ) String coordinateField,
         @RequestParam String bbox,
         @RequestParam( required = false ) boolean includeClusterPoints,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response )
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
@@ -478,7 +194,7 @@ public class EventAnalyticsController
             .withIncludeClusterPoints( includeClusterPoints )
             .build();
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        configResponseForJson( response );
 
         return analyticsService.getEventClusters( params );
     }
@@ -487,269 +203,116 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) IdScheme dataIdScheme,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response )
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
-            .dataIdScheme( dataIdScheme ).eventStatus( eventStatus ).programStatus( programStatus )
-            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
+        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+        configResponseForJson( response );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getEvents( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xml", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}.xml" )
     public void getQueryXml(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) IdScheme dataIdScheme,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
-            .dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
-        Grid grid = analyticsService.getEvents( params );
-        GridUtils.toXml( grid, response.getOutputStream() );
+        GridUtils.toXml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
+            "events.xml", response ), response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xls", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}.xls" )
     public void getQueryXls(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) IdScheme dataIdScheme,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
-        Grid grid = analyticsService.getEvents( params );
-        GridUtils.toXls( grid, response.getOutputStream() );
+        GridUtils.toXls( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
+            "events.xls", response ), response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.csv", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}.csv" )
     public void getQueryCsv(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) IdScheme dataIdScheme,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
-        Grid grid = analyticsService.getEvents( params );
-        GridUtils.toCsv( grid, response.getWriter() );
+        GridUtils.toCsv( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
+            "events.csv", response ), response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}.html" )
     public void getQueryHtml(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) IdScheme dataIdScheme,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
-
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
-        Grid grid = analyticsService.getEvents( params );
-        GridUtils.toHtml( grid, response.getWriter() );
+        GridUtils.toHtml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
+            "events.html", response ), response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html+css", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}.html+css" )
     public void getQueryHtmlCss(
         @PathVariable String program,
-        @RequestParam( required = false ) String stage,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) Set<String> asc,
-        @RequestParam( required = false ) Set<String> desc,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean coordinatesOnly,
-        @RequestParam( required = false ) IdScheme dataIdScheme,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
+        EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
-            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
-            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
-            .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
+        GridUtils.toHtmlCss( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
+            "events.html", response ), response.getWriter() );
+    }
 
-        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+    private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
+        DhisApiVersion apiVersion,
+        String contentType, String file,
+        HttpServletResponse response )
+        throws Exception
+    {
+        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
-        Grid grid = analyticsService.getEvents( params );
-        GridUtils.toHtmlCss( grid, response.getWriter() );
+        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            file, false );
+        return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
+            getItemsFromParam( criteria.getRows() ) );
+    }
+
+    private Grid getListGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
+        DhisApiVersion apiVersion,
+        String contentType, String file,
+        HttpServletResponse response )
+    {
+        EventQueryParams params = eventDataService
+            .getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+
+        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, false );
+        return analyticsService.getEvents( params );
+    }
+
+    private EventDataQueryRequest mapFromCriteria( EventsAnalyticsQueryCriteria criteria, String program,
+        DhisApiVersion apiVersion )
+    {
+        return EventDataQueryRequest.newBuilder().program( program ).fromCriteria( criteria )
+            .apiVersion( apiVersion ).build();
+    }
+
+    private void configResponseForJson( HttpServletResponse response )
+    {
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
     }
 }

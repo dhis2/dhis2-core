@@ -36,6 +36,7 @@ import org.junit.Test;
 
 import java.beans.PropertyDescriptor;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
 
 /**
@@ -107,7 +108,7 @@ public class OrderTest
     {
         object1.setValue( "Test1" );
         object2.setValue( "Test2" );
-        Assert.assertThat( orderAsc.compare( object1, object2 ), lessThan( 0 ) );
+        assertThat( orderAsc.compare( object1, object2 ), lessThan( 0 ) );
     }
 
     @Test

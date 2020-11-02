@@ -53,7 +53,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.InitializingBean;
 
-import com.google.common.base.Preconditions;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**

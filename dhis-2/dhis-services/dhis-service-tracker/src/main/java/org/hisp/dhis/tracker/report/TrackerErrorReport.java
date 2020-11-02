@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.report;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +45,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
@@ -65,14 +67,16 @@ public class TrackerErrorReport
 
     private final String uid;
 
-    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode, TrackerType trackerType, String uid )
+    @JsonCreator
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.errorMessage = errorMessage;
         this.errorCode = errorCode;
         this.trackerType = trackerType;
         this.uid = uid;
     }
-
+    
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
@@ -84,6 +88,18 @@ public class TrackerErrorReport
     {
         return errorMessage;
     }
+    
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+    
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
 
     public static class TrackerErrorReportBuilder
     {
@@ -92,6 +108,12 @@ public class TrackerErrorReport
         public TrackerErrorReportBuilder addArg( Object arg )
         {
             this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArgs( Object ... args )
+        {
+            this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 

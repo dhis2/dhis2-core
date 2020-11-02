@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -51,7 +52,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -73,9 +73,6 @@ public class AttributeOptionComboLoaderTest
 
     @Captor
     private ArgumentCaptor<String> sqlCaptor;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     private AttributeOptionComboLoader subject;
 
@@ -114,18 +111,17 @@ public class AttributeOptionComboLoaderTest
     @Test
     public void verifyGetAttributeOptionComboWithNullCategoryCombo()
     {
-        thrown.expect( IllegalQueryException.class );
-        thrown.expectMessage( "Illegal category combo" );
-        subject.getAttributeOptionCombo( null, "", "", IdScheme.UID );
+        assertThrows( "Illegal category combo", IllegalQueryException.class,
+            () -> subject.getAttributeOptionCombo( null, "", "", IdScheme.UID ) );
     }
 
     @Test
     public void verifyGetAttributeOptionComboWithNonExistingCategoryOption()
     {
-        thrown.expect( IllegalQueryException.class );
-        thrown.expectMessage( "Illegal category option identifier: abcdef" );
         CategoryCombo cc = new CategoryCombo();
-        subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID );
+
+        assertThrows( "Illegal category option identifier: abcdef", IllegalQueryException.class,
+            () -> subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID ) );
     }
 
     @Test

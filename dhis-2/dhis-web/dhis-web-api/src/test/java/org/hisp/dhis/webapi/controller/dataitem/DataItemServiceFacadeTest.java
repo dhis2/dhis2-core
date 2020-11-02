@@ -33,6 +33,7 @@ import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -41,8 +42,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DAT
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
-import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
@@ -67,7 +66,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 
@@ -78,9 +76,6 @@ public class DataItemServiceFacadeTest
 
     @Rule
     public MockitoRule mockitoRule = rule();
-
-    @Rule
-    public ExpectedException expectedException = none();
 
     private DataItemServiceFacade dataItemServiceFacade;
 

@@ -64,18 +64,16 @@ public class DhisOidcUserService
         throws OAuth2AuthenticationException
     {
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
-
-        OidcUser oidcUser = super.loadUser( userRequest );
-
-        OidcUserInfo userInfo = oidcUser.getUserInfo();
-
-        Map<String, Object> attributes = oidcUser.getAttributes();
-
         DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
 
+        OidcUser oidcUser = super.loadUser( userRequest );
+        Map<String, Object> attributes = oidcUser.getAttributes();
+
         String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
+        OidcUserInfo userInfo = oidcUser.getUserInfo();
         Object claimValue = attributes.get( mappingClaimKey );
+
         if ( claimValue == null && userInfo != null )
         {
             claimValue = userInfo.getClaim( mappingClaimKey );
@@ -96,15 +94,16 @@ public class DhisOidcUserService
             }
         }
 
-        if ( log.isInfoEnabled() )
+        if ( log.isDebugEnabled() )
         {
-            log.info( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+            log.debug( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
         }
 
         OAuth2Error oauth2Error = new OAuth2Error(
             "could_not_map_oidc_user_to_dhis2_user",
             "Failed to map OidcUser to a DHIS2 user.",
             null );
+
         throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
     }
 }
