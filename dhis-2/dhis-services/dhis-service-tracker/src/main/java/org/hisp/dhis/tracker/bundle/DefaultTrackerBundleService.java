@@ -611,8 +611,8 @@ public class DefaultTrackerBundleService
 
             try
             {
-                eventDataValue.setCreated( new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
-                eventDataValue.setLastUpdated( new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
+                eventDataValue.setCreated( dv.getCreatedAt() == null ? new Date() : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
+                eventDataValue.setLastUpdated( dv.getUpdatedAt() == null ? new Date() : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
             }
             catch ( ParseException e )
             {
