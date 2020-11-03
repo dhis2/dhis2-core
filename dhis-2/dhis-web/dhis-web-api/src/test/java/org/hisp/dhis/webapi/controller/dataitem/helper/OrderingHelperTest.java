@@ -28,13 +28,13 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
+import static org.junit.Assert.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,15 +45,10 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class OrderingHelperTest
 {
-    @Rule
-    public ExpectedException expectedException = none();
-
     @Test
     public void sortWhenDimensionalItemsIsEmpty()
     {
@@ -87,7 +82,7 @@ public class OrderingHelperTest
     public void sortWhenOrderParamsIsAsc()
     {
         // Given
-        final Set<String> orderings = new HashSet<>( asList( "name:asc" ) );
+        final Set<String> orderings = new HashSet<>( singletonList( "name:asc" ) );
         final OrderParams orderParams = new OrderParams( orderings );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
         final List<BaseDimensionalItemObject> ascList = mockDimensionalItems( 2 );
@@ -104,7 +99,7 @@ public class OrderingHelperTest
     public void sortWhenOrderParamsIsDesc()
     {
         // Given
-        final Set<String> orderings = new HashSet<>( asList( "name:desc" ) );
+        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ));
         final OrderParams orderParams = new OrderParams( orderings );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
         final List<BaseDimensionalItemObject> ascList = mockDimensionalItems( 2 );
@@ -121,16 +116,14 @@ public class OrderingHelperTest
     public void sortWhenOrderParamsIsInvalid()
     {
         // Given
-        final Set<String> orderingWithNoValue = new HashSet<>( asList( "name:" ) );
+        final Set<String> orderingWithNoValue = new HashSet<>( singletonList( "name:" ) );
         final OrderParams orderParams = new OrderParams( orderingWithNoValue );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse order param: `" + "name:" + "`" );
 
         // When
-        sort( anyDimensionalItems, orderParams );
+        assertThrows( "Unable to parse order param: `" + "name:" + "`", IllegalQueryException.class,
+            () -> sort( anyDimensionalItems, orderParams ) );
     }
 
     private List<BaseDimensionalItemObject> mockDimensionalItems( final int totalOfItems )

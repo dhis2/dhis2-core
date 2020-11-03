@@ -30,6 +30,7 @@ package org.hisp.dhis.security.oidc.provider;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -38,19 +39,25 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
+ * <p>
+ * Well known url for reference. In a perfect world we would dynamically parse this.
+ * https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
  */
 public class AzureAdProvider extends DhisOidcProvider
 {
+    public static final int MAX_AZURE_TENANTS = 10;
+
     public static final String PROVIDER_PREFIX = "oidc.provider.azure.";
 
     public static final String AZURE_TENANT = ".tenant";
+
+    public static final String AZURE_DISPLAY_ALIAS = ".display_alias";
 
     public static final String AZURE_CLIENT_ID = ".client_id";
 
@@ -62,6 +69,8 @@ public class AzureAdProvider extends DhisOidcProvider
 
     public static final String AZURE_SUPPORT_LOGOUT = ".support_logout";
 
+    public static final String PROVIDER_STATIC_BASE_URL = "https://login.microsoftonline.com/";
+
     private AzureAdProvider()
     {
         throw new IllegalStateException( "Utility class" );
@@ -71,91 +80,74 @@ public class AzureAdProvider extends DhisOidcProvider
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
-        ImmutableList.Builder<DhisOidcClientRegistration> clients = ImmutableList.builder();
+        final Properties properties = config.getProperties();
 
-        int i = 0;
+        final ImmutableList.Builder<DhisOidcClientRegistration> clients = ImmutableList.builder();
 
-        while ( true )
+        for ( int i = 0; i < MAX_AZURE_TENANTS; i++ )
         {
-            Properties properties = config.getProperties();
-            String tenantKey = PROVIDER_PREFIX + i + AZURE_TENANT;
-            String tenant = properties.getProperty( tenantKey, "" );
+            String tenant = properties.getProperty( PROVIDER_PREFIX + i + AZURE_TENANT, "" );
+
             if ( tenant.isEmpty() )
             {
-                break;
+                continue;
             }
 
-            String key = PROVIDER_PREFIX + i + AZURE_CLIENT_ID;
-            String clientId = properties.getProperty( key, "" );
+            String clientId = properties.getProperty( PROVIDER_PREFIX + i + AZURE_CLIENT_ID, "" );
+            String clientSecret = config.getProperties().getProperty( PROVIDER_PREFIX + i + AZURE_CLIENT_SECRET );
+            boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull( config.getProperties()
+                .getProperty( PROVIDER_PREFIX + i + AZURE_SUPPORT_LOGOUT ), "TRUE" ) );
+            String mappingClaims = MoreObjects
+                .firstNonNull( config.getProperties().getProperty( PROVIDER_PREFIX + i + AZURE_MAPPING_CLAIM ),
+                    DEFAULT_MAPPING_CLAIM );
+
             if ( clientId.isEmpty() )
             {
                 throw new IllegalArgumentException( "Azure client id is missing! tenant=" + tenant );
             }
 
-            String clientSecret = config.getProperties()
-                .getProperty( PROVIDER_PREFIX + i + AZURE_CLIENT_SECRET );
             if ( clientSecret.isEmpty() )
             {
                 throw new IllegalArgumentException( "Azure client secret is missing! tenant=" + tenant );
             }
-            String redirectBaseUrl = MoreObjects
-                .firstNonNull( config.getProperties().getProperty( PROVIDER_PREFIX + i + AZURE_REDIRECT_BASE_URL ),
-                    "http://localhost:8080" );
 
-            String mappingClaims = MoreObjects.firstNonNull( config.getProperties()
-                .getProperty( PROVIDER_PREFIX + i + AZURE_MAPPING_CLAIM ), "email" );
+            ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( tenant );
 
-            // Well known url for reference. In a perfect world we would dynamically parse this.
-            // https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
+            String providerBaseUrl = PROVIDER_STATIC_BASE_URL + tenant;
 
-            String baseUrl = "https://login.microsoftonline.com/";
-
-            ClientRegistration.Builder builder = getBuilder( tenant );
-            builder.scope( "openid", "profile", "email" );
-            builder.authorizationUri( baseUrl + tenant + "/oauth2/v2.0/authorize" );
-            builder.tokenUri( baseUrl + tenant + "/oauth2/v2.0/token" );
-            builder.jwkSetUri( baseUrl + tenant + "/discovery/v2.0/keys" );
+            builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
+            builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
+            builder.scope( "openid", "profile", DEFAULT_MAPPING_CLAIM );
+            builder.authorizationUri( providerBaseUrl + "/oauth2/v2.0/authorize" );
+            builder.tokenUri( providerBaseUrl + "/oauth2/v2.0/token" );
+            builder.jwkSetUri( providerBaseUrl + "/discovery/v2.0/keys" );
             builder.userInfoUri( "https://graph.microsoft.com/oidc/userinfo" );
-
             builder.clientName( tenant );
             builder.clientId( clientId );
             builder.clientSecret( clientSecret );
-
-            builder.redirectUriTemplate( redirectBaseUrl + DEFAULT_CODE_URL_TEMPLATE );
+            builder.redirectUri( DEFAULT_REDIRECT_TEMPLATE_URL );
             builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
             builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
-            boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull( config.getProperties()
-                .getProperty( PROVIDER_PREFIX + i + AZURE_SUPPORT_LOGOUT ), "TRUE" ) );
-
             if ( supportLogout )
             {
-                HashMap<String, Object> metadata = new HashMap<>();
-                metadata.put( "end_session_endpoint",
-                    baseUrl + tenant + "/oauth2/v2.0/logout" );
-                builder.providerConfigurationMetadata( metadata );
+                builder.providerConfigurationMetadata(
+                    ImmutableMap.of( "end_session_endpoint", providerBaseUrl + "/oauth2/v2.0/logout" ) );
             }
 
-            DhisOidcClientRegistration dhisClient = DhisOidcClientRegistration.builder()
-                .clientRegistration( builder.build() )
+            ClientRegistration clientRegistration = builder.build();
+
+            DhisOidcClientRegistration dhisOidcClientRegistration = DhisOidcClientRegistration.builder()
+                .clientRegistration( clientRegistration )
                 .mappingClaimKey( mappingClaims )
-                .registrationId( tenant )
+                .loginIcon( "../security/btn_azure_login.svg" )
+                .loginIconPadding( "13px 13px" )
+                .loginText( properties.getProperty( PROVIDER_PREFIX + i + AZURE_DISPLAY_ALIAS, "login_with_azure" ) )
                 .build();
 
-            clients.add( dhisClient );
-
-            i++;
+            clients.add( dhisOidcClientRegistration );
         }
 
         return clients.build();
-    }
-
-    private static ClientRegistration.Builder getBuilder( String registrationId )
-    {
-        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( registrationId );
-        builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
-        builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
-        builder.redirectUriTemplate( DEFAULT_REDIRECT_URL );
-        return builder;
     }
 }

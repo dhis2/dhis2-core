@@ -35,6 +35,7 @@ import java.util.Map;
 
 import org.hisp.dhis.tracker.TrackerType;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -76,6 +77,31 @@ public class TrackerObjectReport
         this.uid = uid;
         this.index = index;
     }
+    
+    @JsonCreator
+    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) int index,
+        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
+    {
+        this.trackerType = trackerType;
+        this.uid = uid;
+        this.index = index;
+        if ( errorReports != null )
+        {
+            List<TrackerErrorReport> errorCodeReportList = null;
+            for ( TrackerErrorReport errorReport : errorReports )
+            {
+                errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );
+
+                if ( errorCodeReportList == null )
+                {
+                    errorCodeReportList = new ArrayList<>();
+                }
+                errorCodeReportList.add( errorReport );
+                this.errorReportsByCode.put( errorReport.getErrorCode(), errorCodeReportList );
+            }
+        }
+    }
+
 
     @JsonProperty
     public List<TrackerErrorReport> getErrorReports()

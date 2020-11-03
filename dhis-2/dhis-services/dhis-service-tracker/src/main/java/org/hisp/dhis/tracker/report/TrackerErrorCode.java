@@ -41,7 +41,7 @@ public enum TrackerErrorCode
     E1038( "TrackedEntityInstance: `{0}`, has multiple active enrollments in Program `{1}`." ),
     E1037( "TrackedEntityInstance: `{0}`, is not enrolled in Program `{1}`." ),
     E1002( "TrackedEntityInstance: `{0}`, already exists." ),
-    E1064( "Error validating attribute, not unique; Error `{0}`" ),
+    E1064( "Non-unique attribute value `{0}` for attribute `{1}`" ),
     E1074( "FeatureType is missing." ),
     E1031( "Event OccurredAt date is missing." ),
     E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),

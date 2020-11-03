@@ -106,6 +106,16 @@ public interface TrackedEntityAttributeValueStore
     List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText );
 
     /**
+     * Gets a list of {@link TrackedEntityAttributeValue} that matches the
+     * parameters
+     *
+     * @param attribute {@link TrackedEntityAttribute} to get value for
+     * @param values List of literal values
+     * @return list of {@link TrackedEntityAttributeValue}
+     */
+    List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, Collection<String> values );
+
+    /**
      * Gets a list of {@link TrackedEntityAttributeValue} that matches the parameters
      *
      * @param attribute {@link TrackedEntityAttribute} to get value for

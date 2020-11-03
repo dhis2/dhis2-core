@@ -28,11 +28,12 @@
 
 package org.hisp.dhis.analytics.orgunit;
 
+import static org.junit.Assert.assertThrows;
+
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -46,18 +47,14 @@ public class OrgUnitAnalyticsServiceTest
     @Autowired
     private OrgUnitAnalyticsService subject;
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     @Test
     public void testValidateNoOrgUnits()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E7300 );
-
         OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
             .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
             .build();
 
-        subject.validate( params );
+        assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
+            ErrorCode.E7300 );
     }
 }

@@ -1,13 +1,13 @@
 package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
+import static org.junit.Assert.assertThrows;
+
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -45,9 +45,6 @@ import org.mockito.junit.MockitoRule;
 public class ImportOptionsPreProcessorTest
 {
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     private ImportOptionsPreProcessor subject;
@@ -61,10 +58,9 @@ public class ImportOptionsPreProcessorTest
     @Test
     public void verifyExceptionIsThrownOnMissingImportOptions()
     {
-        thrown.expect( UnrecoverableImportException.class );
-
         WorkContext wc = WorkContext.builder().build();
-        subject.process( new Event(), wc );
+        
+        assertThrows( UnrecoverableImportException.class, () -> subject.process( new Event(), wc ) );
     }
 
 }

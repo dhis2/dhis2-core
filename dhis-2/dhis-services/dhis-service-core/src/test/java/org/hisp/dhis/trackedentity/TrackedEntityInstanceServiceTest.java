@@ -51,9 +51,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -112,9 +110,6 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
     private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Override
     public void setUpTest()
