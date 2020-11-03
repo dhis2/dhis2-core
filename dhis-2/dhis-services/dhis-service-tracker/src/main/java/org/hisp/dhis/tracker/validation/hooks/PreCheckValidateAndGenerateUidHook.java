@@ -133,7 +133,6 @@ public class PreCheckValidateAndGenerateUidHook
                 if ( note.getNote() == null )
                 {
                     note.setNote( CodeGenerator.generateUid() );
-                    note.setNewNote( true );
                 }
             }
         }

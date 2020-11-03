@@ -118,7 +118,6 @@ public class TrackerPreheatServiceTest
 
     @Test
     public void testCollectIdentifiersSimple()
-        throws IOException
     {
         TrackerBundleParams params = new TrackerBundleParams();
         Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
