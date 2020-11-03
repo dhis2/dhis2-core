@@ -29,13 +29,10 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -43,19 +40,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component
 public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
-    private final TrackedEntityCommentService commentService;
-
-    public EventNoteValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EventNoteValidationHook( TrackedEntityAttributeService teAttrService )
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-        checkNotNull( commentService );
-        this.commentService = commentService;
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        event.setNotes( NoteValidationUtils.getPersistableNotes( commentService, event.getNotes() ) );
+        event.setNotes( NoteValidationUtils.validate( reporter, event.getNotes() ) );
     }
 }

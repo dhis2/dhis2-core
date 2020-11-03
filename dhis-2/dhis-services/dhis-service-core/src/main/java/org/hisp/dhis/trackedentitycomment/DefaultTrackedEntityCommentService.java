@@ -28,12 +28,10 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
@@ -80,13 +78,6 @@ public class DefaultTrackedEntityCommentService
     public boolean trackedEntityCommentExists( String uid )
     {
         return commentStore.exists( uid );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<String> filterExistingNotes( List<String> uids )
-    {
-        return this.commentStore.filterExisting( uids );
     }
 
     @Override
