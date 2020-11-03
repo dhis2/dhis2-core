@@ -95,4 +95,17 @@ public class TrackerIdentifierParams
     @Builder.Default
     private TrackerIdentifier categoryOption = TrackerIdentifier.UID;
 
+    public TrackerIdentifier getByClass( Class<?> klazz) {
+
+        switch ( klazz.getSimpleName()) {
+            case "CategoryOptionCombo":
+                return categoryOptionComboIdScheme;
+
+            default:
+                throw new IllegalStateException("Unexpected value: " + klazz.getName());
+        }
+
+
+    }
+
 }

@@ -1805,7 +1805,11 @@
         <artifactId>netty-all</artifactId>
         <version>4.1.51.Final</version>
       </dependency>
-
+      <dependency>
+        <groupId>io.github.classgraph</groupId>
+        <artifactId>classgraph</artifactId>
+        <version>4.8.90</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.qpid</groupId>
         <artifactId>qpid-jms-client</artifactId>
