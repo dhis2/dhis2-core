@@ -33,9 +33,13 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import java.beans.Introspector;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.preheat.PreheatException;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatClassScanner;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -62,6 +66,15 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
 
     private List<String> preheatSuppliers;
 
+    @PostConstruct
+    public void init()
+    {
+        this.preheatSuppliers = new PreheatClassScanner().scanSuppliers();
+    }
+
+    // TODO this flag should be configurable
+    private final static boolean FAIL_FAST_ON_PREHEAT_ERROR = false;
+
     @Override
     @Transactional( readOnly = true )
     public TrackerPreheat preheat( TrackerPreheatParams params )
@@ -75,14 +88,43 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
         User importingUser = getImportingUser( preheat.getUser() );
         preheat.setUser( importingUser );
 
-        checkNotNull( preheat.getUser(), "Preheater is missing the user object." );
+        checkNotNull( preheat.getUser(), "TrackerPreheat is missing the user object." );
 
-        preheatSuppliers.forEach( supplier -> ctx
-            .getBean( Introspector.decapitalize( supplier ), PreheatSupplier.class ).add( params, preheat ) );
+        for ( String supplier : preheatSuppliers )
+        {
+            final String beanName = Introspector.decapitalize( supplier );
+            try
+            {
+                ctx.getBean( beanName, PreheatSupplier.class ).add( params, preheat );
+            }
+            catch ( BeansException beanException )
+            {
+                processException( "Unable to find a preheat supplier with name " + beanName
+                    + " in the Spring context. Skipping supplier.", beanException, supplier );
+            }
+            catch ( Exception e )
+            {
+                processException( "An error occurred while executing a preheat supplier with name "
+                    + supplier, e, supplier );
+            }
+        }
 
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
         return preheat;
+    }
+
+    private void processException( String message, Exception e, String supplier )
+    {
+        if ( FAIL_FAST_ON_PREHEAT_ERROR )
+        {
+            throw new PreheatException( "An error occurred during the preheat process. Preheater with name "
+                + Introspector.decapitalize( supplier ) + "failed", e );
+        }
+        else
+        {
+            log.error( message, e );
+        }
     }
 
     @Override
