@@ -121,7 +121,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1300 );
+        assertEquals( TrackerErrorCode.E1300, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -138,7 +138,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1300 );
+        assertEquals( TrackerErrorCode.E1300, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -155,7 +155,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1301 );
+        assertEquals( TrackerErrorCode.E1301, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -172,7 +172,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1301 );
+        assertEquals( TrackerErrorCode.E1301, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -189,7 +189,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1304 );
+        assertEquals( TrackerErrorCode.E1304, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -213,7 +213,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1303 );
+        assertEquals( TrackerErrorCode.E1303, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -236,7 +236,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1302 );
+        assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -260,7 +260,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1084 );
+        assertEquals( TrackerErrorCode.E1084, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -287,7 +287,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1009 );
+        assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -329,7 +329,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1302 );
+        assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     private DataValue validDataValue()
