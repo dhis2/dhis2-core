@@ -156,20 +156,20 @@ public class AppOverrideFilter
             String appName = m.group( 1 );
             String resourcePath = m.group( 2 );
 
-            log.info( "AppOverrideFilter :: Matched for URI " + requestURI );
+            log.debug( "AppOverrideFilter :: Matched for URI " + requestURI );
 
             App app = appManager.getApp( appName );
 
             if ( app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
             {
-                log.info( "AppOverrideFilter :: Overridden app " + appName + " found, serving override" );
+                log.debug( "AppOverrideFilter :: Overridden app " + appName + " found, serving override" );
                 serveInstalledAppResource( app, resourcePath, req, res );
 
                 return;
             }
             else
             {
-                log.info( "AppOverrideFilter :: App " + appName + " not found, falling back to bundled app" );
+                log.debug( "AppOverrideFilter :: App " + appName + " not found, falling back to bundled app" );
             }
         }
 

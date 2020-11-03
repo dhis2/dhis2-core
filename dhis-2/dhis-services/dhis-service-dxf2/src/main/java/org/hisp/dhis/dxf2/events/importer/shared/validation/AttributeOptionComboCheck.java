@@ -55,7 +55,7 @@ public class AttributeOptionComboCheck implements Checker
         {
             ImportSummary importSummary = new ImportSummary( event.getEvent() );
             importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Default attribute option combo is not allowed since program has non-default category combo" ) );
+                "Valid attribute option combo must be specified since program does not have the default category combo" ) );
             importSummary.setStatus( ImportStatus.ERROR );
             return importSummary.incrementIgnored();
         }
