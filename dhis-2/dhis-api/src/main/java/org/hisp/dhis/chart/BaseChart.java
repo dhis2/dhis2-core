@@ -286,7 +286,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = TRUE, value = PropertyType.CONSTANT )
+    @Property( value = PropertyType.CONSTANT, required = TRUE )
     @PropertyRange( min = 1, max = 40)
     public ChartType getType()
     {
