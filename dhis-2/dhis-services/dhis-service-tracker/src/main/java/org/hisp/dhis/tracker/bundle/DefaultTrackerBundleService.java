@@ -609,17 +609,7 @@ public class DefaultTrackerBundleService
             eventDataValue.setValue( dv.getValue() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
-            try
-            {
-                eventDataValue.setCreated( dv.getCreatedAt() == null ? new Date() : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
-                eventDataValue.setLastUpdated( dv.getUpdatedAt() == null ? new Date() : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
-            }
-            catch ( ParseException e )
-            {
-                // Created and updated dates are already validated.
-                // This catch should never be reached
-                e.printStackTrace();
-            }
+            handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
             if ( StringUtils.isEmpty( eventDataValue.getValue() ) )
             {
@@ -637,6 +627,21 @@ public class DefaultTrackerBundleService
                 }
                 psi.getEventDataValues().add( eventDataValue );
             }
+        }
+    }
+
+    private void handleDataValueCreatedUpdatedDates( DataValue dv, EventDataValue eventDataValue )
+    {
+        try
+        {
+            eventDataValue.setCreated( dv.getCreatedAt() == null ? new Date() : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
+            eventDataValue.setLastUpdated( dv.getUpdatedAt() == null ? new Date() : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
+        }
+        catch ( ParseException e )
+        {
+            // Created and updated dates are already validated.
+            // This catch should never be reached
+            e.printStackTrace();
         }
     }
 
