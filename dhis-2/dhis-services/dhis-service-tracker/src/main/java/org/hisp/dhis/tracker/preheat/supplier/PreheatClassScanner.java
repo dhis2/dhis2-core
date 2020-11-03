@@ -62,7 +62,6 @@ public class PreheatClassScanner
             .acceptPackages( pkg )
             .scan())
         {
-
             List<String> cls = scanResult.getAllClasses().stream()
                 .filter( c -> c.extendsSuperclass( AbstractPreheatSupplier.class.getName() ) )
                 .map( ClassInfo::getSimpleName ).collect( Collectors.toList() );
@@ -81,18 +80,16 @@ public class PreheatClassScanner
     {
         Map<String, String> classMap = new HashMap<>();
         final String pkg = getCurrentPackage();
-        final String annotation = pkg + StrategyFor.class.getSimpleName();
+        final String annotation = StrategyFor.class.getName();
         try (ScanResult scanResult = new ClassGraph()
-            .disableJarScanning()
-            // .disableDirScanning()
-            // .verbose() // Log to stderr
-            .enableAllInfo() // Scan classes, methods, fields, annotations
+            .enableClassInfo()
             .acceptPackages( pkg )
+            .enableAnnotationInfo()
             .scan())
-        { // Start the scan
+        {
             for ( ClassInfo classInfo : scanResult.getClassesWithAnnotation( annotation ) )
             {
-                classMap.put( getTargetClass( classInfo, annotation ), classInfo.getName() );
+                classMap.put( getTargetClass( classInfo, annotation ), classInfo.getSimpleName() );
             }
         }
         return classMap;

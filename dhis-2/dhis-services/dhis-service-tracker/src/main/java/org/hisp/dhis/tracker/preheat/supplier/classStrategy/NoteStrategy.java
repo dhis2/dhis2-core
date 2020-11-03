@@ -53,9 +53,8 @@ public class NoteStrategy implements ClassBasedSupplierStrategy
     @Override
     public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        // uncomment when note branch is merged
-//        splitList
-//            .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids,
-//                preheat.getUser() ) ) );
+        splitList
+            .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids,
+                preheat.getUser() ) ) );
     }
 }

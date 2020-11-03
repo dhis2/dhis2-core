@@ -39,8 +39,8 @@ import javax.annotation.PostConstruct;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
 import org.hisp.dhis.tracker.preheat.supplier.classStrategy.ClassBasedSupplierStrategy;
+import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -66,6 +66,8 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
      * A Map correlating a Tracker class name to the Preheat strategy class name to use to load the data
      */
     private Map<String, String> classStrategies;
+    
+    private final static String GENERIC_STRATEGY_BEAN = Introspector.decapitalize( GenericStrategy.class.getSimpleName() );
 
     @PostConstruct
     public void initStrategies()
@@ -88,16 +90,16 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
 
             List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), SPLIT_LIST_PARTITION_SIZE );
 
-            final String bean = classStrategies.getOrDefault( klass.getSimpleName(), "GenericStrategy" );
+            final String bean = classStrategies.getOrDefault( klass.getSimpleName(), GENERIC_STRATEGY_BEAN );
 
-            if ( bean.equals( "GenericStrategy" ) )
+            if ( bean.equals( GENERIC_STRATEGY_BEAN ) )
             {
-                context.getBean( Introspector.decapitalize( bean ), GenericStrategy.class ).add( klass, splitList,
-                    preheat );
+                context.getBean( GENERIC_STRATEGY_BEAN, GenericStrategy.class ).add( klass, splitList, preheat );
             }
             else
             {
-                context.getBean( Introspector.decapitalize( bean ), ClassBasedSupplierStrategy.class ).add( params, splitList, preheat );
+                context.getBean( Introspector.decapitalize( bean ), ClassBasedSupplierStrategy.class ).add( params,
+                    splitList, preheat );
             }
         }
     }
