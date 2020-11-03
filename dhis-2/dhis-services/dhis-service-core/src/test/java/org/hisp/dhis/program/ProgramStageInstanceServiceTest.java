@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.audit.UserInfoTestHelper;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AuditType;
@@ -310,10 +311,10 @@ public class ProgramStageInstanceServiceTest
 
         //Prepare EventDataValues to manipulate with
         String storedBy = "test-user";
-        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
-        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
-        eventDataValueC = new EventDataValue( dataElementC.getUid(), "3", storedBy );
-        eventDataValueD = new EventDataValue( dataElementD.getUid(), "4", storedBy );
+        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo( storedBy ) );
+        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", UserInfoTestHelper.testUserInfo( storedBy ) );
+        eventDataValueC = new EventDataValue( dataElementC.getUid(), "3", UserInfoTestHelper.testUserInfo( storedBy ) );
+        eventDataValueD = new EventDataValue( dataElementD.getUid(), "4", UserInfoTestHelper.testUserInfo( storedBy ) );
 
         dataElementMap.put( dataElementA.getUid(), dataElementA );
         dataElementMap.put( dataElementB.getUid(), dataElementB );

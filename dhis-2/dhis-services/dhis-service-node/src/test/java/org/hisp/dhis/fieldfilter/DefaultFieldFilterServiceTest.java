@@ -64,6 +64,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
  *
@@ -150,7 +152,7 @@ public class DefaultFieldFilterServiceTest
         Assert.assertEquals( "id", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );
+        assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );
     }
 
     @Test
@@ -191,7 +193,7 @@ public class DefaultFieldFilterServiceTest
         Assert.assertEquals( "name", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertThat( ouIds, Matchers.containsInAnyOrder( "OU 1", "OU 2" ) );
+        assertThat( ouIds, Matchers.containsInAnyOrder( "OU 1", "OU 2" ) );
     }
 
     @Test
@@ -245,7 +247,7 @@ public class DefaultFieldFilterServiceTest
         Assert.assertEquals( "id", simpleNode.getName() );
         coIds.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertThat( coIds, Matchers.containsInAnyOrder( "abc1", "abc3" ) );
+        assertThat( coIds, Matchers.containsInAnyOrder( "abc1", "abc3" ) );
     }
 
     @Test
@@ -303,8 +305,8 @@ public class DefaultFieldFilterServiceTest
         Assert.assertEquals( "name", simpleNode.getName() );
         ouNames.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );
-        Assert.assertThat( ouNames, Matchers.containsInAnyOrder( "Test 1", "Test 2" ) );
+        assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );
+        assertThat( ouNames, Matchers.containsInAnyOrder( "Test 1", "Test 2" ) );
     }
 
     private Node getNamedNode( @Nonnull Collection<? extends Node> nodes, @Nonnull String name )

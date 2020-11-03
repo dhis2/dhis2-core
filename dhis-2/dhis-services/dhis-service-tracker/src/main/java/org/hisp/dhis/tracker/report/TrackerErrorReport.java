@@ -30,12 +30,13 @@ package org.hisp.dhis.tracker.report;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import lombok.EqualsAndHashCode;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
@@ -59,7 +60,9 @@ public class TrackerErrorReport
 
     private final String uid;
 
-    public TrackerErrorReport( String errorMessage, TrackerErrorCode errorCode, TrackerType trackerType, String uid )
+    @JsonCreator
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.errorMessage = errorMessage;
         this.errorCode = errorCode;
@@ -79,6 +82,18 @@ public class TrackerErrorReport
         return errorMessage;
     }
 
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
+
     public static class TrackerErrorReportBuilder
     {
         private final List<Object> arguments = new ArrayList<>();
@@ -86,6 +101,12 @@ public class TrackerErrorReport
         public TrackerErrorReportBuilder addArg( Object arg )
         {
             this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArgs( Object ... args )
+        {
+            this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 

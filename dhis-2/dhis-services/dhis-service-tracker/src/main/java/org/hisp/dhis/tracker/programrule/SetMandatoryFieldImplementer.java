@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -52,13 +50,12 @@ import com.google.api.client.util.Lists;
  *
  * @Author Enrico Colasante
  */
-@Slf4j
 @Component
 public class SetMandatoryFieldImplementer
     implements RuleActionValidator
 {
     @Override
-    public Class getActionClass()
+    public Class<?> getActionClass()
     {
         return RuleActionSetMandatoryField.class;
     }

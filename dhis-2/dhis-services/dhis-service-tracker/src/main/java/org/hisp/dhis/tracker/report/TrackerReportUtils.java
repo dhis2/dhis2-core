@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -46,11 +47,6 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 public class TrackerReportUtils
 {
-    private TrackerReportUtils()
-    {
-
-    }
-
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
         final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( bundle.getIdentifier() ).build();
@@ -87,6 +83,6 @@ public class TrackerReportUtils
             return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
         }
 
-        return "";
+        return StringUtils.EMPTY;
     }
 }

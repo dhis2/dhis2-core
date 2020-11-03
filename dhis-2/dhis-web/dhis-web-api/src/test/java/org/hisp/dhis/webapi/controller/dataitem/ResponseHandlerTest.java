@@ -31,15 +31,16 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -108,8 +109,8 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<BaseDimensionalItemObject> anyDimensionalItems = asList( new BaseDimensionalItemObject( "any" ) );
-        final List<String> anyFields = asList( "any" );
+        final List<BaseDimensionalItemObject> anyDimensionalItems = singletonList( new BaseDimensionalItemObject( "any" ) );
+        final List<String> anyFields = singletonList( "any" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );
 
         // When
@@ -130,7 +131,7 @@ public class ResponseHandlerTest
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
-        final List<String> anyFilters = asList( "any" );
+        final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };
@@ -159,7 +160,7 @@ public class ResponseHandlerTest
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
-        final List<String> anyFilters = asList( "any" );
+        final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
         final String[] testEnvironmentVars = { "test" };
@@ -185,7 +186,7 @@ public class ResponseHandlerTest
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
-        final List<String> anyFilters = asList( "any" );
+        final List<String> anyFilters = singletonList("any");
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };

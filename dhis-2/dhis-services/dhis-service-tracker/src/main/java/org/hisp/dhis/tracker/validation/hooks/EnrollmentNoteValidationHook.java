@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -41,18 +40,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
-    private final TrackedEntityCommentService commentService;
-
-    public EnrollmentNoteValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
+    public EnrollmentNoteValidationHook( TrackedEntityAttributeService teAttrService )
     {
         super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-        this.commentService = commentService;
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        enrollment.setNotes( NoteValidationUtils.getPersistableNotes( this.commentService, enrollment.getNotes() ) );
+        enrollment.setNotes( NoteValidationUtils.validate( reporter, enrollment.getNotes() ) );
     }
 }
