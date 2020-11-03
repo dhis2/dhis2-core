@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,22 +28,29 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio
  */
+@RequiredArgsConstructor
 @Component
-@StrategyFor( CategoryOption.class )
-public class CatOptionStrategy extends AbstractSchemaStrategy
+public class RelationshipSupplier extends AbstractPreheatSupplier
 {
-    public CatOptionStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager )
+    @NonNull
+    private final IdentifiableObjectManager manager;
+
+    @Override
+    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
-        super( schemaService, queryService, manager );
+        preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
     }
 }

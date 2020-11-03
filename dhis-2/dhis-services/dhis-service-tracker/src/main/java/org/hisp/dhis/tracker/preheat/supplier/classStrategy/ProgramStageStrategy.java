@@ -47,3 +47,4 @@ public class ProgramStageStrategy extends AbstractSchemaStrategy
         super( schemaService, queryService, manager );
     }
 }
+

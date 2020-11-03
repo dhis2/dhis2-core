@@ -94,12 +94,12 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
 
             if ( bean.equals( GENERIC_STRATEGY_BEAN ) )
             {
-                context.getBean( GENERIC_STRATEGY_BEAN, GenericStrategy.class ).add( klass, splitList, preheat );
+                context.getBean( Introspector.decapitalize( bean ), GenericStrategy.class ).add( klass, splitList,
+                        preheat );
             }
             else
             {
-                context.getBean( Introspector.decapitalize( bean ), ClassBasedSupplierStrategy.class ).add( params,
-                    splitList, preheat );
+                context.getBean( Introspector.decapitalize( bean ), ClassBasedSupplierStrategy.class ).add( params, splitList, preheat );
             }
         }
     }
@@ -111,3 +111,4 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
         context = applicationContext;
     }
 }
+
