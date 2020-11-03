@@ -32,6 +32,7 @@ package org.hisp.dhis.security.oidc;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
+import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -60,6 +61,7 @@ public class DhisClientRegistrationRepository
     {
         addRegistration( GoogleProvider.build( config ) );
         AzureAdProvider.buildList( config ).forEach( this::addRegistration );
+        addRegistration( Wso2Provider.build( config ) );
     }
 
     public void addRegistration( DhisOidcClientRegistration registration )
@@ -68,7 +70,8 @@ public class DhisClientRegistrationRepository
         {
             return;
         }
-        registrationHashMap.put( registration.getRegistrationId(), registration );
+
+        registrationHashMap.put( registration.getClientRegistration().getRegistrationId(), registration );
     }
 
     @Override
