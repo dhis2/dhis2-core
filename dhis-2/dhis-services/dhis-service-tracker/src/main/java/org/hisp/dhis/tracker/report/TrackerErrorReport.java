@@ -28,28 +28,21 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
 import lombok.Data;
+
+import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,7 +69,7 @@ public class TrackerErrorReport
         this.trackerType = trackerType;
         this.uid = uid;
     }
-    
+
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
@@ -88,13 +81,13 @@ public class TrackerErrorReport
     {
         return errorMessage;
     }
-    
+
     @JsonProperty
     public TrackerType getTrackerType()
     {
         return trackerType;
     }
-    
+
     @JsonProperty
     public String getUid()
     {
@@ -119,52 +112,9 @@ public class TrackerErrorReport
 
         public TrackerErrorReport build( TrackerBundle bundle )
         {
-            TrackerIdScheme scheme = bundle.getIdentifier();
-            TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
-
-            List<String> args = new ArrayList<>();
-            for ( Object argument : this.arguments )
-            {
-                String s = parseArgs( identifier, argument );
-                args.add( s );
-            }
-
-            String errorMessage = MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
-
-            return new TrackerErrorReport( errorMessage, this.errorCode, this.trackerType, this.uid );
-        }
-
-        public static String parseArgs( TrackerIdentifier identifier, Object argument )
-        {
-            if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
-            {
-                return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
-            }
-            else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
-            {
-                return identifier.getIdAndName( (IdentifiableObject) argument );
-            }
-            else if ( Date.class.isAssignableFrom( argument.getClass() ) )
-            {
-                return (DateFormat.getInstance().format( argument ));
-            }
-            else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
-            {
-                Enrollment enrollment = (Enrollment) argument;
-                return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
-            }
-            else if ( Event.class.isAssignableFrom( argument.getClass() ) )
-            {
-                Event event = (Event) argument;
-                return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
-            }
-            else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
-            {
-                TrackedEntity entity = (TrackedEntity) argument;
-                return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
-            }
-
-            return "";
+            return new TrackerErrorReport(
+                MessageFormat.format( errorCode.getMessage(), buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
+                this.errorCode, this.trackerType, this.uid );
         }
     }
 

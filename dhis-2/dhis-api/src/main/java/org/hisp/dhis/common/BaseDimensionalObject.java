@@ -28,6 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -223,6 +225,19 @@ public class BaseDimensionalObject
     public String getDimensionName()
     {
         return dimensionName != null ? dimensionName : uid;
+    }
+
+    @Override
+    public String getDisplayProperty( DisplayProperty displayProperty )
+    {
+        if ( SHORTNAME.equals( displayProperty ) && getDisplayShortName() != null )
+        {
+            return getDisplayShortName();
+        }
+        else
+        {
+            return getDimensionDisplayName();
+        }
     }
 
     @Override

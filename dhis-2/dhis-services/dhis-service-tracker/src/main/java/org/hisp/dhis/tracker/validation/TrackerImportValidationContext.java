@@ -41,6 +41,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -172,6 +173,11 @@ public class TrackerImportValidationContext
     public ProgramInstance getProgramInstance( String id )
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+
+    public Optional<TrackedEntityComment> getNote( String uid )
+    {
+        return bundle.getPreheat().getNote( uid );
     }
 
     public ProgramStage getProgramStage( String id )

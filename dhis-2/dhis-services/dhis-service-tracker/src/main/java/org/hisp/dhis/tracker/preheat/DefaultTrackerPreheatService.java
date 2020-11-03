@@ -58,8 +58,9 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
@@ -111,6 +112,8 @@ public class DefaultTrackerPreheatService
 
     private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
+    private final TrackedEntityCommentStore trackedEntityCommentStore;
+
     private List<TrackerPreheatHook> preheatHooks = new ArrayList<>();
 
     @Autowired( required = false )
@@ -130,7 +133,8 @@ public class DefaultTrackerPreheatService
         ProgramStageInstanceStore programStageInstanceStore,
         RelationshipStore relationshipStore,
         TrackedEntityAttributeService trackedEntityAttributeService,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService )
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+        TrackedEntityCommentStore trackedEntityCommentStore )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
@@ -143,6 +147,7 @@ public class DefaultTrackerPreheatService
         this.relationshipStore = relationshipStore;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+        this.trackedEntityCommentStore = trackedEntityCommentStore;
     }
 
     @Override
@@ -244,6 +249,11 @@ public class DefaultTrackerPreheatService
                         .getByUid( ids, preheat.getUser() );
                     preheat.putRelationships( TrackerIdScheme.UID, relationships );
                 }
+            }
+            else if ( klass.isAssignableFrom( TrackedEntityComment.class ) )
+            {
+                splitList
+                    .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids, preheat.getUser() ) ) );
             }
             else
             {
