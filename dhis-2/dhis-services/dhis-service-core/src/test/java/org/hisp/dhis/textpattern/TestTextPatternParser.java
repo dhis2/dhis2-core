@@ -28,22 +28,16 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
 
 public class TestTextPatternParser
 {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    private Class<TextPatternParser.TextPatternParsingException> ParsingException = TextPatternParser.TextPatternParsingException.class;
-
     private final String EXAMPLE_TEXT_SEGMENT = "\"Hello world!\"";
 
     private final String EXAMPLE_TEXT_SEGMENT_WITH_ESCAPED_QUOTES = "\"This is an \\\"escaped\\\" text\"";
@@ -54,60 +48,46 @@ public class TestTextPatternParser
 
     @Test
     public void testParseNullExpressionThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( null );
+        assertThrows( TextPatternParser.TextPatternParsingException.class, () -> TextPatternParser.parse( null ) );
     }
 
     @Test
     public void testParseEmptyExpressionThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( "" );
+        assertThrows( TextPatternParser.TextPatternParsingException.class, () -> TextPatternParser.parse( "" ) );
     }
 
     @Test
     public void testParseWhitespaceOnlyExpressionThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( "   " );
+        assertThrows( TextPatternParser.TextPatternParsingException.class, () -> TextPatternParser.parse( "   " ) );
     }
 
     @Test
     public void testParseWithUnexpectedPlusThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( "+" );
-
+        assertThrows( TextPatternParser.TextPatternParsingException.class, () -> TextPatternParser.parse( "+" ) );
     }
 
     @Test
     public void testParseWithInvalidInputThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( "Z" );
+        assertThrows( TextPatternParser.TextPatternParsingException.class, () -> TextPatternParser.parse( "Z" ) );
 
     }
 
     @Test
     public void testParseBadTextSegment()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-
-        TextPatternParser.parse( "\"This segment has no end" );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> TextPatternParser.parse( "\"This segment has no end" ) );
     }
 
     @Test
     public void testParseTextSegment()
         throws TextPatternParser.TextPatternParsingException
     {
-
         testParseOK( EXAMPLE_TEXT_SEGMENT, TextPatternMethod.TEXT );
     }
 
@@ -115,7 +95,6 @@ public class TestTextPatternParser
     public void testParseTextWithEscapedQuotes()
         throws TextPatternParser.TextPatternParsingException
     {
-
         testParseOK( EXAMPLE_TEXT_SEGMENT_WITH_ESCAPED_QUOTES, TextPatternMethod.TEXT );
     }
 
@@ -128,26 +107,23 @@ public class TestTextPatternParser
 
     @Test
     public void testParseSequentialSegmentInvalidPatternThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        testParseOK( "SEQUENTIAL(X)", TextPatternMethod.SEQUENTIAL );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> testParseOK( "SEQUENTIAL(X)", TextPatternMethod.SEQUENTIAL ) );
     }
 
     @Test
     public void testParseSequentialSegmentWithNoEndThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        testParseOK( "SEQUENTIAL(#", TextPatternMethod.SEQUENTIAL );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> testParseOK( "SEQUENTIAL(#", TextPatternMethod.SEQUENTIAL ) );
     }
 
     @Test
     public void testParseSequentialSegmentWithNoPatternThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        testParseOK( "SEQUENTIAL()", TextPatternMethod.SEQUENTIAL );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> testParseOK( "SEQUENTIAL()", TextPatternMethod.SEQUENTIAL ) );
     }
 
     @Test
@@ -159,26 +135,23 @@ public class TestTextPatternParser
 
     @Test
     public void testParseRandomSegmentInvalidPatternThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        testParseOK( "RANDOM(S)", TextPatternMethod.RANDOM );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> testParseOK( "RANDOM(S)", TextPatternMethod.RANDOM ) );
     }
 
     @Test
     public void testParseRandomSegmentWithNoEndThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        testParseOK( "RANDOM(#", TextPatternMethod.RANDOM );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> testParseOK( "RANDOM(#", TextPatternMethod.RANDOM ) );
     }
 
     @Test
     public void testParseRandomSegmentWithNoPatternThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
-        thrown.expect( ParsingException );
-        testParseOK( "RANDOM()", TextPatternMethod.RANDOM );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> testParseOK( "RANDOM()", TextPatternMethod.RANDOM ) );
     }
 
     @Test
@@ -203,12 +176,10 @@ public class TestTextPatternParser
 
     @Test
     public void testParsePatternEndWithJoinThrowsException()
-        throws TextPatternParser.TextPatternParsingException
     {
         String pattern = "RANDOM(#) + ";
-
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( pattern );
+        assertThrows( TextPatternParser.TextPatternParsingException.class,
+            () -> TextPatternParser.parse( pattern ) );
     }
 
     @Test

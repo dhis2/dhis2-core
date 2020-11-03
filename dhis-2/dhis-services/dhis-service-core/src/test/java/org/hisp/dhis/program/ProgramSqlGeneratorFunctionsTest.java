@@ -52,7 +52,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -71,6 +70,7 @@ import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -103,9 +103,6 @@ public class ProgramSqlGeneratorFunctionsTest
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
@@ -494,8 +491,8 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testIllegalFunction()
     {
-        thrown.expect( ParserException.class );
-        test( "d2:zztop(#{ProgrmStagA.DataElmentA})" );
+        assertThrows( ParserException.class,
+            () -> test( "d2:zztop(#{ProgrmStagA.DataElmentA})" ) );
     }
 
     @Test

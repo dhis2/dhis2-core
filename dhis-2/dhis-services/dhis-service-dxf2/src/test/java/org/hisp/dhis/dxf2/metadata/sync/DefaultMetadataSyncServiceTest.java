@@ -30,7 +30,13 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +54,6 @@ import org.hisp.dhis.metadata.version.VersionType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -77,9 +82,6 @@ public class DefaultMetadataSyncServiceTest
     private Map<String, List<String>> parameters;
 
     @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Before
@@ -95,20 +97,17 @@ public class DefaultMetadataSyncServiceTest
     public void testShouldThrowExceptionWhenVersionNameNotPresentInParameters()
         throws MetadataSyncServiceException
     {
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Missing required parameter: 'versionName'" );
-
-        metadataSyncService.getParamsFromMap( parameters );
+        assertThrows( "Missing required parameter: 'versionName'", MetadataSyncServiceException.class,
+            () -> metadataSyncService.getParamsFromMap( parameters ) );
     }
 
     @Test
     public void testShouldThrowExceptionWhenParametersAreNull()
         throws MetadataSyncServiceException
     {
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Missing required parameter: 'versionName'" );
+        assertThrows( "Missing required parameter: 'versionName'", MetadataSyncServiceException.class,
+            () -> metadataSyncService.getParamsFromMap( null ) );
 
-        metadataSyncService.getParamsFromMap( null );
     }
 
     @Test
@@ -117,10 +116,8 @@ public class DefaultMetadataSyncServiceTest
     {
         parameters.put( "versionName", null );
 
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Missing required parameter: 'versionName'" );
-
-        metadataSyncService.getParamsFromMap( parameters );
+        assertThrows( "Missing required parameter: 'versionName'", MetadataSyncServiceException.class,
+            () -> metadataSyncService.getParamsFromMap( parameters ) );
     }
 
     @Test
@@ -129,10 +126,8 @@ public class DefaultMetadataSyncServiceTest
     {
         parameters.put( "versionName", new ArrayList<>() );
 
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Missing required parameter: 'versionName'" );
-
-        metadataSyncService.getParamsFromMap( parameters );
+        assertThrows( "Missing required parameter: 'versionName'", MetadataSyncServiceException.class,
+            () -> metadataSyncService.getParamsFromMap( parameters ) );
     }
 
     @Test
@@ -165,11 +160,11 @@ public class DefaultMetadataSyncServiceTest
 
         when( metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" ) ).thenReturn( null );
 
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage(
-            "The MetadataVersion could not be fetched from the remote server for the versionName: testVersion" );
+        assertThrows(
+            "The MetadataVersion could not be fetched from the remote server for the versionName: testVersion",
+            MetadataSyncServiceException.class,
+            () -> metadataSyncService.getParamsFromMap( parameters ) );
 
-        metadataSyncService.getParamsFromMap( parameters );
     }
 
     @Test
@@ -187,31 +182,27 @@ public class DefaultMetadataSyncServiceTest
 
     @Test
     public void testShouldThrowExceptionWhenSyncParamsIsNull()
-        throws DhisVersionMismatchException
     {
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "MetadataSyncParams cant be null" );
-
-        metadataSyncService.doMetadataSync( null );
+        assertThrows(
+            "MetadataSyncParams cant be null",
+            MetadataSyncServiceException.class,
+            () -> metadataSyncService.doMetadataSync( null ) );
     }
 
     @Test
     public void testShouldThrowExceptionWhenVersionIsNulInSyncParams()
-        throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = new MetadataSyncParams();
         syncParams.setVersion( null );
 
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException
-            .expectMessage( "MetadataVersion for the Sync cant be null. The ClassListMap could not be constructed." );
-
-        metadataSyncService.doMetadataSync( syncParams );
+        assertThrows(
+            "MetadataVersion for the Sync cant be null. The ClassListMap could not be constructed.",
+            MetadataSyncServiceException.class,
+            () -> metadataSyncService.doMetadataSync( syncParams ) );
     }
 
     @Test
     public void testShouldThrowExceptionWhenSnapshotReturnsNullForGivenVersion()
-        throws DhisVersionMismatchException
     {
 
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
@@ -220,15 +211,15 @@ public class DefaultMetadataSyncServiceTest
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
         when( metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion ) ).thenReturn( null );
 
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Metadata snapshot can't be null." );
+        assertThrows(
+            "Metadata snapshot can't be null.",
+            MetadataSyncServiceException.class,
+            () -> metadataSyncService.doMetadataSync( syncParams ) );
 
-        metadataSyncService.doMetadataSync( syncParams );
     }
 
     @Test
     public void testShouldThrowExceptionWhenDHISVersionsMismatch()
-        throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -241,11 +232,10 @@ public class DefaultMetadataSyncServiceTest
         when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) )
             .thenReturn( true );
 
-        expectedException.expect( DhisVersionMismatchException.class );
-        expectedException
-            .expectMessage( "Metadata sync failed because your version of DHIS does not match the master version" );
-
-        metadataSyncService.doMetadataSync( syncParams );
+        assertThrows(
+            "Metadata sync failed because your version of DHIS does not match the master version",
+            DhisVersionMismatchException.class,
+            () -> metadataSyncService.doMetadataSync( syncParams ) );
     }
 
     @Test
@@ -268,7 +258,6 @@ public class DefaultMetadataSyncServiceTest
 
     @Test
     public void testShouldThrowExceptionWhenSnapshotNotPassingIntegrity()
-        throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -280,10 +269,10 @@ public class DefaultMetadataSyncServiceTest
         when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) )
             .thenReturn( false );
 
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Metadata snapshot is corrupted." );
-
-        metadataSyncService.doMetadataSync( syncParams );
+        assertThrows(
+            "Metadata snapshot is corrupted.",
+            MetadataSyncServiceException.class,
+            () -> metadataSyncService.doMetadataSync( syncParams ) );
     }
 
     @Test

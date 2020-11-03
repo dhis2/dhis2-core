@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -38,15 +39,14 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -69,9 +69,6 @@ public class DataValueServiceTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -495,20 +492,20 @@ public class DataValueServiceTest
     @Test
     public void testMissingPeriod()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2002 );
-
-        dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
-            .setOrganisationUnits( Sets.newHashSet( sourceB ) ) );
+        assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
+            () -> dataValueService.getDataValues( new DataExportParams()
+                .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+                .setOrganisationUnits( Sets.newHashSet( sourceB ) ) ) ),
+            ErrorCode.E2002 );
     }
 
     @Test
     public void testMissingOrgUnit()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E2006 );
-
-        dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
-            .setPeriods( Sets.newHashSet( periodB ) ) );
+        assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
+            () -> dataValueService.getDataValues( new DataExportParams()
+                .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+                .setPeriods( Sets.newHashSet( periodB ) ) ) ),
+            ErrorCode.E2006 );
     }
 }

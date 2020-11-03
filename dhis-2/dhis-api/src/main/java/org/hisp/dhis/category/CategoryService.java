@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 
 import java.util.Collection;
@@ -202,6 +203,17 @@ public interface CategoryService
      * collection if there are no CategoryOptions.
      */
     List<CategoryOption> getCategoryOptions( Category category );
+
+    /**
+     * Returns all CategoryOptions for the given Category that
+     * the user has data write access.
+     *
+     * @param category the Category.
+     * @param user to check data write access for
+     * @return a list of all CategoryOptions, or an empty
+     * collection if there are no CategoryOptions.
+     */
+    List<CategoryOption> getDataWriteCategoryOptions( Category category, User user );
 
     /**
      * Returns a set of CategoryOptions that may be seen by the current

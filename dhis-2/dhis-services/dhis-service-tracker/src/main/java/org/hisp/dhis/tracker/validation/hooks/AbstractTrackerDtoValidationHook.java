@@ -29,12 +29,15 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
@@ -46,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -280,7 +284,7 @@ public abstract class AbstractTrackerDtoValidationHook
     protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
-        TrackedEntityInstance trackedEntityInstanceUid,
+        TrackedEntityInstance trackedEntityInstance,
         OrganisationUnit organisationUnit )
     {
         checkNotNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
@@ -288,16 +292,31 @@ public abstract class AbstractTrackerDtoValidationHook
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
 
-        String error = teAttrService.validateAttributeUniquenessWithinScope(
-            trackedEntityAttribute,
-            value,
-            trackedEntityInstanceUid,
-            organisationUnit );
+        List<UniqueAttributeValue> uniqueAttributeValues = errorReporter
+            .getValidationContext().getBundle().getPreheat().getUniqueAttributeValues();
 
-        if ( error != null )
+        for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1064 )
-                .addArg( error ) );
+            boolean isTeaUniqueInOrgUnitScope = !trackedEntityAttribute.getOrgunitScope()
+                || Objects.equals( organisationUnit.getUid(), uniqueAttributeValue.getOrgUnitId() );
+
+            boolean isTheSameTea = Objects.equals( uniqueAttributeValue.getAttributeUid(),
+                trackedEntityAttribute.getUid() );
+            boolean hasTheSameValue = Objects.equals( uniqueAttributeValue.getValue(), value );
+            boolean isNotSameTei = trackedEntityInstance == null
+                || !Objects.equals( trackedEntityInstance.getUid(),
+                    uniqueAttributeValue.getTeiUid() );
+
+            if ( isTeaUniqueInOrgUnitScope
+                && isTheSameTea
+                && hasTheSameValue
+                && isNotSameTei )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1064 )
+                    .addArg( value )
+                    .addArg( trackedEntityAttribute.getUid() ) );
+                return;
+            }
         }
     }
 
@@ -315,8 +334,7 @@ public abstract class AbstractTrackerDtoValidationHook
 
         if ( FeatureType.NONE == featureType || featureType != typeFromName )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1012 )
-                .addArg( featureType.name() ) );
+            addError( errorReporter, E1012, featureType.name() );
         }
     }
 
@@ -330,5 +348,28 @@ public abstract class AbstractTrackerDtoValidationHook
     public boolean isValidDateStringAndNotNull( String dateString )
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
+    }
+    
+    protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
+    {
+        report.addError( newReport( errorCode ).addArgs( args ) );
+    }
+
+    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerErrorCode errorCode,
+        Object... args )
+    {
+        if ( expression.get() )
+        {
+            addError( report, errorCode, args );
+        }
+    }
+
+    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerErrorCode errorCode,
+        Object... args )
+    {
+        if ( object == null )
+        {
+            addError( report, errorCode, args );
+        }
     }
 }
