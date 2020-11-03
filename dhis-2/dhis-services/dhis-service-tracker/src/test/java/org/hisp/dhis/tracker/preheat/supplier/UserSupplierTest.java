@@ -74,3 +74,4 @@ public class UserSupplierTest
         assertThat( preheat.getAll( TrackerIdScheme.UID, UserCredentials.class ), hasSize( 5 ) );
     }
 }
+
