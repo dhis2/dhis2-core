@@ -71,5 +71,4 @@ public class UserSupplierTest
         // Make sure also User Credentials object are cached in the pre-heat
         assertThat( preheat.getAll( TrackerIdScheme.UID, UserCredentials.class ), hasSize( 5 ) );
     }
-
 }

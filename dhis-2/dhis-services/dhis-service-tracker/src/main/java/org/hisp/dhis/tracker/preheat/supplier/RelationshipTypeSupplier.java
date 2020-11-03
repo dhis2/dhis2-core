@@ -43,7 +43,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-public class RelationshipSupplier extends AbstractPreheatSupplier
+public class RelationshipTypeSupplier extends AbstractPreheatSupplier
 {
     @NonNull
     private final IdentifiableObjectManager manager;
