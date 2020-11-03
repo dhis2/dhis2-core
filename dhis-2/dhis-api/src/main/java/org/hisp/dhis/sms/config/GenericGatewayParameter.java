@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 

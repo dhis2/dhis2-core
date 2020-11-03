@@ -213,7 +213,7 @@ public class HibernateGenericStore<T>
      *
      * @return executable TypedQuery
      */
-    private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
+    private TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return getSession()
             .createQuery( criteriaQuery )

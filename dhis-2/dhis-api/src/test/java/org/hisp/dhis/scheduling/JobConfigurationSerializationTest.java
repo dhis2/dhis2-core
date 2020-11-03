@@ -6,7 +6,13 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.junit.Assert;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -84,20 +90,20 @@ public class JobConfigurationSerializationTest
             "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
             "    </jobConfiguration>", JobConfiguration.class );
 
-        Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
-        Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
-        Assert.assertTrue( jc.isEnabled() );
-        Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertNull( jc.getNextExecutionTime() );
-        Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
+        assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
+        assertEquals( "Test Analytic", jc.getDisplayName() );
+        assertTrue( jc.isEnabled() );
+        assertTrue( jc.isLeaderOnlyJob() );
+        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
+        assertNull( jc.getNextExecutionTime() );
+        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
-        Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertNotNull( jc.getJobParameters() );
+        assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
+        assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
+        assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
+        assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
+        assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 
     @Test
@@ -135,21 +141,21 @@ public class JobConfigurationSerializationTest
             "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
             "    </jobConfiguration>", JobConfiguration.class );
 
-        Assert.assertEquals( "uB9oC4R2nTn", jc.getUid() );
-        Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
-        Assert.assertEquals( "Test Analytic", jc.getName() );
-        Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
-        Assert.assertTrue( jc.isEnabled() );
-        Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertNull( jc.getNextExecutionTime() );
-        Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
+        assertEquals( "uB9oC4R2nTn", jc.getUid() );
+        assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
+        assertEquals( "Test Analytic", jc.getName() );
+        assertEquals( "Test Analytic", jc.getDisplayName() );
+        assertTrue( jc.isEnabled() );
+        assertTrue( jc.isLeaderOnlyJob() );
+        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
+        assertNull( jc.getNextExecutionTime() );
+        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
-        Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 0, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
+        assertNotNull( jc.getJobParameters() );
+        assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
+        assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
+        assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
+        assertEquals( 0, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
     }
 
     @Test
@@ -190,21 +196,21 @@ public class JobConfigurationSerializationTest
             "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
             "    </jobConfiguration>", JobConfiguration.class );
 
-        Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
-        Assert.assertEquals( "Test Analytic", jc.getName() );
-        Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
-        Assert.assertTrue( jc.isEnabled() );
-        Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertNull( jc.getNextExecutionTime() );
-        Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
+        assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
+        assertEquals( "Test Analytic", jc.getName() );
+        assertEquals( "Test Analytic", jc.getDisplayName() );
+        assertTrue( jc.isEnabled() );
+        assertTrue( jc.isLeaderOnlyJob() );
+        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
+        assertNull( jc.getNextExecutionTime() );
+        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
-        Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertNotNull( jc.getJobParameters() );
+        assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
+        assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
+        assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
+        assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
+        assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 
     @Test
@@ -248,21 +254,21 @@ public class JobConfigurationSerializationTest
             "      \"userAccesses\": []\n" +
             "    },", JobConfiguration.class );
 
-        Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
-        Assert.assertEquals( "Test Analytic", jc.getName() );
-        Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
-        Assert.assertTrue( jc.isEnabled() );
-        Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertNull( jc.getNextExecutionTime() );
-        Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
+        assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
+        assertEquals( "Test Analytic", jc.getName() );
+        assertEquals( "Test Analytic", jc.getDisplayName() );
+        assertTrue( jc.isEnabled() );
+        assertTrue( jc.isLeaderOnlyJob() );
+        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
+        assertNull( jc.getNextExecutionTime() );
+        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
-        Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertNotNull( jc.getJobParameters() );
+        assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
+        assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
+        assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
+        assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
+        assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 
     @Test
@@ -306,20 +312,20 @@ public class JobConfigurationSerializationTest
             "      \"userAccesses\": []\n" +
             "    },", JobConfiguration.class );
 
-        Assert.assertEquals( JobStatus.DISABLED, jc.getJobStatus() );
-        Assert.assertEquals( "Test Analytic", jc.getName() );
-        Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
-        Assert.assertFalse( jc.isEnabled() );
-        Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertNull( jc.getNextExecutionTime() );
-        Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
+        assertEquals( JobStatus.DISABLED, jc.getJobStatus() );
+        assertEquals( "Test Analytic", jc.getName() );
+        assertEquals( "Test Analytic", jc.getDisplayName() );
+        assertFalse( jc.isEnabled() );
+        assertTrue( jc.isLeaderOnlyJob() );
+        assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
+        assertNull( jc.getNextExecutionTime() );
+        assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
-        Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertNotNull( jc.getJobParameters() );
+        assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
+        assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
+        assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
+        assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
+        assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 }

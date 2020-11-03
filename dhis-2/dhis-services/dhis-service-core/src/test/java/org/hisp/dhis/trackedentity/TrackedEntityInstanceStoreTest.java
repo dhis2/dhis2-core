@@ -28,6 +28,20 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,16 +58,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
-
 /**
  * @author Lars Helge Overland
  */
@@ -83,21 +87,31 @@ public class TrackedEntityInstanceStoreTest
     private ProgramInstanceService programInstanceService;
 
     private TrackedEntityInstance teiA;
+
     private TrackedEntityInstance teiB;
+
     private TrackedEntityInstance teiC;
+
     private TrackedEntityInstance teiD;
+
     private TrackedEntityInstance teiE;
+
     private TrackedEntityInstance teiF;
 
     private TrackedEntityAttribute atA;
+
     private TrackedEntityAttribute atB;
+
     private TrackedEntityAttribute atC;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private Program prA;
+
     private Program prB;
 
     @Override

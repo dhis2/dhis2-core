@@ -28,32 +28,27 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAccessService;
-import org.hisp.dhis.user.UserGroupAccessService;
-import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.service.WebMessageService;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
-
-import static org.hamcrest.core.StringContains.containsString;
 
 /**
  * Unit tests for {@link SharingController}.
@@ -69,28 +64,7 @@ public class SharingControllerTest
     private IdentifiableObjectManager manager;
 
     @Mock
-    private UserGroupService userGroupService;
-
-    @Mock
-    private UserService userService;
-
-    @Mock
-    private UserGroupAccessService userGroupAccessService;
-
-    @Mock
-    private UserAccessService userAccessService;
-
-    @Mock
     private AclService aclService;
-
-    @Mock
-    private WebMessageService webMessageService;
-
-    @Mock
-    private RenderService renderService;
-
-    @Mock
-    private SchemaService schemaService;
 
     private MockHttpServletRequest request = new MockHttpServletRequest();
 
@@ -107,9 +81,9 @@ public class SharingControllerTest
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
-        Mockito.doReturn( OrganisationUnit.class ).when( aclService ).classForType( Mockito.eq( "organisationUnit" ) );
-        Mockito.when( aclService.isShareable( Mockito.eq( OrganisationUnit.class ) ) ).thenReturn( true );
-        Mockito.doReturn( organisationUnit ).when( manager ).get( Mockito.eq( OrganisationUnit.class ), Mockito.eq( "kkSjhdhks" ) );
+        doReturn( OrganisationUnit.class ).when( aclService ).classForType( eq( "organisationUnit" ) );
+        when( aclService.isShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
+        doReturn( organisationUnit ).when( manager ).get( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
 
         sharingController.setSharing( "organisationUnit", "kkSjhdhks", response, request );
     }
@@ -120,9 +94,9 @@ public class SharingControllerTest
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
 
-        Mockito.doReturn( Category.class ).when( aclService ).classForType( Mockito.eq( "category" ) );
-        Mockito.when( aclService.isShareable( Mockito.eq( Category.class ) ) ).thenReturn( true );
-        Mockito.when( manager.get( Mockito.eq( Category.class ), Mockito.eq( "kkSjhdhks" ) ) ).thenReturn( category );
+        doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
+        when( aclService.isShareable( eq( Category.class ) ) ).thenReturn( true );
+        when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
         sharingController.setSharing( "category", "kkSjhdhks", response, request );
     }
@@ -133,9 +107,9 @@ public class SharingControllerTest
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME );
 
-        Mockito.doReturn( Category.class ).when( aclService ).classForType( Mockito.eq( "category" ) );
-        Mockito.when( aclService.isShareable( Mockito.eq( Category.class ) ) ).thenReturn( true );
-        Mockito.when( manager.get( Mockito.eq( Category.class ), Mockito.eq( "kkSjhdhks" ) ) ).thenReturn( category );
+        doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
+        when( aclService.isShareable( eq( Category.class ) ) ).thenReturn( true );
+        when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
         try
         {
@@ -143,7 +117,7 @@ public class SharingControllerTest
         }
         catch ( WebMessageException e )
         {
-            Assert.assertThat( e.getWebMessage().getMessage(), containsString( "Sharing settings of system default metadata object" ) );
+            assertThat( e.getWebMessage().getMessage(), containsString( "Sharing settings of system default metadata object" ) );
             throw e;
         }
     }

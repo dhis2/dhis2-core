@@ -80,14 +80,14 @@
             #end
         </form>
 
-        #if( $oidcConfig.isGoogleEnabled )
-        <form id="oidcGoogleLoginForm" action="../../oauth2/authorization/google" method="get">
-            <div id="submitDiv">
-                <input style="width: 269px; height:46px; border:none; background: url(../security/btn_google_light_normal_ios.svg) no-repeat scroll 0px 0px, #fff;"
-                       id="submit" class="button" type="submit"
-                       value="$i18n.getString( 'login_in_with_google' )">
-            </div>
-        </form>
+        #foreach( $provider in $oidcConfig.providers )
+            <form id="oidcProvider_$provider.id" action="../../oauth2/authorization/$provider.id" method="get">
+                <div id="submitDiv">
+                    <input style="width: 269px; height:46px; border:none; background: url($provider.icon) no-repeat scroll $provider.iconPadding, #fff;"
+                           id="submit" class="button" type="submit"
+                           value="$i18n.getString( $provider.loginText )">
+                </div>
+            </form>
         #end
 
         #if( $failed == true )

@@ -34,7 +34,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 

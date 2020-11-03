@@ -28,8 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.setting.SettingKey;
@@ -49,7 +49,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class PasswordValidationRuleTest
 {

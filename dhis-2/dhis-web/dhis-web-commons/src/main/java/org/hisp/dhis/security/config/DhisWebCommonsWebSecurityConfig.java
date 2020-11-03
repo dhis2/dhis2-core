@@ -60,6 +60,7 @@ import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -105,6 +106,7 @@ public class DhisWebCommonsWebSecurityConfig
         {
             http
                 .sessionManagement()
+                .sessionFixation().migrateSession()
                 .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                 .enableSessionUrlRewriting( false )
                 .maximumSessions( 10 )
@@ -142,11 +144,15 @@ public class DhisWebCommonsWebSecurityConfig
         @Qualifier( "customLdapAuthenticationProvider" )
         CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
+        @Autowired
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
             auth.authenticationProvider( twoFactorAuthenticationProvider );
             auth.authenticationProvider( customLdapAuthenticationProvider );
+            auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
         @Override
@@ -201,8 +207,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
                 .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
                 .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
-                .antMatchers( "/dhis-web-sms-configuration/**" )
-                .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
+                .antMatchers( "/dhis-web-sms-configuration/**" ).hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
 
                 .antMatchers( "/**" ).authenticated()

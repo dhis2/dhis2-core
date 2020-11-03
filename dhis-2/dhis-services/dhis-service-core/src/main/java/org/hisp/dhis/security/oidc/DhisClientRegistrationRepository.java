@@ -32,13 +32,15 @@ package org.hisp.dhis.security.oidc;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
+import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,13 +54,14 @@ public class DhisClientRegistrationRepository
     @Autowired
     private DhisConfigurationProvider config;
 
-    private static final HashMap<String, DhisOidcClientRegistration> registrationHashMap = new HashMap<>();
+    private static final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
 
     @PostConstruct
     public void init()
     {
         addRegistration( GoogleProvider.build( config ) );
         AzureAdProvider.buildList( config ).forEach( this::addRegistration );
+        addRegistration( Wso2Provider.build( config ) );
     }
 
     public void addRegistration( DhisOidcClientRegistration registration )
@@ -67,7 +70,8 @@ public class DhisClientRegistrationRepository
         {
             return;
         }
-        registrationHashMap.put( registration.getRegistrationId(), registration );
+
+        registrationHashMap.put( registration.getClientRegistration().getRegistrationId(), registration );
     }
 
     @Override

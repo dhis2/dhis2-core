@@ -57,9 +57,10 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
@@ -73,10 +74,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
@@ -110,6 +108,12 @@ public class DefaultTrackerPreheatService
 
     private final RelationshipStore relationshipStore;
 
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+    private final TrackedEntityCommentStore trackedEntityCommentStore;
+
     private List<TrackerPreheatHook> preheatHooks = new ArrayList<>();
 
     @Autowired( required = false )
@@ -127,7 +131,10 @@ public class DefaultTrackerPreheatService
         TrackedEntityInstanceStore trackedEntityInstanceStore,
         ProgramInstanceStore programInstanceStore,
         ProgramStageInstanceStore programStageInstanceStore,
-        RelationshipStore relationshipStore )
+        RelationshipStore relationshipStore,
+        TrackedEntityAttributeService trackedEntityAttributeService,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+        TrackedEntityCommentStore trackedEntityCommentStore )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
@@ -138,6 +145,9 @@ public class DefaultTrackerPreheatService
         this.programInstanceStore = programInstanceStore;
         this.programStageInstanceStore = programStageInstanceStore;
         this.relationshipStore = relationshipStore;
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+        this.trackedEntityCommentStore = trackedEntityCommentStore;
     }
 
     @Override
@@ -240,6 +250,11 @@ public class DefaultTrackerPreheatService
                     preheat.putRelationships( TrackerIdScheme.UID, relationships );
                 }
             }
+            else if ( klass.isAssignableFrom( TrackedEntityComment.class ) )
+            {
+                splitList
+                    .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids, preheat.getUser() ) ) );
+            }
             else
             {
                 Schema schema = schemaService.getDynamicSchema( klass );
@@ -269,11 +284,54 @@ public class DefaultTrackerPreheatService
 
         preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
 
+        preheat.setUniqueAttributeValues( calculateUniqueAttributeValues( params ) );
+
         preheatHooks.forEach( hook -> hook.preheat( params, preheat ) );
 
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
         return preheat;
+    }
+
+    private List<UniqueAttributeValue> calculateUniqueAttributeValues(
+        TrackerPreheatParams params )
+    {
+        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes = trackedEntityAttributeService
+            .getAllUniqueTrackedEntityAttributes();
+
+        Map<TrackedEntityAttribute, List<String>> uniqueAttributes = params.getTrackedEntities()
+            .stream()
+            .flatMap( tei -> tei.getAttributes().stream() )
+            .filter( tea -> uniqueTrackedEntityAttributes.stream()
+                .anyMatch( uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
+            .collect( Collectors.toMap( a -> extractAttribute( a.getAttribute(), uniqueTrackedEntityAttributes ),
+                a -> extractValues( params.getTrackedEntities(), a.getAttribute() ) ) );
+
+        return trackedEntityAttributeValueService.getUniqueAttributeByValues( uniqueAttributes )
+            .stream()
+            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
+                av.getValue(), av.getEntityInstance().getOrganisationUnit().getUid() ) )
+            .collect( Collectors.toList() );
+    }
+
+    private List<String> extractValues( List<TrackedEntity> trackedEntities, String attribute )
+    {
+        return trackedEntities
+            .stream()
+            .flatMap( tei -> tei.getAttributes().stream() )
+            .filter( a -> a.getAttribute().equals( attribute ) )
+            .map( a -> a.getValue() )
+            .collect( Collectors.toList() );
+    }
+
+    private TrackedEntityAttribute extractAttribute( String attribute,
+        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
+    {
+        return uniqueTrackedEntityAttributes
+            .stream()
+            .filter( a -> a.getUid().equals( attribute ) )
+            .findAny()
+            .orElse( null );
     }
 
     @Override

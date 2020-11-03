@@ -67,12 +67,13 @@ public class ObjectDeletionRequestedEvent
     }
 
     /**
-     * Check whether the given class should be skipped for DeletionHandler
-     * @param klass
-     * @return TRUE if the given class should be skipped for DeletionHandler
+     * Check whether the given class should be skipped for DeletionHandler.
+     *
+     * @param type the class type.
+     * @return true if the given class should be skipped.
      */
-    public static boolean shouldSkip( Class klass )
+    public static boolean shouldSkip( Class<?> type )
     {
-        return UserAccess.class.isAssignableFrom( klass )  || UserGroupAccess.class.isAssignableFrom( klass ) ? true : false;
+        return UserAccess.class.isAssignableFrom( type )  || UserGroupAccess.class.isAssignableFrom( type ) ? true : false;
     }
 }

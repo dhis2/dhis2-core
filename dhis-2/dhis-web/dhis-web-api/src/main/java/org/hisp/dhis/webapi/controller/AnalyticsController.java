@@ -29,25 +29,30 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
-
-import java.util.Date;
-import java.util.Set;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.analytics.*;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -55,401 +60,93 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
     private static final String RAW_DATA_PATH = "/rawData";
 
-    private final DataQueryService dataQueryService;
+    @NonNull private final DataQueryService dataQueryService;
 
-    private final AnalyticsService analyticsService;
+    @NonNull private final AnalyticsService analyticsService;
 
-    private final ContextUtils contextUtils;
-
-    public AnalyticsController( DataQueryService dataQueryService, AnalyticsService analyticsService,
-        ContextUtils contextUtils )
-    {
-        this.dataQueryService = dataQueryService;
-        this.analyticsService = analyticsService;
-        this.contextUtils = contextUtils;
-    }
+    @NonNull private final ContextUtils contextUtils;
 
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getJson( // JSON, JSONP
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).filter( filter )
-            .aggregationType( aggregationType ).measureCriteria( measureCriteria )
-            .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
-            .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
-            .hideEmptyColumns( hideEmptyColumns ).showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).order( order )
-            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType ).build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
-
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        return getGrid( criteria, apiVersion, ContextUtils.CONTENT_TYPE_JSON, response );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".xml", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + ".xml" )
     public void getXml(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
-            .build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
-
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
-        GridUtils.toXml( grid, response.getOutputStream() );
+        GridUtils.toXml( getGrid( criteria, apiVersion, ContextUtils.CONTENT_TYPE_XML, response ),
+            response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".html", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + ".html" )
     public void getHtml(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
-            .build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
-
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
-        GridUtils.toHtml( grid, response.getWriter() );
+        GridUtils.toHtml( getGrid( criteria, apiVersion, ContextUtils.CONTENT_TYPE_HTML, response ),
+            response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".html+css", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + ".html+css" )
     public void getHtmlCss(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
-            .build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
-
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
-        GridUtils.toHtmlCss( grid, response.getWriter() );
+        GridUtils.toHtmlCss( getGrid( criteria, apiVersion, ContextUtils.CONTENT_TYPE_HTML, response ),
+            response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".csv", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + ".csv" )
     public void getCsv(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
-            .build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
-
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
-        GridUtils.toCsv( grid, response.getWriter() );
+        GridUtils.toCsv(
+            getGridWithAttachment( criteria, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response ),
+            response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + ".xls" )
     public void getXls(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
-            .build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
-
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
-        GridUtils.toXls( grid, response.getOutputStream() );
+        GridUtils.toXls(
+            getGridWithAttachment( criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response ),
+            response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".jrxml", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + ".jrxml" )
     public void getJrxml(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) OutputFormat outputFormat,
-        @RequestParam( required = false ) Integer approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
-            .apiVersion( apiVersion ).order( order ).userOrgUnitType( userOrgUnitType ).build();
-
+        final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+            .skipMeta( true ).build();
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
@@ -458,56 +155,13 @@ public class AnalyticsController
         GridUtils.toJrxml( grid, null, response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/debug/sql", method = RequestMethod.GET, produces = { "text/html", "text/plain" } )
+    @GetMapping( value = RESOURCE_PATH + "/debug/sql", produces = { TEXT_HTML_VALUE, TEXT_PLAIN_VALUE } )
     public @ResponseBody String getDebugSql(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
-        @RequestParam( required = false ) SortOrder order,
-        @RequestParam( required = false ) String timeField,
-        @RequestParam( required = false ) String orgUnitField,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
-            .build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
@@ -517,61 +171,29 @@ public class AnalyticsController
     // Raw data
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".json", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".json" )
     public @ResponseBody Grid getRawDataJson(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String userOrgUnit,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
-            .skipData( skipData ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
-            .allowAllPeriods( true ).apiVersion( apiVersion ).build();
+        final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+            .allowAllPeriods( true ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
-
+        
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".csv", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".csv" )
     public void getRawDataCsv(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) String userOrgUnit,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
-            .skipData( skipData ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
-            .allowAllPeriods( true ).apiVersion( apiVersion ).build();
+        final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+                .allowAllPeriods( true ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -585,109 +207,64 @@ public class AnalyticsController
     // Data value set
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".xml", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".xml" )
     public @ResponseBody DataValueSet getDataValueSetXml(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) boolean duplicatesOnly,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
-            .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
-            .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
-            .hideEmptyColumns( hideEmptyColumns ).showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
-            .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion ).build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".json", method = RequestMethod.GET )
+    @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".json" )
     public @ResponseBody DataValueSet getDataValueSetJson(
-        @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) AggregationType aggregationType,
-        @RequestParam( required = false ) String measureCriteria,
-        @RequestParam( required = false ) String preAggregationMeasureCriteria,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) boolean skipData,
-        @RequestParam( required = false ) boolean skipRounding,
-        @RequestParam( required = false ) boolean completedOnly,
-        @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
-        @RequestParam( required = false ) boolean hideEmptyColumns,
-        @RequestParam( required = false ) boolean showHierarchy,
-        @RequestParam( required = false ) boolean includeNumDen,
-        @RequestParam( required = false ) boolean includeMetadataDetails,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
-        @RequestParam( required = false ) IdScheme inputIdScheme,
-        @RequestParam( required = false ) boolean duplicatesOnly,
-        @RequestParam( required = false ) String approvalLevel,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String columns,
-        @RequestParam( required = false ) String rows,
+        AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
-        Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
-            .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
-            .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
-            .hideEmptyColumns( hideEmptyColumns ).showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
-            .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
-            .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion ).build();
-
-        DataQueryParams params = dataQueryService.getFromRequest( request );
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/tableTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/tableTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();
+    }
+
+    private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
+        HttpServletResponse response )
+    {
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+
+        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, null,
+            false, params.getLatestEndDate() );
+
+        return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
+            getItemsFromParam( criteria.getRows() ) );
+    }
+
+    private Grid getGridWithAttachment( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion,
+        String contentType, String file,
+        HttpServletResponse response )
+    {
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+
+        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file,
+            true, params.getLatestEndDate() );
+
+        return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
+            getItemsFromParam( criteria.getRows() ) );
+    }
+    
+    private DataQueryRequest mapFromCriteria( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
+    {
+        return DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+            .build();
     }
 }

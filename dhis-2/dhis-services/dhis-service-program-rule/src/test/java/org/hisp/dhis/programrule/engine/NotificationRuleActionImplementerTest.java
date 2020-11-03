@@ -28,8 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 
@@ -55,7 +64,6 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -88,9 +96,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     @Mock
     private NotificationLoggingService loggingService;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @InjectMocks
     private RuleActionSendMessageImplementer implementer;
@@ -241,10 +246,8 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     @Test
     public void test_NothingHappensIfActionIsNull()
     {
-        exception.expect( NullPointerException.class );
-        exception.expectMessage( "Rule Effect cannot be null" );
-
-        implementer.implement( null, programInstance );
+        assertThrows( "Rule Effect cannot be null", NullPointerException.class,
+            () -> implementer.implement( null, programInstance ) );
     }
 
     // -------------------------------------------------------------------------
@@ -280,7 +283,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
         Program programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programRuleA = createProgramRule( 'R', programA );
 
@@ -290,7 +292,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         programInstance.setProgram( programA );
         programInstance.setAutoFields();
 
-        programStageA = createProgramStage( 'S', programA );
+        ProgramStage programStageA = createProgramStage( 'S', programA );
         programA.getProgramStages().add( programStageA );
 
         programStageInstance = new ProgramStageInstance();

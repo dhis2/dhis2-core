@@ -35,7 +35,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class ObjectStyle
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     private String color;
 

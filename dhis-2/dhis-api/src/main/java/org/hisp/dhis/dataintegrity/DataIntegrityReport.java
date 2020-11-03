@@ -28,8 +28,18 @@ package org.hisp.dhis.dataintegrity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -44,68 +54,58 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 public class DataIntegrityReport
 {
     private List<DataElement> dataElementsWithoutDataSet = new ArrayList<>();
-    
+
     private List<DataElement> dataElementsWithoutGroups = new ArrayList<>();
-    
+
     private Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes = new HashMap<>();
-    
+
     private SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets = new TreeMap<>();
 
     private SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm = new TreeMap<>();
-    
+
     private List<CategoryCombo> invalidCategoryCombos = new ArrayList<>();
 
     private List<DataSet> dataSetsNotAssignedToOrganisationUnits = new ArrayList<>();
-    
+
     private Set<Set<Indicator>> indicatorsWithIdenticalFormulas = new HashSet<>();
-    
+
     private List<Indicator> indicatorsWithoutGroups = new ArrayList<>();
-    
+
     private Map<Indicator, String> invalidIndicatorNumerators = new HashMap<>();
-    
+
     private Map<Indicator, String> invalidIndicatorDenominators = new HashMap<>();
-    
+
     private SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets = new TreeMap<>();
-    
+
     private List<Period> duplicatePeriods = new ArrayList<>();
-    
+
     private List<OrganisationUnit> organisationUnitsWithCyclicReferences = new ArrayList<>();
-    
+
     private List<OrganisationUnit> orphanedOrganisationUnits = new ArrayList<>();
-    
+
     private List<OrganisationUnit> organisationUnitsWithoutGroups = new ArrayList<>();
-    
+
     private SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets = new TreeMap<>();
-    
+
     private List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets = new ArrayList<>();
-    
+
     private List<ValidationRule> validationRulesWithoutGroups = new ArrayList<>();
-    
+
     private Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions = new HashMap<>();
-    
+
     private Map<ValidationRule, String> invalidValidationRuleRightSideExpressions = new HashMap<>();
 
     private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
 
     private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
 
-    private List<ProgramIndicator> getProgramIndicatorWithNoExpression = new ArrayList<>();
+    private List<ProgramIndicator> programIndicatorsWithNoExpression = new ArrayList<>();
 
     private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
 
@@ -125,18 +125,18 @@ public class DataIntegrityReport
 
     private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId = new HashMap<>();
 
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Constructors
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     public DataIntegrityReport()
     {
 
     }
 
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Getters and setters
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     public List<DataElement> getDataElementsWithoutDataSet()
     {
@@ -163,7 +163,8 @@ public class DataIntegrityReport
         return dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
     }
 
-    public void setDataElementsAssignedToDataSetsWithDifferentPeriodTypes( Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes )
+    public void setDataElementsAssignedToDataSetsWithDifferentPeriodTypes(
+        Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes )
     {
         this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes = dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
     }
@@ -173,7 +174,8 @@ public class DataIntegrityReport
         return dataElementsViolatingExclusiveGroupSets;
     }
 
-    public void setDataElementsViolatingExclusiveGroupSets( SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets )
+    public void setDataElementsViolatingExclusiveGroupSets(
+        SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets )
     {
         this.dataElementsViolatingExclusiveGroupSets = dataElementsViolatingExclusiveGroupSets;
     }
@@ -183,7 +185,8 @@ public class DataIntegrityReport
         return dataElementsInDataSetNotInForm;
     }
 
-    public void setDataElementsInDataSetNotInForm( SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm )
+    public void setDataElementsInDataSetNotInForm(
+        SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm )
     {
         this.dataElementsInDataSetNotInForm = dataElementsInDataSetNotInForm;
     }
@@ -253,7 +256,8 @@ public class DataIntegrityReport
         return indicatorsViolatingExclusiveGroupSets;
     }
 
-    public void setIndicatorsViolatingExclusiveGroupSets( SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets )
+    public void setIndicatorsViolatingExclusiveGroupSets(
+        SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets )
     {
         this.indicatorsViolatingExclusiveGroupSets = indicatorsViolatingExclusiveGroupSets;
     }
@@ -303,7 +307,8 @@ public class DataIntegrityReport
         return organisationUnitsViolatingExclusiveGroupSets;
     }
 
-    public void setOrganisationUnitsViolatingExclusiveGroupSets( SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets )
+    public void setOrganisationUnitsViolatingExclusiveGroupSets(
+        SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets )
     {
         this.organisationUnitsViolatingExclusiveGroupSets = organisationUnitsViolatingExclusiveGroupSets;
     }
@@ -313,7 +318,8 @@ public class DataIntegrityReport
         return organisationUnitGroupsWithoutGroupSets;
     }
 
-    public void setOrganisationUnitGroupsWithoutGroupSets( List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets )
+    public void setOrganisationUnitGroupsWithoutGroupSets(
+        List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets )
     {
         this.organisationUnitGroupsWithoutGroupSets = organisationUnitGroupsWithoutGroupSets;
     }
@@ -333,7 +339,8 @@ public class DataIntegrityReport
         return invalidValidationRuleLeftSideExpressions;
     }
 
-    public void setInvalidValidationRuleLeftSideExpressions( Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions )
+    public void setInvalidValidationRuleLeftSideExpressions(
+        Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions )
     {
         this.invalidValidationRuleLeftSideExpressions = invalidValidationRuleLeftSideExpressions;
     }
@@ -343,7 +350,8 @@ public class DataIntegrityReport
         return invalidValidationRuleRightSideExpressions;
     }
 
-    public void setInvalidValidationRuleRightSideExpressions( Map<ValidationRule, String> invalidValidationRuleRightSideExpressions )
+    public void setInvalidValidationRuleRightSideExpressions(
+        Map<ValidationRule, String> invalidValidationRuleRightSideExpressions )
     {
         this.invalidValidationRuleRightSideExpressions = invalidValidationRuleRightSideExpressions;
     }
@@ -358,14 +366,14 @@ public class DataIntegrityReport
         this.invalidProgramIndicatorFilters = invalidProgramIndicatorFilters;
     }
 
-    public List<ProgramIndicator> getGetProgramIndicatorWithNoExpression()
+    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
     {
-        return getProgramIndicatorWithNoExpression;
+        return programIndicatorsWithNoExpression;
     }
 
-    public void setGetProgramIndicatorWithNoExpression( List<ProgramIndicator> getProgramIndicatorWithNoExpression )
+    public void setProgramIndicatorsWithNoExpression( List<ProgramIndicator> programIndicatorsWithNoExpression )
     {
-        this.getProgramIndicatorWithNoExpression = getProgramIndicatorWithNoExpression;
+        this.programIndicatorsWithNoExpression = programIndicatorsWithNoExpression;
     }
 
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
@@ -373,7 +381,8 @@ public class DataIntegrityReport
         return invalidProgramIndicatorExpressions;
     }
 
-    public void setInvalidProgramIndicatorExpressions( Map<ProgramIndicator, String> invalidProgramIndicatorExpressions )
+    public void setInvalidProgramIndicatorExpressions(
+        Map<ProgramIndicator, String> invalidProgramIndicatorExpressions )
     {
         this.invalidProgramIndicatorExpressions = invalidProgramIndicatorExpressions;
     }
@@ -413,7 +422,8 @@ public class DataIntegrityReport
         return programRuleVariablesWithNoDataElement;
     }
 
-    public void setProgramRuleVariablesWithNoDataElement( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement )
+    public void setProgramRuleVariablesWithNoDataElement(
+        Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement )
     {
         this.programRuleVariablesWithNoDataElement = programRuleVariablesWithNoDataElement;
     }
@@ -423,7 +433,8 @@ public class DataIntegrityReport
         return programRuleVariablesWithNoAttribute;
     }
 
-    public void setProgramRuleVariablesWithNoAttribute( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute )
+    public void setProgramRuleVariablesWithNoAttribute(
+        Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute )
     {
         this.programRuleVariablesWithNoAttribute = programRuleVariablesWithNoAttribute;
     }
@@ -433,7 +444,8 @@ public class DataIntegrityReport
         return programRuleActionsWithNoDataObject;
     }
 
-    public void setProgramRuleActionsWithNoDataObject( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject )
+    public void setProgramRuleActionsWithNoDataObject(
+        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject )
     {
         this.programRuleActionsWithNoDataObject = programRuleActionsWithNoDataObject;
     }
@@ -443,7 +455,8 @@ public class DataIntegrityReport
         return programRuleActionsWithNoNotification;
     }
 
-    public void setProgramRuleActionsWithNoNotification( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification )
+    public void setProgramRuleActionsWithNoNotification(
+        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification )
     {
         this.programRuleActionsWithNoNotification = programRuleActionsWithNoNotification;
     }
@@ -453,7 +466,8 @@ public class DataIntegrityReport
         return programRuleActionsWithNoSectionId;
     }
 
-    public void setProgramRuleActionsWithNoSectionId( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId )
+    public void setProgramRuleActionsWithNoSectionId(
+        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId )
     {
         this.programRuleActionsWithNoSectionId = programRuleActionsWithNoSectionId;
     }
@@ -463,7 +477,8 @@ public class DataIntegrityReport
         return programRuleActionsWithNoStageId;
     }
 
-    public void setProgramRuleActionsWithNoStageId( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId )
+    public void setProgramRuleActionsWithNoStageId(
+        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId )
     {
         this.programRuleActionsWithNoStageId = programRuleActionsWithNoStageId;
     }

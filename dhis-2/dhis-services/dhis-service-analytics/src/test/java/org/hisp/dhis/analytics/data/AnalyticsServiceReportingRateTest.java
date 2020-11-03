@@ -28,9 +28,35 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
@@ -38,18 +64,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.junit.Test;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
@@ -136,7 +150,8 @@ public class AnalyticsServiceReportingRateTest
         initMock( params );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO VALUES
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO
+                                                                                                                        // VALUES
         Map<String, Object> reportingRate = new HashMap<>();
         reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
 
@@ -187,13 +202,13 @@ public class AnalyticsServiceReportingRateTest
         assertNull( getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) )
             .orElse( null ) );
     }
-    
+
     @Test
     public void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly()
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setPeriodType(PeriodType.getPeriodTypeByName(DailyPeriodType.NAME));
+        dataSetA.setPeriodType( PeriodType.getPeriodTypeByName( DailyPeriodType.NAME ) );
 
         ReportingRate reportingRateA = new ReportingRate( dataSetA );
         reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
@@ -208,7 +223,8 @@ public class AnalyticsServiceReportingRateTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
             .withPeriods( periods )
-            .withFilters(singletonList( new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT,  singletonList(ou))))
+            .withFilters( singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, singletonList( ou ) ) ) )
             .build();
 
         initMock( params );
@@ -217,16 +233,17 @@ public class AnalyticsServiceReportingRateTest
         Map<String, Object> targets = new HashMap<>();
         targets.put( dataSetA.getUid() + "-" + "201902", 1D );
 
-        // Response for COMPLETENESS - set the completeness value to the same number of days of the selected month
+        // Response for COMPLETENESS - set the completeness value to the same number of
+        // days of the selected month
         Map<String, Object> actuals = new HashMap<>();
         actuals.put( dataSetA.getUid() + "-" + "201902", 28D );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-                eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
+            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( targets ) );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-                eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( actuals ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
@@ -279,7 +296,7 @@ public class AnalyticsServiceReportingRateTest
         Grid grid = target.getAggregatedDataValueGrid( params );
         assertReportingRatesGrid( grid, dataSetA, "201901" );
     }
-    
+
     private void assertReportingRatesGrid( Grid grid, DataSet dataset, String period )
     {
         assertThat( grid.getRows(), hasSize( 1 ) );
@@ -291,7 +308,7 @@ public class AnalyticsServiceReportingRateTest
         assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "pe" ) ), is( period ) );
         assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "value" ) ), is( 100D ) );
     }
-    
+
     private int getDimensionIndex( List<GridHeader> headers, String dimension )
     {
         int index = 0;
@@ -305,7 +322,7 @@ public class AnalyticsServiceReportingRateTest
         }
         return -1;
     }
-    
+
     private Optional<Double> getValueFromGrid( List<List<Object>> rows, String key )
     {
         for ( List<Object> row : rows )

@@ -33,7 +33,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
 
@@ -42,17 +44,17 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -61,20 +63,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 public class GeoFeatureControllerTest
 {
-
     private MockMvc mockMvc;
 
     @Mock
     private DataQueryService dataQueryService;
 
-    @Mock
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private CurrentUserService currentUserService;
-
-    @Mock
-    private RenderService renderService;
 
     private BeanRandomizer beanRandomizer = new BeanRandomizer();
 
@@ -94,7 +92,6 @@ public class GeoFeatureControllerTest
     @Before
     public void setUp()
     {
-        MockitoAnnotations.initMocks( this );
         mockMvc = MockMvcBuilders.standaloneSetup( geoFeatureController ).build();
     }
 
