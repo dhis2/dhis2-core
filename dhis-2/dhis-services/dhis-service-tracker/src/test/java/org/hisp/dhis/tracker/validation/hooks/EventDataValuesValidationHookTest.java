@@ -244,7 +244,7 @@ public class EventDataValuesValidationHookTest
     {
         // Given
         DataValue validDataValue = validDataValue();
-        validDataValue.setValue( "file" );
+        validDataValue.setValue( "QX4LpiTZmUH" );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setUid( validDataValue.getDataElement() );
@@ -268,7 +268,7 @@ public class EventDataValuesValidationHookTest
     {
         // Given
         DataValue validDataValue = validDataValue();
-        validDataValue.setValue( "file" );
+        validDataValue.setValue( "QX4LpiTZmUH" );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setUid( validDataValue.getDataElement() );
@@ -278,7 +278,7 @@ public class EventDataValuesValidationHookTest
         fileResource.setAssigned( true );
 
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
-        when( validationContext.getFileResource( validDataValue.getDataElement() ) ).thenReturn( fileResource );
+        when( validationContext.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
@@ -329,7 +329,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1304 );
+        assertEquals( reporter.getReportList().get( 0 ).getErrorCode(), TrackerErrorCode.E1302 );
     }
 
     private DataValue validDataValue()
