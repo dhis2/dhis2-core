@@ -34,6 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.List;
 
@@ -109,13 +111,13 @@ public class ReportingRate
     {
         return dataSet.getLegendSets();
     }
-    
+
     @Override
     public TotalAggregationType getTotalAggregationType()
     {
         return TotalAggregationType.AVERAGE;
     }
-    
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -123,6 +125,7 @@ public class ReportingRate
     @JsonProperty
     @JsonSerialize( as = BaseNameableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public DataSet getDataSet()
     {
         return dataSet;
@@ -135,6 +138,7 @@ public class ReportingRate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.CONSTANT, required = Property.Value.TRUE )
     public ReportingRateMetric getMetric()
     {
         return metric;
