@@ -1,18 +1,18 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.junit.Rule;
@@ -49,10 +49,13 @@ public class ProgramInstanceSupplierTest
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( preheatParams, preheat );
 
-        assertThat( preheat.getEnrollments().values(), hasSize( 5 ) );
-        assertThat( preheat.getEnrollments().keySet(),
-            containsInAnyOrder(
-                programInstances.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
+        assertThat( preheat.getEnrollments().get( TrackerIdScheme.UID ).values(), hasSize( 5 ) );
+        final List<String> programUids = programInstances.stream().map( pi -> pi.getProgram().getUid() )
+            .collect( Collectors.toList() );
+        for ( String programUid : programUids )
+        {
+            assertTrue( preheat.getEnrollments().get( TrackerIdScheme.UID ).containsKey( programUid ) );
+        }
     }
 
 }
