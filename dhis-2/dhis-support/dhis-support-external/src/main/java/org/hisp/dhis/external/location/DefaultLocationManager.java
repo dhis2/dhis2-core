@@ -59,7 +59,7 @@ public class DefaultLocationManager extends LogOnceLogger
 
     private static final String DEFAULT_ENV_VAR = "DHIS2_HOME";
     private static final String DEFAULT_SYS_PROP = "dhis2.home";
-    private static final String DEFAULT_CTX_VAR = "dhis2.home";
+    private static final String DEFAULT_CTX_VAR = "dhis2-home";
     
     private String externalDir;
 
