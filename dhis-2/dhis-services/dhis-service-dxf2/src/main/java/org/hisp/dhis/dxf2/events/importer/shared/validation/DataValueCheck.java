@@ -117,7 +117,7 @@ public class DataValueCheck implements Checker
 
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, event.getProgramStage() );
 
-        final Set<ProgramStageDataElement> mandatoryDataElements = getMandatoryProgramStageDataElements(programStage);
+        final Set<ProgramStageDataElement> mandatoryDataElements = getMandatoryProgramStageDataElements( programStage );
 
         // Data Element IDs associated to the current event
         Set<String> dataValues = eventDataValueMap.get( event.getUid() ).stream()
