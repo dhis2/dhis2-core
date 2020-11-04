@@ -682,26 +682,32 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
+        if ( object.getSharing().getUserGroups() != null )
         {
-            UserGroup userGroup = getUserGroupFromCache( userGroupAccess.getId() );
-
-            // Check if user is allowed to read this object through group access
-            if (  userGroup != null && AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroup.getMembers().contains( user ) )
+            for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
             {
-                return true;
+                UserGroup userGroup = getUserGroupFromCache( userGroupAccess.getId() );
+
+                // Check if user is allowed to read this object through group access
+                if (  userGroup != null && AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
+                    && userGroup.getMembers().contains( user ) )
+                {
+                    return true;
+                }
             }
         }
 
-        for ( UserAccess userAccess : object.getSharing().getUsers().values() )
+        if ( object.getSharing().getUsers() != null )
         {
-            // Check if user is allowed to read to this object through user access
-
-            if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                    && user.getUid().equals( userAccess.getId() ) )
+            for ( UserAccess userAccess : object.getSharing().getUsers().values() )
             {
-                return true;
+                // Check if user is allowed to read to this object through user access
+
+                if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
+                        && user.getUid().equals( userAccess.getId() ) )
+                {
+                    return true;
+                }
             }
         }
 
