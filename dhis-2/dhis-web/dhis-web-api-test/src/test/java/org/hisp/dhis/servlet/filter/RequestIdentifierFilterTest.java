@@ -31,7 +31,7 @@ package org.hisp.dhis.servlet.filter;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.external.conf.ConfigurationKey.*;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.webapi.filter.RequestIdentifierFilter;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -34,9 +34,9 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 
 public class ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "ProgramTrackedEntityAttributeDimensionItem";
+    public static final String SINGULAR = "programTrackedEntityAttributeDimensionItem";
 
-    public static final String PLURAL = "ProgramTrackedEntityAttributeDimensionItems";
+    public static final String PLURAL = "programTrackedEntityAttributeDimensionItems";
 
     @Override
     public Schema getSchema()

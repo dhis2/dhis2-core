@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.actions;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
@@ -245,6 +245,21 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
+    /**
+     * Sends PATCH request to specified resource
+     * @param resourceId
+     * @param object
+     * @return
+     */
+    public ApiResponse patch( String resourceId, Object object) {
+        Response response =
+            this.given().body( object, ObjectMapperType.GSON )
+                .when()
+                .patch( resourceId );
+
+        return new ApiResponse( response );
+    }
+
     public ApiResponse postFile( File file )
     {
         return this.postFile( file, null );
@@ -271,6 +286,7 @@ public class RestApiActions
         {
             return;
         }
+
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();

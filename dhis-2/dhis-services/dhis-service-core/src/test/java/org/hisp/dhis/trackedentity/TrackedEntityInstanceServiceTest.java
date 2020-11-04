@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,20 +25,44 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
  */
 public class TrackedEntityInstanceServiceTest
-    extends DhisSpringTest
+    extends
+    DhisSpringTest
 {
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -49,7 +71,31 @@ public class TrackedEntityInstanceServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
     private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    private ProgramStageInstance programStageInstanceA;
+
+    private ProgramInstance programInstanceA;
+
+    private Program programA;
 
     private TrackedEntityInstance entityInstanceA1;
 
@@ -58,6 +104,12 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityAttribute entityInstanceAttribute;
 
     private OrganisationUnit organisationUnit;
+
+    private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+    private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+    private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+    private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+    private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
 
     @Override
     public void setUpTest()
@@ -74,6 +126,49 @@ public class TrackedEntityInstanceServiceTest
         entityInstanceA1 = createTrackedEntityInstance( organisationUnit );
         entityInstanceB1 = createTrackedEntityInstance( organisationUnit );
         entityInstanceB1.setUid( "UID-B1" );
+
+        programA = createProgram( 'A', new HashSet<>(), organisationUnit );
+
+        programService.addProgram( programA );
+
+        ProgramStage stageA = createProgramStage( 'A', programA );
+        stageA.setSortOrder( 1 );
+        programStageService.saveProgramStage( stageA );
+
+        Set<ProgramStage> programStages = new HashSet<>();
+        programStages.add( stageA );
+        programA.setProgramStages( programStages );
+        programService.updateProgram( programA );
+
+        DateTime enrollmentDate = DateTime.now();
+        enrollmentDate.withTimeAtStartOfDay();
+        enrollmentDate = enrollmentDate.minusDays( 70 );
+
+        DateTime incidentDate = DateTime.now();
+        incidentDate.withTimeAtStartOfDay();
+
+        programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidentDate.toDate(), entityInstanceA1,
+                programA);
+        programInstanceA.setUid( "UID-A" );
+        programInstanceA.setOrganisationUnit( organisationUnit );
+
+        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
+        programInstanceA.setUid( "UID-PSI-A" );
+        programInstanceA.setOrganisationUnit( organisationUnit );
+
+        trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
+        attributeService.addTrackedEntityAttribute( attrD );
+        attributeService.addTrackedEntityAttribute( attrE );
+        attributeService.addTrackedEntityAttribute( filtF );
+        attributeService.addTrackedEntityAttribute( filtG );
+
+        super.userService = this.userService;
+        User user = createUser( "testUser" );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
     }
 
     @Test
@@ -107,6 +202,35 @@ public class TrackedEntityInstanceServiceTest
 
         assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
         assertNull( entityInstanceService.getTrackedEntityInstance( teiB.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteTrackedEntityInstanceAndLinkedEnrollmentsAndEvents()
+    {
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        long psIdA = programInstanceService.addProgramInstance( programInstanceA );
+        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+
+        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        entityInstanceA1.setProgramInstances( Sets.newHashSet( programInstanceA ) );
+
+        programInstanceService.updateProgramInstance( programInstanceA );
+        entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
+
+        TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
+        ProgramInstance psA = programInstanceService.getProgramInstance( psIdA );
+        ProgramStageInstance psiA = programStageInstanceService.getProgramStageInstance( psiIdA );
+
+        assertNotNull( teiA );
+        assertNotNull( psA );
+        assertNotNull( psiA );
+
+        entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
+
+        assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
+        assertNull( programInstanceService.getProgramInstance( psIdA ) );
+        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
     }
 
     @Test
@@ -145,4 +269,13 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( entityInstanceB1, entityInstanceService.getTrackedEntityInstance( "B1" ) );
     }
 
+    @Test
+    public void testStoredByColumnForTrackedEntityInstance()
+    {
+        entityInstanceA1.setStoredBy( "test" );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+
+        TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( entityInstanceA1.getUid() );
+        assertEquals( "test", tei.getStoredBy() );
+    }
 }

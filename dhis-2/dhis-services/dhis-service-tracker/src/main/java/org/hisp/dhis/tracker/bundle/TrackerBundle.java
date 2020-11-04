@@ -36,7 +36,6 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -45,6 +44,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -85,6 +85,18 @@ public class TrackerBundle
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipTextPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
      * Should import be treated as a atomic import (all or nothing).
      */
     @Builder.Default
@@ -101,12 +113,6 @@ public class TrackerBundle
      */
     @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
-
-    /**
-     * Give full report, or only include errors.
-     */
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Preheat bundle for all attached objects (or null if preheater not run yet).
@@ -148,6 +154,8 @@ public class TrackerBundle
      */
     @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+
+    private TrackerImportValidationContext trackerImportValidationContext;
 
     @JsonProperty
     public String getUsername()

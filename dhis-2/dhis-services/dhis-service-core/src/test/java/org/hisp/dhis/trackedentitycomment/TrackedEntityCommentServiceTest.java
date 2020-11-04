@@ -28,13 +28,15 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.CodeGenerator;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
@@ -53,7 +55,9 @@ public class TrackedEntityCommentServiceTest
     public void setUpTest()
     {
         commentA = new TrackedEntityComment( "A", "Test" );
+        commentA.setUid( CodeGenerator.generateUid() );
         commentB = new TrackedEntityComment( "B", "Test" );
+        commentB.setUid( CodeGenerator.generateUid() );
     }
 
     @Test
@@ -107,5 +111,13 @@ public class TrackedEntityCommentServiceTest
 
         assertEquals( commentA, commentService.getTrackedEntityComment( idA ) );
         assertEquals( commentB, commentService.getTrackedEntityComment( idB ) );
+    }
+    
+    @Test
+    public void testCommentExists()
+    {
+        commentService.addTrackedEntityComment( commentA );
+
+        assertTrue( commentService.trackedEntityCommentExists( commentA.getUid() ) );
     }
 }

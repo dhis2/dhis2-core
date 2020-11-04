@@ -40,7 +40,7 @@ import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -98,6 +98,20 @@ public class AuditMatrixConfigurerTest
         assertThat( matrix.get( AGGREGATE ).keySet(), hasSize( 6 ) );
         assertMatrixDisabled( AGGREGATE, READ, SECURITY, SEARCH );
         assertMatrixEnabled( AGGREGATE, CREATE, UPDATE, DELETE );
+    }
+
+    @Test
+    public void allDisabled()
+    {
+        when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "DISABLED" );
+        when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "DISABLED" );
+        when( config.getProperty( ConfigurationKey.AUDIT_AGGREGATE_MATRIX ) ).thenReturn( "DISABLED" );
+
+        matrix = this.subject.configure();
+
+        assertMatrixAllDisabled( METADATA );
+        assertMatrixAllDisabled( TRACKER );
+        assertMatrixAllDisabled( AGGREGATE  );
     }
 
     @Test
@@ -160,6 +174,15 @@ public class AuditMatrixConfigurerTest
         {
             assertThat( "Expecting false for audit type: " + auditType.name(),
                 matrix.get( auditScope ).get( auditType ), is( false ) );
+        }
+    }
+
+    private void assertMatrixAllDisabled( AuditScope auditScope )
+    {
+        for ( AuditType auditType : AuditType.values() )
+        {
+            assertThat( "Expecting false for audit type: " + auditType.name(),
+                    matrix.get( auditScope ).get( auditType ), is( false ) );
         }
     }
 }

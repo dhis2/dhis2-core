@@ -28,9 +28,21 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static java.util.Calendar.DATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
@@ -39,34 +51,19 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Calendar.DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
 
 public class DefaultReservedValueServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ReservedValueService reservedValueService;
 
     @Autowired
     private ReservedValueStore reservedValueStore;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     // Preset values
     private static Date future;
@@ -102,6 +99,13 @@ public class DefaultReservedValueServiceTest
         simpleReservedValue = createReservedValue( tea, "FOOBAR" );
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     @Before
     public void setUpTest()
         throws Exception
@@ -113,12 +117,6 @@ public class DefaultReservedValueServiceTest
     public void tearDown()
     {
         reservedValueStore.getAll().forEach( reservedValueStore::delete );
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Test
@@ -228,12 +226,10 @@ public class DefaultReservedValueServiceTest
 
     @Test
     public void testReserveReserveTooManySequentialValuesWhenNoneExists()
-        throws Exception
     {
-        thrown.expect( ReserveValueException.class );
-        thrown.expectMessage( "Could not reserve value: Not enough values left to reserve 101 values." );
-
-        reservedValueService.reserve( simpleSequentialTextPattern, 101, new HashMap<>(), future );
+        assertThrows( "Could not reserve value: Not enough values left to reserve 101 values.",
+            ReserveValueException.class,
+            () -> reservedValueService.reserve( simpleSequentialTextPattern, 101, new HashMap<>(), future ) );
     }
 
     @Test
@@ -243,10 +239,9 @@ public class DefaultReservedValueServiceTest
         assertEquals( 99,
             reservedValueService.reserve( simpleSequentialTextPattern, 99, new HashMap<>(), future ).size() );
 
-        thrown.expect( ReserveValueException.class );
-        thrown.expectMessage( "Could not reserve value: Not enough values left to reserve 1 values." );
-
-        reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
+        assertThrows( "Could not reserve value: Not enough values left to reserve 1 values.",
+            ReserveValueException.class,
+            () -> reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future ) );
     }
 
     @Test

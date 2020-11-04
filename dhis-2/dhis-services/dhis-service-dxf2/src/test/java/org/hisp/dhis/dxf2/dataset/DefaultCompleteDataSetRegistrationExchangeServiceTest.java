@@ -29,9 +29,18 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.DhisConvenienceTest.assertIllegalQueryEx;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -48,6 +57,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -58,7 +68,8 @@ import org.hisp.dhis.datavalue.DefaultAggregateAccessManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
@@ -190,7 +201,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         user = new User();
 
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
         CacheProvider cacheProvider = new DefaultCacheProvider();
 
         InputUtils inputUtils = new InputUtils( categoryService, idObjManager, environment, cacheProvider );
@@ -205,36 +215,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             messageService, JacksonObjectMapperConfig.staticJsonMapper() );
 
         DEFAULT_COC = new CategoryOptionCombo();
-
-        when( notifier.clear( null ) ).thenReturn( notifier );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) ).thenReturn( false );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
-            .thenReturn( false );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
-            .thenReturn( false );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
-            .thenReturn( false );
-
-        when( currentUserService.getCurrentUserOrganisationUnits() )
-            .thenReturn( Collections.singleton( createOrganisationUnit( 'A' ) ) );
-        when( i18nManager.getI18n() ).thenReturn( i18n );
-
-        when( categoryService.getDefaultCategoryOptionCombo() ).thenReturn( DEFAULT_COC );
-        when( batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ) )
-            .thenReturn( batchHandler );
-        when( batchHandler.init() ).thenReturn( batchHandler );
-
-        // caches
-        when( metaDataCaches.getDataSets() ).thenReturn( datasetCache );
-        when( metaDataCaches.getPeriods() ).thenReturn( periodCache );
-        when( metaDataCaches.getOrgUnits() ).thenReturn( orgUnitCache );
-        aocCache = new CachingMap<>();
-        when( metaDataCaches.getAttrOptionCombos() ).thenReturn( aocCache );
-        when( metaDataCaches.getOrgUnitInHierarchyMap() ).thenReturn( orgUnitInHierarchyCache );
-        when( metaDataCaches.getAttrOptComboOrgUnitMap() ).thenReturn( attrOptComboOrgUnitCache );
-
-        //
-        when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
     }
 
     @Test
@@ -250,10 +230,12 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             categoryOptionB );
         Period period = createPeriod( "201907" );
 
-        String payload = cretePayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA, categoryOptionB );
+        String payload = createPayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA,
+            categoryOptionB );
 
         whenNew( MetadataCaches.class ).withNoArguments().thenReturn( metaDataCaches );
-
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+        when( batchHandler.init() ).thenReturn( batchHandler );
         when( idObjManager.get( CategoryCombo.class, categoryCombo.getUid() ) ).thenReturn( categoryCombo );
         when( idObjManager.getObject( CategoryOption.class, IdScheme.UID, categoryOptionA.getUid() ) )
             .thenReturn( categoryOptionA );
@@ -278,6 +260,35 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( aclService.canDataWrite( user, categoryOptionA ) ).thenReturn( false );
         when( aclService.canDataWrite( user, categoryOptionB ) ).thenReturn( true );
 
+        when( notifier.clear( null ) ).thenReturn( notifier );
+        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) ).thenReturn( false );
+        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
+            .thenReturn( false );
+        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+            .thenReturn( false );
+        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
+            .thenReturn( false );
+
+        when( currentUserService.getCurrentUserOrganisationUnits() )
+            .thenReturn( Collections.singleton( createOrganisationUnit( 'A' ) ) );
+        when( i18nManager.getI18n() ).thenReturn( i18n );
+
+        when( categoryService.getDefaultCategoryOptionCombo() ).thenReturn( DEFAULT_COC );
+        when( batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ) )
+            .thenReturn( batchHandler );
+
+        // caches
+        when( metaDataCaches.getDataSets() ).thenReturn( datasetCache );
+        when( metaDataCaches.getPeriods() ).thenReturn( periodCache );
+        when( metaDataCaches.getOrgUnits() ).thenReturn( orgUnitCache );
+        aocCache = new CachingMap<>();
+        when( metaDataCaches.getAttrOptionCombos() ).thenReturn( aocCache );
+        when( metaDataCaches.getOrgUnitInHierarchyMap() ).thenReturn( orgUnitInHierarchyCache );
+        when( metaDataCaches.getAttrOptComboOrgUnitMap() ).thenReturn( attrOptComboOrgUnitCache );
+
+
+        when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
+
         // call method under test
         ImportSummary summary = subject.saveCompleteDataSetRegistrationsJson(
             new ByteArrayInputStream( payload.getBytes() ), new ImportOptions() );
@@ -289,11 +300,24 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             is( "User has no data write access for CategoryOption: " + categoryOptionA.getUid() ) );
     }
 
-    private String cretePayload( Period period, OrganisationUnit organisationUnit, DataSet dataSet,
+    @Test
+    public void testValidateAssertMissingDataSet()
+    {
+        ExportParams params = new ExportParams()
+            .setOrganisationUnits( Sets.newHashSet( new OrganisationUnit() ) )
+            .setPeriods( Sets.newHashSet( new Period() ) );
+
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
+            ErrorCode.E2013 );
+    }
+
+    private String createPayload( Period period, OrganisationUnit organisationUnit, DataSet dataSet,
         CategoryCombo categoryCombo, CategoryOption... categoryOptions )
     {
         return "{\"completeDataSetRegistrations\":[{\"cc\":\"" + categoryCombo.getUid() + "\","
-            + "\"cp\":\"" + Arrays.stream( categoryOptions ).map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) )
+            + "\"cp\":\""
+            + Arrays.stream( categoryOptions ).map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) )
             + "\"," + "\"dataSet\":\"" + dataSet.getUid() + "\"," + "\"period\":\"" + period.getIsoDate() + "\","
             + "\"organisationUnit\":\"" + organisationUnit.getUid() + "\"," + "\"completed\":true}]}";
     }

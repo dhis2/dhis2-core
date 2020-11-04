@@ -72,11 +72,16 @@ public class HibernateGenericStore<T>
 {
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+    protected static final int OBJECT_FETCH_SIZE = 2000;
 
     protected SessionFactory sessionFactory;
+
     protected JdbcTemplate jdbcTemplate;
+
     protected ApplicationEventPublisher publisher;
+
     protected Class<T> clazz;
+
     protected boolean cacheable;
 
     public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
@@ -208,7 +213,7 @@ public class HibernateGenericStore<T>
      *
      * @return executable TypedQuery
      */
-    private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
+    private TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return getSession()
             .createQuery( criteriaQuery )
@@ -408,7 +413,10 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        if ( !ObjectDeletionRequestedEvent.shouldSkip( object.getClass() ) )
+        {
+            publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        }
 
         getSession().delete( object );
     }
@@ -487,6 +495,28 @@ public class HibernateGenericStore<T>
         List<String> result = getSession().createQuery( query ).list();
 
         return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+    }
+
+    @Override
+    public long countAllValuesByAttributes( List<Attribute> attributes )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
+        Root<T> root = query.from( getClazz() );
+        query.select( builder.countDistinct( root ) );
+
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute ->
+                builder.isNotNull(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                        builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
+
+        return getSession().createQuery( query )
+            .getSingleResult();
     }
 
     @Override

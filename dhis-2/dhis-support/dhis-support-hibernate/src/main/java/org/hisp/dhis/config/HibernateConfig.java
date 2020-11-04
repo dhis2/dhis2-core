@@ -35,6 +35,7 @@ import org.hisp.dhis.datasource.DefaultDataSourceManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -115,11 +116,23 @@ public class HibernateConfig
         dataSource.setJdbcUrl( (String) getConnectionProperty( "hibernate.connection.url" ) );
         dataSource.setUser( (String) getConnectionProperty( "hibernate.connection.username" ) );
         dataSource.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
-        dataSource.setMinPoolSize( 5 );
-        dataSource.setMaxPoolSize( Integer.parseInt((String)getConnectionProperty( "hibernate.c3p0.max_size" )) );
-        dataSource.setInitialPoolSize( 5 );
-        dataSource.setAcquireIncrement( 5 );
-        dataSource.setMaxIdleTime( 7200 );
+        dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
+        dataSource.setMinPoolSize( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey() ) ) );
+        dataSource.setInitialPoolSize( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey() ) ) );
+        dataSource.setAcquireIncrement( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey() ) ) );
+        dataSource.setMaxIdleTime( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey() ) ) );
+        dataSource.setTestConnectionOnCheckin( Boolean.parseBoolean(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey() ) ) );
+        dataSource.setTestConnectionOnCheckout( Boolean.parseBoolean(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey() ) ) );
+        dataSource.setMaxIdleTimeExcessConnections( Integer.parseInt(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey() ) ) );
+        dataSource.setIdleConnectionTestPeriod( Integer.parseInt(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey() ) ) );
 
         return dataSource;
     }
@@ -127,18 +140,12 @@ public class HibernateConfig
     @Bean
     public DataSourceManager dataSourceManager() throws PropertyVetoException
     {
-        DefaultDataSourceManager defaultDataSourceManager = new DefaultDataSourceManager();
-        defaultDataSourceManager.setConfig( dhisConfigurationProvider );
-        defaultDataSourceManager.setMainDataSource( dataSource() );
-
-        return defaultDataSourceManager;
+        return new DefaultDataSourceManager( dhisConfigurationProvider, dataSource() );
     }
 
     @Bean
     public DataSource readOnlyDataSource() throws PropertyVetoException
     {
-        // FIXME Luciano why do we need this? Can't we use @Transactional readonly?
-
         return dataSourceManager().getReadOnlyDataSource();
     }
 

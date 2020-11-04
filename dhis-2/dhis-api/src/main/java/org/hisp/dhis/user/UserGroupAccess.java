@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -77,6 +78,7 @@ public class UserGroupAccess
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE )
     public String getAccess()
     {
         return access;
@@ -96,6 +98,7 @@ public class UserGroupAccess
 
     @JsonProperty( "id" )
     @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE)
     public String getUid()
     {
         return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);
@@ -124,6 +127,22 @@ public class UserGroupAccess
         }
 
         return userGroup;
+    }
+
+    /**
+     * Check if the given {@link User} is contained in the {@link UserGroup}.
+     *
+     * @param user a {@link User}.
+     * @return true if the {@link User} is part of this UserGroup members list.
+     */
+    public boolean userGroupContainsUser( User user )
+    {
+        if ( userGroup != null )
+        {
+            return userGroup.getMembers().stream().anyMatch( u -> u.getId() == user.getId() );
+        }
+
+        return false;
     }
 
     @JsonProperty

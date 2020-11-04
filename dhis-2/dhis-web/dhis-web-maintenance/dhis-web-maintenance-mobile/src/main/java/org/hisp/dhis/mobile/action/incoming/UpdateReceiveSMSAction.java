@@ -54,9 +54,9 @@ public class UpdateReceiveSMSAction
     // Input
     // -------------------------------------------------------------------------
 
-    private Integer id;
+    private Long id;
 
-    public void setId( Integer id )
+    public void setId( Long id )
     {
         this.id = id;
     }
@@ -72,7 +72,7 @@ public class UpdateReceiveSMSAction
     public String execute()
         throws Exception
     {
-        IncomingSms incomingSms = incomingSmsService.findBy( id );
+        IncomingSms incomingSms = incomingSmsService.get( id );
 
         incomingSms.setText( text );
 

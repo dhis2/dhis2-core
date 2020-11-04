@@ -30,16 +30,12 @@ package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
@@ -100,13 +96,26 @@ public class SimplisticHttpGetGateWay
 
         ResponseEntity<String> responseEntity = null;
 
+        HttpEntity<String> requestEntity = null;
+
+        URI uri;
+
         try
         {
-            URI url = uriBuilder.build().encode().toUri();
+            if ( genericConfig.isSendUrlParameters() )
+            {
+                uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
 
-            HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
+                requestEntity = new HttpEntity<>( null, getHeaderParameters( genericConfig ) );
+            }
+            else
+            {
+                uri = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+                requestEntity = getRequestEntity( genericConfig, text, recipients );
+            }
+
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -130,53 +139,49 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        List<GenericGatewayParameter> parameters = config.getParameters();
-
-        Map<String, String> valueStore = new HashMap<>();
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
-
-        for ( GenericGatewayParameter parameter : parameters )
-        {
-            if ( parameter.isHeader() )
-            {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
-                continue;
-            }
-
-            if ( parameter.isEncode() )
-            {
-                valueStore.put( parameter.getKey(), encodeUrl( parameter.getDisplayValue() ) );
-                continue;
-            }
-
-            valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
-        }
-
-        valueStore.put( KEY_TEXT, text );
-        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
+        Map<String, String> valueStore = getValueStore( config, text, recipients );
 
         final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
-        return new HttpEntity<>( data, httpHeaders );
+        return new HttpEntity<>( data, getHeaderParameters( config ) );
     }
 
-    private String encodeUrl( String value )
+    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
     {
-        String v = "";
-        try
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : config.getParameters() )
         {
-            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
-        }
-        catch( UnsupportedEncodingException e )
-        {
-            DebugUtils.getStackTrace( e );
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+            }
         }
 
-        return v;
+        return httpHeaders;
+    }
+
+    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    {
+        List<GenericGatewayParameter> parameters = config.getParameters();
+
+        Map<String, String> valueStore = new HashMap<>();
+
+        for ( GenericGatewayParameter parameter : parameters )
+        {
+            if ( !parameter.isHeader() )
+            {
+                valueStore.put( parameter.getKey(), parameter.getValue() );
+            }
+        }
+
+        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
+
+        return valueStore;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )

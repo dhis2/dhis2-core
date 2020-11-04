@@ -49,6 +49,8 @@ public class AnalyticsAggregationTypeTest
         assertAggregationType( fromAggregationType( FIRST ), SUM, FIRST );
         assertAggregationType( fromAggregationType( FIRST_AVERAGE_ORG_UNIT ), AVERAGE, FIRST );
         assertAggregationType( fromAggregationType( SUM ), SUM, SUM );
+        assertAggregationType( fromAggregationType( LAST_IN_PERIOD ), SUM, LAST_IN_PERIOD );
+        assertAggregationType( fromAggregationType( LAST_IN_PERIOD_AVERAGE_ORG_UNIT ), AVERAGE, LAST_IN_PERIOD );
     }
 
     private void assertAggregationType( AnalyticsAggregationType analyticsAggregationType,

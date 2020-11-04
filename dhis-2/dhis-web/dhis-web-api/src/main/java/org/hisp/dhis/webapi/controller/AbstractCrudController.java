@@ -28,20 +28,11 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
@@ -126,11 +117,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -142,7 +140,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
+    {
+    }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -243,7 +243,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( options.hasPaging() && pager == null )
         {
-            long count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( metadata, options, filters, orders ) );
+            long count;
+            if ( options.getOptions().containsKey( "query" ) )
+            {
+                count = entities.size();
+                entities = entities.stream().skip( (options.getPage() - 1) * options.getPageSize() ).limit( options.getPageSize() ).collect( Collectors.toList() );
+            }
+            else
+            {
+                count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( options, filters, orders ) );
+            }
+
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
@@ -1159,7 +1169,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws QueryParserException
     {
         List<T> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
+            options.isTrue( "restrictToCaptureScope" ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1175,10 +1186,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction() );
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
         return queryService.count( query );
     }
 
@@ -1438,6 +1449,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name();
+            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis;
-
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
@@ -47,7 +47,7 @@ public abstract class ApiTest
     @AfterAll
     public void afterAll()
     {
-        new LoginActions().loginAsSuperUser();
+        new LoginActions().loginAsDefaultUser();
         new TestCleanUp().deleteCreatedEntities();
     }
 }

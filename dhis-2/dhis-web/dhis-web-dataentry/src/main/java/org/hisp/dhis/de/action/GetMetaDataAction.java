@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.category.Category;
@@ -269,10 +270,31 @@ public class GetMetaDataAction
 
         for ( Category category : categories )
         {
-            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getCategoryOptions( category ) );
+            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getDataWriteCategoryOptions( category, user ) );
             Collections.sort( categoryOptions );
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
+
+        Set<String> invalidIds = new HashSet<>();
+
+        for ( DataSet dataSet : dataSets )
+        {
+            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
+
+            if ( categoryCombo != null && categoryCombo.getCategories() != null  )
+            {
+                for ( Category category : categoryCombo.getCategories() )
+                {
+                    if ( !categoryOptionMap.containsKey( category.getUid() ) || categoryOptionMap.get( category.getUid() ).isEmpty() )
+                    {
+                        invalidIds.add( dataSet.getUid() );
+                        break;
+                    }
+                }
+            }
+        }
+
+        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) ).collect(  Collectors.toList() );
 
         lockExceptions = dataSetService.getAllLockExceptions();
 

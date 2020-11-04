@@ -62,7 +62,7 @@ import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -158,6 +158,8 @@ public class RegistrationSingleEventServiceTest
         manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
+
+        manager.flush();
     }
 
     @Test
@@ -182,6 +184,7 @@ public class RegistrationSingleEventServiceTest
     }
     
     @Test
+    @Ignore // FIXME luciano -> re-enable after delete has been implemented
     public void testDeleteEventShouldReturnReference()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );

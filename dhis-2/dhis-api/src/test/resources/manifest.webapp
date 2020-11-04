@@ -38,5 +38,10 @@
       "APP_UPDATE",
       "APP_DELETE",
       "APP_ALLOW_EXECUTE"
-    ]
+    ],
+    "settings": {
+        "dashboardWidget": {
+            "hideTitle": false
+        }
+    }
 }

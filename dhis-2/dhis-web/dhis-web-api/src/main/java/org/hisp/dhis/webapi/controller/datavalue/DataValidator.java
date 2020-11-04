@@ -50,7 +50,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -322,26 +322,28 @@ class DataValidator
      * 
      * @param attributeOptionCombo is the CategoryOptionCombo.
      * @param period the period to be checked.
+     * @param dataSet the data set (if present) to be checked.
+     * @param dataElement the data element to be checked.
      * @throws WebMessageException if the validation fails.
      */
-    void validateAttributeOptionComboWithOrgUnitAndPeriod( final CategoryOptionCombo attributeOptionCombo,
-        final Period period )
+    void validateAttributeOptionCombo( final CategoryOptionCombo attributeOptionCombo,
+        final Period period, final DataSet dataSet, final DataElement dataElement )
         throws WebMessageException
     {
         for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
         {
-            if ( option.getStartDate() != null && period.getEndDate().compareTo( option.getStartDate() ) < 0 )
+            if ( option.getStartDate() != null && period.getEndDate().before( option.getStartDate() ) )
             {
                 throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is before start date "
-                    + i18nManager.getI18nFormat().formatDate( option.getStartDate() ) + " for attributeOption '"
-                    + option.getName() + "'" ) );
+                    + i18nManager.getI18nFormat().formatDate( option.getStartDate() )
+                    + " for attributeOption '" + option.getName() + "'" ) );
             }
 
-            if ( option.getEndDate() != null && period.getStartDate().compareTo( option.getEndDate() ) > 0 )
+            if ( option.getEndDate() != null && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement ) ) )
             {
                 throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is after end date "
-                    + i18nManager.getI18nFormat().formatDate( option.getEndDate() ) + " for attributeOption '"
-                    + option.getName() + "'" ) );
+                    + i18nManager.getI18nFormat().formatDate( option.getAdjustedEndDate( dataSet, dataElement ) )
+                    + " for attributeOption '" + option.getName() + "'" ) );
             }
         }
     }

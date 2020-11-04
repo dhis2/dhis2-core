@@ -117,7 +117,10 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.OK );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
         Mockito.verifyNoInteractions( currentUserService );
         Mockito.verify( userGroupService ).updateUserGroups( Mockito.same( user ),
@@ -133,7 +136,10 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.ERROR );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
         Mockito.verifyNoInteractions( currentUserService );
         Mockito.verifyNoInteractions( userService );
@@ -148,7 +154,10 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.OK );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
         Mockito.verifyNoInteractions( currentUserService );
         Mockito.verifyNoInteractions( userService );
@@ -174,7 +183,10 @@ public class UserControllerTest
         final ImportReport importReport = new ImportReport();
         importReport.setStatus( Status.OK );
         importReport.addTypeReport( typeReport );
-        userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        {
+            userController.updateUserGroups( "def2", parsedUser, currentUser );
+        }
 
         Mockito.verify( currentUserService ).getCurrentUser();
         Mockito.verifyNoMoreInteractions( currentUserService );

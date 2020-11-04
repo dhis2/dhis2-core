@@ -28,16 +28,17 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hisp.dhis.tracker.TrackerType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,9 +49,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class TrackerBundleReport
 {
-    @JsonProperty
-    private TrackerBundleParams bundleParams;
-
     @JsonProperty
     @Builder.Default
     private TrackerStatus status = TrackerStatus.OK;

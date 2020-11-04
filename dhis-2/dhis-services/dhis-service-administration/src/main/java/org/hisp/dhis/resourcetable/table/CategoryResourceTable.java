@@ -63,20 +63,21 @@ public class CategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
-            "categoryoptioncomboid integer not null, " +
+            "categoryoptioncomboid bigint not null, " +
             "categoryoptioncomboname varchar(255), ";
 
         for ( Category category : objects )
         {
-            quote( category.getName() );
-            statement += quote( category.getShortName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueShortName( category ) + " varchar(230), ";
             statement += quote( category.getUid() ) + " character(11), ";
         }
-
+        
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

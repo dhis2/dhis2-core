@@ -35,7 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -109,8 +108,6 @@ public abstract class BaseChart
     protected LegendSet legendSet;
 
     protected LegendDisplayStrategy legendDisplayStrategy;
-
-    protected ColorSet colorSet;
 
     private List<String> yearlySeries = new ArrayList<>();
 
@@ -289,7 +286,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = TRUE, value = PropertyType.CONSTANT )
+    @Property( value = PropertyType.CONSTANT, required = TRUE )
     @PropertyRange( min = 1, max = 40)
     public ChartType getType()
     {
@@ -505,19 +502,6 @@ public abstract class BaseChart
     public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
     {
         this.legendDisplayStrategy = legendDisplayStrategy;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ColorSet getColorSet()
-    {
-        return colorSet;
-    }
-
-    public void setColorSet( ColorSet colorSet )
-    {
-        this.colorSet = colorSet;
     }
 
     @JsonProperty

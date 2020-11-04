@@ -374,7 +374,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_DESCRIPTIONS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap() );
+            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, false );
 
@@ -483,7 +483,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_GET_ORG_UNIT_GROUPS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap() );
+            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, true );
 
@@ -526,21 +526,10 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_EVALUATE,
-            samplePeriods, constantMap );
+            samplePeriods, constantMap, missingValueStrategy );
 
-        Map<String, Double> itemValueMap = valueMap.entrySet().stream().collect(
-            Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) );
-
-        MapMap<Period, String, Double> periodItemValueMap = new MapMap<>();
-
-        for ( Period p : periodValueMap.keySet() )
-        {
-            periodItemValueMap.put( p, periodValueMap.get( p ).entrySet().stream().collect(
-                Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) ) );
-        }
-
-        visitor.setItemValueMap( itemValueMap );
-        visitor.setPeriodItemValueMap( periodItemValueMap );
+        visitor.setItemValueMap( convertToIdentifierMap( valueMap ) );
+        visitor.setPeriodItemValueMap( convertToIdentifierPeriodMap( periodValueMap ) );
         visitor.setOrgUnitCountMap( orgUnitCountMap );
 
         if ( days != null )
@@ -596,7 +585,7 @@ public class DefaultExpressionService
      */
     private CommonExpressionVisitor newVisitor( ParseType parseType,
         ExpressionItemMethod itemMethod, List<Period> samplePeriods,
-        Map<String, Constant> constantMap )
+        Map<String, Constant> constantMap, MissingValueStrategy missingValueStrategy )
     {
         return CommonExpressionVisitor.newBuilder()
             .withItemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( parseType ) )
@@ -605,6 +594,7 @@ public class DefaultExpressionService
             .withDimensionService( dimensionService )
             .withOrganisationUnitGroupService( organisationUnitGroupService )
             .withSamplePeriods( samplePeriods )
+            .withMissingValueStrategy( missingValueStrategy )
             .buildForExpressions();
     }
 
@@ -627,7 +617,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_IDS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap() );
+            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
 
         visitor.setItemIds( itemIds );
         visitor.setSampleItemIds( sampleItemIds );
@@ -692,7 +682,7 @@ public class DefaultExpressionService
         Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
     {
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_REGENERATE,
-            DEFAULT_SAMPLE_PERIODS, constantMap );
+            DEFAULT_SAMPLE_PERIODS, constantMap, NEVER_SKIP );
 
         visitor.setOrgUnitCountMap( orgUnitCountMap );
         visitor.setExpressionLiteral( new RegenerateLiteral() );
@@ -708,6 +698,50 @@ public class DefaultExpressionService
      */
     private int getDaysFromPeriods( List<Period> periods )
     {
-        return periods.stream().mapToInt( Period::getDaysInPeriod ).sum();
+        return periods.stream()
+            .filter( Objects::nonNull )
+            .mapToInt( Period::getDaysInPeriod ).sum();
+    }
+
+    /**
+     * Converts a Map of {@see DimensionalItemObject} and values into a Map
+     * of {@see DimensionalItemObject} identifier and value.
+     * 
+     * If the {@see DimensionalItemObject} has a Period offset set, the value of the offset is added to the Map key:
+     * 
+     * [identifier.periodOffset]
+     * 
+     *  
+     * @param valueMap a Map
+     * @return a Map of DimensionalItemObject and value
+     */
+    private Map<String, Double> convertToIdentifierMap( Map<DimensionalItemObject, Double> valueMap )
+    {
+        return valueMap.entrySet().stream().collect(
+            Collectors.toMap(
+                e -> e.getKey().getDimensionItem()
+                    + (e.getKey().getPeriodOffset() == 0 ? "" : "." + e.getKey().getPeriodOffset()),
+                Map.Entry::getValue ) );
+
+    }
+
+    /**
+     * Converts a Map of Maps of {@see Period}, {@see DimensionalItemObject} and
+     * values into a Map of Maps of {@see Period}, {@see DimensionalItemObject}
+     * identifier and value
+     * 
+     * @param periodValueMap a Map of Maps
+     *
+     */
+    private MapMap<Period, String, Double> convertToIdentifierPeriodMap( MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+    {
+        MapMap<Period, String, Double> periodItemValueMap = new MapMap<>();
+
+        for ( Period p : periodValueMap.keySet() )
+        {
+            periodItemValueMap.put( p, periodValueMap.get( p ).entrySet().stream().collect(
+                Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) ) );
+        }
+        return periodItemValueMap;
     }
 }

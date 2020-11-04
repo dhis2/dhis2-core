@@ -30,23 +30,36 @@ package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.*;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AuditLogUtil;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -57,10 +70,17 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+
+import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,24 +93,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 {
     protected CurrentUserService currentUserService;
 
-    private DeletedObjectService deletedObjectService;
-
     protected AclService aclService;
 
     protected boolean transientIdentifiableProperties = false;
 
     public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, Class<T> clazz, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
+        AclService aclService, boolean cacheable )
     {
         super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
 
         checkNotNull( currentUserService );
-        checkNotNull( deletedObjectService );
         checkNotNull( aclService );
 
         this.currentUserService = currentUserService;
-        this.deletedObjectService = deletedObjectService;
         this.aclService = aclService;
         this.cacheable = cacheable;
     }
@@ -255,24 +271,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( object != null )
         {
             object.setAutoFields();
 
-            BaseIdentifiableObject identifiableObject = object;
-            identifiableObject.setAutoFields();
-            identifiableObject.setLastUpdatedBy( user );
+            object.setAutoFields();
+            object.setLastUpdatedBy( user );
 
-            if ( identifiableObject.getUser() == null )
+            if ( object.getUser() == null )
             {
-                identifiableObject.setUser( user );
+                object.setUser( user );
             }
         }
 
         if ( !isUpdateAllowed( object, user ) )
         {
             AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );
-            throw new UpdateAccessDeniedException( object.toString() );
+            throw new UpdateAccessDeniedException( String.valueOf( object ) );
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
@@ -786,6 +801,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
+        //TODO Include paging to avoid exceeding max query length
+
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
@@ -807,6 +824,36 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder, user ) )
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
+    public List<T> getByUidNoAcl( Collection<String> uids )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> objects = Lists.newArrayList();
+
+        List<List<String>> partitions = Lists.partition( Lists.newArrayList( uids ), OBJECT_FETCH_SIZE );
+
+        for ( List<String> partition : partitions )
+        {
+            objects.addAll( getByUidNoAclInternal( partition ) );
+        }
+
+        return objects;
+    }
+
+    private List<T> getByUidNoAclInternal( Collection<String> uids )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
             .addPredicate( root -> root.get( "uid" ).in( uids ) );
 
         return getList( builder, jpaQueryParameters );
@@ -867,27 +914,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllNoAcl()
     {
         return super.getAll();
-    }
-
-    @Override
-    public List<T> getByUidNoAcl( Collection<String> uids )
-    {
-        List<T> list = new ArrayList<>();
-
-        if ( uids != null )
-        {
-            for ( String uid : uids )
-            {
-                T object = getByUidNoAcl( uid );
-
-                if ( object != null )
-                {
-                    list.add( object );
-                }
-            }
-        }
-
-        return list;
     }
 
     @Override
@@ -1375,7 +1401,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( userCredentials != null )
         {
-            return userCredentials.getUser();
+            return userCredentials.getUserInfo();
         }
 
         return null;

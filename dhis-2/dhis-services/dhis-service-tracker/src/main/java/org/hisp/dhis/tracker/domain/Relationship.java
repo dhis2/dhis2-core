@@ -41,16 +41,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship
+public class Relationship implements TrackerDto
 {
+    @JsonProperty
+    private String relationship;
+
     @JsonProperty
     private String relationshipType;
 
     @JsonProperty
-    private String relationshipName;
+    private String createdAt;
 
     @JsonProperty
-    private String relationship;
+    private String updatedAt;
 
     @JsonProperty
     private boolean bidirectional;
@@ -60,10 +63,4 @@ public class Relationship
 
     @JsonProperty
     private RelationshipItem to;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
 }

@@ -28,6 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -62,5 +64,16 @@ public class ObjectDeletionRequestedEvent
     public void setShouldRollBack( boolean shouldRollBack )
     {
         this.shouldRollBack = shouldRollBack;
+    }
+
+    /**
+     * Check whether the given class should be skipped for DeletionHandler.
+     *
+     * @param type the class type.
+     * @return true if the given class should be skipped.
+     */
+    public static boolean shouldSkip( Class<?> type )
+    {
+        return UserAccess.class.isAssignableFrom( type )  || UserGroupAccess.class.isAssignableFrom( type ) ? true : false;
     }
 }

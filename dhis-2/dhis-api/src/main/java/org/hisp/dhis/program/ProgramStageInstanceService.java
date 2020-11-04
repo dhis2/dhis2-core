@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -65,17 +64,8 @@ public interface ProgramStageInstanceService
     long addProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
-     * Deletes a {@link ProgramStageInstance}.
-     *
-     * @param programStageInstance the ProgramStageInstance to delete.
-     * @param forceDelete          false if PSI should be soft deleted.
-     */
-    void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete );
-
-    /**
      * Soft deletes a {@link ProgramStageInstance}.
      *
-     * @param programStageInstance
      */
     void deleteProgramStageInstance( ProgramStageInstance programStageInstance );
 
@@ -133,6 +123,22 @@ public interface ProgramStageInstanceService
      * @return the ProgramStageInstance with the given id.
      */
     ProgramStageInstance getProgramStageInstance( long id );
+
+    /**
+     * Returns a List of {@link ProgramStageInstance}.
+     *
+     * @param ids a List of {@link ProgramStageInstance} primary keys
+     * @return  a List of {@link ProgramStageInstance} matching the provided primary keyss
+     */
+    List<ProgramStageInstance> getProgramStageInstances( List<Long> ids );
+
+    /**
+     * Returns a List of {@link ProgramStageInstance}.
+     *
+     * @param uids a List of {@link ProgramStageInstance} uids
+     * @return  a List of {@link ProgramStageInstance} matching the provided uids
+     */
+    List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids );
 
     /**
      * Returns the {@link ProgramStageInstance} with the given UID.
@@ -198,7 +204,7 @@ public interface ProgramStageInstanceService
      */
     void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
 
     /**
      * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.

@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -42,6 +43,9 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -76,18 +80,22 @@ public class DefaultDataValueService
 
     private final CategoryService categoryService;
 
+    private final DhisConfigurationProvider config;
+
     public DefaultDataValueService( DataValueStore dataValueStore, DataValueAuditService dataValueAuditService,
-        CurrentUserService currentUserService, CategoryService categoryService )
+        CurrentUserService currentUserService, CategoryService categoryService, DhisConfigurationProvider config )
     {
         checkNotNull( dataValueAuditService );
         checkNotNull( dataValueStore );
         checkNotNull( currentUserService );
         checkNotNull( categoryService );
+        checkNotNull( config );
 
         this.dataValueStore = dataValueStore;
         this.dataValueAuditService = dataValueAuditService;
         this.currentUserService = currentUserService;
         this.categoryService = categoryService;
+        this.config = config;
     }
 
     // -------------------------------------------------------------------------
@@ -178,7 +186,11 @@ public class DefaultDataValueService
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
                 dataValue.getStoredBy(), AuditType.UPDATE );
 
-            dataValueAuditService.addDataValueAudit( dataValueAudit );
+            if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+            {
+                dataValueAuditService.addDataValueAudit( dataValueAudit );
+            }
+
             dataValueStore.updateDataValue( dataValue );
         }
     }
@@ -203,7 +215,10 @@ public class DefaultDataValueService
         DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
             currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-        dataValueAuditService.addDataValueAudit( dataValueAudit );
+        if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+        {
+            dataValueAuditService.addDataValueAudit( dataValueAudit );
+        }
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
@@ -259,54 +274,63 @@ public class DefaultDataValueService
     @Override
     public void validate( DataExportParams params )
     {
-        String violation = null;
+        ErrorMessage error = null;
 
         if ( params == null )
         {
-            throw new IllegalArgumentException( "Params cannot be null" );
+            throw new IllegalQueryException( ErrorCode.E2000 );
         }
 
-        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() &&
-            params.getDataElementGroups().isEmpty() )
+        if ( !params.hasDataElements() && !params.hasDataSets() && !params.hasDataElementGroups() )
         {
-            violation = "At least one valid data set or data element group must be specified";
+            error = new ErrorMessage( ErrorCode.E2001 );
+        }
+
+        if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasLastUpdated() && !params.hasLastUpdatedDuration() )
+        {
+            error = new ErrorMessage( ErrorCode.E2002 );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
         {
-            violation = "Both periods and start/end date cannot be specified";
+            error = new ErrorMessage( ErrorCode.E2003 );
         }
 
         if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
         {
-            violation = "Start date must be before end date";
+            error = new ErrorMessage( ErrorCode.E2004 );
         }
 
         if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
         {
-            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+            error = new ErrorMessage( ErrorCode.E2005 );
+        }
+
+        if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
+        {
+            error = new ErrorMessage( ErrorCode.E2006 );
         }
 
         if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
         {
-            violation = "Children cannot be included for organisation unit groups";
+            error = new ErrorMessage( ErrorCode.E2007 );
         }
 
         if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
         {
-            violation = "At least one valid organisation unit must be specified when children is included";
+            error = new ErrorMessage( ErrorCode.E2008 );
         }
 
         if ( params.hasLimit() && params.getLimit() < 0 )
         {
-            violation = "Limit cannot be less than zero: " + params.getLimit();
+            error = new ErrorMessage( ErrorCode.E2009, params.getLimit() );
         }
 
-        if ( violation != null )
+        if ( error != null )
         {
-            log.warn( "Validation failed: " + violation );
+            log.warn( "Validation failed: " + error );
 
-            throw new IllegalQueryException( violation );
+            throw new IllegalQueryException( error );
         }
     }
 

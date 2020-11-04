@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.TranslationProperty;
 
 /**
  * @author Abyot Asalefew
@@ -73,7 +74,7 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
+    @Property( value = PropertyType.COMPLEX, required = Property.Value.TRUE )
     public RelationshipConstraint getFromConstraint()
     {
         return fromConstraint;
@@ -86,7 +87,7 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
+    @Property( value = PropertyType.COMPLEX, required = Property.Value.TRUE )
     public RelationshipConstraint getToConstraint()
     {
         return toConstraint;
@@ -128,6 +129,13 @@ public class RelationshipType
         return fromToName;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFromToName()
+    {
+        return getTranslation( TranslationProperty.RELATIONSHIP_FROM_TO_NAME, getFromToName() );
+    }
+
     public void setFromToName( String fromToName )
     {
         this.fromToName = fromToName;
@@ -138,6 +146,13 @@ public class RelationshipType
     public String getToFromName()
     {
         return toFromName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayToFromName()
+    {
+        return getTranslation( TranslationProperty.RELATIONSHIP_TO_FROM_NAME, getToFromName() );
     }
 
     public void setToFromName( String toFromName )

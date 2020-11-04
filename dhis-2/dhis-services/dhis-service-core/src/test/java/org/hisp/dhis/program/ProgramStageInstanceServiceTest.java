@@ -28,9 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,9 +36,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.audit.UserInfoTestHelper;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AuditType;
@@ -97,9 +98,6 @@ public class ProgramStageInstanceServiceTest
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
-
-//    @Autowired
-//    private EventDataValueService eventDataValueService;
 
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
@@ -313,10 +311,10 @@ public class ProgramStageInstanceServiceTest
 
         //Prepare EventDataValues to manipulate with
         String storedBy = "test-user";
-        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
-        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
-        eventDataValueC = new EventDataValue( dataElementC.getUid(), "3", storedBy );
-        eventDataValueD = new EventDataValue( dataElementD.getUid(), "4", storedBy );
+        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo( storedBy ) );
+        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", UserInfoTestHelper.testUserInfo( storedBy ) );
+        eventDataValueC = new EventDataValue( dataElementC.getUid(), "3", UserInfoTestHelper.testUserInfo( storedBy ) );
+        eventDataValueD = new EventDataValue( dataElementD.getUid(), "4", UserInfoTestHelper.testUserInfo( storedBy ) );
 
         dataElementMap.put( dataElementA.getUid(), dataElementA );
         dataElementMap.put( dataElementB.getUid(), dataElementB );
@@ -462,7 +460,7 @@ public class ProgramStageInstanceServiceTest
 
         //Update PSI: create 0, update 3, delete 1
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), updatedEventDataValues, Collections.singleton( eventDataValueD ),
-            dataElementMap, programStageInstanceA, false );
+            convertToMap( dataElementMap ), programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 3 EventDataValues
@@ -507,7 +505,7 @@ public class ProgramStageInstanceServiceTest
         eventDataValueB.setValue( "22" );
 
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), Collections.singleton( eventDataValueB ), Collections.emptySet(),
-            dataElementMap, programStageInstanceA, true );
+        convertToMap( dataElementMap ), programStageInstanceA, true );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
 
         //Check that there are 4 EventDataValues
@@ -543,6 +541,12 @@ public class ProgramStageInstanceServiceTest
         assertEquals( "3", eventDataValueCValue );
     }
 
+    private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
+    {
+        return dataElementMap.getAll().stream()
+            .collect( Collectors.toMap( DataElement::getUid, d -> d ) );
+    }
+
     private void addInitialEventDataValues()
     {
         //Check that there are no EventDataValues assigned to PSI
@@ -552,7 +556,7 @@ public class ProgramStageInstanceServiceTest
         //Prepare EventDataValues -> save 4 of them to PSI
         Set<EventDataValue> newEventDataValues = new HashSet<>( Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD ));
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newEventDataValues, Collections.emptySet(), Collections.emptySet(),
-            dataElementMap, programStageInstanceA, false );
+        convertToMap( dataElementMap ), programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
 }

@@ -582,6 +582,26 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes)
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return 0;
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return 0;
+        }
+
+        return  store.countAllValuesByAttributes( attributes );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids )
@@ -628,28 +648,49 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids )
+    public <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values )
     {
-        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
-
-        if ( store == null )
+        if ( values == null )
         {
             return new ArrayList<>();
         }
 
         List<T> list = new ArrayList<>();
 
-        if ( uids != null )
+        for ( String value : values )
         {
-            for ( String uid : uids )
-            {
-                T object = store.getByUid( uid );
+            T object = getObject( clazz, idScheme, value );
 
-                if ( object != null )
-                {
-                    list.add( object );
-                }
+            if ( object != null )
+            {
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        if ( store == null || uids == null )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> list = new ArrayList<>();
+
+        for ( String uid : uids )
+        {
+            T object = store.getByUid( uid );
+
+            if ( object != null )
+            {
+                list.add( object );
             }
         }
 

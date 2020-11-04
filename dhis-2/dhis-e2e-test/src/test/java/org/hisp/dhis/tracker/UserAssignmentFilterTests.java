@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -92,7 +93,7 @@ public class UserAssignmentFilterTests
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
-        userActions.addURoleToUser( userId, "yrB6vc5Ip7r" );
+        userActions.addRoleToUser( userId, "yrB6vc5Ip7r" );
 
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }

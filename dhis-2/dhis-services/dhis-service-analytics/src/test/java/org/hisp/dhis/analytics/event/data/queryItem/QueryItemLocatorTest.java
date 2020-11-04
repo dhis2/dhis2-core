@@ -28,8 +28,25 @@ package org.hisp.dhis.analytics.event.data.queryItem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createLegendSet;
+import static org.hisp.dhis.DhisConvenienceTest.createOptionSet;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramStageDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
@@ -41,7 +58,12 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -49,18 +71,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
@@ -90,9 +106,6 @@ public class QueryItemLocatorTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     private Program programA;
 
     private String dimension;
@@ -114,21 +127,17 @@ public class QueryItemLocatorTest
     @Test
     public void verifyExceptionOnEmptyDimension()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage(
-            "Item identifier does not reference any data element, attribute or indicator part of the program" );
-
-        subject.getQueryItemFromDimension( "", programA, EventOutputType.ENROLLMENT );
+        assertThrows( "Item identifier does not reference any data element, attribute or indicator part of the program",
+            IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( "", programA, EventOutputType.ENROLLMENT ) );
     }
 
     @Test
     public void verifyExceptionOnEmptyProgram()
     {
-
-        exception.expect( NullPointerException.class );
-        exception.expectMessage( "Program can not be null" );
-
-        subject.getQueryItemFromDimension( dimension, null, EventOutputType.ENROLLMENT );
+        assertThrows( "Program can not be null",
+            NullPointerException.class,
+            () -> subject.getQueryItemFromDimension( dimension, null, EventOutputType.ENROLLMENT ) );
     }
 
     @Test
@@ -157,9 +166,6 @@ public class QueryItemLocatorTest
     @Test
     public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage("For enrollment analytics queries,program stage is mandatory for data element dimensions: " + dimension);
-
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -171,8 +177,9 @@ public class QueryItemLocatorTest
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
 
-        subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
-
+        assertThrows( "Program stage is mandatory for data element dimensions in enrollment analytics queries",
+            IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ) );
     }
 
     @Test
@@ -335,13 +342,11 @@ public class QueryItemLocatorTest
         programIndicatorA.setUid( dimension );
 
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-                .thenReturn( programIndicatorA );
+            .thenReturn( programIndicatorA );
 
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage(
-                "Item identifier does not reference any data element, attribute or indicator part of the program" );
-
-        subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
+        assertThrows( "Item identifier does not reference any data element, attribute or indicator part of the program",
+            IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ) );
     }
 
     @Test
@@ -352,10 +357,10 @@ public class QueryItemLocatorTest
 
         RelationshipType relationshipType = createRelationshipType();
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-                .thenReturn( programIndicatorA );
+            .thenReturn( programIndicatorA );
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
         QueryItem queryItem = subject.getQueryItemFromDimension(
-                relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( programIndicatorA ) );

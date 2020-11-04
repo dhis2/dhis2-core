@@ -28,55 +28,104 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerErrorMessage;
+
+import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+@Builder
 public class TrackerErrorReport
 {
-    @JsonProperty
-    private final Class<?> mainKlass;
+    private final String errorMessage;
 
-    private final TrackerErrorMessage message;
+    private final TrackerErrorCode errorCode;
 
-    @JsonProperty
-    private String mainId;
+    private final TrackerType trackerType;
 
-    @JsonProperty
-    private Class<?> errorKlass;
+    private final String uid;
 
-    @JsonProperty
-    private String errorProperty;
-
-    @JsonProperty
-    private Object value;
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
+    @JsonCreator
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
-        this.mainKlass = mainKlass;
-        this.message = new TrackerErrorMessage( errorCode, args );
-    }
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message )
-    {
-        this.mainKlass = mainKlass;
-        this.message = message;
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
-        return message.getErrorCode();
+        return errorCode;
     }
 
     @JsonProperty
     public String getMessage()
     {
-        return message.getMessage();
+        return errorMessage;
+    }
+
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public static class TrackerErrorReportBuilder
+    {
+        private final List<Object> arguments = new ArrayList<>();
+
+        public TrackerErrorReportBuilder addArg( Object arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArgs( Object ... args )
+        {
+            this.arguments.addAll( Arrays.asList( args ) );
+            return this;
+        }
+
+        public TrackerErrorReport build( TrackerBundle bundle )
+        {
+            return new TrackerErrorReport(
+                MessageFormat.format( errorCode.getMessage(), buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
+                this.errorCode, this.trackerType, this.uid );
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerErrorReport{" +
+            "message=" + errorMessage +
+            ", errorCode=" + errorCode +
+            ", trackerEntityType=" + trackerType +
+            ", uid=" + uid +
+            '}';
     }
 }

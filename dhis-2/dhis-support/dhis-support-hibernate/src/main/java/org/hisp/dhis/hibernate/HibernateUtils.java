@@ -28,6 +28,7 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Preconditions;
 import org.hibernate.Hibernate;
 import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
@@ -104,6 +105,8 @@ public class HibernateUtils
      */
     public static <T> T initializeProxy( T proxy )
     {
+        Preconditions.checkNotNull( proxy, "Proxy can not be null!" );
+
         if ( !Hibernate.isInitialized( proxy ) )
         {
             Hibernate.initialize( proxy );
@@ -121,7 +124,7 @@ public class HibernateUtils
 
                     Object persistentObject = pd.getReadMethod().invoke( proxy );
 
-                    if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                    if ( persistentObject != null && PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
                     {
                         Hibernate.initialize( persistentObject );
                     }

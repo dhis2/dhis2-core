@@ -30,7 +30,9 @@ package org.hisp.dhis.user.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,12 +44,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.user.UserCredentialsStore" )
 public class HibernateUserCredentialsStore
-    extends HibernateGenericStore<UserCredentials>
+    extends HibernateIdentifiableObjectStore<UserCredentials>
     implements UserCredentialsStore
 {
-    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, currentUserService, aclService, true );
     }
 
     @Override

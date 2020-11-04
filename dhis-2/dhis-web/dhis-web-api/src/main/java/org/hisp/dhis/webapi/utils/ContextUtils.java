@@ -45,7 +45,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -57,8 +57,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * @author Lars Helge Overland
@@ -94,6 +96,7 @@ public class ContextUtils
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
     public static final String HEADER_ETAG = "ETag";
     private static final String QUOTE = "\"";
+    private static final String QUERY_STRING_SEP = "?";
 
     /**
      * Regular expression that extracts the attachment file name from a content disposition header value.
@@ -117,10 +120,8 @@ public class ContextUtils
     public void configureAnalyticsResponse( HttpServletResponse response, String contentType,
         CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
     {
-        // Progressive cache will always take priority.
-        if ( RESPECT_SYSTEM_SETTING == cacheStrategy
-            && webCache.isProgressiveCachingEnabled()
-            && latestEndDate != null )
+        // Progressive cache will always take priority
+        if ( RESPECT_SYSTEM_SETTING == cacheStrategy && webCache.isProgressiveCachingEnabled() && latestEndDate != null )
         {
             // Uses the progressive TTL
             final CacheControl cacheControl = webCache.getCacheControlFor( latestEndDate );
@@ -129,21 +130,21 @@ public class ContextUtils
         }
         else
         {
-            // Respects the fixed (predefined) settings.
+            // Respects the fixed (predefined) settings
             configureResponse( response, contentType, cacheStrategy, filename, attachment );
         }
     }
 
-    public void configureResponse( final HttpServletResponse response, final String contentType,
-                                  final CacheStrategy cacheStrategy, final String filename, final boolean attachment )
+    public void configureResponse( HttpServletResponse response, String contentType,
+        CacheStrategy cacheStrategy, String filename, boolean attachment )
     {
-        final CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
+        CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
 
         configureResponse( response, contentType, filename, attachment, cacheControl );
     }
 
-    private void configureResponse( final HttpServletResponse response, final String contentType, final String filename,
-        final boolean attachment, final CacheControl cacheControl )
+    private void configureResponse( HttpServletResponse response, String contentType, String filename,
+        boolean attachment, CacheControl cacheControl )
     {
         if ( contentType != null )
         {
@@ -403,8 +404,8 @@ public class ContextUtils
      */
     public static boolean isAcceptCsvGzip( HttpServletRequest request )
     {
-        return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
-            || (request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" )));
+        return request != null && ( ( request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ) )
+            || ( request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" ) ) ) ;
     }
 
     /**
@@ -420,7 +421,29 @@ public class ContextUtils
         {
             return null;
         }
-        final Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
+
+        Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
         return matcher.matches() ? matcher.group( 1 ) : null;
+    }
+
+    /**
+     * Returns the value associated with a double wildcard ({@code **}) in the request mapping.
+     * <p>
+     * As an example, for a request mapping {@code /apps/**} and a request {@code /apps/data-visualizer/index.html?id=123},
+     * this method will return {@code data-visualizer/index.html?id=123}.
+     *
+     * @param request the {@link HttpServletRequest}.
+     * @return the wildcard value.
+     */
+    public static String getWildcardPathValue( HttpServletRequest request )
+    {
+        String path = (String) request.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE );
+        String bestMatchPattern = (String) request.getAttribute( HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE );
+        String wildcardPath = new AntPathMatcher().extractPathWithinPattern( bestMatchPattern, path );
+
+        String queryString = !StringUtils.isBlank( request.getQueryString() ) ?
+            QUERY_STRING_SEP.concat( request.getQueryString() ) : StringUtils.EMPTY;
+
+        return String.format( "%s%s", wildcardPath, queryString );
     }
 }

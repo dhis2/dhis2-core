@@ -30,6 +30,8 @@ package org.hisp.dhis.user;
 
 import org.hisp.dhis.common.GenericStore;
 
+import java.util.UUID;
+
 /**
  * @author Lars Helge Overland
  */
@@ -73,4 +75,13 @@ public interface UserCredentialsStore
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsBySecret( String token );
+
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * UUID.
+     *
+     * @param uid UUID.
+     * @return the UserCredentials.
+     */
+    UserCredentials getUserCredentialsByUuid( UUID uuid );
 }

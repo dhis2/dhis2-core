@@ -462,6 +462,38 @@ public class DataQueryRequest
             return request;
         }
 
+        public DataQueryRequestBuilder fromCriteria( AggregateAnalyticsQueryCriteria criteria )
+        {
+            this.request.aggregationType = criteria.getAggregationType();
+            this.request.approvalLevel = criteria.getApprovalLevel();
+            this.request.completedOnly = criteria.isCompletedOnly();
+            this.request.dimension = criteria.getDimension();
+            this.request.displayProperty = criteria.getDisplayProperty();
+            this.request.endDate = criteria.getEndDate();
+            this.request.filter = criteria.getFilter();
+            this.request.hideEmptyColumns = criteria.isHideEmptyColumns();
+            this.request.hideEmptyRows = criteria.isHideEmptyRows();
+            this.request.hierarchyMeta = criteria.isHierarchyMeta();
+            this.request.ignoreLimit = criteria.isIgnoreLimit();
+            this.request.includeMetadataDetails = criteria.isIncludeMetadataDetails();
+            this.request.includeNumDen = criteria.isIncludeNumDen();
+            this.request.inputIdScheme = criteria.getInputIdScheme();
+            this.request.measureCriteria = criteria.getMeasureCriteria();
+            this.request.order = criteria.getOrder();
+            this.request.orgUnitField = criteria.getOrgUnitField();
+            this.request.outputIdScheme = criteria.getOutputIdScheme();
+            this.request.preAggregationMeasureCriteria = criteria.getPreAggregationMeasureCriteria();
+            this.request.relativePeriodDate = criteria.getRelativePeriodDate();
+            this.request.showHierarchy = criteria.isShowHierarchy();
+            this.request.skipData = criteria.isSkipData();
+            this.request.skipMeta = criteria.isSkipMeta();
+            this.request.skipRounding = criteria.isSkipRounding();
+            this.request.startDate = criteria.getStartDate();
+            this.request.timeField = criteria.getTimeField();
+            this.request.userOrgUnit = criteria.getUserOrgUnit();
+            this.request.userOrgUnitType = criteria.getUserOrgUnitType();
+            return this;
+        }
     }
 
 }

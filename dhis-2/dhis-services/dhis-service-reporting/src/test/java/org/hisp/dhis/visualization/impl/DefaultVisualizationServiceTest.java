@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -54,7 +55,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,7 +65,7 @@ import org.mockito.junit.MockitoRule;
 public class DefaultVisualizationServiceTest
 {
     @Mock
-    private VisualizationStore visualizationStore;
+    private AnalyticalObjectStore<Visualization> visualizationStore;
 
     @Mock
     private AnalyticsService analyticsService;
@@ -211,7 +211,7 @@ public class DefaultVisualizationServiceTest
     private BaseDimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem )
     {
         final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDisplayDescription( "display " + dimensionItem );
+        baseDimensionalItemObject.setDescription( "display " + dimensionItem );
         return baseDimensionalItemObject;
     }
 }

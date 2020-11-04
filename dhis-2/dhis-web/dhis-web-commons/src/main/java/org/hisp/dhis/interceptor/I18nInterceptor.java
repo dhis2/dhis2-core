@@ -28,24 +28,35 @@ package org.hisp.dhis.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.Interceptor;
-import ognl.NoSuchPropertyException;
-import ognl.Ognl;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
+
+import com.opensymphony.xwork2.Action;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
+
+import ognl.NoSuchPropertyException;
+import ognl.Ognl;
+
 /**
+ * This was deprecated in favour of the new
+ * {@link org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor}.
+ *
  * @author Nguyen Dang Quang
  * @version $Id: WebWorkI18nInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
+@Deprecated
 public class I18nInterceptor
     implements Interceptor
 {
@@ -70,6 +81,21 @@ public class I18nInterceptor
     {
         this.localeManager = localeManager;
     }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    private UserSettingService userSettingService;
+
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
+    }
+
 
     // -------------------------------------------------------------------------
     // AroundInterceptor implementation
@@ -135,6 +161,16 @@ public class I18nInterceptor
         catch ( NoSuchPropertyException ignored )
         {
         }
+
+        // ---------------------------------------------------------------------
+        // Set the current User DB Locale in UserContext
+        // ---------------------------------------------------------------------
+
+        User currentUser = currentUserService.getCurrentUser();
+        Locale dbLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE, currentUser );
+
+        UserContext.setUser( currentUser );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
 
         return invocation.invoke();
     }

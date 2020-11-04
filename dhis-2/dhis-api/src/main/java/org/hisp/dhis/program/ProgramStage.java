@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -60,7 +61,8 @@ import java.util.stream.Collectors;
  */
 @JacksonXmlRootElement( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStage
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     private String description;
 
@@ -249,6 +251,7 @@ public class ProgramStage
         this.dataEntryForm = dataEntryForm;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -257,22 +260,10 @@ public class ProgramStage
         return description;
     }
 
+    @Override
     public void setDescription( String description )
     {
         this.description = description;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayDescription()
-    {
-        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
-        return displayDescription != null ? displayDescription : getDescription();
-    }
-
-    public void setDisplayDescription( String displayDescription )
-    {
-        this.displayDescription = displayDescription;
     }
 
     @JsonProperty( "programStageSections" )
@@ -360,6 +351,13 @@ public class ProgramStage
         return executionDateLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayExecutionDateLabel()
+    {
+        return getTranslation( TranslationProperty.EXECUTION_DATE_LABEL, getExecutionDateLabel() );
+    }
+
     public void setExecutionDateLabel( String executionDateLabel )
     {
         this.executionDateLabel = executionDateLabel;
@@ -371,6 +369,13 @@ public class ProgramStage
     public String getDueDateLabel()
     {
         return dueDateLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDueDateLabel()
+    {
+        return getTranslation( TranslationProperty.DUE_DATE_LABEL, getDueDateLabel() );
     }
 
     public void setDueDateLabel( String dueDateLabel )
@@ -513,6 +518,7 @@ public class ProgramStage
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -520,6 +526,7 @@ public class ProgramStage
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

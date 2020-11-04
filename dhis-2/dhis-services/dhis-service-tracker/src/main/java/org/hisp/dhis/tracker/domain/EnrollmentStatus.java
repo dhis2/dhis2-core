@@ -31,8 +31,6 @@ package org.hisp.dhis.tracker.domain;
 import org.hisp.dhis.program.ProgramStatus;
 
 /**
- * FIXME we should probably remove this, and replace it with program status
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum EnrollmentStatus
@@ -42,6 +40,7 @@ public enum EnrollmentStatus
     CANCELLED( 2, ProgramStatus.CANCELLED );
 
     private final int value;
+
     private final ProgramStatus programStatus;
 
     EnrollmentStatus( int value, ProgramStatus programStatus )
@@ -64,12 +63,12 @@ public enum EnrollmentStatus
     {
         switch ( programStatus )
         {
-            case ACTIVE:
-                return ACTIVE;
-            case CANCELLED:
-                return CANCELLED;
-            case COMPLETED:
-                return COMPLETED;
+        case ACTIVE:
+            return ACTIVE;
+        case CANCELLED:
+            return CANCELLED;
+        case COMPLETED:
+            return COMPLETED;
         }
 
         throw new IllegalArgumentException( "Enum value not found: " + programStatus );

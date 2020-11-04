@@ -28,14 +28,18 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,11 +53,32 @@ public class TrackerTypeReport
     @JsonProperty
     private TrackerStats stats = new TrackerStats();
 
+    @JsonProperty
+    private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
 
     public TrackerTypeReport( TrackerType trackerType )
     {
         this.trackerType = trackerType;
+    }
+    
+    @JsonCreator
+    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "stats" ) TrackerStats stats,
+        @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
+        @JsonProperty( "objectReports" ) List<TrackerObjectReport> objectReports )
+    {
+        this.trackerType = trackerType;
+        this.stats = stats;
+        this.sideEffectDataBundles = sideEffectDataBundles;
+
+        if ( objectReports != null )
+        {
+            for ( TrackerObjectReport objectReport : objectReports )
+            {
+                this.objectReportMap.put( objectReport.getIndex(), objectReport );
+            }
+        }
     }
 
     @JsonProperty
@@ -81,7 +106,7 @@ public class TrackerTypeReport
         this.objectReportMap.put( objectReport.getIndex(), objectReport );
     }
 
-    public List<TrackerErrorReport> getErrorReports()
+    private List<TrackerErrorReport> getErrorReports()
     {
         List<TrackerErrorReport> errorReports = new ArrayList<>();
         objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
@@ -92,5 +117,10 @@ public class TrackerTypeReport
     public Map<Integer, TrackerObjectReport> getObjectReportMap()
     {
         return objectReportMap;
+    }
+
+    public List<TrackerSideEffectDataBundle> getSideEffectDataBundles()
+    {
+        return sideEffectDataBundles;
     }
 }

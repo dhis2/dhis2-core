@@ -70,8 +70,8 @@ public class DataSetOrganisationUnitCategoryResourceTable
     public String getCreateTempTableStatement()
     {
         return "create table " + getTempTableName() + " " +
-            "(datasetid integer not null, organisationunitid integer not null, " +
-            "attributeoptioncomboid integer not null, costartdate date, coenddate date)";
+            "(datasetid bigint not null, organisationunitid bigint not null, " +
+            "attributeoptioncomboid bigint not null, costartdate date, coenddate date)";
     }
 
     @Override
@@ -112,7 +112,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
                             if ( orgUnitOptions.containsAll( optionComboOptions ) )
                             {
                                 Date startDate = DateUtils.min( optionComboOptions.stream().map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
-                                Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getEndDate() ).collect( Collectors.toSet() ) );
+                                Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getAdjustedEndDate( dataSet ) ).collect( Collectors.toSet() ) );
 
                                 List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate );
 

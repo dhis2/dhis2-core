@@ -1,5 +1,7 @@
+package org.hisp.dhis.aggregate;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.aggregate;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -55,7 +55,6 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Disabled
 public class DataImportTest
     extends ApiTest
 {
@@ -89,7 +88,7 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "conflicts", nullValue() )
+            .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )
@@ -149,7 +148,7 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "conflicts", nullValue() )
+            .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )

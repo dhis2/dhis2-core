@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-
-import javax.annotation.Nonnull;
-
+import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
@@ -74,29 +74,41 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -220,7 +232,24 @@ public class DefaultMetadataExportService implements MetadataExportService
     @Override
     public void validate( MetadataExportParams params )
     {
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
 
+        User user = params.getUser();
+
+        if ( params.getClasses().isEmpty()
+            && !(user == null || user.isSuper() || user.isAuthorized( Authorities.F_METADATA_EXPORT )) )
+        {
+            throw new MetadataExportException( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." );
+        }
+
+        if ( params.getClasses().contains( User.class )
+            && !(user == null || user.isSuper() || user.isAuthorized( Authorities.F_USER_VIEW ) || user.isAuthorized( Authorities.F_METADATA_EXPORT )) )
+        {
+            throw new MetadataExportException( "Exporting user metadata requires the 'F_USER_VIEW' authority." );
+        }
     }
 
     @Override

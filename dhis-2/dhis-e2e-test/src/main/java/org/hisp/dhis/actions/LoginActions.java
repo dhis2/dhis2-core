@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.actions;
 
 import static io.restassured.RestAssured.oauth2;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -84,9 +84,7 @@ public class LoginActions
 
     public ApiResponse getLoggedInUserInfo()
     {
-        ApiResponse response = new RestApiActions( "/me" ).get();
-
-        return response;
+        return new RestApiActions( "/me" ).get();
     }
 
     public String getLoggedInUserId()
@@ -120,5 +118,10 @@ public class LoginActions
     public void loginWithToken( String token )
     {
         RestAssured.authentication = oauth2( token );
+    }
+
+    public void loginAsAdmin()
+    {
+        loginAsUser( TestConfiguration.get().adminUserUsername(), TestConfiguration.get().adminUserPassword() );
     }
 }

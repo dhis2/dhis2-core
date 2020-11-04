@@ -1,5 +1,7 @@
+package org.hisp.dhis.metadata.users;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.metadata.users;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -72,8 +72,8 @@ public class UserTest extends ApiTest
     private Stream<Arguments> provideParams() {
         return Stream.of( new Arguments[] {
             Arguments.of( password, password, "Password must not be one of the previous 24 passwords", "newPassword is the same as old" ),
-            Arguments.of( password, "test", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
-            Arguments.of( password, DataGenerator.randomString(41), "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
+            Arguments.of( password, "Test1?", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
+            Arguments.of( password, DataGenerator.randomString(41) + "1?", "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
             Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" ),
             Arguments.of( password, "test1212?", "Password must have at least one upper case", "newPassword doesn't contain uppercase" ),

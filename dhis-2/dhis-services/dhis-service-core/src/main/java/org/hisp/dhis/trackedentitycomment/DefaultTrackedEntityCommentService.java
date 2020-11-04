@@ -28,9 +28,10 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran

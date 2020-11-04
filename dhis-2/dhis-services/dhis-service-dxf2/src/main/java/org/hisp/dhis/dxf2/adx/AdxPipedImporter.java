@@ -28,8 +28,8 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -61,9 +61,9 @@ public class AdxPipedImporter
     private final ImportOptions importOptions;
 
     private final JobConfiguration id;
-    
+
     private final SessionFactory sessionFactory;
-    
+
     private final Authentication authentication;
 
     public AdxPipedImporter( DataValueSetService dataValueSetService, ImportOptions importOptions,
@@ -96,10 +96,10 @@ public class AdxPipedImporter
         }
         finally
         {
-            IOUtils.closeQuietly( pipeIn );
+            StreamUtils.closeQuietly( pipeIn );
             DbmsUtils.unbindSessionFromThread( sessionFactory );
         }
-                
+
         return result;
     }
 }

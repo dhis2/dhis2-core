@@ -27,7 +27,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,11 +50,11 @@ public final class ValidationAnalysisParams
         null, in that case the default attribute option combo will be used. The organisation unit can be null,
         in that case all organisation units will be used.
      */
-    private ImmutableCollection<ValidationRule> rules;
+    private ImmutableSet<ValidationRule> validationRules;
 
     private OrganisationUnit orgUnit;
 
-    private ImmutableCollection<Period> periods;
+    private ImmutableSet<Period> periods;
 
     private CategoryOptionCombo attributeOptionCombo;
 
@@ -78,9 +77,9 @@ public final class ValidationAnalysisParams
      *
      * @return a collection of validation rules to be analysed
      */
-    public ImmutableCollection<ValidationRule> getRules()
+    public ImmutableSet<ValidationRule> getValidationRules()
     {
-        return rules;
+        return validationRules;
     }
 
     /**
@@ -98,7 +97,7 @@ public final class ValidationAnalysisParams
      *
      * @return a collection of periods to be analysed
      */
-    public ImmutableCollection<Period> getPeriods()
+    public ImmutableSet<Period> getPeriods()
     {
         return periods;
     }
@@ -176,7 +175,7 @@ public final class ValidationAnalysisParams
             Collection<Period> periods )
         {
             this.params = new ValidationAnalysisParams();
-            this.params.rules = ImmutableSet.copyOf( validationRules );
+            this.params.validationRules = ImmutableSet.copyOf( validationRules );
             this.params.orgUnit = orgUnit;
             this.params.periods = ImmutableSet.copyOf( periods );
         }

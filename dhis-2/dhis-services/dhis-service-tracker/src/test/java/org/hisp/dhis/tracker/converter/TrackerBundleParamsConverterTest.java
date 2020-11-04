@@ -28,9 +28,16 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -39,19 +46,11 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Luciano Fiandesio
@@ -61,9 +60,6 @@ public class TrackerBundleParamsConverterTest
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private BeanRandomizer rnd = new BeanRandomizer();
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Before
     public void setUp()
@@ -199,7 +195,6 @@ public class TrackerBundleParamsConverterTest
         trackedEntity.setGeometry( null );
         trackedEntity.setTrackedEntity( uid );
         trackedEntity.setEnrollments( enrollments );
-        trackedEntity.setCoordinates( null );
         return trackedEntity;
     }
 
@@ -216,7 +211,6 @@ public class TrackerBundleParamsConverterTest
         enrollment.setEnrollment( uid );
         enrollment.setTrackedEntity( parent );
         enrollment.setEvents( events );
-        enrollment.setCoordinate( null );
         return enrollment;
     }
 
@@ -229,7 +223,6 @@ public class TrackerBundleParamsConverterTest
             event.setGeometry( null );
             event.setEvent( uid + i );
             event.setEnrollment( parent );
-            event.setCoordinate( null );
             events.add( event );
         }
 

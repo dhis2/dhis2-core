@@ -91,4 +91,13 @@ public interface DimensionalItemObject
      * should be aggregated across multiple values.
      */
     TotalAggregationType getTotalAggregationType();
+
+    /**
+     * Gets a Period Offset: the offset can be applied within an Indicator formula
+     * in order to "shift" the query period by the offset value (e.g. Jan 2020 with
+     * offset 1 becomes Feb 2020). An offset with value 0 means no offset.
+     * 
+     * @return an int.
+     */
+    int getPeriodOffset();
 }

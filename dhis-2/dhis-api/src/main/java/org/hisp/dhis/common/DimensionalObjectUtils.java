@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -503,7 +504,13 @@ public class DimensionalObjectUtils
      */
     public static Set<DimensionalItemObject> getDataElements( Collection<DataElementOperand> operands )
     {
-        return operands.stream().map( DataElementOperand::getDataElement ).collect( Collectors.toSet() );
+        return operands.stream().map( o -> {
+
+            DataElement dataElement = o.getDataElement();
+            dataElement.setPeriodOffset( o.getPeriodOffset() );
+            return dataElement;
+
+        } ).collect( Collectors.toSet() );
     }
 
     /**
@@ -517,7 +524,13 @@ public class DimensionalObjectUtils
     {
         return operands.stream()
             .filter( o -> o.getCategoryOptionCombo() != null )
-            .map( DataElementOperand::getCategoryOptionCombo )
+            .map( o -> {
+
+                CategoryOptionCombo coc = o.getCategoryOptionCombo();
+                coc.setPeriodOffset( o.getPeriodOffset() );
+                return coc;
+                
+            } )
             .collect( Collectors.toSet() );
     }
 
@@ -532,7 +545,13 @@ public class DimensionalObjectUtils
     {
         return operands.stream()
             .filter( o -> o.getAttributeOptionCombo() != null )
-            .map( DataElementOperand::getAttributeOptionCombo )
+            .map( o -> {
+
+                CategoryOptionCombo aoc = o.getAttributeOptionCombo();
+                aoc.setPeriodOffset( o.getPeriodOffset() );
+                return aoc;
+
+            } )
             .collect( Collectors.toSet() );
     }
 
@@ -705,5 +724,18 @@ public class DimensionalObjectUtils
         return objects.stream()
             .map( DimensionalItemObject::getShortName )
             .collect( Collectors.joining( COL_SEP ) );
+    }
+
+    /**
+     * Transforms a List of {@see DimensionItemObjectValue} into a Map of
+     * {@see DimensionalItemObject} and value
+     */
+    public static Map<DimensionalItemObject, Double> convertToDimItemValueMap(
+        List<DimensionItemObjectValue> dimensionItemObjectValues )
+    {
+        return dimensionItemObjectValues.stream()
+            .filter( item -> item.getValue() != null )
+            .collect( Collectors
+                .toMap( DimensionItemObjectValue::getDimensionalItemObject, DimensionItemObjectValue::getValue ) );
     }
 }

@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Nguyen Hong Duc
@@ -291,6 +292,11 @@ public class User
     public String getUsername()
     {
         return userCredentials != null ? userCredentials.getUsername() : null;
+    }
+
+    public UUID getUuid()
+    {
+        return userCredentials != null ? userCredentials.getUuid() : null;
     }
 
     public boolean isSuper()
@@ -765,7 +771,12 @@ public class User
 
     public static String username( User user )
     {
-        return user != null ? user.getUsername() : "system-process";
+        return username( user, "system-process" );
+    }
+
+    public static String username( User user, String defaultValue )
+    {
+        return user != null ? user.getUsername() : defaultValue;
     }
 
     @Override

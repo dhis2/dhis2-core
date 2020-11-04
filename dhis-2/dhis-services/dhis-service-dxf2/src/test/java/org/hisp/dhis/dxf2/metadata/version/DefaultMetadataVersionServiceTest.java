@@ -28,6 +28,15 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -35,19 +44,15 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author sultanm
@@ -59,13 +64,16 @@ public class DefaultMetadataVersionServiceTest
     private MetadataVersionService versionService;
 
     @Autowired
-    private KeyJsonValueService keyJsonValueService;
+    private MetadataKeyJsonService metaDataKeyJsonService;
 
     @Autowired
     private IdentifiableObjectManager manager;
 
     @Autowired
     private MetadataSystemSettingService metadataSystemSettingService;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     private MetadataVersion versionA;
     private MetadataVersion versionB;
@@ -91,7 +99,6 @@ public class DefaultMetadataVersionServiceTest
     @Override
     protected void setUpTest()
     {
-        MockitoAnnotations.initMocks( this );
         versionA = new MetadataVersion( "Version_1", VersionType.ATOMIC );
         versionA.setHashCode( "12345" );
         versionB = new MetadataVersion( "Version_2", VersionType.BEST_EFFORT );
@@ -209,7 +216,7 @@ public class DefaultMetadataVersionServiceTest
 
         //testing if correct version is saved in keyjsonvalue table
         List<String> versions = null;
-        versions = keyJsonValueService.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        versions = metaDataKeyJsonService.getAllVersions();
 
         assertEquals( 1, versions.size() );
         assertEquals( "Version_2", versions.get( 0 ) );
@@ -219,8 +226,8 @@ public class DefaultMetadataVersionServiceTest
         sleepFor( 100 );
 
         versionService.saveVersion( VersionType.BEST_EFFORT );
-        KeyJsonValue expectedJson = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_3" );
-        List<String> allVersions = keyJsonValueService.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        KeyJsonValue expectedJson = metaDataKeyJsonService.getMetaDataVersion( "Version_3" );
+        List<String> allVersions = metaDataKeyJsonService.getAllVersions( );
 
         assertEquals( 2, allVersions.size() );
         assertEquals( "Version_3", allVersions.get( 1 ) );
@@ -240,7 +247,7 @@ public class DefaultMetadataVersionServiceTest
         sleepFor( 100 );
         versionService.saveVersion( VersionType.BEST_EFFORT );
 
-        KeyJsonValue expectedJson = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_3" );
+        KeyJsonValue expectedJson = metaDataKeyJsonService.getMetaDataVersion( "Version_3" );
 
         assertEquals( false, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
         assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementB" ) );

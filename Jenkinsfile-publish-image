@@ -46,7 +46,17 @@ pipeline {
 
             steps {
                 script {
-                    DOCKER_IMAGE_TAG = "${env.BRANCH_NAME}"
+                    def branchName = "${env.BRANCH_NAME}"
+
+                    DOCKER_IMAGE_TAG = branchName;
+
+                    if ( branchName.contains('/') ) {
+                        DOCKER_IMAGE_TAG = branchName.split('/')[1]
+                    }
+
+                    if ( branchName.startsWith('patch/') ) {
+                        DOCKER_IMAGE_TAG += '-rc'
+                    }
                 }
             }
         }
@@ -123,7 +133,7 @@ pipeline {
                                     }
                                 }
                             }
-                            always {
+                            cleanup {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {
                                         sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} down -v --remove-orphans"

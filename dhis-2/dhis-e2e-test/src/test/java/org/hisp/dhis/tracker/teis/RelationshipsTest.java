@@ -1,5 +1,7 @@
+package org.hisp.dhis.tracker.teis;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.teis;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
@@ -99,8 +100,7 @@ public class RelationshipsTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ) ).validate()
-            .statusCode( 200 );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
         JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
             .replacePropertyValuesWithIds( "trackedEntityInstance" ).get( JsonObject.class );
@@ -110,7 +110,9 @@ public class RelationshipsTest
         JsonObject eventObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
-        events = eventActions.post( eventObject ).extractUids();
+        ApiResponse response = eventActions.post( eventObject );
+        response.validate().statusCode( 200 );
+        events = response.extractUids();
     }
 
     @Test
@@ -130,7 +132,7 @@ public class RelationshipsTest
         // create a second relationship
         response = relationshipActions.post( object );
 
-        response.validate().statusCode( 200 )
+        response.validate().statusCode( 409 )
             .body( "status", equalTo( "ERROR" ) )
             .body( "response.status", equalTo( "ERROR" ) )
             .body( "response.ignored", equalTo( 1 ) )

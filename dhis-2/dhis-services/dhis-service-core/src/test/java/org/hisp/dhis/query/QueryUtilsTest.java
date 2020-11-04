@@ -28,16 +28,11 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,7 +40,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.user.User;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,12 +55,8 @@ public class QueryUtilsTest
 {
     private Schema schema;
 
-    @Rule
-    public ExpectedException exceptionRule = ExpectedException.none();
-
     @Before
     public void setUp()
-        throws Exception
     {
         schema = new Schema( Attribute.class, "attribute", "attributes" );
 
@@ -115,8 +112,8 @@ public class QueryUtilsTest
         assertNotNull( value1 );
         assertNotNull( value2 );
 
-        assertSame( 10, value1 );
-        assertSame( 100, value2 );
+        org.junit.Assert.assertSame( 10, value1 );
+        org.junit.Assert.assertSame( 100, value2 );
     }
 
     @Test( expected = QueryParserException.class )
@@ -168,13 +165,11 @@ public class QueryUtilsTest
         final Class<User> nonSupportedClass = User.class;
         final String anyValue = "wewee-4343";
 
-        // Then
-        exceptionRule.expect( QueryParserException.class );
-        exceptionRule
-                .expectMessage( "Unable to parse `" + anyValue + "` to `" + nonSupportedClass.getSimpleName() + "`." );
-
         // When
-        QueryUtils.parseValue( nonSupportedClass, anyValue );
+        final QueryParserException e = assertThrows( QueryParserException.class,
+            () -> QueryUtils.parseValue( nonSupportedClass, anyValue ) );
+        assertThat( "Unable to parse `" + anyValue + "` to `" + nonSupportedClass.getSimpleName() + "`.",
+            is( e.getMessage() ) );
     }
 
     @Test
@@ -222,7 +217,7 @@ public class QueryUtilsTest
     @Test
     public void testConvertOrderStringsNull()
     {
-        Assert.assertEquals( Collections.emptyList(), QueryUtils.convertOrderStrings( null, schema ) );
+        assertEquals( Collections.emptyList(), QueryUtils.convertOrderStrings( null, schema ) );
     }
 
     @Test
@@ -230,11 +225,11 @@ public class QueryUtilsTest
     {
         List<Order> orders = QueryUtils.convertOrderStrings( Arrays.asList( "value1:asc", "value2:asc", "value3:iasc",
             "value4:desc", "value5:idesc", "value6:xdesc", "value7" ), schema );
-        Assert.assertEquals( 5, orders.size() );
-        Assert.assertEquals( orders.get( 0 ), Order.from( "asc", schema.getProperty( "value1" ) ) );
-        Assert.assertEquals( orders.get( 1 ), Order.from( "iasc", schema.getProperty( "value3" ) ) );
-        Assert.assertEquals( orders.get( 2 ), Order.from( "desc", schema.getProperty( "value4" ) ) );
-        Assert.assertEquals( orders.get( 3 ), Order.from( "idesc", schema.getProperty( "value5" ) ) );
-        Assert.assertEquals( orders.get( 4 ), Order.from( "asc", schema.getProperty( "value7" ) ) );
+        assertEquals( 5, orders.size() );
+        assertEquals( orders.get( 0 ), Order.from( "asc", schema.getProperty( "value1" ) ) );
+        assertEquals( orders.get( 1 ), Order.from( "iasc", schema.getProperty( "value3" ) ) );
+        assertEquals( orders.get( 2 ), Order.from( "desc", schema.getProperty( "value4" ) ) );
+        assertEquals( orders.get( 3 ), Order.from( "idesc", schema.getProperty( "value5" ) ) );
+        assertEquals( orders.get( 4 ), Order.from( "asc", schema.getProperty( "value7" ) ) );
     }
 }

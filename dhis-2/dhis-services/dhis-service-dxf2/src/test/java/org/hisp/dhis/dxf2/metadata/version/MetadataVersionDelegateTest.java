@@ -30,7 +30,13 @@ package org.hisp.dhis.dxf2.metadata.version;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -53,13 +59,12 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpStatus;
@@ -69,11 +74,9 @@ import org.springframework.http.HttpStatus;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( HttpUtils.class )
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*","org.w3c.*"})
 public class MetadataVersionDelegateTest
 {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     private MetadataVersionDelegate target;
 
     @Mock
@@ -89,7 +92,7 @@ public class MetadataVersionDelegateTest
     private RenderService renderService;
 
     @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    public MockitoRule rule = MockitoJUnit.rule();
 
     private HttpResponse httpResponse;
 
@@ -114,8 +117,6 @@ public class MetadataVersionDelegateTest
     @Before
     public void setup()
     {
-        MockitoAnnotations.initMocks( this );
-
         PowerMockito.mockStatic( HttpUtils.class );
         httpResponse = mock( HttpResponse.class );
         metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
@@ -123,20 +124,16 @@ public class MetadataVersionDelegateTest
 
         target = new MetadataVersionDelegate( metadataSystemSettingService, synchronizationManager, renderService,
             metadataVersionService );
-
     }
 
     @Test
     public void testShouldThrowExceptionWhenServerNotAvailable()
     {
-
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( false, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
-        expectedException.expect( RemoteServerUnavailableException.class );
-        expectedException.expectMessage( "test_message" );
-
-        target.getRemoteMetadataVersion( "testVersion" );
+        assertThrows( "test_message", RemoteServerUnavailableException.class,
+            () -> target.getRemoteMetadataVersion( "testVersion" ) );
     }
 
     @Test
@@ -164,8 +161,8 @@ public class MetadataVersionDelegateTest
         PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
             .thenThrow( new Exception( "" ) );
 
-        expectedException.expect( MetadataVersionServiceException.class );
-        target.getRemoteMetadataVersion( "testVersion" );
+        assertThrows( MetadataVersionServiceException.class,
+            () -> target.getRemoteMetadataVersion( "testVersion" ) );
     }
 
     @Test
@@ -261,10 +258,9 @@ public class MetadataVersionDelegateTest
         when( renderService.fromMetadataVersion( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
             .thenThrow( new IOException( "" ) );
 
-        expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Exception occurred while trying to do JSON conversion. Caused by: " );
-
-        target.getMetaDataDifference( metadataVersion );
+        assertThrows( "Exception occurred while trying to do JSON conversion. Caused by: ",
+            MetadataVersionServiceException.class,
+            () -> target.getMetaDataDifference( metadataVersion ) );
     }
 
     @Test
@@ -292,11 +288,10 @@ public class MetadataVersionDelegateTest
         PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
             .thenReturn( dhisHttpResponse );
 
-        expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage(
-            "Client Error. Http call failed with status code: 400 Caused by: " + dhisHttpResponse.getResponse() );
-
-        target.getMetaDataDifference( metadataVersion );
+        assertThrows(
+            "Client Error. Http call failed with status code: 400 Caused by: " + dhisHttpResponse.getResponse(),
+            MetadataVersionServiceException.class,
+            () -> target.getMetaDataDifference( metadataVersion ) );
     }
 
     @Test
@@ -321,11 +316,11 @@ public class MetadataVersionDelegateTest
         PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
             .thenReturn( dhisHttpResponse );
 
-        expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Client Error. Http call failed with status code: "
-            + HttpStatus.CONFLICT.value() + " Caused by: " + response );
-
-        target.getRemoteMetadataVersion( "testVersion" );
+        assertThrows(
+            "Client Error. Http call failed with status code: "
+                + HttpStatus.CONFLICT.value() + " Caused by: " + response,
+            MetadataVersionServiceException.class,
+            () -> target.getRemoteMetadataVersion( "testVersion" ) );
     }
 
     @Test
@@ -352,11 +347,12 @@ public class MetadataVersionDelegateTest
         PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
             .thenReturn( dhisHttpResponse );
 
-        expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Server Error. Http call failed with status code: "
-            + HttpStatus.GATEWAY_TIMEOUT.value() + " Caused by: " + response );
+        assertThrows(
+            "Server Error. Http call failed with status code: "
+                + HttpStatus.GATEWAY_TIMEOUT.value() + " Caused by: " + response,
+            MetadataVersionServiceException.class,
+            () -> target.getRemoteMetadataVersion( "testVersion" ) );
 
-        target.getRemoteMetadataVersion( "testVersion" );
     }
 
     @Test
@@ -376,10 +372,10 @@ public class MetadataVersionDelegateTest
         when( renderService.fromJson( response, MetadataVersion.class ) )
             .thenThrow( new MetadataVersionServiceException( "" ) );
 
-        expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Exception occurred while trying to do JSON conversion for metadata version" );
-
-        target.getRemoteMetadataVersion( "testVersion" );
+        assertThrows(
+            "Exception occurred while trying to do JSON conversion for metadata version",
+            MetadataVersionServiceException.class,
+            () -> target.getRemoteMetadataVersion( "testVersion" ) );
     }
 
     @Test

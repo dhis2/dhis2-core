@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,9 +26,14 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.program.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.*;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,18 +42,25 @@ import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -69,9 +79,11 @@ import com.google.common.collect.Sets;
  */
 @Repository( "org.hisp.dhis.program.ProgramInstanceStore" )
 public class HibernateProgramInstanceStore
-    extends HibernateIdentifiableObjectStore<ProgramInstance>
+    extends SoftDeleteHibernateObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
+    private final static String STATUS = "status";
+
     private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
         Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
@@ -79,10 +91,9 @@ public class HibernateProgramInstanceStore
         );
 
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -170,7 +181,7 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasProgramStatus() )
         {
-            hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
+            hql += hlp.whereAnd() + "pi." + STATUS + " = '" + params.getProgramStatus() + "'";
         }
 
         if ( params.hasFollowUp() )
@@ -211,7 +222,7 @@ public class HibernateProgramInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
+            .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
 
     @Override
@@ -222,7 +233,7 @@ public class HibernateProgramInstanceStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
+            .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
 
     @Override
@@ -313,6 +324,47 @@ public class HibernateProgramInstanceStore
         query.setParameter( "type", type );
 
         return query.list();
+    }
+
+    @Override
+    public void hardDelete( ProgramInstance programInstance )
+    {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( programInstance ) );
+        getSession().delete( programInstance );
+    }
+
+    @Override
+    public List<ProgramInstance> getByProgramAndTrackedEntityInstance(
+        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
+    {
+        checkNotNull( programTeiPair );
+
+        if ( programTeiPair.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<ProgramInstance> cr = cb.createQuery( ProgramInstance.class );
+        Root<ProgramInstance> programInstance = cr.from( ProgramInstance.class );
+
+        // Constructing list of parameters
+        List<Predicate> predicates = new ArrayList<>();
+
+        // TODO we may have potentially thousands of events here, so, it's better to
+        // partition the list
+        for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
+        {
+            predicates.add( cb.and(
+                cb.equal( programInstance.get( "program" ), pair.getLeft() ),
+                cb.equal( programInstance.get( "entityInstance" ), pair.getRight() ),
+                cb.equal( programInstance.get( STATUS ), programStatus ) ) );
+        }
+
+        cr.select( programInstance )
+            .where( cb.or( predicates.toArray( new Predicate[] {} ) ) );
+
+        return sessionFactory.getCurrentSession().createQuery( cr ).getResultList();
     }
 
     private String toDateProperty( NotificationTrigger trigger )

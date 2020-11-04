@@ -28,12 +28,13 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,19 +43,60 @@ import java.util.List;
 @NoArgsConstructor
 public class TrackerImportReport
 {
+
     private TrackerStatus status = TrackerStatus.OK;
 
-    private List<TrackerBundleReport> bundleReports = new ArrayList<>();
+    private TrackerTimingsStats timings = new TrackerTimingsStats();
+
+    private TrackerBundleReport bundleReport = new TrackerBundleReport();
+
+    private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
+    
+    private String message;
 
     @JsonProperty
     public TrackerStats getStats()
     {
-        TrackerStats stats = new TrackerStats();
-        bundleReports.forEach( br -> stats.merge( br.getStats() ) );
-
+        TrackerStats stats = bundleReport.getStats();
+        stats.setIgnored( calculateIgnored() );
         return stats;
     }
+    
+    @JsonProperty
+    public TrackerStatus getStatus()
+    {
+        return status;
+    }
+    
+    @JsonProperty
+    public TrackerBundleReport getBundleReport()
+    {
+        return bundleReport;
+    }
 
+    @JsonProperty
+    public TrackerTimingsStats getTimings()
+    {
+        return timings;
+    }
+
+    @JsonProperty
+    public TrackerValidationReport getTrackerValidationReport()
+    {
+        return trackerValidationReport;
+    }
+    
+    @JsonProperty
+    public String message()
+    {
+        if ( StringUtils.isEmpty( message ) )
+        {
+            return getStatus().name();
+        }
+        
+        return message;
+    }
+    
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -62,10 +104,22 @@ public class TrackerImportReport
     /**
      * Are there any errors present?
      *
-     * @return true or false depending on any errors found in bundle reports
+     * @return true or false depending on any errors found in bundle report
      */
     public boolean isEmpty()
     {
-        return bundleReports.stream().allMatch( TrackerBundleReport::isEmpty );
+        return bundleReport.isEmpty();
+    }
+    
+    private int calculateIgnored()
+    {
+        if ( getTrackerValidationReport() == null || getTrackerValidationReport().getErrorReports() == null )
+        {
+            return 0;
+        }
+        
+        return (int) getTrackerValidationReport().getErrorReports().stream()
+        .map( TrackerErrorReport::getUid )
+        .distinct().count();
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vividsolutions.jts.geom.Geometry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +37,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,6 +56,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Event
     extends BaseLinkableObject
+    implements TrackerDto
 {
     private String uid;
 
@@ -79,43 +83,32 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
+    @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    private String eventDate;
+    private String occurredAt;
 
     @JsonProperty
-    private String dueDate;
+    private String scheduledAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
-    private Coordinate coordinate;
-
-    @JsonProperty
-    private boolean followup;
+    private boolean followUp;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
-    private String created;
+    private String createdAt;
 
     @JsonProperty
-    private String lastUpdated;
-
-    @JsonProperty
-    private String createdAtClient;
-
-    @JsonProperty
-    private String lastUpdatedAtClient;
+    private String updatedAt;
 
     @JsonProperty
     private String attributeOptionCombo;
@@ -127,16 +120,14 @@ public class Event
     private String completedBy;
 
     @JsonProperty
-    private String completedDate;
+    private String completedAt;
 
     @JsonProperty
     private Geometry geometry;
 
     @JsonProperty
-    private String assignedUser;
-
-    @JsonProperty
-    private String assignedUserUsername;
+    @JsonSerialize( using = UidJsonSerializer.class )
+    private User assignedUser;
 
     @JsonProperty
     @Builder.Default

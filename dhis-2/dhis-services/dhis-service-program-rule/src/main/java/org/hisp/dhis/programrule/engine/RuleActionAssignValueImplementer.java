@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
@@ -82,6 +82,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     @Override
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programInstance, "ProgramInstance cannot be null" );
+
         assignValue( ruleEffect, programInstance );
     }
 

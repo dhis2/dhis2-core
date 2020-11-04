@@ -76,7 +76,7 @@ public class GridRenderUtils
 
         for ( DimensionalObject object : rows )
         {
-            grid.addHeader( new GridHeader( object.getDimension(), object.getDisplayName() ) );
+            grid.addHeader( new GridHeader( object.getDimension(), object.getDimensionDisplayName() ) );
         }
 
         for ( List<DimensionalItemObject> column : gridColumns )

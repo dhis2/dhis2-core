@@ -28,20 +28,22 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -67,9 +69,11 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         {
             for ( DataInputPeriod period : inputPeriods )
             {
-                if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() ) && period.getOpeningDate().after( period.getClosingDate() ) )
+                if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() )
+                    && period.getOpeningDate().after( period.getClosingDate() ) )
                 {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(), period.getOpeningDate() ) );
+                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(),
+                        period.getOpeningDate() ) );
                 }
             }
         }
@@ -79,21 +83,42 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( DataSet.class ) ) return;
+        if ( object == null || !object.getClass().isAssignableFrom( DataSet.class ) )
+            return;
 
-        deleteRemovedSection( ( DataSet ) persistedObject, ( DataSet ) object, bundle );
+        deleteRemovedDataElementFromSection( (DataSet) persistedObject, (DataSet) object );
+        deleteRemovedSection( (DataSet) persistedObject, (DataSet) object, bundle );
     }
 
     private void deleteRemovedSection( DataSet persistedDataSet, DataSet importDataSet, ObjectBundle bundle )
     {
-        if ( !bundle.isMetadataSyncImport() ) return;
+        if ( !bundle.isMetadataSyncImport() )
+            return;
 
         Session session = sessionFactory.getCurrentSession();
 
-        List<String> importIds = importDataSet.getSections().stream().map( section ->  section.getUid() ).collect( Collectors.toList() );
+        List<String> importIds = importDataSet.getSections().stream().map( section -> section.getUid() )
+            .collect( Collectors.toList() );
+
+        persistedDataSet.getSections().stream().filter( section -> !importIds.contains( section.getUid() ) )
+            .forEach( section -> session.delete( section ) );
+    }
+
+    private void deleteRemovedDataElementFromSection( DataSet persistedDataSet, DataSet importDataSet )
+    {
+        Session session = sessionFactory.getCurrentSession();
 
         persistedDataSet.getSections().stream()
-                .filter( section -> !importIds.contains( section.getUid() ) )
-                .forEach( section -> session.delete( section ) );
+            .peek( section -> section.setDataElements( getUpdatedDataElements( importDataSet, section ) ) )
+            .forEach( section -> session.update( section ) );
+    }
+
+    private List<DataElement> getUpdatedDataElements( DataSet importDataSet, Section section )
+    {
+        return section.getDataElements().stream().filter( de -> {
+            Set<String> dataElements = importDataSet.getDataElements().stream()
+                .map( dataElement -> dataElement.getUid() ).collect( Collectors.toSet() );
+            return dataElements.contains( de.getUid() );
+        } ).collect( Collectors.toList() );
     }
 }

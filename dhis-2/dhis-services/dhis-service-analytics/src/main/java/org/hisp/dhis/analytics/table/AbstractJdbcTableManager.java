@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 import lombok.extern.slf4j.Slf4j;
@@ -501,7 +502,7 @@ public abstract class AbstractJdbcTableManager
      * Checks whether the given list of columns are valid.
      *
      * @param columns the list of {@link AnalyticsTableColumn}.
-     * @throws IllegalStateException if not valid.
+     * @throws IllegalArgumentException if not valid.
      */
     protected void validateDimensionColumns( List<AnalyticsTableColumn> columns )
     {
@@ -514,15 +515,16 @@ public abstract class AbstractJdbcTableManager
 
         Set<String> duplicates = ListUtils.getDuplicates( columnNames );
 
-        if ( !duplicates.isEmpty() )
-        {
-            throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
-        }
+        boolean columnsAreUnique = duplicates.isEmpty();
+
+        Preconditions.checkArgument( columnsAreUnique, String.format( "Analytics table dimensions contain duplicates: %s", duplicates ) );
     }
 
     /**
-     * Filters out analytics table columns which were created
-     * after the time of the last successful resource table update.
+     * Filters out analytics table columns which were created after the
+     * time of the last successful resource table update. This so that
+     * the the create table query does not refer to columns not present
+     * in resource tables.
      *
      * @param columns the analytics table columns.
      * @return a list of {@link AnalyticsTableColumn}.
@@ -564,7 +566,7 @@ public abstract class AbstractJdbcTableManager
      * @param prefix the prefix to use for the column name
      * @return a List of {@link AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addPeriodColumns(String prefix)
+    protected List<AnalyticsTableColumn> addPeriodColumns(String prefix)
     {
         return PeriodType.getAvailablePeriodTypes().stream()
             .map( pt -> {
@@ -579,7 +581,7 @@ public abstract class AbstractJdbcTableManager
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addOrganisationUnitLevels()
+    protected List<AnalyticsTableColumn> addOrganisationUnitLevels()
     {
         return organisationUnitService.getFilledOrganisationUnitLevels().stream()
             .map( lv -> {

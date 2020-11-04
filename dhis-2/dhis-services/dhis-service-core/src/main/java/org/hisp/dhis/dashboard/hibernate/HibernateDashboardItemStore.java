@@ -1,5 +1,3 @@
-package org.hisp.dhis.dashboard.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +26,8 @@ package org.hisp.dhis.dashboard.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.dashboard.hibernate;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.chart.Chart;
@@ -35,9 +35,9 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -49,6 +49,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -57,83 +60,9 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     implements DashboardItemStore
 {
     public HibernateDashboardItemStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DashboardItem.class, currentUserService, deletedObjectService, aclService, false );
-    }
-
-    @Override
-    public int countMapDashboardItems( Map map )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
-        query.setParameter( "map", map );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countChartDashboardItems( Chart chart )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
-        query.setParameter( "chart", chart );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countEventChartDashboardItems( EventChart eventChart )
-    {
-        Query<Long> query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
-        query.setParameter( "eventChart", eventChart );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countReportTableDashboardItems( ReportTable reportTable )
-    {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
-        query.setParameter( "reportTable", reportTable );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countVisualizationDashboardItems( Visualization visualization )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.visualization=:visualization" );
-        query.setParameter( "visualization", visualization );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countReportDashboardItems( Report report )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
-        query.setParameter( "report", report );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countDocumentDashboardItems( Document document )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
-        query.setParameter( "document", document );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
-    public int countUserDashboardItems( User user )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
-        query.setParameter( "user", user );
-
-        return query.getSingleResult().intValue();
+        super( sessionFactory, jdbcTemplate, publisher, DashboardItem.class, currentUserService, aclService, false );
     }
 
     @Override
@@ -143,5 +72,86 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
         query.setParameter( "item", dashboardItem );
 
         return query.getSingleResult();
+    }
+
+    @Override
+    public List<DashboardItem> getVisualizationDashboardItems( Visualization visualization )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "visualization" ), visualization ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "reportTable" ), reportTable ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getChartDashboardItems( Chart chart )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "chart" ), chart ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getEventChartDashboardItems( EventChart eventChart )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "eventChart" ), eventChart ) ) );
+    };
+
+    @Override
+    public List<DashboardItem> getMapDashboardItems( Map map )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "map" ), map ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getEventReportDashboardItems( EventReport eventReport )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "eventReport" ), eventReport ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getUserDashboardItems( User user )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isMember( user, root.get( "users" ) ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getReportDashboardItems( Report report )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isMember( report, root.get( "reports" ) ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getDocumentDashboardItems( Document document )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isMember( document, root.get( "resources" ) ) ) );
     }
 }

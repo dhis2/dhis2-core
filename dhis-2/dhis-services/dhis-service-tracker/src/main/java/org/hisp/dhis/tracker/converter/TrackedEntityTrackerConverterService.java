@@ -28,39 +28,30 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
 public class TrackedEntityTrackerConverterService
-    implements TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance>
+    implements TrackerConverterService<TrackedEntity, TrackedEntityInstance>
 {
-    private final TrackerPreheatService trackerPreheatService;
-
-    public TrackedEntityTrackerConverterService( TrackerPreheatService trackerPreheatService )
-    {
-        this.trackerPreheatService = trackerPreheatService;
-    }
 
     @Override
-    public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
+    public TrackedEntity to( TrackedEntityInstance trackedEntityInstance )
     {
         List<TrackedEntity> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
 
@@ -73,8 +64,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    public List<TrackedEntity> to( List<TrackedEntityInstance> trackedEntityInstances )
     {
         return trackedEntityInstances.stream().map( tei -> {
             TrackedEntity trackedEntity = new TrackedEntity();
@@ -85,85 +75,61 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntity trackedEntityInstance )
+    public TrackedEntityInstance from( TrackerPreheat preheat,
+        TrackedEntity trackedEntity )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( Collections.singletonList( trackedEntityInstance ) );
-
-        if ( trackedEntityInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return trackedEntityInstances.get( 0 );
+        TrackedEntityInstance tei = preheat.getTrackedEntity( TrackerIdScheme.UID,
+            trackedEntity.getTrackedEntity() );
+        return from( preheat, trackedEntity, tei );
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity trackedEntityInstance )
-    {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( preheat, Collections.singletonList( trackedEntityInstance ) );
-
-        if ( trackedEntityInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return trackedEntityInstances.get( 0 );
-    }
-
-    @Override
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntity> trackedEntityInstances )
-    {
-        return from( preheat( trackedEntityInstances ), trackedEntityInstances );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
+    public List<TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
-
-        trackedEntityInstances.forEach( te -> {
-            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity = preheat.getTrackedEntity(
-                TrackerIdScheme.UID, te.getTrackedEntity() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, te.getOrgUnit() );
-            TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, te.getTrackedEntityType() );
-
-            if ( trackedEntity == null )
-            {
-                Date now = new Date();
-
-                trackedEntity = new org.hisp.dhis.trackedentity.TrackedEntityInstance();
-                trackedEntity.setUid( te.getTrackedEntity() );
-                trackedEntity.setCreated( now );
-                trackedEntity.setCreatedAtClient( now );
-                trackedEntity.setLastUpdated( now );
-                trackedEntity.setLastUpdatedAtClient( now );
-            }
-
-            if ( !CodeGenerator.isValidUid( trackedEntity.getUid() ) )
-            {
-                trackedEntity.setUid( CodeGenerator.generateUid() );
-            }
-
-            trackedEntity.setOrganisationUnit( organisationUnit );
-            trackedEntity.setTrackedEntityType( trackedEntityType );
-            trackedEntity.setInactive( te.isInactive() );
-            trackedEntity.setDeleted( te.isDeleted() );
-            trackedEntity.setGeometry( te.getGeometry() );
-
-            trackedEntities.add( trackedEntity );
-        } );
-
-        return trackedEntities;
+        return trackedEntityInstances
+            .stream()
+            .map( te -> from( preheat, te ) )
+            .collect( Collectors.toList() );
     }
 
-    private TrackerPreheat preheat( List<TrackedEntity> trackedEntities )
+    @Override
+    public TrackedEntityInstance fromForRuleEngine( TrackerPreheat preheat, TrackedEntity object )
     {
-        TrackerPreheatParams params = TrackerPreheatParams.builder()
-            .trackedEntities( trackedEntities )
-            .build();
+        return null;
+    }
 
-        return trackerPreheatService.preheat( params );
+    private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
+    {
+        OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class,
+            te.getOrgUnit() );
+        TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class,
+            te.getTrackedEntityType() );
+
+        if ( tei == null )
+        {
+            Date now = new Date();
+
+            tei = new TrackedEntityInstance();
+            tei.setUid( te.getTrackedEntity() );
+            tei.setCreated( now );
+            tei.setCreatedAtClient( now );
+            tei.setLastUpdated( now );
+            tei.setLastUpdatedAtClient( now );
+            tei.setStoredBy( te.getStoredBy() );
+        }
+
+        if ( !CodeGenerator.isValidUid( tei.getUid() ) )
+        {
+            tei.setUid( CodeGenerator.generateUid() );
+        }
+
+        tei.setOrganisationUnit( organisationUnit );
+        tei.setTrackedEntityType( trackedEntityType );
+        tei.setInactive( te.isInactive() );
+        tei.setDeleted( te.isDeleted() );
+        tei.setGeometry( te.getGeometry() );
+
+        return tei;
     }
 }

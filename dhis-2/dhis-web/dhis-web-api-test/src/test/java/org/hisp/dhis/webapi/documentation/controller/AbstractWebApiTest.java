@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.documentation.controller;
 
 import org.apache.http.HttpStatus;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -374,23 +372,10 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             return (T) new OrganisationUnitLevel( uniqueName, "OrgLevel" + uniqueName );
         }
-        else if ( Color.class.isAssignableFrom( clazz ) )
-        {
-            Color color = new Color( "#ff3200" );
-            color.setName( "Color" + uniqueName );
-            return (T) color;
-        }
-        else if ( ColorSet.class.isAssignableFrom( clazz ) )
-        {
-            ColorSet colorSet = new ColorSet();
-            colorSet.setName( "ColorSet" + uniqueName );
-            return (T) colorSet;
-        }
         else if ( org.hisp.dhis.mapping.Map.class.isAssignableFrom( clazz ) )
         {
             org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
             map.setName( "Map" + uniqueName );
-            map.setDisplayName( "DisplayName" + uniqueName );
             map.setLatitude( 952175.62553525 );
             map.setLongitude( -1378543.6774686 );
             return (T) map;

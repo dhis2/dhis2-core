@@ -36,7 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -174,7 +174,7 @@ public class DataValueController
 
         dataValueValidation.validateInvalidFuturePeriod( period, dataElement );
 
-        dataValueValidation.validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, period );
+        dataValueValidation.validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
 
         value = dataValueValidation.validateAndNormalizeDataValue ( value, dataElement );
 
@@ -524,10 +524,11 @@ public class DataValueController
 
         response.setContentType( fileResource.getContentType() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        response.setHeader( HttpHeaders.CONTENT_LENGTH, String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         setNoStore( response );
         try
         {
-            response.setContentLengthLong( fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() ) );
+           fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {

@@ -18,7 +18,7 @@
           "trackedEntity": "EEFkxTWB55Y"
         }
       ],
-      "relationships": [ ],
+      "relationships": [],
       "attributes": [
         {
           "lastUpdated": "2020-02-20T12:09:21.852",
@@ -63,12 +63,12 @@
       "trackedEntityType": "KrYIdvLxkMb",
       "lastUpdatedAtClient": "2020-02-20T12:09:21.918",
       "orgUnitName": "Country",
-      "enrollmentDate": "2020-02-20T00:00:00.000",
+      "enrolledAt": "2020-02-20T00:00:00.000",
       "deleted": false,
-      "incidentDate": "2020-02-20T00:00:00.000",
+      "occurredAt": "2020-02-20T00:00:00.000",
       "status": "ACTIVE",
-      "notes": [ ],
-      "relationships": [ ],
+      "notes": [],
+      "relationships": [],
       "attributes": [
         {
           "lastUpdated": "2020-02-20T12:09:21.848",
@@ -80,7 +80,7 @@
           "value": "321"
         }
       ],
-      "events": [ ]
+      "events": []
     }
   ]
 }

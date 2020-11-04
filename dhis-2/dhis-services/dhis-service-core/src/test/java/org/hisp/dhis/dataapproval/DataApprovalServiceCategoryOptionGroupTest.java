@@ -489,7 +489,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         dataApprovalLevelService.addDataApprovalLevel( agencyLevel4, 4 );
         dataApprovalLevelService.addDataApprovalLevel( partnerLevel5, 5 );
 
-        periodType = PeriodType.getPeriodTypeByName( "Monthly" );
+        periodType = periodService.reloadPeriodType( PeriodType.getPeriodTypeByName( "Monthly" ) );
         periodA = createPeriod( "201801" );
         periodService.addPeriod( periodA );
 

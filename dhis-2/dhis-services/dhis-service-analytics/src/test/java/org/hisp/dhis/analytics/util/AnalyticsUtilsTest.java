@@ -33,7 +33,6 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
@@ -53,6 +52,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -605,5 +605,64 @@ public class AnalyticsUtilsTest
         assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
         assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType() ), 0 ) ;
         assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
+    }
+    
+    @Test
+    public void testIsPeriodInPeriods()
+    {
+        Period p1 = PeriodType.getPeriodFromIsoString( "202001" );
+        Period p2 = PeriodType.getPeriodFromIsoString( "202002" );
+        Period p3 = PeriodType.getPeriodFromIsoString( "202003" );
+
+        List<DimensionalItemObject> periods = Lists.newArrayList( p1, p2, p3 );
+
+        assertTrue( AnalyticsUtils.isPeriodInPeriods( "202001", periods ) );
+        assertFalse( AnalyticsUtils.isPeriodInPeriods( "202005", periods ) );
+    }
+    
+    @Test
+    public void testFindDimensionalItems()
+    {
+        ProgramIndicator pi1 = new ProgramIndicator();
+        pi1.setUid( CodeGenerator.generateUid() );
+        ProgramIndicator pi2 = new ProgramIndicator();
+        pi2.setUid( CodeGenerator.generateUid() );
+        ProgramIndicator pi3 = new ProgramIndicator();
+        pi3.setUid( CodeGenerator.generateUid() );
+        ProgramIndicator pi4 = new ProgramIndicator();
+        pi4.setUid( pi1.getUid() );
+
+        List<DimensionalItemObject> dimensionalItems = AnalyticsUtils.findDimensionalItems( pi1.getUid(),
+            Lists.newArrayList( pi1, pi2, pi3, pi4 ) );
+
+        assertEquals( dimensionalItems.size(), 2);
+    }
+
+    @Test
+    public void testHasPeriod()
+    {
+        List<Object> row = new ArrayList<>();
+
+        row.add( "someUid" );
+        row.add( "202010" );
+        row.add( 100D );
+        // pass - index 1 is a valid iso period
+        assertTrue( AnalyticsUtils.hasPeriod( row, 1 ) );
+        // fail - index 3 is too high
+        assertFalse( AnalyticsUtils.hasPeriod( row, 3 ) );
+        // fail - index 4 is too high
+        assertFalse( AnalyticsUtils.hasPeriod( row, 4 ) );
+        // fail - index 2 is a Double
+        assertFalse( AnalyticsUtils.hasPeriod( row, 2 ) );
+
+        row = new ArrayList<>();
+
+        row.add( "someUid" );
+        row.add( "2020A" );
+        row.add( 100D );
+        // pass - index 1 is not a valid period iso string
+        assertFalse( AnalyticsUtils.hasPeriod( row, 1 ) );
+
+
     }
 }

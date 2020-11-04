@@ -189,5 +189,9 @@ public class IdentifiableObjectUtilsTest
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2016Q4" ), yearly, calendar ) );
         assertEquals( PeriodType.getPeriodFromIsoString( "2017" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017Q1" ), yearly, calendar ) );
+
+        assertNull( PeriodType.getPeriodFromIsoString( "u3847847" ));
+
+
     }
 }
