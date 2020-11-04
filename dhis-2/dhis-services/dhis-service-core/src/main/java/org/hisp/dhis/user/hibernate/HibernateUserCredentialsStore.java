@@ -39,6 +39,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 /**
  * @author Lars Helge Overland
  */
@@ -82,6 +84,14 @@ public class HibernateUserCredentialsStore
     {
         Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.secret = :secret" );
         query.setParameter( "secret", secret );
+        return query.uniqueResult();
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByUuid( UUID uuid )
+    {
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.uuid = :uuid" );
+        query.setParameter( "uuid", uuid );
         return query.uniqueResult();
     }
 }
