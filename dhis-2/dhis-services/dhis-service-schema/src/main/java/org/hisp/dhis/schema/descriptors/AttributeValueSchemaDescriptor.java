@@ -44,9 +44,6 @@ public class AttributeValueSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
-        schema.setOrder( 100 );
-
-        return schema;
+        return new Schema( AttributeValue.class, SINGULAR, PLURAL );
     }
 }
