@@ -105,6 +105,7 @@ public class DefaultLocationManager extends LogOnceLogger
         }
         else
         {
+            log( log, Level.INFO, "System property " + systemProperty + " not set" );
             try 
             {
                 Context initCtx = new InitialContext();
@@ -125,7 +126,7 @@ public class DefaultLocationManager extends LogOnceLogger
             }
             else
             {
-                log( log, Level.INFO, "System property " + systemProperty + " not set" );
+                log( log, Level.INFO, "Context variable " + contextVariable + " not set" );
 
                 path = System.getenv( environmentVariable );
 
