@@ -16,13 +16,16 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
     steps:
     - uses: actions/checkout@v2
-    - name: build docker
+    - name: Run API tests
+      env:
+        CORE_IMAGE_NAME: "dhis2/core-dev:local"
+        TEST_IMAGE_NAME: "dhis2/tests:local"
       run: |
-        docker build . -t dhis2/core-dev:local
-        ./docker/extract-artifacts.sh dhis2/core-dev:local
-        ONLY_DEFAULT=1 ./docker/build-containers.sh dhis2/core-dev:local dhis2/core-dev:local
+        docker build . -t $CORE_IMAGE_NAME
+        ./docker/extract-artifacts.sh $CORE_IMAGE_NAME
+        ONLY_DEFAULT=1 ./docker/build-containers.sh $CORE_IMAGE_NAME $CORE_IMAGE_NAME
         cd dhis-2/dhis-e2e-test
-        IMAGE_NAME=dhis2/core-dev:local docker-compose up -d
-        docker build -t dhis2/tests:local .
-        IMAGE_NAME=dhis2/tests:local docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
+        IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
+        docker build -t $TEST_IMAGE_NAME .
+        IMAGE_NAME=$TEST_IMAGE_NAME:local docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
 
