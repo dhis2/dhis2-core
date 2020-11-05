@@ -88,11 +88,11 @@ public class AuditManager
             audit.setData( this.objectFactory.create(
                 audit.getAuditScope(),
                 audit.getAuditType(),
-                audit.getAuditableEntity().getEntity(),
+                audit.getAuditableEntity().getSerializableObject(),
                 audit.getCreatedBy() ) );
         }
 
-        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
+        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity() ) );
 
         if ( config.isUseQueue() )
         {

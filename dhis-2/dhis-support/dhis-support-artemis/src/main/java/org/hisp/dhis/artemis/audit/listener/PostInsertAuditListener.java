@@ -39,6 +39,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -52,9 +53,9 @@ public class PostInsertAuditListener
     extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
     public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, ObjectMapper objectMapper )
+        UsernameSupplier userNameSupplier, SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, objectMapper );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -75,7 +76,7 @@ public class PostInsertAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .auditableEntity( new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
                 .build() ) );
     }
 
@@ -89,5 +90,13 @@ public class PostInsertAuditListener
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
         log.warn( "onPostInsertCommitFailed: " + event );
+    }
+
+    /**
+     * Create Audit entry for insert event
+     */
+    private Object createAuditEntry( PostInsertEvent postInsertEvent )
+    {
+        return super.createAuditEntry( postInsertEvent.getEntity(), postInsertEvent.getState(), postInsertEvent.getSession(), postInsertEvent.getId(), postInsertEvent.getPersister() );
     }
 }

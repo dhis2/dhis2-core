@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
@@ -41,10 +42,12 @@ import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -94,25 +97,31 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     }
 
     @Override
-    public AuditAttributes collectAuditAttributes( Object auditObject )
+    public AuditAttributes collectAuditAttributes( AuditableEntity auditableEntity )
     {
         AuditAttributes auditAttributes = new AuditAttributes();
 
-        getAuditAttributeFields( auditObject.getClass() ).entrySet().forEach( entry -> {
-
-            Object attributeObject = ReflectionUtils.invokeMethod( auditObject, entry.getValue() );
-
-            if ( attributeObject instanceof IdentifiableObject )
-            {
-                auditAttributes.put( entry.getKey().getName(), ( ( IdentifiableObject ) attributeObject).getUid() );
-            }
-            else
-            {
-                auditAttributes.put( entry.getKey().getName(), attributeObject );
-            }
-        } );
+        getAuditAttributeFields( auditableEntity.getEntityClass() ).forEach( ( field, getterMethod ) ->
+                auditAttributes.put( field.getName(), getAttributeValue( auditableEntity.getSerializableObject(), field.getName(), getterMethod ) ) );
 
         return auditAttributes;
+    }
+
+    private Object getAttributeValue( Object auditObject, String attributeName, Method getter )
+    {
+        if ( auditObject instanceof Map )
+        {
+            return ( ( Map ) auditObject ).get( attributeName );
+        }
+
+        Object value = ReflectionUtils.invokeMethod( auditObject, getter );
+
+        if ( value instanceof IdentifiableObject )
+        {
+            return ( (IdentifiableObject ) value ).getUid();
+        }
+
+        return value;
     }
 
     private Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )

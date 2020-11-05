@@ -39,6 +39,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -54,9 +55,9 @@ public class PostUpdateAuditListener
     public PostUpdateAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, ObjectMapper objectMapper )
+        UsernameSupplier userNameSupplier, SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, objectMapper );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -77,7 +78,7 @@ public class PostUpdateAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .auditableEntity( new AuditableEntity( postUpdateEvent.getEntity().getClass(), createAuditEntry( postUpdateEvent ) ) )
                 .build() ) );
     }
 
@@ -91,5 +92,13 @@ public class PostUpdateAuditListener
     public void onPostUpdateCommitFailed( PostUpdateEvent event )
     {
         log.warn( "onPostUpdateCommitFailed: " + event );
+    }
+
+    /**
+     * Create Audit entry for update event
+     */
+    private Object createAuditEntry( PostUpdateEvent postUpdateEvent )
+    {
+        return super.createAuditEntry( postUpdateEvent.getEntity(), postUpdateEvent.getState(), postUpdateEvent.getSession(), postUpdateEvent.getId(), postUpdateEvent.getPersister() );
     }
 }

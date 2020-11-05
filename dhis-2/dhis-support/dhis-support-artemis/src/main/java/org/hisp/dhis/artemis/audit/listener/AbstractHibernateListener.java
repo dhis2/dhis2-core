@@ -28,20 +28,28 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
+import org.hibernate.Hibernate;
+import org.hibernate.event.spi.EventSource;
+import org.hibernate.event.spi.PostDeleteEvent;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -56,29 +64,26 @@ import static com.cronutils.utils.Preconditions.checkNotNull;
 @Slf4j
 public abstract class AbstractHibernateListener
 {
-    protected final String[] AUDIT_IGNORE_PROPERTIES = { "userAccesses", "userGroupAccesses", "user", "lastUpdatedBy" };
-
-    final AuditManager auditManager;
-    final AuditObjectFactory objectFactory;
+    protected final AuditManager auditManager;
+    protected final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
-
-    private final ObjectMapper objectMapper;
+    private final SchemaService schemaService;
 
     public AbstractHibernateListener(
-        AuditManager auditManager,
-        AuditObjectFactory objectFactory,
-        UsernameSupplier usernameSupplier,
-        ObjectMapper objectMapper )
+            AuditManager auditManager,
+            AuditObjectFactory objectFactory,
+            UsernameSupplier usernameSupplier,
+            SchemaService schemaService )
     {
         checkNotNull( auditManager );
         checkNotNull( objectFactory );
         checkNotNull( usernameSupplier );
-        checkNotNull( objectMapper );
+        checkNotNull( schemaService );
 
         this.auditManager = auditManager;
         this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
-        this.objectMapper = objectMapper;
+        this.schemaService = schemaService;
     }
 
     Optional<Auditable> getAuditable( Object object, String type )
@@ -88,7 +93,7 @@ public abstract class AbstractHibernateListener
             Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
 
             boolean shouldAudit = Arrays.stream( auditable.eventType() )
-                .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );
+                    .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );
 
             if ( shouldAudit )
             {
@@ -105,4 +110,128 @@ public abstract class AbstractHibernateListener
     }
 
     abstract AuditType getAuditType();
+
+    /**
+     * Create serializable Map<String, Object> for delete event
+     * Because the entity has already been deleted and transaction is committed
+     * all lazy collections or properties that haven't been loaded will be ignored.
+     *
+     * @return Map<String, Object> with key is property name and value is property value.
+     */
+    protected Object createAuditEntry( PostDeleteEvent event )
+    {
+        Map<String,Object> objectMap = new HashMap<>();
+        Schema schema = schemaService.getDynamicSchema( event.getEntity().getClass() );
+        Map<String, Property> properties = schema.getFieldNameMapProperties();
+
+        for ( int i = 0; i< event.getDeletedState().length; i++ )
+        {
+            if ( event.getDeletedState()[i] == null )
+            {
+                continue;
+            }
+
+            Object value = event.getDeletedState()[i];
+            String pName = event.getPersister().getPropertyNames()[i];
+            Property property = properties.get( pName );
+
+            if ( property == null || !property.isOwner() )
+            {
+                continue;
+            }
+
+            if ( Hibernate.isInitialized( value )  )
+            {
+                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+                {
+                    objectMap.put( pName, IdentifiableObjectUtils.getUids( ( Collection ) value ) );
+                }
+                else
+                {
+                    objectMap.put( pName, getId( value ) );
+                }
+            }
+        }
+        return objectMap;
+    }
+
+    /**
+     * Create serializable Map<String, Object> based on given Audit Entity and related objects that are produced by
+     * {@link PostUpdateEvent} or {@link PostInsertEvent}
+     * The returned object must comply with below rules:
+     *  1. Only includes referenced properties that are owned by the current Audit Entity.
+     *  Means that the property's schema has attribute "owner = true"
+     *  2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
+     *  3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
+     *
+     * @return Map<String, Object> with key is property name and value is property value.
+     */
+    protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
+    {
+        Map<String, Object> objectMap = new HashMap<>();
+        Schema schema = schemaService.getDynamicSchema( entity.getClass() );
+        Map<String, Property> properties = schema.getFieldNameMapProperties();
+
+        HibernateProxy entityProxy = null;
+
+        for ( int i = 0; i< state.length; i++ )
+        {
+            if ( state[i] == null )
+            {
+                continue;
+            }
+
+            Object value = state[i];
+
+            String pName = persister.getPropertyNames()[i];
+            Property property = properties.get( pName );
+
+            if ( property == null || !property.isOwner() )
+            {
+                continue;
+            }
+
+            if ( !Hibernate.isInitialized( value ) )
+            {
+                if ( entityProxy == null )
+                {
+                    entityProxy = ( HibernateProxy ) persister.createProxy( id, session );
+                }
+
+                try
+                {
+                    value =  persister.getPropertyValue( entityProxy, pName );
+                }
+                catch ( Exception ex )
+                {
+                    // Ignore if couldn't find property reference object, maybe it was deleted.
+                    log.warn( DebugUtils.getStackTrace( ex ) );
+                }
+            }
+
+            if ( value != null )
+            {
+                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+                {
+                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
+                }
+                else
+                {
+                    objectMap.put( pName, getId( value ) );
+                }
+            }
+        }
+
+        return objectMap;
+    }
+
+    private Object getId( Object object )
+    {
+        if ( BaseIdentifiableObject.class.isAssignableFrom( object.getClass() ) )
+        {
+            return ( ( BaseIdentifiableObject ) object ).getUid();
+        }
+
+        return object;
+    }
 }

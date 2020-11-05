@@ -43,6 +43,7 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -57,10 +58,10 @@ import java.util.Map;
 public class PostDeleteAuditListener
     extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
-    public PostDeleteAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, ObjectMapper objectMapper )
+    public PostDeleteAuditListener(AuditManager auditManager, AuditObjectFactory auditObjectFactory,
+       UsernameSupplier userNameSupplier, SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, objectMapper );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -80,7 +81,7 @@ public class PostDeleteAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
                 .build() ) );
     }
 
