@@ -17,6 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: satackey/action-docker-layer-caching@v0.0.8
+      continue-on-error: true
+      with:
+        key: dhis2-docker-cache-{hash}
+        restore-keys: |
+          dhis2-docker-cache-
     - name: Run API tests
       env:
         CORE_IMAGE_NAME: "dhis2/core-dev:local"
