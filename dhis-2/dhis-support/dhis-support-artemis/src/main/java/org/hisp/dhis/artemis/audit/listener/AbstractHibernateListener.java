@@ -30,7 +30,6 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
-import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -49,6 +48,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -175,7 +175,7 @@ public abstract class AbstractHibernateListener
 
         HibernateProxy entityProxy = null;
 
-        for ( int i = 0; i< state.length; i++ )
+        for ( int i = 0; i < state.length; i++ )
         {
             if ( state[i] == null )
             {
@@ -192,7 +192,22 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( !isProxyEmpty( value ) && !Hibernate.isInitialized( value )  )
+            if ( property.isEmbeddedObject() )
+            {
+                Schema embeddedSchema = schemaService.getSchema( value.getClass() );
+
+                if ( embeddedSchema == null )
+                {
+                    objectMap.put( pName, value );
+                }
+                else
+                {
+                    objectMap.putAll( handleEmbeddedObject( embeddedSchema, value, persister ) );
+                }
+
+                continue;
+            }
+            else if ( shouldInitializeProxy( value ) )
             {
                 if ( entityProxy == null )
                 {
@@ -210,32 +225,62 @@ public abstract class AbstractHibernateListener
                 }
             }
 
-            if ( value != null )
+            if ( value == null )
             {
-                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
-                {
-                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
-                }
-                else
-                {
-                    objectMap.put( pName, getId( value ) );
-                }
+                continue;
+            }
+
+            else if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+            {
+                objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
+            }
+            else
+            {
+                objectMap.put( pName, getId( value ) );
             }
         }
 
         return objectMap;
     }
 
-    private boolean isProxyEmpty( Object value )
+    private Map<String, Object> handleEmbeddedObject( Schema schema, Object value, EntityPersister persister )
     {
-        if ( value == null ) return true;
+        Map<String, Object> map = new HashMap<>();
 
-        if ( value instanceof PersistentSet )
+        Map<String, Property> properties = schema.getFieldNameMapProperties();
+        properties.forEach( (pName, property) -> {
+
+            Object propertyValue =  ReflectionUtils.invokeMethod( value, property.getGetterMethod() );
+            if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+            {
+                if ( property.isCollection() )
+                {
+                    map.put( pName, IdentifiableObjectUtils.getUids( (Collection) propertyValue ) );
+                }
+                else
+                {
+                    map.put( pName, getId( propertyValue ) );
+                }
+            }
+            else
+            {
+                map.put( pName, propertyValue );
+            }
+
+
+        } );
+
+        return map;
+    }
+
+    private boolean shouldInitializeProxy( Object value )
+    {
+        if ( value == null || Hibernate.isInitialized( value ) )
         {
-            return ( (PersistentSet) value ).isEmpty();
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     private Object getId( Object object )

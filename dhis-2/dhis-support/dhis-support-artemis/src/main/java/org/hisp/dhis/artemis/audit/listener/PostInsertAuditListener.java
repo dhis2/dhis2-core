@@ -78,6 +78,7 @@ public class PostInsertAuditListener
                 .object( postInsertEvent.getEntity() )
                 .auditableEntity( new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
                 .build() ) );
+
     }
 
     @Override
