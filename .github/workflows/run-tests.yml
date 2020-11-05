@@ -33,7 +33,7 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up JDK 11
       uses: actions/setup-java@v1
       with:
@@ -47,3 +47,18 @@ jobs:
     - name: Run integration tests
       run: mvn clean install -Pintegration -f ./dhis-2/pom.xml
     
+  api-test:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'some-defined-label')
+    steps:
+    - uses: actions/checkout@v2
+    - name: build docker
+      run: |
+        docker build . -t dhis2/core-dev:local
+        ./docker/extract-artifacts.sh dhis2/core-dev:local
+        ONLY_DEFAULT=1 ./docker/build-containers.sh dhis2/core-dev:local dhis2/core-dev:local
+        cd dhis-2/dhis-e2e-test
+        IMAGE_NAME=dhis2/core-dev:local docker-compose up -d
+        docker build -t dhis2/tests:local .
+        IMAGE_NAME=dhis2/tests:local docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
+
