@@ -111,7 +111,7 @@ public class FilteringHelper
         final byte DIMENSION_TYPE = 2;
         Class<? extends BaseDimensionalItemObject> entity = null;
 
-        if ( isDimensionTypeFilter( filter ) )
+        if ( hasEqualsDimensionTypeFilter( filter ) )
         {
             final String[] array = filter.split( ":" );
             final boolean hasDimensionType = array.length == 3;
@@ -141,7 +141,7 @@ public class FilteringHelper
         {
             for ( final String filter : filters )
             {
-                if ( isDimensionTypeFilter( filter ) )
+                if ( hasEqualsDimensionTypeFilter( filter ) || hasInDimensionTypeFilter( filter ) )
                 {
                     return true;
                 }
@@ -151,9 +151,14 @@ public class FilteringHelper
         return false;
     }
 
-    private static boolean isDimensionTypeFilter( final String filter )
+    private static boolean hasEqualsDimensionTypeFilter( final String filter )
     {
         return trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX );
+    }
+
+    private static boolean hasInDimensionTypeFilter( final String filter )
+    {
+        return trimToEmpty( filter ).contains( DIMENSION_TYPE_IN_FILTER_PREFIX );
     }
 
     private static Class<? extends BaseDimensionalItemObject> entityClassFromString( final String entityType )
