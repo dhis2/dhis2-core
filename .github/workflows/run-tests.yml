@@ -10,12 +10,13 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
-
+      
   api-test:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
     steps:
     - uses: actions/checkout@v2
+    - uses: satackey/action-docker-layer-caching@v0.0.8
     - name: Run API tests
       env:
         CORE_IMAGE_NAME: "dhis2/core-dev:local"
