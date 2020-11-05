@@ -36,6 +36,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.json.JSONException;
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
+import java.util.function.Function;
 
 import static org.hamcrest.Matchers.*;
 
@@ -66,43 +68,16 @@ public class TrackerImporterTests
     }
 
     @Test
-    public void shouldReturnErrorReportsWhenTeiIncorrect()
-    {
-        // arrange
-        JsonObject trackedEntity = new JsonObjectBuilder()
-            .addProperty( "trackedEntityType", "" )
-            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
-            .build();
-
-        JsonObject trackedEntities = createTeiBody( trackedEntity );
-
-        // act
-        ApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
-
-        // assert
-        response.validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "trackerValidationReport.errorReports", notNullValue() )
-            .rootPath( "trackerValidationReport.errorReports[0]" )
-            .body( "message", containsStringIgnoringCase( "Could not find TrackedEntityType" ) )
-            .noRootPath()
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "stats.total", equalTo( 1 ) );
-    }
-
-    @Test
     public void shouldImportTei()
         throws JSONException
     {
         // arrange
 
-        JsonObject trackedEntity = new JsonObjectBuilder()
+        JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
-            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[1] )
-            .build();
+            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+            .wrapIntoArray( "trackedEntities" );
 
-        JsonObject trackedEntities = createTeiBody( trackedEntity );
 
         // act
         ApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -132,7 +107,7 @@ public class TrackerImporterTests
     public void shouldImportTeiWithAttributes()
         throws Exception
     {
-        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker_v2/teis/teis.json" ) );
+        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
 
         // act
         ApiResponse response = trackerActions.postAndGetJobReport( teiBody );
@@ -157,19 +132,35 @@ public class TrackerImporterTests
             .statusCode( 200 );
 
         JSONAssert.assertEquals( teiBody.get( "trackedEntities" ).getAsJsonArray().get( 0 ).toString(), response.getBody().toString(), false);
-
-
     }
 
-    private JsonObject createTeiBody( JsonObject innerTei )
+    @Test
+    public void shouldNotCommitWhenStrategyIsValidate()
     {
-        JsonObject trackedEntities = new JsonObject();
-        JsonArray tea = new JsonArray();
+        // act
+        ApiResponse response = trackerActions.postAndGetJobReport(  new File( "src/test/resources/tracker/v2/teis/tei.json" ), new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
 
-        tea.add( innerTei );
 
-        trackedEntities.add( "trackedEntities", tea );
+        response.validate()
+            .statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.created", equalTo( 0 ) );
+    }
 
-        return trackedEntities;
+    @Test
+    public void shouldImportTeisInBulk()
+        throws Exception
+    {
+        // todo add enrollments and events to the payload
+        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/teis.json" ) );
+
+        // act
+        ApiResponse response = trackerActions.postAndGetJobReport( teiBody );
+
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.created", equalTo( 2 ) )
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports", hasSize(2) );
     }
 }

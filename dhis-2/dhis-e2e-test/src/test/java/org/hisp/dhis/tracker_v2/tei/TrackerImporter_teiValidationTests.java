@@ -26,30 +26,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions.metadata;
+package org.hisp.dhis.tracker_v2.tei;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.tracker_v2.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SharingActions extends RestApiActions
+public class TrackerImporter_teiValidationTests
+    extends ApiTest
 {
-    public SharingActions( )
+    private TrackerActions trackerActions;
+    @BeforeAll
+    public void beforeAll() {
+        trackerActions = new TrackerActions();
+
+        new LoginActions().loginAsSuperUser();
+    }
+
+    @Test
+    public void shouldReturnErrorReportsWhenTeiIncorrect()
     {
-        super( "/sharing" );
+        // arrange
+        JsonObject trackedEntities = new JsonObjectBuilder()
+            .addProperty( "trackedEntityType", "" )
+            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+            .wrapIntoArray( "trackedEntities" );
+
+        // act
+        ApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
+
+        // assert
+        response.validate()
+            .statusCode( 200 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "trackerValidationReport.errorReports", notNullValue() )
+            .rootPath( "trackerValidationReport.errorReports[0]" )
+            .body( "message", containsStringIgnoringCase( "Could not find TrackedEntityType" ) )
+            .noRootPath()
+            .body( "stats.ignored", equalTo( 1 ) )
+            .body( "stats.total", equalTo( 1 ) );
     }
-
-    public void setupSharingForConfiguredUserGroup(String type, String id) {
-
-        JsonObject jsonObject = new JsonObject();
-
-        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
-
-        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
-    }
-
 }

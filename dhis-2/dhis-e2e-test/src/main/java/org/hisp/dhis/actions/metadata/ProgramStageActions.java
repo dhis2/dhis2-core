@@ -30,26 +30,28 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SharingActions extends RestApiActions
+public class ProgramStageActions extends RestApiActions
 {
-    public SharingActions( )
+    public ProgramStageActions( )
     {
-        super( "/sharing" );
+        super( "/programStages" );
     }
 
-    public void setupSharingForConfiguredUserGroup(String type, String id) {
+    public ApiResponse enableUserAssignment( String programStageId, boolean enabled )
+    {
+        JsonObject body = this.get( programStageId ).getBody();
 
-        JsonObject jsonObject = new JsonObject();
+        body.addProperty( "enableUserAssignment", enabled );
 
-        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
+        ApiResponse response = this.update( programStageId, body );
 
-        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
+        response.validate().statusCode( 200 );
+
+        return response;
     }
-
 }

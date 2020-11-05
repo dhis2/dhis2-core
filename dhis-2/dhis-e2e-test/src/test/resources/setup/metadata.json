@@ -531,7 +531,7 @@
       "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
-      "featureType": "NONE",
+      "featureType": "POLYGON",
       "minAttributesRequiredToSearch": 1,
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"

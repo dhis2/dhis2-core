@@ -306,11 +306,11 @@ public class RestApiActions
 
                     if ( !CollectionUtils.isEmpty( objectReports ) )
                     {
-                        String endpoint = schemasActions.findSchemaPropertyByKlassName( tr.getKlass(), "plural" );
+                        String ep = schemasActions.findSchemaPropertyByKlassName( tr.getKlass(), "plural" );
 
                         objectReports.forEach( or -> {
                             String uid = or.getUid();
-                            TestRunStorage.addCreatedEntity( endpoint, uid );
+                            TestRunStorage.addCreatedEntity( ep, uid );
                         } );
                     }
 
@@ -320,8 +320,12 @@ public class RestApiActions
         }
         if ( response.isEntityCreated() )
         {
-            TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
+            this.addCreatedEntity( endpoint, response.extractUid() );
         }
+    }
+
+    protected void addCreatedEntity(String ep, String id) {
+        TestRunStorage.addCreatedEntity( ep, id );
     }
 }
 

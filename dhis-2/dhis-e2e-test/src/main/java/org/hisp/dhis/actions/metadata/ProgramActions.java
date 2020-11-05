@@ -45,12 +45,12 @@ import java.util.Optional;
 public class ProgramActions
     extends RestApiActions
 {
-    public RestApiActions programStageActions;
+    public ProgramStageActions programStageActions;
 
     public ProgramActions()
     {
         super( "/programs" );
-        this.programStageActions = new RestApiActions( "/programStages" );
+        this.programStageActions = new ProgramStageActions( );
     }
 
     public ApiResponse createProgram( String programType )

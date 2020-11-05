@@ -77,6 +77,19 @@ public class JsonObjectBuilder
 
         return this;
     }
+
+    public JsonObject wrapIntoArray( String arrayName ) {
+        JsonArray array = new JsonArray(  );
+
+        JsonObject newObj = new JsonObject();
+
+        array.add( jsonObject );
+
+        newObj.add( arrayName, array );
+
+        return newObj;
+    }
+
     public JsonObject build() {
         return this.jsonObject;
     }

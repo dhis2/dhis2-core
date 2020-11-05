@@ -26,30 +26,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions.metadata;
+package org.hisp.dhis.tracker_v2;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.tracker_v2.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SharingActions extends RestApiActions
+public class TrackerImporter_relationshipsTests
+    extends ApiTest
 {
-    public SharingActions( )
-    {
-        super( "/sharing" );
+    private TrackerActions trackerActions;
+
+    @BeforeAll
+    public void beforeAll() {
+        trackerActions = new TrackerActions();
+
+        new LoginActions().loginAsSuperUser();
     }
 
-    public void setupSharingForConfiguredUserGroup(String type, String id) {
+    @Test
+    public void shouldImportRelationship() {
+        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/teisWithRelationship.json" ) );
 
-        JsonObject jsonObject = new JsonObject();
 
-        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
-
-        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
+        // TODO more validation when the bug is fixed
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo("OK") );
     }
+
+
 
 }

@@ -26,40 +26,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.events;
+package org.hisp.dhis.tracker_v2.events;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
+import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.xml.crypto.Data;
 import java.io.File;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventImportIdSchemeTests extends ApiTest
+public class TrackerImport_eventIdSchemeTests extends ApiTest
 {
+
     private OrgUnitActions orgUnitActions;
 
     private ProgramActions programActions;
@@ -67,6 +73,8 @@ public class EventImportIdSchemeTests extends ApiTest
     private EventActions eventActions;
 
     private AttributeActions attributeActions;
+
+    private TrackerActions trackerActions;
 
     private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
     private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
@@ -82,11 +90,13 @@ public class EventImportIdSchemeTests extends ApiTest
         eventActions = new EventActions();
         programActions = new ProgramActions();
         attributeActions = new AttributeActions();
+        trackerActions = new TrackerActions();
 
         new LoginActions().loginAsSuperUser();
 
         setupData();
     }
+
 
     private static Stream<Arguments> provideIdSchemeArguments()
     {
@@ -108,31 +118,30 @@ public class EventImportIdSchemeTests extends ApiTest
 
         assertNotNull(ouPropertyValue, String.format(  "Org unit property %s was not present.", ouProperty));
 
-        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
+        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/v2/events/event.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
             .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-            .add( "skipCache=true" )
+           // .add( "skipCache=true" )
             .add( "orgUnitIdScheme=" + ouScheme );
 
-        ApiResponse response = eventActions.post( object, queryParamsBuilder );
+        ApiResponse response = trackerActions.postAndGetJobReport( object, queryParamsBuilder );
 
         response.validate().statusCode( 200 )
-            .rootPath( "response" )
-            .body( "status",  equalTo("SUCCESS") )
-            .body( "ignored", equalTo( 0 ) )
-            .body( "imported", greaterThan(1) )
-            .body( "importSummaries.reference", everyItem( notNullValue() ) );
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.ignored", equalTo( 0 ) )
+            .body( "stats.created", equalTo(1) );
 
-        String eventId = response.extractString( "response.importSummaries.reference[0]" );
+        String eventId = response.extractString( "bundleReport.typeReportMap.EVENT.objectReports.uid[0]" );
         assertNotNull( eventId );
 
         eventActions.get( eventId ).validate()
             .statusCode( 200 )
             .body( "orgUnit", equalTo( orgUnitId ) );
     }
+
 
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
@@ -143,25 +152,24 @@ public class EventImportIdSchemeTests extends ApiTest
 
         assertNotNull(programPropertyValue, String.format(  "Program property %s was not present.", property));
 
-        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
+        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/v2/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "orgUnit", orgUnitId )
             .replacePropertyValuesWith( "program", programPropertyValue)
             .get( JsonObject.class );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-            .add( "skipCache=true" )
+            //.add( "skipCache=true" )
             .add( "programIdScheme=" + scheme);
 
-        ApiResponse response = eventActions.post( object, queryParamsBuilder );
+        ApiResponse response = trackerActions.postAndGetJobReport( object, queryParamsBuilder );
 
         response.validate().statusCode( 200 )
-            .rootPath( "response" )
-            .body( "status",  equalTo("SUCCESS") )
-            .body( "ignored", equalTo( 0 ) )
-            .body( "importSummaries.reference", everyItem( notNullValue() ) );
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.ignored", equalTo( 0 ) )
+            .body( "stats.created", equalTo(1) );
 
-        String eventId = response.extractString( "response.importSummaries.reference[0]" );
+        String eventId = response.extractString( "bundleReport.typeReportMap.EVENT.objectReports.uid[0]" );
         assertNotNull( eventId );
 
         eventActions.get( eventId ).validate()
@@ -170,11 +178,9 @@ public class EventImportIdSchemeTests extends ApiTest
     }
 
 
-
     private void setupData() {
 
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute(  "TEXT", "organisationUnit", "program" );
-        //programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
         OrgUnit orgUnit = orgUnitActions.generateDummy();
@@ -185,6 +191,7 @@ public class EventImportIdSchemeTests extends ApiTest
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
+        new UserActions().grantCurrentUserAccessToOrgUnit(orgUnitId  );
         programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
         orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
