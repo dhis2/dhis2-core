@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -39,6 +38,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -55,9 +55,9 @@ public class PostInsertAuditListener
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier,
-        SessionFactory sessionFactory )
+        SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -69,16 +69,14 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object entity = initHibernateProxy( postInsertEvent.getPersister().getFactory(), postInsertEvent.getEntity() );
-
-        getAuditable( entity, "create" ).ifPresent( auditable ->
+        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .object( postInsertEvent.getEntity() )
+                .auditableEntity( new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
                 .build() ) );
     }
 
@@ -92,5 +90,13 @@ public class PostInsertAuditListener
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
         log.warn( "onPostInsertCommitFailed: " + event );
+    }
+
+    /**
+     * Create Audit entry for insert event
+     */
+    private Object createAuditEntry( PostInsertEvent postInsertEvent )
+    {
+        return super.createAuditEntry( postInsertEvent.getEntity(), postInsertEvent.getState(), postInsertEvent.getSession(), postInsertEvent.getId(), postInsertEvent.getPersister() );
     }
 }
