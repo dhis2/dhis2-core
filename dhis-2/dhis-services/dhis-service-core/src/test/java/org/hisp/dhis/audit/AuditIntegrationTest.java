@@ -59,7 +59,7 @@ import static org.junit.Assert.assertNotNull;
 public class AuditIntegrationTest
     extends IntegrationTestBase
 {
-    private static final int TIMEOUT = 5;
+    private static final int TIMEOUT = 10;
 
     @Autowired
     private AuditService auditService;
@@ -164,7 +164,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
