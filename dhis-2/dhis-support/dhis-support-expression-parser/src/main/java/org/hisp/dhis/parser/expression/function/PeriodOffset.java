@@ -31,14 +31,15 @@ package org.hisp.dhis.parser.expression.function;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * Function least
+ * Function periodOffset
  *
  * @author Enrico Colasante
  */
 public class PeriodOffset
-    extends FunctionGreatestOrLeast
+    implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
