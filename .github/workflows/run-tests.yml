@@ -28,5 +28,5 @@ jobs:
         cd dhis-2/dhis-e2e-test
         IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
         docker build -t $TEST_IMAGE_NAME .
-        IMAGE_NAME=$TEST_IMAGE_NAME:local docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
+        IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
 
