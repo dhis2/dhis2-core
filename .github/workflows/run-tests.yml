@@ -12,6 +12,9 @@ jobs:
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
       
   api-test:
+    env:
+      CORE_IMAGE_NAME: "dhis2/core-dev:local"
+      TEST_IMAGE_NAME: "dhis2/tests:local"
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
     steps:
@@ -22,14 +25,14 @@ jobs:
         key: dhis2-docker-cache-{hash}
         restore-keys: |
           dhis2-docker-cache-
-    - name: Run API tests
-      env:
-        CORE_IMAGE_NAME: "dhis2/core-dev:local"
-        TEST_IMAGE_NAME: "dhis2/tests:local"
+    - name: Build core image
       run: |
         docker build . -t $CORE_IMAGE_NAME
         ./docker/extract-artifacts.sh $CORE_IMAGE_NAME
         ONLY_DEFAULT=1 ./docker/build-containers.sh $CORE_IMAGE_NAME $CORE_IMAGE_NAME
+
+    - name: Run tests
+      run: |
         cd dhis-2/dhis-e2e-test
         IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
         docker build -t $TEST_IMAGE_NAME .
