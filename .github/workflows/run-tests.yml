@@ -13,7 +13,7 @@ jobs:
 
   api-test:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'some-defined-label')
+    if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
     steps:
     - uses: actions/checkout@v2
     - name: build docker
