@@ -30,6 +30,7 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -191,7 +192,7 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( !Hibernate.isInitialized( value ) )
+            if ( !isProxyEmpty( value ) && !Hibernate.isInitialized( value )  )
             {
                 if ( entityProxy == null )
                 {
@@ -223,6 +224,18 @@ public abstract class AbstractHibernateListener
         }
 
         return objectMap;
+    }
+
+    private boolean isProxyEmpty( Object value )
+    {
+        if ( value == null ) return true;
+
+        if ( value instanceof PersistentSet )
+        {
+            return ( (PersistentSet) value ).isEmpty();
+        }
+
+        return false;
     }
 
     private Object getId( Object object )
