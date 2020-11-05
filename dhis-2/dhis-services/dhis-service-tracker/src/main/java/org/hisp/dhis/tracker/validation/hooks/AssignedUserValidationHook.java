@@ -55,22 +55,17 @@ public class AssignedUserValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        if ( event.getAssignedUser() != null )
+        if ( event.getAssignedUser() != null &&
+            ( !CodeGenerator.isValidUid( event.getAssignedUser() ) ||
+                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
+                    event.getAssignedUser() ) == null) )
         {
-            String uid = event.getAssignedUser().getUid();
+            TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
+                .errorCode( E1118 )
+                .trackerType( TrackerType.EVENT )
+                .addArg( event.getAssignedUser() );
 
-            if ( !CodeGenerator.isValidUid( event.getAssignedUser().getUid() )
-                ||
-                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class, uid ) ==
-                    null )
-            {
-                TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
-                    .errorCode( E1118 )
-                    .trackerType( TrackerType.EVENT )
-                    .addArg( uid );
-
-                reporter.addError( report );
-            }
+            reporter.addError( report );
         }
     }
 
