@@ -19,12 +19,6 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
     steps:
     - uses: actions/checkout@v2
-    - uses: satackey/action-docker-layer-caching@v0.0.8
-      continue-on-error: true
-      with:
-        key: dhis2-docker-cache-{hash}
-        restore-keys: |
-          dhis2-docker-cache-
     - name: Build core image
       run: |
         docker build . -t $CORE_IMAGE_NAME
@@ -37,4 +31,11 @@ jobs:
         IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
         docker build -t $TEST_IMAGE_NAME .
         IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
+
+    - name: Upload logs
+      run: |
+        docker-compose logs web > logs.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          path: logs.txt
 
