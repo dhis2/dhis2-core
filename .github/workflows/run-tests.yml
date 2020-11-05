@@ -73,7 +73,8 @@ jobs:
       run: |
         cd dhis-2/dhis-e2e-test
         docker-compose logs web > ~/logs.txt
-    - uses: actions/upload-artifact@v2
-      with:
-        path: '~/logs.txt'
 
+      uses: actions/upload-artifact@v2
+      with:
+        name: "logs"
+        path: '~/logs.txt'
