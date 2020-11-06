@@ -137,7 +137,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -147,6 +146,27 @@ import lombok.extern.slf4j.Slf4j;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
+
+    private static final String COMMENT_QUERY =
+        "select psic.programstageinstanceid    as psic_id," +
+        "                           psinote.trackedentitycommentid as psinote_id," +
+        "                           psinote.commenttext            as psinote_value," +
+        "                           psinote.created                as psinote_storeddate," +
+        "                           psinote.creator                as psinote_storedby," +
+        "                           psinote.uid                    as psinote_uid," +
+        "                           psinote.lastupdated            as psinote_lastupdated," +
+        "                           usernote.userid                as usernote_id," +
+        "                           usernote.code                  as usernote_code," +
+        "                           usernote.uid                   as usernote_uid," +
+        "                           usernote.username              as usernote_username," +
+        "                           userinfo.firstname             as userinfo_firstname," +
+        "                           userinfo.surname               as userinfo_surname" +
+        "                    from programstageinstancecomments psic" +
+        "                             inner join trackedentitycomment psinote" +
+        "                                        on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
+        "                             left join users usernote on psinote.lastupdatedby = usernote.userid" +
+        "                             left join userinfo on usernote.userid = userinfo.userinfoid";
+
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
     private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= '";
@@ -424,6 +444,21 @@ public class JdbcEventStore implements EventStore
                 note.setValue( rowSet.getString( "psinote_value" ) );
                 note.setStoredDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psinote_storeddate" ) ) );
                 note.setStoredBy( rowSet.getString( "psinote_storedby" ) );
+
+                if ( rowSet.getObject( "usernote_id" ) != null )
+                {
+
+                    note.setLastUpdatedBy(
+                        ProgramStageInstanceUserInfo.of(
+                            rowSet.getLong( "usernote_id" ),
+                            rowSet.getString( "usernote_code" ),
+                            rowSet.getString( "usernote_uid" ),
+                            rowSet.getString( "usernote_username" ),
+                            rowSet.getString( "userinfo_firstname" ),
+                            rowSet.getString( "userinfo_surname" ) ) );
+                }
+
+                note.setLastUpdated( rowSet.getDate( "psinote_lastupdated" ) );
 
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
@@ -844,7 +879,7 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( ") as att on event.tei_id=att.pav_id left join (" );
         }
 
-        sqlBuilder.append( getCommentQuery() );
+        sqlBuilder.append( COMMENT_QUERY );
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
 
@@ -1374,16 +1409,6 @@ public class JdbcEventStore implements EventStore
         }
 
         return sqlBuilder.toString();
-    }
-
-    private String getCommentQuery()
-    {
-        String sql = "select psic.programstageinstanceid as psic_id, psinote.trackedentitycommentid as psinote_id, psinote.commenttext as psinote_value, "
-            + "psinote.created as psinote_storeddate, psinote.creator as psinote_storedby, psinote.uid as psinote_uid "
-            + "from programstageinstancecomments psic "
-            + "inner join trackedentitycomment psinote on psic.trackedentitycommentid=psinote.trackedentitycommentid ";
-
-        return sql;
     }
 
     private String getGridOrderQuery( EventSearchParams params )

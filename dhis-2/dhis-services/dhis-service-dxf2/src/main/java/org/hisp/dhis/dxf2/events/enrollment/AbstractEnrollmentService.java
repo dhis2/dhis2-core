@@ -44,6 +44,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -289,19 +290,7 @@ public abstract class AbstractEnrollmentService
         enrollment.setStoredBy( programInstance.getStoredBy() );
         enrollment.setDeleted( programInstance.isDeleted() );
 
-        List<TrackedEntityComment> comments = programInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setNote( comment.getUid() );
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
-
-            enrollment.getNotes().add( note );
-        }
+        enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );
 
         if ( params.isIncludeEvents() )
         {
@@ -1380,6 +1369,9 @@ public abstract class AbstractEnrollmentService
                 }
 
                 comment.setCreated( created );
+
+                comment.setLastUpdatedBy( user );
+                comment.setLastUpdated( new Date() );
 
                 commentService.addTrackedEntityComment( comment );
 

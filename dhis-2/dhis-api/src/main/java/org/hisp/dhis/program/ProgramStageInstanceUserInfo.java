@@ -39,6 +39,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
+
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProgramStageInstanceUserInfo extends IdentifiableObjectSnapshot
@@ -95,11 +97,26 @@ public class ProgramStageInstanceUserInfo extends IdentifiableObjectSnapshot
 
     public static ProgramStageInstanceUserInfo from( User user )
     {
+        return Optional.ofNullable(user)
+                .map(ProgramStageInstanceUserInfo::toProgramStageInstanceUserInfo)
+                .orElse(null);
+    }
+
+    private static ProgramStageInstanceUserInfo toProgramStageInstanceUserInfo(User user) {
         ProgramStageInstanceUserInfo eventUserInfo = new ProgramStageInstanceUserInfo( user.getUsername(),
             user.getFirstName(), user.getSurname() );
         eventUserInfo.setId( user.getId() );
         eventUserInfo.setCode( user.getCode() );
         eventUserInfo.setUid( user.getUid() );
+        return eventUserInfo;
+    }
+
+    public static ProgramStageInstanceUserInfo of( long id, String code, String uid, String username, String firstName, String surname )
+    {
+        ProgramStageInstanceUserInfo eventUserInfo = new ProgramStageInstanceUserInfo( username, firstName, surname);
+        eventUserInfo.setId( id );
+        eventUserInfo.setCode( code );
+        eventUserInfo.setUid( uid );
         return eventUserInfo;
     }
 }

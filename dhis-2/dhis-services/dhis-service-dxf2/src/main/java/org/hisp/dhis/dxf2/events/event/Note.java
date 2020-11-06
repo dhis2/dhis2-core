@@ -32,7 +32,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 
+import java.util.Date;
 import java.util.Objects;
 
 @JacksonXmlRootElement( localName = "note", namespace = DxfNamespaces.DXF_2_0 )
@@ -45,6 +47,10 @@ public class Note
     private String storedBy;
 
     private String storedDate;
+
+    private ProgramStageInstanceUserInfo lastUpdatedBy;
+
+    private Date lastUpdated;
 
     public Note()
     {
@@ -96,6 +102,26 @@ public class Note
     public void setStoredDate( String storedDate )
     {
         this.storedDate = storedDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public ProgramStageInstanceUserInfo getLastUpdatedBy() {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy(ProgramStageInstanceUserInfo lastUpdatedBy) {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Date getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(Date lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     @Override
