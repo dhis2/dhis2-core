@@ -31,6 +31,7 @@ package org.hisp.dhis.artemis.audit.legacy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
@@ -67,7 +68,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
      */
     private final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
-    public DefaultAuditObjectFactory( @Qualifier( "jsonMapper" ) ObjectMapper objectMapper )
+    public DefaultAuditObjectFactory( @Qualifier("hibernateAwareJsonMapper") ObjectMapper objectMapper )
     {
         this.objectMapper = objectMapper;
     }
@@ -88,23 +89,12 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     }
 
     @Override
-    public AuditAttributes collectAuditAttributes( Object auditObject )
+    public AuditAttributes collectAuditAttributes( AuditableEntity auditableEntity )
     {
         AuditAttributes auditAttributes = new AuditAttributes();
 
-        getAuditAttributeFields( auditObject.getClass() ).forEach( ( key, value ) -> {
-
-            Object attributeObject = ReflectionUtils.invokeMethod( auditObject, value );
-
-            if ( attributeObject instanceof IdentifiableObject )
-            {
-                auditAttributes.put( key.getName(), ((IdentifiableObject) attributeObject).getUid() );
-            }
-            else
-            {
-                auditAttributes.put( key.getName(), attributeObject );
-            }
-        } );
+        getAuditAttributeFields( auditableEntity.getEntityClass() ).forEach( ( field, getterMethod ) ->
+            auditAttributes.put( field.getName(), getAttributeValue( auditableEntity.getSerializableObject(), field.getName(), getterMethod ) ) );
 
         return auditAttributes;
     }
@@ -120,6 +110,23 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         }
 
         return map;
+    }
+
+    private Object getAttributeValue( Object auditObject, String attributeName, Method getter )
+    {
+        if ( auditObject instanceof Map )
+        {
+            return ( ( Map ) auditObject ).get( attributeName );
+        }
+
+        Object value = ReflectionUtils.invokeMethod( auditObject, getter );
+
+        if ( value instanceof IdentifiableObject )
+        {
+            return (  (IdentifiableObject ) value ).getUid();
+        }
+
+        return value;
     }
 
     private String handleTracker( Object object )
@@ -145,9 +152,8 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         }
         catch ( JsonProcessingException e )
         {
-            log.debug( DebugUtils.getStackTrace( e ) );
+            log.error( DebugUtils.getStackTrace( e ) );
         }
-
         return null;
     }
 }

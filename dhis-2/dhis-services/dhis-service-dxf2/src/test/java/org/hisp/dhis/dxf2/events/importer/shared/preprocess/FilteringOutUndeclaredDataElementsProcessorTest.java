@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.EventDataValueAggregator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -48,6 +50,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
@@ -77,11 +80,6 @@ public class FilteringOutUndeclaredDataElementsProcessorTest
     @Test
     public void testNotLinkedDataElementsAreRemovedFromEvent()
     {
-        WorkContext ctx = WorkContext.builder()
-            .importOptions( ImportOptions.getDefaultImportOptions() )
-            .programsMap( getProgramMap() )
-            .build();
-
         Event event = new Event();
         event.setProgramStage( PROGRAMSTAGE );
 
@@ -90,6 +88,13 @@ public class FilteringOutUndeclaredDataElementsProcessorTest
             new DataValue( DATA_ELEMENT_2, "another value" ) );
 
         event.setDataValues( dataValues );
+
+        WorkContext ctx = WorkContext.builder()
+            .importOptions( ImportOptions.getDefaultImportOptions() )
+            .programsMap( getProgramMap() )
+            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( ImmutableList.of( event ),
+                Collections.emptyMap(), ImportOptions.getDefaultImportOptions() ) )
+            .build();
 
         preProcessor.process( event, ctx );
 

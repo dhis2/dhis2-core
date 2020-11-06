@@ -277,8 +277,8 @@ public class DefaultTrackerPreheatService
         programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
 
         Set<String> userUids = params.getEvents().stream()
-            .filter( event -> event.getAssignedUser() != null )
-            .map( event -> event.getAssignedUser().getUid() )
+            .filter( Objects::nonNull )
+            .map( Event::getAssignedUser )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
