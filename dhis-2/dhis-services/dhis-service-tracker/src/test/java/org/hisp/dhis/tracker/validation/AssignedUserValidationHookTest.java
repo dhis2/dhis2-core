@@ -132,10 +132,9 @@ public class AssignedUserValidationHookTest
 
         Event event = new Event();
 
-        User testUser = new User();
-        testUser.setUid( "123" );
+        String testUserUid = "123";
 
-        event.setAssignedUser( testUser );
+        event.setAssignedUser( testUserUid );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
@@ -162,10 +161,9 @@ public class AssignedUserValidationHookTest
 
         Event event = new Event();
 
-        User testUser = new User();
-        testUser.setUid( "A01234567890" );
+        String testUserUid = "A01234567890";
 
-        event.setAssignedUser( testUser );
+        event.setAssignedUser( testUserUid );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
@@ -192,7 +190,7 @@ public class AssignedUserValidationHookTest
 
         Event event = new Event();
 
-        event.setAssignedUser( user );
+        event.setAssignedUser( user.getUid() );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
