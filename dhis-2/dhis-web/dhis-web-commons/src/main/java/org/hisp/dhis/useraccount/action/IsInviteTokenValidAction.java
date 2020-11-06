@@ -35,9 +35,6 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Base64Utils;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author Jim Grace
@@ -71,18 +68,9 @@ public class IsInviteTokenValidAction
     // Output
     // -------------------------------------------------------------------------
 
-    private UserCredentials userCredentials;
-
-    public UserCredentials getUserCredentials()
-    {
-        return userCredentials;
-    }
-
-    private final String accountAction = "invited";
-
     public String getAccountAction()
     {
-        return accountAction;
+        return "invited";
     }
 
     private String usernameChoice;
@@ -113,23 +101,25 @@ public class IsInviteTokenValidAction
     @Override
     public String execute()
     {
-        String decodedEmailToken = new String( Base64Utils.decodeFromString( token ), StandardCharsets.UTF_8 );
+        String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
+        String idToken = idAndRestoreToken[0];
+        String restoreToken = idAndRestoreToken[1];
 
-        String[] restoreTokenAndSecret = decodedEmailToken.split( ":" );
-        String restoreToken = restoreTokenAndSecret[1];
-        String secret = restoreTokenAndSecret[0];
-
-        setToken( restoreToken );
-
-        userCredentials = userService.getUserCredentialsBySecret( secret );
+        UserCredentials userCredentials = userService.getUserCredentialsByIdToken( idToken );
 
         if ( userCredentials == null )
         {
             return ERROR;
         }
 
-        email = userCredentials.getUserInfo().getEmail();
+        String errorMessage = securityService.verifyRestoreToken( userCredentials, restoreToken, RestoreType.INVITE );
 
+        if ( errorMessage != null )
+        {
+            return ERROR;
+        }
+
+        email = userCredentials.getUserInfo().getEmail();
         username = userCredentials.getUsername();
 
         RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
@@ -139,9 +129,6 @@ public class IsInviteTokenValidAction
             usernameChoice = Boolean.toString( restoreOptions.isUsernameChoice() );
         }
 
-        String errorMessage = securityService
-            .verifyToken( userCredentials, restoreToken, RestoreType.INVITE );
-
-        return errorMessage == null ? SUCCESS : ERROR;
+        return SUCCESS;
     }
 }

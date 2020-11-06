@@ -28,13 +28,12 @@ package org.hisp.dhis.useraccount.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
@@ -44,7 +43,7 @@ public class IsRestoreTokenValidAction
 {
     @Autowired
     private SecurityService securityService;
-    
+
     @Autowired
     private UserService userService;
 
@@ -83,15 +82,25 @@ public class IsRestoreTokenValidAction
     @Override
     public String execute()
     {
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
-        
-        if ( credentials == null )
+        String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
+        String idToken = idAndRestoreToken[0];
+        String restoreToken = idAndRestoreToken[1];
+
+        UserCredentials userCredentials = userService.getUserCredentialsByIdToken( idToken );
+
+        if ( userCredentials == null )
         {
             return ERROR;
         }
 
-        String errorMessage = securityService.verifyToken( credentials, token, RestoreType.RECOVER_PASSWORD );
+        String errorMessage = securityService
+            .verifyRestoreToken( userCredentials, restoreToken, RestoreType.RECOVER_PASSWORD );
 
-        return errorMessage == null ? SUCCESS : ERROR;
+        if ( errorMessage != null )
+        {
+            return ERROR;
+        }
+
+        return SUCCESS;
     }
 }

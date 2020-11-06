@@ -69,18 +69,18 @@ public interface UserCredentialsStore
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
-     * restore token.
+     * id token.
      *
      * @param token the restore token of the User.
      * @return the UserCredentials.
      */
-    UserCredentials getUserCredentialsBySecret( String token );
+    UserCredentials getUserCredentialsByIdToken( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
      * UUID.
      *
-     * @param uid UUID.
+     * @param uuid UUID.
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByUuid( UUID uuid );

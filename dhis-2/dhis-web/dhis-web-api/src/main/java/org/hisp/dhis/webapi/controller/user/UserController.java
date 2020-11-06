@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.user;
  */
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -93,6 +94,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT )
 public class UserController
@@ -340,7 +342,11 @@ public class UserController
 
         RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
-        securityService.sendRestoreMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions );
+        if ( !securityService
+            .sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions ) )
+        {
+            throw new WebMessageException( WebMessageUtils.error( "Failed to send invite message" ) );
+        }
     }
 
     @SuppressWarnings( "unchecked" )
@@ -641,7 +647,7 @@ public class UserController
      *
      * @param user user object parsed from the POST request.
      */
-    private ImportReport createUser( User user, User currentUser ) throws Exception
+    private ImportReport createUser( User user, User currentUser )
     {
         MetadataImportParams importParams = new MetadataImportParams()
             .setImportReportMode( ImportReportMode.FULL )
@@ -679,11 +685,11 @@ public class UserController
 
         credentials.setUserInfo( user );
 
-        String valid = securityService.validateInvite( user.getUserCredentials() );
+        String validateMessage = securityService.validateInvite( user.getUserCredentials() );
 
-        if ( valid != null )
+        if ( validateMessage != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( valid + ": " + user.getUserCredentials() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( validateMessage ) );
         }
 
         return true;
@@ -694,7 +700,7 @@ public class UserController
      *
      * @param user user object parsed from the POST request.
      */
-    private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request ) throws Exception
+    private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
     {
         RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty() ?
             RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
@@ -704,9 +710,15 @@ public class UserController
         ImportReport importReport = createUser( user, currentUser );
         ObjectReport objectReport = getObjectReport( importReport );
 
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
+        if ( importReport.getStatus() == Status.OK &&
+            importReport.getStats().getCreated() == 1 &&
+            objectReport != null )
         {
-            securityService.sendRestoreMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions );
+            securityService
+                .sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
+                    restoreOptions );
+
+            log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
         }
 
         return objectReport;

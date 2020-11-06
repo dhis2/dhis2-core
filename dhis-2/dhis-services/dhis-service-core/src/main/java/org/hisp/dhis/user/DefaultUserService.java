@@ -585,9 +585,9 @@ public class DefaultUserService
 
     @Override
     @Transactional(readOnly = true)
-    public UserCredentials getUserCredentialsBySecret( String secret )
+    public UserCredentials getUserCredentialsByIdToken( String token )
     {
-        return userCredentialsStore.getUserCredentialsBySecret( secret );
+        return userCredentialsStore.getUserCredentialsByIdToken( token );
     }
 
     @Override

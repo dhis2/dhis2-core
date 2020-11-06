@@ -175,11 +175,11 @@ public class MockUserService
     }
 
     @Override
-    public UserCredentials getUserCredentialsBySecret( String secret )
+    public UserCredentials getUserCredentialsByIdToken( String idToken )
     {
         for ( User user : users )
         {
-            if ( user.getUserCredentials().getSecret().equals( secret ) )
+            if ( user.getUserCredentials().getIdToken().equals( idToken ) )
             {
                 return user.getUserCredentials();
             }

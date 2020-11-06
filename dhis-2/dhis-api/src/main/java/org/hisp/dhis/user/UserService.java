@@ -232,12 +232,12 @@ public interface UserService
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
-     * restore token.
+     * id token.
      *
-     * @param token the restore token of the User.
+     * @param token the id token of the User.
      * @return the UserCredentials.
      */
-    public UserCredentials getUserCredentialsBySecret( String token );
+    public UserCredentials getUserCredentialsByIdToken( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
