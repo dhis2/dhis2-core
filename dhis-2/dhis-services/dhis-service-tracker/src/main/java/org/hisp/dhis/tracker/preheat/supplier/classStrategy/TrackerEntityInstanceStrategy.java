@@ -28,44 +28,37 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.UnpersistedObject;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( TrackedEntity.class )
-public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
-{
+@StrategyFor(TrackedEntity.class)
+public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy {
     @NonNull
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
-                preheat.getUser() );
+    public void add(TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+        for (List<String> ids : splitList) {
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid(ids,
+                    preheat.getUser());
 
-            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances, ids );
-
-            EntityUtils.addNewEntitiesToPreheat( trackedEntityInstances.stream().map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() ), ids, preheat, TrackedEntityInstance.class );
+            preheat.putTrackedEntities(TrackerIdScheme.UID, trackedEntityInstances, ids);
         }
     }
 }

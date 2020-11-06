@@ -60,7 +60,8 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy
         for ( List<String> ids : splitList )
         {
             List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
-            preheat.putEnrollments( TrackerIdScheme.UID, programInstances, ids );
+            preheat.putEnrollments( TrackerIdScheme.UID, programInstances,
+                    params.getEnrollments().stream().filter(e -> ids.contains(e.getEnrollment())).collect(Collectors.toList()) );
 
         }
     }

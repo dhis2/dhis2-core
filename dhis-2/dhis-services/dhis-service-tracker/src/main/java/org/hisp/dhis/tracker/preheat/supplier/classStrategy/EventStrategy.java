@@ -61,7 +61,8 @@ public class EventStrategy implements ClassBasedSupplierStrategy
         {
             List<ProgramStageInstance> programStageInstances = programStageInstanceStore
                 .getByUid( ids, preheat.getUser() );
-            preheat.putEvents( TrackerIdScheme.UID, programStageInstances,  ids );
+            preheat.putEvents( TrackerIdScheme.UID, programStageInstances,
+                    params.getEvents().stream().filter(e -> ids.contains(e.getEvent())).collect(Collectors.toList()));
         }
     }
 }

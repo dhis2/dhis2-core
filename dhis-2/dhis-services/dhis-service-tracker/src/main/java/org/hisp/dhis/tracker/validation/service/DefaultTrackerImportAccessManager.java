@@ -209,7 +209,7 @@ public class DefaultTrackerImportAccessManager
     public void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
         OrganisationUnit orgUnit,
               CategoryOptionCombo categoryOptionCombo,
-                                      String trackedEntity)
+                                      String trackedEntity, boolean isCreatableInSearchScope)
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -219,14 +219,14 @@ public class DefaultTrackerImportAccessManager
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
         checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        // if ( programStageInstance.isCreatableInSearchScope() ?
-        // !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
-        // : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
-        // {
-        // reporter.addError( newReport( TrackerErrorCode.E1000 )
-        // .addArg( user )
-        // .addArg( orgUnit ) );
-        // }
+         if ( isCreatableInSearchScope ?
+         !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
+         : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
+         {
+         reporter.addError( newReport( TrackerErrorCode.E1000 )
+         .addArg( user )
+         .addArg( orgUnit ) );
+         }
 
         if ( programStage.getProgram().isWithoutRegistration() )
         {

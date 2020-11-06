@@ -150,10 +150,10 @@ public interface TrackerImportAccessManager
     void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
         String trackedEntity, OrganisationUnit organisationUnit );
 
-    void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
-        OrganisationUnit orgUnit,
-        CategoryOptionCombo categoryOptionCombo,
-        String trackedEntity );
+    void checkEventWriteAccess(ValidationErrorReporter reporter, ProgramStage programStage,
+                               OrganisationUnit orgUnit,
+                               CategoryOptionCombo categoryOptionCombo,
+                               String trackedEntity, boolean isCreatableInSearchScope);
 
     /**
      * Loops trough all CategoryOptionCombo options and check that the importing user has write access to all of them.

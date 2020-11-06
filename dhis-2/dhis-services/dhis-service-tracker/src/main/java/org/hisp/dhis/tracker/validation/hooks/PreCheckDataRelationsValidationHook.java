@@ -112,7 +112,7 @@ public class PreCheckDataRelationsValidationHook
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
-        if ( tei == null && !context.existUnpersisted( TrackedEntityInstance.class, enrollment.getTrackedEntity() ) )
+        if ( tei == null && !context.existUnpersisted( TrackedEntityInstance.class, enrollment.getTrackedEntity() ).isPresent() )
         {
             addError( reporter, E1068, enrollment.getTrackedEntity() );
         }
@@ -134,7 +134,8 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
-            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null  && !context.existUnpersisted( TrackedEntityInstance.class, event.getTrackedEntity()))
+            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null  &&
+                    !context.existUnpersisted( TrackedEntityInstance.class, event.getTrackedEntity()).isPresent())
             {
                 addError( reporter, E1036, event );
             }
@@ -159,7 +160,7 @@ public class PreCheckDataRelationsValidationHook
         {
             ProgramInstance programInstance = ctx.getProgramInstance( event.getEnrollment() );
 
-            boolean exist = ctx.existUnpersisted( ProgramInstance.class, event.getEnrollment());
+            boolean exist = ctx.existUnpersisted( ProgramInstance.class, event.getEnrollment()).isPresent();
 
             if ( programInstance == null && !exist )
             {

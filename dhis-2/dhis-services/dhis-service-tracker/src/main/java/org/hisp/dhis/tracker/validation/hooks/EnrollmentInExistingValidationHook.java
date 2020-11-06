@@ -125,7 +125,7 @@ public class EnrollmentInExistingValidationHook
         TrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
         if ( tei == null && reporter.getValidationContext().existUnpersisted( TrackedEntityInstance.class,
-            enrollment.getTrackedEntity() ) )
+            enrollment.getTrackedEntity() ).isPresent() )
         {
             tei = new TrackedEntityInstance();
             tei.setUid( enrollment.getUid() );
@@ -183,14 +183,14 @@ public class EnrollmentInExistingValidationHook
         for ( ProgramInstance programInstance : programInstances )
         {
             if ( trackerOwnershipManager
-                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
+                .hasAccess( user, programInstance.getEntityInstance().getUid(), programInstance.getOrganisationUnit(), programInstance.getProgram() ) )
             {
                 // Always create a fork of the reporter when used for checking/counting errors,
                 // this is needed for thread safety in parallel mode.
                 ValidationErrorReporter reporterFork = reporter.fork();
 
                 // Validates the programInstance read access on a fork of the reporter
-                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance );
+                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
 
                 if ( reporterFork.hasErrors() )
                 {

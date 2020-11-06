@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.UnpersistedObject;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Preconditions;
@@ -220,7 +221,7 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
     }
 
-    public boolean existUnpersisted( Class<? extends IdentifiableObject> klazz, String uid )
+    public Optional<UnpersistedObject> existUnpersisted(Class<? extends IdentifiableObject> klazz, String uid )
     {
         return bundle.getPreheat().existUnpersisted( klazz, uid );
     }

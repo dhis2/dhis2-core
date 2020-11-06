@@ -45,7 +45,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -58,7 +57,8 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
-import org.hisp.dhis.tracker.preheat.supplier.classStrategy.EntityUtils;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
@@ -82,7 +82,7 @@ public class TrackerPreheat
      */
     private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, List<String>> unpersistedMap = new HashMap<>();
+    private Map<Class<? extends IdentifiableObject>, List<UnpersistedObject>> unpersistedMap = new HashMap<>();
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -491,10 +491,13 @@ public class TrackerPreheat
     public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances,
         List<String> allEntities )
     {
-
         putTrackedEntities( identifier, trackedEntityInstances );
-        EntityUtils.addNewEntitiesToPreheat( collectUids( trackedEntityInstances ), allEntities, this,
-            TrackedEntityInstance.class );
+        List<String> uidOnDB = trackedEntityInstances.stream().map(t -> t.getUid() ).collect(Collectors.toList());
+        allEntities
+                .stream()
+                .filter(t -> !uidOnDB.contains(t))
+                .map(t -> new UnpersistedObject(t, null))
+                .forEach(u -> this.addUnpersisted(TrackedEntityInstance.class, u));
     }
 
     public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances )
@@ -546,13 +549,15 @@ public class TrackerPreheat
     }
 
     public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances,
-        List<String> allEntities )
+        List<Enrollment> allEntities )
     {
         putEnrollments( identifier, programInstances );
-
-        EntityUtils.addNewEntitiesToPreheat( collectUids( programInstances ), allEntities, this,
-            ProgramInstance.class );
-
+        List<String> uidOnDB = programInstances.stream().map(t -> t.getUid() ).collect(Collectors.toList());
+        allEntities
+                .stream()
+                .filter(t -> !uidOnDB.contains(t.getEnrollment()))
+                .map(t -> new UnpersistedObject(t.getEnrollment(), t.getTrackedEntity()))
+                .forEach(u -> this.addUnpersisted(ProgramInstance.class, u));
     }
 
     public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances )
@@ -590,12 +595,16 @@ public class TrackerPreheat
         return events.get( identifier ).get( event );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances, List<String> allEntities)
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances, List<Event> allEntities)
     {
         putEvents( identifier, programStageInstances );
 
-        EntityUtils.addNewEntitiesToPreheat( collectUids( programStageInstances ), allEntities, this,
-            ProgramInstance.class );
+        List<String> uidOnDB = programStageInstances.stream().map(t -> t.getUid() ).collect(Collectors.toList());
+        allEntities
+                .stream()
+                .filter(t -> !uidOnDB.contains(t.getEvent()))
+                .map(t -> new UnpersistedObject(t.getEvent(), t.getEnrollment()))
+                .forEach(u -> this.addUnpersisted(ProgramStageInstance.class, u));
     }
 
     public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances)
@@ -734,22 +743,19 @@ public class TrackerPreheat
             .toString();
     }
     
-    public void addUnpersisted( Class<? extends IdentifiableObject> klazz, String uid )
+    public void addUnpersisted( Class<? extends IdentifiableObject> klazz, UnpersistedObject unpersistedObject )
     {
-        unpersistedMap.computeIfAbsent( klazz, k -> new ArrayList<>() ).add( uid );
+        unpersistedMap.computeIfAbsent( klazz, k -> new ArrayList<>() ).add( unpersistedObject );
     }
     
-    public boolean existUnpersisted( Class<? extends IdentifiableObject> klazz, String uid )
+    public Optional<UnpersistedObject> existUnpersisted(Class<? extends IdentifiableObject> klazz, String uid )
     {
 
-        final List<String> uids = unpersistedMap.getOrDefault( klazz, new ArrayList<>() );
-        return uids.contains( uid );
+        final List<UnpersistedObject> newObjects = unpersistedMap.getOrDefault( klazz, new ArrayList<>() );
 
-    }
-
-    private List<String> collectUids(List<? extends BaseIdentifiableObject> objects) {
-
-        return objects.stream().map(BaseIdentifiableObject::getUid)
-                .collect(Collectors.toList());
+        return newObjects
+                .stream()
+                .filter(no -> no.getUid().equals(uid) && no.isValid())
+                .findAny();
     }
 }
