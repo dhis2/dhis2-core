@@ -29,27 +29,29 @@
 
 package org.hisp.dhis.dxf2.events;
 
-import lombok.experimental.UtilityClass;
-import org.hisp.dhis.dxf2.events.event.Note;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.util.DateUtils;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@UtilityClass
-public class NoteHelper {
+import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.util.DateUtils;
 
-    public Collection<Note> convertNotes(Collection<TrackedEntityComment> trackedEntityComments )
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
+public class NoteHelper
+{
+
+    public Collection<Note> convertNotes( Collection<TrackedEntityComment> trackedEntityComments )
     {
         return Optional.ofNullable( trackedEntityComments )
-                .orElse( Collections.emptySet() )
-                .stream()
-                .map( NoteHelper::toNote )
-                .collect( Collectors.toSet() );
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( NoteHelper::toNote )
+            .collect( Collectors.toSet() );
     }
 
     private Note toNote( TrackedEntityComment trackedEntityComment )
@@ -61,7 +63,7 @@ public class NoteHelper {
         note.setStoredBy( trackedEntityComment.getCreator() );
         note.setStoredDate( DateUtils.getIso8601NoTz( trackedEntityComment.getCreated() ) );
 
-        note.setLastUpdatedBy( ProgramStageInstanceUserInfo.from( trackedEntityComment.getLastUpdatedBy() ) );
+        note.setLastUpdatedBy( UserInfoSnapshot.from( trackedEntityComment.getLastUpdatedBy() ) );
         note.setLastUpdated( trackedEntityComment.getLastUpdated() );
 
         return note;

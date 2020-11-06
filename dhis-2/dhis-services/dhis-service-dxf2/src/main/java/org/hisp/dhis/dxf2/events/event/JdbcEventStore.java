@@ -109,7 +109,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
@@ -118,7 +118,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -449,7 +448,7 @@ public class JdbcEventStore implements EventStore
                 {
 
                     note.setLastUpdatedBy(
-                        ProgramStageInstanceUserInfo.of(
+                        UserInfoSnapshot.of(
                             rowSet.getLong( "usernote_id" ),
                             rowSet.getString( "usernote_code" ),
                             rowSet.getString( "usernote_uid" ),

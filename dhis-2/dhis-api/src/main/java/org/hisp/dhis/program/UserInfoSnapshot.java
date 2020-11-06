@@ -29,6 +29,8 @@
 
 package org.hisp.dhis.program;
 
+import java.util.Optional;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
 import org.hisp.dhis.user.User;
@@ -39,11 +41,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import java.util.Optional;
-
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProgramStageInstanceUserInfo extends IdentifiableObjectSnapshot
+public class UserInfoSnapshot extends IdentifiableObjectSnapshot
 {
     private String username;
 
@@ -95,15 +95,16 @@ public class ProgramStageInstanceUserInfo extends IdentifiableObjectSnapshot
         this.surname = surname;
     }
 
-    public static ProgramStageInstanceUserInfo from( User user )
+    public static UserInfoSnapshot from(User user )
     {
         return Optional.ofNullable(user)
-                .map(ProgramStageInstanceUserInfo::toProgramStageInstanceUserInfo)
+                .map(UserInfoSnapshot::toUserInfoSnapshot)
                 .orElse(null);
     }
 
-    private static ProgramStageInstanceUserInfo toProgramStageInstanceUserInfo(User user) {
-        ProgramStageInstanceUserInfo eventUserInfo = new ProgramStageInstanceUserInfo( user.getUsername(),
+    private static UserInfoSnapshot toUserInfoSnapshot( User user )
+    {
+        UserInfoSnapshot eventUserInfo = new UserInfoSnapshot( user.getUsername(),
             user.getFirstName(), user.getSurname() );
         eventUserInfo.setId( user.getId() );
         eventUserInfo.setCode( user.getCode() );
@@ -111,9 +112,9 @@ public class ProgramStageInstanceUserInfo extends IdentifiableObjectSnapshot
         return eventUserInfo;
     }
 
-    public static ProgramStageInstanceUserInfo of( long id, String code, String uid, String username, String firstName, String surname )
+    public static UserInfoSnapshot of(long id, String code, String uid, String username, String firstName, String surname )
     {
-        ProgramStageInstanceUserInfo eventUserInfo = new ProgramStageInstanceUserInfo( username, firstName, surname);
+        UserInfoSnapshot eventUserInfo = new UserInfoSnapshot( username, firstName, surname);
         eventUserInfo.setId( id );
         eventUserInfo.setCode( code );
         eventUserInfo.setUid( uid );

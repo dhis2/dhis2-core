@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 
 public abstract class AbstractUserInfoPreProcessor implements Processor
@@ -54,29 +54,30 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
 
         if ( user != null )
         {
-            ProgramStageInstanceUserInfo userInfo = ProgramStageInstanceUserInfo.from( user );
+            UserInfoSnapshot userInfo = UserInfoSnapshot.from( user );
             updateEventUserInfo( event, userInfo );
             updateDataValuesUserInfo( getWorkContextDataValueMapEntry(workContext, event.getUid()), userInfo );
         }
     }
 
-    protected Set<EventDataValue> getWorkContextDataValueMapEntry(WorkContext workContext, String uid) {
-        return Optional.ofNullable(workContext)
-                .map(WorkContext::getEventDataValueMap)
-                .orElse(Collections.emptyMap())
-                .get(uid);
+    protected Set<EventDataValue> getWorkContextDataValueMapEntry( WorkContext workContext, String uid )
+    {
+        return Optional.ofNullable( workContext )
+            .map( WorkContext::getEventDataValueMap )
+            .orElse( Collections.emptyMap() )
+            .get( uid );
     }
 
-    protected void updateDataValuesUserInfo(Set<EventDataValue> eventDataValueMap, ProgramStageInstanceUserInfo userInfo )
+    protected void updateDataValuesUserInfo(Set<EventDataValue> eventDataValueMap, UserInfoSnapshot userInfo )
     {
         Optional.ofNullable( eventDataValueMap )
             .orElse( Collections.emptySet() )
             .forEach( dataValue -> updateDataValueUserInfo( dataValue, userInfo ) );
     }
 
-    protected abstract void updateDataValueUserInfo( EventDataValue dataValue, ProgramStageInstanceUserInfo userInfo );
+    protected abstract void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo );
 
-    protected abstract void updateEventUserInfo( Event event, ProgramStageInstanceUserInfo eventUserInfo );
+    protected abstract void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo );
 
     private User getUser( WorkContext workContext )
     {
