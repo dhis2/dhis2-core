@@ -33,8 +33,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 
@@ -87,7 +89,8 @@ public interface TrackerImportAccessManager
      * @param reporter        error reporter instance
      * @param programInstance enrollment to check user has read access
      */
-    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, ProgramInstance programInstance );
+    // void checkReadEnrollmentAccess( ValidationErrorReporter reporter,
+    // ProgramInstance programInstance );
 
     /**
      * Check importing user has write access to enrollment.
@@ -101,8 +104,9 @@ public interface TrackerImportAccessManager
      * @param program         program to check user has write access
      * @param programInstance enrollment to check user has write access
      */
-    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        ProgramInstance programInstance );
+    // void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program
+    // program,
+    // ProgramInstance programInstance );
 
     /**
      * Check importing user has write access to event.
@@ -125,7 +129,31 @@ public interface TrackerImportAccessManager
      * @param reporter             error reporter instance
      * @param programStageInstance event to check user has write access to
      */
-    void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStageInstance programStageInstance );
+    // void checkEventWriteAccess( ValidationErrorReporter reporter,
+    // ProgramStageInstance programStageInstance );
+
+    // void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program
+    // program,
+    // OrganisationUnit organisationUnit );
+    //
+    // void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program
+    // program );
+    //
+    // void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage
+    // programStage,
+    // OrganisationUnit orgUnit,
+    // CategoryOptionCombo categoryOptionCombo );
+
+    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program program,
+        OrganisationUnit organisationUnit, String trackedEntity );
+
+    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
+        String trackedEntity, OrganisationUnit organisationUnit );
+
+    void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
+        OrganisationUnit orgUnit,
+        CategoryOptionCombo categoryOptionCombo,
+        String trackedEntity );
 
     /**
      * Loops trough all CategoryOptionCombo options and check that the importing user has write access to all of them.
