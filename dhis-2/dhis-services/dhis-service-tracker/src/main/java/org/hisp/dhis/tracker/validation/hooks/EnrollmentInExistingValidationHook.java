@@ -124,9 +124,21 @@ public class EnrollmentInExistingValidationHook
 
         TrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        if ( tei == null && reporter.getValidationContext().existUnpersisted( TrackedEntityInstance.class,
+            enrollment.getTrackedEntity() ) )
+        {
+            tei = new TrackedEntityInstance();
+            tei.setUid( enrollment.getUid() );
+
+        } else {
+
+            // TODO LUCIANO add "missing reference exception:
+
+        }
+        
 
         // TODO: Create a dedicated sql query....?
-        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei )
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
             .stream()
             .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
             .collect( Collectors.toSet() );
@@ -151,19 +163,19 @@ public class EnrollmentInExistingValidationHook
     }
 
     private List<Enrollment> getAllEnrollments( ValidationErrorReporter reporter, Program program,
-        TrackedEntityInstance trackedEntityInstance )
+        String trackedEntityInstanceUid )
     {
         User user = reporter.getValidationContext().getBundle().getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        //checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
         params.setProgram( program );
-        params.setTrackedEntityInstance( trackedEntityInstance );
+        params.setTrackedEntityInstanceUid( trackedEntityInstanceUid );
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
 
         List<Enrollment> all = new ArrayList<>();

@@ -28,6 +28,25 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -53,25 +72,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -112,8 +112,10 @@ public class PreCheckDataRelationsValidationHook
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
-
-        addErrorIf( () -> tei == null,  reporter, E1068, enrollment.getTrackedEntity() );
+        if ( tei == null && !context.existUnpersisted( TrackedEntityInstance.class, enrollment.getTrackedEntity() ) )
+        {
+            addError( reporter, E1068, enrollment.getTrackedEntity() );
+        }
 
         if ( tei != null && program.getTrackedEntityType() != null
             && !program.getTrackedEntityType().equals( tei.getTrackedEntityType() ) )
@@ -132,7 +134,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
-            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
+            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null  && !context.existUnpersisted( TrackedEntityInstance.class, event.getTrackedEntity()))
             {
                 addError( reporter, E1036, event );
             }
@@ -157,7 +159,9 @@ public class PreCheckDataRelationsValidationHook
         {
             ProgramInstance programInstance = ctx.getProgramInstance( event.getEnrollment() );
 
-            if ( programInstance == null )
+            boolean exist = ctx.existUnpersisted( ProgramInstance.class, event.getEnrollment());
+
+            if ( programInstance == null && !exist )
             {
                 TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
 
@@ -190,7 +194,7 @@ public class PreCheckDataRelationsValidationHook
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
             params.setUser( user );
 
-            params.setTrackedEntityInstance( null );
+            params.setTrackedEntityInstanceUid( null );
 
             int count = programInstanceService.countProgramInstances( params );
 

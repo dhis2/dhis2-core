@@ -177,11 +177,11 @@ public class DefaultTrackerImportService
     {
         Timer preProcessTimer = new SystemTimer().start();
 
-        TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle );
-        trackerBundle = trackerPreprocessService.preprocess( trackerBundle );
+        // TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle ); // TODO luciano revert!
+        //trackerBundle = trackerPreprocessService.preprocess( trackerBundle );
 
         importReport.getTimings().setProgramrule( preProcessTimer.toString() );
-        return trackerBundle;
+        return bundle;
     }
 
     protected void commitBundle( TrackerImportParams params, TrackerImportReport importReport,

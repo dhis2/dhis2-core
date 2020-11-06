@@ -45,6 +45,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -57,6 +58,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.preheat.supplier.classStrategy.EntityUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
@@ -79,6 +81,8 @@ public class TrackerPreheat
      * Internal map of all objects mapped by identifier => class type => uid.
      */
     private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
+
+    private Map<Class<? extends IdentifiableObject>, List<String>> unpersistedMap = new HashMap<>();
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -484,8 +488,18 @@ public class TrackerPreheat
         return trackedEntities.get( identifier ).get( trackedEntity );
     }
 
+    public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances,
+        List<String> allEntities )
+    {
+
+        putTrackedEntities( identifier, trackedEntityInstances );
+        EntityUtils.addNewEntitiesToPreheat( collectUids( trackedEntityInstances ), allEntities, this,
+            TrackedEntityInstance.class );
+    }
+
     public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances )
     {
+
         trackedEntityInstances.forEach( te -> putTrackedEntity( identifier, te.getUid(), te ) );
     }
 
@@ -531,6 +545,16 @@ public class TrackerPreheat
         return enrollments.get( identifier ).get( enrollment );
     }
 
+    public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances,
+        List<String> allEntities )
+    {
+        putEnrollments( identifier, programInstances );
+
+        EntityUtils.addNewEntitiesToPreheat( collectUids( programInstances ), allEntities, this,
+            ProgramInstance.class );
+
+    }
+
     public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances )
     {
         programInstances.forEach( pi -> putEnrollment( identifier, pi.getUid(), pi ) );
@@ -566,7 +590,15 @@ public class TrackerPreheat
         return events.get( identifier ).get( event );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances )
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances, List<String> allEntities)
+    {
+        putEvents( identifier, programStageInstances );
+
+        EntityUtils.addNewEntitiesToPreheat( collectUids( programStageInstances ), allEntities, this,
+            ProgramInstance.class );
+    }
+
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances)
     {
         programStageInstances.forEach( psi -> putEvent( identifier, psi.getUid(), psi ) );
     }
@@ -689,16 +721,35 @@ public class TrackerPreheat
         return programInstances;
     }
 
-    public void setProgramInstances(Map<String, List<ProgramInstance>> programInstances)
+    public void setProgramInstances( Map<String, List<ProgramInstance>> programInstances )
     {
         this.programInstances = programInstances;
     }
-    
+
     @Override
     public String toString()
     {
         return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
             .add( "map=" + map )
             .toString();
+    }
+    
+    public void addUnpersisted( Class<? extends IdentifiableObject> klazz, String uid )
+    {
+        unpersistedMap.computeIfAbsent( klazz, k -> new ArrayList<>() ).add( uid );
+    }
+    
+    public boolean existUnpersisted( Class<? extends IdentifiableObject> klazz, String uid )
+    {
+
+        final List<String> uids = unpersistedMap.getOrDefault( klazz, new ArrayList<>() );
+        return uids.contains( uid );
+
+    }
+
+    private List<String> collectUids(List<? extends BaseIdentifiableObject> objects) {
+
+        return objects.stream().map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toList());
     }
 }

@@ -29,7 +29,9 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -59,7 +61,7 @@ public class EventStrategy implements ClassBasedSupplierStrategy
         {
             List<ProgramStageInstance> programStageInstances = programStageInstanceStore
                 .getByUid( ids, preheat.getUser() );
-            preheat.putEvents( TrackerIdScheme.UID, programStageInstances );
+            preheat.putEvents( TrackerIdScheme.UID, programStageInstances,  ids );
         }
     }
 }

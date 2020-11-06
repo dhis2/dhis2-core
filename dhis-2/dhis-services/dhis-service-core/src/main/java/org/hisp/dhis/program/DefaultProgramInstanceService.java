@@ -258,7 +258,7 @@ public class DefaultProgramInstanceService
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityInstance( tei );
+        params.setTrackedEntityInstanceUid( tei.getUid() );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
         params.setPageSize( pageSize );
@@ -303,9 +303,7 @@ public class DefaultProgramInstanceService
             params.setDefaultPaging();
         }
 
-        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        return programInstances;
+        return programInstanceStore.getProgramInstances( params );
     }
 
     @Override

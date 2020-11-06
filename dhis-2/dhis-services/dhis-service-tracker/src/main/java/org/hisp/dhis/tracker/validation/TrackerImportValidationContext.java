@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -217,5 +218,10 @@ public class TrackerImportValidationContext
     public FileResource getFileResource( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
+    }
+
+    public boolean existUnpersisted( Class<? extends IdentifiableObject> klazz, String uid )
+    {
+        return bundle.getPreheat().existUnpersisted( klazz, uid );
     }
 }
