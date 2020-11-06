@@ -37,12 +37,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.postgresql.util.PGobject;
@@ -54,6 +53,7 @@ import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -191,7 +191,7 @@ public class EventUtils
     }
 
     @SneakyThrows
-    public static PGobject userInfoToJson( ProgramStageInstanceUserInfo userInfo, ObjectMapper mapper )
+    public static PGobject userInfoToJson( UserInfoSnapshot userInfo, ObjectMapper mapper )
     {
         PGobject jsonbObj = new PGobject();
         jsonbObj.setType( "json" );
@@ -199,19 +199,19 @@ public class EventUtils
         return jsonbObj;
     }
 
-    public static ProgramStageInstanceUserInfo jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
+    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
     {
         try
         {
             if ( org.apache.commons.lang3.StringUtils.isNotEmpty( userInfoAsString ) )
             {
-                return mapper.readValue( userInfoAsString, ProgramStageInstanceUserInfo.class );
+                return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
             }
             return null;
         }
         catch ( IOException e )
         {
-            log.error( "Parsing ProgramStageInstanceUserInfo json string failed. String value: " + userInfoAsString );
+            log.error( "Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString );
             throw new IllegalArgumentException( e );
         }
     }

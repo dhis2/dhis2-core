@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -246,7 +246,7 @@ public abstract class CommandSMSListener
 
         ProgramInstance programInstance = programInstances.get( 0 );
 
-        ProgramStageInstanceUserInfo currentUserInfo = ProgramStageInstanceUserInfo.from( currentUserService.getCurrentUser() );
+        UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( currentUserService.getCurrentUser() );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( ous.iterator().next() );
