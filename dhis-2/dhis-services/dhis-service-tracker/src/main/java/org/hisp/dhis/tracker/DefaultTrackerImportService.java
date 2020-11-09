@@ -28,12 +28,16 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.system.notification.Notifier;
@@ -46,6 +50,7 @@ import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.springframework.stereotype.Service;
@@ -186,9 +191,10 @@ public class DefaultTrackerImportService
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 
-        List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
-            bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
-            bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = Stream.of( TrackerType.ENROLLMENT, TrackerType.EVENT )
+            .map( trackerType -> safelyGetSideEffectsDataBundles( bundleReport, trackerType ) )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
 
         trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
 
@@ -201,6 +207,16 @@ public class DefaultTrackerImportService
             notifier.update( params.getJobConfiguration(),
                 "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
         }
+    }
+
+    List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles( TrackerBundleReport bundleReport,
+        TrackerType trackerType )
+    {
+        return Optional.ofNullable( bundleReport )
+            .map( TrackerBundleReport::getTypeReportMap )
+            .map( reportMap -> reportMap.get( trackerType ) )
+            .map( TrackerTypeReport::getSideEffectDataBundles )
+            .orElse( Collections.emptyList() );
     }
 
     protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport,
