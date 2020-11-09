@@ -154,6 +154,13 @@ public interface Grid
     Grid addEmptyHeaders( int number );
 
     /**
+     * Replaces the list of headers.
+     *
+     * @param headers list of headers.
+     */
+    Grid replaceHeaders( List<GridHeader> headers );
+
+    /**
      * Returns the current height / number of rows in the grid.
      */
     int getHeight();
