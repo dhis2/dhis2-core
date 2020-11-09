@@ -166,11 +166,16 @@ public class PreCheckOwnershipValidationHook
             trackerImportAccessManager
                 .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), tei.getUid(), organisationUnit );
         }
-        
-        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-            (tei == null ? context.getReference( enrollment.getTrackedEntity() ).get().getUid() : tei.getUid()),
-            organisationUnit );
-        
+
+        if (tei != null) {
+            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+                    tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could not be in the Preheat because is part of an already persisted Entity
+        } else {
+            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+                    context.getReference( enrollment.getTrackedEntity() ).get().getUid(),
+                    context.getOrganisationUnit(getOrgUnitUidFromTei(context, context.getReference( enrollment.getTrackedEntity() ).get().getUid()) ));
+            // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI in the payload
+        }
     }
 
     @Override
@@ -264,5 +269,21 @@ public class PreCheckOwnershipValidationHook
         {
             addError( reporter, E1083, user );
         }
+    }
+
+    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid ) {
+
+
+        final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
+        if ( reference.isPresent() )
+        {
+            final Optional<TrackedEntity> tei = context.getBundle()
+                    .getTrackedEntity( teiUid );
+            if ( tei.isPresent() )
+            {
+                return tei.get().getOrgUnit();
+            }
+        }
+        return null;
     }
 }
