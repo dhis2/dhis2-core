@@ -111,7 +111,8 @@ public class DefaultLocationManager extends LogOnceLogger
                 Context initCtx = new InitialContext();
                 Context envCtx = ( Context ) initCtx.lookup( "java:comp/env" );
                 path = ( String ) envCtx.lookup( this.contextVariable );
-            }catch ( NamingException e ) 
+            }
+            catch ( NamingException e ) 
             {
 
             }
