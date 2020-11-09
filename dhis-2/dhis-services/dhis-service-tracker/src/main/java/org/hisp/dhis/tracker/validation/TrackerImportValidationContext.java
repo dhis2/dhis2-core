@@ -36,14 +36,8 @@ import java.util.Optional;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-<<<<<<< HEAD
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.common.IdentifiableObject;
-||||||| parent of f0e9fd2a57bd (use tree for references)
-import org.hisp.dhis.common.IdentifiableObject;
-=======
->>>>>>> f0e9fd2a57bd (use tree for references)
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;

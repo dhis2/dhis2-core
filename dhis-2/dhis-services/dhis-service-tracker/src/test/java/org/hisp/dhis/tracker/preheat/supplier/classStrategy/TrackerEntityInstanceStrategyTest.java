@@ -67,7 +67,7 @@ public class TrackerEntityInstanceStrategyTest
     }
 
     @Test
-    public void verifyStrategyFiltersOutNonRootTei2()
+    public void verifyStrategyIgnoresPersistedTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.randomObjects( TrackedEntity.class, 2 );

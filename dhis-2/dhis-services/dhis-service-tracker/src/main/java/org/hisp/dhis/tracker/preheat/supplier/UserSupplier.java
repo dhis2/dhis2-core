@@ -64,7 +64,6 @@ public class UserSupplier extends AbstractPreheatSupplier
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
-        final List<User> byUid = manager.getByUid(User.class, userUids);
-        preheat.put( TrackerIdentifier.UID, byUid );
+        preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
     }
 }

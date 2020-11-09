@@ -47,21 +47,21 @@ public class UserSupplierTest
     @Test
     public void verifySupplier()
     {
-        final List<Event> events = rnd.randomObjects( Event.class, 5 );
+        final List<Event> events = rnd.randomObjects( Event.class, 5, "assignedUser" );
         events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );
         final List<User> users = rnd.randomObjects( User.class, 5 );
-        final List<String> userIds = events.stream().map( e -> e.getAssignedUser() )
-            .collect( Collectors.toList() );
+        final List<String> userIds = events.stream().map( Event::getAssignedUser )
+                .collect( Collectors.toList() );
 
         IntStream.range( 0, 5 )
-            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
+                .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
 
         when( manager.getByUid( eq( User.class ),
-            argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
+                argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
 
         final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
-            .events( events )
-            .build();
+                .events( events )
+                .build();
 
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( preheatParams, preheat );
@@ -73,4 +73,4 @@ public class UserSupplierTest
         // Make sure also User Credentials object are cached in the pre-heat
         assertThat( preheat.getAll( TrackerIdScheme.UID, UserCredentials.class ), hasSize( 5 ) );
     }
-}
+} 
