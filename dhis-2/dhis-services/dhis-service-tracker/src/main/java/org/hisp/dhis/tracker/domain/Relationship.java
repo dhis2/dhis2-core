@@ -43,8 +43,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Relationship implements TrackerDto
 {
-    private String uid;
-
     @JsonProperty
     private String relationship;
 

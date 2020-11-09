@@ -133,11 +133,11 @@ public class PreCheckValidateAndGenerateUidHook
 
         if ( uid == null )
         {
-            relationship.setUid( CodeGenerator.generateUid() );
+            relationship.setRelationship( CodeGenerator.generateUid() );
         }
         else
         {
-            relationship.setUid( uid );
+            relationship.setRelationship( uid );
         }
     }
 
