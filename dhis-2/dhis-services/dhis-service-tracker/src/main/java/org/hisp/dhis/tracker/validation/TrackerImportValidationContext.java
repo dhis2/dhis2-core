@@ -83,6 +83,13 @@ public class TrackerImportValidationContext
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
         this.bundle = bundle;
+
+        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
+            .getResolvedStrategyMap();
+
+        resolvedMap.put( Event.class, new HashMap<>() );
+        resolvedMap.put( Enrollment.class, new HashMap<>() );
+        resolvedMap.put( TrackedEntity.class, new HashMap<>() );
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
