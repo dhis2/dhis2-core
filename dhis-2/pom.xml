@@ -199,7 +199,6 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.22.0</version>
             <configuration>
-              <forkCount>0</forkCount>
               <trimStackTrace>false</trimStackTrace>
               <argLine>
                 -Xmx1024m
