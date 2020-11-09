@@ -736,15 +736,6 @@ public class TrackerPreheat
         return Optional.empty();
     }
 
-    public void invalidateReference( String uid )
-    {
-        final TreeNode<String> node = referenceTree.find( uid );
-        if ( node != null )
-        {
-            referenceTree.dropSubtree( node );
-        }
-    }
-
     @Override
     public String toString()
     {

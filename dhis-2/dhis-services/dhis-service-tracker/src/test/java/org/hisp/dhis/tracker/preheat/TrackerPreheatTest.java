@@ -318,10 +318,5 @@ public class TrackerPreheatTest
         Optional<ReferenceTrackerEntity> reference4 = preheat.getReference( allEvents.get( 3 ).getUid() );
         assertThat( reference4.get().getUid(), is( allEvents.get( 3 ).getUid() ) );
         assertThat( reference4.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
-
-        // invalidate
-        preheat.invalidateReference( allEntities.get( 0 ) );
-
-        assertFalse( preheat.getReference( allEvents.get( 0 ).getUid() ).isPresent() );
     }
 }

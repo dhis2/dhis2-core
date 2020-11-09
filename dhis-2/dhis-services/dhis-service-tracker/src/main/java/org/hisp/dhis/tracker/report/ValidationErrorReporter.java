@@ -112,9 +112,6 @@ public class ValidationErrorReporter
 
         getReportList().add( builder.build( this.validationContext.getBundle() ) );
 
-        // make sure the unpersisted payload entities in the reference map are also made invalid
-        this.validationContext.getBundle().getPreheat().invalidateReference( this.mainId );
-
         if ( isFailFast() )
         {
             throw new ValidationFailFastException( getReportList() );
