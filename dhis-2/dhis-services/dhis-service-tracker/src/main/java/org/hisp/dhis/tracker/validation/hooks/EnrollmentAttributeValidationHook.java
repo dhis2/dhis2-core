@@ -74,7 +74,6 @@ public class EnrollmentAttributeValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( enrollment.getProgram() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         Map<String, String> attributeValueMap = Maps.newHashMap();
@@ -98,7 +97,7 @@ public class EnrollmentAttributeValidationHook
             validateAttributeUniqueness( reporter,
                 attribute.getValue(),
                 teAttribute,
-                tei, // TODO luciano -> this will fail with payload-only tei!
+                tei,
                 tei.getOrganisationUnit() );
         }
 
@@ -120,9 +119,9 @@ public class EnrollmentAttributeValidationHook
     }
 
     // TODO luciano why are we validating TEI attributes in the enrollment validator...?
-//    private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-//        Program program, String teiUid, Map<String, String> attributeValueMap )
-//    {
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter,
+        Program program, String teiUid, Map<String, String> attributeValueMap )
+    {
 //        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 //        // checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL ); -- TODO no need to check it again
 //        checkNotNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
@@ -170,5 +169,5 @@ public class EnrollmentAttributeValidationHook
 //                addError( reporter, E1019, entry.getKey() + "=" + entry.getValue() );
 //            }
 //        }
-//    }
+    }
 }

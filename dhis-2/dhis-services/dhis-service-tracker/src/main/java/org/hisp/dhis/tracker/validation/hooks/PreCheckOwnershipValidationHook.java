@@ -159,8 +159,6 @@ public class PreCheckOwnershipValidationHook
             addErrorIf( () -> hasNonDeletedEvents && hasNotCascadeDeleteAuthority, reporter, E1103, user, pi );
         }
 
-        // TODO luciano: the variable tei can actually be null here,  if a reference is present, fix below code
-        
         // Check acting user is allowed to change/write existing pi and program
         if ( strategy.isUpdateOrDelete() )
         {
@@ -168,10 +166,11 @@ public class PreCheckOwnershipValidationHook
             trackerImportAccessManager
                 .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), tei.getUid(), organisationUnit );
         }
-        if ( tei != null )
-        {
-            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program, tei.getUid(), organisationUnit );
-        }
+        
+        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+            (tei == null ? context.getReference( enrollment.getTrackedEntity() ).get().getUid() : tei.getUid()),
+            organisationUnit );
+        
     }
 
     @Override
@@ -194,18 +193,16 @@ public class PreCheckOwnershipValidationHook
 
         if ( programInstance == null )
         {
-            Optional<ReferenceTrackerEntity> unpersistedObject = context.getReference( event.getEnrollment() );
-            if ( unpersistedObject.isPresent() )
+            Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
+            if ( reference.isPresent() )
             {
-                teiUid = unpersistedObject.get().getParentUid();
+                teiUid = reference.get().getParentUid();
             }
         }
         else
         {
             teiUid = programInstance.getEntityInstance().getUid();
         }
-        // TODO luciano: shall we fail if teiUid == null?
-        
         CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
 
         // Check acting user is allowed to change existing/write event

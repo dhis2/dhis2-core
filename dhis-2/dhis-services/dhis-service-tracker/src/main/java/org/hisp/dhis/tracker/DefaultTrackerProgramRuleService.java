@@ -100,7 +100,7 @@ public class DefaultTrackerProgramRuleService
     {
         Optional<Enrollment> bundleEnrollment = bundle.getEnrollments()
             .stream()
-            .filter( e -> event.getEnrollment().equals( e.getEnrollment() ) ) // TODO luciano this will fail if event.enrollment is null
+            .filter( e -> event.getEnrollment().equals( e.getEnrollment() ) ) // TODO Enrico this will fail if event.enrollment is null
             .findAny();
         return bundleEnrollment.isPresent()
             ? enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(), bundleEnrollment.get() )

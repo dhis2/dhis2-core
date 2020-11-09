@@ -65,7 +65,7 @@ import org.springframework.util.StringUtils;
 import com.google.common.base.Preconditions;
 
 import lombok.Data;
-
+// TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -83,14 +83,6 @@ public class TrackerImportValidationContext
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
         this.bundle = bundle;
-
-        // TODO luciano: what is this code for???
-        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
-            .getResolvedStrategyMap();
-
-        resolvedMap.put( Event.class, new HashMap<>() );
-        resolvedMap.put( Enrollment.class, new HashMap<>() );
-        resolvedMap.put( TrackedEntity.class, new HashMap<>() );
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )

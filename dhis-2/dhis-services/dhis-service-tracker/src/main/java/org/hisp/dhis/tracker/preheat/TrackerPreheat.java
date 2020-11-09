@@ -85,13 +85,12 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
     /**
-     * Internal tree of all payload references which are not present in the database.
-     * This map is required to allow the validation stage to reference root objects
-     * (TEI, PS, PSI) which are present in the payload but not stored in the
-     * pre-heat object (since they do not exist in the db yet).
-     * 
+     * Internal tree of all payload references which are not present in the
+     * database. This map is required to allow the validation stage to reference
+     * root objects (TEI, PS, PSI) which are present in the payload but not stored
+     * in the pre-heat object (since they do not exist in the db yet).
      */
-    private TreeNode<String> referenceTree = new ArrayMultiTreeNode<>("ROOT");
+    private TreeNode<String> referenceTree = new ArrayMultiTreeNode<>( "ROOT" );
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -705,7 +704,7 @@ public class TrackerPreheat
         this.programInstances = programInstances;
     }
 
-    private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity)
+    private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity )
     {
         if ( trackerType.equals( TrackerType.TRACKED_ENTITY ) )
         {
@@ -724,7 +723,7 @@ public class TrackerPreheat
             {
                 referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
             }
-        } // TODO luciano what about relationship
+        } // TODO luciano what about relationship?
     }
 
     public Optional<ReferenceTrackerEntity> getReference( String uid )

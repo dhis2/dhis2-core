@@ -131,7 +131,7 @@ public class EnrollmentInExistingValidationHook
 
         } else {
 
-            // TODO LUCIANO add "missing reference exception:
+            // TODO luciano move error creation to PreCheckDataRelationsValidationHook
 
         }
         
