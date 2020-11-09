@@ -130,7 +130,7 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage(ValidationErrorReporter reporter, TrackerImportValidationContext ctx, Event event) {
+    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, TrackerImportValidationContext ctx, Event event ) {
         if ( StringUtils.isEmpty( event.getProgramStage() ) )
             return;
 
@@ -139,8 +139,8 @@ public class EventDataValuesValidationHook
         final Set<String> dataElements =
                 programStage.getProgramStageDataElements()
                         .stream()
-                        .map(de -> de.getDataElement().getUid())
-                        .collect(Collectors.toSet());
+                        .map( de -> de.getDataElement().getUid() )
+                        .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
                 .map( DataValue::getDataElement )

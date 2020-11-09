@@ -230,16 +230,16 @@ public class EventDataValuesValidationHookTest
         ProgramStage programStage = new ProgramStage();
         ProgramStageDataElement mandatoryStageDataElement = new ProgramStageDataElement();
         DataElement dataElement = new DataElement();
-        dataElement.setUid(validDataValue().getDataElement());
+        dataElement.setUid( validDataValue().getDataElement() );
         mandatoryStageDataElement.setDataElement( dataElement );
         mandatoryStageDataElement.setCompulsory( true );
 
         DataValue notPresentDataValue = validDataValue();
-        notPresentDataValue.setDataElement("de_not_present_in_progam_stage");
+        notPresentDataValue.setDataElement( "de_not_present_in_progam_stage" );
 
         DataElement notPresentDataElement = new DataElement();
         notPresentDataElement.setValueType( ValueType.TEXT );
-        notPresentDataElement.setUid("de_not_present_in_progam_stage");
+        notPresentDataElement.setUid( "de_not_present_in_progam_stage" );
 
         programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement ) );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue(), notPresentDataValue ) );
