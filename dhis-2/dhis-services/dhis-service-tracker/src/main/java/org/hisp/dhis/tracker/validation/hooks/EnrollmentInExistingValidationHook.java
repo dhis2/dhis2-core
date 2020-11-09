@@ -122,7 +122,7 @@ public class EnrollmentInExistingValidationHook
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getEnrollment() );
+        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getTrackedEntity() );
 
         // TODO: Create a dedicated sql query....?
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
