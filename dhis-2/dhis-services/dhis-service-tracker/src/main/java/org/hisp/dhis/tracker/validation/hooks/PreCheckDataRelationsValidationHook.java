@@ -66,6 +66,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -111,16 +112,13 @@ public class PreCheckDataRelationsValidationHook
 
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
-        if ( tei == null && !context.getReference( enrollment.getTrackedEntity() ).isPresent() )
-        {
-            addError( reporter, E1068, enrollment.getTrackedEntity() );
-        }
+        addErrorIf( () -> trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ), reporter, E1068,
+            enrollment.getTrackedEntity() );
 
-        if ( tei != null && program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().equals( tei.getTrackedEntityType() ) )
+        if ( program.getTrackedEntityType() != null
+            && !program.getTrackedEntityType().getUid().equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment) ) )
         {
-            addError( reporter, E1022, tei, program );
+            addError( reporter, E1022, enrollment.getTrackedEntity(), program );
         }
     }
 
@@ -343,4 +341,39 @@ public class PreCheckDataRelationsValidationHook
 
         return attrOptCombo;
     }
+
+    private boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
+    {
+        return context.getTrackedEntityInstance( teiUid ) == null && !context.getReference( teiUid ).isPresent();
+    }
+
+    private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
+        Enrollment enrollment )
+    {
+
+        final TrackedEntityInstance trackedEntityInstance = context
+            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        if ( trackedEntityInstance != null )
+        {
+            return trackedEntityInstance.getTrackedEntityType().getUid();
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            if ( reference.isPresent() )
+            {
+
+                final Optional<TrackedEntity> tei = context.getBundle()
+                    .getTrackedEntity( enrollment.getTrackedEntity() );
+                if ( tei.isPresent() )
+                {
+
+                    return tei.get().getTrackedEntityType();
+                }
+            }
+        }
+        return null;
+    }
+
+
 }

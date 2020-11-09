@@ -187,7 +187,7 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         Program program = context.getProgram( event.getProgram() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        ProgramInstance programInstance = context.getProgramInstance(event.getEnrollment());
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
         String teiUid = null;
 
@@ -201,7 +201,10 @@ public class PreCheckOwnershipValidationHook
         }
         else
         {
-            teiUid = programInstance.getEntityInstance().getUid();
+            if ( programInstance.getEntityInstance() != null ) // TODO luciano: we should add a early check where validation fails if a pi has no TEI and program is with registration
+            {
+                teiUid = programInstance.getEntityInstance().getUid();
+            }
         }
         CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
 

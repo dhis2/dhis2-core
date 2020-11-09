@@ -122,19 +122,8 @@ public class EnrollmentInExistingValidationHook
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = reporter.getValidationContext()
-            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
-        if ( tei == null && reporter.getValidationContext().getReference( enrollment.getTrackedEntity() ).isPresent() )
-        {
-            tei = new TrackedEntityInstance();
-            tei.setUid( enrollment.getUid() );
+        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getEnrollment() );
 
-        } else {
-
-            // TODO luciano move error creation to PreCheckDataRelationsValidationHook
-
-        }
-        
         // TODO: Create a dedicated sql query....?
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
             .stream()
@@ -254,5 +243,26 @@ public class EnrollmentInExistingValidationHook
         }
 
         return enrollment;
+    }
+
+    /**
+     * Get a {@link TrackedEntityInstance} from the pre-heat or from the reference
+     * tree.
+     *
+     * @param reporter the {@link ValidationErrorReporter} object
+     * @param uid the UID of a {@link TrackedEntityInstance} object
+     * @return a TrackedEntityInstance
+     */
+    public TrackedEntityInstance getTrackedEntityInstance( ValidationErrorReporter reporter, String uid )
+    {
+        TrackedEntityInstance tei = reporter.getValidationContext().getTrackedEntityInstance( uid );
+
+        if ( tei == null && reporter.getValidationContext().getReference( uid ).isPresent() )
+        {
+            tei = new TrackedEntityInstance();
+            tei.setUid( uid );
+
+        }
+        return tei;
     }
 }

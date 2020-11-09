@@ -28,36 +28,30 @@ package org.hisp.dhis.tracker.validation.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -208,8 +202,8 @@ public class DefaultTrackerImportAccessManager
     @Override
     public void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
         OrganisationUnit orgUnit,
-              CategoryOptionCombo categoryOptionCombo,
-                                      String trackedEntity, boolean isCreatableInSearchScope)
+        CategoryOptionCombo categoryOptionCombo,
+        String trackedEntity, boolean isCreatableInSearchScope )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -219,14 +213,13 @@ public class DefaultTrackerImportAccessManager
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
         checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-         if ( isCreatableInSearchScope ?
-         !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
-         : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
-         {
-         reporter.addError( newReport( TrackerErrorCode.E1000 )
-         .addArg( user )
-         .addArg( orgUnit ) );
-         }
+        if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
+            : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1000 )
+                .addArg( user )
+                .addArg( orgUnit ) );
+        }
 
         if ( programStage.getProgram().isWithoutRegistration() )
         {

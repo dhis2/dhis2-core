@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -91,9 +92,10 @@ public class EventNoteValidationHookTest
 
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
-
+        TrackerPreheat preheat = mock( TrackerPreheat.class );
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
 
