@@ -86,11 +86,13 @@ public interface TrackerImportAccessManager
      * <p>
      * 1. Check user is in "search scope" of the program's org. unit.
      *
-     * @param reporter        error reporter instance
-     * @param programInstance enrollment to check user has read access
+     * @param reporter          error reporter instance
+     * @param program           program to check user has read access
+     * @param organisationUnit  organisationUnit to check user has read access
+     * @param trackedEntity     trackedEntity to check user has read access
      */
-    // void checkReadEnrollmentAccess( ValidationErrorReporter reporter,
-    // ProgramInstance programInstance );
+    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program program,
+                                    OrganisationUnit organisationUnit, String trackedEntity );
 
     /**
      * Check importing user has write access to enrollment.
@@ -100,13 +102,13 @@ public interface TrackerImportAccessManager
      * a. Check that user has read access to program tei type.
      * b. Check has access to the tei - program combination.
      *
-     * @param reporter        error reporter instance
-     * @param program         program to check user has write access
-     * @param programInstance enrollment to check user has write access
+     * @param reporter         error reporter instance
+     * @param program          program to check user has write access
+     * @param trackedEntity    trackedEntity to check user has write access
+     * @param organisationUnit organisationUnit to check user has write access
      */
-    // void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program
-    // program,
-    // ProgramInstance programInstance );
+    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
+                                     String trackedEntity, OrganisationUnit organisationUnit );
 
     /**
      * Check importing user has write access to event.
@@ -126,30 +128,13 @@ public interface TrackerImportAccessManager
      * If event has a Attribute Option Combo:
      * 1. Check user has write access to the combo.
      *
-     * @param reporter             error reporter instance
-     * @param programStageInstance event to check user has write access to
+     * @param reporter                  error reporter instance
+     * @param programStage              programStage to check user has write access to
+     * @param orgUnit                   orgUnit to check user has write access to
+     * @param categoryOptionCombo       categoryOptionCombo to check user has write access to
+     * @param trackedEntity             trackedEntity to check user has write access to
+     * @param isCreatableInSearchScope  flag to decide between search scope or capture scope
      */
-    // void checkEventWriteAccess( ValidationErrorReporter reporter,
-    // ProgramStageInstance programStageInstance );
-
-    // void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program
-    // program,
-    // OrganisationUnit organisationUnit );
-    //
-    // void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program
-    // program );
-    //
-    // void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage
-    // programStage,
-    // OrganisationUnit orgUnit,
-    // CategoryOptionCombo categoryOptionCombo );
-
-    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        OrganisationUnit organisationUnit, String trackedEntity );
-
-    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        String trackedEntity, OrganisationUnit organisationUnit );
-
     void checkEventWriteAccess(ValidationErrorReporter reporter, ProgramStage programStage,
                                OrganisationUnit orgUnit,
                                CategoryOptionCombo categoryOptionCombo,
