@@ -200,7 +200,10 @@
             <version>2.21.0</version>
             <configuration>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
+              <argLine>
+                -Xmx1024m
+                --illegal-access=permit
+              </argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
             <dependencies>
