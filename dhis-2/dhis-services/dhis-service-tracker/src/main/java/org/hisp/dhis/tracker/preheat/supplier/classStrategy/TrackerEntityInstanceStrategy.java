@@ -28,8 +28,9 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -38,25 +39,32 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor(TrackedEntity.class)
-public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy {
+@StrategyFor( TrackedEntity.class )
+public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
+{
     @NonNull
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     @Override
-    public void add(TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat) {
-        for (List<String> ids : splitList) {
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid(ids,
-                    preheat.getUser());
+    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    {
+        for ( List<String> ids : splitList )
+        {
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
+                preheat.getUser() );
 
-            preheat.putTrackedEntities(TrackerIdScheme.UID, trackedEntityInstances, ids);
+            final List<String> rootEntities = params.getTrackedEntities().stream().map( TrackedEntity::getTrackedEntity )
+                .collect( Collectors.toList() );
+
+            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances, RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
         }
     }
 }

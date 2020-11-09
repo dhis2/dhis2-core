@@ -31,44 +31,16 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.springframework.stereotype.Component;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
-@Component
-@StrategyFor( Event.class )
-public class EventStrategy implements ClassBasedSupplierStrategy
+@UtilityClass
+public class RootEntitiesUtils
 {
-    @NonNull
-    private final ProgramStageInstanceStore programStageInstanceStore;
-
-    @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public List<String> filterOutNonRootEntities( List<String> ids, List<String> rootEntities )
     {
-        for ( List<String> ids : splitList )
-        {
-            List<ProgramStageInstance> programStageInstances = programStageInstanceStore
-                .getByUid( ids, preheat.getUser() );
-
-            final List<String> rootEntities = params.getEvents().stream().map( Event::getEvent )
-                .collect( Collectors.toList() );
-
-            preheat.putEvents( TrackerIdScheme.UID, programStageInstances,
-                params.getEvents().stream()
-                    .filter(
-                        e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEvent() ) )
-                    .collect( Collectors.toList() ) );
-        }
+        return ids.stream().filter( rootEntities::contains ).collect( Collectors.toList() );
     }
 }
