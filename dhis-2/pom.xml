@@ -202,6 +202,7 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>
                 -Xmx1024m
+                --add-modules java.xml.bind
                 --illegal-access=permit
               </argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
