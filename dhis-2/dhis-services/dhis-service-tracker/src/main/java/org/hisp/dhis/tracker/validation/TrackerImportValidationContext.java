@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.preheat.UnpersistedObject;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Preconditions;
@@ -67,7 +67,6 @@ import lombok.Data;
 @Data
 public class TrackerImportValidationContext
 {
-
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
@@ -80,6 +79,7 @@ public class TrackerImportValidationContext
     {
         this.bundle = bundle;
 
+        // TODO luciano: what is this code for???
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
             .getResolvedStrategyMap();
 
@@ -221,8 +221,13 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
     }
 
-    public Optional<UnpersistedObject> existUnpersisted(Class<? extends IdentifiableObject> klazz, String uid )
+
+    public Optional<ReferenceTrackerEntity> getReference( Class<? extends IdentifiableObject> klazz, String uid )
     {
-        return bundle.getPreheat().existUnpersisted( klazz, uid );
+        final Optional<ReferenceTrackerEntity> ref = bundle.getPreheat().getReference(klazz, uid);
+
+
+
+        return Optional.empty();
     }
 }

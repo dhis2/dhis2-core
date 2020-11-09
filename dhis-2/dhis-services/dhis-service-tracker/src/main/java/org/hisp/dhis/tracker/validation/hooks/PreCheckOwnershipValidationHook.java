@@ -57,7 +57,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.UnpersistedObject;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
@@ -138,7 +138,7 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        if ( tei == null && !context.existUnpersisted( TrackedEntityInstance.class, enrollment.getTrackedEntity() ).isPresent() )
+        if ( tei == null && !context.getReference( TrackedEntityInstance.class, enrollment.getTrackedEntity() ).isPresent() )
         {
             //checkNotNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
             throw new NullPointerException(TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
@@ -191,7 +191,7 @@ public class PreCheckOwnershipValidationHook
         String teiUid = null;
 
         if (programInstance == null) {
-            Optional<UnpersistedObject> unpersistedObject = context.existUnpersisted(ProgramInstance.class, event.getEnrollment());
+            Optional<ReferenceTrackerEntity> unpersistedObject = context.getReference(ProgramInstance.class, event.getEnrollment());
             teiUid = unpersistedObject.get().getParentUid();
         } else {
             teiUid = programInstance.getEntityInstance().getUid();

@@ -105,14 +105,15 @@ public class ValidationErrorReporter
     {
         builder.trackerType( this.dtoType );
 
-//        this.validationContext.getBundle().getPreheat().
-
         if ( this.mainId != null )
         {
             builder.uid( this.mainId );
         }
 
         getReportList().add( builder.build( this.validationContext.getBundle() ) );
+
+        // make sure the unpersisted payload entities in the reference map are also made invalid
+        this.validationContext.getBundle().getPreheat().invalidateReference( this.dtoType, this.mainId );
 
         if ( isFailFast() )
         {

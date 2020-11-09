@@ -32,11 +32,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,6 +43,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -57,6 +56,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.user.User;
@@ -82,7 +82,15 @@ public class TrackerPreheat
      */
     private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, List<UnpersistedObject>> unpersistedMap = new HashMap<>();
+    /**
+     * Internal map of all payload references which are not present in the database.
+     * This map is required to allow the validation stage to reference root objects
+     * (TEI, PS, PSI) which are present in the payload but not stored in the
+     * pre-heat object (since they do not exist in the db yet).
+     * 
+     * The map key is the root object, and the key is a List of {@link ReferenceTrackerEntity}
+     */
+    private Map<TrackerType, List<ReferenceTrackerEntity>> referenceMap = new HashMap<>();
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -98,16 +106,6 @@ public class TrackerPreheat
      * All periodTypes available.
      */
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
-
-    /**
-     * Set of UIDs of all unique tracked entity attributes.
-     */
-    private Set<String> uniqueTrackedEntityAttributes = new HashSet<>();
-
-    /**
-     * Maps program => attribute for mandatory PTEA.
-     */
-    private Map<String, String> mandatoryProgramAttributes = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
@@ -150,13 +148,6 @@ public class TrackerPreheat
      * detected by validation
      */
     private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
-
-    /**
-     * A map of user uid and preheated {@see User}. The value is a User object.
-     * These users are primarily used to represent the "assignedUser" of events, used in validation and persisting
-     * events.
-     */
-    private Map<String, User> users = new HashMap<>();
 
     /**
      * A list of all unique attribute values that are both present in the payload
@@ -433,39 +424,9 @@ public class TrackerPreheat
         return periodMap;
     }
 
-    public void setPeriodMap( Map<String, Period> periodMap )
-    {
-        this.periodMap = periodMap;
-    }
-
     public Map<String, PeriodType> getPeriodTypeMap()
     {
         return periodTypeMap;
-    }
-
-    public void setPeriodTypeMap( Map<String, PeriodType> periodTypeMap )
-    {
-        this.periodTypeMap = periodTypeMap;
-    }
-
-    public Set<String> getUniqueTrackedEntityAttributes()
-    {
-        return uniqueTrackedEntityAttributes;
-    }
-
-    public void setUniqueTrackedEntityAttributes( Set<String> uniqueTrackedEntityAttributes )
-    {
-        this.uniqueTrackedEntityAttributes = uniqueTrackedEntityAttributes;
-    }
-
-    public Map<String, String> getMandatoryProgramAttributes()
-    {
-        return mandatoryProgramAttributes;
-    }
-
-    public void setMandatoryProgramAttributes( Map<String, String> mandatoryProgramAttributes )
-    {
-        this.mandatoryProgramAttributes = mandatoryProgramAttributes;
     }
 
     public Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> getTrackedEntities()
@@ -492,12 +453,16 @@ public class TrackerPreheat
         List<String> allEntities )
     {
         putTrackedEntities( identifier, trackedEntityInstances );
-        List<String> uidOnDB = trackedEntityInstances.stream().map(t -> t.getUid() ).collect(Collectors.toList());
+
+        List<String> uidOnDB = trackedEntityInstances.stream()
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+        
         allEntities
-                .stream()
-                .filter(t -> !uidOnDB.contains(t))
-                .map(t -> new UnpersistedObject(t, null))
-                .forEach(u -> this.addUnpersisted(TrackedEntityInstance.class, u));
+            .stream()
+            .filter( t -> !uidOnDB.contains( t ) )
+            .map( t -> new ReferenceTrackerEntity( t, null ) )
+            .forEach( u -> this.addReference( TrackerType.TRACKED_ENTITY, u ) );
     }
 
     public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances )
@@ -552,12 +517,14 @@ public class TrackerPreheat
         List<Enrollment> allEntities )
     {
         putEnrollments( identifier, programInstances );
-        List<String> uidOnDB = programInstances.stream().map(t -> t.getUid() ).collect(Collectors.toList());
+        List<String> uidOnDB = programInstances.stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+        
         allEntities
-                .stream()
-                .filter(t -> !uidOnDB.contains(t.getEnrollment()))
-                .map(t -> new UnpersistedObject(t.getEnrollment(), t.getTrackedEntity()))
-                .forEach(u -> this.addUnpersisted(ProgramInstance.class, u));
+            .stream()
+            .filter( t -> !uidOnDB.contains( t.getEnrollment() ) )
+            .map( t -> new ReferenceTrackerEntity( t.getEnrollment(), t.getTrackedEntity() ) )
+            .forEach( pi -> this.addReference( TrackerType.ENROLLMENT, pi ) );
     }
 
     public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances )
@@ -599,12 +566,14 @@ public class TrackerPreheat
     {
         putEvents( identifier, programStageInstances );
 
-        List<String> uidOnDB = programStageInstances.stream().map(t -> t.getUid() ).collect(Collectors.toList());
+        List<String> uidOnDB = programStageInstances.stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+        
         allEntities
-                .stream()
-                .filter(t -> !uidOnDB.contains(t.getEvent()))
-                .map(t -> new UnpersistedObject(t.getEvent(), t.getEnrollment()))
-                .forEach(u -> this.addUnpersisted(ProgramStageInstance.class, u));
+            .stream()
+            .filter( t -> !uidOnDB.contains( t.getEvent() ) )
+            .map( t -> new ReferenceTrackerEntity( t.getEvent(), t.getEnrollment() ) )
+            .forEach( psi -> this.addReference( TrackerType.EVENT, psi ) );
     }
 
     public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances)
@@ -735,6 +704,28 @@ public class TrackerPreheat
         this.programInstances = programInstances;
     }
 
+    private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity)
+    {
+        referenceMap.computeIfAbsent( trackerType, k -> new ArrayList<>() ).add(referenceTrackerEntity);
+    }
+
+    public Optional<ReferenceTrackerEntity> getReference(Class<? extends IdentifiableObject> klazz, String uid )
+    {
+        return referenceMap.getOrDefault( klazz, new ArrayList<>() )
+            .stream()
+            .filter( no -> no.getUid().equals( uid ) && no.isValid() )
+            .findAny();
+    }
+
+    public void invalidateReference( TrackerType dtoType, String mainId )
+    {
+        this.referenceMap.getOrDefault( dtoType, new ArrayList<>() )
+            .stream()
+            .filter( r -> r.getUid().equals( mainId ) )
+            .findAny()
+            .ifPresent( referenceTrackerEntity -> referenceTrackerEntity.setValid( false ) );
+    }
+
     @Override
     public String toString()
     {
@@ -742,20 +733,5 @@ public class TrackerPreheat
             .add( "map=" + map )
             .toString();
     }
-    
-    public void addUnpersisted( Class<? extends IdentifiableObject> klazz, UnpersistedObject unpersistedObject )
-    {
-        unpersistedMap.computeIfAbsent( klazz, k -> new ArrayList<>() ).add( unpersistedObject );
-    }
-    
-    public Optional<UnpersistedObject> existUnpersisted(Class<? extends IdentifiableObject> klazz, String uid )
-    {
 
-        final List<UnpersistedObject> newObjects = unpersistedMap.getOrDefault( klazz, new ArrayList<>() );
-
-        return newObjects
-                .stream()
-                .filter(no -> no.getUid().equals(uid) && no.isValid())
-                .findAny();
-    }
 }
