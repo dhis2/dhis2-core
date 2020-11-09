@@ -714,7 +714,6 @@ public class TrackerPreheat
         }
         else if ( trackerType.equals( TrackerType.ENROLLMENT ) || trackerType.equals( TrackerType.EVENT ) )
         {
-
             final TreeNode<String> node = referenceTree.find( referenceTrackerEntity.getParentUid() );
 
             if ( node != null )
@@ -725,7 +724,7 @@ public class TrackerPreheat
             {
                 referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
             }
-        }
+        } // TODO luciano what about relationship
     }
 
     public Optional<ReferenceTrackerEntity> getReference( String uid )

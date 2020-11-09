@@ -135,7 +135,6 @@ public class EnrollmentInExistingValidationHook
 
         }
         
-
         // TODO: Create a dedicated sql query....?
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
             .stream()
