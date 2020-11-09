@@ -64,6 +64,8 @@ import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
 
 import com.google.api.client.util.Lists;
+import com.scalified.tree.TreeNode;
+import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
 import javassist.util.proxy.ProxyFactory;
 
@@ -83,14 +85,13 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
     /**
-     * Internal map of all payload references which are not present in the database.
+     * Internal tree of all payload references which are not present in the database.
      * This map is required to allow the validation stage to reference root objects
      * (TEI, PS, PSI) which are present in the payload but not stored in the
      * pre-heat object (since they do not exist in the db yet).
      * 
-     * The map key is the root object, and the key is a List of {@link ReferenceTrackerEntity}
      */
-    private Map<TrackerType, List<ReferenceTrackerEntity>> referenceMap = new HashMap<>();
+    private TreeNode<String> referenceTree = new ArrayMultiTreeNode<>("ROOT");
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -706,24 +707,44 @@ public class TrackerPreheat
 
     private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity)
     {
-        referenceMap.computeIfAbsent( trackerType, k -> new ArrayList<>() ).add(referenceTrackerEntity);
+        if ( trackerType.equals( TrackerType.TRACKED_ENTITY ) )
+        {
+            referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
+
+        }
+        else if ( trackerType.equals( TrackerType.ENROLLMENT ) || trackerType.equals( TrackerType.EVENT ) )
+        {
+
+            final TreeNode<String> node = referenceTree.find( referenceTrackerEntity.getParentUid() );
+
+            if ( node != null )
+            {
+                node.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
+            }
+            else
+            {
+                referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
+            }
+        }
     }
 
-    public Optional<ReferenceTrackerEntity> getReference(Class<? extends IdentifiableObject> klazz, String uid )
+    public Optional<ReferenceTrackerEntity> getReference( String uid )
     {
-        return referenceMap.getOrDefault( klazz, new ArrayList<>() )
-            .stream()
-            .filter( no -> no.getUid().equals( uid ) && no.isValid() )
-            .findAny();
+        final TreeNode<String> node = referenceTree.find( uid );
+        if ( node != null )
+        {
+            return Optional.of( new ReferenceTrackerEntity( uid, node.parent().data() ) );
+        }
+        return Optional.empty();
     }
 
-    public void invalidateReference( TrackerType dtoType, String mainId )
+    public void invalidateReference( String uid )
     {
-        this.referenceMap.getOrDefault( dtoType, new ArrayList<>() )
-            .stream()
-            .filter( r -> r.getUid().equals( mainId ) )
-            .findAny()
-            .ifPresent( referenceTrackerEntity -> referenceTrackerEntity.setValid( false ) );
+        final TreeNode<String> node = referenceTree.find( uid );
+        if ( node != null )
+        {
+            referenceTree.dropSubtree( node );
+        }
     }
 
     @Override

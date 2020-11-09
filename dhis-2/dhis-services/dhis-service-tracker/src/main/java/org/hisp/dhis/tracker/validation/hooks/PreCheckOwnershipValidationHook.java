@@ -41,6 +41,8 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
+import java.util.Optional;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,8 +65,6 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -138,7 +138,7 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        if ( tei == null && !context.getReference( TrackedEntityInstance.class, enrollment.getTrackedEntity() ).isPresent() )
+        if ( tei == null && !context.getReference( enrollment.getTrackedEntity() ).isPresent() )
         {
             //checkNotNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
             throw new NullPointerException(TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
@@ -190,10 +190,16 @@ public class PreCheckOwnershipValidationHook
 
         String teiUid = null;
 
-        if (programInstance == null) {
-            Optional<ReferenceTrackerEntity> unpersistedObject = context.getReference(ProgramInstance.class, event.getEnrollment());
-            teiUid = unpersistedObject.get().getParentUid();
-        } else {
+        if ( programInstance == null )
+        {
+            Optional<ReferenceTrackerEntity> unpersistedObject = context.getReference( event.getEnrollment() );
+            if ( unpersistedObject.isPresent() )
+            {
+                teiUid = unpersistedObject.get().getParentUid();
+            }
+        }
+        else
+        {
             teiUid = programInstance.getEntityInstance().getUid();
         }
 

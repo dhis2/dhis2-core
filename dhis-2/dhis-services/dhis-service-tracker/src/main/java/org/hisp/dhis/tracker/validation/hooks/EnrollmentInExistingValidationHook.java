@@ -124,8 +124,7 @@ public class EnrollmentInExistingValidationHook
 
         TrackedEntityInstance tei = reporter.getValidationContext()
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
-        if ( tei == null && reporter.getValidationContext().getReference( TrackedEntityInstance.class,
-            enrollment.getTrackedEntity() ).isPresent() )
+        if ( tei == null && reporter.getValidationContext().getReference( enrollment.getTrackedEntity() ).isPresent() )
         {
             tei = new TrackedEntityInstance();
             tei.setUid( enrollment.getUid() );

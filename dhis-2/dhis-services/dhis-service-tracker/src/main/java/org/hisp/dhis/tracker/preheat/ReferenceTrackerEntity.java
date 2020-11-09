@@ -18,7 +18,4 @@ public class ReferenceTrackerEntity
      * or a Program Stage Instance
      */
     private final String parentUid;
-
-    @Setter
-    private boolean valid = true;
 }

@@ -36,9 +36,14 @@ import java.util.Optional;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+<<<<<<< HEAD
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.common.IdentifiableObject;
+||||||| parent of f0e9fd2a57bd (use tree for references)
+import org.hisp.dhis.common.IdentifiableObject;
+=======
+>>>>>>> f0e9fd2a57bd (use tree for references)
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -221,13 +226,8 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
     }
 
-
-    public Optional<ReferenceTrackerEntity> getReference( Class<? extends IdentifiableObject> klazz, String uid )
+    public Optional<ReferenceTrackerEntity> getReference( String uid )
     {
-        final Optional<ReferenceTrackerEntity> ref = bundle.getPreheat().getReference(klazz, uid);
-
-
-
-        return Optional.empty();
+        return bundle.getPreheat().getReference( uid );
     }
 }
