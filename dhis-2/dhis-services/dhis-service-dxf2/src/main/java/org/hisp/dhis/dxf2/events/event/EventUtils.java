@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -54,6 +53,7 @@ import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -191,7 +191,7 @@ public class EventUtils
     }
 
     @SneakyThrows
-    public static PGobject userInfoToJson(UserInfoSnapshot userInfo, ObjectMapper mapper )
+    public static PGobject userInfoToJson( UserInfoSnapshot userInfo, ObjectMapper mapper )
     {
         PGobject jsonbObj = new PGobject();
         jsonbObj.setType( "json" );
@@ -199,7 +199,7 @@ public class EventUtils
         return jsonbObj;
     }
 
-    public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper )
+    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
     {
         try
         {

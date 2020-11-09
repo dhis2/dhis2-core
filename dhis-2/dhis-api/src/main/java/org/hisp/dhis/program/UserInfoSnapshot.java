@@ -41,6 +41,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+/**
+ * Data structure to hold user information during save/update of events,
+ * enrollments and comments
+ * 
+ * @author Giuseppe Nespolino
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoSnapshot extends IdentifiableObjectSnapshot
@@ -95,11 +101,11 @@ public class UserInfoSnapshot extends IdentifiableObjectSnapshot
         this.surname = surname;
     }
 
-    public static UserInfoSnapshot from(User user )
+    public static UserInfoSnapshot from( User user )
     {
-        return Optional.ofNullable(user)
-                .map(UserInfoSnapshot::toUserInfoSnapshot)
-                .orElse(null);
+        return Optional.ofNullable( user )
+            .map( UserInfoSnapshot::toUserInfoSnapshot )
+            .orElse( null );
     }
 
     private static UserInfoSnapshot toUserInfoSnapshot( User user )
@@ -112,9 +118,10 @@ public class UserInfoSnapshot extends IdentifiableObjectSnapshot
         return eventUserInfo;
     }
 
-    public static UserInfoSnapshot of(long id, String code, String uid, String username, String firstName, String surname )
+    public static UserInfoSnapshot of( long id, String code, String uid, String username, String firstName,
+        String surname )
     {
-        UserInfoSnapshot eventUserInfo = new UserInfoSnapshot( username, firstName, surname);
+        UserInfoSnapshot eventUserInfo = new UserInfoSnapshot( username, firstName, surname );
         eventUserInfo.setId( id );
         eventUserInfo.setCode( code );
         eventUserInfo.setUid( uid );

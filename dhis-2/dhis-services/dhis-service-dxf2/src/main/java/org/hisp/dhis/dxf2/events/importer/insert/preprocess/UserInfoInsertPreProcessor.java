@@ -38,7 +38,7 @@ public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor
 {
 
     @Override
-    protected void updateDataValueUserInfo(EventDataValue dataValue, UserInfoSnapshot userInfo )
+    protected void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo )
     {
         super.updateDataValueUserInfo( dataValue, userInfo );
         dataValue.setCreatedByUserInfo( userInfo );

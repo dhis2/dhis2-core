@@ -38,7 +38,7 @@ public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
 {
 
     @Override
-    protected void updateDataValueUserInfo(EventDataValue dataValue, UserInfoSnapshot userInfo )
+    protected void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo )
     {
         dataValue.setLastUpdatedByUserInfo( userInfo );
     }
