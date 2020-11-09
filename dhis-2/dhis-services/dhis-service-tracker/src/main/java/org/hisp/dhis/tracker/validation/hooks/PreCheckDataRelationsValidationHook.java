@@ -112,13 +112,18 @@ public class PreCheckDataRelationsValidationHook
 
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
-        addErrorIf( () -> trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ), reporter, E1068,
-            enrollment.getTrackedEntity() );
-
-        if ( program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().getUid().equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment) ) )
+        if ( trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ) )
         {
-            addError( reporter, E1022, enrollment.getTrackedEntity(), program );
+            if ( program.getTrackedEntityType() != null
+                && !program.getTrackedEntityType().getUid()
+                    .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
+            {
+                addError( reporter, E1022, enrollment.getTrackedEntity(), program );
+            }
+        }
+        else
+        {
+            addError( reporter, E1068, enrollment.getTrackedEntity() );
         }
     }
 
@@ -344,13 +349,13 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
     {
-        return context.getTrackedEntityInstance( teiUid ) == null && !context.getReference( teiUid ).isPresent();
+        return context.getTrackedEntityInstance( teiUid ) != null && !context.getReference( teiUid ).isPresent();
+
     }
 
     private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
         Enrollment enrollment )
     {
-
         final TrackedEntityInstance trackedEntityInstance = context
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
         if ( trackedEntityInstance != null )
@@ -362,12 +367,10 @@ public class PreCheckDataRelationsValidationHook
             final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
             if ( reference.isPresent() )
             {
-
                 final Optional<TrackedEntity> tei = context.getBundle()
                     .getTrackedEntity( enrollment.getTrackedEntity() );
                 if ( tei.isPresent() )
                 {
-
                     return tei.get().getTrackedEntityType();
                 }
             }
