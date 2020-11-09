@@ -76,6 +76,7 @@ public class EventDataValuesValidationHook
             validateDataElement( reporter, context, dataValue );
         }
         validateMandatoryDataValue( reporter, context, event );
+        validateDataValueDataElementIsConnectedToProgramStage(reporter, context, event);
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
@@ -110,7 +111,11 @@ public class EventDataValuesValidationHook
 
         ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
-        final Set<ProgramStageDataElement> mandatoryDataElements = programStage.getProgramStageDataElements();
+        final Set<ProgramStageDataElement> mandatoryDataElements =
+                programStage.getProgramStageDataElements()
+                .stream()
+                .filter(ProgramStageDataElement::isCompulsory)
+                .collect(Collectors.toSet());
 
         Set<String> eventDataElements = event.getDataValues().stream()
             .map( DataValue::getDataElement )
@@ -121,6 +126,31 @@ public class EventDataValuesValidationHook
             if ( !eventDataElements.contains( mandatoryDataElement.getDataElement().getUid() ) )
             {
                 addError( reporter, TrackerErrorCode.E1303, mandatoryDataElement.getDataElement() );
+            }
+        }
+    }
+
+    private void validateDataValueDataElementIsConnectedToProgramStage(ValidationErrorReporter reporter, TrackerImportValidationContext ctx, Event event) {
+        if ( StringUtils.isEmpty( event.getProgramStage() ) )
+            return;
+
+        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+
+        final Set<String> dataElements =
+                programStage.getProgramStageDataElements()
+                        .stream()
+                        .map(de -> de.getDataElement().getUid())
+                        .collect(Collectors.toSet());
+
+        Set<String> payloadDataElements = event.getDataValues().stream()
+                .map( DataValue::getDataElement )
+                .collect( Collectors.toSet() );
+
+        for ( String payloadDataElement : payloadDataElements )
+        {
+            if ( !dataElements.contains( payloadDataElement ) )
+            {
+                addError( reporter, TrackerErrorCode.E1305, payloadDataElement, programStage.getUid() );
             }
         }
     }

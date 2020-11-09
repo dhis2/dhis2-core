@@ -197,12 +197,19 @@ public class EventDataValuesValidationHookTest
     {
         // Given
         ProgramStage programStage = new ProgramStage();
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+        ProgramStageDataElement mandatoryStageDataElement = new ProgramStageDataElement();
         DataElement dataElement = new DataElement();
         dataElement.setUid( "MANDATORY_DE" );
-        programStageDataElement.setDataElement( dataElement );
+        mandatoryStageDataElement.setDataElement( dataElement );
+        mandatoryStageDataElement.setCompulsory( true );
 
-        programStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElement ) );
+        ProgramStageDataElement stageDataElement = new ProgramStageDataElement();
+        DataElement validDataElement = new DataElement();
+        validDataElement.setUid( validDataValue().getDataElement() );
+        stageDataElement.setDataElement( validDataElement );
+        stageDataElement.setCompulsory( true );
+
+        programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement, stageDataElement ) );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue() ) );
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
@@ -214,6 +221,39 @@ public class EventDataValuesValidationHookTest
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1303, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void failValidationWhenDataElementIsNotPresentInProgramStage()
+    {
+        // Given
+        ProgramStage programStage = new ProgramStage();
+        ProgramStageDataElement mandatoryStageDataElement = new ProgramStageDataElement();
+        DataElement dataElement = new DataElement();
+        dataElement.setUid(validDataValue().getDataElement());
+        mandatoryStageDataElement.setDataElement( dataElement );
+        mandatoryStageDataElement.setCompulsory( true );
+
+        DataValue notPresentDataValue = validDataValue();
+        notPresentDataValue.setDataElement("de_not_present_in_progam_stage");
+
+        DataElement notPresentDataElement = new DataElement();
+        notPresentDataElement.setValueType( ValueType.TEXT );
+        notPresentDataElement.setUid("de_not_present_in_progam_stage");
+
+        programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement ) );
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue(), notPresentDataValue ) );
+        when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
+        when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
+        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) ).thenReturn( notPresentDataElement );
+
+        // When
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1305, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test

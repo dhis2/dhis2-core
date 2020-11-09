@@ -142,6 +142,7 @@ public enum TrackerErrorCode
     E1302( "DataElement `{0}` is not valid: `{1}`" ),
     E1303( "Mandatory DataElement `{0}` is not present" ),
     E1304( "DataElement `{0}` is not a valid data element" ),
+    E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
 
     E4000( "Relationship: `{0}` cannot link to itself" ),
     E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
