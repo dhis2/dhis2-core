@@ -40,8 +40,10 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DAT
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -109,7 +111,7 @@ public class FilteringHelper
         final byte DIMENSION_TYPE = 2;
         Class<? extends BaseDimensionalItemObject> entity = null;
 
-        if ( trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX ) )
+        if ( hasEqualsDimensionTypeFilter( filter ) )
         {
             final String[] array = filter.split( ":" );
             final boolean hasDimensionType = array.length == 3;
@@ -125,6 +127,38 @@ public class FilteringHelper
         }
 
         return entity;
+    }
+
+    /**
+     * Simply checks if the given list of filters contains a dimension type filter.
+     *
+     * @param filters
+     * @return true if a dimension type filter is found, false otherwise.
+     */
+    public static boolean containsDimensionTypeFilter( final List<String> filters )
+    {
+        if ( CollectionUtils.isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                if ( hasEqualsDimensionTypeFilter( filter ) || hasInDimensionTypeFilter( filter ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean hasEqualsDimensionTypeFilter( final String filter )
+    {
+        return trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX );
+    }
+
+    private static boolean hasInDimensionTypeFilter( final String filter )
+    {
+        return trimToEmpty( filter ).contains( DIMENSION_TYPE_IN_FILTER_PREFIX );
     }
 
     private static Class<? extends BaseDimensionalItemObject> entityClassFromString( final String entityType )
