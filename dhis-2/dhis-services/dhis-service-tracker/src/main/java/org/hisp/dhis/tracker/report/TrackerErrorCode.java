@@ -110,6 +110,7 @@ public enum TrackerErrorCode
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
+    E1119( "A Tracker Note with uid `{0}` already exists."),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),

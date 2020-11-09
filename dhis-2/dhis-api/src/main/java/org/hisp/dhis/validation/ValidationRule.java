@@ -283,7 +283,7 @@ public class ValidationRule
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
+    @Property( value = PropertyType.COMPLEX, required = Property.Value.TRUE )
     public Expression getLeftSide()
     {
         return leftSide;
@@ -296,7 +296,7 @@ public class ValidationRule
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
+    @Property( value = PropertyType.COMPLEX, required = Property.Value.TRUE )
     public Expression getRightSide()
     {
         return rightSide;

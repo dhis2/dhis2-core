@@ -41,7 +41,12 @@ public enum TranslationProperty
     DENOMINATOR_DESCRIPTION( "denominatorDescription" ),
     RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
     RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
-    INSTRUCTION( "instruction" );
+    INSTRUCTION( "instruction" ),
+    INCIDENT_DATE_LABEL( "incidentDateLabel" ),
+    ENROLLMENT_DATE_LABEL( "enrollmentDateLabel" ),
+    EXECUTION_DATE_LABEL( "executionDateLabel" ),
+    DUE_DATE_LABEL( "dueDateLabel" ),
+    CONTENT( "content" );
 
     private String name;
 

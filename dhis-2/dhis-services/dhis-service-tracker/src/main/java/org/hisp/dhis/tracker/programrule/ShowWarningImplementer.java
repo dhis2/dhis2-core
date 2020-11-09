@@ -28,8 +28,6 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +36,6 @@ import org.springframework.stereotype.Component;
  *
  * @Author Enrico Colasante
  */
-@Slf4j
 @Component
 public class ShowWarningImplementer
     extends ErrorWarningImplementer

@@ -28,8 +28,8 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -57,7 +57,4 @@ public class Note
 
     @JsonProperty
     private String value;
-
-    @JsonIgnore
-    private boolean newNote;
 }

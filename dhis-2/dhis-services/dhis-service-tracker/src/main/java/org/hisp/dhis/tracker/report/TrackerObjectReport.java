@@ -71,7 +71,7 @@ public class TrackerObjectReport
         this.trackerType = trackerType;
     }
 
-    public TrackerObjectReport( TrackerType trackerType, String uid, int index )
+    public TrackerObjectReport( TrackerType trackerType, String uid, Integer index )
     {
         this.trackerType = trackerType;
         this.uid = uid;
@@ -79,7 +79,7 @@ public class TrackerObjectReport
     }
     
     @JsonCreator
-    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) int index,
+    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
         @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
     {
         this.trackerType = trackerType;
