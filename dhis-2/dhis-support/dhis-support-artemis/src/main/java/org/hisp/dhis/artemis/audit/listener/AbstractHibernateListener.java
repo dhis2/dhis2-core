@@ -57,7 +57,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.cronutils.utils.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Luciano Fiandesio
@@ -177,10 +177,7 @@ public abstract class AbstractHibernateListener
 
         for ( int i = 0; i < state.length; i++ )
         {
-            if ( state[i] == null )
-            {
-                continue;
-            }
+            if ( state[i] == null ) continue;
 
             Object value = state[i];
 
@@ -192,37 +189,20 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( property.isEmbeddedObject() )
+            if ( property != null && property.isEmbeddedObject() )
             {
-                Schema embeddedSchema = schemaService.getSchema( value.getClass() );
-
-                if ( embeddedSchema == null )
-                {
-                    objectMap.put( pName, value );
-                }
-                else
-                {
-                    objectMap.putAll( handleEmbeddedObject( embeddedSchema, value, persister ) );
-                }
-
+                handleEmbeddedObject( property, value, persister, objectMap );
                 continue;
             }
-            else if ( shouldInitializeProxy( value ) )
+
+            if ( shouldInitializeProxy( value ) )
             {
                 if ( entityProxy == null )
                 {
-                    entityProxy = ( HibernateProxy ) persister.createProxy( id, session );
+                    entityProxy = createProxy( id, session, persister );
                 }
 
-                try
-                {
-                    value =  persister.getPropertyValue( entityProxy, pName );
-                }
-                catch ( Exception ex )
-                {
-                    // Ignore if couldn't find property reference object, maybe it was deleted.
-                    log.warn( DebugUtils.getStackTrace( ex ) );
-                }
+                value = getPropertyValue( entityProxy, persister, pName );
             }
 
             if ( value == null )
@@ -230,47 +210,85 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            else if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
-            {
-                objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
-            }
-            else
-            {
-                objectMap.put( pName, getId( value ) );
-            }
+            putValueToMap( property, objectMap, value );
         }
 
         return objectMap;
     }
 
-    private Map<String, Object> handleEmbeddedObject( Schema schema, Object value, EntityPersister persister )
+    private HibernateProxy createProxy( Serializable id, EventSource session, EntityPersister persister )
     {
-        Map<String, Object> map = new HashMap<>();
+        try
+        {
+            return ( HibernateProxy ) persister.createProxy( id, session );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Couldn't create proxy " + ex );
+        }
 
-        Map<String, Property> properties = schema.getFieldNameMapProperties();
-        properties.forEach( (pName, property) -> {
+        return null;
+    }
+    
+    private void putValueToMap( Property property, Map<String, Object> objectMap, Object value )
+    {
+        if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+        {
+            objectMap.put( property.getFieldName(), IdentifiableObjectUtils.getUids( (Collection) value ) );
+        }
+        else
+        {
+            objectMap.put( property.getFieldName(), getId( value ) );
+        }
+    }
 
-            Object propertyValue =  ReflectionUtils.invokeMethod( value, property.getGetterMethod() );
-            if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+    private void handleEmbeddedObject( Property property, Object value, EntityPersister persister, Map<String, Object> objectMap )
+    {
+        if ( value == null ) return;
+
+        Schema embeddedSchema = schemaService.getSchema( value.getClass() );
+
+        if ( embeddedSchema == null )
+        {
+            objectMap.put( property.getName(), value );
+            return;
+        }
+
+        Map<String, Property> properties = embeddedSchema.getFieldNameMapProperties();
+        properties.forEach( (pName, prop) -> {
+
+            Object propertyValue =  ReflectionUtils.invokeMethod( value, prop.getGetterMethod() );
+            if ( BaseIdentifiableObject.class.isAssignableFrom( prop.getItemKlass() ) )
             {
-                if ( property.isCollection() )
+                if ( prop.isCollection() )
                 {
-                    map.put( pName, IdentifiableObjectUtils.getUids( (Collection) propertyValue ) );
+                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) propertyValue ) );
                 }
                 else
                 {
-                    map.put( pName, getId( propertyValue ) );
+                    objectMap.put( pName, getId( propertyValue ) );
                 }
             }
             else
             {
-                map.put( pName, propertyValue );
+                objectMap.put( pName, propertyValue );
             }
-
-
         } );
+    }
 
-        return map;
+    private Object getPropertyValue( HibernateProxy entityProxy, EntityPersister persister, String pName )
+    {
+        try
+        {
+            return  persister.getPropertyValue( entityProxy, pName );
+        }
+        catch ( Exception ex )
+        {
+            // Ignore if couldn't find property reference object, maybe it was deleted.
+            log.warn( DebugUtils.getStackTrace( ex ) );
+        }
+
+        return null;
     }
 
     private boolean shouldInitializeProxy( Object value )

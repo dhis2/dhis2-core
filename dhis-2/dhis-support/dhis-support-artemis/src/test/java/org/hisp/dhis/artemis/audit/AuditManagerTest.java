@@ -28,13 +28,18 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.artemis.audit.legacy.DefaultAuditObjectFactory;
+import org.hisp.dhis.artemis.AuditProducerConfiguration;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
+import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,15 +47,33 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class AuditObjectFactoryTest
+public class AuditManagerTest
 {
+    private AuditManager auditManager;
+
     @Mock
-    private DefaultAuditObjectFactory factory;
+    private AuditProducerSupplier auditProducerSupplier;
+
+    @Mock
+    private AuditScheduler auditScheduler;
+
+    @Mock
+    private AuditMatrix auditMatrix;
+
+    @Mock
+    private AuditObjectFactory auditObjectFactory;
+
+    @Mock
+    private UsernameSupplier usernameSupplier;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     @Before
     public void setUp()
     {
-        factory = new DefaultAuditObjectFactory( new ObjectMapper() );
+        auditManager = new AuditManager( auditProducerSupplier, auditScheduler, AuditProducerConfiguration.builder().build(),
+            auditMatrix, auditObjectFactory, usernameSupplier );
     }
 
     @Test
@@ -60,8 +83,7 @@ public class AuditObjectFactoryTest
         dataElement.setUid( "DataElementUID" );
         dataElement.setName( "DataElementA" );
 
-        AuditableEntity auditEntity = new AuditableEntity( DataElement.class, dataElement );
-        AuditAttributes attributes = factory.collectAuditAttributes( auditEntity );
+        AuditAttributes attributes = auditManager.collectAuditAttributes( dataElement, DataElement.class );
         assertNotNull( attributes );
         assertEquals( dataElement.getUid(), attributes.get( "uid" ) );
 
@@ -70,8 +92,7 @@ public class AuditObjectFactoryTest
         map.put( "uid" , dataElement.getUid() );
         map.put( "code", "CODEA" );
 
-        auditEntity = new AuditableEntity( DataElement.class, map );
-        attributes = factory.collectAuditAttributes( auditEntity );
+        attributes = auditManager.collectAuditAttributes( map, DataElement.class );
         assertNotNull( attributes );
         assertEquals( dataElement.getUid(), attributes.get( "uid" ) );
         assertEquals( "CODEA", attributes.get( "code" ) );

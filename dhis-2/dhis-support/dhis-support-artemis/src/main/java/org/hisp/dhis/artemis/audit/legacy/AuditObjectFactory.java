@@ -28,8 +28,6 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 
@@ -39,6 +37,4 @@ import org.hisp.dhis.audit.AuditType;
 public interface AuditObjectFactory
 {
     Object create( AuditScope auditScope, AuditType auditType, Object object, String user );
-
-    AuditAttributes collectAuditAttributes( AuditableEntity auditableEntity );
 }
