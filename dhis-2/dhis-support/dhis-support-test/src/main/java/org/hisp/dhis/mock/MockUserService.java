@@ -175,6 +175,12 @@ public class MockUserService
     }
 
     @Override
+    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
+    {
+        return null;
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         for ( User user : users )

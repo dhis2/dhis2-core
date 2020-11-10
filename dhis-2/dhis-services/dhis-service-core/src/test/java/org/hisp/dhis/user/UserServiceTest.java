@@ -35,6 +35,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -134,6 +135,31 @@ public class UserServiceTest
 
         assertEquals( units, userService.getUser( idA ).getOrganisationUnits() );
         assertEquals( units, userService.getUser( idB ).getOrganisationUnits() );
+    }
+
+    @Test
+    public void testGetUserCredentialsByUsernames()
+    {
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+
+        userService.addUser( userA );
+        userService.addUser( userB );
+
+        List<String> usernames = new ArrayList<>();
+        usernames.add( "usernameA" );
+        usernames.add( "usernameB" );
+
+        assertEquals( usernames.size(), userService.getUserCredentialsByUsernames( usernames ).size() );
+
+        usernames.add( "usernameX" );
+        assertEquals( 2, userService.getUserCredentialsByUsernames( usernames ).size() );
+
+        usernames.clear();
+
+        usernames.add( "usernameC" );
+
+        assertEquals( 0, userService.getUserCredentialsByUsernames( usernames ).size() );
     }
 
     @Test

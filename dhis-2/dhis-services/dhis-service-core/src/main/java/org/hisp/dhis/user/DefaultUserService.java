@@ -547,6 +547,13 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
+    {
+        return userCredentialsStore.getUserCredentialsByUsernames( usernames);
+    }
+
+    @Override
     @Transactional
     public void encodeAndSetPassword( User user, String rawPassword )
     {
