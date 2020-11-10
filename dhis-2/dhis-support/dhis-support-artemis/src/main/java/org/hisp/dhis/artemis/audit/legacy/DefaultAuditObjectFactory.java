@@ -31,22 +31,11 @@ package org.hisp.dhis.artemis.audit.legacy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.system.util.AnnotationUtils;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads.
@@ -60,13 +49,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
     private final ObjectMapper objectMapper;
-
-    /**
-     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is
-     * class name. Value is Map of {@link AuditAttribute} Fields and its getter
-     * Method
-     */
-    private final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
     public DefaultAuditObjectFactory( @Qualifier("hibernateAwareJsonMapper") ObjectMapper objectMapper )
     {
@@ -86,47 +68,6 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
             return handleAggregate( object );
         }
         return null;
-    }
-
-    @Override
-    public AuditAttributes collectAuditAttributes( AuditableEntity auditableEntity )
-    {
-        AuditAttributes auditAttributes = new AuditAttributes();
-
-        getAuditAttributeFields( auditableEntity.getEntityClass() ).forEach( ( field, getterMethod ) ->
-            auditAttributes.put( field.getName(), getAttributeValue( auditableEntity.getSerializableObject(), field.getName(), getterMethod ) ) );
-
-        return auditAttributes;
-    }
-
-    private Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
-    {
-        Map<Field, Method> map = cachedAuditAttributeFields.get( auditClass.getName() );
-
-        if ( map == null )
-        {
-            map = AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class );
-            cachedAuditAttributeFields.put( auditClass.getName(), map );
-        }
-
-        return map;
-    }
-
-    private Object getAttributeValue( Object auditObject, String attributeName, Method getter )
-    {
-        if ( auditObject instanceof Map )
-        {
-            return ( ( Map ) auditObject ).get( attributeName );
-        }
-
-        Object value = ReflectionUtils.invokeMethod( auditObject, getter );
-
-        if ( value instanceof IdentifiableObject )
-        {
-            return (  (IdentifiableObject ) value ).getUid();
-        }
-
-        return value;
     }
 
     private String handleTracker( Object object )
