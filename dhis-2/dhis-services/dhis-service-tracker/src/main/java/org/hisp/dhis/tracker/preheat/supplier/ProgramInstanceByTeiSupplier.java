@@ -57,7 +57,6 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-@SupplierDependsOn( ProgramInstanceSupplier.class )
 public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
 {
     private final ProgramInstanceStore programInstanceStore;

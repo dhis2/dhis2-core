@@ -56,10 +56,4 @@ public class GenericStrategy extends AbstractSchemaStrategy
         Schema schema = schemaService.getDynamicSchema( klazz );
         queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList );
     }
-
-    @Override
-    protected Class<?> getSchemaClass()
-    {
-        return getClass().getAnnotation( StrategyFor.class ).value();
-    }
 }

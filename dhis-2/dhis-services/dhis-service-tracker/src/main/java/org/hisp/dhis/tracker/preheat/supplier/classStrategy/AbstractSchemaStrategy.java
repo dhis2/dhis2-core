@@ -76,7 +76,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         queryForIdentifiableObjects( preheat, schema, identifier, splitList );
     }
 
-    protected abstract Class<?> getSchemaClass();
+    protected Class<?> getSchemaClass()
+    {
+        return getClass().getAnnotation( StrategyFor.class ).value();
+    }
 
     @SuppressWarnings( "unchecked" )
     protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,

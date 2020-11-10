@@ -32,6 +32,7 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import java.beans.Introspector;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -39,8 +40,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.preheat.PreheatException;
-import org.hisp.dhis.tracker.preheat.supplier.PreheatClassScanner;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
+import org.hisp.dhis.tracker.validation.TrackerImportPreheatConfig;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.BeansException;
@@ -69,7 +70,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
     @PostConstruct
     public void init()
     {
-        this.preheatSuppliers = new PreheatClassScanner().scanSuppliers();
+        this.preheatSuppliers = TrackerImportPreheatConfig.PREHEAT_ORDER.stream().map( Class::getSimpleName )
+            .collect( Collectors.toList() );
     }
 
     // TODO this flag should be configurable

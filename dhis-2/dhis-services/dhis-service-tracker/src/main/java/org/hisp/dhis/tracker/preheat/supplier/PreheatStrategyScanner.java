@@ -28,11 +28,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.preheat.supplier.classStrategy.StrategyFor;
 
@@ -49,33 +46,8 @@ import io.github.classgraph.ScanResult;
  * 
  * @author Luciano Fiandesio
  */
-public class PreheatClassScanner
+public class PreheatStrategyScanner
 {
-    public List<String> scanSuppliers()
-    {
-        final String pkg = getCurrentPackage();
-        final String annotation = SupplierDependsOn.class.getName();
-        try (ScanResult scanResult = new ClassGraph()
-            // .disableJarScanning()
-            .enableAllInfo()
-            .disableNestedJarScanning()
-            .acceptPackages( pkg )
-            .scan())
-        {
-            List<String> cls = scanResult.getAllClasses().stream()
-                .filter( c -> c.extendsSuperclass( AbstractPreheatSupplier.class.getName() ) )
-                .map( ClassInfo::getSimpleName ).collect( Collectors.toList() );
-
-            for ( ClassInfo classInfo : scanResult.getClassesWithAnnotation( annotation ) )
-            {
-                String dependsOn = getTargetClass( classInfo, annotation );
-                Collections.swap( cls, cls.indexOf( classInfo.getSimpleName() ), cls.indexOf( dependsOn ) );
-            }
-
-            return cls;
-        }
-    }
-
     public Map<String, String> scanSupplierStrategies()
     {
         Map<String, String> classMap = new HashMap<>();

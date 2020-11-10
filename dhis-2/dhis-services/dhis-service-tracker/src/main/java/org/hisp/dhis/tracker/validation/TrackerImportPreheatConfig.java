@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,40 +26,41 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.List;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.RelationshipTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.TrackedEntityTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
+
+import com.google.common.collect.ImmutableList;
+
+import lombok.experimental.UtilityClass;
 
 /**
- * This annotation establishes a dependency between {@link PreheatSupplier} objects.
- *
- * <pre>{@code
- * @SupplierDependsOn( SupplierZ.class )
- * public class SupplierA implements PreheatSupplier {
- *  ...
- * }
- *
- * public class SupplierZ implements PreheatSupplier {
- *  ...
- * }
- *
- * }</pre>
- *
- * In the above example, the supplier "SupplierZ" will be executed before "SupplierA"
- *
- * @author Luciano Fiandesio
+ * Configuration class for the pre-heat stage. This class holds the list of
+ * pre-heat suppliers executed during import
  */
-@Retention( RUNTIME )
-@Target( ElementType.TYPE )
-public @interface SupplierDependsOn
+@UtilityClass
+public class TrackerImportPreheatConfig
 {
-    /**
-     * The {@link PreheatSupplier} subclass the supplier annotated with depends on
-     * 
-     */
-    Class<?> value();
+    public static final List<Class<? extends PreheatSupplier>> PREHEAT_ORDER = ImmutableList.of(
+        ClassBasedSupplier.class,
+        ProgramInstanceSupplier.class,
+        ProgramInstanceByTeiSupplier.class,
+        TrackedEntityTypeSupplier.class,
+        RelationshipTypeSupplier.class,
+        PeriodTypeSupplier.class,
+        UniqueAttributesSupplier.class,
+        UserSupplier.class,
+        FileResourceSupplier.class );
 }
