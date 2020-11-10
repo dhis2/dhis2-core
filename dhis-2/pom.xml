@@ -312,7 +312,7 @@
             <dependency>
               <groupId>org.ow2.asm</groupId>
               <artifactId>asm</artifactId>
-              <version>6.2</version>
+              <version>${ow2.asm.version}</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -320,7 +320,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.0</version>
           <configuration>
             <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
@@ -2091,6 +2091,6 @@
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-    <ow2.asm.version>6.2</ow2.asm.version>
+    <ow2.asm.version>9.0</ow2.asm.version>
   </properties>
 </project>
