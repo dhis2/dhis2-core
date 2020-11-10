@@ -155,6 +155,14 @@ public class TrackerPreheat
     private Map<String, User> users = new HashMap<>();
 
     /**
+     * A list of valid usernames that are present in the payload. A username not
+     * available in this cache means, payload's username is invalid.
+     * These users are primarily used to represent the ValueType.USERNAME of
+     * tracked entity attributes, used in validation and persisting TEIs.
+     */
+    private List<String> usernames = Lists.newArrayList();
+
+    /**
      * A list of all unique attribute values that are both present in the payload
      * and in the database. This is going to be used to validate the uniqueness of
      * attribute values in the Validation phase.
@@ -587,12 +595,12 @@ public class TrackerPreheat
         notes.put( TrackerIdScheme.UID, trackedEntityComments.stream().collect(
             Collectors.toMap( TrackedEntityComment::getUid, Function.identity() ) ) );
     }
-    
+
     public Optional<TrackedEntityComment> getNote( String uid )
     {
         return Optional.ofNullable( notes.getOrDefault( TrackerIdScheme.UID, new HashMap<>() ).get( uid ) );
     }
-    
+
     public Map<TrackerIdScheme, Map<String, Relationship>> getRelationships()
     {
         return relationships;
@@ -693,7 +701,17 @@ public class TrackerPreheat
     {
         this.programInstances = programInstances;
     }
-    
+
+    public List<String> getUsernames()
+    {
+        return this.usernames;
+    }
+
+    public void setUsernames( List<String> usernames )
+    {
+        this.usernames = usernames;
+    }
+
     @Override
     public String toString()
     {
