@@ -56,9 +56,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 8
     - name: Build core image
       run: |
         bash ./dhis-2/build-dev.sh
