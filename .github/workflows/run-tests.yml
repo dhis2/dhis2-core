@@ -1,6 +1,8 @@
 name: Test
 
-on: [pull_request]
+on:
+  pull_request:
+    types: [labeled]
 
 jobs:
   cleanup-runs:
@@ -48,10 +50,6 @@ jobs:
       run: mvn clean install -Pintegration -f ./dhis-2/pom.xml
     
   api-test:
-    on:
-      pull_request:
-        types: [labeled]
-
     if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
     env:
       CORE_IMAGE_NAME: "dhis2/core:local"
