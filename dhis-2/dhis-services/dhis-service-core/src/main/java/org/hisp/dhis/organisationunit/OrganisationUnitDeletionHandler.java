@@ -69,21 +69,19 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        for ( OrganisationUnit unit : dataSet.getSources() )
-        {
+        dataSet.getSources().iterator().forEachRemaining( unit -> {
             unit.getDataSets().remove( dataSet );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteUser( User user )
     {
-        for ( OrganisationUnit unit : user.getOrganisationUnits() )
-        {
-            unit.removeUser( user );
+        user.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getUsers().remove( user );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
@@ -98,11 +96,10 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        for ( OrganisationUnit unit : group.getMembers() )
-        {
+        group.getMembers().iterator().forEachRemaining( unit -> {
             unit.getGroups().remove( group );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
