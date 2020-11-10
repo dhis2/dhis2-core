@@ -58,7 +58,7 @@ jobs:
         config-file: ./.github/codeql/codeql-config.yml
 
     - name: mvn package
-        run: mvn clean package -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+    - run: mvn clean package -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
