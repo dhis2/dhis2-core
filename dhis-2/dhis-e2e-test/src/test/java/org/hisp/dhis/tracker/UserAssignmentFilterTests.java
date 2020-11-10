@@ -88,7 +88,7 @@ public class UserAssignmentFilterTests
         userUsername = "EventFiltersUser" + DataGenerator.randomString();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
 
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
