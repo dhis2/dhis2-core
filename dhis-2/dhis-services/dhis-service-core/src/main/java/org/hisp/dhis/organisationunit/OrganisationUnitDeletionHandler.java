@@ -90,7 +90,7 @@ public class OrganisationUnitDeletionHandler
     public void deleteProgram( Program program )
     {
         program.getOrganisationUnits().iterator().forEachRemaining( unit -> {
-            unit.removeProgram( program );
+            unit.getPrograms().remove( program );
             idObjectManager.updateNoAcl( unit );
         } );
     }
