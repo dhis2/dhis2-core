@@ -132,10 +132,11 @@
   </reporting>
 
   <profiles>
+
     <profile>
-      <id>jdk9+</id>
+      <id>default</id>
       <activation>
-        <jdk>[9,)</jdk>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
         <maven.compiler.release>8</maven.compiler.release>
@@ -145,17 +146,17 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M5</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
+              <argLine>-Xmx1024m --illegal-access=permit</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
               <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>6.2</version>
+                <version>${ow2.asm.version}</version>
               </dependency>
             </dependencies>
           </plugin>
@@ -163,51 +164,28 @@
       </build>
     </profile>
 
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
-            <configuration>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
-              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>6.2</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
+    <!-- Integration test profile -->
     <profile>
       <id>integration</id>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
+              <argLine>-Xmx1024m --illegal-access=permit</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
             <dependencies>
               <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>6.2</version>
+                <version>${ow2.asm.version}</version>
               </dependency>
             </dependencies>
           </plugin>
@@ -217,18 +195,29 @@
 
     <profile>
       <id>sonarqube</id>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${argLine} -Xmx1024m</argLine>
+              <argLine>${argLine} -Xmx1024m --illegal-access=permit</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${ow2.asm.version}</version>
+              </dependency>
+            </dependencies>
           </plugin>
+
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
@@ -255,17 +244,30 @@
 
     <profile>
       <id>dev</id>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <skipTests>true</skipTests>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>-Xmx1024m --illegal-access=permit</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${ow2.asm.version}</version>
+              </dependency>
+            </dependencies>
           </plugin>
+
           <plugin>
             <groupId>org.zeroturnaround</groupId>
             <artifactId>jrebel-maven-plugin</artifactId>
@@ -2088,5 +2090,7 @@
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
+    <ow2.asm.version>6.2</ow2.asm.version>
   </properties>
 </project>
