@@ -48,11 +48,11 @@ public class UserSupplierTest
     {
         final List<Event> events = rnd.randomObjects( Event.class, 5 );
         final List<User> users = rnd.randomObjects( User.class, 5 );
-        final List<String> userIds = events.stream().map( e -> e.getAssignedUser().getUid() )
+        final List<String> userIds = events.stream().map( e -> e.getAssignedUser() )
             .collect( Collectors.toList() );
 
         IntStream.range( 0, 5 )
-            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser().getUid() ) );
+            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
 
         when( manager.getByUid( eq( User.class ),
             argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
