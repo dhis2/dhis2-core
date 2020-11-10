@@ -256,22 +256,14 @@ public abstract class AbstractHibernateListener
 
         Map<String, Property> properties = embeddedSchema.getFieldNameMapProperties();
         properties.forEach( (pName, prop) -> {
-
             Object propertyValue =  ReflectionUtils.invokeMethod( value, prop.getGetterMethod() );
-            if ( BaseIdentifiableObject.class.isAssignableFrom( prop.getItemKlass() ) )
+            if ( prop.isCollection() )
             {
-                if ( prop.isCollection() )
-                {
-                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) propertyValue ) );
-                }
-                else
-                {
-                    objectMap.put( pName, getId( propertyValue ) );
-                }
+                objectMap.put( pName,  BaseIdentifiableObject.class.isAssignableFrom( prop.getItemKlass() ) ?  IdentifiableObjectUtils.getUids( (Collection) propertyValue ) : propertyValue );
             }
             else
             {
-                objectMap.put( pName, propertyValue );
+                objectMap.put( pName, BaseIdentifiableObject.class.isAssignableFrom( prop.getKlass() ) ? getId( propertyValue ) : propertyValue );
             }
         } );
     }
