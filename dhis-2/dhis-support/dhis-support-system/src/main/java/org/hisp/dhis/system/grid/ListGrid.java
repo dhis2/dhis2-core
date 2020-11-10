@@ -245,6 +245,22 @@ public class ListGrid
     }
 
     @Override
+    public Grid replaceHeaders( List<GridHeader> gridHeaders )
+    {
+        if ( gridHeaders == null || gridHeaders.isEmpty() )
+        {
+            return this;
+        }
+
+        headers.clear();
+        headers.addAll( gridHeaders );
+
+        updateColumnIndexMap();
+
+        return this;
+    }
+
+    @Override
     @JsonProperty
     public List<GridHeader> getHeaders()
     {
