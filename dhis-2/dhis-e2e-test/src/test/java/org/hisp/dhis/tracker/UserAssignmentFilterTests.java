@@ -192,7 +192,7 @@ public class UserAssignmentFilterTests
     private ApiResponse createEvents( Object body )
         throws Exception
     {
-        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add( "importStrategy=CREATE_AND_UPDATE" ) );
+        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add(  "skipCache=true" ) );
 
         eventResponse.validate().statusCode( 200 );
 
