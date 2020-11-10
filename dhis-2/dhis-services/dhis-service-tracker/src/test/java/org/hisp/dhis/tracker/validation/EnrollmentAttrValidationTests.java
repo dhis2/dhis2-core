@@ -201,7 +201,6 @@ public class EnrollmentAttrValidationTests
     }
 
     @Test
-    @Ignore // TODO luciano - unignore when EnrollmentAttributeValidationHook is fixed
     public void testAttributesMissingMandatory()
         throws IOException
     {
@@ -221,7 +220,6 @@ public class EnrollmentAttrValidationTests
     }
 
     @Test
-    @Ignore // TODO luciano - unignore when EnrollmentAttributeValidationHook is fixed
     public void testAttributesOnlyProgramAttrAllowed()
         throws IOException
     {

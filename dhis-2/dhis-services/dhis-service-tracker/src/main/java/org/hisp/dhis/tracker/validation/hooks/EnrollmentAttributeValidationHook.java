@@ -35,9 +35,10 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -101,7 +104,8 @@ public class EnrollmentAttributeValidationHook
                 tei.getOrganisationUnit() );
         }
 
-        //validateMandatoryAttributes( reporter, program, tei, attributeValueMap );
+        Program program = context.getProgram(enrollment.getProgram());
+        validateMandatoryAttributes( reporter, program, enrollment, attributeValueMap );
     }
 
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
@@ -118,56 +122,85 @@ public class EnrollmentAttributeValidationHook
         }
     }
 
-    // TODO luciano why are we validating TEI attributes in the enrollment validator...?
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, String teiUid, Map<String, String> attributeValueMap )
+        Program program, Enrollment enrollment, Map<String, String> attributeValueMap )
     {
-//        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-//        // checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL ); -- TODO no need to check it again
-//        checkNotNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
-//
-//        // 1. Get all tei attributes, map attrValue attr. into set of attr.
-//        Set<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityInstance.getTrackedEntityAttributeValues()
-//            .stream()
-//            .map( TrackedEntityAttributeValue::getAttribute )
-//            .collect( Collectors.toSet() );
-//
-//        // 2. Map all program attr. that match tei attr. into map. of attr:is mandatory
-//        Map<TrackedEntityAttribute, Boolean> mandatoryMap = program.getProgramAttributes().stream()
-//            .filter( v -> trackedEntityAttributes.contains( v.getAttribute() ) )
-//            .collect( Collectors.toMap(
-//                ProgramTrackedEntityAttribute::getAttribute,
-//                ProgramTrackedEntityAttribute::isMandatory ) );
-//
-//        for ( Map.Entry<TrackedEntityAttribute, Boolean> entry : mandatoryMap.entrySet() )
-//        {
-//            TrackedEntityAttribute attribute = entry.getKey();
-//            Boolean attributeIsMandatory = entry.getValue();
-//
-//            // TODO: This is quite ugly and should be considered to be solved differently,
-//            //  e.i. authorization should be handled in one common place.
-//            // NB: ! This authority MUST only be used in SYNC mode! This needs to be added to the check
-//            boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
-//                .getUser()
-//                .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
-//
-//            boolean hasMissingAttribute = attributeIsMandatory
-//                && !userIsAuthorizedToIgnoreRequiredValueValidation
-//                && !attributeValueMap.containsKey( attribute.getUid() );
-//
-//            addErrorIf( () -> hasMissingAttribute, reporter, E1018, attribute );
-//
-//            // Remove program attr. from enrollment attr. list
-//            attributeValueMap.remove( attribute.getUid() );
-//        }
-//
-//        if ( !attributeValueMap.isEmpty() )
-//        {
-//            for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
-//            {
-//                //Only Program attributes is allowed for enrollment
-//                addError( reporter, E1019, entry.getKey() + "=" + entry.getValue() );
-//            }
-//        }
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+        // checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL ); -- TODO no need to check it again
+        checkNotNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
+
+        // 1. Get all tei attributes, map attrValue attr. into set of attr.
+        Set<TrackedEntityAttribute> trackedEntityAttributes =
+                getTrackedEntityAttributesFromEnrollment(reporter.getValidationContext(), enrollment);
+
+        // 2. Map all program attr. that match tei attr. into map. of attr:is mandatory
+        Map<TrackedEntityAttribute, Boolean> mandatoryMap = program.getProgramAttributes().stream()
+            .filter( v -> trackedEntityAttributes.contains( v.getAttribute() ) )
+            .collect( Collectors.toMap(
+                ProgramTrackedEntityAttribute::getAttribute,
+                ProgramTrackedEntityAttribute::isMandatory ) );
+
+        for ( Map.Entry<TrackedEntityAttribute, Boolean> entry : mandatoryMap.entrySet() )
+        {
+            TrackedEntityAttribute attribute = entry.getKey();
+            Boolean attributeIsMandatory = entry.getValue();
+
+            // TODO: This is quite ugly and should be considered to be solved differently,
+            //  e.i. authorization should be handled in one common place.
+            // NB: ! This authority MUST only be used in SYNC mode! This needs to be added to the check
+            boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
+                .getUser()
+                .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
+
+            boolean hasMissingAttribute = attributeIsMandatory
+                && !userIsAuthorizedToIgnoreRequiredValueValidation
+                && !attributeValueMap.containsKey( attribute.getUid() );
+
+            addErrorIf( () -> hasMissingAttribute, reporter, E1018, attribute );
+
+            // Remove program attr. from enrollment attr. list
+            attributeValueMap.remove( attribute.getUid() );
+        }
+
+        if ( !attributeValueMap.isEmpty() )
+        {
+            for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
+            {
+                //Only Program attributes is allowed for enrollment
+                addError( reporter, E1019, entry.getKey() + "=" + entry.getValue() );
+            }
+        }
+    }
+
+
+    private Set<TrackedEntityAttribute> getTrackedEntityAttributesFromEnrollment(TrackerImportValidationContext context,
+                                                                                      Enrollment enrollment )
+    {
+        final TrackedEntityInstance trackedEntityInstance = context
+                .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        if ( trackedEntityInstance != null )
+        {
+            return trackedEntityInstance.getTrackedEntityAttributeValues()
+                    .stream()
+                    .map(a -> a.getAttribute())
+                    .collect(Collectors.toSet());
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            if ( reference.isPresent() )
+            {
+                final Optional<TrackedEntity> tei = context.getBundle()
+                        .getTrackedEntity( enrollment.getTrackedEntity() );
+                if ( tei.isPresent() )
+                {
+                    return tei.get().getAttributes()
+                            .stream()
+                            .map( a -> context.getTrackedEntityAttribute(a.getAttribute()))
+                            .collect(Collectors.toSet());
+                }
+            }
+        }
+        return null;
     }
 }
