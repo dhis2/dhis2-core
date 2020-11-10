@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,6 +64,7 @@ public class UserSupplier extends AbstractPreheatSupplier
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
-        preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
+        final List<User> byUid = manager.getByUid(User.class, userUids);
+        preheat.put( TrackerIdentifier.UID, byUid );
     }
 }

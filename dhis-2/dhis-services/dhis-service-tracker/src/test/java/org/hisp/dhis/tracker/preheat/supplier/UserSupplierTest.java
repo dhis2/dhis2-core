@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -47,6 +48,7 @@ public class UserSupplierTest
     public void verifySupplier()
     {
         final List<Event> events = rnd.randomObjects( Event.class, 5 );
+        events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );
         final List<User> users = rnd.randomObjects( User.class, 5 );
         final List<String> userIds = events.stream().map( e -> e.getAssignedUser() )
             .collect( Collectors.toList() );
