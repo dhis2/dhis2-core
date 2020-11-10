@@ -72,7 +72,7 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
     @PostConstruct
     public void initStrategies()
     {
-        classStrategies = new PreheatStrategyScanner().scanSupplierStrategies();
+        classStrategies = new PreheatClassScanner().scanSupplierStrategies();
     }
 
     @Override
@@ -111,4 +111,3 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
         context = applicationContext;
     }
 }
-

@@ -69,19 +69,19 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
     {
         final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollmentsMap = preheat.getEnrollments();
         final Map<String, ProgramInstance> enrollments = enrollmentsMap.getOrDefault( TrackerIdScheme.UID,
-                new HashMap<>() );
+            new HashMap<>() );
 
         // List of Events that have no 'enrollment' field or 'enrollment' points to an
         // invalid PI
         List<Event> eventWithoutPI = getEventsWithoutProgramInstance( params,
-                enrollments.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+            enrollments.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         if ( isNotEmpty( eventWithoutPI ) )
         {
             // Assign the map of event uid -> List Program Instance to the Preheat context
             preheat.setProgramInstances( getProgramInstancesByProgramAndTei(
-                    preheat,
-                    eventWithoutPI ) );
+                preheat,
+                eventWithoutPI ) );
         }
     }
 
