@@ -28,12 +28,14 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.user.User;
@@ -56,8 +58,8 @@ public class UserSupplier extends AbstractPreheatSupplier
     public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         Set<String> userUids = params.getEvents().stream()
-            .filter( event -> event.getAssignedUser() != null )
-            .map( event -> event.getAssignedUser().getUid() )
+            .filter( Objects::nonNull )
+            .map( Event::getAssignedUser )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 

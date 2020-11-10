@@ -29,10 +29,15 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import com.google.common.base.Preconditions;
-import lombok.Data;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -50,10 +55,9 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import com.google.common.base.Preconditions;
+
+import lombok.Data;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -160,6 +164,11 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityAttribute.class, id );
     }
 
+    public DataElement getDataElement( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), DataElement.class, id );
+    }
+
     public TrackedEntityType getTrackedEntityType( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
@@ -203,5 +212,10 @@ public class TrackerImportValidationContext
     public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
     {
         return bundle.getPreheat().getProgramInstances();
+    }
+
+    public FileResource getFileResource( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
     }
 }

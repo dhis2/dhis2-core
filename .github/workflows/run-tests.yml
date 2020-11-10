@@ -47,3 +47,33 @@ jobs:
     - name: Run integration tests
       run: mvn clean install -Pintegration -f ./dhis-2/pom.xml
     
+  api-test:
+    env:
+      CORE_IMAGE_NAME: "dhis2/core:local"
+      TEST_IMAGE_NAME: "dhis2/tests:local"
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build core image
+      run: |
+        bash ./dhis-2/build-dev.sh
+
+    - name: Run tests
+      run: |
+        cd dhis-2/dhis-e2e-test
+        IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
+        docker build -t $TEST_IMAGE_NAME .
+        IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
+
+    - name: Upload logs
+      if: failure()
+      run: |
+        cd dhis-2/dhis-e2e-test
+        docker-compose logs web > ~/logs.txt
+
+    - uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: "logs"
+        path: '~/logs.txt'
