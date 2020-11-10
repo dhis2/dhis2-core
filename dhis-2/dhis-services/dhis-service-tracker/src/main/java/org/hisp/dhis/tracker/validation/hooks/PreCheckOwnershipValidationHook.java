@@ -228,12 +228,12 @@ public class PreCheckOwnershipValidationHook
             programStage,
             teiUid,
             organisationUnit,
-            program );
+            program, event.isCreatableInSearchScope());
     }
 
-    protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
-        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
-        OrganisationUnit organisationUnit, Program program )
+    protected void validateCreateEvent(ValidationErrorReporter reporter, User actingUser,
+                                       CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
+                                       OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope)
     {
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( actingUser, USER_CANT_BE_NULL );
@@ -244,7 +244,7 @@ public class PreCheckOwnershipValidationHook
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
-            teiUid, false ); // TODO: calculate correct isCreatableInSearchScope value
+            teiUid,isCreatableInSearchScope ); // TODO: calculate correct isCreatableInSearchScope value
     }
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
