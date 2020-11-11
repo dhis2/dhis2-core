@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,22 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A PreheatSupplier supplies data to the {@link TrackerPreheat} object
+ * 
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+public interface PreheatSupplier
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
-
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
+    /**
+     * Adds data to the {@link TrackerPreheat} using the supplied
+     * {@link TrackerPreheatParams}
+     * 
+     * @param params {@link TrackerPreheatParams}
+     * @param preheat {@link TrackerPreheat}
+     */
+    void add( TrackerPreheatParams params, TrackerPreheat preheat );
 }

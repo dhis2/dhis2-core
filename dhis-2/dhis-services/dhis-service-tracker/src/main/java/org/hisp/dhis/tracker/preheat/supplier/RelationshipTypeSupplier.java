@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,29 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@RequiredArgsConstructor
+@Component
+public class RelationshipTypeSupplier extends AbstractPreheatSupplier
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
+    @NonNull
+    private final IdentifiableObjectManager manager;
 
-    public PreheatException( String message, Throwable cause )
+    @Override
+    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
-        super( message, cause );
+        preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
     }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
 }

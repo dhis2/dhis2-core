@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,21 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Component;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@Component
+@StrategyFor( Program.class )
+public class ProgramStrategy extends AbstractSchemaStrategy
 {
-    public PreheatException( String message )
+    public ProgramStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager )
     {
-        super( message );
+        super( schemaService, queryService, manager );
     }
-
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
 }

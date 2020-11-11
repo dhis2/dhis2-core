@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,38 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@RequiredArgsConstructor
+@Component
+@StrategyFor( TrackedEntity.class )
+public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
+    @NonNull
+    private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    public PreheatException( String message, Throwable cause )
+    @Override
+    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        super( message, cause );
+        for ( List<String> ids : splitList )
+        {
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
+                preheat.getUser() );
+            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
+        }
     }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
 }

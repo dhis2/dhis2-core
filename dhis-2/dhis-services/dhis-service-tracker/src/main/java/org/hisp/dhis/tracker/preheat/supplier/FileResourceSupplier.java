@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.hooks;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,6 +28,10 @@ package org.hisp.dhis.tracker.preheat.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -37,31 +41,25 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatHook;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
+@RequiredArgsConstructor
 @Component
-public class FileResourceTrackerPreheatHook
-    implements TrackerPreheatHook
+public class FileResourceSupplier extends AbstractPreheatSupplier
 {
+    @NonNull
     private final FileResourceService fileResourceService;
 
-    public FileResourceTrackerPreheatHook( FileResourceService fileResourceService )
-    {
-        this.fileResourceService = fileResourceService;
-    }
-
     @Override
-    public void preheat( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackerIdScheme.UID, TrackedEntityAttribute.class );
 

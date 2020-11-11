@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,21 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
+ * Tracker domain object the annotated strategy has to process
+ * 
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@Retention( RUNTIME )
+@Target( ElementType.TYPE )
+public @interface StrategyFor
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
-
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
+    Class<?> value();
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,49 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang3.time.StopWatch;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A {@link PreheatSupplier} subclass can implement this abstract class to
+ * execute code before and after the supplier has been executed (e.g. timing)
+ * 
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@Slf4j
+public abstract class AbstractPreheatSupplier implements PreheatSupplier
 {
-    public PreheatException( String message )
+    @Override
+    public void add( TrackerPreheatParams params, TrackerPreheat preheat )
     {
-        super( message );
+        StopWatch watch = null;
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( "Executing preheat supplier: {}", this.getClass().getName() );
+            watch = new StopWatch();
+            watch.start();
+        }
+
+        preheatAdd( params, preheat );
+
+        if ( log.isDebugEnabled() )
+        {
+            if ( watch != null && watch.isStarted() )
+            {
+                watch.stop();
+                log.debug( "Supplier {} executed in : {}", this.getClass().getName(),
+                    TimeUnit.SECONDS.convert( watch.getNanoTime(), TimeUnit.NANOSECONDS ) );
+            }
+        }
     }
 
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
+    /**
+     * Template method: executes preheat logic from the subclass
+     */
+    public abstract void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat );
 }

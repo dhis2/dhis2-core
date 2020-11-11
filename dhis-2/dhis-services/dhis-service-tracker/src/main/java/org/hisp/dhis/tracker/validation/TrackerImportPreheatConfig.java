@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,27 +26,41 @@ package org.hisp.dhis.preheat;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import java.util.List;
+
+import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.RelationshipTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.TrackedEntityTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
+
+import com.google.common.collect.ImmutableList;
+
+import lombok.experimental.UtilityClass;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Configuration class for the pre-heat stage. This class holds the list of
+ * pre-heat suppliers executed during import
  */
-public class PreheatException
-    extends RuntimeException
+@UtilityClass
+public class TrackerImportPreheatConfig
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
-
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
+    public static final List<Class<? extends PreheatSupplier>> PREHEAT_ORDER = ImmutableList.of(
+        ClassBasedSupplier.class,
+        ProgramInstanceSupplier.class,
+        ProgramInstanceByTeiSupplier.class,
+        TrackedEntityTypeSupplier.class,
+        RelationshipTypeSupplier.class,
+        PeriodTypeSupplier.class,
+        UniqueAttributesSupplier.class,
+        UserSupplier.class,
+        FileResourceSupplier.class );
 }

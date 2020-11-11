@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,43 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@RequiredArgsConstructor
+@Component
+public class UserSupplier extends AbstractPreheatSupplier
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
+    @NonNull
+    private final IdentifiableObjectManager manager;
 
-    public PreheatException( String message, Throwable cause )
+    @Override
+    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
-        super( message, cause );
-    }
+        Set<String> userUids = params.getEvents().stream()
+            .filter( Objects::nonNull )
+            .map( Event::getAssignedUser )
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
 
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
+        final List<User> byUid = manager.getByUid(User.class, userUids);
+        preheat.put( TrackerIdentifier.UID, byUid );
     }
-
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,32 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.springframework.stereotype.Component;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@Component
+@StrategyFor( GenericStrategy.class )
+public class GenericStrategy extends AbstractSchemaStrategy
 {
-    public PreheatException( String message )
+    public GenericStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager )
     {
-        super( message );
+        super( schemaService, queryService, manager );
     }
 
-    public PreheatException( String message, Throwable cause )
+    public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        super( message, cause );
+        Schema schema = schemaService.getDynamicSchema( klazz );
+        queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList );
     }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
 }
