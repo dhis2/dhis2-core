@@ -59,7 +59,7 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstanceUid() );
     }
 
     @TransactionalEventListener

@@ -168,7 +168,7 @@ public class EventManager
             // correctly.
             List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
-            processingManager.getPostInsertProcessorFactory().process( contextLoader.reloadContextEvents( workContext, savedEvents ), savedEvents );
+            processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
