@@ -35,9 +35,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -268,6 +270,57 @@ public class StreamUtils
         catch ( Exception ex )
         {
             throw new RuntimeException( "Failed to finish the content of the ZipOutputStream", ex );
+        }
+    }
+
+    /**
+     * Closes an {@link InputStream} unconditionally without throwing exceptions.
+     *
+     * @param input the input stream.
+     */
+    public static void closeQuietly( InputStream input )
+    {
+        try
+        {
+            if ( input != null )
+            {
+                input.close();
+            }
+        }
+        catch ( final IOException ioe )
+        {
+            // Ignore
+        }
+    }
+
+    /**
+     * Copies the input stream into the output stream, then finally closes the input stream only.
+     *
+     * @param in  stream to copy from
+     * @param out stream to copy to
+     * @return the number of bytes copied
+     * @throws IOException in case of I/O errors
+     */
+    public static int copyThenCloseInputStream( InputStream in, OutputStream out )
+        throws IOException
+    {
+        Objects.requireNonNull( in, "InputStream must not be null" );
+        Objects.requireNonNull( out, "OutputStream must not be null" );
+
+        try
+        {
+            return org.springframework.util.StreamUtils.copy( in, out );
+        }
+        finally
+        {
+            try
+            {
+                in.close();
+            }
+            catch ( IOException ex )
+            {
+                //ignore
+            }
         }
     }
 }
