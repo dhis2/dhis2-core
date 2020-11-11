@@ -56,6 +56,14 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.scalified</groupId>
+            <artifactId>tree</artifactId>
+        </dependency>
 
         <!-- Test -->
 

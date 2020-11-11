@@ -366,6 +366,28 @@ public class DataHandler
             Grid eventGrid = eventAnalyticsService.getAggregatedEventData( eventQueryParams );
 
             grid.addRows( eventGrid );
+
+            replaceGridIfNeeded( grid, eventGrid );
+        }
+    }
+
+    /**
+     * This method will replace the headers in the current grid by the event grid
+     * IF, and only IF, there is a mismatch between the current grid and the event
+     * grid headers.
+     * 
+     * @param grid the current/actual grid
+     * @param eventGrid the event grid
+     */
+    private void replaceGridIfNeeded( final Grid grid, final Grid eventGrid )
+    {
+        final boolean eventGridHasAdditionalHeaders = grid.getHeaderWidth() < eventGrid.getHeaderWidth();
+        final boolean eventHeaderSizeIsSameAsGridColumns = eventGrid.getHeaderWidth() == eventGrid.getWidth();
+
+        // Replacing the current grid headers by the actual event grid headers.
+        if ( eventGridHasAdditionalHeaders && eventHeaderSizeIsSameAsGridColumns )
+        {
+            grid.replaceHeaders( eventGrid.getHeaders() );
         }
     }
 
