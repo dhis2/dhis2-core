@@ -41,12 +41,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -130,7 +130,8 @@ public class AppOverrideFilter
 
             response.setContentLength( (int) resource.contentLength() );
             response.setHeader( "Last-Modified", DateUtils.getHttpDateString( new Date( resource.lastModified() ) ) );
-            StreamUtils.copy( resource.getInputStream(), response.getOutputStream() );
+
+            StreamUtils.copyThenCloseInputStream( resource.getInputStream(), response.getOutputStream() );
         }
     }
 
