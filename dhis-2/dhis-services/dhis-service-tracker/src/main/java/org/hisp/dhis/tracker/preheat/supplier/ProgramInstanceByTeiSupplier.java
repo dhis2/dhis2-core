@@ -57,7 +57,6 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-@SupplierDependsOn( ProgramInstanceSupplier.class )
 public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
 {
     private final ProgramInstanceStore programInstanceStore;
@@ -88,7 +87,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
     private List<Event> getEventsWithoutProgramInstance( TrackerPreheatParams params, List<String> enrollmentsUid )
     {
         return params.getEvents().stream().filter( e -> !enrollmentsUid.contains( e.getEnrollment() ) )
-                .collect( Collectors.toList() );
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -97,15 +96,15 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
      *
      */
     private Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei( TrackerPreheat preheat,
-                                                                                   List<Event> events )
+        List<Event> events )
     {
         Map<String, List<ProgramInstance>> result = new HashMap<>();
 
         // Build a look-up map
         final Map<String, Event> idToEventMap = events.stream()
-                // filter out events without program or tei
-                .filter( e -> StringUtils.isNotEmpty( e.getProgram() ) && StringUtils.isNotEmpty( e.getTrackedEntity() ) )
-                .collect( Collectors.toMap( e -> e.getProgram() + KEY_SEPARATOR + e.getTrackedEntity(), e -> e ) );
+            // filter out events without program or tei
+            .filter( e -> StringUtils.isNotEmpty( e.getProgram() ) && StringUtils.isNotEmpty( e.getTrackedEntity() ) )
+            .collect( Collectors.toMap( e -> e.getProgram() + KEY_SEPARATOR + e.getTrackedEntity(), e -> e ) );
 
         // @formatter:off
         final List<ProgramInstance> resultList = programInstanceStore.getByProgramAndTrackedEntityInstance(
