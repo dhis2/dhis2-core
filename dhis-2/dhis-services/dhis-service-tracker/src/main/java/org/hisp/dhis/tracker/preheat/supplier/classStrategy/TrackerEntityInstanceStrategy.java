@@ -61,10 +61,12 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
             List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
                 preheat.getUser() );
 
-            final List<String> rootEntities = params.getTrackedEntities().stream().map( TrackedEntity::getTrackedEntity )
+            final List<String> rootEntities = params.getTrackedEntities().stream()
+                .map( TrackedEntity::getTrackedEntity )
                 .collect( Collectors.toList() );
 
-            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances, RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
+            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances,
+                RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
         }
     }
 }
