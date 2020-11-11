@@ -34,6 +34,7 @@ import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -386,6 +387,7 @@ public class HibernateDbmsManager
     }
 
     @Override
+    @Transactional //TODO need to be fixed as this reduces performance
     public void clearSession()
     {
         sessionFactory.getCurrentSession().flush();
