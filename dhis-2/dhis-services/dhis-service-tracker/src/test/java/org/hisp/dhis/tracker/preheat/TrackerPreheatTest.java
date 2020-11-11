@@ -28,15 +28,28 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.junit.Test;
-
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -198,5 +211,112 @@ public class TrackerPreheatTest
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de1.getUid() ) );
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de2.getUid() ) );
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de3.getUid() ) );
+    }
+    
+    @Test
+    public void testReferenceInvalidation()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+
+        // Create root TEI
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setUid( CodeGenerator.generateUid() );
+        List<TrackedEntityInstance> teiList = new ArrayList<>();
+        teiList.add( tei );
+
+        List<String> allEntities = new ArrayList<>();
+        allEntities.add( CodeGenerator.generateUid() );
+
+        preheat.putTrackedEntities( TrackerIdScheme.UID, teiList, allEntities );
+
+        // Create 2 Enrollments, where TEI is parent
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setUid( CodeGenerator.generateUid() );
+        List<ProgramInstance> psList = new ArrayList<>();
+        psList.add( programInstance );
+
+        List<Enrollment> allPs = new ArrayList<>();
+        allPs.add( new Enrollment()
+        {
+            {
+                String uid = CodeGenerator.generateUid();
+                setUid( uid );
+                setEnrollment( uid );
+                setTrackedEntity( allEntities.get( 0 ) );
+            }
+        } );
+        allPs.add( new Enrollment()
+        {
+            {
+                String uid = CodeGenerator.generateUid();
+                setUid( uid );
+                setEnrollment( uid );
+                setTrackedEntity( allEntities.get( 0 ) );
+            }
+        } );
+
+        preheat.putEnrollments( TrackerIdScheme.UID, psList, allPs );
+
+        // Create 4 Enrollments, where TEI is parent
+        ProgramStageInstance psi = new ProgramStageInstance();
+        psi.setUid( CodeGenerator.generateUid() );
+        List<ProgramStageInstance> psiList = new ArrayList<>();
+        psiList.add( psi );
+
+        List<Event> allEvents = new ArrayList<>();
+        allEvents.add( new Event()
+        {
+            {
+                String uid = CodeGenerator.generateUid();
+                setUid( uid );
+                setEvent( uid );
+                setEnrollment( allPs.get( 0 ).getEnrollment() );
+            }
+        } );
+        allEvents.add( new Event()
+        {
+            {
+                String uid = CodeGenerator.generateUid();
+                setUid( uid );
+                setEvent( uid );
+                setEnrollment( allPs.get( 0 ).getEnrollment() );
+            }
+        } );
+        allEvents.add( new Event()
+        {
+            {
+                String uid = CodeGenerator.generateUid();
+                setUid( uid );
+                setEvent( uid );
+                setEnrollment( allPs.get( 1 ).getEnrollment() );
+            }
+        } );
+        allEvents.add( new Event()
+        {
+            {
+                String uid = CodeGenerator.generateUid();
+                setUid( uid );
+                setEvent( uid );
+                setEnrollment( allPs.get( 1 ).getEnrollment() );
+            }
+        } );
+
+        preheat.putEvents( TrackerIdScheme.UID, psiList, allEvents );
+
+        Optional<ReferenceTrackerEntity> reference = preheat.getReference( allEvents.get( 0 ).getUid() );
+        assertThat( reference.get().getUid(), is( allEvents.get( 0 ).getUid() ) );
+        assertThat( reference.get().getParentUid(), is( allPs.get( 0 ).getUid() ) );
+
+        Optional<ReferenceTrackerEntity> reference2 = preheat.getReference( allEvents.get( 1 ).getUid() );
+        assertThat( reference2.get().getUid(), is( allEvents.get( 1 ).getUid() ) );
+        assertThat( reference2.get().getParentUid(), is( allPs.get( 0 ).getUid() ) );
+
+        Optional<ReferenceTrackerEntity> reference3 = preheat.getReference( allEvents.get( 2 ).getUid() );
+        assertThat( reference3.get().getUid(), is( allEvents.get( 2 ).getUid() ) );
+        assertThat( reference3.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
+
+        Optional<ReferenceTrackerEntity> reference4 = preheat.getReference( allEvents.get( 3 ).getUid() );
+        assertThat( reference4.get().getUid(), is( allEvents.get( 3 ).getUid() ) );
+        assertThat( reference4.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
     }
 }

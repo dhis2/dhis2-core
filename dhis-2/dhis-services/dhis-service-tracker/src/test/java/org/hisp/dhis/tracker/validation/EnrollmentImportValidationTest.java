@@ -645,7 +645,6 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
-
         createAndUpdate = validateAndCommit(
             "tracker/validations/enrollments_bad-note-uuid-exists-part2.json", TrackerImportStrategy.CREATE );
 

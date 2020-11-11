@@ -92,7 +92,7 @@ public class TrackerController
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
+//    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
