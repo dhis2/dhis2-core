@@ -349,8 +349,7 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
     {
-        return context.getTrackedEntityInstance( teiUid ) != null && !context.getReference( teiUid ).isPresent();
-
+        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
     }
 
     private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
