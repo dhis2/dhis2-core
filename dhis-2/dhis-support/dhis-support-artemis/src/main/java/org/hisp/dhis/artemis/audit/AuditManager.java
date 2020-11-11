@@ -110,7 +110,7 @@ public class AuditManager
             audit.setData( this.objectFactory.create(
                 audit.getAuditScope(),
                 audit.getAuditType(),
-                audit.getAuditableEntity().getSerializableObject(),
+                audit.getAuditableEntity().getEntity(),
                 audit.getCreatedBy() ) );
         }
 
