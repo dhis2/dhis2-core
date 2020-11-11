@@ -75,7 +75,9 @@ public class PreheatStrategyScanner
     private String getTargetClass( ClassInfo classInfo, String annotation )
     {
         AnnotationInfo annotationInfo = classInfo.getAnnotationInfo( annotation );
+
         AnnotationClassRef klazz = (AnnotationClassRef) annotationInfo.getParameterValues().get( 0 ).getValue();
+
         return klazz.getClassInfo().getSimpleName();
     }
 }

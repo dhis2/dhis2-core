@@ -48,13 +48,25 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier
     @Override
     public void add( TrackerPreheatParams params, TrackerPreheat preheat )
     {
-        log.debug( "Executing preheat supplier: {}", this.getClass().getName() );
-        StopWatch watch = new StopWatch();
-        watch.start();
+        StopWatch watch = null;
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( "Executing preheat supplier: {}", this.getClass().getName() );
+            watch = new StopWatch();
+            watch.start();
+        }
+
         preheatAdd( params, preheat );
-        watch.stop();
-        log.debug( "Supplier {} executed in : {}", this.getClass().getName(),
-            TimeUnit.SECONDS.convert( watch.getNanoTime(), TimeUnit.NANOSECONDS ) );
+
+        if ( log.isDebugEnabled() )
+        {
+            if ( watch != null && watch.isStarted() )
+            {
+                watch.stop();
+                log.debug( "Supplier {} executed in : {}", this.getClass().getName(),
+                    TimeUnit.SECONDS.convert( watch.getNanoTime(), TimeUnit.NANOSECONDS ) );
+            }
+        }
     }
 
     /**
