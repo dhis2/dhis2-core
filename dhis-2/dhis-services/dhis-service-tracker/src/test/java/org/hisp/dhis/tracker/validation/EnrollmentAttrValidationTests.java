@@ -75,7 +75,6 @@ import static org.junit.Assert.assertTrue;
 public class EnrollmentAttrValidationTests
     extends AbstractImportValidationTest
 {
-
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 

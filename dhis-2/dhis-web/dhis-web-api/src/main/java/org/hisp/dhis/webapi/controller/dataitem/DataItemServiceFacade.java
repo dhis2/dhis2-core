@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
@@ -145,7 +146,7 @@ public class DataItemServiceFacade
     {
         final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities = new HashSet<>( 0 );
 
-        if ( isNotEmpty( filters ) )
+        if ( containsDimensionTypeFilter( filters ) )
         {
             final Iterator<String> iterator = filters.iterator();
 

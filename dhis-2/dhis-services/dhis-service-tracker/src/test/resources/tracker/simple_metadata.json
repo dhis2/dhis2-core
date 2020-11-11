@@ -195,41 +195,6 @@
           "id": "FdIeUL4gyoB"
         }
       ],
-      "programStageDataElements": [
-        {
-          "lastUpdated": "2020-05-31T11:41:22.427",
-          "id": "baqof368f9i",
-          "created": "2020-05-31T09:02:52.687",
-          "displayInReports": false,
-          "skipSynchronization": false,
-          "externalAccess": false,
-          "renderOptionsAsRadio": false,
-          "allowFutureDate": false,
-          "compulsory": false,
-          "allowProvidedElsewhere": false,
-          "sortOrder": 1,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "programStage": {
-            "id": "PD0YxBQC353"
-          },
-          "dataElement": {
-            "id": "DATAEL00001"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        }
-      ],
       "translations": [],
       "userGroupAccesses": [],
       "attributeValues": [],

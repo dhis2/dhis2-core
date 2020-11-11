@@ -52,5 +52,5 @@ public class AuditableEntity
      * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
      * This object could be a Map<String, Object>  with key is property name and value is the property value
      */
-    Object serializableObject;
+    Object entity;
 }
