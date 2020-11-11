@@ -116,7 +116,7 @@ public class WorkContextLoader
             localImportOptions = ImportOptions.getDefaultImportOptions();
         }
 
-            initializeUser( localImportOptions );
+        initializeUser( localImportOptions );
 
         // Make sure all events have the 'uid' field populated
         events = uidGen.assignUidToEvents( events );
