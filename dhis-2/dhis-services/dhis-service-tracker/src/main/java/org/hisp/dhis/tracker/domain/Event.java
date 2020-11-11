@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
 import lombok.AllArgsConstructor;
@@ -132,4 +133,10 @@ public class Event
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
+
+    @JsonIgnore
+    public boolean isCreatableInSearchScope()
+    {
+        return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
+    }
 }

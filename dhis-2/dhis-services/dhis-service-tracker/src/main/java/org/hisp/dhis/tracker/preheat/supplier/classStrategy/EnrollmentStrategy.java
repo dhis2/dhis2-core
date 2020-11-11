@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -58,7 +59,15 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy
         for ( List<String> ids : splitList )
         {
             List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
-            preheat.putEnrollments( TrackerIdScheme.UID, programInstances );
+
+            final List<String> rootEntities = params.getEnrollments().stream().map( Enrollment::getEnrollment )
+                .collect( Collectors.toList() );
+
+            preheat.putEnrollments( TrackerIdScheme.UID, programInstances,
+                params.getEnrollments().stream().filter(
+                    e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEnrollment() ) )
+                    .collect( Collectors.toList() ) );
+
         }
     }
 }

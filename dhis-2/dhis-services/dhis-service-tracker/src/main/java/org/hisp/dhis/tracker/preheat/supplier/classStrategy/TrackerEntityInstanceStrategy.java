@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -59,7 +60,11 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
         {
             List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
                 preheat.getUser() );
-            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
+
+            final List<String> rootEntities = params.getTrackedEntities().stream().map( TrackedEntity::getTrackedEntity )
+                .collect( Collectors.toList() );
+
+            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances, RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
         }
     }
 }

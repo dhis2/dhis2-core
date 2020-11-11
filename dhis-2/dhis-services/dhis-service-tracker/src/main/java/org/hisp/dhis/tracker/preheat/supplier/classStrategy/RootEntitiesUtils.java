@@ -28,22 +28,19 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.springframework.stereotype.Component;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.experimental.UtilityClass;
 
 /**
  * @author Luciano Fiandesio
  */
-@Component
-@StrategyFor( CategoryOption.class )
-public class CatOptionStrategy extends AbstractSchemaStrategy
+@UtilityClass
+public class RootEntitiesUtils
 {
-    public CatOptionStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager )
+    public List<String> filterOutNonRootEntities( List<String> ids, List<String> rootEntities )
     {
-        super( schemaService, queryService, manager );
+        return ids.stream().filter( rootEntities::contains ).collect( Collectors.toList() );
     }
 }

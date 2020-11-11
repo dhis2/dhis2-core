@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,22 +28,38 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.springframework.stereotype.Component;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
+ * This annotation establishes a dependency between {@link PreheatSupplier} objects.
+ *
+ * <pre>{@code
+ * @SupplierDependsOn( SupplierZ.class )
+ * public class SupplierA implements PreheatSupplier {
+ *  ...
+ * }
+ *
+ * public class SupplierZ implements PreheatSupplier {
+ *  ...
+ * }
+ *
+ * }</pre>
+ *
+ * In the above example, the supplier "SupplierZ" will be executed before "SupplierA"
+ *
  * @author Luciano Fiandesio
  */
-@Component
-@StrategyFor( CategoryOption.class )
-public class CatOptionStrategy extends AbstractSchemaStrategy
+@Retention( RUNTIME )
+@Target( ElementType.TYPE )
+public @interface SupplierDependsOn
 {
-    public CatOptionStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager )
-    {
-        super( schemaService, queryService, manager );
-    }
+    /**
+     * The {@link PreheatSupplier} subclass the supplier annotated with depends on
+     * 
+     */
+    Class<?> value();
 }

@@ -53,19 +53,19 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Preconditions;
 
 import lombok.Data;
-
+// TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 public class TrackerImportValidationContext
 {
-
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
@@ -217,5 +217,10 @@ public class TrackerImportValidationContext
     public FileResource getFileResource( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
+    }
+
+    public Optional<ReferenceTrackerEntity> getReference( String uid )
+    {
+        return bundle.getPreheat().getReference( uid );
     }
 }

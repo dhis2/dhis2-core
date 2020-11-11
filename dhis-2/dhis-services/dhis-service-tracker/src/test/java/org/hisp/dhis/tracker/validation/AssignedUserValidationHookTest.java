@@ -158,7 +158,6 @@ public class AssignedUserValidationHookTest
     @Test
     public void testAssignedUserDoesNotExist()
     {
-
         Event event = new Event();
 
         String testUserUid = "A01234567890";
