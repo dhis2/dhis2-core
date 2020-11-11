@@ -42,7 +42,6 @@ public class PublishEventPostProcessor
     implements
     Processor
 {
-
     @Override
     public void process( final Event event, final WorkContext ctx )
     {

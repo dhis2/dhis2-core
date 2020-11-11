@@ -48,6 +48,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -61,6 +62,8 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.Nonnull;
 
 @Component
 @Slf4j
@@ -81,6 +84,9 @@ public class EventManager
 
     @NonNull
     private final ProcessingManager processingManager;
+
+    @Nonnull
+    private final WorkContextLoader contextLoader;
 
     @NonNull
     private final EventPersistenceService eventPersistenceService;
@@ -160,8 +166,9 @@ public class EventManager
 
             // Post processing only the events that passed validation and were persisted
             // correctly.
-            processingManager.getPostInsertProcessorFactory().process( workContext, events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+
+            processingManager.getPostInsertProcessorFactory().process( contextLoader.reloadContextEvents( workContext, savedEvents ), savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
