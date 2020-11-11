@@ -150,6 +150,7 @@ public enum TrackerErrorCode
     E4003( "There are duplicated relationships. " ),
     E4004( "Missing required property: 'relationshipType'." ),
     E4005( "RelationShip: `{0}`, do not exist." ),
+    E4006( "Could not find RelationShipType: `{0}`."  ),
 
 
     E9999( "N/A" );
