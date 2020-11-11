@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,33 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+@RequiredArgsConstructor
+@Component
+@StrategyFor( TrackedEntityComment.class )
+public class NoteStrategy implements ClassBasedSupplierStrategy
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
+    @NonNull
+    private final TrackedEntityCommentStore trackedEntityCommentStore;
 
-    public PreheatException( String message, Throwable cause )
+    @Override
+    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        super( message, cause );
+        splitList
+            .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids,
+                preheat.getUser() ) ) );
     }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,16 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * 
+ * @author Luciano Fiandesio
  */
-public class PreheatException
-    extends RuntimeException
+public interface ClassBasedSupplierStrategy
 {
-    public PreheatException( String message )
-    {
-        super( message );
-    }
-
-    public PreheatException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PreheatException( Throwable cause )
-    {
-        super( cause );
-    }
-
+    void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat );
 }
