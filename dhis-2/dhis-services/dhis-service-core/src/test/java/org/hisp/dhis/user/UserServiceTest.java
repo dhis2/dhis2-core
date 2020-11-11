@@ -143,12 +143,18 @@ public class UserServiceTest
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+
         userService.addUser( userA );
         userService.addUser( userB );
 
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+
         List<String> usernames = new ArrayList<>();
-        usernames.add( "usernameA" );
-        usernames.add( "usernameB" );
+        usernames.add( "UsernameA" );
+        usernames.add( "UsernameB" );
 
         assertEquals( usernames.size(), userService.getUserCredentialsByUsernames( usernames ).size() );
 

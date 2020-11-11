@@ -37,6 +37,8 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 
 import javax.annotation.Nullable;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -177,7 +179,17 @@ public class MockUserService
     @Override
     public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
     {
-        return null;
+        List<UserCredentials> userCredentials = new ArrayList<>();
+
+        for ( User user : users )
+        {
+            if ( usernames.contains( user.getUsername() ) )
+            {
+                userCredentials.add( user.getUserCredentials() );
+            }
+        }
+
+        return userCredentials;
     }
 
     @Override
