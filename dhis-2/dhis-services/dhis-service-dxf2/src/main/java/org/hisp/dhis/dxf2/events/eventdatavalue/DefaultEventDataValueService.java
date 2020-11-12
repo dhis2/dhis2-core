@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.AbstractEventService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -123,7 +124,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             {
                 accessibleDataElements.add( dataValue.getDataElement() );
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
-                    removedDataValuesDueToEmptyValue, storedBy );
+                    removedDataValuesDueToEmptyValue, storedBy, ProgramStageInstanceUserInfo.from(importOptions.getUser() ) );
             }
             else
             {
@@ -151,7 +152,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
         DataElement dataElement, Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValuesDueToEmptyValue, String storedBy ) {
+        Set<EventDataValue> removedDataValuesDueToEmptyValue, String storedBy, ProgramStageInstanceUserInfo userInfo ) {
 
         EventDataValue eventDataValue;
 
@@ -161,6 +162,8 @@ public class DefaultEventDataValueService implements EventDataValueService
         {
             eventDataValue = dataElementToValueMap.get( dataElement.getUid() );
             eventDataValue.setStoredBy( storedBy );
+
+            eventDataValue.setLastUpdatedByUserInfo(userInfo);
 
             if ( dataValue.getValue() != null && !dataValue.getValue().trim().isEmpty() )
             {
@@ -183,6 +186,10 @@ public class DefaultEventDataValueService implements EventDataValueService
             eventDataValue = new EventDataValue( dataElement.getUid(), dataValue.getValue() );
             eventDataValue.setAutoFields();
             eventDataValue.setStoredBy( storedBy );
+
+            eventDataValue.setCreatedByUserInfo(userInfo);
+            eventDataValue.setLastUpdatedByUserInfo(userInfo);
+
             eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
 
             newDataValues.add( eventDataValue );
