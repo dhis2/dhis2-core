@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker;
  */
 
 import com.google.api.client.util.Sets;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
@@ -51,6 +53,7 @@ import java.util.stream.Stream;
  * @author Enrico Colasante
  */
 @Service
+@Slf4j
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
@@ -79,7 +82,16 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
                 ProgramInstance enrollment = enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(),
                     e );
-                return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
+                try
+                {
+                    return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
+                }
+                catch ( Exception ex )
+                {
+                    log.warn( "An error occured during a Program Rule engine call for enrollment. " +
+                        "Please check the response payload for additional information", e );
+                    return Lists.newArrayList();
+                }
             } ) );
     }
 
@@ -90,9 +102,18 @@ public class DefaultTrackerProgramRuleService
             .stream()
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
-                return programRuleEngine.evaluate( enrollment,
-                    eventTrackerConverterService.from( bundle.getPreheat(), event ),
-                    getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                try
+                {
+                    return programRuleEngine.evaluate( enrollment,
+                        eventTrackerConverterService.from( bundle.getPreheat(), event ),
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                }
+                catch ( Exception e )
+                {
+                    log.warn( "An error occured during a Program Rule engine call for event. " +
+                        "Please check the response payload for additional information", e );
+                    return Lists.newArrayList();
+                }
             } ) );
     }
 
