@@ -68,15 +68,11 @@ public class EventDataValuesValidationHook
 
         for ( DataValue dataValue : event.getDataValues() )
         {
-            addErrorIf( () -> !isValidDateStringAndNotNull( dataValue.getCreatedAt() ),
-                reporter, TrackerErrorCode.E1300, dataValue.getCreatedAt() );
-            addErrorIf( () -> !isValidDateStringAndNotNull( dataValue.getUpdatedAt() ),
-                reporter, TrackerErrorCode.E1301, dataValue.getUpdatedAt() );
-
+            // event dates (createdAt, updatedAt) are ignored and set by the system
             validateDataElement( reporter, context, dataValue );
         }
         validateMandatoryDataValue( reporter, context, event );
-        validateDataValueDataElementIsConnectedToProgramStage(reporter, context, event);
+        validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event );
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
