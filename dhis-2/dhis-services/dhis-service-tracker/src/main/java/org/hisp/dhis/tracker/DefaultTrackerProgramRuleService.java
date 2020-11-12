@@ -85,7 +85,7 @@ public class DefaultTrackerProgramRuleService
                 try{
                     return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
                 } catch (Exception ex) {
-                    log.warn("Something bad happen calling rule engine. The reason should be an invalid payload");
+                    log.warn("Something bad happen calling rule engine. The reason should be an invalid payload", ex);
                     return Lists.newArrayList();
                 }
             } ) );
