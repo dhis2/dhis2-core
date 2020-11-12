@@ -36,10 +36,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
@@ -65,6 +67,11 @@ public class JacksonObjectMapperConfig
     public static final ObjectMapper jsonMapper = configureMapper( new ObjectMapper() );
 
     /*
+     * JSON mapper that have {@link Hibernate5Module} registered
+     */
+    public static final ObjectMapper hibernateAwareJsonMapper = configureMapper( new ObjectMapper() );
+
+    /*
      * Default JSON mapper for Program Stage Instance data values
      */
     public static final ObjectMapper dataValueJsonMapper = configureMapper( new ObjectMapper(), true );
@@ -79,6 +86,15 @@ public class JacksonObjectMapperConfig
     public ObjectMapper jsonMapper()
     {
         return jsonMapper;
+    }
+
+    @Bean( "hibernateAwareJsonMapper" )
+    public ObjectMapper hibernateAwareJsonMapper( SessionFactory sessionFactory )
+    {
+        Hibernate5Module hibernate5Module = new Hibernate5Module( sessionFactory );
+        hibernate5Module.enable( Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS );
+        hibernateAwareJsonMapper.registerModule( hibernate5Module );
+        return hibernateAwareJsonMapper;
     }
 
     @Bean( "dataValueJsonMapper" )

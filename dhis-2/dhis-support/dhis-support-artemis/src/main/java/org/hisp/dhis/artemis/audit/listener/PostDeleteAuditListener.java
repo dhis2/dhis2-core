@@ -38,6 +38,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -53,9 +54,10 @@ public class PostDeleteAuditListener
     public PostDeleteAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -67,15 +69,14 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        Object entity = postDeleteEvent.getEntity();
-        getAuditable( entity, "delete" ).ifPresent( auditable ->
+        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .object( postDeleteEvent.getEntity() )
+                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
                 .build() ) );
     }
 
@@ -90,6 +91,4 @@ public class PostDeleteAuditListener
     {
         log.warn( "onPostDeleteCommitFailed: " + event );
     }
-
-
 }

@@ -67,7 +67,7 @@ public abstract class AbstractEventAuditPostProcessor implements Processor
             .createdAt( LocalDateTime.now() )
             .createdBy( eventImporterUserService.getAuditUsername() )
             .object( programStageInstance )
-            .auditableEntity( new AuditableEntity( programStageInstance ) )
+            .auditableEntity( new AuditableEntity( ProgramStageInstance.class, programStageInstance ) )
             .build() );
     }
 

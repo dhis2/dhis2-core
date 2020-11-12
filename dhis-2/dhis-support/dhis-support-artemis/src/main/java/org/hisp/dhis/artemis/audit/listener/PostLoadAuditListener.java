@@ -36,6 +36,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -50,9 +51,10 @@ public class PostLoadAuditListener
     public PostLoadAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     AuditType getAuditType()
@@ -63,16 +65,14 @@ public class PostLoadAuditListener
     @Override
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
-        Object entity = postLoadEvent.getEntity();
-
-        getAuditable( entity, "read" ).ifPresent( auditable ->
+        getAuditable( postLoadEvent.getEntity(), "read" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .object( postLoadEvent.getEntity() )
+                .auditableEntity( new AuditableEntity( postLoadEvent.getEntity().getClass(), postLoadEvent.getEntity() ) )
                 .build() ) );
     }
 }

@@ -38,6 +38,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -53,9 +54,10 @@ public class PostInsertAuditListener
     public PostInsertAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -67,17 +69,17 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object entity = postInsertEvent.getEntity();
-
-        getAuditable( entity, "create" ).ifPresent( auditable ->
+        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .object( postInsertEvent.getEntity() )
+                .attributes( auditManager.collectAuditAttributes( postInsertEvent.getEntity(), postInsertEvent.getEntity().getClass() ) )
+                .auditableEntity( new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
                 .build() ) );
+
     }
 
     @Override
@@ -90,5 +92,13 @@ public class PostInsertAuditListener
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
         log.warn( "onPostInsertCommitFailed: " + event );
+    }
+
+    /**
+     * Create Audit entry for insert event
+     */
+    private Object createAuditEntry( PostInsertEvent postInsertEvent )
+    {
+        return super.createAuditEntry( postInsertEvent.getEntity(), postInsertEvent.getState(), postInsertEvent.getSession(), postInsertEvent.getId(), postInsertEvent.getPersister() );
     }
 }
