@@ -29,6 +29,7 @@ package org.hisp.dhis.security;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
@@ -43,7 +44,6 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,12 +62,13 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -87,12 +88,15 @@ public class DefaultSecurityService
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
-    private static final int INVITED_USER_PASSWORD_LENGTH = 40;
+    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 40;
 
-    private static final int RESTORE_TOKEN_LENGTH = 50;
+    private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
+
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
     private static final int LOGIN_LOCKOUT_MINS = 15;
-    private static final int RECOVERY_LOCKOUT_MINS = 15;
+
+    public static final int RECOVERY_LOCKOUT_MINS = 15;
+
     private static final int RECOVER_MAX_ATTEMPTS = 5;
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
@@ -250,12 +254,10 @@ public class DefaultSecurityService
     }
 
     @Override
-    public boolean prepareUserForInvite( User user )
+    public void prepareUserForInvite( User user )
     {
-        if ( user == null || user.getUserCredentials() == null )
-        {
-            return false;
-        }
+        Objects.requireNonNull( user, "User object can't be null" );
+        Objects.requireNonNull( user, "Credentials object can't be null" );
 
         if ( user.getUsername() == null || user.getUsername().isEmpty() )
         {
@@ -264,35 +266,35 @@ public class DefaultSecurityService
             user.getUserCredentials().setUsername( username );
         }
 
-        String rawPassword = CodeGenerator.generateCode( INVITED_USER_PASSWORD_LENGTH );
+        String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
         user.getUserCredentials().setInvitation( true );
-        userService.encodeAndSetPassword( user, rawPassword );
 
-        return true;
+        userService.encodeAndSetPassword( user, rawPassword );
     }
 
     @Override
     public String validateRestore( UserCredentials credentials )
     {
-        if ( !emailMessageSender.isConfigured() )
-        {
-            log.warn( "Could not send restore/invite message as email is not configured" );
-            return "email_not_configured_for_system";
-        }
-
         if ( credentials == null || credentials.getUserInfo() == null )
         {
             log.warn( "Could not send restore/invite message as user is null: " + credentials );
             return "no_user_credentials";
         }
 
-        if ( credentials.getUserInfo().getEmail() == null || !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
+        if ( credentials.getUserInfo().getEmail() == null ||
+            !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
         {
             log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
             return "user_does_not_have_valid_email";
+        }
+
+        if ( !emailMessageSender.isConfigured() )
+        {
+            log.warn( "Could not send restore/invite message as email is not configured" );
+            return "email_not_configured_for_system";
         }
 
         return null;
@@ -301,45 +303,40 @@ public class DefaultSecurityService
     @Override
     public String validateInvite( UserCredentials credentials )
     {
-        if ( credentials == null )
+        if ( credentials == null || credentials.getUserInfo() == null )
         {
-            log.warn( "Could not send invite message as user does not exist" );
+            log.warn( "Could not send invite message as user is null" );
             return "no_user_credentials";
         }
 
-        if ( credentials.getUsername() != null && userService.getUserCredentialsByUsername( credentials.getUsername() ) != null )
+        if ( credentials.getUsername() != null &&
+            userService.getUserCredentialsByUsername( credentials.getUsername() ) != null )
         {
             log.warn( "Could not send invite message as username is already taken: " + credentials );
             return "username_taken";
         }
 
-        return validateRestore( credentials );
+        if ( credentials.getUserInfo().getEmail() == null ||
+            !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
+        {
+            log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
+            return "user_does_not_have_valid_email";
+        }
+
+        if ( !emailMessageSender.isConfigured() )
+        {
+            log.warn( "Could not send restore/invite message as email is not configured" );
+            return "email_not_configured_for_system";
+        }
+
+        return null;
     }
 
     @Override
-    public boolean sendRestoreMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions )
+    public boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath,
+        RestoreOptions restoreOptions )
     {
-        if ( credentials == null || restoreOptions == null )
-        {
-            return false;
-        }
-
-        if ( validateRestore( credentials ) != null )
-        {
-            return false;
-        }
-
-        if ( isRecoveryLocked( credentials.getUsername() ) )
-        {
-            log.warn( "The account recovery operation for the given user is temporarily locked due to too " +
-                "many calls to this endpoint in the last '" + RECOVERY_LOCKOUT_MINS + "' minutes. Credentials:" +
-                credentials );
-            return false;
-        }
-        else
-        {
-            registerRecoveryAttempt( credentials.getUsername() );
-        }
+        String encodedTokens = generateAndPersistTokens( credentials, restoreOptions );
 
         RestoreType restoreType = restoreOptions.getRestoreType();
 
@@ -350,23 +347,16 @@ public class DefaultSecurityService
             applicationTitle = DEFAULT_APPLICATION_TITLE;
         }
 
-        String[] result = initRestore( credentials, restoreOptions );
-
-        Set<User> users = new HashSet<>();
-        users.add( credentials.getUserInfo() );
-
         Map<String, Object> vars = new HashMap<>();
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
-        vars.put( "token", result[0] );
-        vars.put( "username", CodecUtils.utf8UrlEncode( credentials.getUsername() ) );
+        vars.put( "token", encodedTokens );
         vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
-        User user = credentials.getUserInfo();
-        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, user );
-        locale = ObjectUtils.firstNonNull( locale, LocaleManager.DEFAULT_LOCALE );
+        I18n i18n = i18nManager.getI18n( ObjectUtils.firstNonNull(
+            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, credentials.getUserInfo() ),
+            LocaleManager.DEFAULT_LOCALE ) );
 
-        I18n i18n = i18nManager.getI18n( locale );
         vars.put( "i18n", i18n );
 
         rootPath = rootPath.replace( "http://", "" ).replace( "https://", "" );
@@ -377,36 +367,50 @@ public class DefaultSecurityService
 
         VelocityManager vm = new VelocityManager();
 
-        String text1 = vm.render( vars, restoreType.getEmailTemplate() + "1" );
+        String messageBody = vm.render( vars, restoreType.getEmailTemplate() + "1" );
 
-        String subject1 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath;
+        String messageSubject = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath;
 
         // -------------------------------------------------------------------------
         // Send emails
         // -------------------------------------------------------------------------
 
-        emailMessageSender.sendMessage( subject1, text1, null, null, users, true );
+        emailMessageSender
+            .sendMessage( messageSubject, messageBody, null, null, ImmutableSet.of( credentials.getUserInfo() ), true );
 
         return true;
     }
 
     @Override
-    public String[] initRestore( UserCredentials credentials, RestoreOptions restoreOptions )
+    public String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions )
     {
-        String token = restoreOptions.getTokenPrefix() + CodeGenerator.generateCode( RESTORE_TOKEN_LENGTH );
-
-        String hashedToken = passwordManager.encode( token );
-
         RestoreType restoreType = restoreOptions.getRestoreType();
 
-        Date expiry = new Cal().now().add( restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount() ).time();
+        String restoreToken =
+            restoreOptions.getTokenPrefix() + CodeGenerator.getRandomSecureToken( RESTORE_TOKEN_LENGTH_BYTES );
 
-        credentials.setRestoreToken( hashedToken );
+        String hashedRestoreToken = passwordManager.encode( restoreToken );
+
+        String idToken = CodeGenerator.getRandomSecureToken( RESTORE_TOKEN_LENGTH_BYTES );
+
+        Date expiry = new Cal().now().add( restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount() )
+            .time();
+
+        // The id token is not hashed since we use it for lookup.
+        credentials.setIdToken( idToken );
+        credentials.setRestoreToken( hashedRestoreToken );
         credentials.setRestoreExpiry( expiry );
 
         userService.updateUserCredentials( credentials );
 
-        return new String[]{ token };
+        return Base64.getUrlEncoder().withoutPadding().encodeToString( (idToken + ":" + restoreToken).getBytes() );
+    }
+
+    public String[] decodeEncodedTokens( String encodedTokens )
+    {
+        String decodedEmailToken = new String( Base64.getUrlDecoder().decode( encodedTokens ), StandardCharsets.UTF_8 );
+
+        return decodedEmailToken.split( ":" );
     }
 
     @Override
@@ -426,6 +430,7 @@ public class DefaultSecurityService
 
         credentials.setRestoreToken( null );
         credentials.setRestoreExpiry( null );
+        credentials.setIdToken( null );
         credentials.setInvitation( false );
 
         userService.encodeAndSetPassword( credentials, newPassword );
@@ -443,7 +448,7 @@ public class DefaultSecurityService
 
         if ( errorMessage != null )
         {
-            log.info( logPrefix + "Failed to verify restore: " + errorMessage );
+            log.warn( logPrefix + "Failed to verify restore: " + errorMessage );
             return false;
         }
 
@@ -470,7 +475,7 @@ public class DefaultSecurityService
             return errorMessage;
         }
 
-        errorMessage = verifyToken( credentials, token, restoreType );
+        errorMessage = verifyRestoreToken( credentials, token, restoreType );
 
         if ( errorMessage != null )
         {
@@ -503,49 +508,67 @@ public class DefaultSecurityService
      * <li>restore_token_does_not_match_supplied_token</li>
      * </ul>
      *
-     * @param credentials the user credentials.
-     * @param token       the token.
-     * @param restoreType type of restore operation.
+     * @param credentials  the user credentials.
+     * @param restoreToken the token.
+     * @param restoreType  type of restore operation.
      * @return null if success, otherwise error string.
      */
     @Override
-    public String verifyToken( UserCredentials credentials, String token, RestoreType restoreType )
+    public String verifyRestoreToken( UserCredentials credentials, String restoreToken, RestoreType restoreType )
     {
         if ( credentials == null )
         {
+            log.warn( "Could not send verify restore token, credentials_parameter_is_null" );
             return "credentials_parameter_is_null";
         }
 
-        if ( token == null )
+        if ( restoreToken == null )
         {
+            log.warn( "Could not send verify restore token; error=token_parameter_is_null; username:" +
+                credentials.getUsername() );
             return "token_parameter_is_null";
         }
 
         if ( restoreType == null )
         {
+            log.warn( "Could not send verify restore token; error=restore_type_parameter_is_null; username:" +
+                credentials.getUsername() );
             return "restore_type_parameter_is_null";
         }
 
-        RestoreOptions restoreOptions = RestoreOptions.getRestoreOptions( token );
+        RestoreOptions restoreOptions = RestoreOptions.getRestoreOptions( restoreToken );
 
         if ( restoreOptions == null )
         {
+            log.warn( "Could not send verify restore token; error=cannot_parse_restore_options; username:" +
+                credentials.getUsername() );
             return "cannot_parse_restore_options";
         }
 
         if ( restoreType != restoreOptions.getRestoreType() )
         {
+            log.warn( "Could not send verify restore token; error=wrong_prefix_for_restore_type; username:" +
+                credentials.getUsername() );
             return "wrong_prefix_for_restore_type";
         }
 
-        String restoreToken = credentials.getRestoreToken();
+        String hashedRestoreToken = credentials.getRestoreToken();
 
-        if ( restoreToken == null )
+        if ( hashedRestoreToken == null )
         {
+            log.warn( "Could not send verify restore token; error=could_not_verify_token; username:" +
+                credentials.getUsername() );
             return "could_not_verify_token";
         }
 
-        boolean validToken = passwordManager.matches( token, restoreToken );
+        boolean validToken = passwordManager.matches( restoreToken, hashedRestoreToken );
+
+        if ( !validToken )
+        {
+            log.warn(
+                "Could not send verify restore token; error=restore_token_does_not_match_supplied_token; username:" +
+                    credentials.getUsername() );
+        }
 
         return validToken ? null : "restore_token_does_not_match_supplied_token";
     }

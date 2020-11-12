@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -231,9 +232,15 @@ public class PreCheckOwnershipValidationHook
             program, event.isCreatableInSearchScope());
     }
 
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        // NOTHING TO DO HERE
+    }
+    
     protected void validateCreateEvent(ValidationErrorReporter reporter, User actingUser,
-                                       CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
-                                       OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope)
+           CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
+           OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope)
     {
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( actingUser, USER_CANT_BE_NULL );

@@ -63,24 +63,27 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
     private ApplicationContext context;
 
     /**
-     * A Map correlating a Tracker class name to the Preheat strategy class name to use to load the data
+     * A Map correlating a Tracker class name to the Preheat strategy class name to
+     * use to load the data
      */
     private Map<String, String> classStrategies;
-    
-    private final static String GENERIC_STRATEGY_BEAN = Introspector.decapitalize( GenericStrategy.class.getSimpleName() );
+
+    private final static String GENERIC_STRATEGY_BEAN = Introspector
+        .decapitalize( GenericStrategy.class.getSimpleName() );
 
     @PostConstruct
     public void initStrategies()
     {
-        classStrategies = new PreheatClassScanner().scanSupplierStrategies();
+        classStrategies = new PreheatStrategyScanner().scanSupplierStrategies();
     }
 
     @Override
     public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         /*
-         * Collects all references from the payload and create a Map where key is the reference type (e.g. Enrollment)
-         * and the value is a Set of identifiers (e.g. a list of all Enrollment UIDs found in the payload)
+         * Collects all references from the payload and create a Map where key is the
+         * reference type (e.g. Enrollment) and the value is a Set of identifiers (e.g.
+         * a list of all Enrollment UIDs found in the payload)
          */
         Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
 

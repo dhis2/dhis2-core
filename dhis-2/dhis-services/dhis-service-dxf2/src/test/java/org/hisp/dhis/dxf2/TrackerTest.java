@@ -55,6 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -310,6 +311,8 @@ public abstract class TrackerTest extends IntegrationTestBase
         {
             List<Event> eventList = new ArrayList<>();
 
+            String now = DateUtils.getIso8601NoTz( new Date() );
+
             for ( int i = 0; i < events; i++ )
             {
                 Event event1 = new Event();
@@ -322,9 +325,9 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setTrackedEntityInstance( trackedEntityInstance.getUid() );
                 event1.setOrgUnit( organisationUnitA.getUid() );
                 event1.setAttributeOptionCombo( DEF_COC_UID );
-                event1.setCreatedAtClient( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
-                event1.setLastUpdatedAtClient( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
-                event1.setCompletedDate( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
+                event1.setCreatedAtClient( now );
+                event1.setLastUpdatedAtClient( now );
+                event1.setCompletedDate( now );
                 event1.setCompletedBy( "[Unknown]" );
                 
                 eventList.add( event1 );

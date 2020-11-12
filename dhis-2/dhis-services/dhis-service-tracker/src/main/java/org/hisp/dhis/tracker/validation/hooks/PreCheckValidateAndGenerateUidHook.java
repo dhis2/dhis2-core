@@ -33,6 +33,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -120,7 +121,27 @@ public class PreCheckValidateAndGenerateUidHook
         validateNotesUid( event.getNotes(), reporter );
     }
 
-    private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter )
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        final String uid = relationship.getRelationship();
+
+        if ( isUidInvalid( uid, reporter, relationship, relationship.getRelationship() ) )
+        {
+            return;
+        }
+
+        if ( uid == null )
+        {
+            relationship.setRelationship( CodeGenerator.generateUid() );
+        }
+        else
+        {
+            relationship.setRelationship( uid );
+        }
+    }
+
+    private void validateNotesUid(List<Note> notes, ValidationErrorReporter reporter )
     {
         if ( isNotEmpty( notes ) )
         {

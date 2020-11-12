@@ -35,10 +35,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * This annotation establishes a dependency between {@link PreheatSupplier} objects.
+ * This annotation establishes a dependency between {@link PreheatSupplier}
+ * objects.
  *
- * <pre>{@code
- * @SupplierDependsOn( SupplierZ.class )
+ * <pre>
+ * {@code
+ * &#64;SupplierDependsOn( SupplierZ.class )
  * public class SupplierA implements PreheatSupplier {
  *  ...
  * }
@@ -47,9 +49,11 @@ import java.lang.annotation.Target;
  *  ...
  * }
  *
- * }</pre>
+ * }
+ * </pre>
  *
- * In the above example, the supplier "SupplierZ" will be executed before "SupplierA"
+ * In the above example, the supplier "SupplierZ" will be executed before
+ * "SupplierA"
  *
  * @author Luciano Fiandesio
  */

@@ -137,8 +137,6 @@ public enum TrackerErrorCode
 
     E1200( "Rule engine error: `{0}`" ),
 
-    E1300( "Data value: CreatedAt date `{0}` is not valid" ),
-    E1301( "Data value: UpdatedAt date `{0}` is not valid" ),
     E1302( "DataElement `{0}` is not valid: `{1}`" ),
     E1303( "Mandatory DataElement `{0}` is not present" ),
     E1304( "DataElement `{0}` is not a valid data element" ),
@@ -150,6 +148,7 @@ public enum TrackerErrorCode
     E4003( "There are duplicated relationships. " ),
     E4004( "Missing required property: 'relationshipType'." ),
     E4005( "RelationShip: `{0}`, do not exist." ),
+    E4006( "Could not find RelationShipType: `{0}`."  ),
 
 
     E9999( "N/A" );
