@@ -36,9 +36,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -111,6 +113,10 @@ public class EventDataValuesValidationHook
 
         ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
+        if (!needsToValidateMandatoryDataValues(event, programStage)) {
+            return;
+        }
+
         final Set<ProgramStageDataElement> mandatoryDataElements =
                 programStage.getProgramStageDataElements()
                 .stream()
@@ -153,6 +159,14 @@ public class EventDataValuesValidationHook
                 addError( reporter, TrackerErrorCode.E1305, payloadDataElement, programStage.getUid() );
             }
         }
+    }
+
+    private boolean needsToValidateMandatoryDataValues(Event event, ProgramStage programStage) {
+        if (event.getStatus().equals(EventStatus.ACTIVE) && programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)) {
+            return false;
+        }
+
+        return true;
     }
 
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,

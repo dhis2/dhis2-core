@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -212,6 +213,7 @@ public class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement, stageDataElement ) );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue() ) );
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
+        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
         // When
@@ -221,6 +223,37 @@ public class EventDataValuesValidationHookTest
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1303, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
+    {
+        // Given
+        ProgramStage programStage = new ProgramStage();
+        ProgramStageDataElement mandatoryStageDataElement = new ProgramStageDataElement();
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( "MANDATORY_DE" );
+        mandatoryStageDataElement.setDataElement( dataElement );
+        mandatoryStageDataElement.setCompulsory( true );
+
+        ProgramStageDataElement stageDataElement = new ProgramStageDataElement();
+        DataElement validDataElement = new DataElement();
+        validDataElement.setUid( validDataValue().getDataElement() );
+        stageDataElement.setDataElement( validDataElement );
+        stageDataElement.setCompulsory( true );
+
+        programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement, stageDataElement ) );
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue() ) );
+        when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
+        when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
+        when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
+
+        // When
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), empty() );
     }
 
     @Test
@@ -244,6 +277,7 @@ public class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement ) );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue(), notPresentDataValue ) );
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
+        when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
         when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) ).thenReturn( notPresentDataElement );
 
