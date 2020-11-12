@@ -137,8 +137,6 @@ public enum TrackerErrorCode
 
     E1200( "Rule engine error: `{0}`" ),
 
-    E1300( "Data value: CreatedAt date `{0}` is not valid" ),
-    E1301( "Data value: UpdatedAt date `{0}` is not valid" ),
     E1302( "DataElement `{0}` is not valid: `{1}`" ),
     E1303( "Mandatory DataElement `{0}` is not present" ),
     E1304( "DataElement `{0}` is not a valid data element" ),

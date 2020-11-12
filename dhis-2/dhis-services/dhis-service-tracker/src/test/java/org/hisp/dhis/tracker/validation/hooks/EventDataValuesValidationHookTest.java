@@ -86,10 +86,9 @@ public class EventDataValuesValidationHookTest
         DataElement validDataElement = new DataElement();
         validDataElement.setValueType( ValueType.TEXT );
 
-        TrackerBundle bundle = mock( TrackerBundle.class );
+        TrackerBundle bundle = TrackerBundle.builder().build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( validationContext.getDataElement( VALID_DATA_ELEMENT ) ).thenReturn( validDataElement );
     }
 
@@ -108,7 +107,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenCreatedAtIsNull()
+    public void successValidationWhenCreatedAtIsNull()
     {
         // Given
         DataValue validDataValue = validDataValue();
@@ -120,12 +119,11 @@ public class EventDataValuesValidationHookTest
         hookToTest.validateEvent( reporter, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1300, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
-    public void failValidationWhenCreatedAtIsInvalid()
+    public void successValidationWhenCreatedAtIsInvalid()
     {
         // Given
         DataValue validDataValue = validDataValue();
@@ -137,8 +135,7 @@ public class EventDataValuesValidationHookTest
         hookToTest.validateEvent( reporter, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1300, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
@@ -154,12 +151,11 @@ public class EventDataValuesValidationHookTest
         hookToTest.validateEvent( reporter, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1301, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
-    public void failValidationWhenUpdatedAtIsInvalid()
+    public void successValidationWhenUpdatedAtIsInvalid()
     {
         // Given
         DataValue validDataValue = validDataValue();
@@ -171,8 +167,7 @@ public class EventDataValuesValidationHookTest
         hookToTest.validateEvent( reporter, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1301, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
@@ -196,6 +191,7 @@ public class EventDataValuesValidationHookTest
     public void failValidationWhenMandatoryDataElementIsNotPresent()
     {
         // Given
+
         ProgramStage programStage = new ProgramStage();
         ProgramStageDataElement mandatoryStageDataElement = new ProgramStageDataElement();
         DataElement dataElement = new DataElement();
