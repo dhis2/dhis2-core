@@ -28,12 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -50,6 +44,12 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 
 /**
  * @author Enrico Colasante
@@ -78,7 +78,7 @@ public class EventDataValuesValidationHook
             validateDataElement( reporter, context, dataValue );
         }
         validateMandatoryDataValue( reporter, context, event );
-        validateDataValueDataElementIsConnectedToProgramStage(reporter, context, event);
+        validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event );
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
@@ -113,15 +113,16 @@ public class EventDataValuesValidationHook
 
         ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
-        if (!needsToValidateMandatoryDataValues(event, programStage)) {
+        if ( !needsToValidateMandatoryDataValues( event, programStage ) )
+        {
             return;
         }
 
         final Set<ProgramStageDataElement> mandatoryDataElements =
-                programStage.getProgramStageDataElements()
+            programStage.getProgramStageDataElements()
                 .stream()
-                .filter(ProgramStageDataElement::isCompulsory)
-                .collect(Collectors.toSet());
+                .filter( ProgramStageDataElement::isCompulsory )
+                .collect( Collectors.toSet() );
 
         Set<String> eventDataElements = event.getDataValues().stream()
             .map( DataValue::getDataElement )
@@ -136,21 +137,23 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, TrackerImportValidationContext ctx, Event event ) {
+    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
+        TrackerImportValidationContext ctx, Event event )
+    {
         if ( StringUtils.isEmpty( event.getProgramStage() ) )
             return;
 
         ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
         final Set<String> dataElements =
-                programStage.getProgramStageDataElements()
-                        .stream()
-                        .map( de -> de.getDataElement().getUid() )
-                        .collect( Collectors.toSet() );
+            programStage.getProgramStageDataElements()
+                .stream()
+                .map( de -> de.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
-                .map( DataValue::getDataElement )
-                .collect( Collectors.toSet() );
+            .map( DataValue::getDataElement )
+            .collect( Collectors.toSet() );
 
         for ( String payloadDataElement : payloadDataElements )
         {
@@ -161,8 +164,11 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private boolean needsToValidateMandatoryDataValues(Event event, ProgramStage programStage) {
-        if (event.getStatus().equals(EventStatus.ACTIVE) && programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)) {
+    private boolean needsToValidateMandatoryDataValues( Event event, ProgramStage programStage )
+    {
+        if ( event.getStatus().equals( EventStatus.ACTIVE ) &&
+            programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE ) )
+        {
             return false;
         }
 
