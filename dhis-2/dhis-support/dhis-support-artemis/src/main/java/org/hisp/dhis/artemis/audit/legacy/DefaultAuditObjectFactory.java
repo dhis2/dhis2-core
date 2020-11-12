@@ -42,12 +42,10 @@ import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -102,7 +100,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         AuditAttributes auditAttributes = new AuditAttributes();
 
         getAuditAttributeFields( auditableEntity.getEntityClass() ).forEach( ( field, getterMethod ) ->
-                auditAttributes.put( field.getName(), getAttributeValue( auditableEntity.getSerializableObject(), field.getName(), getterMethod ) ) );
+                auditAttributes.put( field.getName(), getAttributeValue( auditableEntity.getEntityMap(), field.getName(), getterMethod ) ) );
 
         return auditAttributes;
     }
