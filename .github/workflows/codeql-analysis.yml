@@ -39,7 +39,7 @@ jobs:
       - run: git checkout HEAD^2
         if: ${{ github.event_name == 'pull_request' }}
 
-      - name: clean mvn
+      - name: Cache
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
