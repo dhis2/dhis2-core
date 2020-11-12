@@ -190,13 +190,7 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( property != null && property.isEmbeddedObject() )
-            {
-                handleEmbeddedObject( property, value, objectMap );
-                continue;
-            }
-
-            if ( shouldInitializeProxy( value ) )
+            if ( shouldInitializeProxy( value ) || ( property != null && property.isEmbeddedObject() ) )
             {
                 if ( entityProxy == null )
                 {
@@ -208,6 +202,12 @@ public abstract class AbstractHibernateListener
 
             if ( value == null )
             {
+                continue;
+            }
+
+            if ( property != null && property.isEmbeddedObject() )
+            {
+                handleEmbeddedObject( property, value, objectMap );
                 continue;
             }
 
@@ -266,14 +266,13 @@ public abstract class AbstractHibernateListener
         if ( value == null ) return;
 
         Schema embeddedSchema = schemaService.getSchema( value.getClass() );
-
         if ( embeddedSchema == null )
         {
             putValueToMap( property, objectMap, value );
             return;
         }
 
-        Map<String, Property> properties = embeddedSchema.getFieldNameMapProperties();
+        Map<String, Property> properties = embeddedSchema.getPersistedProperties();
         properties.forEach( (pName, prop) -> {
             putValueToMap( prop, objectMap, ReflectionUtils.invokeMethod( value, prop.getGetterMethod() ) );
         } );
