@@ -134,14 +134,15 @@ public class DefaultTrackerImportService
                 }
             }
 
+            requestTimer.stop();
             importReport.getTimings().setTotalImport( requestTimer.toString() );
             
             if ( params.hasJobConfiguration() )
             {
-                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " + requestTimer, true );
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " +
+                    requestTimer.toString(), true );
                 notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
             }
-           
         }
         
         catch ( Exception e )
@@ -168,6 +169,8 @@ public class DefaultTrackerImportService
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
+        preheatTimer.stop();
+
         importReport.getTimings().setPreheat( preheatTimer.toString() );
         return trackerBundle;
     }
@@ -178,6 +181,8 @@ public class DefaultTrackerImportService
 
         TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle );
         trackerBundle = trackerPreprocessService.preprocess( trackerBundle );
+
+        preProcessTimer.stop();
 
         importReport.getTimings().setProgramrule( preProcessTimer.toString() );
         return trackerBundle;
@@ -199,12 +204,13 @@ public class DefaultTrackerImportService
 
         importReport.setBundleReport( bundleReport );
 
+        commitTimer.stop();
         importReport.getTimings().setCommit( commitTimer.toString() );
 
         if ( params.hasJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer.toString() );
         }
     }
 
@@ -225,12 +231,13 @@ public class DefaultTrackerImportService
 
         importReport.setBundleReport( trackerBundleService.delete( trackerBundle ) );
 
+        commitTimer.stop();
         importReport.getTimings().setCommit( commitTimer.toString() );
 
         if ( params.hasJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer.toString() );
         }
     }
 
@@ -244,6 +251,7 @@ public class DefaultTrackerImportService
         // Do all the validation
         validationReport.add( trackerValidationService.validate( trackerBundle ) );
 
+        validationTimer.stop();
         importReport.getTimings().setValidation( validationTimer.toString() );
         importReport.setTrackerValidationReport( validationReport );
 
@@ -251,7 +259,7 @@ public class DefaultTrackerImportService
         {
             notifier
                 .update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") Import:Validation took " + validationTimer );
+                    "(" + params.getUsername() + ") Import:Validation took " + validationTimer.toString() );
         }
         return validationReport;
     }
