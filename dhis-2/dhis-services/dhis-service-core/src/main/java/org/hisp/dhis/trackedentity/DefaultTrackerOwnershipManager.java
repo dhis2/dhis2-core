@@ -41,7 +41,13 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramOwnershipHistory;
+import org.hisp.dhis.program.ProgramOwnershipHistoryService;
+import org.hisp.dhis.program.ProgramTempOwner;
+import org.hisp.dhis.program.ProgramTempOwnerService;
+import org.hisp.dhis.program.ProgramTempOwnershipAudit;
+import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
@@ -58,8 +64,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service( "org.hisp.dhis.trackedentity.TrackerOwnershipManager" )
 public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 {
-    private static final String COLON = ":";
-
     private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
     // -------------------------------------------------------------------------
@@ -73,6 +77,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final CacheProvider cacheProvider;
 
     private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
+    
+    private final ProgramTempOwnerService programTempOwnerService;
 
     private final ProgramOwnershipHistoryService programOwnershipHistoryService;
 
@@ -85,6 +91,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
+        ProgramTempOwnerService programTempOwnerService,
         ProgramOwnershipHistoryService programOwnershipHistoryService,
         OrganisationUnitService organisationUnitService, DhisConfigurationProvider config, Environment env )
     {
@@ -92,6 +99,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         checkNotNull( trackedEntityProgramOwnerService );
         checkNotNull( cacheProvider );
         checkNotNull( programTempOwnershipAuditService );
+        checkNotNull( programTempOwnerService );
         checkNotNull( programOwnershipHistoryService );
         checkNotNull( organisationUnitService );
         checkNotNull( config );
@@ -102,6 +110,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.cacheProvider = cacheProvider;
         this.programTempOwnershipAuditService = programTempOwnershipAuditService;
         this.programOwnershipHistoryService = programOwnershipHistoryService;
+        this.programTempOwnerService = programTempOwnerService;
         this.organisationUnitService = organisationUnitService;
         this.config = config;
         this.env = env;
@@ -118,11 +127,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     /**
-     * Cache for storing temporary ownership grants.
-     */
-    private Cache<Boolean> temporaryTrackerOwnershipCache;
-
-    /**
      * Cache for storing recent ownership checks
      */
     private Cache<OrganisationUnit> ownerCache;
@@ -131,13 +135,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     public void init()
     {
         //TODO proper solution for unit tests, where the cache must not survive between tests
-
-        temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "tempTrackerOwnership" )
-            .withDefaultValue( false )
-            .expireAfterWrite( TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS, TimeUnit.HOURS )
-            .withMaximumSize( 100000 )
-            .build();
 
         ownerCache = cacheProvider.newCacheBuilder( OrganisationUnit.class )
             .forRegion( "OrganisationUnitOwner" )
@@ -169,8 +166,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             {
                 if ( !teProgramOwner.getOrganisationUnit().equals( orgUnit ) )
                 {
-                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance, teProgramOwner.getLastUpdated(),
-                        teProgramOwner.getCreatedBy() );
+                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance,
+                        teProgramOwner.getOrganisationUnit(), teProgramOwner.getLastUpdated(), teProgramOwner.getCreatedBy() );
                     programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
                     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, orgUnit );
                 }
@@ -205,8 +202,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             {
                 if ( overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals( organisationUnit ) )
                 {
-                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance, teProgramOwner.getLastUpdated(),
-                        teProgramOwner.getCreatedBy() );
+                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance,
+                        teProgramOwner.getOrganisationUnit(), teProgramOwner.getLastUpdated(), teProgramOwner.getCreatedBy() );
                     programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
                     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, organisationUnit );
                 }
@@ -239,8 +236,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 programTempOwnershipAuditService.addProgramTempOwnershipAudit(
                     new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
             }
-
-            temporaryTrackerOwnershipCache.put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
+            ProgramTempOwner programTempOwner = new ProgramTempOwner( program, entityInstance, reason, user, TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS );
+            programTempOwnerService.addProgramTempOwner( programTempOwner );
         }
     }
 
@@ -290,17 +287,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // -------------------------------------------------------------------------
     // Private Helper Methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Generates a unique key for the tei-program-user combination to be put
-     * into cache.
-     *
-     * @return A unique cache key
-     */
-    private String tempAccessKey( String teiUid, String programUid, String username )
-    {
-        return username + COLON + programUid + COLON + teiUid;
-    }
 
     /**
      * Get the current owner of this tei-program combination. Fallbacks to the
@@ -365,8 +351,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         {
             return true;
         }
-
-        return temporaryTrackerOwnershipCache.get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).orElse( false );
+        return programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0;
     }
 
     private boolean hasTemporaryAccessWithUid( String entityInstance, Program program, User user )
