@@ -135,42 +135,23 @@
 
     <profile>
       <!-- JDK 9+ -->
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>jdk11</id>
       <properties>
         <maven.compiler.release>8</maven.compiler.release>
       </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven-surefire-plugin.version}</version>
-            <configuration>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m --illegal-access=permit</argLine>
-              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
 
     <profile>
-      <id>default_jdk8</id>
+      <!-- JDK 8 only -->
+      <id>jdk8</id>
       <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
       </properties>
+    </profile>
+
+    <profile>
+      <id>default</id>
       <build>
         <plugins>
           <plugin>
@@ -178,6 +159,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${maven-surefire-plugin.version}</version>
             <configuration>
+              <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>-Xmx1024m --illegal-access=permit</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
@@ -196,11 +178,7 @@
 
     <!-- Integration test profile -->
     <profile>
-      <!-- JDK 9+ -->
       <id>integration</id>
-      <properties>
-        <maven.compiler.release>8</maven.compiler.release>
-      </properties>
       <build>
         <plugins>
           <plugin>
@@ -208,35 +186,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${maven-surefire-plugin.version}</version>
             <configuration>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m --illegal-access=permit</argLine>
-              <groups>org.hisp.dhis.IntegrationTest</groups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>integration_jdk8</id>
-      <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven-surefire-plugin.version}</version>
-            <configuration>
+              <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>-Xmx1024m --illegal-access=permit</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
@@ -255,9 +205,6 @@
 
     <profile>
       <id>sonarqube</id>
-      <properties>
-        <maven.compiler.release>8</maven.compiler.release>
-      </properties>
       <build>
         <plugins>
           <plugin>
@@ -265,6 +212,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${maven-surefire-plugin.version}</version>
             <configuration>
+              <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>${argLine} -Xmx1024m --illegal-access=permit</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
@@ -303,58 +251,7 @@
     </profile>
 
     <profile>
-      <!-- JDK 9+ -->
       <id>dev</id>
-      <properties>
-        <maven.compiler.release>8</maven.compiler.release>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven-surefire-plugin.version}</version>
-            <configuration>
-              <skipTests>true</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m --illegal-access=permit</argLine>
-              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-
-          <plugin>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>jrebel-maven-plugin</artifactId>
-            <version>1.1.6</version>
-            <executions>
-              <execution>
-                <configuration>
-                </configuration>
-                <id>generate-rebel-xml</id>
-                <phase>process-resources</phase>
-                <goals>
-                  <goal>generate</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>dev_jdk8</id>
-      <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-      </properties>
       <build>
         <plugins>
           <plugin>
