@@ -175,6 +175,19 @@ public class MockUserService
     }
 
     @Override
+    public UserCredentials getUserCredentialsByIdToken( String idToken )
+    {
+        for ( User user : users )
+        {
+            if ( user.getUserCredentials().getIdToken().equals( idToken ) )
+            {
+                return user.getUserCredentials();
+            }
+        }
+        return null;
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         for ( User user : users )

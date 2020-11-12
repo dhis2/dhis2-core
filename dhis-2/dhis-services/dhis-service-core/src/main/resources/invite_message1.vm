@@ -7,7 +7,7 @@ $object.i18n.getString( "email_invite_1_1st_paragraph_before_application_title" 
 $object.i18n.getString( "email_invite_1_2nd_paragraph" )
 
 
-${object.restorePath}?username=${object.username}&token=${object.token}
+${object.restorePath}?token=${object.token}
 
 
 $object.i18n.getString( "email_invite_1_3rd_paragraph" )

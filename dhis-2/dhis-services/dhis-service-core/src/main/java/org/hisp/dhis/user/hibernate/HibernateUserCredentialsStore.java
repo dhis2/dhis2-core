@@ -1,7 +1,5 @@
 package org.hisp.dhis.user.hibernate;
 
-import java.util.UUID;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -41,6 +39,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 /**
  * @author Lars Helge Overland
  */
@@ -76,6 +76,14 @@ public class HibernateUserCredentialsStore
     {
         Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.ldapId = :ldapId" );
         query.setParameter( "ldapId", ldapId );
+        return query.uniqueResult();
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByIdToken( String token )
+    {
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.idToken = :token" );
+        query.setParameter( "token", token );
         return query.uniqueResult();
     }
 

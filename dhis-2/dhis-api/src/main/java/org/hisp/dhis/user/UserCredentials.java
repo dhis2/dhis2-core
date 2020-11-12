@@ -152,6 +152,11 @@ public class UserCredentials
     private String restoreToken;
 
     /**
+     * The token used for a user lookup when sending restore and invite emails.
+     */
+    private String idToken;
+
+    /**
      * The timestamp representing when the restore window expires.
      */
     private Date restoreExpiry;
@@ -741,6 +746,16 @@ public class UserCredentials
     public void setLastLogin( Date lastLogin )
     {
         this.lastLogin = lastLogin;
+    }
+
+    public String getIdToken()
+    {
+        return idToken;
+    }
+
+    public void setIdToken( String idToken )
+    {
+        this.idToken = idToken;
     }
 
     public String getRestoreToken()

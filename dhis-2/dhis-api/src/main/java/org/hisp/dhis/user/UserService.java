@@ -230,6 +230,14 @@ public interface UserService
      */
     void updateUserCredentials( UserCredentials userCredentials );
 
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * id token.
+     *
+     * @param token the id token of the User.
+     * @return the UserCredentials.
+     */
+    public UserCredentials getUserCredentialsByIdToken( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given

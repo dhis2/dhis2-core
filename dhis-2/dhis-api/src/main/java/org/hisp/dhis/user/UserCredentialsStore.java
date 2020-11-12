@@ -1,7 +1,5 @@
 package org.hisp.dhis.user;
 
-import java.util.UUID;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -31,6 +29,8 @@ import java.util.UUID;
  */
 
 import org.hisp.dhis.common.GenericStore;
+
+import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
@@ -69,9 +69,18 @@ public interface UserCredentialsStore
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
+     * id token.
+     *
+     * @param token the restore token of the User.
+     * @return the UserCredentials.
+     */
+    UserCredentials getUserCredentialsByIdToken( String token );
+
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
      * UUID.
      *
-     * @param uid UUID.
+     * @param uuid UUID.
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByUuid( UUID uuid );
