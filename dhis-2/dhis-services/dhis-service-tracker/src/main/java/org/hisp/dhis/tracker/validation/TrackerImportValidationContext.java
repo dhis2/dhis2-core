@@ -43,6 +43,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -172,6 +173,11 @@ public class TrackerImportValidationContext
     public TrackedEntityType getTrackedEntityType( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
+    }
+
+    public RelationshipType getRelationShipType(String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), RelationshipType.class, id );
     }
 
     public Program getProgram( String id )
