@@ -47,6 +47,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -287,6 +288,12 @@ public abstract class CompressionSMSListener
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setStoredBy( user.getUsername() );
+
+        ProgramStageInstanceUserInfo currentUserInfo = ProgramStageInstanceUserInfo.from( user );
+
+        programStageInstance.setCreatedByUserInfo( currentUserInfo );
+        programStageInstance.setLastUpdatedByUserInfo( currentUserInfo );
+
         programStageInstance.setStatus( getCoreEventStatus( eventStatus ) );
         programStageInstance.setGeometry( convertGeoPointToGeometry( coordinates ) );
 
@@ -303,9 +310,9 @@ public abstract class CompressionSMSListener
             {
                 Uid deid = dv.getDataElement();
                 String val = dv.getValue();
-                
+
                 DataElement de = dataElementService.getDataElement( deid.getUid() );
-                
+
                 // TODO: Is this the correct way of handling errors here?
                 if ( de == null )
                 {
@@ -320,9 +327,9 @@ public abstract class CompressionSMSListener
                         .format( "Value for atttribute [%s] is null or empty. Continuing with submission...", deid ) );
                     continue;
                 }
-                
-                EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), user.getUsername() );
-                
+
+                EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), currentUserInfo );
+
                 eventDataValue.setAutoFields();
                 dataElementsAndEventDataValues.put( de, eventDataValue );
             }
