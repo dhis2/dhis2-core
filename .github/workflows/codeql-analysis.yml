@@ -39,27 +39,27 @@ jobs:
       - run: git checkout HEAD^2
         if: ${{ github.event_name == 'pull_request' }}
 
-      - name: Cache
+      - name: Cache maven artifacts
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: setup-java
+      - name: Setup-java
         uses: actions/setup-java@v1
         with:
           java-version: 11
 
-      - name: codeql-init
+      - name: Codeql-init
         uses: github/codeql-action/init@v1
         with:
           languages: java
           config-file: ./.github/codeql/codeql-config.yml
 
-      - name: mvn install core
+      - name: Build core
         run: mvn clean install -f ./dhis-2/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-      - name: mvn install web
+      - name: Build web
         run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
       - name: Perform CodeQL Analysis
