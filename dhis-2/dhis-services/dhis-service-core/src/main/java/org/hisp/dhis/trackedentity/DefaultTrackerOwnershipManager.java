@@ -83,6 +83,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final ProgramOwnershipHistoryService programOwnershipHistoryService;
 
     private final OrganisationUnitService organisationUnitService;
+    
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final DhisConfigurationProvider config;
 
@@ -92,7 +94,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
         ProgramTempOwnerService programTempOwnerService,
-        ProgramOwnershipHistoryService programOwnershipHistoryService,
+        ProgramOwnershipHistoryService programOwnershipHistoryService, TrackedEntityInstanceService trackedEntityInstanceService,
         OrganisationUnitService organisationUnitService, DhisConfigurationProvider config, Environment env )
     {
         checkNotNull( currentUserService );
@@ -112,6 +114,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.programOwnershipHistoryService = programOwnershipHistoryService;
         this.programTempOwnerService = programTempOwnerService;
         this.organisationUnitService = organisationUnitService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.config = config;
         this.env = env;
     }
@@ -354,15 +357,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         return programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0;
     }
 
-    private boolean hasTemporaryAccessWithUid( String entityInstance, Program program, User user )
+    private boolean hasTemporaryAccessWithUid( String entityInstanceUid, Program program, User user )
     {
-        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        if ( canSkipOwnershipCheck( user, program ) || entityInstanceUid == null )
         {
             return true;
         }
-
-        return temporaryTrackerOwnershipCache
-            .get( tempAccessKey( entityInstance, program.getUid(), user.getUsername() ) ).orElse( false );
+     
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( entityInstanceUid );
+        if ( entityInstance == null )
+        {
+            return true;
+        }
+        
+        return programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0;
     }
 
     /**

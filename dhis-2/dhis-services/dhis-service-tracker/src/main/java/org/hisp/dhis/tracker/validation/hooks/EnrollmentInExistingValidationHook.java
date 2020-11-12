@@ -170,7 +170,7 @@ public class EnrollmentInExistingValidationHook
         for ( ProgramInstance programInstance : programInstances )
         {
             if ( trackerOwnershipManager
-                .hasAccess( user, programInstance.getEntityInstance().getUid(), programInstance.getOrganisationUnit(), programInstance.getProgram() ) )
+                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 // Always create a fork of the reporter when used for checking/counting errors,
                 // this is needed for thread safety in parallel mode.
