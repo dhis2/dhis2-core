@@ -82,10 +82,14 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
                 ProgramInstance enrollment = enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(),
                     e );
-                try{
+                try
+                {
                     return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
-                } catch (Exception ex) {
-                    log.warn("Something bad happen calling rule engine. The reason should be an invalid payload", ex);
+                }
+                catch ( Exception ex )
+                {
+                    log.warn( "An error occured during a Program Rule engine call for enrollment. " +
+                        "Please check the response payload for additional information", e );
                     return Lists.newArrayList();
                 }
             } ) );
@@ -98,12 +102,16 @@ public class DefaultTrackerProgramRuleService
             .stream()
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
-                try {
-                    return programRuleEngine.evaluate(enrollment,
-                            eventTrackerConverterService.from(bundle.getPreheat(), event),
-                            getEventsFromEnrollment(enrollment.getUid(), bundle, events));
-                } catch (Exception e){
-                    log.warn("Something bad happen calling rule engine. The reason should be an invalid payload", e);
+                try
+                {
+                    return programRuleEngine.evaluate( enrollment,
+                        eventTrackerConverterService.from( bundle.getPreheat(), event ),
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                }
+                catch ( Exception e )
+                {
+                    log.warn( "An error occured during a Program Rule engine call for event. " +
+                        "Please check the response payload for additional information", e );
                     return Lists.newArrayList();
                 }
             } ) );
