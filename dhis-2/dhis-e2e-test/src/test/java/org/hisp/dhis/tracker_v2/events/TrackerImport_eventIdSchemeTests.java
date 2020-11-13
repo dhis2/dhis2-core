@@ -39,12 +39,11 @@ import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -54,7 +53,6 @@ import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -166,10 +164,11 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute(  "TEXT", "organisationUnit", "program" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
-        OrgUnit orgUnit = orgUnitActions.generateDummy();
 
-        orgUnit.setCode( OU_CODE );
-        orgUnit.setName( OU_NAME );
+        JsonObject orgUnit = JsonObjectBuilder.jsonObject( orgUnitActions.createOrgUnitBody() )
+            .addProperty( "code", OU_CODE )
+            .addProperty( "name", OU_NAME )
+            .build();
 
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );

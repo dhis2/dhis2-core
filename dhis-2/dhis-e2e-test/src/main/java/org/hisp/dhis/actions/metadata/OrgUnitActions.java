@@ -96,6 +96,10 @@ public class OrgUnitActions
         return orgUnit;
     }
 
+    public JsonObject createOrgUnitBody() {
+        return JsonParserUtils.toJsonObject(  generateDummy());
+    }
+
     public String createOrgUnit()
     {
         return create( generateDummy() );
