@@ -264,8 +264,10 @@ public abstract class AbstractHibernateListener
 
         if ( schema == null )
         {
-            putValueToMap( property, objectMap, value );
+            objectMap.put( property.getFieldName(), value );
+            return;
         }
+
         List<Map<String,Object>> listProperties = new ArrayList<>();
 
         Map<String, Property> properties = schema.getPersistedProperties();
