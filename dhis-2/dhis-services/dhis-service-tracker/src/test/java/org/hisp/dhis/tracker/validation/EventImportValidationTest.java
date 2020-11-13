@@ -588,6 +588,7 @@ public class EventImportValidationTest
     }
 
     @Test
+    @Ignore
     public void testTeiNotEnrolled()
         throws IOException
     {

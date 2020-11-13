@@ -13,6 +13,8 @@ import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
+import static java.util.Collections.*;
+
 /**
  * This preprocessor is responsible for setting the TrackedEntityInstance UID on
  * an Event, inferring it from the Event's parent enrollment. If the Event
@@ -54,8 +56,8 @@ public class EventDefaultEnrollmentPreProcessor implements BundlePreProcessor
             .map( e -> {
                 if ( e.getEntityInstance() != null )
                 {
-                    preheat.putTrackedEntities( TrackerIdScheme.UID,
-                        Collections.singletonList( e.getEntityInstance() ) );
+                    // The Tracked Entity has to be added to the preheat, otherwise validation will fail downstream
+                    preheat.putTrackedEntities( TrackerIdScheme.UID, singletonList( e.getEntityInstance() ) );
                     return e.getEntityInstance().getUid();
                 }
                 return null;
@@ -66,7 +68,6 @@ public class EventDefaultEnrollmentPreProcessor implements BundlePreProcessor
     {
         return enrollments.stream().filter( e -> e.getEnrollment().equals( enrollment ) ).findFirst()
             .map( Enrollment::getTrackedEntity ).orElse( null );
-
     }
 
 }
