@@ -1,5 +1,6 @@
 package org.hisp.dhis.tracker.preprocess;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +51,15 @@ public class EventDefaultEnrollmentPreProcessor implements BundlePreProcessor
     private Optional<String> getFromPreheat( TrackerPreheat preheat, Event event )
     {
         return Optional.ofNullable( preheat.getEnrollment( TrackerIdScheme.UID, event.getEnrollment() ) )
-            .map( e -> e.getEntityInstance().getUid() );
+            .map( e -> {
+                if ( e.getEntityInstance() != null )
+                {
+                    preheat.putTrackedEntities( TrackerIdScheme.UID,
+                        Collections.singletonList( e.getEntityInstance() ) );
+                    return e.getEntityInstance().getUid();
+                }
+                return null;
+            } );
     }
 
     private String getTrackedEntityFromEnrollment( List<Enrollment> enrollments, String enrollment )
