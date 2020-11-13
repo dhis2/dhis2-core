@@ -220,6 +220,11 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getProgramInstances();
     }
 
+    public boolean usernameExists( String username )
+    {
+        return bundle.getPreheat().getUsernames().contains( username );
+    }
+
     public FileResource getFileResource( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );

@@ -38,7 +38,10 @@ import org.hisp.dhis.user.UserCredentialsStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import java.util.UUID;
 
 /**
@@ -93,5 +96,19 @@ public class HibernateUserCredentialsStore
         Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.uuid = :uuid" );
         query.setParameter( "uuid", uuid );
         return query.uniqueResult();
+    }
+
+    @Override
+    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
+    {
+        if ( usernames == null || usernames.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.username in (:usernames) " );
+        query.setParameter( "usernames", usernames );
+
+        return query.getResultList();
     }
 }

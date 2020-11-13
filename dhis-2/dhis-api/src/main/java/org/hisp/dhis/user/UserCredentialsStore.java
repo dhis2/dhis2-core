@@ -29,7 +29,9 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.common.GenericStore;
-
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import java.util.UUID;
 
 /**
@@ -48,6 +50,14 @@ public interface UserCredentialsStore
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByUsername( String username );
+
+    /**
+     * Retrieves a collection of User with the given usernames.
+     *
+     * @param usernames the usernames of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
