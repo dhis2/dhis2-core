@@ -46,12 +46,13 @@ import java.time.LocalDateTime;
  */
 @Component
 public class PostLoadAuditListener
-    extends AbstractHibernateListener implements PostLoadEventListener
+        extends AbstractHibernateListener implements PostLoadEventListener
 {
     public PostLoadAuditListener(
-        AuditManager auditManager,
-        AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, SchemaService schemaService )
+            AuditManager auditManager,
+            AuditObjectFactory auditObjectFactory,
+            UsernameSupplier userNameSupplier,
+            SchemaService schemaService )
     {
         super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
@@ -64,15 +65,13 @@ public class PostLoadAuditListener
     @Override
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
-        Object entity = postLoadEvent.getEntity();
-
-        getAuditable( entity, "read" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
+        getAuditable( postLoadEvent.getEntity(), "read" ).ifPresent( auditable ->
+                auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
+                .object( postLoadEvent.getEntity() )
                 .auditableEntity( new AuditableEntity( postLoadEvent.getEntity().getClass(), postLoadEvent.getEntity() ) )
                 .build() ) );
     }

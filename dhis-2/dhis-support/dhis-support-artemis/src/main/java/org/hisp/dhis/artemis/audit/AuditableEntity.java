@@ -40,7 +40,7 @@ public class AuditableEntity
 {
     /**
      * Class of the AuditableEntity
-     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(AuditableEntity)} (Object)}
+     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
      */
     Class entityClass;
 
@@ -52,5 +52,5 @@ public class AuditableEntity
      * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
      * This object could be a Map<String, Object>  with key is property name and value is the property value
      */
-    Object entityMap;
+    Object entity;
 }

@@ -34,6 +34,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
@@ -87,7 +88,7 @@ public class UserAssignmentFilterTests
         userUsername = "EventFiltersUser" + DataGenerator.randomString();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
 
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
@@ -190,7 +191,7 @@ public class UserAssignmentFilterTests
     private ApiResponse createEvents( Object body )
         throws Exception
     {
-        ApiResponse eventResponse = eventActions.post( body );
+        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add(  "skipCache=true" ) );
 
         eventResponse.validate().statusCode( 200 );
 

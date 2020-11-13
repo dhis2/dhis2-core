@@ -49,10 +49,13 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 public class PostInsertAuditListener
-    extends AbstractHibernateListener implements PostCommitInsertEventListener
+        extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
-    public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, SchemaService schemaService )
+    public PostInsertAuditListener(
+            AuditManager auditManager,
+            AuditObjectFactory auditObjectFactory,
+            UsernameSupplier userNameSupplier,
+            SchemaService schemaService )
     {
         super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
@@ -66,17 +69,17 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object entity = postInsertEvent.getEntity();
-
-        getAuditable( entity, "create" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
+        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable ->
+                auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
+                .object( postInsertEvent.getEntity() )
+                .attributes( auditManager.collectAuditAttributes( postInsertEvent.getEntity(), postInsertEvent.getEntity().getClass() ) )
                 .auditableEntity( new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
                 .build() ) );
+
     }
 
     @Override

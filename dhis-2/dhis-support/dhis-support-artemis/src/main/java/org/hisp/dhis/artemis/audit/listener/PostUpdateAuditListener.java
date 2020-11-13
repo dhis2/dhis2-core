@@ -49,12 +49,13 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 public class PostUpdateAuditListener
-    extends AbstractHibernateListener implements PostCommitUpdateEventListener
+        extends AbstractHibernateListener implements PostCommitUpdateEventListener
 {
     public PostUpdateAuditListener(
-        AuditManager auditManager,
-        AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, SchemaService schemaService )
+            AuditManager auditManager,
+            AuditObjectFactory auditObjectFactory,
+            UsernameSupplier userNameSupplier,
+            SchemaService schemaService )
     {
         super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
@@ -68,17 +69,17 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        Object entity = postUpdateEvent.getEntity();
-
-        getAuditable( entity, "update" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
+        getAuditable( postUpdateEvent.getEntity(), "update" ).ifPresent( auditable ->
+                auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
+                .object( postUpdateEvent.getEntity() )
+                .attributes( auditManager.collectAuditAttributes( postUpdateEvent.getEntity(), postUpdateEvent.getEntity().getClass() ) )
                 .auditableEntity( new AuditableEntity( postUpdateEvent.getEntity().getClass(), createAuditEntry( postUpdateEvent ) ) )
-                .build() ) );
+                .build() )
+        );
     }
 
     @Override

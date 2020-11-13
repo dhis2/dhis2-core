@@ -52,7 +52,7 @@ import java.util.Date;
 @Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttributeValue
-    implements Serializable
+        implements Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -107,7 +107,7 @@ public class TrackedEntityAttributeValue
     }
 
     public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntityInstance entityInstance,
-        String value )
+                                        String value )
     {
         setAttribute( attribute );
         setEntityInstance( entityInstance );
@@ -205,19 +205,20 @@ public class TrackedEntityAttributeValue
     public String toString()
     {
         return "TrackedEntityAttributeValue{" +
-            "attribute=" + attribute +
-            ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
-            ", value='" + value + '\'' +
-            ", created=" + created +
-            ", lastUpdated=" + lastUpdated +
-            ", storedBy='" + storedBy + '\'' +
-            '}';
+                "attribute=" + attribute +
+                ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
+                ", value='" + value + '\'' +
+                ", created=" + created +
+                ", lastUpdated=" + lastUpdated +
+                ", storedBy='" + storedBy + '\'' +
+                '}';
     }
 
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Date getCreated()
@@ -231,6 +232,7 @@ public class TrackedEntityAttributeValue
         return this;
     }
 
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Date getLastUpdated()
@@ -298,6 +300,7 @@ public class TrackedEntityAttributeValue
      *
      * @return String with value, either plain-text or decrypted.
      */
+    @AuditAttribute
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getValue()
@@ -324,6 +327,7 @@ public class TrackedEntityAttributeValue
         valueIsSet = true;
 
         this.value = value;
+        this.plainValue = value;
 
         return this;
     }

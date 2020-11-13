@@ -49,10 +49,13 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostCommitDeleteEventListener
+        extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
-    public PostDeleteAuditListener(AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-       UsernameSupplier userNameSupplier, SchemaService schemaService )
+    public PostDeleteAuditListener(
+            AuditManager auditManager,
+            AuditObjectFactory auditObjectFactory,
+            UsernameSupplier userNameSupplier,
+            SchemaService schemaService )
     {
         super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
@@ -66,14 +69,13 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        Object entity = postDeleteEvent.getEntity();
-        getAuditable( entity, "delete" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
+        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable ->
+                auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
+                .object( postDeleteEvent.getEntity() )
                 .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
                 .build() ) );
     }
@@ -87,8 +89,6 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
-        log.warn( "onPostDeleteCommitFailed: "+ event );
+        log.warn( "onPostDeleteCommitFailed: " + event );
     }
-
-
 }
