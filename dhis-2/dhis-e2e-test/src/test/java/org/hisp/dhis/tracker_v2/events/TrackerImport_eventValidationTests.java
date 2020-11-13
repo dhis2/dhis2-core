@@ -34,19 +34,15 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -55,19 +51,37 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImport_eventValidationTests extends ApiTest
+public class TrackerImport_eventValidationTests
+    extends ApiTest
 {
-    private ProgramActions programActions;
-    private TrackerActions trackerActions;
-
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+
     private static String eventProgramId;
+
     private static String eventProgramStageId;
+
     private static String trackerProgramId;
+
     private static String ouIdWithoutAccess;
 
+    private ProgramActions programActions;
+
+    private TrackerActions trackerActions;
+
+    private static Stream<Arguments> provideValidationArguments()
+    {
+        return Stream.of(
+            Arguments.arguments( null, eventProgramId, eventProgramStageId,
+                "Could not find OrganisationUnit: `NULL`, linked to Event." ),
+            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
+                "Program is not assigned to this organisation unit" ),
+            Arguments.arguments( OU_ID, null, eventProgramStageId, "Event.program does not point to a valid program" ),
+            Arguments.arguments( OU_ID, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ) );
+    }
+
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         programActions = new ProgramActions();
         trackerActions = new TrackerActions();
 
@@ -77,7 +91,8 @@ public class TrackerImport_eventValidationTests extends ApiTest
     }
 
     @Test
-    public void shouldValidateEventDate() {
+    public void shouldValidateEventDate()
+    {
         JsonObject object = trackerActions.createEventsBody( OU_ID, eventProgramId, eventProgramStageId );
 
         JsonObject event = object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
@@ -86,7 +101,7 @@ public class TrackerImport_eventValidationTests extends ApiTest
 
         trackerActions.postAndGetJobReport( object )
             .validate().statusCode( 200 )
-            .body( "status", equalTo("ERROR") )
+            .body( "status", equalTo( "ERROR" ) )
             .body( "stats.ignored", equalTo( 1 ) )
             .body( "trackerValidationReport", notNullValue() )
             .rootPath( "trackerValidationReport" )
@@ -94,26 +109,17 @@ public class TrackerImport_eventValidationTests extends ApiTest
             .body( "errorReports.message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
     }
 
-
-    private static Stream<Arguments> provideValidationArguments()
-    {
-        return Stream.of(
-            Arguments.arguments( null, eventProgramId, eventProgramStageId, "Could not find OrganisationUnit: `NULL`, linked to Event." ),
-            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId, "Program is not assigned to this organisation unit" ),
-            Arguments.arguments( OU_ID, null, eventProgramStageId, "Event.program does not point to a valid program" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ));
-    }
-
     @ParameterizedTest
     @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences(String ouId, String programId, String programStageId, String message) {
+    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String message )
+    {
         JsonObject jsonObject = trackerActions.createEventsBody( ouId, programId, programStageId );
 
         ApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response
             .validate().statusCode( 200 )
-            .body( "status", equalTo("ERROR") )
+            .body( "status", equalTo( "ERROR" ) )
             .body( "stats.ignored", equalTo( 1 ) )
             .rootPath( "trackerValidationReport.errorReports[0]" )
             .body( "message", containsStringIgnoringCase( message ) );
@@ -121,11 +127,11 @@ public class TrackerImport_eventValidationTests extends ApiTest
 
     private void setupData()
     {
-       eventProgramId = Constants.EVENT_PROGRAM_ID;
+        eventProgramId = Constants.EVENT_PROGRAM_ID;
 
         eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
-            eventProgramId ))
-            .extractString("programStages.id[0]");
+            eventProgramId ) )
+            .extractString( "programStages.id[0]" );
 
         assertNotNull( eventProgramStageId, "Failed to find a program stage" );
 

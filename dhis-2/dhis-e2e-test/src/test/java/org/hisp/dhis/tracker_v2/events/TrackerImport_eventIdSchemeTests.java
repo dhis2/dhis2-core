@@ -58,8 +58,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImport_eventIdSchemeTests extends ApiTest
+public class TrackerImport_eventIdSchemeTests
+    extends ApiTest
 {
+
+    private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
+
+    private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
+
+    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
+
+    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
+
+    private static String ATTRIBUTE_ID;
 
     private OrgUnitActions orgUnitActions;
 
@@ -71,27 +82,7 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
 
     private TrackerActions trackerActions;
 
-    private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
-    private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
-    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString() ;
-    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
-
     private String orgUnitId;
-    private static String ATTRIBUTE_ID;
-
-    @BeforeAll
-    public void beforeAll() {
-        orgUnitActions = new OrgUnitActions();
-        eventActions = new EventActions();
-        programActions = new ProgramActions();
-        attributeActions = new AttributeActions();
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
-
-        setupData();
-    }
-
 
     private static Stream<Arguments> provideIdSchemeArguments()
     {
@@ -103,27 +94,41 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
         );
     }
 
+    @BeforeAll
+    public void beforeAll()
+    {
+        orgUnitActions = new OrgUnitActions();
+        eventActions = new EventActions();
+        programActions = new ProgramActions();
+        attributeActions = new AttributeActions();
+        trackerActions = new TrackerActions();
+
+        new LoginActions().loginAsSuperUser();
+
+        setupData();
+    }
 
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithOrgUnitScheme(String ouScheme, String ouProperty)
+    public void eventsShouldBeImportedWithOrgUnitScheme( String ouScheme, String ouProperty )
         throws Exception
     {
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
 
-        assertNotNull(ouPropertyValue, String.format(  "Org unit property %s was not present.", ouProperty));
+        assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/v2/events/event.json" ) )
-            .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/event.json" ) )
+            .replacePropertyValuesWith( "orgUnit", ouPropertyValue )
             .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "orgUnitIdScheme=" + ouScheme ) );
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( object, new QueryParamsBuilder().add( "orgUnitIdScheme=" + ouScheme ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
             .body( "stats.ignored", equalTo( 0 ) )
-            .body( "stats.created", equalTo(1) );
+            .body( "stats.created", equalTo( 1 ) );
 
         String eventId = response.extractImportedEvents().get( 0 );
 
@@ -132,23 +137,23 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
             .body( "orgUnit", equalTo( orgUnitId ) );
     }
 
-
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithProgramScheme(String scheme, String property)
+    public void eventsShouldBeImportedWithProgramScheme( String scheme, String property )
         throws Exception
     {
-        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property);
+        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
 
-        assertNotNull(programPropertyValue, String.format(  "Program property %s was not present.", property));
+        assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/v2/events/event.json" ) )
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "orgUnit", orgUnitId )
-            .replacePropertyValuesWith( "program", programPropertyValue)
+            .replacePropertyValuesWith( "program", programPropertyValue )
             .get( JsonObject.class );
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "programIdScheme=" + scheme ) );
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( object, new QueryParamsBuilder().add( "programIdScheme=" + scheme ) );
 
         String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
         assertNotNull( eventId );
@@ -158,10 +163,10 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
             .body( "program", equalTo( PROGRAM_ID ) );
     }
 
+    private void setupData()
+    {
 
-    private void setupData() {
-
-        ATTRIBUTE_ID = attributeActions.createUniqueAttribute(  "TEXT", "organisationUnit", "program" );
+        ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
 
@@ -173,7 +178,7 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
-        new UserActions().grantCurrentUserAccessToOrgUnit(orgUnitId  );
+        new UserActions().grantCurrentUserAccessToOrgUnit( orgUnitId );
         programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
         orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
@@ -185,15 +190,16 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
             .validate().statusCode( 200 );
     }
 
-    public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue) {
+    public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
+    {
         JsonObject attributeObj = new JsonObject();
         attributeObj.addProperty( "id", attributeId );
 
         JsonObject attributeValueObj = new JsonObject();
         attributeValueObj.addProperty( "value", attributeValue );
-        attributeValueObj.add("attribute", attributeObj );
+        attributeValueObj.add( "attribute", attributeObj );
 
-        JsonArray attributeValues = new JsonArray(  );
+        JsonArray attributeValues = new JsonArray();
         attributeValues.add( attributeValueObj );
 
         json.add( "attributeValues", attributeValues );

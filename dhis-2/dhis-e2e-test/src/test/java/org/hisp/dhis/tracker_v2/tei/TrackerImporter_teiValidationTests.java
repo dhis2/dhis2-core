@@ -28,21 +28,17 @@
 
 package org.hisp.dhis.tracker_v2.tei;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.containsStringIgnoringCase;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -51,8 +47,10 @@ public class TrackerImporter_teiValidationTests
     extends ApiTest
 {
     private TrackerActions trackerActions;
+
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         trackerActions = new TrackerActions();
 
         new LoginActions().loginAsSuperUser();

@@ -28,26 +28,17 @@
 
 package org.hisp.dhis.tracker_v2;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.utils.JsonObjectBuilder;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
-import java.util.function.Function;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -69,7 +60,8 @@ public class TrackerImporterTests
     public void shouldNotCommitWhenStrategyIsValidate()
     {
         // act
-        ApiResponse response = trackerActions.postAndGetJobReport(  new File( "src/test/resources/tracker/v2/teis/tei.json" ), new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
+        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/tei.json" ),
+            new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
 
         response.validate()
             .statusCode( 200 )

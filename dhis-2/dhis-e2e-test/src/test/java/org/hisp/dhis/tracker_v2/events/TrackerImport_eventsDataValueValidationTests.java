@@ -42,16 +42,11 @@ import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -64,6 +59,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class TrackerImport_eventsDataValueValidationTests
     extends ApiTest
 {
+    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+
     private TrackerActions trackerActions;
 
     private ProgramActions programActions;
@@ -73,8 +70,6 @@ public class TrackerImport_eventsDataValueValidationTests
     private RestApiActions dataElementActions;
 
     private EventActions eventActions;
-
-    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
 
     private String programId;
 
@@ -95,9 +90,10 @@ public class TrackerImport_eventsDataValueValidationTests
 
         setupData();
     }
+
     @ParameterizedTest
     @CsvSource(
-        {"ON_COMPLETE,ACTIVE"}
+        { "ON_COMPLETE,ACTIVE" }
     )
     public void shouldNotValidateWhenDataValueExists( String validationStrategy, String eventStatus )
     {
@@ -119,9 +115,9 @@ public class TrackerImport_eventsDataValueValidationTests
 
     @ParameterizedTest
     @CsvSource(
-        {"ON_COMPLETE,COMPLETED", "ON_UPDATE_AND_INSERT,ACTIVE", "ON_UPDATE_AND_INSERT,COMPLETED"}
+        { "ON_COMPLETE,COMPLETED", "ON_UPDATE_AND_INSERT,ACTIVE", "ON_UPDATE_AND_INSERT,COMPLETED" }
     )
-    public void shouldValidateWhenNoDataValue(String validationStrategy, String eventStatus)
+    public void shouldValidateWhenNoDataValue( String validationStrategy, String eventStatus )
     {
         setValidationStrategy( programStageId, validationStrategy );
 
@@ -136,17 +132,16 @@ public class TrackerImport_eventsDataValueValidationTests
             .body( "bundleReport.typeReportMap.EVENT", nullValue() )
             .body( "trackerValidationReport.errorReports", notNullValue() )
             .rootPath( "trackerValidationReport.errorReports[0]" )
-            .body( "message", stringContainsInOrder("Mandatory DataElement", "is not present") )
+            .body( "message", stringContainsInOrder( "Mandatory DataElement", "is not present" ) )
             .body( "uid", notNullValue() );
     }
-
 
     @Test
     public void shouldImportEventsWithCompulsoryDataValues()
     {
         JsonObject events = trackerActions.createEventsBody( OU_ID, programId, programStageId );
 
-        addDataValue( events.getAsJsonArray( "events" ).get(0).getAsJsonObject(), mandatoryDataElementId, "TEXT VALUE" );
+        addDataValue( events.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject(), mandatoryDataElementId, "TEXT VALUE" );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
@@ -158,7 +153,6 @@ public class TrackerImport_eventsDataValueValidationTests
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
 
-
         String eventId = response.extractImportedEvents().get( 0 );
         assertNotNull( eventId, "Failed to extract eventId" );
 
@@ -169,15 +163,13 @@ public class TrackerImport_eventsDataValueValidationTests
 
     }
 
-
     private JsonObject createEventBodyWithStatus( String status )
     {
-        JsonObject body = trackerActions.createEventsBody(OU_ID, programId , programStageId);
+        JsonObject body = trackerActions.createEventsBody( OU_ID, programId, programStageId );
 
         body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "status", status );
         return body;
     }
-
 
     private void setupData()
     {

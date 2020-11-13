@@ -61,16 +61,18 @@ public class TrackerImporter_importStrategyTests
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"UPDATE", "DELETE"})
-    public void shouldReturnErrorWhenTeiDoesntExist(String importStrategy)
+    @ValueSource( strings = { "UPDATE", "DELETE" } )
+    public void shouldReturnErrorWhenTeiDoesntExist( String importStrategy )
         throws Exception
     {
-        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File("src/test/resources/tracker/v2/teis/tei.json") );
+        JsonObject teiBody = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( teiBody, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
+        ApiResponse response = trackerActions
+            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
 
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("ERROR") )
+            .body( "status", equalTo( "ERROR" ) )
             .body( "stats.ignored", equalTo( 1 ) )
             .body( "trackerValidationReport.errorReports", notNullValue() )
             .rootPath( "trackerValidationReport.errorReports[0]" )
@@ -84,13 +86,15 @@ public class TrackerImporter_importStrategyTests
     {
         String teiId = importTei();
 
-        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File("src/test/resources/tracker/v2/teis/tei.json") );
+        JsonObject teiBody = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
         teiBody.getAsJsonArray( "trackedEntities" ).get( 0 ).getAsJsonObject().addProperty( "trackedEntity", teiId );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+        ApiResponse response = trackerActions
+            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
 
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") )
+            .body( "status", equalTo( "OK" ) )
             .body( "stats.deleted", equalTo( 1 ) );
     }
 
@@ -100,24 +104,26 @@ public class TrackerImporter_importStrategyTests
     {
         String teiId = importTei();
 
-        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File("src/test/resources/tracker/v2/teis/tei.json") );
+        JsonObject teiBody = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
         teiBody.getAsJsonArray( "trackedEntities" ).get( 0 ).getAsJsonObject().addProperty( "trackedEntity", teiId );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=UPDATE" ));
+        ApiResponse response = trackerActions
+            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) );
 
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") )
+            .body( "status", equalTo( "OK" ) )
             .body( "stats.updated", equalTo( 1 ) );
     }
 
     private String importTei()
         throws Exception
     {
-        JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File("src/test/resources/tracker/v2/teis/tei.json") );
+        JsonObject teiBody = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
 
         return trackerActions.postAndGetJobReport( teiBody ).extractImportedTeis().get( 0 );
 
     }
-
 
 }

@@ -48,22 +48,22 @@ public class TrackerImporter_relationshipsTests
     private TrackerActions trackerActions;
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         trackerActions = new TrackerActions();
 
         new LoginActions().loginAsSuperUser();
     }
 
     @Test
-    public void shouldImportRelationship() {
-        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/teisWithRelationship.json" ) );
-
+    public void shouldImportRelationship()
+    {
+        ApiResponse response = trackerActions
+            .postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/teisWithRelationship.json" ) );
 
         // TODO more validation when the bug is fixed
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") );
+            .body( "status", equalTo( "OK" ) );
     }
-
-
 
 }

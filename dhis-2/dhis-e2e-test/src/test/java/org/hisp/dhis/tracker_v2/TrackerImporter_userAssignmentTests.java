@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker_v2;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -38,36 +37,38 @@ import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_userAssignmentTests extends ApiTest
+public class TrackerImporter_userAssignmentTests
+    extends ApiTest
 {
+    private static String programStageId = "l8oDIfJJhtg";
+
     private LoginActions loginActions;
+
     private ProgramActions programActions;
+
     private MetadataActions metadataActions;
+
     private TrackerActions trackerActions;
+
     private EventActions eventActions;
 
     private String programId = "BJ42SUrAvHo";
-    private static String programStageId = "l8oDIfJJhtg";
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         loginActions = new LoginActions();
         programActions = new ProgramActions();
         metadataActions = new MetadataActions();
@@ -90,7 +91,7 @@ public class TrackerImporter_userAssignmentTests extends ApiTest
         programActions.programStageActions.enableUserAssignment( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
 
         // act
-        String eventId =  createEvents( programId, programStageId, loggedInUser )
+        String eventId = createEvents( programId, programStageId, loggedInUser )
             .extractImportedEvents().get( 0 );
 
         // assert
@@ -144,7 +145,7 @@ public class TrackerImporter_userAssignmentTests extends ApiTest
             .replacePropertyValuesWith( "program", programId )
             .replacePropertyValuesWith( "programStage", programStageId )
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
-            .get(JsonObject.class);
+            .get( JsonObject.class );
 
         TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
 
@@ -152,6 +153,5 @@ public class TrackerImporter_userAssignmentTests extends ApiTest
 
         return eventResponse;
     }
-
 
 }
