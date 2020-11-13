@@ -204,6 +204,7 @@ public class ProgramInstanceByTeiHookTest
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
+        event.setEvent( event.getUid() );
         event.setEnrollment( programInstance == null ? null : programInstance.getUid() );
         event.setTrackedEntity( trackedEntityInstance == null ? null : trackedEntityInstance.getUid() );
         event.setProgram( program == null ? null : program.getUid() );
@@ -214,6 +215,7 @@ public class ProgramInstanceByTeiHookTest
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
+        event.setEvent( event.getUid() );
         event.setEnrollment( programInstance == null ? null : programInstance.getUid() );
         event.setTrackedEntity( trackedEntityInstance == null ? null : trackedEntityInstance.getUid() );
         event.setProgram( programInstance == null ? null : programInstance.getProgram().getUid() );
