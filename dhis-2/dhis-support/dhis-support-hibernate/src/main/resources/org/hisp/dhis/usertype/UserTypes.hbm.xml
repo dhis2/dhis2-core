@@ -58,7 +58,7 @@
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventQueryCriteria">
     <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
   </typedef>
-  
+
    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
     <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
   </typedef>
@@ -78,6 +78,10 @@
 
     <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
     <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbUserInfoSnapshot">
+    <param name="clazz">org.hisp.dhis.program.UserInfoSnapshot</param>
   </typedef>
 
 </hibernate-mapping>

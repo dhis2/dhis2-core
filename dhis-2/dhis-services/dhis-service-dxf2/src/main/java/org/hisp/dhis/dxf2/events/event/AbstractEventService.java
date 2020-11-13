@@ -63,6 +63,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
@@ -93,6 +94,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
@@ -156,10 +158,10 @@ public abstract class AbstractEventService
     implements EventService
 {
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID, EVENT_CREATED_ID,
-        EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
-        EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
-        EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED, EVENT_GEOMETRY );
+            EVENT_CREATED_BY_USER_INFO_ID, EVENT_LAST_UPDATED_ID, EVENT_LAST_UPDATED_BY_USER_INFO_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID,
+        EVENT_COMPLETED_DATE_ID, EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME,
+        EVENT_STATUS_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID, EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED,
+        EVENT_GEOMETRY );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -952,6 +954,8 @@ public abstract class AbstractEventService
         event.setCompletedBy( programStageInstance.getCompletedBy() );
         event.setCompletedDate( DateUtils.getIso8601NoTz( programStageInstance.getCompletedDate() ) );
         event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
+        event.setCreatedByUserInfo( programStageInstance.getCreatedByUserInfo() );
+        event.setLastUpdatedByUserInfo( programStageInstance.getLastUpdatedByUserInfo() );
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
@@ -1034,7 +1038,9 @@ public abstract class AbstractEventService
 
                 DataValue value = new DataValue();
                 value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+                value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
                 value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+                value.setLastUpdatedByUserInfo( dataValue.getLastUpdatedByUserInfo() );
                 value.setDataElement( dataValue.getDataElement() );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
@@ -1048,19 +1054,7 @@ public abstract class AbstractEventService
             }
         }
 
-        List<TrackedEntityComment> comments = programStageInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setNote( comment.getUid() );
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
-
-            event.getNotes().add( note );
-        }
+        event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
         event.setRelationships( programStageInstance.getRelationshipItems().stream()
             .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
@@ -1335,6 +1329,8 @@ public abstract class AbstractEventService
         String storedBy = getValidUsername( event.getStoredBy(), null, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
         programStageInstance.setStoredBy( storedBy );
 
+        programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
+
         String completedBy = getValidUsername( event.getCompletedBy(), null, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
 
         if ( event.getStatus() != programStageInstance.getStatus()
@@ -1456,7 +1452,7 @@ public abstract class AbstractEventService
             programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
         }
 
-        saveTrackedEntityComment( programStageInstance, event, storedBy );
+        saveTrackedEntityComment( programStageInstance, event, importOptions.getUser(), storedBy );
         preheatDataElementsCache( event, importOptions );
 
         eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
@@ -1547,7 +1543,7 @@ public abstract class AbstractEventService
 
         User currentUser = currentUserService.getCurrentUser();
 
-        saveTrackedEntityComment( programStageInstance, event,
+        saveTrackedEntityComment( programStageInstance, event, currentUser,
             getValidUsername( event.getStoredBy(), null, User.username( currentUser, Constants.UNKNOWN ) ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser, false );
@@ -1957,6 +1953,11 @@ public abstract class AbstractEventService
 
         programStageInstance.setStoredBy( storedBy );
 
+        UserInfoSnapshot userInfo = UserInfoSnapshot.from( importOptions.getUser() );
+
+        programStageInstance.setCreatedByUserInfo( userInfo );
+        programStageInstance.setLastUpdatedByUserInfo( userInfo );
+
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
             status, completedBy, storedBy, programStageInstance, aoc, assignedUser, importOptions, importSummary );
 
@@ -1985,7 +1986,7 @@ public abstract class AbstractEventService
 
         programStageInstance.setStatus( EventStatus.fromInt( status ) );
 
-        saveTrackedEntityComment( programStageInstance, event, storedBy );
+        saveTrackedEntityComment( programStageInstance, event, importOptions.getUser(), storedBy );
 
         if ( programStageInstance.isCompleted() )
         {
@@ -2015,7 +2016,7 @@ public abstract class AbstractEventService
         }
     }
 
-    private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, String storedBy )
+    private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user, String storedBy )
     {
         for ( Note note : event.getNotes() )
         {
@@ -2030,6 +2031,9 @@ public abstract class AbstractEventService
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
                 comment.setCreated( created );
+
+                comment.setLastUpdatedBy( user );
+                comment.setLastUpdated( new Date() );
 
                 commentService.addTrackedEntityComment( comment );
 

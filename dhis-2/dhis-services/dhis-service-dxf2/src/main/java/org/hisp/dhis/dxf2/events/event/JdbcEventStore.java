@@ -30,9 +30,11 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.config.CommonsConfig.jsonMapper;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
@@ -57,6 +59,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
@@ -85,6 +88,31 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcEventStore
     implements EventStore
 {
+
+    private static final String PSI_EVENT_COMMENT_QUERY =
+            "select psic.programstageinstanceid    as psic_id," +
+                    " psinote.trackedentitycommentid as psinote_id," +
+                    " psinote.commenttext            as psinote_value," +
+                    " psinote.created                as psinote_storeddate," +
+                    " psinote.creator                as psinote_storedby," +
+                    " psinote.uid                    as psinote_uid," +
+                    " psinote.lastupdated            as psinote_lastupdated," +
+                    " usernote.userid                as usernote_id," +
+                    " usernote.code                  as usernote_code," +
+                    " usernote.uid                   as usernote_uid," +
+                    " usernote.username              as usernote_username," +
+                    " userinfo.firstname             as userinfo_firstname," +
+                    " userinfo.surname               as userinfo_surname" +
+                    " from programstageinstancecomments psic" +
+                    " inner join trackedentitycomment psinote" +
+                    " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
+                    " left join users usernote on psinote.lastupdatedby = usernote.userid" +
+                    " left join userinfo on usernote.userid = userinfo.userinfoid";
+
+    private static final String PSI_STATUS_EQ = " psi.status = '";
+
+    private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= '";
+
     private static final String DOT_NAME = ".name)";
 
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
@@ -92,7 +120,9 @@ public class JdbcEventStore
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
         .put( "orgUnitName", "ou_name" ).put( "trackedEntityInstance", "tei_uid" )
         .put( "eventDate", "psi_executiondate" ).put( "followup", "pi_followup" ).put( "status", "psi_status" )
-        .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" ).put( "created", "psi_created" )
+        .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" )
+        .put( "lastUpdatedByUserInfo", "psi_lastupdatedbyuserinfo" ).put( "createdByUserInfo", "psi_createdbyuserinfo")
+        .put( "created", "psi_created" )
         .put( "lastUpdated", "psi_lastupdated" ).put( "completedBy", "psi_completedby" )
         .put( "attributeOptionCombo", "psi_aoc" ).put( "completedDate", "psi_completeddate" )
         .put( "deleted", "psi_deleted" ).put( "assignedUser", "user_assigned_username").build();
@@ -213,7 +243,9 @@ public class JdbcEventStore
                 event.setDueDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_duedate" ) ) );
                 event.setEventDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_executiondate" ) ) );
                 event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
+                event.setCreatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_createdbyuserinfo" ), jsonMapper ) );
                 event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
+                event.setLastUpdatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyuserinfo" ), jsonMapper ) );
 
                 event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
                 event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
@@ -286,6 +318,21 @@ public class JdbcEventStore
                 note.setValue( rowSet.getString( "psinote_value" ) );
                 note.setStoredDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psinote_storeddate" ) ) );
                 note.setStoredBy( rowSet.getString( "psinote_storedby" ) );
+
+                if ( rowSet.getObject( "usernote_id" ) != null )
+                {
+
+                    note.setLastUpdatedBy(
+                        UserInfoSnapshot.of(
+                            rowSet.getLong( "usernote_id" ),
+                            rowSet.getString( "usernote_code" ),
+                            rowSet.getString( "usernote_uid" ),
+                            rowSet.getString( "usernote_username" ),
+                            rowSet.getString( "userinfo_firstname" ),
+                            rowSet.getString( "userinfo_surname" ) ) );
+                }
+
+                note.setLastUpdated( rowSet.getDate( "psinote_lastupdated" ) );
 
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
@@ -592,7 +639,9 @@ public class JdbcEventStore
     {
         DataValue dataValue = new DataValue();
         dataValue.setCreated( DateUtils.getIso8601NoTz( eventDataValue.getCreated() ) );
+        dataValue.setCreatedByUserInfo( eventDataValue.getCreatedByUserInfo() );
         dataValue.setLastUpdated( DateUtils.getIso8601NoTz( eventDataValue.getLastUpdated() ) );
+        dataValue.setLastUpdatedByUserInfo( eventDataValue.getLastUpdatedByUserInfo() );
         dataValue.setDataElement( eventDataValue.getDataElement() );
         dataValue.setValue( eventDataValue.getValue() );
         dataValue.setProvidedElsewhere( eventDataValue.getProvidedElsewhere() );
@@ -611,6 +660,7 @@ public class JdbcEventStore
 
         String sql = "select psi.uid as " + EVENT_ID + ", " + "psi.created as " + EVENT_CREATED_ID + ", "
             + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
+            + "psi.createdbyuserinfo as " + EVENT_CREATED_BY_USER_INFO_ID + ", " + "psi.lastupdatedbyuserinfo as " + EVENT_LAST_UPDATED_BY_USER_INFO_ID + ", "
             + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
             + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
             + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
@@ -678,7 +728,7 @@ public class JdbcEventStore
             sql += ") as att on event.tei_id=att.pav_id left join (";
         }
 
-        sql += getCommentQuery();
+        sql += PSI_EVENT_COMMENT_QUERY;
 
         sql += ") as cm on event.psi_id=cm.psic_id ";
 
@@ -697,7 +747,8 @@ public class JdbcEventStore
             + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
-            + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
+            + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
+            + "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, auc.username as user_assigned_username, "
             + "cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, ";
 
@@ -1182,16 +1233,6 @@ public class JdbcEventStore
         {
             sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset() + " ";
         }
-
-        return sql;
-    }
-
-    private String getCommentQuery()
-    {
-        String sql = "select psic.programstageinstanceid as psic_id, psinote.trackedentitycommentid as psinote_id, psinote.commenttext as psinote_value, "
-            + "psinote.created as psinote_storeddate, psinote.creator as psinote_storedby, psinote.uid as psinote_uid "
-            + "from programstageinstancecomments psic "
-            + "inner join trackedentitycomment psinote on psic.trackedentitycommentid=psinote.trackedentitycommentid ";
 
         return sql;
     }
