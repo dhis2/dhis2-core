@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
- * @Author Enrico Colasante
+ * @author Enrico Colasante
  */
 public interface RuleActionImplementer<T>
 {
