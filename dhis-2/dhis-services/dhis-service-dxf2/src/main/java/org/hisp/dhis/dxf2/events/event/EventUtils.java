@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import java.io.IOException;
 
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,13 +40,13 @@ import lombok.extern.slf4j.Slf4j;
 public class EventUtils
 {
 
-    public static ProgramStageInstanceUserInfo jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
+    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
     {
         try
         {
             if ( org.apache.commons.lang3.StringUtils.isNotEmpty( userInfoAsString ) )
             {
-                return mapper.readValue( userInfoAsString, ProgramStageInstanceUserInfo.class );
+                return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
             }
             return null;
         }

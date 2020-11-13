@@ -84,8 +84,8 @@
     <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramStageInstanceUserInfo">
-    <param name="clazz">org.hisp.dhis.program.ProgramStageInstanceUserInfo</param>
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbUserInfoSnapshot">
+    <param name="clazz">org.hisp.dhis.program.UserInfoSnapshot</param>
   </typedef>
 
 </hibernate-mapping>

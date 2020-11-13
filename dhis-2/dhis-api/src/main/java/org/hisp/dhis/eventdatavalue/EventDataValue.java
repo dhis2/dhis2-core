@@ -35,7 +35,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
  * @author David Katuscak
@@ -52,11 +52,11 @@ public class EventDataValue implements Serializable
 
     private Date created = new Date();
 
-    private ProgramStageInstanceUserInfo createdByUserInfo;
+    private UserInfoSnapshot createdByUserInfo;
 
     private Date lastUpdated = new Date();
 
-    private ProgramStageInstanceUserInfo lastUpdatedByUserInfo;
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String value;
 
@@ -89,7 +89,7 @@ public class EventDataValue implements Serializable
         setValue( value );
     }
 
-    public EventDataValue( String dataElement, String value, ProgramStageInstanceUserInfo userInfo )
+    public EventDataValue( String dataElement, String value, UserInfoSnapshot userInfo )
     {
         this.dataElement = dataElement;
         this.storedBy = userInfo.getUsername();
@@ -169,12 +169,12 @@ public class EventDataValue implements Serializable
         this.created = created;
     }
 
-    public ProgramStageInstanceUserInfo getCreatedByUserInfo()
+    public UserInfoSnapshot getCreatedByUserInfo()
     {
         return createdByUserInfo;
     }
 
-    public void setCreatedByUserInfo( ProgramStageInstanceUserInfo createdByUserInfo )
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
     {
         this.createdByUserInfo = createdByUserInfo;
     }
@@ -184,12 +184,12 @@ public class EventDataValue implements Serializable
         return lastUpdated;
     }
 
-    public ProgramStageInstanceUserInfo getLastUpdatedByUserInfo()
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
     {
         return lastUpdatedByUserInfo;
     }
 
-    public void setLastUpdatedByUserInfo( ProgramStageInstanceUserInfo lastUpdatedByUserInfo )
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
     {
         this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
