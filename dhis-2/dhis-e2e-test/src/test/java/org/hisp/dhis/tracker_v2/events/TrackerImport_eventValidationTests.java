@@ -36,6 +36,7 @@ import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -100,13 +101,9 @@ public class TrackerImport_eventValidationTests
         event.addProperty( "status", "ACTIVE" );
 
         trackerActions.postAndGetJobReport( object )
-            .validate().statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "trackerValidationReport", notNullValue() )
-            .rootPath( "trackerValidationReport" )
-            .body( "errorReports.message", notNullValue() )
-            .body( "errorReports.message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
+            .validateErrorReport()
+            .validate()
+            .body( "trackerValidationReport.errorReports.message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
     }
 
     @ParameterizedTest
@@ -115,14 +112,11 @@ public class TrackerImport_eventValidationTests
     {
         JsonObject jsonObject = trackerActions.createEventsBody( ouId, programId, programStageId );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
-        response
-            .validate().statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .rootPath( "trackerValidationReport.errorReports[0]" )
-            .body( "message", containsStringIgnoringCase( message ) );
+        response.validateErrorReport()
+            .validate()
+            .body( "trackerValidationReport.errorReports[0].message", containsStringIgnoringCase( message ) );
     }
 
     private void setupData()

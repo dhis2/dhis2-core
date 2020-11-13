@@ -69,14 +69,8 @@ public class TrackerImporter_teiValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
 
         // assert
-        response.validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "trackerValidationReport.errorReports", notNullValue() )
-            .rootPath( "trackerValidationReport.errorReports[0]" )
-            .body( "message", containsStringIgnoringCase( "Could not find TrackedEntityType" ) )
-            .noRootPath()
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "stats.total", equalTo( 1 ) );
+        response.validateErrorReport()
+            .validate()
+            .body( "trackerValidationReport.errorReports[0].message", containsStringIgnoringCase( "Could not find TrackedEntityType" ) );
     }
 }

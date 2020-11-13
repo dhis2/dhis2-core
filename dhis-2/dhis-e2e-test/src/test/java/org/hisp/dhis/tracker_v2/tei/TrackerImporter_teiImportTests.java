@@ -71,7 +71,6 @@ public class TrackerImporter_teiImportTests
         throws JSONException
     {
         // arrange
-
         JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )

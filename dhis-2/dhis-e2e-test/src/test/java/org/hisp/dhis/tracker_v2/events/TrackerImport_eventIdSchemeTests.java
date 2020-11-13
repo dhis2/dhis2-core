@@ -142,6 +142,7 @@ public class TrackerImport_eventIdSchemeTests
     public void eventsShouldBeImportedWithProgramScheme( String scheme, String property )
         throws Exception
     {
+        // arrange
         String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
 
         assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
@@ -152,10 +153,14 @@ public class TrackerImport_eventIdSchemeTests
             .replacePropertyValuesWith( "program", programPropertyValue )
             .get( JsonObject.class );
 
+        // act
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( object, new QueryParamsBuilder().add( "programIdScheme=" + scheme ) );
 
-        String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
+        // assert
+        String eventId = response.validateSuccessfulImport()
+            .extractImportedEvents().get( 0 );
+
         assertNotNull( eventId );
 
         eventActions.get( eventId ).validate()
@@ -165,7 +170,6 @@ public class TrackerImport_eventIdSchemeTests
 
     private void setupData()
     {
-
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );

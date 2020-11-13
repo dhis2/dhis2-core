@@ -48,6 +48,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import javax.sound.midi.Track;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.*;
@@ -101,11 +103,10 @@ public class TrackerImport_eventsDataValueValidationTests
 
         JsonObject events = createEventBodyWithStatus( eventStatus );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( events );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.created", equalTo( 1 ) )
+        response.validateSuccessfulImport()
+            .validate()
             .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.EVENT" )
             .body( "stats.created", Matchers.equalTo( 1 ) )
@@ -123,17 +124,12 @@ public class TrackerImport_eventsDataValueValidationTests
 
         JsonObject event = createEventBodyWithStatus( eventStatus );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( event );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( event );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "stats.created", equalTo( 0 ) )
+        response.validateErrorReport()
+            .validate()
             .body( "bundleReport.typeReportMap.EVENT", nullValue() )
-            .body( "trackerValidationReport.errorReports", notNullValue() )
-            .rootPath( "trackerValidationReport.errorReports[0]" )
-            .body( "message", stringContainsInOrder( "Mandatory DataElement", "is not present" ) )
-            .body( "uid", notNullValue() );
+            .body( "trackerValidationReport.errorReports[0].message", stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) ;
     }
 
     @Test
