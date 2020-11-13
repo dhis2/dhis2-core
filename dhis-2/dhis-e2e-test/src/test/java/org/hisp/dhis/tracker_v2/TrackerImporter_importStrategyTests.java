@@ -115,8 +115,8 @@ public class TrackerImporter_importStrategyTests
     {
         JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData( new File("src/test/resources/tracker/v2/teis/tei.json") );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( teiBody );
-        return response.extractString( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid[0]" );
+        return trackerActions.postAndGetJobReport( teiBody ).extractImportedTeis().get( 0 );
+
     }
 
 

@@ -26,55 +26,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2;
+package org.hisp.dhis.dto;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
-import org.hisp.dhis.actions.tracker_v2.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.utils.JsonObjectBuilder;
-import org.json.JSONException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
+import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
+import org.hamcrest.Matchers;
 
-import java.io.File;
-import java.util.function.Function;
+import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporterTests
-    extends ApiTest
+public class TrackerApiResponse extends ApiResponse
 {
-    private TrackerActions trackerActions;
 
-    @BeforeAll
-    public void beforeAll()
+    public TrackerApiResponse( ApiResponse response )
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        super( response.raw );
     }
 
-    @Test
-    public void shouldNotCommitWhenStrategyIsValidate()
-    {
-        // act
-        ApiResponse response = trackerActions.postAndGetJobReport(  new File( "src/test/resources/tracker/v2/teis/tei.json" ), new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
+    public List<String> extractImportedTeis() {
+        return this.extractList( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid" );
+    }
 
-        response.validate()
+    public List<String> extractImportedEnrollments() {
+        return this.extractList( "bundleReport.typeReportMap.ENROLLMENT.objectReports.uid"  );
+    }
+
+    public List<String> extractImportedEvents() {
+        return this.extractList( "bundleReport.typeReportMap.EVENT.objectReports.uid"  );
+    }
+
+    public TrackerApiResponse validateSuccessfulImport() {
+        validate()
             .statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.created", equalTo( 0 ) );
+            .body( "status", equalTo("OK") )
+            .body( "stats.created", greaterThanOrEqualTo( 1 ) )
+            .body( "stats.ignored" , equalTo( 0 ))
+            .body( "bundleReport.typeReportMap", notNullValue() );
+
+        return this;
     }
 
 }

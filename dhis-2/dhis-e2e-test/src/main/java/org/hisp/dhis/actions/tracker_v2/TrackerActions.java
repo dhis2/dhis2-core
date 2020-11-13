@@ -32,6 +32,7 @@ import com.google.gson.JsonObject;
 import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.JsonObjectBuilder;
 
@@ -76,40 +77,40 @@ public class TrackerActions
         return response;
     }
 
-    public ApiResponse postAndGetJobReport( File file )
+    public TrackerApiResponse postAndGetJobReport( File file )
     {
         ApiResponse response = this.postFile( file );
 
         return getJobReportByImportResponse( response );
     }
 
-    public ApiResponse postAndGetJobReport(File file, QueryParamsBuilder queryParamsBuilder) {
+    public TrackerApiResponse postAndGetJobReport(File file, QueryParamsBuilder queryParamsBuilder) {
         ApiResponse response = this.postFile(file, queryParamsBuilder );
 
         return getJobReportByImportResponse( response );
     }
 
-    public ApiResponse postAndGetJobReport( JsonObject jsonObject )
+    public TrackerApiResponse postAndGetJobReport( JsonObject jsonObject )
     {
         ApiResponse response = this.post( jsonObject );
 
         return getJobReportByImportResponse( response );
     }
 
-    public ApiResponse postAndGetJobReport(JsonObject jsonObject, QueryParamsBuilder queryParamsBuilder) {
+    public TrackerApiResponse postAndGetJobReport(JsonObject jsonObject, QueryParamsBuilder queryParamsBuilder) {
         ApiResponse response = this.post(jsonObject, queryParamsBuilder );
 
         return getJobReportByImportResponse( response );
     }
 
-    public ApiResponse getJobReport( String jobId, String reportMode )
+    public TrackerApiResponse getJobReport( String jobId, String reportMode )
     {
         ApiResponse response =  this.get( String.format( "/jobs/%s/report?reportMode=%s", jobId, reportMode ) );
 
         // add created entities
 
        saveCreatedData( response );
-       return response;
+       return new TrackerApiResponse( response );
     }
 
     private void saveCreatedData(ApiResponse response) {
@@ -124,15 +125,17 @@ public class TrackerActions
             String path = String.format( "bundleReport.typeReportMap.%s.objectReports.uid", s.split( "," )[0]);
 
             if (response.extractList( path ) != null) {
-                response.extractList( path ).forEach( tei -> {
-                    this.addCreatedEntity( s.split( "," )[1], tei.toString() );
+                response.extractList( path ).stream()
+                    .filter( o -> o != null )
+                    .forEach( tei -> {
+                        this.addCreatedEntity( s.split( "," )[1], tei.toString() );
                 });
             }
         }
 
     }
 
-    private ApiResponse getJobReportByImportResponse( ApiResponse response )
+    private TrackerApiResponse getJobReportByImportResponse( ApiResponse response )
     {
         response.validate()
             .statusCode( 200 )

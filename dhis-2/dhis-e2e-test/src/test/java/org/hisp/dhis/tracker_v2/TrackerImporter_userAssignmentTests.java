@@ -30,12 +30,14 @@ package org.hisp.dhis.tracker_v2;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -88,13 +90,13 @@ public class TrackerImporter_userAssignmentTests extends ApiTest
         programActions.programStageActions.enableUserAssignment( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
 
         // act
-        ApiResponse response = createEvents( programId, programStageId, loggedInUser );
+        String eventId =  createEvents( programId, programStageId, loggedInUser )
+            .extractImportedEvents().get( 0 );
 
         // assert
-        String eventId = response.extractString( "bundleReport.typeReportMap.EVENT.objectReports.uid[0]" );
         assertNotNull( eventId );
 
-        response = eventActions.get( eventId );
+        ApiResponse response = eventActions.get( eventId );
         if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
         {
             assertNull( response.getBody().get( "assignedUser" ) );
@@ -134,7 +136,7 @@ public class TrackerImporter_userAssignmentTests extends ApiTest
         assertEquals( null, eventResponse.getBody().get( "assignedUser" ) );
     }*/
 
-    private ApiResponse createEvents( String programId, String programStageId, String assignedUserId )
+    private TrackerApiResponse createEvents( String programId, String programStageId, String assignedUserId )
         throws Exception
     {
         JsonObject body = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/event.json" ) )
@@ -144,11 +146,9 @@ public class TrackerImporter_userAssignmentTests extends ApiTest
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get(JsonObject.class);
 
-        ApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
+        TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
 
-        eventResponse.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") )
-            .body( "stats.created", equalTo( 1 ));
+        eventResponse.validateSuccessfulImport();
 
         return eventResponse;
     }

@@ -35,6 +35,7 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ public class TrackerImporter_teiValidationTests
             .wrapIntoArray( "trackedEntities" );
 
         // act
-        ApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
 
         // assert
         response.validate()

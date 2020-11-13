@@ -116,6 +116,22 @@ public class EventImportDataValueValidationTests
     }
 
     @Test
+    public void shouldValidateCompletedOnInsert() {
+        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+
+        JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
+        event.addProperty( "status", "COMPLETED" );
+
+        ApiResponse response = eventActions.post( event, new QueryParamsBuilder().add( "skipCache=true" ) );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .rootPath( "response" )
+            .body( "ignored", equalTo( 1 ) )
+            .body( "imported", equalTo( 0 ) )
+            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
+    }
+    @Test
     public void shouldValidateDataValuesOnUpdate() {
         setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
@@ -155,16 +171,8 @@ public class EventImportDataValueValidationTests
 
     private void setupData()
     {
-        ApiResponse response = programActions.createEventProgram( OU_ID );
-        programId = response.extractUid();
-        assertNotNull( programId, "Failed to create a program" );
-
-        sharingActions.setupSharingForConfiguredUserGroup( "program", programId );
-
-        programStageId = programActions.get( programId, new QueryParamsBuilder().add( "fields=*" ) )
-            .extractString( "programStages.id[0]" );
-        assertNotNull( programStageId, "Failed to create a programStage" );
-
+        programId = Constants.EVENT_PROGRAM_ID;
+        programStageId = "jKLB23QZS4I";
         String dataElementId = dataElementActions
             .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
             .extractString( "dataElements.id[0]" );

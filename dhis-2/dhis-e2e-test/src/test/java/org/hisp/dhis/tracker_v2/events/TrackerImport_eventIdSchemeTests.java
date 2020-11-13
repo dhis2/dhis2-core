@@ -37,16 +37,15 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -55,9 +54,7 @@ import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -123,19 +120,14 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
             .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
 
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-           // .add( "skipCache=true" )
-            .add( "orgUnitIdScheme=" + ouScheme );
-
-        ApiResponse response = trackerActions.postAndGetJobReport( object, queryParamsBuilder );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "orgUnitIdScheme=" + ouScheme ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
             .body( "stats.ignored", equalTo( 0 ) )
             .body( "stats.created", equalTo(1) );
 
-        String eventId = response.extractString( "bundleReport.typeReportMap.EVENT.objectReports.uid[0]" );
-        assertNotNull( eventId );
+        String eventId = response.extractImportedEvents().get( 0 );
 
         eventActions.get( eventId ).validate()
             .statusCode( 200 )
@@ -158,18 +150,9 @@ public class TrackerImport_eventIdSchemeTests extends ApiTest
             .replacePropertyValuesWith( "program", programPropertyValue)
             .get( JsonObject.class );
 
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-            //.add( "skipCache=true" )
-            .add( "programIdScheme=" + scheme);
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "programIdScheme=" + scheme ) );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( object, queryParamsBuilder );
-
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.ignored", equalTo( 0 ) )
-            .body( "stats.created", equalTo(1) );
-
-        String eventId = response.extractString( "bundleReport.typeReportMap.EVENT.objectReports.uid[0]" );
+        String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
         assertNotNull( eventId );
 
         eventActions.get( eventId ).validate()

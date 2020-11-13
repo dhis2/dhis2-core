@@ -40,6 +40,7 @@ import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.JsonObjectBuilder;
@@ -94,13 +95,15 @@ public class TrackerImport_eventsDataValueValidationTests
 
         setupData();
     }
-
-    @Test
-    public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy()
+    @ParameterizedTest
+    @CsvSource(
+        {"ON_COMPLETE,ACTIVE"}
+    )
+    public void shouldNotValidateWhenDataValueExists( String validationStrategy, String eventStatus )
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        setValidationStrategy( programStageId, validationStrategy );
 
-        JsonObject events = trackerActions.createEventsBody( OU_ID, programId, programStageId );
+        JsonObject events = createEventBodyWithStatus( eventStatus );
 
         ApiResponse response = trackerActions.postAndGetJobReport( events );
 
@@ -116,26 +119,25 @@ public class TrackerImport_eventsDataValueValidationTests
 
     @ParameterizedTest
     @CsvSource(
-        {"ON_COMPLETE,COMPLETED", "ON_UPDATE_AND_INSERT,ACTIVE"}
+        {"ON_COMPLETE,COMPLETED", "ON_UPDATE_AND_INSERT,ACTIVE", "ON_UPDATE_AND_INSERT,COMPLETED"}
     )
-    public void shouldValidateWhenNoDataValue(String programStageStatus, String eventStatus)
+    public void shouldValidateWhenNoDataValue(String validationStrategy, String eventStatus)
     {
-        setValidationStrategy( programStageId, programStageStatus );
+        setValidationStrategy( programStageId, validationStrategy );
 
         JsonObject event = createEventBodyWithStatus( eventStatus );
 
         ApiResponse response = trackerActions.postAndGetJobReport( event );
 
-        response.validate().statusCode( 409 )
+        response.validate().statusCode( 200 )
             .body( "status", equalTo( "ERROR" ) )
             .body( "stats.ignored", equalTo( 1 ) )
-            .body( "stats.imported", equalTo( 0 ) )
-            .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
-            .rootPath( "bundleReport.typeReportMap.EVENT" )
-            .body( "stats.created", Matchers.equalTo( 1 ) )
-            .body( "objectReports", notNullValue() )
-            .body( "objectReports[0].errorReports", not( empty() ) )
-            .body( "objectReports[0].errorReports.message", equalTo( "value_required_but_not_provided" ) );
+            .body( "stats.created", equalTo( 0 ) )
+            .body( "bundleReport.typeReportMap.EVENT", nullValue() )
+            .body( "trackerValidationReport.errorReports", notNullValue() )
+            .rootPath( "trackerValidationReport.errorReports[0]" )
+            .body( "message", stringContainsInOrder("Mandatory DataElement", "is not present") )
+            .body( "uid", notNullValue() );
     }
 
 
@@ -146,11 +148,10 @@ public class TrackerImport_eventsDataValueValidationTests
 
         addDataValue( events.getAsJsonArray( "events" ).get(0).getAsJsonObject(), mandatoryDataElementId, "TEXT VALUE" );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( events );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK") )
-            .body( "stats.created", equalTo( 1 ) )
+        response.validateSuccessfulImport()
+            .validate()
             .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.EVENT" )
             .body( "stats.created", Matchers.equalTo( 1 ) )
@@ -158,7 +159,7 @@ public class TrackerImport_eventsDataValueValidationTests
             .body( "objectReports[0].errorReports", empty() );
 
 
-        String eventId = response.extractString( "bundleReport.typeReportMap.EVENT.objectReports.uid[0]" );
+        String eventId = response.extractImportedEvents().get( 0 );
         assertNotNull( eventId, "Failed to extract eventId" );
 
         eventActions.get( eventId )

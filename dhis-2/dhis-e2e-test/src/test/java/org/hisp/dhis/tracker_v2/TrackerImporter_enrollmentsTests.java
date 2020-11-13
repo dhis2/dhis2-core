@@ -29,6 +29,7 @@
 package org.hisp.dhis.tracker_v2;
 
 import com.google.gson.JsonObject;
+import io.restassured.path.json.JsonPath;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.IdGenerator;
@@ -36,17 +37,21 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import javax.sound.midi.Track;
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -71,21 +76,18 @@ public class TrackerImporter_enrollmentsTests extends
         throws Exception
     {
         String teiId = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/tei.json" ) )
-            .validate().statusCode( 200 )
-            .body( "stats.created", equalTo(1))
-            .body( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid[0]", notNullValue() )
-            .extract().body().jsonPath().getString( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid[0]");
+            .validateSuccessfulImport()
+            .extractImportedTeis().get( 0 );
 
         JsonObject enrollment = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/enrollments/enrollment.json" ) )
             .replacePropertyValuesWith( "trackedEntity", teiId )
             .get( JsonObject.class );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( enrollment );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollment );
 
         response
-            .validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ))
-            .body( "stats.created", equalTo( 1 ) )
+            .validateSuccessfulImport()
+            .validate()
             .body( "bundleReport.typeReportMap.ENROLLMENT", Matchers.notNullValue() )
             .rootPath( "bundleReport.typeReportMap.ENROLLMENT" )
             .body( "stats.created", Matchers.equalTo( 1 ) )
@@ -93,14 +95,13 @@ public class TrackerImporter_enrollmentsTests extends
             .body( "objectReports[0].errorReports", empty() );
 
         // assert that the TEI was imported
-        String enrollmentId = response.extractString( "bundleReport.typeReportMap.ENROLLMENT.objectReports.uid[0]" );
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
         // todo change to the new endpoints once they are ready
-        response = enrollmentActions.get( enrollmentId );
+        enrollmentActions.get( enrollmentId )
+            .validate().statusCode( 200 );
 
-        response.validate().statusCode( 200 );
-
-        JSONAssert.assertEquals( enrollment.get( "enrollments" ).getAsJsonArray().get( 0 ).toString(), response.getBody().toString(), false);
+        //JSONAssert.assertEquals( enrollment.get( "enrollments" ).getAsJsonArray().get( 0 ).toString(), response.getBody().toString(), false);
 
     }
 
@@ -110,7 +111,24 @@ public class TrackerImporter_enrollmentsTests extends
         ApiResponse response = trackerActions.postAndGetJobReport( new File("src/test/resources/tracker/v2/teis/teiWithEnrollments.json") );
 
         response.validate().statusCode( 200 )
-            .body( "status", Matchers.equalTo( "OK" ) );
+            .body( "status", Matchers.equalTo( "OK" ) )
+            .body( "stats.created", equalTo( 2 ) )
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", Matchers.notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" )
+            .body( "stats.created", Matchers.equalTo( 1 ) )
+            .noRootPath()
+            .body( "bundleReport.typeReportMap.ENROLLMENT", Matchers.notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.ENROLLMENT" )
+            .body( "stats.created", Matchers.equalTo( 1 ) );
+
+        // assert that the tei was imported
+        String teiId = response.extractString( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid[0]" );
+        String enrollmentId = response.extractString( "bundleReport.typeReportMap.ENROLLMENT.objectReports.uid[0]" );
+
+        enrollmentActions.get( enrollmentId )
+            .validate()
+            .statusCode( 200 )
+            .body( "trackedEntityInstance", equalTo( teiId ) );
 
     }
 
@@ -119,16 +137,61 @@ public class TrackerImporter_enrollmentsTests extends
         throws Exception
     {
         String id = new IdGenerator().generateUniqueId();
-        JsonObject jsonObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2//teis/teiAndEnrollment.json" ) )
+        JsonObject jsonObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/teis/teiAndEnrollment.json" ) )
             .replacePropertyValuesWith("trackedEntity", id )
             .get( JsonObject.class );
 
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+        response.validateSuccessfulImport()
+            .validate().body( "bundleReport.typeReportMap.TRACKED_ENTITY", Matchers.notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" )
+            .body( "stats.created", Matchers.equalTo( 1 ) )
+            .noRootPath()
+            .body( "bundleReport.typeReportMap.ENROLLMENT", Matchers.notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.ENROLLMENT" )
+            .body( "stats.created", Matchers.equalTo( 1 ) );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalToIgnoringCase("OK" ))
-            .body( "stats.created", equalTo( 2 ) );
+        // assert that the tei was imported
+        String teiId = response.extractImportedTeis().get( 0 );
+        String enrollmentId = response.extractImportedEnrollments( ).get( 0 );
+
+        enrollmentActions.get( enrollmentId )
+            .validate()
+            .statusCode( 200 )
+            .body( "trackedEntityInstance", equalTo( teiId ) );
+
+    }
+
+    @Test
+    public void shouldImportEnrollmentToExistingTei()
+        throws Exception
+    {
+        JsonObject jsonObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/teis/tei.json" ) )
+            .get( JsonObject.class );
+
+        String teiId = trackerActions.postAndGetJobReport( jsonObject ).extractImportedTeis().get( 0 );
+        assertNotNull( "tei wasn't imported", teiId );
+
+        JsonObject enrollment = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/enrollments/enrollment.json" ) )
+            .replacePropertyValuesWith( "trackedEntity", teiId )
+            .get( JsonObject.class );
+
+       TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollment );
+
+       response.validateSuccessfulImport()
+            .validate().rootPath( "bundleReport.typeReportMap.ENROLLMENT" )
+            .body( "", notNullValue() )
+            .body( "stats.created", equalTo( 1 ) )
+            .body( "objectReports", notNullValue() )
+            .body( "objectReports.uid", notNullValue() );
+
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+
+        enrollmentActions.get( enrollmentId )
+            .validate()
+            .statusCode( 200 )
+            .body( "trackedEntityInstance", equalTo(teiId) );
 
     }
 }
