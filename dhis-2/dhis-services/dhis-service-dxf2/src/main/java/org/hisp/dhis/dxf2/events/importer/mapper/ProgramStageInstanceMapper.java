@@ -116,6 +116,8 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         psi.setStoredBy( event.getStoredBy() );
         psi.setCompletedBy( event.getCompletedBy() );
 
+        psi.setLastUpdatedByUserInfo( event.getLastUpdatedByUserInfo() );
+
         return psi;
     }
 
@@ -182,6 +184,9 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
 
         psi.setStoredBy( event.getStoredBy() );
         psi.setCompletedBy( event.getCompletedBy() );
+
+        psi.setCreatedByUserInfo( event.getCreatedByUserInfo() );
+        psi.setLastUpdatedByUserInfo( event.getLastUpdatedByUserInfo() );
 
         return psi;
     }

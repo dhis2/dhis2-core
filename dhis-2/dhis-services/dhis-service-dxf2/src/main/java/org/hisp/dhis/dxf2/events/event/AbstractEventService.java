@@ -98,10 +98,10 @@ import com.google.common.collect.Lists;
 public abstract class AbstractEventService implements EventService
 {
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID, EVENT_CREATED_ID,
-        EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
-        EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
-        EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED, EVENT_GEOMETRY );
+            EVENT_CREATED_BY_USER_INFO_ID, EVENT_LAST_UPDATED_ID, EVENT_LAST_UPDATED_BY_USER_INFO_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID,
+        EVENT_COMPLETED_DATE_ID, EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME,
+        EVENT_STATUS_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID, EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED,
+        EVENT_GEOMETRY );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -489,6 +489,8 @@ public abstract class AbstractEventService implements EventService
         event.setCompletedBy( programStageInstance.getCompletedBy() );
         event.setCompletedDate( DateUtils.getIso8601NoTz( programStageInstance.getCompletedDate() ) );
         event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
+        event.setCreatedByUserInfo( programStageInstance.getCreatedByUserInfo() );
+        event.setLastUpdatedByUserInfo( programStageInstance.getLastUpdatedByUserInfo() );
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
@@ -570,7 +572,9 @@ public abstract class AbstractEventService implements EventService
 
                 DataValue value = new DataValue();
                 value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+                value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
                 value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+                value.setLastUpdatedByUserInfo( dataValue.getLastUpdatedByUserInfo() );
                 value.setDataElement( dataValue.getDataElement() );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
