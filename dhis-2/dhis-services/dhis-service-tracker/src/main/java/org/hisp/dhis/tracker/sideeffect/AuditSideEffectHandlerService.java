@@ -72,7 +72,7 @@ public class AuditSideEffectHandlerService implements SideEffectHandlerService
             .createdAt( LocalDateTime.now() )
             .createdBy( sideEffectDataBundle.getAccessedBy() )
             .klass( sideEffectDataBundle.getKlass().getName() )
-            .auditableEntity( new AuditableEntity( sideEffectDataBundle ) )
+            .auditableEntity( new AuditableEntity( sideEffectDataBundle.getKlass(), sideEffectDataBundle ) )
             .build();
 
         auditManager.send( audit );
