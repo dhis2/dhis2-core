@@ -28,6 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -101,7 +102,7 @@ public class ProgramInstanceQueryParams
     /**
      * Tracked entity instance.
      */
-    private TrackedEntityInstance trackedEntityInstance;
+    private String trackedEntityInstanceUid;
 
     /**
      * Page number.
@@ -235,7 +236,7 @@ public class ProgramInstanceQueryParams
      */
     public boolean hasTrackedEntityInstance()
     {
-        return trackedEntityInstance != null;
+        return StringUtils.isNotEmpty( this.trackedEntityInstanceUid );
     }
 
     /**
@@ -402,14 +403,14 @@ public class ProgramInstanceQueryParams
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntityInstance()
+    public String getTrackedEntityInstanceUid()
     {
-        return trackedEntityInstance;
+        return trackedEntityInstanceUid;
     }
 
-    public ProgramInstanceQueryParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public ProgramInstanceQueryParams setTrackedEntityInstanceUid( String trackedEntityInstanceUid )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntityInstanceUid = trackedEntityInstanceUid;
         return this;
     }
 

@@ -28,6 +28,25 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,32 +65,15 @@ import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1036;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1037;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1038;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1040;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -111,14 +113,18 @@ public class PreCheckDataRelationsValidationHook
 
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
-
-        addErrorIf( () -> tei == null,  reporter, E1068, enrollment.getTrackedEntity() );
-
-        if ( tei != null && program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().equals( tei.getTrackedEntityType() ) )
+        if ( trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ) )
         {
-            addError( reporter, E1022, tei, program );
+            if ( program.getTrackedEntityType() != null
+                && !program.getTrackedEntityType().getUid()
+                    .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
+            {
+                addError( reporter, E1022, enrollment.getTrackedEntity(), program );
+            }
+        }
+        else
+        {
+            addError( reporter, E1068, enrollment.getTrackedEntity() );
         }
     }
 
@@ -132,7 +138,8 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
-            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
+            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null &&
+                !context.getReference( event.getTrackedEntity() ).isPresent() )
             {
                 addError( reporter, E1036, event );
             }
@@ -148,6 +155,12 @@ public class PreCheckDataRelationsValidationHook
         validateEventCategoryCombo( reporter, event, program );
     }
 
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        // NOTHING TO DO HERE
+    }
+
     private void validateHasEnrollments( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext ctx = reporter.getValidationContext();
@@ -157,7 +170,9 @@ public class PreCheckDataRelationsValidationHook
         {
             ProgramInstance programInstance = ctx.getProgramInstance( event.getEnrollment() );
 
-            if ( programInstance == null )
+            boolean exist = ctx.getReference( event.getEnrollment() ).isPresent();
+
+            if ( programInstance == null && !exist )
             {
                 TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
 
@@ -190,7 +205,7 @@ public class PreCheckDataRelationsValidationHook
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
             params.setUser( user );
 
-            params.setTrackedEntityInstance( null );
+            params.setTrackedEntityInstanceUid( null );
 
             int count = programInstanceService.countProgramInstances( params );
 
@@ -338,4 +353,36 @@ public class PreCheckDataRelationsValidationHook
 
         return attrOptCombo;
     }
+
+    private boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
+    {
+        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+    }
+
+    private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
+        Enrollment enrollment )
+    {
+        final TrackedEntityInstance trackedEntityInstance = context
+            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        if ( trackedEntityInstance != null )
+        {
+            return trackedEntityInstance.getTrackedEntityType().getUid();
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            if ( reference.isPresent() )
+            {
+                final Optional<TrackedEntity> tei = context.getBundle()
+                    .getTrackedEntity( enrollment.getTrackedEntity() );
+                if ( tei.isPresent() )
+                {
+                    return tei.get().getTrackedEntityType();
+                }
+            }
+        }
+        return null;
+    }
+
+
 }

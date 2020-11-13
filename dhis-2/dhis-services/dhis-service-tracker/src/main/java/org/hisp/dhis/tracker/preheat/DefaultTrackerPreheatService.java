@@ -28,127 +28,54 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObject;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
+import java.beans.Introspector;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerIdentifierCollector;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.preheat.PreheatException;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
+import org.hisp.dhis.tracker.validation.TrackerImportPreheatConfig;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Slf4j
 @Service
-public class DefaultTrackerPreheatService
-    implements TrackerPreheatService
+public class DefaultTrackerPreheatService implements TrackerPreheatService, ApplicationContextAware
 {
-
-    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
-
-    private final SchemaService schemaService;
-
-    private final QueryService queryService;
-
     private final IdentifiableObjectManager manager;
 
     private final CurrentUserService currentUserService;
 
-    private final PeriodStore periodStore;
+    private List<String> preheatSuppliers;
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
-
-    private final ProgramInstanceStore programInstanceStore;
-
-    private final ProgramStageInstanceStore programStageInstanceStore;
-
-    private final RelationshipStore relationshipStore;
-
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    private final TrackedEntityCommentStore trackedEntityCommentStore;
-
-    private List<TrackerPreheatHook> preheatHooks = new ArrayList<>();
-
-    @Autowired( required = false )
-    public void setPreheatHooks( List<TrackerPreheatHook> preheatHooks )
+    @PostConstruct
+    public void init()
     {
-        this.preheatHooks = preheatHooks;
+        this.preheatSuppliers = TrackerImportPreheatConfig.PREHEAT_ORDER.stream().map( Class::getSimpleName )
+                .collect( Collectors.toList() );
     }
 
-    public DefaultTrackerPreheatService(
-        SchemaService schemaService,
-        QueryService queryService,
-        IdentifiableObjectManager manager,
-        CurrentUserService currentUserService,
-        PeriodStore periodStore,
-        TrackedEntityInstanceStore trackedEntityInstanceStore,
-        ProgramInstanceStore programInstanceStore,
-        ProgramStageInstanceStore programStageInstanceStore,
-        RelationshipStore relationshipStore,
-        TrackedEntityAttributeService trackedEntityAttributeService,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
-        TrackedEntityCommentStore trackedEntityCommentStore )
-    {
-        this.schemaService = schemaService;
-        this.queryService = queryService;
-        this.manager = manager;
-        this.currentUserService = currentUserService;
-        this.periodStore = periodStore;
-        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
-        this.programInstanceStore = programInstanceStore;
-        this.programStageInstanceStore = programStageInstanceStore;
-        this.relationshipStore = relationshipStore;
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
-        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
-        this.trackedEntityCommentStore = trackedEntityCommentStore;
-    }
+    // TODO this flag should be configurable
+    private final static boolean FAIL_FAST_ON_PREHEAT_ERROR = false;
 
     @Override
     @Transactional( readOnly = true )
@@ -163,232 +90,69 @@ public class DefaultTrackerPreheatService
         User importingUser = getImportingUser( preheat.getUser() );
         preheat.setUser( importingUser );
 
-        checkNotNull( preheat.getUser(), "Preheater is missing the user object." );
+        checkNotNull( preheat.getUser(), "TrackerPreheat is missing the user object." );
 
-        Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
-
-        for ( Class<?> klass : identifierMap.keySet() )
+        for ( String supplier : preheatSuppliers )
         {
-            Set<String> identifiers = identifierMap.get( klass );
-
-            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), SPLIT_LIST_PARTITION_SIZE );
-
-            if ( klass.isAssignableFrom( TrackedEntity.class ) )
+            final String beanName = Introspector.decapitalize( supplier );
+            try
             {
-                for ( List<String> ids : splitList )
-                {
-                    List<TrackedEntityInstance> trackedEntityInstances =
-                        trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
-                    preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
-                }
+                ctx.getBean( beanName, PreheatSupplier.class ).add( params, preheat );
             }
-            else if ( klass.isAssignableFrom( Enrollment.class ) )
+            catch ( BeansException beanException )
             {
-                for ( List<String> ids : splitList )
-                {
-                    List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
-                    preheat.putEnrollments( TrackerIdScheme.UID, programInstances );
-                }
+                processException( "Unable to find a preheat supplier with name " + beanName
+                        + " in the Spring context. Skipping supplier.", beanException, supplier );
             }
-            else if ( klass.isAssignableFrom( Event.class ) )
+            catch ( Exception e )
             {
-                for ( List<String> ids : splitList )
-                {
-                    List<ProgramStageInstance> programStageInstances = programStageInstanceStore
-                        .getByUid( ids, preheat.getUser() );
-                    preheat.putEvents( TrackerIdScheme.UID, programStageInstances );
-                }
-            }
-            else if ( klass.isAssignableFrom( OrganisationUnit.class ) )
-            {
-                TrackerIdentifier identifier = params.getIdentifiers().getOrgUnitIdScheme();
-                Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
-
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
-            }
-            else if ( klass.isAssignableFrom( Program.class ) )
-            {
-                Schema schema = schemaService.getDynamicSchema( Program.class );
-                TrackerIdentifier identifier = params.getIdentifiers().getProgramIdScheme();
-
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
-            }
-            else if ( klass.isAssignableFrom( ProgramStage.class ) )
-            {
-                Schema schema = schemaService.getDynamicSchema( ProgramStage.class );
-                TrackerIdentifier identifier = params.getIdentifiers().getProgramStageIdScheme();
-
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
-            }
-            else if ( klass.isAssignableFrom( DataElement.class ) )
-            {
-                Schema schema = schemaService.getDynamicSchema( DataElement.class );
-                TrackerIdentifier identifier = params.getIdentifiers().getDataElementIdScheme();
-
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
-            }
-            else if ( klass.isAssignableFrom( CategoryOptionCombo.class ) )
-            {
-                Schema schema = schemaService.getDynamicSchema( CategoryOptionCombo.class );
-                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOptionComboIdScheme();
-
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
-            }
-            else if ( klass.isAssignableFrom( CategoryOption.class ) )
-            {
-                Schema schema = schemaService.getDynamicSchema( CategoryOption.class );
-                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOption();
-
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
-            }
-            else if ( klass.isAssignableFrom( Relationship.class ) )
-            {
-                for ( List<String> ids : splitList )
-                {
-                    List<org.hisp.dhis.relationship.Relationship> relationships = relationshipStore
-                        .getByUid( ids, preheat.getUser() );
-                    preheat.putRelationships( TrackerIdScheme.UID, relationships );
-                }
-            }
-            else if ( klass.isAssignableFrom( TrackedEntityComment.class ) )
-            {
-                splitList
-                    .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids, preheat.getUser() ) ) );
-            }
-            else
-            {
-                Schema schema = schemaService.getDynamicSchema( klass );
-
-                queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList );
+                processException( "An error occurred while executing a preheat supplier with name "
+                        + supplier, e, supplier );
             }
         }
-
-        // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
-        preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
-
-        // since RelationshipTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
-        preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
-
-        periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
-        periodStore.getAllPeriodTypes()
-            .forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
-
-        List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
-
-        Set<String> userUids = params.getEvents().stream()
-            .filter( Objects::nonNull )
-            .map( Event::getAssignedUser )
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
-
-        preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
-
-        preheat.setUniqueAttributeValues( calculateUniqueAttributeValues( params ) );
-
-        preheatHooks.forEach( hook -> hook.preheat( params, preheat ) );
 
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
         return preheat;
     }
 
-    private List<UniqueAttributeValue> calculateUniqueAttributeValues(
-        TrackerPreheatParams params )
+    private void processException( String message, Exception e, String supplier )
     {
-        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes = trackedEntityAttributeService
-            .getAllUniqueTrackedEntityAttributes();
-
-        Map<TrackedEntityAttribute, List<String>> uniqueAttributes = params.getTrackedEntities()
-            .stream()
-            .flatMap( tei -> tei.getAttributes().stream() )
-            .filter( tea -> uniqueTrackedEntityAttributes.stream()
-                .anyMatch( uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
-            .collect( Collectors.toMap( a -> extractAttribute( a.getAttribute(), uniqueTrackedEntityAttributes ),
-                a -> extractValues( params.getTrackedEntities(), a.getAttribute() ) ) );
-
-        return trackedEntityAttributeValueService.getUniqueAttributeByValues( uniqueAttributes )
-            .stream()
-            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
-                av.getValue(), av.getEntityInstance().getOrganisationUnit().getUid() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<String> extractValues( List<TrackedEntity> trackedEntities, String attribute )
-    {
-        return trackedEntities
-            .stream()
-            .flatMap( tei -> tei.getAttributes().stream() )
-            .filter( a -> a.getAttribute().equals( attribute ) )
-            .map( a -> a.getValue() )
-            .collect( Collectors.toList() );
-    }
-
-    private TrackedEntityAttribute extractAttribute( String attribute,
-        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
-    {
-        return uniqueTrackedEntityAttributes
-            .stream()
-            .filter( a -> a.getUid().equals( attribute ) )
-            .findAny()
-            .orElse( null );
+        if ( FAIL_FAST_ON_PREHEAT_ERROR )
+        {
+            throw new PreheatException( "An error occurred during the preheat process. Preheater with name "
+                    + Introspector.decapitalize( supplier ) + "failed", e );
+        }
+        else
+        {
+            log.error( message, e );
+        }
     }
 
     @Override
     public void validate( TrackerPreheatParams params )
     {
-        //TODO: Implement validation
-    }
-
-    private Restriction generateRestrictionFromIdentifiers( TrackerIdScheme idScheme, List<String> ids )
-    {
-        if ( TrackerIdScheme.CODE.equals( idScheme ) )
-        {
-            return Restrictions.in( "code", ids );
-        }
-        else
-        {
-            return Restrictions.in( "id", ids );
-        }
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
-        List<List<String>> splitList )
-    {
-        TrackerIdScheme idScheme = identifier.getIdScheme();
-        for ( List<String> ids : splitList )
-        {
-            List<? extends IdentifiableObject> objects;
-
-            if ( TrackerIdScheme.ATTRIBUTE.equals( idScheme ) )
-            {
-                Attribute attribute = new Attribute();
-                attribute.setUid( identifier.getValue() );
-                objects = manager.getAllByAttributeAndValues(
-                    (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
-            }
-            else
-            {
-                Query query = Query.from( schema );
-                query.setUser( preheat.getUser() );
-                query.add( generateRestrictionFromIdentifiers( idScheme, ids ) );
-                query.setDefaults( Defaults.INCLUDE );
-                objects = queryService.query( query );
-            }
-
-            preheat.put( identifier, objects );
-        }
+        // TODO: Implement validation
     }
 
     private User getImportingUser( User user )
     {
-        // ıf user already set, reload the user to make sure its loaded in the current tx
+        // ıf user already set, reload the user to make sure its loaded in the current
+        // tx
         if ( user != null )
         {
             return manager.get( User.class, user.getUid() );
         }
 
         return currentUserService.getCurrentUser();
+    }
+
+    private ApplicationContext ctx;
+
+    @Override
+    public void setApplicationContext( ApplicationContext applicationContext )
+            throws BeansException
+    {
+        this.ctx = applicationContext;
     }
 }

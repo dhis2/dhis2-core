@@ -122,11 +122,10 @@ public class EnrollmentInExistingValidationHook
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = reporter.getValidationContext()
-            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getTrackedEntity() );
 
         // TODO: Create a dedicated sql query....?
-        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei )
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
             .stream()
             .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
             .collect( Collectors.toSet() );
@@ -151,19 +150,19 @@ public class EnrollmentInExistingValidationHook
     }
 
     private List<Enrollment> getAllEnrollments( ValidationErrorReporter reporter, Program program,
-        TrackedEntityInstance trackedEntityInstance )
+        String trackedEntityInstanceUid )
     {
         User user = reporter.getValidationContext().getBundle().getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        //checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
         params.setProgram( program );
-        params.setTrackedEntityInstance( trackedEntityInstance );
+        params.setTrackedEntityInstanceUid( trackedEntityInstanceUid );
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
 
         List<Enrollment> all = new ArrayList<>();
@@ -171,14 +170,14 @@ public class EnrollmentInExistingValidationHook
         for ( ProgramInstance programInstance : programInstances )
         {
             if ( trackerOwnershipManager
-                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
+                .hasAccess( user, programInstance.getEntityInstance().getUid(), programInstance.getOrganisationUnit(), programInstance.getProgram() ) )
             {
                 // Always create a fork of the reporter when used for checking/counting errors,
                 // this is needed for thread safety in parallel mode.
                 ValidationErrorReporter reporterFork = reporter.fork();
 
                 // Validates the programInstance read access on a fork of the reporter
-                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance );
+                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
 
                 if ( reporterFork.hasErrors() )
                 {
@@ -244,5 +243,26 @@ public class EnrollmentInExistingValidationHook
         }
 
         return enrollment;
+    }
+
+    /**
+     * Get a {@link TrackedEntityInstance} from the pre-heat or from the reference
+     * tree.
+     *
+     * @param reporter the {@link ValidationErrorReporter} object
+     * @param uid the UID of a {@link TrackedEntityInstance} object
+     * @return a TrackedEntityInstance
+     */
+    public TrackedEntityInstance getTrackedEntityInstance( ValidationErrorReporter reporter, String uid )
+    {
+        TrackedEntityInstance tei = reporter.getValidationContext().getTrackedEntityInstance( uid );
+
+        if ( tei == null && reporter.getValidationContext().getReference( uid ).isPresent() )
+        {
+            tei = new TrackedEntityInstance();
+            tei.setUid( uid );
+
+        }
+        return tei;
     }
 }

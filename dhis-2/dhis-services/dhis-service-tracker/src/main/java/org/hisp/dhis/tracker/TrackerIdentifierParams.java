@@ -29,13 +29,15 @@ package org.hisp.dhis.tracker;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Wrapper object to handle identifier-related parameters for tracker import/export
+ * Wrapper object to handle identifier-related parameters for tracker
+ * import/export
  *
  * @author Stian Sandvold
  */
@@ -95,4 +97,25 @@ public class TrackerIdentifierParams
     @Builder.Default
     private TrackerIdentifier categoryOption = TrackerIdentifier.UID;
 
+    public TrackerIdentifier getByClass( Class<?> klazz )
+    {
+        switch ( klazz.getSimpleName() )
+        {
+        case "CategoryOptionCombo":
+            return categoryOptionComboIdScheme;
+        case "OrganisationUnit":
+            return orgUnitIdScheme;
+        case "CategoryOption":
+            return categoryOption;
+        case "DataElement":
+            return dataElementIdScheme;
+        case "Program":
+            return programIdScheme;
+        case "ProgramStage":
+            return programStageIdScheme;
+        default:
+            throw new IllegalStateException( "Unexpected value: " + klazz.getName() );
+        }
+
+    }
 }

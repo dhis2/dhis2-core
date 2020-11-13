@@ -120,6 +120,14 @@ public interface UserService
     List<User> getUsers( Collection<String> uids );
 
     /**
+     * Retrieves a collection of User with the given usernames.
+     *
+     * @param usernames the usernames of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
+
+    /**
      * Returns a List of all Users.
      *
      * @return a Collection of Users.
@@ -230,6 +238,14 @@ public interface UserService
      */
     void updateUserCredentials( UserCredentials userCredentials );
 
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * id token.
+     *
+     * @param token the id token of the User.
+     * @return the UserCredentials.
+     */
+    public UserCredentials getUserCredentialsByIdToken( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given

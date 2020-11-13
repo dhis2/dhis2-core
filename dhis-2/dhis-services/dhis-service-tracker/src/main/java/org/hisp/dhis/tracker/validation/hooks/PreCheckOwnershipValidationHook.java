@@ -28,6 +28,21 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
+
+import java.util.Optional;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -43,25 +58,14 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -135,7 +139,11 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        checkNotNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        if ( tei == null && !context.getReference( enrollment.getTrackedEntity() ).isPresent() )
+        {
+            throw new NullPointerException( TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        }
+        
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
@@ -148,7 +156,7 @@ public class PreCheckOwnershipValidationHook
             boolean hasNonDeletedEvents = pi.getProgramStageInstances().stream().anyMatch( psi -> !psi.isDeleted() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
-            
+
             addErrorIf( () -> hasNonDeletedEvents && hasNotCascadeDeleteAuthority, reporter, E1103, user, pi );
         }
 
@@ -157,11 +165,18 @@ public class PreCheckOwnershipValidationHook
         {
             ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
             trackerImportAccessManager
-                .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), programInstance );
+                .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), tei.getUid(), organisationUnit );
         }
 
-        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-            new ProgramInstance( program, tei, organisationUnit ) );
+        if (tei != null) {
+            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+                    tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could not be in the Preheat because is part of an already persisted Entity
+        } else {
+            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+                    context.getReference( enrollment.getTrackedEntity() ).get().getUid(),
+                    context.getOrganisationUnit(getOrgUnitUidFromTei(context, context.getReference( enrollment.getTrackedEntity() ).get().getUid()) ));
+            // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI in the payload
+        }
     }
 
     @Override
@@ -180,26 +195,52 @@ public class PreCheckOwnershipValidationHook
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
+        String teiUid = null;
+
+        if ( programInstance == null )
+        {
+            Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
+            if ( reference.isPresent() )
+            {
+                teiUid = reference.get().getParentUid();
+            }
+        }
+        else
+        {
+            if ( programInstance.getEntityInstance() != null ) // TODO luciano: we should add a early check where validation fails if a pi has no TEI and program is with registration
+            {
+                teiUid = programInstance.getEntityInstance().getUid();
+            }
+        }
+        CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            validateUpdateAndDeleteEvent( reporter, event, context.getProgramStageInstance( event.getEvent() ) );
+            validateUpdateAndDeleteEvent( reporter, event, context.getProgramStageInstance( event.getEvent() ),
+                categoryOptionCombo,
+                programStage,
+                teiUid,
+                organisationUnit );
         }
-
-        CategoryOptionCombo categoryOptionCombo = context
-            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
 
         validateCreateEvent( reporter, user,
             categoryOptionCombo,
             programStage,
-            programInstance,
+            teiUid,
             organisationUnit,
-            program );
+            program, event.isCreatableInSearchScope());
     }
 
-    protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
-        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, ProgramInstance programInstance,
-        OrganisationUnit organisationUnit, Program program )
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        // NOTHING TO DO HERE
+    }
+    
+    protected void validateCreateEvent(ValidationErrorReporter reporter, User actingUser,
+           CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
+           OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope)
     {
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( actingUser, USER_CANT_BE_NULL );
@@ -209,15 +250,14 @@ public class PreCheckOwnershipValidationHook
 
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
-        ProgramStageInstance newProgramStageInstance = new ProgramStageInstance( programInstance, programStage )
-            .setOrganisationUnit( organisationUnit );
-        newProgramStageInstance.setAttributeOptionCombo( categoryOptionCombo );
-
-        trackerImportAccessManager.checkEventWriteAccess( reporter, newProgramStageInstance );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
+            teiUid,isCreatableInSearchScope ); // TODO: calculate correct isCreatableInSearchScope value
     }
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
-        ProgramStageInstance programStageInstance )
+        ProgramStageInstance programStageInstance,
+        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage,
+        String teiUid, OrganisationUnit organisationUnit )
     {
         TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
@@ -226,7 +266,8 @@ public class PreCheckOwnershipValidationHook
         checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, programStageInstance );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
+            teiUid, programStageInstance.isCreatableInSearchScope() );
 
         if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
@@ -235,5 +276,21 @@ public class PreCheckOwnershipValidationHook
         {
             addError( reporter, E1083, user );
         }
+    }
+
+    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid ) {
+
+
+        final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
+        if ( reference.isPresent() )
+        {
+            final Optional<TrackedEntity> tei = context.getBundle()
+                    .getTrackedEntity( teiUid );
+            if ( tei.isPresent() )
+            {
+                return tei.get().getOrgUnit();
+            }
+        }
+        return null;
     }
 }
