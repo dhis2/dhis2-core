@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -196,6 +197,7 @@ public class AssignedUserValidationHookTest
 
         Event event = new Event();
 
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( user.getUid() );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
