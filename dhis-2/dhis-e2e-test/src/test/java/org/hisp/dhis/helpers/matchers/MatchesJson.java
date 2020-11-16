@@ -31,63 +31,71 @@ package org.hisp.dhis.helpers.matchers;
 import com.google.gson.JsonObject;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.hisp.dhis.helpers.JsonParserUtils;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MatchesJson extends TypeSafeDiagnosingMatcher<Object>
+public class MatchesJson
+    extends TypeSafeDiagnosingMatcher<Object>
 {
 
     private final String expectedJSON;
+
     private JSONCompareMode jsonCompareMode;
 
-    public MatchesJson(final String expectedJSON) {
+    public MatchesJson( final String expectedJSON )
+    {
         this.expectedJSON = expectedJSON;
         this.jsonCompareMode = JSONCompareMode.LENIENT;
     }
 
-    @Override
-    public void describeTo( Description description) {
-        description.appendValue(expectedJSON);
-    }
-
-    @Override
-    protected boolean matchesSafely( Object actual, Description mismatchDescription) {
-        final String actualJSON = toJSONString(actual);
-        try {
-            JSONCompareResult result = JSONCompare.compareJSON(expectedJSON, actualJSON, jsonCompareMode);
-            if (result.failed()) {
-                mismatchDescription.appendText( "\n Actual: " + actualJSON );
-                mismatchDescription.appendText(result.getMessage());
-            }
-
-            return result.passed();
-        } catch (JSONException e) {
-            return false;
-        }
-    }
-
-    private static String toJSONString(final Object o) {
+    private static String toJSONString( final Object o )
+    {
         return o instanceof JsonObject ? o.toString() : JsonParserUtils.toJsonObject( o ).toString();
     }
 
-    public static MatchesJson matchesJSON(final String expectedJSON) {
-        return new MatchesJson(expectedJSON);
+    public static MatchesJson matchesJSON( final String expectedJSON )
+    {
+        return new MatchesJson( expectedJSON );
     }
 
-    public static MatchesJson matchesJSON( final Object obj) {
+    public static MatchesJson matchesJSON( final Object obj )
+    {
         return new MatchesJson( toJSONString(
             obj
         ) );
+    }
+
+    @Override
+    public void describeTo( Description description )
+    {
+        description.appendValue( expectedJSON );
+    }
+
+    @Override
+    protected boolean matchesSafely( Object actual, Description mismatchDescription )
+    {
+        final String actualJSON = toJSONString( actual );
+        try
+        {
+            JSONCompareResult result = JSONCompare.compareJSON( expectedJSON, actualJSON, jsonCompareMode );
+            if ( result.failed() )
+            {
+                mismatchDescription.appendText( "\n Actual: " + actualJSON );
+                mismatchDescription.appendText( result.getMessage() );
+            }
+
+            return result.passed();
+        }
+        catch ( JSONException e )
+        {
+            return false;
+        }
     }
 
 }
