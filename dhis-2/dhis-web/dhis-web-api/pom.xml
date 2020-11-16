@@ -46,6 +46,10 @@
       <artifactId>dhis-service-tracker</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
@@ -66,13 +70,9 @@
       <artifactId>jasperreports-fonts</artifactId>
     </dependency>
     <dependency>
-	  <groupId>org.javassist</groupId>
+      <groupId>org.javassist</groupId>
       <artifactId>javassist</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-api-mobile</artifactId>
-    </dependency> <!-- remove this -->
 
     <!-- Batik -->
 
@@ -88,6 +88,11 @@
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.projectlombok</groupId>-->
+<!--      <artifactId>lombok</artifactId>-->
+<!--      <scope>provided</scope>-->
+<!--    </dependency>-->
 
     <!-- Test -->
 
@@ -111,7 +116,15 @@
       <artifactId>json-path</artifactId>
       <scope>test</scope>
     </dependency>
+
+
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+    </dependency>
+
   </dependencies>
+
 
   <properties>
     <rootDir>../../</rootDir>
