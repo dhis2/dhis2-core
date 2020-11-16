@@ -28,10 +28,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4004;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4007;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4008;
@@ -120,17 +122,24 @@ public class RelationshipsValidationHook
     private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
         List<RelationshipType> relationshipsTypes )
     {
-        addErrorIfNull( relationship.getFrom(), reporter, E4007, "relationship.getFrom" );
-        addErrorIfNull( relationship.getTo(), reporter, E4008, "relationship.getTo" );
-        addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), reporter, E4004,
-            "relationship.relationshipType" );
+        addErrorIfNull( relationship.getFrom(), reporter, E4007 );
+        addErrorIfNull( relationship.getTo(), reporter, E4008 );
+        addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), reporter, E4004 );
 
         addErrorIf( () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
             reporter, E4009,
             relationship.getRelationshipType() );
+        // Relationship Item "to" for Relationship abc is invalid: an Item can link to only one Tracker entity
+        addErrorIf(
+            () -> relationship.getFrom() != null && countMatches( onlyValues( relationship.getFrom() ), "null" ) != 2,
+            reporter, E4001, "from", relationship.getRelationship() );
+        addErrorIf(
+            () -> relationship.getTo() != null && countMatches( onlyValues( relationship.getTo() ), "null" ) != 2,
+            reporter, E4001, "to", relationship.getRelationship() );
 
         final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
             .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
+
         return !any.isPresent();
     }
 
@@ -201,5 +210,10 @@ public class RelationshipsValidationHook
         }
 
         return result;
+    }
+
+    private String onlyValues( RelationshipItem item )
+    {
+        return item != null ? item.getTrackedEntity() + "-" + item.getEnrollment() + "-" + item.getEvent() : "null-null-null";
     }
 }
