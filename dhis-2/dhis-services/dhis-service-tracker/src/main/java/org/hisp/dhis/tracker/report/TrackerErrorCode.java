@@ -152,7 +152,8 @@ public enum TrackerErrorCode
     E4008( "Missing required relationship property: 'to'."  ),
     E4009( "Relationship Type `{0}` is not valid." ),
     E4010( "Relationship Type `{0}` constraint requires a {1} but a {2} was found." ),
-
+    E4011(
+        "Relationship: `{0}` cannot be persisted because {1} {2} referenced by this relationship is not valid." ),
     E9999( "N/A" );
 
     private final String message;

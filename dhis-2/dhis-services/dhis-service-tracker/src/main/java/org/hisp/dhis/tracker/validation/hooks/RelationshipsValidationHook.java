@@ -38,12 +38,14 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4004;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4007;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4008;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
@@ -51,6 +53,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
@@ -67,11 +70,6 @@ import org.springframework.stereotype.Component;
 public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private final static String TRACKED_ENTITY = "trackedEntity";
-
-    private final static String ENROLLMENT = "enrollment";
-
-    private final static String EVENT = "event";
 
     public RelationshipsValidationHook( TrackedEntityAttributeService teAttrService )
     {
@@ -100,7 +98,8 @@ public class RelationshipsValidationHook
 
             validateAutoRelationship( reporter, relationship );
 
-            // validateReferences( reporter, bundle, relationship); // TODO Enrico
+            validateReferences( reporter, relationship.getFrom(), relationship.getRelationship() );
+            validateReferences( reporter, relationship.getTo(), relationship.getRelationship() );
         }
 
     }
@@ -158,19 +157,19 @@ public class RelationshipsValidationHook
         }
     }
 
-    private String relationshipItemValueType( RelationshipItem item )
+    private TrackerType relationshipItemValueType( RelationshipItem item )
     {
         if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
         {
-            return TRACKED_ENTITY;
+            return TrackerType.TRACKED_ENTITY;
         }
         else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
         {
-            return ENROLLMENT;
+            return TrackerType.ENROLLMENT;
         }
         else if ( StringUtils.isNotEmpty( item.getEvent() ) )
         {
-            return EVENT;
+            return TrackerType.EVENT;
         }
         return null;
     }
@@ -186,8 +185,8 @@ public class RelationshipsValidationHook
             if ( item.getTrackedEntity() == null )
             {
                 result.add(
-                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TRACKED_ENTITY )
-                        .addArg( relationshipItemValueType( item ) ) );
+                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.TRACKED_ENTITY.getName() )
+                        .addArg( relationshipItemValueType( item ).getName() ) );
             }
         }
         else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
@@ -195,8 +194,8 @@ public class RelationshipsValidationHook
             if ( item.getEnrollment() == null )
             {
                 result.add(
-                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( ENROLLMENT )
-                        .addArg( relationshipItemValueType( item ) ) );
+                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.ENROLLMENT.getName() )
+                        .addArg( relationshipItemValueType( item ).getName() ) );
             }
 
         }
@@ -205,8 +204,8 @@ public class RelationshipsValidationHook
             if ( item.getEvent() == null )
             {
                 result.add(
-                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( EVENT )
-                        .addArg( relationshipItemValueType( item ) ) );
+                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.EVENT.getName() )
+                        .addArg( relationshipItemValueType( item ).getName() ) );
             }
         }
 
@@ -216,5 +215,41 @@ public class RelationshipsValidationHook
     private String onlyValues( RelationshipItem item )
     {
         return item != null ? item.getTrackedEntity() + "-" + item.getEnrollment() + "-" + item.getEvent() : "null-null-null";
+    }
+
+    private void validateReferences( ValidationErrorReporter reporter, RelationshipItem item, String relationship )
+    {
+        TrackerType trackerType = relationshipItemValueType( item );
+        String itemUid = getUidFromRelationshipItem( item );
+
+        List<TrackerErrorReport> errors =
+            reporter.getReportList()
+                .stream()
+                .filter( x -> x.getTrackerType().equals( trackerType ) )
+                .collect( Collectors.toList() );
+        for ( TrackerErrorReport error : errors )
+        {
+            if ( itemUid.equals( error.getUid() ) )
+            {
+                addError( reporter, E4011, relationship, trackerType.getName(), itemUid );
+            }
+        }
+    }
+
+    private String getUidFromRelationshipItem( RelationshipItem item )
+    {
+        if ( item.getTrackedEntity() != null )
+        {
+            return item.getTrackedEntity();
+        }
+        else if ( item.getEnrollment() != null )
+        {
+            return item.getEnrollment();
+        }
+        else if ( item.getEvent() != null )
+        {
+            return item.getEvent();
+        }
+        return null;
     }
 }
