@@ -44,7 +44,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -53,6 +55,8 @@ public class TrackerImporter_userAssignmentTests
     extends ApiTest
 {
     private static String programStageId = "l8oDIfJJhtg";
+
+    private static String programId = "BJ42SUrAvHo";
 
     private LoginActions loginActions;
 
@@ -63,8 +67,6 @@ public class TrackerImporter_userAssignmentTests
     private TrackerActions trackerActions;
 
     private EventActions eventActions;
-
-    private String programId = "BJ42SUrAvHo";
 
     @BeforeAll
     public void beforeAll()
@@ -100,10 +102,14 @@ public class TrackerImporter_userAssignmentTests
         ApiResponse response = eventActions.get( eventId );
         if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
         {
-            assertNull( response.getBody().get( "assignedUser" ) );
+            response.validate()
+                .body( "assignedUser", nullValue() );
+
+            return;
         }
 
-        assertEquals( loggedInUser, response.getBody().get( "assignedUser" ).getAsString() );
+        response.validate()
+            .body( "assignedUser", equalTo( loggedInUser ) );
     }
 
     // todo should be finalised when exporter is ready

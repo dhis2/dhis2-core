@@ -35,7 +35,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,7 +45,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**

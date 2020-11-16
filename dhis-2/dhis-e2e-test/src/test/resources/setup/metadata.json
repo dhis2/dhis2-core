@@ -493,12 +493,12 @@
     {
       "created": "2019-04-23T09:20:41.834",
       "lastUpdated": "2019-04-23T09:21:18.063",
-      "name": "TA Parent",
+      "name": "TA Sibling",
       "id": "xLmPUYJX8Ks",
       "bidirectional": true,
       "publicAccess": "rw------",
-      "toFromName": "Parent",
-      "fromToName": "Child",
+      "toFromName": "Sibling of",
+      "fromToName": "Sibling of",
       "fromConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {

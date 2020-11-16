@@ -48,8 +48,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import javax.sound.midi.Track;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.*;
@@ -129,7 +127,8 @@ public class TrackerImport_eventsDataValueValidationTests
         response.validateErrorReport()
             .validate()
             .body( "bundleReport.typeReportMap.EVENT", nullValue() )
-            .body( "trackerValidationReport.errorReports[0].message", stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) ;
+            .body( "trackerValidationReport.errorReports[0].message",
+                stringContainsInOrder( "Mandatory DataElement", "is not present" ) );
     }
 
     @Test

@@ -28,21 +28,19 @@
 
 package org.hisp.dhis.dto;
 
-import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
 
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerApiResponse extends ApiResponse
+public class TrackerApiResponse
+    extends ApiResponse
 {
 
     public TrackerApiResponse( ApiResponse response )
@@ -50,38 +48,48 @@ public class TrackerApiResponse extends ApiResponse
         super( response.raw );
     }
 
-    public List<String> extractImportedTeis() {
+    public List<String> extractImportedTeis()
+    {
         return this.extractList( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid" );
     }
 
-    public List<String> extractImportedEnrollments() {
-        return this.extractList( "bundleReport.typeReportMap.ENROLLMENT.objectReports.uid"  );
+    public List<String> extractImportedEnrollments()
+    {
+        return this.extractList( "bundleReport.typeReportMap.ENROLLMENT.objectReports.uid" );
     }
 
-    public List<String> extractImportedEvents() {
-        return this.extractList( "bundleReport.typeReportMap.EVENT.objectReports.uid"  );
+    public List<String> extractImportedEvents()
+    {
+        return this.extractList( "bundleReport.typeReportMap.EVENT.objectReports.uid" );
     }
 
-    public TrackerApiResponse validateSuccessfulImport() {
+    public List<String> extractImportedRelationships()
+    {
+        return this.extractList( "bundleReport.typeReportMap.RELATIONSHIP.objectReports.uid" );
+    }
+
+    public TrackerApiResponse validateSuccessfulImport()
+    {
         validate()
             .statusCode( 200 )
-            .body( "status", equalTo("OK") )
+            .body( "status", equalTo( "OK" ) )
             .body( "stats.created", greaterThanOrEqualTo( 1 ) )
-            .body( "stats.ignored" , equalTo( 0 ))
+            .body( "stats.ignored", equalTo( 0 ) )
             .body( "stats.total", greaterThanOrEqualTo( 1 ) )
             .body( "bundleReport.typeReportMap", notNullValue() );
 
         return this;
     }
 
-    public TrackerApiResponse validateErrorReport() {
-         validate().statusCode( 200 )
+    public TrackerApiResponse validateErrorReport()
+    {
+        validate().statusCode( 200 )
             .body( "status", Matchers.equalTo( "ERROR" ) )
-             .body( "stats.ignored", greaterThanOrEqualTo( 1 ) )
+            .body( "stats.ignored", greaterThanOrEqualTo( 1 ) )
             .body( "trackerValidationReport.errorReports", Matchers.notNullValue() )
             .rootPath( "trackerValidationReport.errorReports" );
 
-         return this;
+        return this;
     }
 
 }

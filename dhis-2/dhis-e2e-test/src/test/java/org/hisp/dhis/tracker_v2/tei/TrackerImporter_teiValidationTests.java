@@ -38,7 +38,7 @@ import org.hisp.dhis.utils.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -71,6 +71,7 @@ public class TrackerImporter_teiValidationTests
         // assert
         response.validateErrorReport()
             .validate()
-            .body( "trackerValidationReport.errorReports[0].message", containsStringIgnoringCase( "Could not find TrackedEntityType" ) );
+            .body( "trackerValidationReport.errorReports[0].message",
+                containsStringIgnoringCase( "Could not find TrackedEntityType" ) );
     }
 }

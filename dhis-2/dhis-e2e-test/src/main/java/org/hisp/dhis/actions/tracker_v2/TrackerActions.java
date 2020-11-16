@@ -29,7 +29,6 @@
 package org.hisp.dhis.actions.tracker_v2;
 
 import com.google.gson.JsonObject;
-import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -37,7 +36,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.JsonObjectBuilder;
 
 import java.io.File;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import static org.hamcrest.Matchers.notNullValue;
@@ -84,8 +82,9 @@ public class TrackerActions
         return getJobReportByImportResponse( response );
     }
 
-    public TrackerApiResponse postAndGetJobReport(File file, QueryParamsBuilder queryParamsBuilder) {
-        ApiResponse response = this.postFile(file, queryParamsBuilder );
+    public TrackerApiResponse postAndGetJobReport( File file, QueryParamsBuilder queryParamsBuilder )
+    {
+        ApiResponse response = this.postFile( file, queryParamsBuilder );
 
         return getJobReportByImportResponse( response );
     }
@@ -97,39 +96,43 @@ public class TrackerActions
         return getJobReportByImportResponse( response );
     }
 
-    public TrackerApiResponse postAndGetJobReport(JsonObject jsonObject, QueryParamsBuilder queryParamsBuilder) {
-        ApiResponse response = this.post(jsonObject, queryParamsBuilder );
+    public TrackerApiResponse postAndGetJobReport( JsonObject jsonObject, QueryParamsBuilder queryParamsBuilder )
+    {
+        ApiResponse response = this.post( jsonObject, queryParamsBuilder );
 
         return getJobReportByImportResponse( response );
     }
 
     public TrackerApiResponse getJobReport( String jobId, String reportMode )
     {
-        ApiResponse response =  this.get( String.format( "/jobs/%s/report?reportMode=%s", jobId, reportMode ) );
+        ApiResponse response = this.get( String.format( "/jobs/%s/report?reportMode=%s", jobId, reportMode ) );
 
         // add created entities
 
-       saveCreatedData( response );
-       return new TrackerApiResponse( response );
+        saveCreatedData( response );
+        return new TrackerApiResponse( response );
     }
 
-    private void saveCreatedData(ApiResponse response) {
+    private void saveCreatedData( ApiResponse response )
+    {
         String[] val = {
             "TRACKED_ENTITY,/trackedEntityInstances",
             "EVENT,/events",
-            "ENROLLMENT,/enrollments"
+            "ENROLLMENT,/enrollments",
+            "RELATIONSHIP,/relationships"
         };
 
         for ( String s : val )
         {
-            String path = String.format( "bundleReport.typeReportMap.%s.objectReports.uid", s.split( "," )[0]);
+            String path = String.format( "bundleReport.typeReportMap.%s.objectReports.uid", s.split( "," )[0] );
 
-            if (response.extractList( path ) != null) {
+            if ( response.extractList( path ) != null )
+            {
                 response.extractList( path ).stream()
                     .filter( o -> o != null )
                     .forEach( tei -> {
                         this.addCreatedEntity( s.split( "," )[1], tei.toString() );
-                });
+                    } );
             }
         }
 
@@ -149,8 +152,9 @@ public class TrackerActions
 
     }
 
-    public JsonObject createEventsBody( String ouId, String programId, String programStageId ) {
-        JsonObject object = new JsonObjectBuilder(  )
+    public JsonObject createEventsBody( String ouId, String programId, String programStageId )
+    {
+        JsonObject object = new JsonObjectBuilder()
             .addProperty( "programStage", programStageId )
             .addProperty( "program", programId )
             .addProperty( "orgUnit", ouId )

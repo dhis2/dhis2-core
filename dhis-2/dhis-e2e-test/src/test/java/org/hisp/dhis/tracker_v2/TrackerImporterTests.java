@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -59,14 +59,18 @@ public class TrackerImporterTests
     @Test
     public void shouldNotCommitWhenStrategyIsValidate()
     {
-        // act
         ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/tei.json" ),
             new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
 
         response.validate()
             .statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
-            .body( "stats.created", equalTo( 0 ) );
+            .body( "stats.created", equalTo( 0 ) )
+            .body( "stats.total", equalTo( 0 ) )
+            .body( "trackerValidationReport", notNullValue() )
+            .body( "trackerValidationReport.errorReports", empty() )
+            .body( "trackerValidationReport.warningReports", empty() );
+
     }
 
 }

@@ -39,30 +39,43 @@ public class JsonObjectBuilder
 {
     private JsonObject jsonObject;
 
-    public JsonObjectBuilder() {
+    public JsonObjectBuilder()
+    {
         jsonObject = new JsonObject();
     }
 
-    public JsonObjectBuilder( JsonObject jsonObject ) {
+    public JsonObjectBuilder( JsonObject jsonObject )
+    {
         this.jsonObject = jsonObject;
     }
 
-    public static JsonObjectBuilder jsonObject() {
+    public static JsonObjectBuilder jsonObject()
+    {
         return new JsonObjectBuilder();
     }
 
-    public static JsonObjectBuilder jsonObject( JsonObject jsonObject) {
+    public static JsonObjectBuilder jsonObject( JsonObject jsonObject )
+    {
         return new JsonObjectBuilder( jsonObject );
     }
 
-    public JsonObjectBuilder addProperty(String property, String value) {
+    public JsonObjectBuilder addProperty( String property, String value )
+    {
         jsonObject.addProperty( property, value );
 
         return this;
     }
 
-    public JsonObjectBuilder addUserGroupAccess( ) {
-        JsonArray userGroupAccesses = new JsonArray(  );
+    public JsonObjectBuilder addObject( String property, JsonObjectBuilder obj )
+    {
+        jsonObject.add( property, obj.build() );
+
+        return this;
+    }
+
+    public JsonObjectBuilder addUserGroupAccess()
+    {
+        JsonArray userGroupAccesses = new JsonArray();
 
         JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
             .addProperty( "access", "rwrw----" )
@@ -72,14 +85,14 @@ public class JsonObjectBuilder
 
         userGroupAccesses.add( userGroupAccess );
 
-
         jsonObject.add( "userGroupAccesses", userGroupAccesses );
 
         return this;
     }
 
-    public JsonObject wrapIntoArray( String arrayName ) {
-        JsonArray array = new JsonArray(  );
+    public JsonObject wrapIntoArray( String arrayName )
+    {
+        JsonArray array = new JsonArray();
 
         JsonObject newObj = new JsonObject();
 
@@ -90,7 +103,8 @@ public class JsonObjectBuilder
         return newObj;
     }
 
-    public JsonObject build() {
+    public JsonObject build()
+    {
         return this.jsonObject;
     }
 }
