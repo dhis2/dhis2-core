@@ -121,7 +121,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
             {
                 final List<ProgramInstance> programInstances = result.getOrDefault( event.getUid(), new ArrayList<>() );
                 programInstances.add( pi );
-                result.put( event.getUid(), programInstances );
+                result.put( event.getEvent(), programInstances );
             }
         }
 

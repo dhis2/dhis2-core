@@ -28,55 +28,20 @@ package org.hisp.dhis.tracker.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.programrule.RuleActionApplier;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author Enrico Colasante
+ * Interface for classes responsible of preprocessing the payload prior to
+ * validation.
+ *
+ * The validation stage is not supposed to change the payload. A pre-processor
+ * can modify the payload content and add data to the preheat if needed. Note
+ * that the pre-processing stage takes place after the preheat and before the
+ * validation.
+ *
+ * @author Luciano Fiandesio
  */
-@Slf4j
-@Service
-public class DefaultTrackerPreprocessService
-    implements TrackerPreprocessService
+public interface BundlePreProcessor
 {
-    private List<RuleActionApplier> appliers = new ArrayList<>();
-
-    private List<BundlePreProcessor> preProcessors = new ArrayList<>();
-
-    @Autowired( required = false )
-    public void setAppliers( List<RuleActionApplier> appliers )
-    {
-        this.appliers = appliers;
-    }
-
-    @Autowired( required = false )
-    public void setPreProcessors( List<BundlePreProcessor> preProcessors )
-    {
-        this.preProcessors = preProcessors;
-    }
-
-    @Override
-    public TrackerBundle preprocess( TrackerBundle bundle )
-    {
-        // TODO we may consider "merging" the BundlePreProcessor with the RuleActionApplier, since
-        // they share an identical interface.
-        for ( BundlePreProcessor preProcessor : preProcessors )
-        {
-            preProcessor.process( bundle );
-        }
-
-        for ( RuleActionApplier applier : appliers )
-        {
-            bundle = applier.executeActions( bundle );
-        }
-
-        return bundle;
-    }
+    void process( TrackerBundle bundle );
 }

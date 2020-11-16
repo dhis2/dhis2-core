@@ -28,8 +28,6 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -38,6 +36,12 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -50,20 +54,20 @@ public class SecurityServiceTest
     private UserCredentials otherCredentials;
 
     @Autowired
-    private UserService userService; 
-    
+    private UserService userService;
+
     @Autowired
     private PasswordManager passwordManager;
-    
+
     @Autowired
     private SecurityService securityService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Override
     public void setUpTest()
-    {        
+    {
         credentials = new UserCredentials();
         credentials.setUsername( "johndoe" );
         credentials.setPassword( "" );
@@ -86,183 +90,221 @@ public class SecurityServiceTest
         otherCredentials.setUserInfo( userB );
         userService.addUserCredentials( otherCredentials );
     }
-    
+
     @Test
     public void testUserAuthenticationLockout()
     {
-        systemSettingManager.saveSystemSetting( 
+        systemSettingManager.saveSystemSetting(
             SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE );
-        
+
         String username = "dr_evil";
-                
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertTrue( securityService.isLocked( username ) );
 
         securityService.registerFailedLogin( username );
         assertTrue( securityService.isLocked( username ) );
-        
+
         securityService.registerSuccessfulLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
-        systemSettingManager.saveSystemSetting( 
+
+        systemSettingManager.saveSystemSetting(
+            SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE );
+    }
+
+    @Test
+    public void testRecoveryAttemptLocked()
+    {
+        systemSettingManager.saveSystemSetting(
+            SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE );
+
+        String username = "dr_evil";
+
+        securityService.registerRecoveryAttempt( username );
+        assertFalse( securityService.isRecoveryLocked( username ) );
+
+        securityService.registerRecoveryAttempt( username );
+        assertFalse( securityService.isRecoveryLocked( username ) );
+
+        securityService.registerRecoveryAttempt( username );
+        assertFalse( securityService.isRecoveryLocked( username ) );
+
+        securityService.registerRecoveryAttempt( username );
+        assertFalse( securityService.isRecoveryLocked( username ) );
+
+        securityService.registerRecoveryAttempt( username );
+        assertFalse( securityService.isRecoveryLocked( username ) );
+
+        securityService.registerRecoveryAttempt( username );
+        assertTrue( securityService.isRecoveryLocked( username ) );
+
+        systemSettingManager.saveSystemSetting(
             SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE );
     }
 
     @Test
     public void testRestoreRecoverPassword()
     {
-        String[] result = securityService.initRestore( credentials, RestoreOptions.RECOVER_PASSWORD_OPTION );
+        String encodedTokens = securityService
+            .generateAndPersistTokens( credentials, RestoreOptions.RECOVER_PASSWORD_OPTION );
 
-        assertEquals( 1, result.length );
-
-        String token = result[0];
-
-        assertNotNull( token );
+        assertNotNull( encodedTokens );
         assertNotNull( credentials.getRestoreToken() );
+        assertNotNull( credentials.getIdToken() );
         assertNotNull( credentials.getRestoreExpiry() );
 
-        RestoreOptions restoreOptions = securityService.getRestoreOptions( token );
+        String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
+        String idToken = idAndHashedToken[0];
+        String restoreToken = idAndHashedToken[1];
 
+        UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
+        assertNotNull( credentials );
+        assertEquals( credentials, this.credentials );
+
+        RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
         assertEquals( RestoreOptions.RECOVER_PASSWORD_OPTION, restoreOptions );
         assertEquals( RestoreType.RECOVER_PASSWORD, restoreOptions.getRestoreType() );
-        assertEquals( false, restoreOptions.isUsernameChoice() );
+        assertFalse( restoreOptions.isUsernameChoice() );
 
         //
         // verifyToken()
         //
-        assertNotNull( securityService.verifyToken( otherCredentials, token, RestoreType.RECOVER_PASSWORD ) );
+        assertNotNull(
+            securityService.verifyRestoreToken( otherCredentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
 
-        assertNotNull( securityService.verifyToken( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
+        assertNotNull( securityService.verifyRestoreToken( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
 
-        assertNotNull( securityService.verifyToken( credentials, token, RestoreType.INVITE ) );
+        assertNotNull( securityService.verifyRestoreToken( credentials, restoreToken, RestoreType.INVITE ) );
 
-        assertNull( securityService.verifyToken( credentials, token, RestoreType.RECOVER_PASSWORD ) );
+        assertNull( securityService.verifyRestoreToken( credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
 
         //
         // canRestoreNow()
         //
-        assertFalse( securityService.canRestore( otherCredentials, token, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse( securityService.canRestore( otherCredentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
 
         assertFalse( securityService.canRestore( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
 
-        assertFalse( securityService.canRestore( credentials, token, RestoreType.INVITE ) );
+        assertFalse( securityService.canRestore( credentials, restoreToken, RestoreType.INVITE ) );
 
-        assertTrue( securityService.canRestore( credentials, token, RestoreType.RECOVER_PASSWORD ) );
+        assertTrue( securityService.canRestore( credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
 
         //
         // restore()
         //
         String password = "NewPassword1";
 
-        assertFalse( securityService.restore( otherCredentials, token, password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( otherCredentials, restoreToken, password, RestoreType.INVITE ) );
 
         assertFalse( securityService.restore( credentials, "wrongToken", password, RestoreType.INVITE ) );
 
-        assertFalse( securityService.restore( credentials, token, password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( credentials, restoreToken, password, RestoreType.INVITE ) );
 
-        assertTrue( securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD ) );
-
-
+        assertTrue( securityService.restore( credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
 
         //
         // check password
         //
-
         assertTrue( passwordManager.matches( password, credentials.getPassword() ) );
     }
 
     @Test
     public void testRestoreInvite()
     {
-        String[] result = securityService.initRestore( credentials, RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
+        String encodedTokens = securityService
+            .generateAndPersistTokens( credentials, RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
 
-        assertEquals( 1, result.length );
-
-        String token = result[0];
-
-        assertNotNull( token );
+        assertNotNull( encodedTokens );
         assertNotNull( credentials.getRestoreToken() );
+        assertNotNull( credentials.getIdToken() );
         assertNotNull( credentials.getRestoreExpiry() );
 
-        RestoreOptions restoreOptions = securityService.getRestoreOptions( token );
+        String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
+        String idToken = idAndHashedToken[0];
+        String restoreToken = idAndHashedToken[1];
 
+        RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
         assertEquals( RestoreOptions.INVITE_WITH_DEFINED_USERNAME, restoreOptions );
         assertEquals( RestoreType.INVITE, restoreOptions.getRestoreType() );
-        assertEquals( false, restoreOptions.isUsernameChoice() );
+        assertFalse( restoreOptions.isUsernameChoice() );
+
+        UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
+        assertNotNull( credentials );
+        assertEquals( credentials, this.credentials );
 
         //
         // verifyToken()
         //
-        assertNotNull( securityService.verifyToken( otherCredentials, token, RestoreType.INVITE ) );
+        assertNotNull( securityService.verifyRestoreToken( otherCredentials, restoreToken, RestoreType.INVITE ) );
 
-        assertNotNull( securityService.verifyToken( credentials, "wrongToken", RestoreType.INVITE ) );
+        assertNotNull( securityService.verifyRestoreToken( this.credentials, "wrongToken", RestoreType.INVITE ) );
 
-        assertNotNull( securityService.verifyToken( credentials, token, RestoreType.RECOVER_PASSWORD ) );
+        assertNotNull(
+            securityService.verifyRestoreToken( this.credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
 
-        assertNull( securityService.verifyToken( credentials, token, RestoreType.INVITE ) );
+        assertNull( securityService.verifyRestoreToken( this.credentials, restoreToken, RestoreType.INVITE ) );
 
         //
         // canRestoreNow()
         //
-        assertFalse( securityService.canRestore( otherCredentials, token, RestoreType.INVITE ) );
+        assertFalse( securityService.canRestore( otherCredentials, restoreToken, RestoreType.INVITE ) );
 
-        assertFalse( securityService.canRestore( credentials, "wrongToken", RestoreType.INVITE ) );
+        assertFalse( securityService.canRestore( this.credentials, "wrongToken", RestoreType.INVITE ) );
 
-        assertFalse( securityService.canRestore( credentials, token, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse( securityService.canRestore( this.credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
 
-        assertTrue( securityService.canRestore( credentials, token, RestoreType.INVITE ) );
+        assertTrue( securityService.canRestore( this.credentials, restoreToken, RestoreType.INVITE ) );
 
         //
         // restore()
         //
         String password = "NewPassword1";
 
-        assertFalse( securityService.restore( otherCredentials, token, password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( otherCredentials, restoreToken, password, RestoreType.INVITE ) );
 
-        assertFalse( securityService.restore( credentials, "wrongToken", password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( this.credentials, "wrongToken", password, RestoreType.INVITE ) );
 
-        assertFalse( securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse(
+            securityService.restore( this.credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
 
-        assertTrue( securityService.restore( credentials, token, password, RestoreType.INVITE ) );
+        assertTrue( securityService.restore( this.credentials, restoreToken, password, RestoreType.INVITE ) );
 
         //
         // check password
         //
-
-        assertTrue( passwordManager.matches( password, credentials.getPassword() ) );
+        assertTrue( passwordManager.matches( password, this.credentials.getPassword() ) );
     }
 
     @Test
     public void testRestoreInviteWithUsernameChoice()
     {
-        String[] result = securityService.initRestore( credentials, RestoreOptions.INVITE_WITH_USERNAME_CHOICE );
+        String encodedTokens = securityService
+            .generateAndPersistTokens( credentials, RestoreOptions.INVITE_WITH_USERNAME_CHOICE );
+        String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
+        String restoreToken = idAndHashedToken[1];
 
-        assertEquals( 1, result.length );
-
-        String token = result[0];
-
-        RestoreOptions restoreOptions = securityService.getRestoreOptions( token );
+        RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
 
         assertEquals( RestoreOptions.INVITE_WITH_USERNAME_CHOICE, restoreOptions );
         assertEquals( RestoreType.INVITE, restoreOptions.getRestoreType() );
-        assertEquals( true, restoreOptions.isUsernameChoice() );
+        assertTrue( restoreOptions.isUsernameChoice() );
     }
-    
+
     @Test
     public void testIsInviteUsername()
     {
@@ -272,5 +314,5 @@ public class SecurityServiceTest
         assertFalse( securityService.isInviteUsername( "inv1te-mark@gmail.com-OsTci1JyHRU" ) );
         assertFalse( securityService.isInviteUsername( "invite-tomjohnson@yahoo.com-OsTci1JyHRUC" ) );
         assertFalse( securityService.isInviteUsername( "invite-johnthomson@gmail.com-OsTci1yHRU" ) );
-    }    
+    }
 }
