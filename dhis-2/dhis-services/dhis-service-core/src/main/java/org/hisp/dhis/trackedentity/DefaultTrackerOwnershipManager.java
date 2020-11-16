@@ -133,6 +133,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * Cache for storing recent ownership checks
      */
     private Cache<OrganisationUnit> ownerCache;
+    
+    /**
+     * Cache for storing recent temporary ownership checks
+     */
+    private Cache<Boolean> tempOwnerCache;
+
 
     @PostConstruct
     public void init()
@@ -140,9 +146,15 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         //TODO proper solution for unit tests, where the cache must not survive between tests
 
         ownerCache = cacheProvider.newCacheBuilder( OrganisationUnit.class )
-            .forRegion( "OrganisationUnitOwner" )
+            .forRegion( "programOwner" )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000 )
+            .build();
+        
+        tempOwnerCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "programTempOwner" )
+            .expireAfterWrite( 30, TimeUnit.MINUTES )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
             .build();
     }
 
@@ -354,7 +366,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         {
             return true;
         }
-        return programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0;
+        return tempOwnerCache.get( getTempOwnershipCacheKey( entityInstance.getUid(), program.getUid(), user.getUid() ), s -> {
+            return (programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0);
+        } ).get();
     }
 
     private boolean hasTemporaryAccessWithUid( String entityInstanceUid, Program program, User user )
@@ -364,14 +378,15 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             return true;
         }
      
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( entityInstanceUid );
-        if ( entityInstance == null )
-        {
-            return true;
-        }
-        
-        return programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0;
-    }
+        return tempOwnerCache.get( getTempOwnershipCacheKey( entityInstanceUid, program.getUid(), user.getUid() ), s -> {
+            TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( entityInstanceUid );
+            if ( entityInstance == null )
+            {
+                return true;
+            }
+            return (programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0);
+        } ).get();
+     }
 
     /**
      * Ownership check can be skipped if the user is super user or if the
@@ -398,5 +413,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private String getOwnershipCacheKeyWithUid( String trackedEntityInstance, Program program )
     {
         return trackedEntityInstance + "_" + program.getUid();
+    }
+    
+    /**
+     * Returns key used to store and retrieve cached records for ownership
+     * @param trackedEntityInstance
+     * @param program
+     * @return a String representing a record of ownership
+     */
+    private String getTempOwnershipCacheKey( String teiUid, String programUid, String userUid )
+    {
+        return new StringBuilder().append( teiUid ).append( "-" ).append( programUid ).append( "-" ).append( userUid )
+            .toString();
     }
 }
