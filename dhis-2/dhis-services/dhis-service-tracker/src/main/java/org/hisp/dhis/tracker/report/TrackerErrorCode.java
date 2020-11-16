@@ -147,13 +147,14 @@ public enum TrackerErrorCode
     E4003( "There are duplicated relationships." ),
     E4004( "Missing required relationship property: 'relationshipType'." ),
     E4005( "RelationShip: `{0}`, do not exist." ),
-    E4006( "Could not find relationship Type: `{0}`."  ),
-    E4007( "Missing required relationship property: 'from'."  ),
-    E4008( "Missing required relationship property: 'to'."  ),
+    E4006( "Could not find relationship Type: `{0}`." ),
+    E4007( "Missing required relationship property: 'from'." ),
+    E4008( "Missing required relationship property: 'to'." ),
     E4009( "Relationship Type `{0}` is not valid." ),
     E4010( "Relationship Type `{0}` constraint requires a {1} but a {2} was found." ),
     E4011(
         "Relationship: `{0}` cannot be persisted because {1} {2} referenced by this relationship is not valid." ),
+    E4012( "Could not find `{0}`: `{1}`, linked to Relationship." ),
     E9999( "N/A" );
 
     private final String message;
