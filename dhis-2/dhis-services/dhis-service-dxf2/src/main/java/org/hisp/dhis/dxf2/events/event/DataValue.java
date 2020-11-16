@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 import java.util.Objects;
 
@@ -45,11 +45,11 @@ public class DataValue
 {
     private String created;
 
-    private ProgramStageInstanceUserInfo createdByUserInfo;
+    private UserInfoSnapshot createdByUserInfo;
 
     private String lastUpdated;
 
-    private ProgramStageInstanceUserInfo lastUpdatedByUserInfo;
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String value;
 
@@ -85,12 +85,12 @@ public class DataValue
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageInstanceUserInfo getCreatedByUserInfo()
+    public UserInfoSnapshot getCreatedByUserInfo()
     {
         return createdByUserInfo;
     }
 
-    public void setCreatedByUserInfo( ProgramStageInstanceUserInfo createdByUserInfo )
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
     {
         this.createdByUserInfo = createdByUserInfo;
     }
@@ -109,12 +109,12 @@ public class DataValue
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageInstanceUserInfo getLastUpdatedByUserInfo()
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
     {
         return lastUpdatedByUserInfo;
     }
 
-    public void setLastUpdatedByUserInfo( ProgramStageInstanceUserInfo lastUpdatedByUserInfo )
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
     {
         this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
