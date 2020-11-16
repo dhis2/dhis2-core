@@ -34,6 +34,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -43,11 +44,13 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
+
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
@@ -60,6 +63,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1087;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1088;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1094;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -89,7 +93,7 @@ public class PreCheckMetaValidationHook
         TrackedEntityType entityType = context.getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
-            addError( reporter, E1005, tei.getTrackedEntityType());
+            addError( reporter, E1005, tei.getTrackedEntityType() );
         }
     }
 
@@ -136,6 +140,18 @@ public class PreCheckMetaValidationHook
 
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
         validateDataElementForDataValues( reporter, event, context );
+    }
+
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        TrackerImportValidationContext context = reporter.getValidationContext();
+
+        RelationshipType relationshipType = context.getRelationShipType( relationship.getRelationshipType() );
+        if ( relationshipType == null )
+        {
+            addError( reporter, E4006, relationship.getRelationshipType() );
+        }
     }
 
     private void validateDataElementForDataValues( ValidationErrorReporter reporter, Event event,

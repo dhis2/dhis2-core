@@ -24,7 +24,6 @@
 
 <form id="restoreForm">
 
-<input type="hidden" id="username" value="${username}">
 <input type="hidden" id="token" value="${token}">
 
 <table style="margin-bottom:20px">
@@ -45,7 +44,7 @@
 </form>
 
 <div id="restoreSuccessMessage" style="display:none">
-You account was successfully restored. Use your new password to 
+You account was successfully restored. Use your new password to
 <a href="login.action">log in at the login page</a>.
 </div>
 
@@ -55,6 +54,6 @@ go to the <a href="login.action">login page</a> and request a new restore email.
 </div>
 
 </div>
-
+</div>
 </body>
 </html>

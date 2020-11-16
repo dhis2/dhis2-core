@@ -54,6 +54,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -189,13 +190,7 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( property != null && property.isEmbeddedObject() )
-            {
-                handleEmbeddedObject( property, value, persister, objectMap );
-                continue;
-            }
-
-            if ( shouldInitializeProxy( value ) )
+            if ( shouldInitializeProxy( value ) || ( property != null && property.isEmbeddedObject() ) )
             {
                 if ( entityProxy == null )
                 {
@@ -207,6 +202,12 @@ public abstract class AbstractHibernateListener
 
             if ( value == null )
             {
+                continue;
+            }
+
+            if ( property != null && property.isEmbeddedObject() )
+            {
+                handleEmbeddedObject( property, value, objectMap );
                 continue;
             }
 
@@ -232,9 +233,27 @@ public abstract class AbstractHibernateListener
     
     private void putValueToMap( Property property, Map<String, Object> objectMap, Object value )
     {
-        if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+        if ( value == null ) return;
+
+        if ( property.isCollection() )
         {
-            objectMap.put( property.getFieldName(), IdentifiableObjectUtils.getUids( (Collection) value ) );
+            Collection collection = ( Collection ) value;
+
+            if ( collection.isEmpty() ) return;
+
+            if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+            {
+                List<String> uids = IdentifiableObjectUtils.getUids( collection );
+
+                if ( uids != null || !uids.isEmpty() )
+                {
+                    objectMap.put( property.getFieldName(), uids );
+                }
+            }
+            else
+            {
+                objectMap.put( property.getFieldName(), collection );
+            }
         }
         else
         {
@@ -242,7 +261,7 @@ public abstract class AbstractHibernateListener
         }
     }
 
-    private void handleEmbeddedObject( Property property, Object value, EntityPersister persister, Map<String, Object> objectMap )
+    private void handleEmbeddedObject( Property property, Object value, Map<String, Object> objectMap )
     {
         if ( value == null ) return;
 
@@ -250,29 +269,13 @@ public abstract class AbstractHibernateListener
 
         if ( embeddedSchema == null )
         {
-            objectMap.put( property.getName(), value );
+            putValueToMap( property, objectMap, value );
             return;
         }
 
         Map<String, Property> properties = embeddedSchema.getFieldNameMapProperties();
         properties.forEach( (pName, prop) -> {
-
-            Object propertyValue =  ReflectionUtils.invokeMethod( value, prop.getGetterMethod() );
-            if ( BaseIdentifiableObject.class.isAssignableFrom( prop.getItemKlass() ) )
-            {
-                if ( prop.isCollection() )
-                {
-                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) propertyValue ) );
-                }
-                else
-                {
-                    objectMap.put( pName, getId( propertyValue ) );
-                }
-            }
-            else
-            {
-                objectMap.put( pName, propertyValue );
-            }
+            putValueToMap( prop, objectMap, ReflectionUtils.invokeMethod( value, prop.getGetterMethod() ) );
         } );
     }
 

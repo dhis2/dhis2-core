@@ -121,6 +121,7 @@ public class AssignedUserValidationHookTest
         pi.setProgram( programA );
         pi.setOrganisationUnit( organisationUnitA );
         pi.setEnrollmentDate( new Date() );
+        pi.setIncidentDate( new Date() );
 
         manager.save( pi );
 
@@ -134,12 +135,15 @@ public class AssignedUserValidationHookTest
 
         String testUserUid = "123";
 
+        event.setEvent( "EVENTUID001" );
         event.setAssignedUser( testUserUid );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
         event.setOccurredAt( "1990-10-22" );
+        event.setCreatedAt( "2010-10-22" );
+        event.setScheduledAt( "2010-10-22" );
 
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
@@ -158,17 +162,19 @@ public class AssignedUserValidationHookTest
     @Test
     public void testAssignedUserDoesNotExist()
     {
-
         Event event = new Event();
 
         String testUserUid = "A01234567890";
 
+        event.setEvent( "EVENTUID001" );
         event.setAssignedUser( testUserUid );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
         event.setOccurredAt( "1990-10-22" );
+        event.setScheduledAt( "2010-10-22" );
+        event.setCreatedAt( "2010-10-22" );
 
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
