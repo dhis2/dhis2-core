@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.programrule;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
- * @Author Enrico Colasante
+ * @author Enrico Colasante
  */
 public interface RuleActionApplier extends RuleActionImplementer
 {
