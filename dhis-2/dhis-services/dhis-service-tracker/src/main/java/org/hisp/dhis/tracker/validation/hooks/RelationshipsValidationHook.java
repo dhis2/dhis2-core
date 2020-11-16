@@ -129,7 +129,8 @@ public class RelationshipsValidationHook
         addErrorIf( () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
             reporter, E4009,
             relationship.getRelationshipType() );
-        // Relationship Item "to" for Relationship abc is invalid: an Item can link to only one Tracker entity
+
+        // make sure that both Relationship Item only contain *one* reference (tei, enrollment or event)
         addErrorIf(
             () -> relationship.getFrom() != null && countMatches( onlyValues( relationship.getFrom() ), "null" ) != 2,
             reporter, E4001, "from", relationship.getRelationship() );
