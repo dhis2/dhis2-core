@@ -28,18 +28,21 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -146,6 +149,48 @@ public class FilteringHelperTest
 
         // When
         extractEntityFromEqualFilter( filtersWithInvalidType );
+    }
+
+    @Test
+    public void testContainsDimensionTypeFilterUsingEqualsQuery()
+    {
+        // Given
+        final List<String> anyFilters = singletonList( "dimensionItemType:eq:DATA_SET" );
+        final boolean expectedTrueResult = true;
+
+        // When
+        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+
+        // Then
+        assertThat( actualResult, is( expectedTrueResult ) );
+    }
+
+    @Test
+    public void testContainsDimensionTypeFilterUsingInQuery()
+    {
+        // Given
+        final List<String> anyFilters = singletonList( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
+        final boolean expectedTrueResult = true;
+
+        // When
+        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+
+        // Then
+        assertThat( actualResult, is( expectedTrueResult ) );
+    }
+
+    @Test
+    public void testContainsDimensionTypeFilterWhenThereDimensionItemTypeFilterIsNotSet()
+    {
+        // Given
+        final List<String> anyFilters = singletonList( "displayName:ilike:anc" );
+        final boolean expectedFalseResult = false;
+
+        // When
+        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+
+        // Then
+        assertThat( actualResult, is( expectedFalseResult ) );
     }
 
     @Test
