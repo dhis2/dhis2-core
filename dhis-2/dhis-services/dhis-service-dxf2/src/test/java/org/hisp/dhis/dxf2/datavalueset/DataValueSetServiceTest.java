@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -117,6 +116,9 @@ public class DataValueSetServiceTest
 
     @Autowired
     private DataValueSetService dataValueSetService;
+
+    @Autowired
+    private DataValueSetService dataValueSetServiceNoMocks;
 
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
@@ -1207,6 +1209,33 @@ public class DataValueSetServiceTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    @Test
+    public void testImportDataValueWithNewPeriods()
+    {
+        Period period200006 = periodService.getPeriod( "200006" );
+        Period period200007 = periodService.getPeriod( "200007" );
+        Period period200008 = periodService.getPeriod( "200008" );
+        assertNull( period200006 );
+        assertNull( period200007 );
+        assertNull( period200008 );
+
+        String importData =
+            "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n" +
+                "  <dataValue dataElement=\"DE_A\" period=\"200006\" value=\"10001\" />\n" +
+                "  <dataValue dataElement=\"DE_B\" period=\"200006\" value=\"10002\" />\n" +
+                "  <dataValue dataElement=\"DE_C\" period=\"200007\" value=\"10003\" />\n" +
+                "  <dataValue dataElement=\"DE_D\" period=\"200007\" value=\"10004\" />\n" +
+                "  <dataValue dataElement=\"DE_D\" period=\"200008\" value=\"10005\" />\n" +
+                "</dataValueSet>\n";
+
+        in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
+
+        ImportSummary summary = dataValueSetServiceNoMocks.saveDataValueSet( in );
+
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( 5, summary.getImportCount().getImported() );
     }
 
 

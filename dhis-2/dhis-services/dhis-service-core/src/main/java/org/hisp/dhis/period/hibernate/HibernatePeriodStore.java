@@ -316,15 +316,12 @@ public class HibernatePeriodStore
     public Period insertIsoPeriodInStatelessSession( Period period )
     {
         StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
         try
         {
             Serializable id = session.insert( period );
-            Period storedPeriod = (Period) session.get( Period.class, id );
+            PERIOD_ID_CACHE.put( period.getCacheKey(), (Long) id );
 
-            PERIOD_ID_CACHE.put( period.getCacheKey(), storedPeriod.getId() );
-
-            return storedPeriod;
+            return period;
         }
         catch ( Exception exception )
         {
