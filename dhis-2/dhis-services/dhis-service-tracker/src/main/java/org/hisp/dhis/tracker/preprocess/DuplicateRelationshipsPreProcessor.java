@@ -40,8 +40,8 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for removing duplicated relationship from
- * the import payload.
+ * This preprocessor is responsible for removing duplicated relationships from
+ * the Tracker import payload.
  *
  * @author Luciano Fiandesio
  */
@@ -49,10 +49,10 @@ import org.springframework.stereotype.Component;
 public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
 {
     /**
-     * Process the bundle's relationship collection and remove relationships that
+     * Process the bundle's relationships collection and remove relationships that
      * are duplicated.
      *
-     * There are 5 cases (all cases assume the same relationship type_
+     * There are 5 cases (all cases assume the same relationship type):
      *
      * <pre>
      * case 1:
@@ -129,11 +129,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
         BidiMap<String, String> map = new DualHashBidiMap<>();
 
         // Add a pseudo hash of all relationships to the map. If the relationship is bidirectional, first
-        // sort the Relationship Item
+        // sort the Relationship Items
         bundle.getRelationships().stream().filter( validRelationship )
             .forEach( rel -> map.put( rel.getRelationship(), hash( rel ) ) );
 
-        // Remove duplicated Relationship from the bundle
+        // Remove duplicated Relationships from the bundle, if any
         bundle.getRelationships().removeIf( rel -> !map.containsKey( rel.getRelationship() ) );
 
     }
@@ -149,5 +149,4 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
         return Stream.of( rel.getFrom().toString(), rel.getTo().toString() ).sorted()
             .collect( Collectors.joining( "-" ) );
     }
-
 }
