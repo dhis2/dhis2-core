@@ -149,6 +149,8 @@ public class RelationshipTrackerConverterService
         }
 
         // FROM
+        fromItem.setRelationship( toRelationship );
+
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
@@ -166,6 +168,8 @@ public class RelationshipTrackerConverterService
         }
 
         // TO
+        toItem.setRelationship( toRelationship );
+
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
