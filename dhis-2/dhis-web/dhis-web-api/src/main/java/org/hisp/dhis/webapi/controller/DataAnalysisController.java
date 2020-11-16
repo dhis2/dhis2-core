@@ -240,7 +240,7 @@ public class DataAnalysisController
             attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );
             if ( attributeOptionCombo == null )
             {
-                throw new WebMessageException( WebMessageUtils.notFound( "Can't find AttributeOptionCombo with id =" + attributeOptionComboId ) );
+                throw new WebMessageException( WebMessageUtils.notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
             }
         }
 
