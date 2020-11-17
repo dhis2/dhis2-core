@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.tracker.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,34 +28,45 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Collections.singletonList;
 
 /**
- * @author Luciano Fiandesio
+ * This preprocessor is responsible for setting the ProgramInstance UID on
+ * an Event if the Program that the event belongs is of type 'WITHOUT_REGISTRATION'
+ *
+ * @author Enrico Colasante
  */
-@RequiredArgsConstructor
 @Component
-public class ProgramInstanceSupplier extends AbstractPreheatSupplier
+public class EventWithoutRegistrationPreProcessor
+    implements BundlePreProcessor
 {
-    @NonNull
-    private final ProgramInstanceStore programInstanceStore;
-
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void process( TrackerBundle bundle )
     {
-        List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        programInstances
-            .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
+        for ( Event event : bundle.getEvents() )
+        {
+            // If the event program is missing, it will be captured later by validation
+            if ( !StringUtils.isEmpty( event.getProgram() ) )
+            {
+                ProgramInstance enrollment = bundle.getPreheat().getProgramInstancesWithoutRegistration( event.getProgram() );
+
+                if (enrollment != null ) {
+                    event.setEnrollment( enrollment.getUid() );
+                }
+            }
+        }
     }
 }
